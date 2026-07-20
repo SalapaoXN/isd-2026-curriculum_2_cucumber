@@ -1,0 +1,87 @@
+{
+  "source_path": "outputs\\img27_ocr.json",
+  "source": "OCR curriculum extraction",
+  "description": "Extracted academic plan from OCR for DSBA (no_coop)",
+  "program": "DSBA",
+  "plan": "no_coop",
+  "courses": [
+    {
+      "code": "06026213",
+      "name_th": "ร ะ บ บ ข้ อ ม ู ล ม ห ั ต eee เน นี ต ร ณะ",
+      "name_en": null,
+      "credits": null,
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026214",
+      "name_th": "โค ร ง ง า น ว ิ ท ย า ก า ร ข้ อ ม ู ล แล ะ ก า ร ว ิ เค ร า ะ ห ์ เช ิ ง ธุ ร ก ิ จ PROJECT IN DATA SCIENCE AND BUSINESS ee",
+      "name_en": null,
+      "credits": null,
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026xxx",
+      "name_th": "ว ิ ชา เล ื อ ก ก ล ุ ่ ม ว ิ ท ย า ก า ร ข้ อ ม ู ล (3-0-6) ELECTIVE IN DATA SCIENCE ห ร ื อ ว ิ ชา เล ื อ ก ก ล ุ ่ ม ก า ร ว ิ เค ร า ะ ห ์ เช ิ ง ส ถิ ต ิ (2-2-5) ELECTIVE IN STATISTICAL ANALYTICS ว ิ ชา เล ื อ ก ก ล ุ ่ ม ว ิ ศว ก ร ร ม ข้ อ ม ู ล ELECTIVE IN DATA ENGINEERING",
+      "name_en": null,
+      "credits": null,
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026xxx",
+      "name_th": "ว ิ ชา เล ื อ ก ก ล ุ ่ ม ว ิ ท ย า ก า ร ข้ อ ม ู ล (3-0-6) ELECTIVE IN DATA SCIENCE ห ร ื อ ว ิ ชา เล ื อ ก ก ล ุ ่ ม ก า ร ว ิ เค ร า ะ ห ์ เช ิ ง ส ถิ ต ิ (2-2-5) ELECTIVE IN STATISTICAL ANALYTICS ว ิ ชา เล ื อ ก ก ล ุ ่ ม ว ิ ศว ก ร ร ม ข้ อ ม ู ล ELECTIVE IN DATA ENGINEERING",
+      "name_en": null,
+      "credits": null,
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06066100",
+      "name_th": "ก า ร บ ร ิ ห า ร โค ร ง ก า ร เท ค โน โล ย ี ส า ร ส น เท ศ (3-0-6) === MANAGEMENT",
+      "name_en": null,
+      "credits": null,
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "90643021",
+      "name_th": "ก ล ุ ่ ม ว ิ ชา ท ี ่ ก ํ า ห น ด โด ย ค ณะ * (3-0-6) ผู ้ ป ร ะ ก อ บ ก า ร ส ม ั ย ให ม ่ MODERN ENTREPRENEURS",
+      "name_en": null,
+      "credits": null,
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null
+    }
+  ]
+}

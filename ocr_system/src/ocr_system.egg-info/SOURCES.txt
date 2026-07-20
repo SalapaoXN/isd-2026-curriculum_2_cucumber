@@ -1,8 +1,10 @@
 README.md
 pyproject.toml
+src/extraction/main.py
 src/ocr_system/__init__.py
 src/ocr_system/cli.py
 src/ocr_system/config.py
+src/ocr_system/curriculum_extraction.py
 src/ocr_system/document_loader.py
 src/ocr_system/engine_factory.py
 src/ocr_system/evaluation.py
