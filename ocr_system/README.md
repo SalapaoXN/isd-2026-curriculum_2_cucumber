@@ -314,7 +314,9 @@ python -m ocr_system.cli ocr data/input/sample.pdf --engine ensemble
 ```
 แล้ว evaluate:
 ```bash
-python -m ocr_system.cli evaluate data/ground_truth/example_ground_truth.json outputs/sample_ocr.json
+python -m ocr_system.cli evaluate data/ground_truth/DSBA/DSBA_academic_plan_coop.json outputs/img27_ocr_extracted.json --mode ocr-extracted
+
+python -m ocr_system.cli evaluate data/ground_truth/DSBA/DSBA_academic_plan_coop.json outputs/img27_ocr_extracted.json
 ```
 
 Metric ที่ได้:

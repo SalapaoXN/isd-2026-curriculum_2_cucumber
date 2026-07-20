@@ -4,9 +4,10 @@ from pathlib import Path
 from rich import print
 from .config import OCRConfig
 from .pipeline import run_ocr
-from .evaluation import evaluate_from_files
+from .evaluation import evaluate_extracted_from_files, evaluate_from_files
 from .field_extraction import extract_common_fields
 from .utils.io import save_json
+from .curriculum_extraction import extract_curriculum_from_file
 
 
 def parse_args():
@@ -26,10 +27,19 @@ def parse_args():
     ocr.add_argument("--min-confidence", type=float, default=0.0)
     ocr.add_argument("--device", default="cpu")
 
+    curr = sub.add_parser("extract-curriculum", help="Extract curriculum data from an OCR file")
+    curr.add_argument("ocr_path", help="Path to the OCR output file")
+    curr.add_argument("--template-path", default=None, help="Optional path to a curriculum template file")
+    curr.add_argument("--program", default="DSBA", help="Program code (default: DSBA)")
+    curr.add_argument("--plan", default="no_coop", help="Plan type (default: no_coop)")
+    curr.add_argument("--output-dir", default="outputs")
+    
+
     ev = sub.add_parser("evaluate", help="Evaluate OCR JSON against ground truth JSON")
     ev.add_argument("ground_truth_json")
     ev.add_argument("prediction_json")
     ev.add_argument("--output", default="outputs/evaluation_result.json")
+    ev.add_argument("--mode", choices=["ocr", "ocr-extracted"], default=None)
 
     return parser.parse_args()
 
@@ -60,9 +70,26 @@ def main():
         print(f"[green]OCR done[/green]: {output_dir}")
         print(f"Extracted fields: {json.dumps(fields, ensure_ascii=False, indent=2)}")
 
+    elif args.command == "extract-curriculum":
+        output_dir = Path(args.output_dir)
+        result = extract_curriculum_from_file(
+            ocr_path=args.ocr_path,
+            template_path=args.template_path,
+            program=args.program,
+            plan=args.plan,
+        )
+        extracted_path = output_dir / f"{Path(args.ocr_path).stem}_extracted.json"
+        print("[green]Curriculum extraction complete[/green]")
+        save_json(result, extracted_path)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+
     elif args.command == "evaluate":
-        result = evaluate_from_files(args.ground_truth_json, args.prediction_json)
-        save_json(result, args.output)
+        prediction_name = Path(args.prediction_json).name.lower()
+        if args.mode == "ocr-extracted" or "extracted" in prediction_name or "curriculum" in prediction_name:
+            result = evaluate_extracted_from_files(args.ground_truth_json, args.prediction_json)
+        else:
+            result = evaluate_from_files(args.ground_truth_json, args.prediction_json)
+
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
