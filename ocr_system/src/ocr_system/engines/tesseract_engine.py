@@ -9,7 +9,7 @@ class TesseractOCREngine(BaseOCREngine):
 
     def __init__(self, languages: str = "tha+eng", psm: int = 6):
         import pytesseract
-        pytesseract.pytesseract.tesseract_cmd = r"D:\program\Tesseract-OCR\tesseract.exe" #ใส่เพิ่มเข้ามาใหม่
+        # pytesseract.pytesseract.tesseract_cmd = r"D:\program\Tesseract-OCR\tesseract.exe" #ใส่เพิ่มเข้ามาใหม่
         self.pytesseract = pytesseract
         self.languages = languages
         self.config = f"--oem 3 --psm {psm}"

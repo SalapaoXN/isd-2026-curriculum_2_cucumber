@@ -105,6 +105,7 @@ def _year_semester_for_page(page_index: int) -> tuple[int | None, int | None]:
         6: (3, 2),
         7: (4, 1),
     }
+    print(page_index, sequence.get(page_index, (None, None)))
     return sequence.get(page_index, (None, None))
 
 
