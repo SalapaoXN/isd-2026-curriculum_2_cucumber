@@ -1,0 +1,10 @@
+# ignore file
+.venv/
+
+# ignore in folder
+inputs/*
+outputs/*
+
+# keep folder
+!inputs/.gitkeep
+!outputs/.gitkeep
