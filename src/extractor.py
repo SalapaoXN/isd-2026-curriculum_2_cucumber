@@ -20,7 +20,7 @@ def normalize_course_code(code: str) -> str:
     code = code.strip()
     code_lower = code.lower()
 
-    if "x" in code_lower or code_lower == "xw":
+    if re.search(r"[a-z]", code_lower):
         m = re.match(r"^(\d+)", code)
         if m:
             prefix = m.group(1)
@@ -52,13 +52,13 @@ class CurriculumExtractor:
         current_type = "บังคับ"
 
         course_code_regex = re.compile(
-            r"(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|^x+$|^xw$)", re.IGNORECASE
+            r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xX][wW]$)(?:\s|$)", re.IGNORECASE
         )
         credits_regex = re.compile(
-            r"\d\s*\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*\d\s*\(\d+-\d+-\d+\))?",
+            r"(?:\d+\s*)?\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*(?:\d+\s*)?\(\d+-\d+-\d+\))?",
             re.IGNORECASE,
         )
-        single_credit_regex = re.compile(r"\d\s*\(\d+-\d+-\d+\)")
+        single_credit_regex = re.compile(r"(?:\d+\s*)?\(\d+-\d+-\d+\)")
         category_header_regex = re.compile(
             r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE
         )
@@ -130,7 +130,11 @@ class CurriculumExtractor:
                 raw_code = code_match.group(1)
                 code = normalize_course_code(raw_code)
 
-                line_after_code = line[line.find(code) + len(code) :].strip()
+                idx_code = line.upper().find(raw_code.upper())
+                if idx_code != -1:
+                    line_after_code = line[idx_code + len(raw_code):].strip()
+                else:
+                    line_after_code = line.replace(raw_code, "").strip()
 
                 name_th = ""
                 name_en = ""
@@ -189,6 +193,15 @@ class CurriculumExtractor:
                         prerequisite = p_val.upper() if p_val else "ไม่มี"
                         j += 1
                         continue
+                    
+                    if next_line.upper() in ["L", "1", "2", "3", "4", "I", "II"]:
+                        if not name_en:
+                            num = "1" if next_line.upper() in ["L", "I"] else ("2" if next_line.upper() == "II" else next_line)
+                            name_th = f"{name_th} {num}".strip()
+                        else:
+                            name_en = f"{name_en} {clean_ocr_en_text(next_line).upper()}".strip()
+                        j += 1
+                        continue
 
                     if single_credit_regex.search(next_line) or or_keyword_regex.search(
                         next_line
@@ -209,6 +222,13 @@ class CurriculumExtractor:
 
                     j += 1
 
+                # ลบคำว่า "กลุ่ม วิชาที่กำหนดโดยคณะ*" (รองรับกรณีเว้นวรรคและมี/ไม่มีดอกจัน)
+                name_th = re.sub(r"กลุ่ม\s*วิชาที่กำหนดโดยคณะ\*", "", name_th).strip()
+                
+                # ลบสัญลักษณ์ | (Pipe) ที่เกิดจาก OCR สแกนขอบตารางเพี้ยน
+                name_th = name_th.replace("|", "").strip()
+
+                # ลบขีด หรือ โคลอน ที่อยู่หน้าสุด
                 name_th = re.sub(r"^\s*[-:]\s*", "", name_th).strip()
                 name_en = re.sub(r"^\s*[-:]\s*", "", name_en).strip()
                 name_en = clean_ocr_en_text(name_en).upper()
@@ -216,6 +236,14 @@ class CurriculumExtractor:
                 credits_clean = re.sub(r"\s*\(\s*", "(", credits)
                 credits_clean = re.sub(r"\s*\)\s*", ")", credits_clean)
                 credits_clean = re.sub(r"\)+", ")", credits_clean)
+                credits_clean = re.sub(r"\s*(?:หรือ|or|/)\s*$", "", credits_clean, flags=re.IGNORECASE).strip()
+
+                if credits_clean.startswith("(0-35"):
+                    credits_clean = f"6{credits_clean}"
+
+                final_credits = credits_clean if credits_clean else "3(3-0-6)"
+                if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
+                    final_credits = "6(0-35-0)"
 
                 courses.append(
                     {
@@ -237,6 +265,41 @@ class CurriculumExtractor:
                 continue
 
             idx += 1
+        
+        # ==========================================
+        # ลอจิกรวมวิชาทางเลือก 06026259/06026260
+        # ==========================================
+        combined_courses = []
+        idx_c = 0
+        while idx_c < len(courses):
+            current_course = courses[idx_c]
+            
+            # เช็คว่ามีวิชาถัดไป และเป็นคู่ 06026259 กับ 06026260 หรือไม่
+            if idx_c + 1 < len(courses):
+                next_course = courses[idx_c + 1]
+                
+                if current_course["code"] == "06026259" and next_course["code"] == "06026260":
+                    # 1. รวมรหัส
+                    current_course["code"] = f"{current_course['code']} หรือ {next_course['code']}"
+                    
+                    # 2. รวมชื่อไทย คั่น \n
+                    current_course["name_th"] = f"{current_course['name_th']}\n{next_course['name_th']}"
+                    
+                    # 3. รวมชื่ออังกฤษ คั่น \n
+                    current_course["name_en"] = f"{current_course['name_en']}\n{next_course['name_en']}"
+                    
+                    # 4. บังคับหน่วยกิตเป็น 6(0-35-0)
+                    current_course["credits"] = "6(0-35-0)"
+                    
+                    combined_courses.append(current_course)
+                    idx_c += 2  # ข้ามวิชาถัดไปเพราะโดนจับรวมแล้ว
+                    continue
+                    
+            combined_courses.append(current_course)
+            idx_c += 1
+            
+        courses = combined_courses
+        # ==========================================
 
         return {
             "source": self.source,
@@ -462,8 +525,14 @@ class CurriculumExtractor:
         lines = [line.upper() for line in lines]
         content_upper = "\n".join(lines)
 
-        # 🟢 จุดที่แก้ไข: ตัด "มคอ.2" ออก
-        # ใช้คำว่า "คำอธิบายรายวิชา" หรือ "COURSE DESCRIPTION" หรือ "PREREQUISITE" เท่านั้น
+        # 🟢 จุดที่แก้ไข 1: ดักจับโครงสร้าง "ตารางเรียน" ให้เด็ดขาด (มีคำว่า ปีที่/ภาคการศึกษาที่ หรือ มีรหัสวิชา+หน่วยกิตเป็นหัวตาราง)
+        is_plan_page = bool(re.search(r"(?:ปีที่|ชั้นปีที่)\s*\d+", content_upper)) or \
+                       (bool(re.search(r"รหัสวิชา", content_upper)) and bool(re.search(r"หน่วยกิต", content_upper)))
+
+        if is_plan_page:
+            return self.extract_from_lines(lines)
+
+        # ถ้าไม่ใช่ตารางเรียน ค่อยมาเช็คว่าเป็นหน้าคำอธิบายรายวิชาหรือไม่
         is_description_page = bool(
             re.search(r"(?:คำอธิบายรายวิชา|COURSE\s*DESCRIPTION|PREREQUISITE|PRERE)", content_upper)
         )
