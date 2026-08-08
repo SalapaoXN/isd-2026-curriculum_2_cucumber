@@ -22,4 +22,8 @@ class OCREngine:
         if not image_path.exists():
             raise FileNotFoundError(f"Image not found at path: {image_path}")
 
-        return self.reader.readtext(str(image_path), detail=detail)
+        results = self.reader.readtext(str(image_path), detail=detail)
+        if detail == 0:
+            return [text.upper() for text in results]
+
+        return results
