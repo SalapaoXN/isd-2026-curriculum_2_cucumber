@@ -74,3 +74,8 @@ python merge_json.py -p 30-36
 # รวมทุกไฟล์ที่มีในโฟลเดอร์ (ไม่ใส่ -p)
 python merge_json.py
 ```
+
+### Consolidated
+```bash
+python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
+```

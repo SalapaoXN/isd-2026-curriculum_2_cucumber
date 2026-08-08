@@ -1,105 +1,185 @@
-import json
 import argparse
+import json
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Union
+
 
 class CurriculumConsolidator:
-    """
-    คลาสสำหรับจัดการรวมข้อมูล (Merge) ระหว่างโครงสร้างตารางเรียน และ คำอธิบายรายวิชา
-    """
-    
-    @staticmethod
-    def _is_valid_value(value) -> bool:
-        if value is None:
-            return False
-        if isinstance(value, str):
-            invalid_words = {"", "ไม่มี", "NONE", "NULL", "N/A", "ไม่ระบุ"}
-            if value.strip().upper() in invalid_words:
-                return False
-        return True
+    def __init__(self, plan_data: Dict, description_data: Dict):
+        """
+        :param plan_data: JSON Data จากหน้าตารางเรียน (ที่มี list ของ courses)
+        :param description_data: JSON Data จากหน้าคำอธิบายรายวิชา (ที่มี list ของ descriptions หรือ courses)
+        """
+        self.plan_data = plan_data
+        self.description_data = description_data
 
-    @staticmethod
-    def consolidate(plan_data: Dict, desc_data: Dict, fields_to_update: List[str] = None) -> Dict:
-        if fields_to_update is None:
-            fields_to_update = ["prerequisite", "name_th", "name_en"]
+    def consolidate(self) -> Dict:
+        # รองรับทั้งคีย์ "descriptions" หรือ "courses" ในไฟล์คำอธิบาย
+        descriptions = self.description_data.get("descriptions") or self.description_data.get("courses", [])
+        
+        # 1. ทำ Index Lookup จากไฟล์คำอธิบายรายวิชา
+        desc_lookup = {}
+        for desc in descriptions:
+            code = desc.get("code")
+            if code:
+                desc_lookup[code] = desc
+
+        consolidated_courses = []
+        processed_codes = set()  # เก็บ code ที่จัดการไปแล้ว เพื่อป้องกันวิชาซ้ำ
+
+        # 2. วนลูปวิชาจากแผนการเรียน (Plan Data) เป็นหลัก
+        for course in self.plan_data.get("courses", []):
+            course_code = course.get("code", "")
             
-        desc_lookup = {c["code"]: c for c in desc_data.get("courses", [])}
-        merged_courses = []
-        seen_codes = set()
-
-        for course in plan_data.get("courses", []):
-            code = course["code"]
-            course_copy = dict(course)
+            # คัดลอก Properties ทั้งหมดของวิชาเดิมจาก plan เพื่อไม่ให้ฟิลด์ใดๆ หล่นหาย
+            merged_course = course.copy()
             
-            if code in desc_lookup:
-                desc_course = desc_lookup[code]
-                for field in fields_to_update:
-                    if field in desc_course:
-                        new_value = desc_course[field]
-                        if CurriculumConsolidator._is_valid_value(new_value):
-                            course_copy[field] = new_value
+            desc_th = "ไม่มีข้อมูลคำอธิบายรายวิชา"
+            desc_en = "No description available."
 
-            merged_courses.append(course_copy)
-            seen_codes.add(code)
+            # กรณีที่ 2.1: รหัสวิชาเดี่ยวๆ (ไม่มีคำว่า "หรือ")
+            if "หรือ" not in course_code and course_code in desc_lookup:
+                target_desc = desc_lookup[course_code]
+                
+                # นำ Properties ทั้งหมดจากคำอธิบายมารวม (จะอัปเดต desc_th, desc_en และคงฟิลด์แปลกๆ ไว้ครบ)
+                merged_course.update(target_desc)
+                
+                # การันตีว่าค่า year และ semester ยึดตามตารางเรียน (Plan Data)
+                merged_course["year"] = course.get("year")
+                merged_course["semester"] = course.get("semester")
+                
+                processed_codes.add(course_code)
 
-        for course in desc_data.get("courses", []):
-            code = course["code"]
-            if code not in seen_codes:
-                merged_courses.append(course)
-                seen_codes.add(code)
+            # กรณีที่ 2.2: รหัสวิชาแบบวิชาเลือกคู่ เช่น "06026259 หรือ 06026260"
+            elif "หรือ" in course_code:
+                sub_codes = [c.strip() for c in course_code.split("หรือ")]
+                th_list = []
+                en_list = []
+                
+                for sub_code in sub_codes:
+                    if sub_code in desc_lookup:
+                        target_desc = desc_lookup[sub_code]
+                        th_list.append(target_desc.get("desc_th", ""))
+                        en_list.append(target_desc.get("desc_en", ""))
+                        processed_codes.add(sub_code)
+                    else:
+                        th_list.append("")
+                        en_list.append("")
 
+                if any(th_list):
+                    desc_th = "\n".join(th_list)
+                if any(en_list):
+                    desc_en = "\n".join(en_list)
+
+                merged_course["desc_th"] = desc_th
+                merged_course["desc_en"] = desc_en
+                processed_codes.add(course_code)
+
+            else:
+                # กรณีไม่เจอในคำอธิบาย ให้ใส่ค่า Default
+                merged_course["desc_th"] = course.get("desc_th", desc_th)
+                merged_course["desc_en"] = course.get("desc_en", desc_en)
+                if course_code:
+                    processed_codes.add(course_code)
+
+            consolidated_courses.append(merged_course)
+
+        # 3. ดึงวิชาที่มีเฉพาะในคำอธิบายรายวิชา (วิชาเลือก/วิชาใหม่) เพิ่มต่อท้าย
+        for code, desc_item in desc_lookup.items():
+            if code not in processed_codes:
+                # ก๊อบปี้ข้อมูลวิชาเลือกมาทั้งก้อน โดยคงคุณสมบัติเดิมไว้ 100%
+                new_elective_course = desc_item.copy()
+                
+                # กำหนดค่า default สำหรับวิชาเลือกถ้าไม่มีระบุไว้
+                new_elective_course.setdefault("year", 0)
+                new_elective_course.setdefault("semester", 0)
+                new_elective_course.setdefault("category", "หมวดวิชาเฉพาะ")
+                new_elective_course.setdefault("type", "เลือก")
+                new_elective_course.setdefault("prerequisite", "ไม่มี")
+                
+                consolidated_courses.append(new_elective_course)
+                processed_codes.add(code)
+
+        # 4. ประกอบข้อมูล Output
         return {
-            "source": plan_data.get("source"),
-            "description": str(plan_data.get("description", "")) + " (Consolidated Phase)",
-            "program": plan_data.get("program"),
-            "plan": plan_data.get("plan"),
-            "courses": merged_courses
+            "source": self.plan_data.get("source", "Merged Academic Plan & Course Descriptions"),
+            "description": self.plan_data.get("description", "Ground Truth รายวิชาหลักสูตร"),
+            "program": self.plan_data.get("program", ""),
+            "plan": self.plan_data.get("plan", ""),
+            "total_courses": len(consolidated_courses),
+            "courses": consolidated_courses,
         }
 
-    @staticmethod
-    def merge_json_files(plan_filepath: str, desc_filepath: str, output_filepath: str, fields_to_update: List[str] = None):
-        with open(Path(plan_filepath), 'r', encoding='utf-8') as f:
-            plan_data = json.load(f)
-            
-        with open(Path(desc_filepath), 'r', encoding='utf-8') as f:
-            desc_data = json.load(f)
-            
-        merged_data = CurriculumConsolidator.consolidate(
-            plan_data=plan_data, 
-            desc_data=desc_data, 
-            fields_to_update=fields_to_update
-        )
-        
-        # สร้างโฟลเดอร์ปลายทางอัตโนมัติหากยังไม่มี
-        output_path = Path(output_filepath)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(merged_data, f, ensure_ascii=False, indent=4)
-        
-        print(f"✅ บันทึกไฟล์ที่รวมข้อมูลสำเร็จแล้วที่: {output_filepath}")
-        print(f"🔄 ฟิลด์ที่ดึงไปอัปเดต: {fields_to_update if fields_to_update else ['prerequisite', 'name_th', 'name_en']}")
-        print(f"📊 จำนวนรายวิชาทั้งหมดหลังรวม: {len(merged_data['courses'])} วิชา")
 
-# ==========================================
-# ส่วนรองรับการเรียกใช้งานผ่าน Command Line
-# ==========================================
+def save_json(data: Dict, output_path: Union[str, Path]):
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    print(f"✨ บันทึกไฟล์สำเร็จ: {output_path} (รวมทั้งหมด {data.get('total_courses', 0)} รายวิชา)")
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="เครื่องมือสำหรับรวมข้อมูล JSON จากตารางเรียนและคำอธิบายรายวิชาเข้าด้วยกัน")
+    parser = argparse.ArgumentParser(description="Consolidate Plan and Description JSON files by page ranges.")
     
-    # กำหนด Flag ที่ต้องการรับจากผู้ใช้
-    parser.add_argument('-b', '--base', type=str, required=True, help="เส้นทางไฟล์ JSON ของตารางเรียน (Base)")
-    parser.add_argument('-d', '--desc', type=str, required=True, help="เส้นทางไฟล์ JSON ของคำอธิบายรายวิชา (Data Source)")
-    parser.add_argument('-o', '--output', type=str, required=True, help="เส้นทางและชื่อไฟล์ JSON ปลายทาง (Output)")
-    parser.add_argument('-f', '--fields', type=str, nargs='+', default=["prerequisite", "name_th", "name_en"],
-                        help="ระบุฟิลด์ที่ต้องการเขียนทับ (เว้นวรรค) เช่น prerequisite name_th credits (ค่าเริ่มต้น: prerequisite name_th name_en)")
+    # 1. รับช่วงเลขหน้าของตารางเรียน (Plan Pages)
+    parser.add_argument(
+        "-p", "--plan-pages", 
+        required=True, 
+        help="ช่วงหน้าของตารางเรียน เช่น 030-036 หรือ 023-029"
+    )
+    
+    # 2. รับช่วงเลขหน้าของคำอธิบายรายวิชา (Desc Pages)
+    parser.add_argument(
+        "-d", "--desc-pages", 
+        required=True, 
+        help="ช่วงหน้าของคำอธิบายรายวิชา เช่น 314-341"
+    )
+    
+    # 3. ตั้งชื่อไฟล์ Output
+    parser.add_argument(
+        "-o", "--output", 
+        default=None, 
+        help="ชื่อไฟล์ Output หรือ Path ที่ต้องการเซฟ"
+    )
 
     args = parser.parse_args()
 
-    print("🚀 [CONSOLIDATOR] เริ่มต้นการรวมไฟล์...")
-    CurriculumConsolidator.merge_json_files(
-        plan_filepath=args.base,
-        desc_filepath=args.desc,
-        output_filepath=args.output,
-        fields_to_update=args.fields
-    )
+    # 📁 กำหนด Base Folder
+    base_dir = Path("consolidated_outputs")
+    
+    plan_file = base_dir / f"consolidated_page_{args.plan_pages}.json"
+    desc_file = base_dir / f"consolidated_page_{args.desc_pages}.json"
+
+    if not plan_file.exists():
+        plan_file = base_dir / f"page_{args.plan_pages}.json"
+    if not desc_file.exists():
+        desc_file = base_dir / f"page_{args.desc_pages}.json"
+
+    if not plan_file.exists():
+        raise FileNotFoundError(f"❌ ไม่พบไฟล์ตารางเรียน: {plan_file}")
+    if not desc_file.exists():
+        raise FileNotFoundError(f"❌ ไม่พบไฟล์คำอธิบายรายวิชา: {desc_file}")
+
+    print(f"📖 กำลังโหลดไฟล์ตารางเรียน: {plan_file.name}")
+    print(f"📖 กำลังโหลดไฟล์คำอธิบาย: {desc_file.name}")
+
+    with open(plan_file, "r", encoding="utf-8") as f:
+        plan_data = json.load(f)
+
+    with open(desc_file, "r", encoding="utf-8") as f:
+        desc_data = json.load(f)
+
+    # รวมร่าง
+    consolidator = CurriculumConsolidator(plan_data, desc_data)
+    final_result = consolidator.consolidate()
+
+    # 💾 กำหนด Output Path อัตโนมัติถ้าไม่ได้ระบุ -o
+    if args.output:
+        output_path = Path(args.output)
+        if not output_path.suffix:
+            output_path = output_path / f"consolidated_page_{args.plan_pages}.json"
+    else:
+        output_path = base_dir / f"final_consolidated_page_{args.plan_pages}.json"
+
+    save_json(final_result, output_path)

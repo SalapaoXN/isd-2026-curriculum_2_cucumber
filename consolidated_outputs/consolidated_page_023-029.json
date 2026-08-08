@@ -3,12 +3,25 @@
     "description": "Ground Truth รายวิชาหลักสูตร DSBA (แผน coop)",
     "program": "DSBA",
     "plan": "coop",
-    "total_courses": 44,
+    "total_courses": 46,
     "courses": [
         {
             "code": "06026200",
-            "name_th": "แคลคูลัส 1",
-            "name_en": "CALCULUS 1",
+            "name_th": "แคลคูลัส",
+            "name_en": "N/A",
+            "credits": "3(3-0-6)",
+            "year": 1,
+            "semester": 1,
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "ไม่ระบุ",
+            "name_en": "CALCULUS",
             "credits": "3(3-0-6)",
             "year": 1,
             "semester": 1,
@@ -20,7 +33,7 @@
         },
         {
             "code": "06026202",
-            "name_th": "พืชคณิตเชิงเส้น",
+            "name_th": "พีชคณิตเชิงเส้น",
             "name_en": "LINEAR ALGEBRA",
             "credits": "3(3-0-6)",
             "year": 1,
@@ -34,7 +47,7 @@
         {
             "code": "06066101",
             "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
-            "name_en": "BUSIESS FUNDAMEMTALS FOR INFORMATLON TECHNOLOC",
+            "name_en": "D9 BUSIESS FUNDAMENTALS FOR INFORMATION TECANOLOCV",
             "credits": "3(3-0-6)",
             "year": 1,
             "semester": 1,
@@ -47,7 +60,7 @@
         {
             "code": "06066303",
             "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
-            "name_en": "PROBLEM SOLNG AND COMPUTER PROCRAMMNG",
+            "name_en": "PROBLEM SOLVNS AND COMPUTER PROCRAMMNC",
             "credits": "3(2-2-5)",
             "year": 1,
             "semester": 1,
@@ -73,7 +86,7 @@
         {
             "code": "90641003",
             "name_th": "กีฬาและนันทนาการ",
-            "name_en": "SPORTS AND RECREATONAL ACTMTES",
+            "name_en": "SPORTS AND RECREATIONAL ACTMTIES",
             "credits": "1(0-3-2)",
             "year": 1,
             "semester": 1,
@@ -85,7 +98,7 @@
         },
         {
             "code": "90644007",
-            "name_th": "ภาษาอังกฤษพืนฐาน 1",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 1",
             "name_en": "FOUNDATION ENGLISH",
             "credits": "3(3-0-6)",
             "year": 1,
@@ -125,7 +138,7 @@
         {
             "code": "06026205",
             "name_th": "การตลาดเบื้องต้น",
-            "name_en": "NTRODUCTION TO MARKETNC",
+            "name_en": "NTRODUCTON TO MARKETNG",
             "credits": "3(3-0-6)",
             "year": 1,
             "semester": 2,
@@ -138,7 +151,7 @@
         {
             "code": "06066001",
             "name_th": "ความน่าจะเป็นและสถิติ",
-            "name_en": "PROBABLIT AND STATISTICS",
+            "name_en": "PROBABILIT AND STATISTICS",
             "credits": "3(3-0-6)",
             "year": 1,
             "semester": 2,
@@ -151,7 +164,7 @@
         {
             "code": "90641002",
             "name_th": "ความฉลาดทางดิจิทัล",
-            "name_en": "DIGITAL NTELLIGENCE QUOTIENT",
+            "name_en": "DIGITAL ITELLIGENCE QUOTENT",
             "credits": "3(3-0-6)",
             "year": 1,
             "semester": 2,
@@ -164,7 +177,7 @@
         {
             "code": "90642033",
             "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
-            "name_en": "ZAW FOR NEW GENERATION",
+            "name_en": "LAW FOR NEW GENERATION",
             "credits": "3(3-0-6)",
             "year": 1,
             "semester": 2,
@@ -176,7 +189,7 @@
         },
         {
             "code": "90644008",
-            "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+            "name_th": "ภาษาอังกฤษพืนฐาน 2",
             "name_en": "FOUNDATION ENGLISA 2",
             "credits": "3(3-0-6)",
             "year": 1,
@@ -202,7 +215,7 @@
         },
         {
             "code": "06066000",
-            "name_th": "คณิตศาสตร์ไมต่อเนื่อง",
+            "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
             "name_en": "DISCRETE MATHEMATICS",
             "credits": "3(3-0-6)",
             "year": 2,
@@ -228,7 +241,7 @@
         },
         {
             "code": "06066302",
-            "name_th": "การเขียนโปรแกรมเว็บพืนฐาน",
+            "name_th": "การเขียนโปรแกรมเวื",
             "name_en": "FUNDAMENTAL WEB PROCRAMMNC",
             "credits": "3(2-2-5)",
             "year": 2,
@@ -242,7 +255,7 @@
         {
             "code": "06066304",
             "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ",
-            "name_en": "NFORMATION SSTEM ANALVSIS AND DESIGN",
+            "name_en": "INFORMATION SVSTEM ANALSIS AND DESIGI",
             "credits": "3(3-0-6)",
             "year": 2,
             "semester": 1,
@@ -255,7 +268,7 @@
         {
             "code": "90644xxx",
             "name_th": "วิชาเลือกด้านภาษาและการสือสาร",
-            "name_en": "ELECE IN LANCUAGE AND COMMUNICATON",
+            "name_en": "ELECTVE IN LANGUAGE AND COMMUNICATON",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
             "year": 2,
             "semester": 1,
@@ -268,7 +281,7 @@
         {
             "code": "06026204",
             "name_th": "เครือข่ายและความมันคงทางไซเบอร์เบื้องต้น",
-            "name_en": "NTRODUCTION TO NETWORKS AND CYBERSECURITI",
+            "name_en": "NTRODUCTON TO NETWORKS AND CBERSECURIT",
             "credits": "3(3-0-6)",
             "year": 2,
             "semester": 2,
@@ -281,7 +294,7 @@
         {
             "code": "06026207",
             "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-            "name_en": "NOSQL DATABASE SISTEMS",
+            "name_en": "NOSCL DATABASE SVSTEMS",
             "credits": "3(2-2-5)",
             "year": 2,
             "semester": 2,
@@ -293,8 +306,8 @@
         },
         {
             "code": "06026208",
-            "name_th": "พื้นฐานวิทยาการข้อมูล",
-            "name_en": "FUNDAMENTALS OF DATA SCIENCE",
+            "name_th": "พืนฐานวิทยาการข้อมูล",
+            "name_en": "FUNDAMENTALS OF DATA SCIEWCE",
             "credits": "3(3-0-6)",
             "year": 2,
             "semester": 2,
@@ -306,7 +319,7 @@
         },
         {
             "code": "06026209",
-            "name_th": "การแสดง ข้อมูลด้วยแผนภาพ",
+            "name_th": "การแสดงข้อมูลด้วยแผนภาพ",
             "name_en": "DATA VISUAL ZATON",
             "credits": "3(2-2-5)",
             "year": 2,
@@ -319,8 +332,8 @@
         },
         {
             "code": "06026210",
-            "name_th": "การหาค่าที่เหมาะที่สุด",
-            "name_en": "OPTMMZATION",
+            "name_th": "การหาค่าทีเหมาะที่สุด",
+            "name_en": "OPTMZATOV",
             "credits": "3(3-0-6)",
             "year": 2,
             "semester": 2,
@@ -332,8 +345,8 @@
         },
         {
             "code": "06066102",
-            "name_th": "ระบบสารสนเทศเพือการจัดการ",
-            "name_en": "MANACEMENT NFORMATION SSTEMS",
+            "name_th": "ระบบสารสนเทศเพื่อการจัดการ",
+            "name_en": "MANAGEMENT INFORMATION SVSTEMS",
             "credits": "3(3-0-6)",
             "year": 2,
             "semester": 2,
@@ -346,7 +359,7 @@
         {
             "code": "06066301",
             "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
-            "name_en": "DATA STRUCTURES AND ALGORTAMS",
+            "name_en": "DATA STRUCTURES AND ALGOR THMS",
             "credits": "3(2-2-5)",
             "year": 2,
             "semester": 2,
@@ -372,7 +385,7 @@
         {
             "code": "06026212",
             "name_th": "การสร้างคลังข้อมูล",
-            "name_en": "DATA WAREHOUSNG",
+            "name_en": "DATA WAREHOUSIC",
             "credits": "3(2-2-5)",
             "year": 3,
             "semester": 1,
@@ -384,9 +397,22 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
-            "name_en": "ELECTIVE IN DATA SCIENCE 1 ELECTIE IN STATSTICAL ANALVSIS 1 1 ELECTIE IN DATA ENGIEERNC",
-            "credits": "3(3-0-6)หรือ 3(2-2-5)",
+            "name_th": "วิชาเลือกกลุ่ม วิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ",
+            "name_en": "ELECTIE IN DATA SCIENCE",
+            "credits": "3(3-0-6)",
+            "year": 3,
+            "semester": 1,
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
+            "name_en": "ELECTME I STATISTICAL ANALVSIS 1 ELECTIVE IN DATA ENGINEERING",
+            "credits": "3(2-2-5)",
             "year": 3,
             "semester": 1,
             "category": "หมวดวิชาเฉพาะ",
@@ -398,7 +424,7 @@
         {
             "code": "06026xxx",
             "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 2",
-            "name_en": "ELECTIE IN DATA SCIENCE 2 ELECTIE IN STATSTICAL ANALTICS 2 ELECTIVE IN DATA ENGNEERN6 2",
+            "name_en": "ELECTIE IN DATA SCIENCE 2 ELECTIVE IN STATISTICAL ANALYTICS 2 ELECTIE IIN DATA ENGINEERN6 2",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
             "year": 3,
             "semester": 1,
@@ -410,7 +436,7 @@
         },
         {
             "code": "9064xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษาทัวไป",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป",
             "name_en": "XX ELECTIE I GENERAL EDUCATION",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
             "year": 3,
@@ -423,8 +449,21 @@
         },
         {
             "code": "90644042",
-            "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
-            "name_en": "PR0FESSIONAL COMMUNICATION AND PRESENTATION",
+            "name_th": "ไม่ระบุ",
+            "name_en": "N/A",
+            "credits": "3(3-0-6)",
+            "year": 3,
+            "semester": 1,
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "การสือสารและการนำเสนออย่างมืออาชีพ",
+            "name_en": "PROFESSIONAL COMMUMICATON AND PRESENTATION",
             "credits": "3(3-0-6)",
             "year": 3,
             "semester": 1,
@@ -437,7 +476,7 @@
         {
             "code": "06026213",
             "name_th": "ระบบ ข้อมูลมหัต",
-            "name_en": "BIG DATA SSTEMS",
+            "name_en": "BIG DATA SVSTEMS",
             "credits": "3(2-2-5)",
             "year": 3,
             "semester": 2,
@@ -449,9 +488,9 @@
         },
         {
             "code": "06026214",
-            "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
-            "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALTICS",
-            "credits": "3(0-9-0)",
+            "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1 วิชาเลือกกลุ่ม วิทยาการข้อมูล 3 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 3 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 3",
+            "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALTICS 06026X)X ELECTIE IN DATA SCIENCE 3 ELECTIVE IN STATISTICAL ANALTICS 3 ELECTIVE IN DATA ENGINEERN6 3",
+            "credits": "3(0-9-0)3(3-0-6)หรือ 3(2-2-5)",
             "year": 3,
             "semester": 2,
             "category": "หมวดวิชาเฉพาะ",
@@ -462,21 +501,8 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 3 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 3 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 3",
-            "name_en": "ELECTIE IN DATA SCIENCE 3 ELECTIE IN STATISTICAL ANALITICS 3 ELECTIE IN DATA ENGIEERNN6 3",
-            "credits": "3(3-0-6)หรือ 3(2-2-5)",
-            "year": 3,
-            "semester": 2,
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null
-        },
-        {
-            "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 4 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",
-            "name_en": "ELECTIE IN DATA SCIENCE 4 ELECTIE IN STATISTICAL ANALITICS 4 ELECTIE IN DATA ENGINEERNC 4",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
+            "name_en": "ELECTME IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALITICS 4 1 ELECTIE IN DATA ENGINEERNC 4",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
             "year": 3,
             "semester": 2,
@@ -501,6 +527,19 @@
         },
         {
             "code": "90643021",
+            "name_th": "กลุ่ม วิชาที่กำหนดโดยคณะ",
+            "name_en": "N/A",
+            "credits": "3(3-0-6)",
+            "year": 3,
+            "semester": 2,
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null
+        },
+        {
+            "code": "xxxxxxxx",
             "name_th": "ผู้ประกอบการสมัยใหม่",
             "name_en": "MODERN ENTREPRENEURS",
             "credits": "3(3-0-6)",
@@ -526,9 +565,9 @@
             "note": null
         },
         {
-            "code": "9064xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป",
-            "name_en": "ELECTVE IN GENERAL EDUCATON",
+            "code": "06026xxx",
+            "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1",
+            "name_en": "ELECTIVE IN ELECTIVE OR SPECFIC PROFESSIONAL COURSES",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
             "year": 4,
             "semester": 1,
@@ -539,9 +578,9 @@
             "note": null
         },
         {
-            "code": "xxxxxxxx",
-            "name_th": "วิชาเลือกเสรี 1",
-            "name_en": "EREE ELECTVE COURSE 1",
+            "code": "06026xxx",
+            "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2",
+            "name_en": "ELECTIE IN ELECTIVE OR SPECFIC PROFESSIONAL COURSES 2",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
             "year": 4,
             "semester": 1,
@@ -556,19 +595,6 @@
             "name_th": "วิชาเลือกเสรี 2",
             "name_en": "FREE ELECTVE COURSE 2",
             "credits": "3(3-0-6)หรือ 3(2-2-5)",
-            "year": 4,
-            "semester": 1,
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null
-        },
-        {
-            "code": "06026259 หรือ 06026260",
-            "name_th": "สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ\nสหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการ วิเคราะห์เชิงธุรกิจ",
-            "name_en": "COOPERATIE EDUCATION IN DATA SCIENCE AND BUSINESS ANALTICS\nOVERSEA COOPERATIE EDUCATION N DATA SCIENCE AND BUSIESS ANALTICS",
-            "credits": "6(0-35-0)",
             "year": 4,
             "semester": 2,
             "category": "หมวดวิชาเฉพาะ",
