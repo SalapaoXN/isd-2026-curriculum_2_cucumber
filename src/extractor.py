@@ -325,7 +325,7 @@ class CurriculumExtractor:
         total = len(lines)
 
         code_regex = re.compile(r"\b\d{7,8}\b")
-        credit_regex = re.compile(r"\d+\s*\(\d+-\d+-\d+\)")
+        credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
         
         # รวม Keyword บังคับก่อนทั้งภาษาไทยและอังกฤษ เพื่อใช้หยุดการอ่านชื่อวิชา (name_th)
         any_prereq_key_regex = re.compile(
@@ -335,7 +335,7 @@ class CurriculumExtractor:
         
         # Keyword ภาษาอังกฤษ สำหรับเริ่มเก็บค่า Prerequisite
         prereq_eng_key_regex = re.compile(
-            r"(?:PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE)",
+            r"(?:PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE|PRLRLCUISIIT|PRERLOUSIIE|FRFRROUISIIT)",
             re.IGNORECASE,
         )
         has_thai_regex = re.compile(r"[\u0e00-\u0e7f]")
@@ -488,26 +488,42 @@ class CurriculumExtractor:
                     j += 1
 
                 seen_codes.add(code)
-                courses.append(
-                    {
-                        "code": code,
-                        "name_th": name_th if name_th else "ไม่ระบุ",
-                        "name_en": name_en if name_en else "N/A",
-                        "credits": credits,
-                        "year": 0,
-                        "semester": 0,
-                        "category": "หมวดวิชาเฉพาะ",
-                        "type": "เลือก",
-                        "prerequisite": prerequisite,
-                        "flexible_year_semester": "3/1, 3/2, 4/1",
-                        "note": None,
-                    }
-                )
-
+                credits = credits.replace(" ", "").replace("{", "(").replace("}", ")")
+                
+                if code.startswith("90"):  # รหัส GenEd สถาบัน
+                    courses.append(
+                        {
+                            "code": code,
+                            "name_th": name_th if name_th else "ไม่ระบุ",
+                            "name_en": name_en if name_en else "N/A",
+                            "credits": credits,
+                            "category": "หมวดวิชาศึกษาทั่วไป",
+                            "type": "เลือก",
+                            "prerequisite": None,
+                            "flexible_year_semester": None,
+                            "note": None,
+                        }
+                    )
+                else:  # รหัสวิชาเฉพาะ / วิชาคณะ (06xxxxx)
+                    courses.append(
+                        {
+                            "code": code,
+                            "name_th": name_th if name_th else "ไม่ระบุ",
+                            "name_en": name_en if name_en else "N/A",
+                            "credits": credits,
+                            "year": 0,
+                            "semester": 0,
+                            "category": "หมวดวิชาเฉพาะ",
+                            "type": "เลือก",
+                            "prerequisite": prerequisite,
+                            "flexible_year_semester": "3/1, 3/2, 4/1",
+                            "note": None,
+                        }
+                    )
                 i = j
                 continue
-
             i += 1
+
 
         return {
             "source": self.source,

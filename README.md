@@ -52,7 +52,7 @@ python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/
 
 ```bash
 # รันแบบกำหนดช่วงหน้า (เช่น หน้า 32 ถึง 36)
-python -m src.run_pipeline -p 32-36 inputs/dsba
+python -m src.run_pipeline -p 32-36 -i inputs/dsba
 
 # ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
 python -m src.run_pipeline -p 32-36 -i inputs/it -o outputs --plan no_coop

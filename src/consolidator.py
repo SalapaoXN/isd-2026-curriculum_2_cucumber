@@ -33,21 +33,22 @@ class CurriculumConsolidator:
             
             # คัดลอก Properties ทั้งหมดของวิชาเดิมจาก plan เพื่อไม่ให้ฟิลด์ใดๆ หล่นหาย
             merged_course = course.copy()
-            
-            desc_th = "ไม่มีข้อมูลคำอธิบายรายวิชา"
-            desc_en = "No description available."
 
             # กรณีที่ 2.1: รหัสวิชาเดี่ยวๆ (ไม่มีคำว่า "หรือ")
             if "หรือ" not in course_code and course_code in desc_lookup:
                 target_desc = desc_lookup[course_code]
                 
-                # นำ Properties ทั้งหมดจากคำอธิบายมารวม (จะอัปเดต desc_th, desc_en และคงฟิลด์แปลกๆ ไว้ครบ)
-                merged_course.update(target_desc)
-                
-                # การันตีว่าค่า year และ semester ยึดตามตารางเรียน (Plan Data)
-                merged_course["year"] = course.get("year")
-                merged_course["semester"] = course.get("semester")
-                
+                # [แก้ใหม่]: ไม่อัปเดตทับทั้งหมด เพื่อรักษา flexible_year_semester และข้อมูลเดิมไว้
+                # อัปเดตเฉพาะ prerequisite (และ type/desc กรณีที่มี)
+                if "prerequisite" in target_desc:
+                    merged_course["prerequisite"] = target_desc["prerequisite"]
+                    
+                if "desc_th" in target_desc:
+                    merged_course["desc_th"] = target_desc["desc_th"]
+                    
+                if "desc_en" in target_desc:
+                    merged_course["desc_en"] = target_desc["desc_en"]
+
                 processed_codes.add(course_code)
 
             # กรณีที่ 2.2: รหัสวิชาแบบวิชาเลือกคู่ เช่น "06026259 หรือ 06026260"
@@ -59,35 +60,33 @@ class CurriculumConsolidator:
                 for sub_code in sub_codes:
                     if sub_code in desc_lookup:
                         target_desc = desc_lookup[sub_code]
-                        th_list.append(target_desc.get("desc_th", ""))
-                        en_list.append(target_desc.get("desc_en", ""))
+                        if target_desc.get("desc_th"):
+                            th_list.append(target_desc.get("desc_th"))
+                        if target_desc.get("desc_en"):
+                            en_list.append(target_desc.get("desc_en"))
                         processed_codes.add(sub_code)
-                    else:
-                        th_list.append("")
-                        en_list.append("")
 
-                if any(th_list):
-                    desc_th = "\n".join(th_list)
-                if any(en_list):
-                    desc_en = "\n".join(en_list)
-
-                merged_course["desc_th"] = desc_th
-                merged_course["desc_en"] = desc_en
+                if th_list:
+                    merged_course["desc_th"] = "\n".join(th_list)
+                if en_list:
+                    merged_course["desc_en"] = "\n".join(en_list)
                 processed_codes.add(course_code)
 
             else:
-                # กรณีไม่เจอในคำอธิบาย ให้ใส่ค่า Default
-                merged_course["desc_th"] = course.get("desc_th", desc_th)
-                merged_course["desc_en"] = course.get("desc_en", desc_en)
                 if course_code:
                     processed_codes.add(course_code)
+
+            # -----------------------------------------------------
+            # เซ็ต default ป้องกัน schema พัง กรณี field นี้ไม่มีตั้งแต่แรก
+            # ถ้ามีอยู่แล้ว ค่าจะไม่ถูกเปลี่ยน
+            merged_course.setdefault("flexible_year_semester", None)
+            # -----------------------------------------------------
 
             consolidated_courses.append(merged_course)
 
         # 3. ดึงวิชาที่มีเฉพาะในคำอธิบายรายวิชา (วิชาเลือก/วิชาใหม่) เพิ่มต่อท้าย
         for code, desc_item in desc_lookup.items():
             if code not in processed_codes:
-                # ก๊อบปี้ข้อมูลวิชาเลือกมาทั้งก้อน โดยคงคุณสมบัติเดิมไว้ 100%
                 new_elective_course = desc_item.copy()
                 
                 # กำหนดค่า default สำหรับวิชาเลือกถ้าไม่มีระบุไว้
@@ -96,6 +95,8 @@ class CurriculumConsolidator:
                 new_elective_course.setdefault("category", "หมวดวิชาเฉพาะ")
                 new_elective_course.setdefault("type", "เลือก")
                 new_elective_course.setdefault("prerequisite", "ไม่มี")
+                
+                new_elective_course.setdefault("flexible_year_semester", None)
                 
                 consolidated_courses.append(new_elective_course)
                 processed_codes.add(code)
