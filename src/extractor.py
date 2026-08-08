@@ -63,7 +63,7 @@ class CurriculumExtractor:
         self.source = source
 
     def extract_from_lines(self, lines: List[str]) -> Dict:
-        print("🔥 [DEBUG] กำลังรัน: extract_from_lines (ตารางเรียน)")
+        print(" [DEBUG] กำลังรัน: extract_from_lines (ตารางเรียน)")
         courses = []
 
         current_year = 1
@@ -376,7 +376,7 @@ class CurriculumExtractor:
         }
 
     def extract_descriptions(self, lines: List[str]) -> Dict:
-        print("⚡ [DEBUG] กำลังรัน: extract_descriptions (คำอธิบายรายวิชา)")
+        print(" [DEBUG] กำลังรัน: extract_descriptions (คำอธิบายรายวิชา)")
         courses = []
         seen_codes = set()
         i = 0
@@ -502,7 +502,7 @@ class CurriculumExtractor:
                             if has_thai_regex.search(remainder):
                                 break
                             else:
-                                # 🟢 แก้ไขข้อ 2: คลีนข้อความผ่าน clean_ocr_en_text (เปลี่ยน L ให้เป็นเลข 1 ถ้าอยู่ท้ายคำ)
+                                #  แก้ไขข้อ 2: คลีนข้อความผ่าน clean_ocr_en_text (เปลี่ยน L ให้เป็นเลข 1 ถ้าอยู่ท้ายคำ)
                                 cleaned_rem = clean_ocr_en_text(remainder).upper()
                                 if cleaned_rem:
                                     prereq_tokens.append(cleaned_rem)
@@ -515,7 +515,7 @@ class CurriculumExtractor:
                                 j += 1
                                 continue
 
-                            # 🛑 เจอภาษาไทยเมื่อไหร่ (บรรทัดคำอธิบายรายวิชา) = หยุดเก็บ Prerequisite ทันที!
+                            #  เจอภาษาไทยเมื่อไหร่ (บรรทัดคำอธิบายรายวิชา) = หยุดเก็บ Prerequisite ทันที!
                             if has_thai_regex.search(sub_line):
                                 break
 
@@ -616,7 +616,7 @@ class CurriculumExtractor:
         lines = [line.upper() for line in lines]
         content_upper = "\n".join(lines)
 
-        # 🟢 จุดที่แก้ไข 1: ดักจับโครงสร้าง "ตารางเรียน" ให้เด็ดขาด (มีคำว่า ปีที่/ภาคการศึกษาที่ หรือ มีรหัสวิชา+หน่วยกิตเป็นหัวตาราง)
+        #  จุดที่แก้ไข 1: ดักจับโครงสร้าง "ตารางเรียน" ให้เด็ดขาด (มีคำว่า ปีที่/ภาคการศึกษาที่ หรือ มีรหัสวิชา+หน่วยกิตเป็นหัวตาราง)
         is_plan_page = bool(re.search(r"(?:ปีที่|ชั้นปีที่)\s*\d+", content_upper)) or \
                        (bool(re.search(r"รหัสวิชา", content_upper)) and bool(re.search(r"หน่วยกิต", content_upper)))
 

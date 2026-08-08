@@ -47,7 +47,7 @@ python evaluate.py consolidated_outputs/dsba_coop_full.json --gt ground_truth/DS
 python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
 ```
 
-### รัน Pipeline อัตโนมัติ (OCR ➔ Extract)
+### รัน Pipeline อัตโนมัติ (OCR -> Extract)
 ใช้สำหรับรันประมวลผลรูปภาพเอกสารตามเลขหน้าที่กำหนด และสกัดออกมาเป็น JSON รายวิชาทันที
 
 ```bash
@@ -72,4 +72,26 @@ python merge_json.py -p 30-36
 ```bash
 python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
 python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
+```
+
+### Transfer categories (GENED -> full)
+ซิงค์หมวดหมู่วิชา GENED จากไฟล์ consolidate ของหมวด GENED เข้าสู่ไฟล์ full หลัง consolidate เสร็จ ก่อนนำไป evaluate
+
+**รันอัตโนมัติ:** consolidator จะค้นหาไฟล์ `consolidated_page_*.json` ที่เหลือใน `consolidated_outputs/` แล้วซิงค์หมวดหมู่ให้เอง
+```bash
+python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
+python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
+```
+
+ระบุไฟล์ GENED เองได้ (ข้ามการค้นหาอัตโนมัติ):
+```bash
+python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json \
+  --gened consolidated_outputs/consolidated_page_151-224.json
+```
+
+หรือรันแยกเป็นขั้นตอน:
+```bash
+python src/transfer.py --gened consolidated_outputs/consolidated_page_151-224.json \
+  --input consolidated_outputs/dsba_coop_full.json \
+  --output consolidated_outputs/dsba_coop_full_updated.json
 ```

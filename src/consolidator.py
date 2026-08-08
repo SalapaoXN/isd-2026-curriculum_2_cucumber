@@ -117,7 +117,7 @@ def save_json(data: Dict, output_path: Union[str, Path]):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
-    print(f"✨ บันทึกไฟล์สำเร็จ: {output_path} (รวมทั้งหมด {data.get('total_courses', 0)} รายวิชา)")
+    print(f" บันทึกไฟล์สำเร็จ: {output_path} (รวมทั้งหมด {data.get('total_courses', 0)} รายวิชา)")
 
 
 if __name__ == "__main__":
@@ -144,9 +144,17 @@ if __name__ == "__main__":
         help="ชื่อไฟล์ Output หรือ Path ที่ต้องการเซฟ"
     )
 
+    # 4. ระบุไฟล์ GENED (เช่น consolidated_page_151-224.json) เพื่อซิงค์หมวดหมู่วิชา GENED
+    #    ถ้าไม่ระบุ จะค้นหาไฟล์ consolidated_page_*.json ที่เหลือใน consolidated_outputs ให้อัตโนมัติ
+    parser.add_argument(
+        "--gened",
+        default=None,
+        help="GENED consolidated JSON (เช่น consolidated_page_151-224.json) สำหรับซิงค์หมวดหมู่เข้าสู่ไฟล์ Output",
+    )
+
     args = parser.parse_args()
 
-    # 📁 กำหนด Base Folder
+    #  กำหนด Base Folder
     base_dir = Path("consolidated_outputs")
     
     plan_file = base_dir / f"consolidated_page_{args.plan_pages}.json"
@@ -158,12 +166,12 @@ if __name__ == "__main__":
         desc_file = base_dir / f"page_{args.desc_pages}.json"
 
     if not plan_file.exists():
-        raise FileNotFoundError(f"❌ ไม่พบไฟล์ตารางเรียน: {plan_file}")
+        raise FileNotFoundError(f" ไม่พบไฟล์ตารางเรียน: {plan_file}")
     if not desc_file.exists():
-        raise FileNotFoundError(f"❌ ไม่พบไฟล์คำอธิบายรายวิชา: {desc_file}")
+        raise FileNotFoundError(f" ไม่พบไฟล์คำอธิบายรายวิชา: {desc_file}")
 
-    print(f"📖 กำลังโหลดไฟล์ตารางเรียน: {plan_file.name}")
-    print(f"📖 กำลังโหลดไฟล์คำอธิบาย: {desc_file.name}")
+    print(f" กำลังโหลดไฟล์ตารางเรียน: {plan_file.name}")
+    print(f" กำลังโหลดไฟล์คำอธิบาย: {desc_file.name}")
 
     with open(plan_file, "r", encoding="utf-8") as f:
         plan_data = json.load(f)
@@ -175,7 +183,7 @@ if __name__ == "__main__":
     consolidator = CurriculumConsolidator(plan_data, desc_data)
     final_result = consolidator.consolidate()
 
-    # 💾 กำหนด Output Path อัตโนมัติถ้าไม่ได้ระบุ -o
+    #  กำหนด Output Path อัตโนมัติถ้าไม่ได้ระบุ -o
     if args.output:
         output_path = Path(args.output)
         if not output_path.suffix:
@@ -184,3 +192,29 @@ if __name__ == "__main__":
         output_path = base_dir / f"final_consolidated_page_{args.plan_pages}.json"
 
     save_json(final_result, output_path)
+
+    # 5. ซิงค์หมวดหมู่วิชา GENED เข้าสู่ไฟล์ Output (รันอัตโนมัติ)
+    #    ต้องรันหลังจาก consolidate เรียบร้อย และก่อนนำไฟล์ไป evaluate
+    #    - ถ้าระบุ --gened ใช้ไฟล์นั้นโดยตรง
+    #    - ถ้าไม่ระบุ จะค้นหาไฟล์ consolidated_page_*.json ที่เหลือใน base_dir เป็นแหล่งหมวดหมู่
+    if args.gened:
+        gened_sources = [Path(args.gened)]
+        if not gened_sources[0].exists():
+            gened_sources[0] = base_dir / args.gened
+        if not gened_sources[0].exists():
+            raise FileNotFoundError(f" ไม่พบไฟล์ GENED: {gened_sources[0]}")
+    else:
+        gened_sources = [
+            f
+            for f in base_dir.glob("consolidated_page_*.json")
+            if f not in (plan_file, desc_file, output_path)
+        ]
+
+    if gened_sources:
+        from transfer import sync_categories
+
+        names = ", ".join(f.name for f in gened_sources)
+        print(f" กำลังซิงค์หมวดหมู่ GENED จาก: {names}")
+        sync_categories(gened_sources, output_path, output_path)
+    else:
+        print(" ไม่พบไฟล์ GENED สำหรับซิงค์หมวดหมู่ (ข้ามขั้นตอน)")

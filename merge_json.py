@@ -45,7 +45,7 @@ def merge_curriculum_files(
     json_files = list(input_path.glob("*_extracted.json"))
     if not json_files:
         print(
-            f"❌ ไม่พบไฟล์ *_extracted.json ในโฟลเดอร์: {input_path.resolve()}"
+            f" ไม่พบไฟล์ *_extracted.json ในโฟลเดอร์: {input_path.resolve()}"
         )
         return
 
@@ -61,7 +61,7 @@ def merge_curriculum_files(
             filtered_files.append((p_num, f))
 
     if not filtered_files:
-        print(f"⚠️ ไม่พบไฟล์ตรงตามเลขหน้าที่ระบุ: {pages}")
+        print(f" ไม่พบไฟล์ตรงตามเลขหน้าที่ระบุ: {pages}")
         return
 
     # 3. เรียงลำดับตามเลขหน้า
@@ -82,7 +82,7 @@ def merge_curriculum_files(
     output_file_path = output_folder / output_filename
 
     print(
-        f"📦 กำลังเชื่อมต่อ {len(filtered_files)} ไฟล์จากโฟลเดอร์ '{input_dir}'..."
+        f" กำลังเชื่อมต่อ {len(filtered_files)} ไฟล์จากโฟลเดอร์ '{input_dir}'..."
     )
 
     # 5. วนลูปอ่านข้อมูล
@@ -118,9 +118,9 @@ def merge_curriculum_files(
         json.dump(consolidated_data, f, ensure_ascii=False, indent=4)
 
     print(
-        f"\n✅ เชื่อมไฟล์สำเร็จ! รวมวิชาได้ทั้งหมด {len(all_courses)} วิชา"
+        f"\n เชื่อมไฟล์สำเร็จ! รวมวิชาได้ทั้งหมด {len(all_courses)} วิชา"
     )
-    print(f"📄 บันทึกไฟล์เอาต์พุตไว้ที่: {output_file_path.resolve()}")
+    print(f" บันทึกไฟล์เอาต์พุตไว้ที่: {output_file_path.resolve()}")
 
 
 if __name__ == "__main__":

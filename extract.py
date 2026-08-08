@@ -61,10 +61,10 @@ def main():
         files_to_process = [input_path]
 
     if not files_to_process:
-        print(f"❌ No valid .txt or .json files found at {input_path}")
+        print(f" No valid .txt or .json files found at {input_path}")
         return
 
-    print(f"🔍 Found {len(files_to_process)} file(s) to process.")
+    print(f" Found {len(files_to_process)} file(s) to process.")
 
     all_courses = []
     last_result = None
@@ -83,7 +83,7 @@ def main():
         out_file = output_dir / f"{file.stem}_extracted.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=4)
-        print(f"✓ Saved extracted JSON: {out_file}")
+        print(f" Saved extracted JSON: {out_file}")
 
     # If processing multiple files, also output a merged summary file
     if len(files_to_process) > 1 and last_result:
@@ -97,7 +97,7 @@ def main():
         consolidated_file = output_dir / f"consolidated_curriculum_{args.program}_{args.plan}.json"
         with open(consolidated_file, "w", encoding="utf-8") as f:
             json.dump(merged_result, f, ensure_ascii=False, indent=4)
-        print(f"\n✓ Saved consolidated result ({len(all_courses)} courses total): {consolidated_file}")
+        print(f"\n Saved consolidated result ({len(all_courses)} courses total): {consolidated_file}")
 
 
 if __name__ == "__main__":

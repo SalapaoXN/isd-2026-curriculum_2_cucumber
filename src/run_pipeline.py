@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import List
 
+from .checker import OCRSpellChecker
 from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
@@ -81,14 +82,15 @@ def main():
 
     pages = parse_pages(args.pages)
     if not pages:
-        print("❌ รูปแบบเลขหน้าไม่ถูกต้อง! กรุณาระบุ เช่น -p 32-36 หรือ -p 16,17,18")
+        print(" รูปแบบเลขหน้าไม่ถูกต้อง! กรุณาระบุ เช่น -p 32-36 หรือ -p 16,17,18")
         return
 
-    print("🚀 เริ่มต้นระบบ Auto OCR -> Extract Pipeline")
-    print(f"📌 หน้าที่จะประมวลผล: {pages}")
+    print(" เริ่มต้นระบบ Auto OCR -> Extract Pipeline")
+    print(f" หน้าที่จะประมวลผล: {pages}")
 
     use_gpu = not args.no_gpu
     engine = OCREngine(languages=["th", "en"], gpu=use_gpu)
+    spell_checker = OCRSpellChecker()
     extractor = CurriculumExtractor(program=args.program, plan=args.plan)
 
     for page_num in pages:
@@ -102,11 +104,11 @@ def main():
                 break
 
         if not img_file:
-            print(f"\n⚠️  [Skip] ไม่พบไฟล์รูปภาพสำหรับหน้า {page_num} ใน '{input_dir}'")
+            print(f"\n  [Skip] ไม่พบไฟล์รูปภาพสำหรับหน้า {page_num} ใน '{input_dir}'")
             continue
 
         print(f"\n========================================")
-        print(f"📄 Processing: {img_file.name}")
+        print(f" Processing: {img_file.name}")
         print(f"========================================")
 
         # Step 1: OCR
@@ -114,6 +116,14 @@ def main():
         print(f"   ├─ OCR อ่านได้ {len(lines)} บรรทัด")
 
         lines = [line.upper() for line in lines]
+
+        # Step 1.5: Autocorrect English text (pyspellchecker)
+        lines, typos = spell_checker.process_lines(lines)
+        print(f"   ├─ Autocorrect แก้ไข {len(typos)} จุด")
+        if typos:
+            for t in typos:
+                print(f"   │    L{t['line']}: {t['original']} -> {t['corrected']}")
+
         save_ocr_results(lines, output_dir, base_name)
 
         # Step 2: Extract
@@ -126,9 +136,9 @@ def main():
             json.dump(extracted_data, f, ensure_ascii=False, indent=4)
 
         courses_count = len(extracted_data.get("courses", []))
-        print(f"   └─ ✅ Extracted สำเร็จ (พบ {courses_count} วิชา) -> บันทึกที่ '{output_filename.name}'")
+        print(f"   └─  Extracted สำเร็จ (พบ {courses_count} วิชา) -> บันทึกที่ '{output_filename.name}'")
 
-    print(f"\n🎉 เสร็จเรียบร้อยทุกหน้า! บันทึกไฟล์ไว้ที่: {output_dir.resolve()}")
+    print(f"\n เสร็จเรียบร้อยทุกหน้า! บันทึกไฟล์ไว้ที่: {output_dir.resolve()}")
 
 
 if __name__ == "__main__":

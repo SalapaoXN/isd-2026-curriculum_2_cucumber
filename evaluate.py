@@ -209,10 +209,10 @@ def main():
             out_path.parent.mkdir(parents=True, exist_ok=True)
             with out_path.open("w", encoding="utf-8") as f:
                 f.write(formatted_result)
-            print(f"\n💾 บันทึกรายงานผลเรียบร้อยที่: {out_path}")
+            print(f"\n บันทึกรายงานผลเรียบร้อยที่: {out_path}")
 
     except Exception as e:
-        print(f"❌ เกิดข้อผิดพลาด: {e}", file=sys.stderr)
+        print(f" เกิดข้อผิดพลาด: {e}", file=sys.stderr)
         sys.exit(1)
 
 

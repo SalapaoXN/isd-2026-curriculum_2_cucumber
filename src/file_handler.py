@@ -14,7 +14,7 @@ def save_ocr_results(text_lines: List[str], output_dir: Path, base_name: str) ->
     # 1. Save Plain Text File
     extracted_text = "\n".join(text_lines)
     txt_file.write_text(extracted_text, encoding="utf-8")
-    print(f"✓ Text output saved to: {txt_file}")
+    print(f" Text output saved to: {txt_file}")
 
     # 2. Save Structured JSON File
     json_data = {
@@ -25,4 +25,4 @@ def save_ocr_results(text_lines: List[str], output_dir: Path, base_name: str) ->
     with open(json_file, "w", encoding="utf-8") as f:
         json.dump(json_data, f, ensure_ascii=False, indent=4)
         
-    print(f"✓ JSON metadata saved to: {json_file}")
+    print(f" JSON metadata saved to: {json_file}")

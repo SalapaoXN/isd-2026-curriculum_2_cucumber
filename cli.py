@@ -80,10 +80,10 @@ def main():
         # Step 1: Discover Image Files
         images = get_image_files(input_path)
         if not images:
-            print(f"❌ No supported image files found in {input_path}")
+            print(f" No supported image files found in {input_path}")
             return
 
-        print(f"🔍 Found {len(images)} image(s) to process.")
+        print(f" Found {len(images)} image(s) to process.")
 
         # Step 2: Initialize OCR Engine ONCE for all images
         engine = OCREngine(languages=languages, gpu=use_gpu)
@@ -103,10 +103,10 @@ def main():
             # Step 4: Save Individual OCR Results (.txt and .json)
             save_ocr_results(lines, output_dir, img_file.stem)
 
-        print(f"\n✅ Finished processing all {len(images)} image(s)!")
+        print(f"\n Finished processing all {len(images)} image(s)!")
 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n Error: {e}")
 
 
 if __name__ == "__main__":
