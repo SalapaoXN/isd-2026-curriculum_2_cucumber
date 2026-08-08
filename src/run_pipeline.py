@@ -13,7 +13,7 @@ IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp"]
 
 
 def parse_pages(pages_str: str) -> List[int]:
-    """แปลงข้อความรับระบุหน้า เช่น '32-36' หรือ '16,17,20' ให้เป็น List ตัวเลข"""
+    """Convert a page spec string such as '32-36' or '16,17,20' into a list of integers"""
     pages = set()
     for part in pages_str.split(","):
         part = part.strip()
@@ -82,11 +82,11 @@ def main():
 
     pages = parse_pages(args.pages)
     if not pages:
-        print(" รูปแบบเลขหน้าไม่ถูกต้อง! กรุณาระบุ เช่น -p 32-36 หรือ -p 16,17,18")
+        print(" Invalid page format! Please specify e.g. -p 32-36 or -p 16,17,18")
         return
 
-    print(" เริ่มต้นระบบ Auto OCR -> Extract Pipeline")
-    print(f" หน้าที่จะประมวลผล: {pages}")
+    print(" Starting the Auto OCR -> Extract Pipeline")
+    print(f" Pages to process: {pages}")
 
     use_gpu = not args.no_gpu
     engine = OCREngine(languages=["th", "en"], gpu=use_gpu)
@@ -104,7 +104,7 @@ def main():
                 break
 
         if not img_file:
-            print(f"\n  [Skip] ไม่พบไฟล์รูปภาพสำหรับหน้า {page_num} ใน '{input_dir}'")
+            print(f"\n  [Skip] No image file found for page {page_num} in '{input_dir}'")
             continue
 
         print(f"\n========================================")
@@ -113,13 +113,13 @@ def main():
 
         # Step 1: OCR
         lines = engine.extract_text(img_file, detail=0)
-        print(f"   ├─ OCR อ่านได้ {len(lines)} บรรทัด")
+        print(f"   ├─ OCR read {len(lines)} lines")
 
         lines = [line.upper() for line in lines]
 
         # Step 1.5: Autocorrect English text (pyspellchecker)
         lines, typos = spell_checker.process_lines(lines)
-        print(f"   ├─ Autocorrect แก้ไข {len(typos)} จุด")
+        print(f"   ├─ Autocorrect fixed {len(typos)} points")
         if typos:
             for t in typos:
                 print(f"   │    L{t['line']}: {t['original']} -> {t['corrected']}")
@@ -136,9 +136,9 @@ def main():
             json.dump(extracted_data, f, ensure_ascii=False, indent=4)
 
         courses_count = len(extracted_data.get("courses", []))
-        print(f"   └─  Extracted สำเร็จ (พบ {courses_count} วิชา) -> บันทึกที่ '{output_filename.name}'")
+        print(f"   └─  Extracted successfully ({courses_count} courses) -> saved at '{output_filename.name}'")
 
-    print(f"\n เสร็จเรียบร้อยทุกหน้า! บันทึกไฟล์ไว้ที่: {output_dir.resolve()}")
+    print(f"\n Finished processing all pages! Files saved at: {output_dir.resolve()}")
 
 
 if __name__ == "__main__":

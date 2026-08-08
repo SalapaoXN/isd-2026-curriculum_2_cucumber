@@ -77,9 +77,9 @@ def evaluate_json_structure(
     pred_path = Path(prediction_json)
 
     if not gt_path.exists():
-        raise FileNotFoundError(f"ไม่พบไฟล์ Ground Truth: {gt_path}")
+        raise FileNotFoundError(f"Ground Truth file not found: {gt_path}")
     if not pred_path.exists():
-        raise FileNotFoundError(f"ไม่พบไฟล์ Prediction: {pred_path}")
+        raise FileNotFoundError(f"Prediction file not found: {pred_path}")
 
     with gt_path.open("r", encoding="utf-8") as f:
         gt_data = json.load(f)
@@ -170,19 +170,19 @@ def evaluate_json_structure(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="CLI Evaluator สำหรับประเมินความแม่นยำของ JSON Structured Data"
+        description="CLI evaluator for measuring the accuracy of JSON structured data"
     )
     parser.add_argument(
         "prediction_json",
         type=str,
-        help="Path ของไฟล์ Prediction JSON ที่รันได้จากโมเดล/โค้ด",
+        help="Path of the Prediction JSON produced by the model/code",
     )
     parser.add_argument(
         "--gt",
         dest="ground_truth_json",
         type=str,
         required=True,
-        help="Path ของไฟล์ Ground Truth JSON",
+        help="Path of the Ground Truth JSON file",
     )
     parser.add_argument(
         "--out",
@@ -190,7 +190,7 @@ def main():
         dest="output_json",
         type=str,
         default=None,
-        help="Optional: Path สำหรับบันทึกไฟล์สรุปผลรายงาน JSON",
+        help="Optional: Path to save the summary report JSON file",
     )
 
     args = parser.parse_args()
@@ -209,10 +209,10 @@ def main():
             out_path.parent.mkdir(parents=True, exist_ok=True)
             with out_path.open("w", encoding="utf-8") as f:
                 f.write(formatted_result)
-            print(f"\n บันทึกรายงานผลเรียบร้อยที่: {out_path}")
+            print(f"\n Report saved successfully at: {out_path}")
 
     except Exception as e:
-        print(f" เกิดข้อผิดพลาด: {e}", file=sys.stderr)
+        print(f" Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 

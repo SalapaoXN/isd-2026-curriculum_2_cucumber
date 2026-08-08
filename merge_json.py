@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 
 
 def parse_page_range(page_input: Union[str, List[int], None]) -> Optional[set]:
-    """แปลงรูปแบบการระบุเลขหน้าให้เป็น set ของตัวเลขเพื่อเอาไปดักเช็ก"""
+    """Convert a page spec into a set of integers for filtering"""
     if not page_input:
         return None
 
@@ -15,7 +15,7 @@ def parse_page_range(page_input: Union[str, List[int], None]) -> Optional[set]:
 
     if isinstance(page_input, str):
         pages = set()
-        # แยกข้อความด้วยเครื่องหมายจุลภาค เช่น "30-32, 35"
+        # Split the text by comma, e.g. "30-32, 35"
         parts = page_input.split(",")
         for part in parts:
             part = part.strip()
@@ -35,17 +35,17 @@ def merge_curriculum_files(
     pages: Union[str, List[int], None] = None,
     output_filename: Optional[str] = None,
 ):
-    """รวมไฟล์ *_extracted.json โดยเลือกเฉพาะเลขหน้าที่กำหนดได้"""
+    """Merge *_extracted.json files, optionally selecting only specified page numbers"""
     input_path = Path(input_dir)
     output_folder = Path(output_dir)
 
     target_pages = parse_page_range(pages)
 
-    # 1. ค้นหาไฟล์ทั้งหมด
+    # 1. Find all files
     json_files = list(input_path.glob("*_extracted.json"))
     if not json_files:
         print(
-            f" ไม่พบไฟล์ *_extracted.json ในโฟลเดอร์: {input_path.resolve()}"
+            f" No *_extracted.json files found in folder: {input_path.resolve()}"
         )
         return
 
@@ -53,7 +53,7 @@ def merge_curriculum_files(
         match = re.search(r"page_(\d+)", file_path.name)
         return int(match.group(1)) if match else -1
 
-    # 2. กรองเฉพาะไฟล์ที่มีเลขหน้าตรงกับที่ระบุ
+    # 2. Filter only files whose page numbers match the specified pages
     filtered_files = []
     for f in json_files:
         p_num = extract_page_num(f)
@@ -61,17 +61,17 @@ def merge_curriculum_files(
             filtered_files.append((p_num, f))
 
     if not filtered_files:
-        print(f" ไม่พบไฟล์ตรงตามเลขหน้าที่ระบุ: {pages}")
+        print(f" No files found matching the specified pages: {pages}")
         return
 
-    # 3. เรียงลำดับตามเลขหน้า
+    # 3. Sort by page number
     filtered_files.sort(key=lambda x: x[0])
 
     all_courses = []
     base_metadata = {}
     included_page_nums = [p for p, _ in filtered_files if p != -1]
 
-    # 4. ตั้งชื่อไฟล์เอาต์พุตให้อัตโนมัติถ้าไม่ได้ใส่ชื่อมา (เช่น consolidated_page_030-036.json)
+    # 4. Generate an output file name automatically if none is given (e.g. consolidated_page_030-036.json)
     if not output_filename:
         if included_page_nums and target_pages:
             min_p, max_p = min(included_page_nums), max(included_page_nums)
@@ -82,10 +82,10 @@ def merge_curriculum_files(
     output_file_path = output_folder / output_filename
 
     print(
-        f" กำลังเชื่อมต่อ {len(filtered_files)} ไฟล์จากโฟลเดอร์ '{input_dir}'..."
+        f" Merging {len(filtered_files)} files from folder '{input_dir}'..."
     )
 
-    # 5. วนลูปอ่านข้อมูล
+    # 5. Loop through and read data
     for page_num, file in filtered_files:
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -100,8 +100,8 @@ def merge_curriculum_files(
 
         courses = data.get("courses", [])
         all_courses.extend(courses)
-        page_label = f"หน้า {page_num:03d}" if page_num != -1 else file.name
-        print(f"   ├─ [{page_label}] รวมไฟล์ {file.name}: เพิ่ม {len(courses)} วิชา")
+        page_label = f"page {page_num:03d}" if page_num != -1 else file.name
+        print(f"   ├─ [{page_label}] merged {file.name}: added {len(courses)} courses")
 
     consolidated_data = {
         "source": base_metadata.get("source"),
@@ -112,15 +112,15 @@ def merge_curriculum_files(
         "courses": all_courses,
     }
 
-    # 6. บันทึกไฟล์
+    # 6. Save the file
     output_folder.mkdir(parents=True, exist_ok=True)
     with open(output_file_path, "w", encoding="utf-8") as f:
         json.dump(consolidated_data, f, ensure_ascii=False, indent=4)
 
     print(
-        f"\n เชื่อมไฟล์สำเร็จ! รวมวิชาได้ทั้งหมด {len(all_courses)} วิชา"
+        f"\n Merge successful! Total {len(all_courses)} courses"
     )
-    print(f" บันทึกไฟล์เอาต์พุตไว้ที่: {output_file_path.resolve()}")
+    print(f" Output file saved at: {output_file_path.resolve()}")
 
 
 if __name__ == "__main__":

@@ -11,6 +11,32 @@ Member:
 
 ## Run guide:
 
+### Step by step (full pipeline)
+Run the whole pipeline in order: OCR → Extract → Merge → Consolidate → Evaluate.
+
+```bash
+# 1. OCR a folder of images into outputs/ (per-page .txt + .json)
+python cli.py inputs/dsba/ -o outputs
+
+# 2. Extract structured courses from each OCR file
+python extract.py outputs/ -o outputs
+
+# 3. Merge extracted files by page range into consolidated_outputs/
+python merge_json.py -i outputs -o consolidated_outputs
+
+# 4. Consolidate plan + description into a full file (synces GENED categories automatically)
+python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
+
+# 5. Evaluate against ground truth
+python evaluate.py consolidated_outputs/dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+```
+
+For the no-coop plan, replace page ranges and ground truth accordingly:
+```bash
+python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
+python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+```
+
 ### OCR
 ```bash
 # ocr each .jpg/.png file

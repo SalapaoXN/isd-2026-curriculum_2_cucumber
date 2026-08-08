@@ -32,19 +32,19 @@ def normalize_course_code(code: str) -> str:
 CODE_ONLY_LINE_REGEX = re.compile(r"^[0-9xX\)\.\|_]{4,12}$", re.IGNORECASE)
 def try_clean_code_line(line: str) -> Union[str, None]:
     """
-    ตรวจว่าบรรทัดนี้ 'น่าจะเป็น' รหัสวิชาที่ OCR อ่านเพี้ยนมี junk char ติด
-    เช่น '06026X)X', '9064XX)X' -> คืนค่ารหัสที่ clean แล้ว (เอา junk char ออก)
-    ถ้าไม่ใช่ให้คืน None
+    Check if a line is 'likely' a course code that OCR misread with junk chars.
+    E.g. '06026X)X', '9064XX)X' -> return cleaned code (junk chars removed).
+    Return None if not a course code.
     """
     stripped = line.strip()
     if not stripped or not CODE_ONLY_LINE_REGEX.match(stripped):
         return None
 
-    # ลบ junk char ที่ไม่ใช่ตัวเลข/x ออก (เช่น ) . | _)
+    # Remove junk chars that are not digits/x (e.g. ) . | _)
     cleaned = re.sub(r"[^\dxX]", "", stripped, flags=re.IGNORECASE)
 
-    # ต้องเหลือความยาวสมเหตุสมผล (รหัสวิชาจริงยาว 5-9 ตัวก่อน normalize)
-    # และต้องมีเลขอย่างน้อย 1 ตัว (กันไม่ให้จับ 'X' หรือ 'L' เดี่ยวๆมาเป็นโค้ด)
+    # Must keep a reasonable length (real course codes are 5-9 chars before normalize)
+    # and must contain at least one digit (avoid treating a lone 'X' or 'L' as a code)
     if 5 <= len(cleaned) <= 9 and re.search(r"\d", cleaned):
         return cleaned
     return None
@@ -63,7 +63,7 @@ class CurriculumExtractor:
         self.source = source
 
     def extract_from_lines(self, lines: List[str]) -> Dict:
-        print(" [DEBUG] กำลังรัน: extract_from_lines (ตารางเรียน)")
+        print(" [DEBUG] running: extract_from_lines (study plan table)")
         courses = []
 
         current_year = 1
@@ -125,7 +125,7 @@ class CurriculumExtractor:
                     )
                 )
                 if is_synthetic_trigger:
-                    line = f"XXXXXXXX {line}"  # ยัดโค้ดปลอมนำหน้า ให้ regex เดิม match ได้ปกติ
+                    line = f"XXXXXXXX {line}"  # prepend a fake code so the regex below can match
                 pending_headless = False
 
             if note_regex.search(line) and not course_code_regex.search(line):
@@ -171,7 +171,7 @@ class CurriculumExtractor:
             if code_match and not prereq_keyword_regex.search(line):
                 if cleaned_code_line:
                     raw_code = cleaned_code_line
-                    line_after_code = ""          # ทั้งบรรทัดคือโค้ด ไม่มีเนื้อหาเหลือ
+                    line_after_code = ""          # the whole line is the code, no remaining content
                 else:
                     raw_code = code_match.group(1)
                     idx_code = line.upper().find(raw_code.upper())
@@ -211,19 +211,19 @@ class CurriculumExtractor:
                         j += 1
                         continue
 
-                    # เช็กว่าเป็นรหัสวิชาใหม่จริงหรือไม่
+                    # Check if it's a new course code
                     next_cleaned_code = try_clean_code_line(next_line)
                     is_next_code = (
                         bool(next_cleaned_code)
                         or (bool(course_code_regex.search(next_line)) and not prereq_keyword_regex.search(next_line))
                     )
 
-                    # ถ้าวิชาปัจจุบันมีรหัสตัวเลข 8 หลักแล้ว (เช่น 06026200)
-                    # แต่ next_line ดันเป็นตัว "X" ตัวเดียวขยะๆ หลุดเข้ามา -> ข้ามมันไป ห้ามสั่ง break!
+                    # If the current course already has an 8-digit numeric code (e.g. 06026200)
+                    # but the next line is a single junk "X" that slipped through, skip it without breaking
                     if is_next_code and next_line.upper() in ["X", "^", "D9", "L"]:
                         if len(code) == 8 and code.isdigit():
                             j += 1
-                            continue # ข้ามขยะ OCR ตัวนี้ไป แล้วอ่านบรรทัดถัดไปต่อ
+                            continue # skip this OCR junk and continue to the next line
 
                     is_next_category = bool(
                         category_header_regex.search(next_line)
@@ -232,7 +232,7 @@ class CurriculumExtractor:
                         or credits_regex.search(next_line)
                     )
 
-                    # สั่ง break ตัดจบรายการเดิมเมื่อเจอวิชาใหม่จริงๆ เท่านั้น
+                    # Break to close the current course only when a real new course is found
                     if (
                         is_next_code
                         or (
@@ -286,13 +286,13 @@ class CurriculumExtractor:
 
                     j += 1
 
-                # ลบคำว่า "กลุ่ม วิชาที่กำหนดโดยคณะ*" (รองรับกรณีเว้นวรรคและมี/ไม่มีดอกจัน)
+                # Remove "กลุ่ม วิชาที่กำหนดโดยคณะ*" (supports spaces and optional asterisk)
                 name_th = re.sub(r"กลุ่ม\s*วิชาที่กำหนดโดยคณะ\*", "", name_th).strip()
                 
-                # ลบสัญลักษณ์ | (Pipe) ที่เกิดจาก OCR สแกนขอบตารางเพี้ยน
+                # Remove the | (Pipe) symbol caused by OCR scanning table borders
                 name_th = name_th.replace("|", "").strip()
 
-                # ลบขีด หรือ โคลอน ที่อยู่หน้าสุด
+                # Remove leading dash or colon
                 name_th = re.sub(r"^\s*[-:]\s*", "", name_th).strip()
                 name_en = re.sub(r"^\s*[-:]\s*", "", name_en).strip()
                 name_en = clean_ocr_en_text(name_en).upper()
@@ -333,32 +333,32 @@ class CurriculumExtractor:
             idx += 1
         
         # ==========================================
-        # ลอจิกรวมวิชาทางเลือก 06026259/06026260
+        # Logic to combine elective courses 06026259/06026260
         # ==========================================
         combined_courses = []
         idx_c = 0
         while idx_c < len(courses):
             current_course = courses[idx_c]
             
-            # เช็คว่ามีวิชาถัดไป และเป็นคู่ 06026259 กับ 06026260 หรือไม่
+            # Check if there is a next course and it is the pair 06026259 and 06026260
             if idx_c + 1 < len(courses):
                 next_course = courses[idx_c + 1]
                 
                 if current_course["code"] == "06026259" and next_course["code"] == "06026260":
-                    # 1. รวมรหัส
+                    # 1. Combine codes
                     current_course["code"] = f"{current_course['code']} หรือ {next_course['code']}"
                     
-                    # 2. รวมชื่อไทย คั่น \n
+                    # 2. Combine Thai names, separated by \n
                     current_course["name_th"] = f"{current_course['name_th']}\n{next_course['name_th']}"
                     
-                    # 3. รวมชื่ออังกฤษ คั่น \n
+                    # 3. Combine English names, separated by \n
                     current_course["name_en"] = f"{current_course['name_en']}\n{next_course['name_en']}"
                     
-                    # 4. บังคับหน่วยกิตเป็น 6(0-35-0)
+                    # 4. Force credits to 6(0-35-0)
                     current_course["credits"] = "6(0-35-0)"
                     
                     combined_courses.append(current_course)
-                    idx_c += 2  # ข้ามวิชาถัดไปเพราะโดนจับรวมแล้ว
+                    idx_c += 2  # skip the next course since it was already combined
                     continue
                     
             combined_courses.append(current_course)
@@ -376,7 +376,7 @@ class CurriculumExtractor:
         }
 
     def extract_descriptions(self, lines: List[str]) -> Dict:
-        print(" [DEBUG] กำลังรัน: extract_descriptions (คำอธิบายรายวิชา)")
+        print(" [DEBUG] running: extract_descriptions (course descriptions)")
         courses = []
         seen_codes = set()
         i = 0
@@ -385,13 +385,13 @@ class CurriculumExtractor:
         code_regex = re.compile(r"\b\d{7,8}\b")
         credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
         
-        # รวม Keyword บังคับก่อนทั้งภาษาไทยและอังกฤษ เพื่อใช้หยุดการอ่านชื่อวิชา (name_th)
+        # Combine mandatory keywords in both Thai and English to stop reading the course name
         any_prereq_key_regex = re.compile(
             r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE)",
             re.IGNORECASE,
         )
         
-        # Keyword ภาษาอังกฤษ สำหรับเริ่มเก็บค่า Prerequisite
+        # English keywords for starting to collect the prerequisite value
         prereq_eng_key_regex = re.compile(
             r"(?:PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE|PRLRLCUISIIT|PRERLOUSIIE|FRFRROUISIIT)",
             re.IGNORECASE,
@@ -421,9 +421,9 @@ class CurriculumExtractor:
 
                 j = i + 1
 
-                # 1. อ่านชื่อวิชาภาษาไทย, หน่วยกิต, และชื่อภาษาอังกฤษ
+                # 1. Read the Thai course name, credits, and English name
                 name_en = ""
-                en_words = [] # ใช้ List เก็บก้อนภาษาอังกฤษเพื่อรองรับหลายบรรทัด
+                en_words = [] # use a List to hold English chunks across multiple lines
                 
                 if name_en: 
                     en_words.append(name_en)
@@ -446,16 +446,16 @@ class CurriculumExtractor:
                         j += 1
                         continue
 
-                    # เก็บชื่อภาษาอังกฤษแบบหลายบรรทัด
+                    # Collect multi-line English names
                     if re.search(r"[a-zA-Z]", curr) and not has_thai_regex.search(curr):
                         clean_en = clean_ocr_en_text(curr).upper()
                         if clean_en and clean_en not in ["L", "NONE"]:
                             en_words.append(clean_en)
-                    # กรณีเป็นตัวเลขโดดๆ ที่ตกบรรทัด
+                    # Case: lone numbers that fell onto their own line
                     elif en_words and curr in ["1", "2", "3", "L", "l"]:
                         en_words.append(clean_ocr_en_text(curr).upper())
 
-                    # เก็บชื่อภาษาไทยแบบหลายบรรทัด
+                    # Collect multi-line Thai names
                     elif has_thai_regex.search(curr):
                         if not (curr.isdigit() and len(curr) <= 2):
                             th_words.append(curr)
@@ -464,20 +464,20 @@ class CurriculumExtractor:
 
                     j += 1
 
-                # ประกอบร่างชื่อภาษาไทยแบบไม่เว้นวรรค
+                # Assemble Thai name without spaces
                 if th_words:
-                    # ตัดช่องว่างในตัวรายการทิ้ง แล้วนำมาต่อกัน
+                    # Remove spaces within each item, then join them together
                     cleaned_th_words = [w.replace(" ", "") for w in th_words]
                     name_th = "".join(cleaned_th_words).strip()
                     name_th = re.sub(r"\bแคลคูลส\b", "แคลคูลัส", name_th)
 
-                # ประกอบร่างชื่อภาษาอังกฤษเว้นวรรค 1 เคาะ
+                # Assemble English name with single-space separators
                 if en_words:
                     name_en = " ".join(en_words).strip()
-                    # กำจัดช่องว่างที่อาจซ้อนกันเกิน 1 เคาะ
+                    # Remove any spaces that exceed 1 space
                     name_en = re.sub(r'\s+', ' ', name_en)
 
-                # อ่านส่วน PREREQUISITE (ข้ามภาษาไทยทั้งหมด จนกว่าจะเจอ PREREQUISITE อิ้ง)
+                # Read the PREREQUISITE part (skip all Thai until English PREREQUISITE is found)
                 prereq_tokens = []
 
                 while j < total:
@@ -502,7 +502,7 @@ class CurriculumExtractor:
                             if has_thai_regex.search(remainder):
                                 break
                             else:
-                                #  แก้ไขข้อ 2: คลีนข้อความผ่าน clean_ocr_en_text (เปลี่ยน L ให้เป็นเลข 1 ถ้าอยู่ท้ายคำ)
+                                #  Fix item 2: clean text via clean_ocr_en_text (change L to 1 if at word end)
                                 cleaned_rem = clean_ocr_en_text(remainder).upper()
                                 if cleaned_rem:
                                     prereq_tokens.append(cleaned_rem)
@@ -515,7 +515,7 @@ class CurriculumExtractor:
                                 j += 1
                                 continue
 
-                            #  เจอภาษาไทยเมื่อไหร่ (บรรทัดคำอธิบายรายวิชา) = หยุดเก็บ Prerequisite ทันที!
+                            #  When Thai is found (course description line) = stop collecting Prerequisite immediately!
                             if has_thai_regex.search(sub_line):
                                 break
 
@@ -529,7 +529,7 @@ class CurriculumExtractor:
 
                     j += 1
 
-                # สรุปค่า Prerequisite
+                # Summarize prerequisite value
                 if prereq_tokens:
                     clean_prereq = " ".join(prereq_tokens).strip()
                     if clean_prereq in ["NONE", "ไม่มี", ""]:
@@ -539,7 +539,7 @@ class CurriculumExtractor:
                 else:
                     prerequisite = "ไม่มี"
 
-                # 3. ข้ามบรรทัดเนื้อหาคำอธิบายวิชา เพื่อไปหารหัสวิชาถัดไป
+                # 3. Skip course description content lines to find the next course code
                 while j < total:
                     curr = lines[j].strip()
                     m_next = code_regex.search(curr)
@@ -557,7 +557,7 @@ class CurriculumExtractor:
                 seen_codes.add(code)
                 credits = credits.replace(" ", "").replace("{", "(").replace("}", ")")
                 
-                if code.startswith("90"):  # รหัส GenEd สถาบัน
+                if code.startswith("90"):  # institutional GenEd code
                     courses.append(
                         {
                             "code": code,
@@ -571,7 +571,7 @@ class CurriculumExtractor:
                             "note": None,
                         }
                     )
-                else:  # รหัสวิชาเฉพาะ / วิชาคณะ (06xxxxx)
+                else:  # specific / faculty course codes (06xxxxx)
                     courses.append(
                         {
                             "code": code,
@@ -616,14 +616,14 @@ class CurriculumExtractor:
         lines = [line.upper() for line in lines]
         content_upper = "\n".join(lines)
 
-        #  จุดที่แก้ไข 1: ดักจับโครงสร้าง "ตารางเรียน" ให้เด็ดขาด (มีคำว่า ปีที่/ภาคการศึกษาที่ หรือ มีรหัสวิชา+หน่วยกิตเป็นหัวตาราง)
+        #  Fix point 1: detect the "study plan" structure decisively (contains "ปีที่/ชั้นปีที่" or has a course code + credits table header)
         is_plan_page = bool(re.search(r"(?:ปีที่|ชั้นปีที่)\s*\d+", content_upper)) or \
                        (bool(re.search(r"รหัสวิชา", content_upper)) and bool(re.search(r"หน่วยกิต", content_upper)))
 
         if is_plan_page:
             return self.extract_from_lines(lines)
 
-        # ถ้าไม่ใช่ตารางเรียน ค่อยมาเช็คว่าเป็นหน้าคำอธิบายรายวิชาหรือไม่
+        # If not a study plan, check whether it is a course description page
         is_description_page = bool(
             re.search(r"(?:คำอธิบายรายวิชา|COURSE\s*DESCRIPTION|PREREQUISITE|PRERE)", content_upper)
         )

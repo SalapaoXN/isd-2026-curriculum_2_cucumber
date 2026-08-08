@@ -5,7 +5,7 @@ from pathlib import Path
 
 def sync_categories(gened_filepaths, dsba_filepath, output_filepath):
     """Sync course categories from one or more GENED source files into a DSBA file by course code."""
-    # 1. โหลดข้อมูลจากไฟล์ gened (ไฟล์ต้นทาง) ทุกไฟล์ แล้วรวมเป็น Mapping รหัสวิชา -> หมวดหมู่
+    # 1. Load data from all gened source files and build a mapping of course code -> category
     gened_map = {}
     for gened_filepath in gened_filepaths:
         with open(gened_filepath, "r", encoding="utf-8") as f:
@@ -16,28 +16,28 @@ def sync_categories(gened_filepaths, dsba_filepath, output_filepath):
             if code:
                 gened_map[code] = course.get("category", "")
 
-    # 2. โหลดข้อมูลจากไฟล์ dsba (ไฟล์ปลายทาง)
+    # 2. Load the dsba target file
     with open(dsba_filepath, "r", encoding="utf-8") as f:
         dsba_data = json.load(f)
 
-    # 3. อัปเดต category ในไฟล์ dsba ทันทีที่รหัสวิชา (code) ตรงกัน
+    # 3. Update category in the dsba file wherever the course code matches
     update_count = 0
     for course in dsba_data.get("courses", []):
         code = course.get("code")
 
-        # ถ้ารหัสวิชานี้มีอยู่ในไฟล์ gened ให้ทำการแทนที่ category
+        # If this course code exists in the gened file, replace its category
         if code in gened_map:
             course["category"] = gened_map[code]
             update_count += 1
 
-    # 4. บันทึกข้อมูลที่อัปเดตแล้ว
+    # 4. Save the updated data
     output_path = Path(output_filepath)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(dsba_data, f, ensure_ascii=False, indent=4)
 
     print(
-        f"ดำเนินการเสร็จสิ้น! ทำการแมพและอัปเดตหมวดหมู่ไปทั้งหมด {update_count} รายวิชา (จาก {len(gened_filepaths)} ไฟล์) -> {output_path}"
+        f"Done! Mapped and updated categories for {update_count} courses (from {len(gened_filepaths)} files) -> {output_path}"
     )
     return update_count
 
@@ -54,17 +54,17 @@ def main():
     parser.add_argument(
         "--gened",
         required=True,
-        help="GENED source JSON (ไฟล์ต้นทางของหมวดหมู่) เช่น consolidated_page_151-224.json",
+        help="GENED source JSON (source file of categories), e.g. consolidated_page_151-224.json",
     )
     parser.add_argument(
         "--input",
         required=True,
-        help="DSBA JSON ที่ต้องการแก้ เช่น dsba_coop_full.json",
+        help="The DSBA JSON to modify, e.g. dsba_coop_full.json",
     )
     parser.add_argument(
         "--output",
         default=None,
-        help="ชื่อไฟล์เอาต์พุตใหม่ (ถ้าไม่ระบุจะเขียนทับไฟล์ --input)",
+        help="New output file name (if not specified, overwrites the --input file)",
     )
     args = parser.parse_args()
 
