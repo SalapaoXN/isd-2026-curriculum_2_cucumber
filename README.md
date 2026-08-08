@@ -55,21 +55,21 @@ python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/
 python -m src.run_pipeline -p 32-36 -i inputs/dsba
 
 # ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
-python -m src.run_pipeline -p 32-36 -i inputs/it -o outputs --plan no_coop
-python -m src.run_pipeline -p 32-36 -i inputs/dsba -o outputs --plan no_coop
-python -m src.run_pipeline -p 32-36 -i inputs/ait -o outputs --plan no_coop
-python -m src.run_pipeline -p 32-36 -i inputs/bit -o outputs --plan no_coop
+python -m src.run_pipeline -p 23-29 -i inputs/dsba --plan no_coop
+python -m src.run_pipeline -p 30-36 -i inputs/dsba --plan coop
+python -m src.run_pipeline -p 151-224 -i inputs/dsba --plan gened
+python -m src.run_pipeline -p 314-341 -i inputs/dsba --plan other
 ```
 
 ### Merge JSON
+รวมไฟล์จาก output เป็น consolidate
 ```bash
 python merge_json.py -p 30-36
-
-# รวมทุกไฟล์ที่มีในโฟลเดอร์ (ไม่ใส่ -p)
-python merge_json.py
 ```
 
 ### Consolidated
+รวมไฟล์ consolidate เป็น full coop, nocoop
 ```bash
+python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
 python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
 ```

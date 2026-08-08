@@ -29,6 +29,26 @@ def normalize_course_code(code: str) -> str:
 
     return code
 
+CODE_ONLY_LINE_REGEX = re.compile(r"^[0-9xX\)\.\|_]{4,12}$", re.IGNORECASE)
+def try_clean_code_line(line: str) -> Union[str, None]:
+    """
+    ตรวจว่าบรรทัดนี้ 'น่าจะเป็น' รหัสวิชาที่ OCR อ่านเพี้ยนมี junk char ติด
+    เช่น '06026X)X', '9064XX)X' -> คืนค่ารหัสที่ clean แล้ว (เอา junk char ออก)
+    ถ้าไม่ใช่ให้คืน None
+    """
+    stripped = line.strip()
+    if not stripped or not CODE_ONLY_LINE_REGEX.match(stripped):
+        return None
+
+    # ลบ junk char ที่ไม่ใช่ตัวเลข/x ออก (เช่น ) . | _)
+    cleaned = re.sub(r"[^\dxX]", "", stripped, flags=re.IGNORECASE)
+
+    # ต้องเหลือความยาวสมเหตุสมผล (รหัสวิชาจริงยาว 5-9 ตัวก่อน normalize)
+    # และต้องมีเลขอย่างน้อย 1 ตัว (กันไม่ให้จับ 'X' หรือ 'L' เดี่ยวๆมาเป็นโค้ด)
+    if 5 <= len(cleaned) <= 9 and re.search(r"\d", cleaned):
+        return cleaned
+    return None
+
 
 class CurriculumExtractor:
 
@@ -52,7 +72,7 @@ class CurriculumExtractor:
         current_type = "บังคับ"
 
         course_code_regex = re.compile(
-            r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xX][wW]$)(?:\s|$)", re.IGNORECASE
+            r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xX][wW]$)(?:\s|$)"
         )
         credits_regex = re.compile(
             r"(?:\d+\s*)?\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*(?:\d+\s*)?\(\d+-\d+-\d+\))?",
@@ -81,12 +101,32 @@ class CurriculumExtractor:
 
         idx = 0
         total = len(lines)
+        pending_headless = False
 
         while idx < total:
             line = lines[idx].strip()
             if not line or line == "รวม":
                 idx += 1
                 continue
+
+            if pending_headless:
+                is_synthetic_trigger = (
+                    (has_thai_regex.search(line) or has_eng_regex.search(line))
+                    and not (
+                        course_code_regex.search(line)
+                        or try_clean_code_line(line)
+                        or category_header_regex.search(line)
+                        or year_regex.search(line)
+                        or sem_regex.search(line)
+                        or note_regex.search(line)
+                        or credits_regex.search(line)
+                        or or_keyword_regex.search(line)
+                        or line == "รวม"
+                    )
+                )
+                if is_synthetic_trigger:
+                    line = f"XXXXXXXX {line}"  # ยัดโค้ดปลอมนำหน้า ให้ regex เดิม match ได้ปกติ
+                pending_headless = False
 
             if note_regex.search(line) and not course_code_regex.search(line):
                 idx += 1
@@ -125,9 +165,21 @@ class CurriculumExtractor:
                 idx += 1
                 continue
 
-            code_match = course_code_regex.search(line)
+            cleaned_code_line = try_clean_code_line(line)
+            code_match = cleaned_code_line or course_code_regex.search(line)
+
             if code_match and not prereq_keyword_regex.search(line):
-                raw_code = code_match.group(1)
+                if cleaned_code_line:
+                    raw_code = cleaned_code_line
+                    line_after_code = ""          # ทั้งบรรทัดคือโค้ด ไม่มีเนื้อหาเหลือ
+                else:
+                    raw_code = code_match.group(1)
+                    idx_code = line.upper().find(raw_code.upper())
+                    if idx_code != -1:
+                        line_after_code = line[idx_code + len(raw_code):].strip()
+                    else:
+                        line_after_code = line.replace(raw_code, "").strip()
+
                 code = normalize_course_code(raw_code)
 
                 idx_code = line.upper().find(raw_code.upper())
@@ -159,10 +211,14 @@ class CurriculumExtractor:
                         j += 1
                         continue
 
-                    # 🟢 [แก้ไขจุดนี้]: เช็กว่าเป็นรหัสวิชาใหม่จริงหรือไม่
-                    is_next_code = bool(course_code_regex.search(next_line)) and not prereq_keyword_regex.search(next_line)
+                    # เช็กว่าเป็นรหัสวิชาใหม่จริงหรือไม่
+                    next_cleaned_code = try_clean_code_line(next_line)
+                    is_next_code = (
+                        bool(next_cleaned_code)
+                        or (bool(course_code_regex.search(next_line)) and not prereq_keyword_regex.search(next_line))
+                    )
 
-                    # 💡 ทริกสำคัญ: ถ้าวิชาปัจจุบันมีรหัสตัวเลข 8 หลักแล้ว (เช่น 06026200)
+                    # ถ้าวิชาปัจจุบันมีรหัสตัวเลข 8 หลักแล้ว (เช่น 06026200)
                     # แต่ next_line ดันเป็นตัว "X" ตัวเดียวขยะๆ หลุดเข้ามา -> ข้ามมันไป ห้ามสั่ง break!
                     if is_next_code and next_line.upper() in ["X", "^", "D9", "L"]:
                         if len(code) == 8 and code.isdigit():
@@ -252,6 +308,8 @@ class CurriculumExtractor:
                 final_credits = credits_clean if credits_clean else "3(3-0-6)"
                 if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
                     final_credits = "6(0-35-0)"
+
+                pending_headless = "หรือ" in credits_clean
 
                 courses.append(
                     {
@@ -427,6 +485,15 @@ class CurriculumExtractor:
                     if not curr:
                         j += 1
                         continue
+                    
+                    stop_code_match = code_regex.search(curr)
+                    if (
+                        stop_code_match
+                        and stop_code_match.group(0) != code
+                        and stop_code_match.group(0) not in seen_codes
+                        and not prereq_eng_key_regex.search(curr)
+                    ):
+                        break
 
                     if prereq_eng_key_regex.search(curr):
                         remainder = re.sub(prereq_eng_key_regex, "", curr).strip(": ").strip()

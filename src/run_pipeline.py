@@ -42,7 +42,7 @@ def parse_arguments():
     parser.add_argument(
         "-i", "--input-dir",
         type=str,
-        default=str(BASE_DIR / "inputs"),
+        default=str(BASE_DIR / "inputs/dsba"),
         help="Directory containing images (default: 'inputs')"
     )
     parser.add_argument(
@@ -68,6 +68,7 @@ def parse_arguments():
         action="store_true",
         help="Force CPU mode"
     )
+    
     return parser.parse_args()
 
 

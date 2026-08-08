@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import List, Union
 import easyocr
 
-
 class OCREngine:
     def __init__(self, languages: List[str] = None, gpu: bool = True):
         """Initialize EasyOCR model once in memory."""
