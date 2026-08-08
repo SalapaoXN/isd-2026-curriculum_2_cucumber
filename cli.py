@@ -66,7 +66,14 @@ def main():
 
     input_path = Path(args.input_path)
     output_dir = Path(args.output_dir)
-    languages = [lang.strip() for lang in args.languages.split(",")]
+    languages = [
+        lang.strip()
+        for lang in args.languages.split(",")
+        if lang.strip()
+    ]
+
+    if not languages:
+        raise ValueError("At least one OCR language must be specified.")
     use_gpu = not args.no_gpu
 
     try:
@@ -92,6 +99,7 @@ def main():
             # Print quick preview to console
             print(f"Found {len(lines)} line(s) of text.")
 
+            lines = [line.upper() for line in lines]
             # Step 4: Save Individual OCR Results (.txt and .json)
             save_ocr_results(lines, output_dir, img_file.stem)
 

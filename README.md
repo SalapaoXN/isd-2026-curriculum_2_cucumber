@@ -9,9 +9,9 @@ Member:
 3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
 
 
-Run guide:
+## Run guide:
 
-OCR
+### OCR
 ```bash
 # ocr each .jpg/.png file
 python cli.py inputs/dsba/curriculum_page_016.jpg
@@ -23,7 +23,7 @@ python cli.py inputs/dsba/
 python cli.py inputs/dsba/ -o outputs/dsba_raw_ocr
 ```
 
-JSON Extraction
+### JSON Extraction
 ```bash
 # extract each .txt file
 python extract.py outputs/curriculum_page_016_ocr.txt
@@ -38,4 +38,38 @@ python extract.py outputs/curriculum_page_016_ocr.txt \
   --plan coop \
   --output-dir outputs/extracted \
   --source "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
+```
+
+### Evaluate
+
+```bash
+python evaluate.py consolidated_outputs/dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+```
+
+### รัน Pipeline อัตโนมัติ (OCR ➔ Extract)
+ใช้สำหรับรันประมวลผลรูปภาพเอกสารตามเลขหน้าที่กำหนด และสกัดออกมาเป็น JSON รายวิชาทันที
+
+```bash
+# รันแบบกำหนดช่วงหน้า (เช่น หน้า 32 ถึง 36)
+python -m src.run_pipeline -p 32-36 -i inputs/dsba
+
+# ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
+python -m src.run_pipeline -p 32-36 -i inputs/it -o outputs --plan no_coop
+python -m src.run_pipeline -p 32-36 -i inputs/dsba -o outputs --plan no_coop
+python -m src.run_pipeline -p 32-36 -i inputs/ait -o outputs --plan no_coop
+python -m src.run_pipeline -p 32-36 -i inputs/bit -o outputs --plan no_coop
+```
+
+### Merge JSON
+```bash
+python merge_json.py -p 30-36
+
+# รวมทุกไฟล์ที่มีในโฟลเดอร์ (ไม่ใส่ -p)
+python merge_json.py
+```
+
+### Consolidated
+```bash
+python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
 ```
