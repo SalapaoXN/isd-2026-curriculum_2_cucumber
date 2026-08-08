@@ -1,26 +1,13 @@
 {
     "source": "GT_Template-2.xlsx / Academic Plan GT — DSBA coop",
-    "description": "Ground Truth รายวิชาหลักสูตร DSBA (แผน coop)",
+    "description": "Ground Truth รายวิชาหลักสูตร DSBA (แผน no_coop)",
     "program": "DSBA",
-    "plan": "coop",
-    "total_courses": 46,
+    "plan": "no_coop",
+    "total_courses": 43,
     "courses": [
         {
             "code": "06026200",
             "name_th": "แคลคูลัส",
-            "name_en": "N/A",
-            "credits": "3(3-0-6)",
-            "year": 1,
-            "semester": 1,
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null
-        },
-        {
-            "code": "xxxxxxxx",
-            "name_th": "ไม่ระบุ",
             "name_en": "CALCULUS",
             "credits": "3(3-0-6)",
             "year": 1,
@@ -449,19 +436,6 @@
         },
         {
             "code": "90644042",
-            "name_th": "ไม่ระบุ",
-            "name_en": "N/A",
-            "credits": "3(3-0-6)",
-            "year": 3,
-            "semester": 1,
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null
-        },
-        {
-            "code": "xxxxxxxx",
             "name_th": "การสือสารและการนำเสนออย่างมืออาชีพ",
             "name_en": "PROFESSIONAL COMMUMICATON AND PRESENTATION",
             "credits": "3(3-0-6)",
@@ -527,20 +501,7 @@
         },
         {
             "code": "90643021",
-            "name_th": "กลุ่ม วิชาที่กำหนดโดยคณะ",
-            "name_en": "N/A",
-            "credits": "3(3-0-6)",
-            "year": 3,
-            "semester": 2,
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null
-        },
-        {
-            "code": "xxxxxxxx",
-            "name_th": "ผู้ประกอบการสมัยใหม่",
+            "name_th": "กลุ่ม วิชาที่กำหนดโดยคณะ ผู้ประกอบการสมัยใหม่",
             "name_en": "MODERN ENTREPRENEURS",
             "credits": "3(3-0-6)",
             "year": 3,

@@ -41,10 +41,10 @@ python extract.py outputs/curriculum_page_016_ocr.txt \
 ```
 
 ### Evaluate
-DSBA no coop -> 31 - 36
 
 ```bash
-python evaluate.py consolidated_outputs/consolidated_page_030-036.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python evaluate.py consolidated_outputs/dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
 ```
 
 ### รัน Pipeline อัตโนมัติ (OCR ➔ Extract)
@@ -53,12 +53,6 @@ python evaluate.py consolidated_outputs/consolidated_page_030-036.json --gt grou
 ```bash
 # รันแบบกำหนดช่วงหน้า (เช่น หน้า 32 ถึง 36)
 python -m src.run_pipeline -p 32-36 inputs/dsba
-
-# รันเฉพาะบางหน้า
-python -m src.run_pipeline -p 16,18,20 inputs/dsba
-
-# รันหน้าเดียว
-python -m src.run_pipeline -p 16 inputs/dsba
 
 # ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
 python -m src.run_pipeline -p 32-36 -i inputs/it -o outputs --plan no_coop

@@ -159,6 +159,16 @@ class CurriculumExtractor:
                         j += 1
                         continue
 
+                    # 🟢 [แก้ไขจุดนี้]: เช็กว่าเป็นรหัสวิชาใหม่จริงหรือไม่
+                    is_next_code = bool(course_code_regex.search(next_line)) and not prereq_keyword_regex.search(next_line)
+
+                    # 💡 ทริกสำคัญ: ถ้าวิชาปัจจุบันมีรหัสตัวเลข 8 หลักแล้ว (เช่น 06026200)
+                    # แต่ next_line ดันเป็นตัว "X" ตัวเดียวขยะๆ หลุดเข้ามา -> ข้ามมันไป ห้ามสั่ง break!
+                    if is_next_code and next_line.upper() in ["X", "^", "D9", "L"]:
+                        if len(code) == 8 and code.isdigit():
+                            j += 1
+                            continue # ข้ามขยะ OCR ตัวนี้ไป แล้วอ่านบรรทัดถัดไปต่อ
+
                     is_next_category = bool(
                         category_header_regex.search(next_line)
                     ) and not (
@@ -166,11 +176,9 @@ class CurriculumExtractor:
                         or credits_regex.search(next_line)
                     )
 
+                    # สั่ง break ตัดจบรายการเดิมเมื่อเจอวิชาใหม่จริงๆ เท่านั้น
                     if (
-                        (
-                            course_code_regex.search(next_line)
-                            and not prereq_keyword_regex.search(next_line)
-                        )
+                        is_next_code
                         or (
                             year_regex.search(next_line)
                             and not credits_regex.search(next_line)
