@@ -4,7 +4,7 @@
 
 2) RUN download_model.py it it take 15 min
 
-3) RUN write_it.py you will get output.txt
+3) Change your path to your folder curricurum (.png) in file  write_it.py and RUN you will get output.txt
 
 4) RUN write_json.py you will get courses.json
 
