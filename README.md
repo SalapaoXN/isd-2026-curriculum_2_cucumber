@@ -1,18 +1,13 @@
-# isd-2026-curriculum_2_cucumber
-We do OCR curriculum and some LLM with model name CUCUMBER
+1) set up your .env 
+    1) your .env should have HF_TOKEN for download model
+    2) your .env should have HF_HOME for set up where to download model (example D:\program)
 
-Project : P2 LLM ถาม-ตอบหลักสูตร
+2) RUN download_model.py it it take 15 min
 
-Member:
-1. 67070049 Nattachai Kaewchum >> Discord: GoodDee
-2. 67070063 Thanachin Chukiatchai >> Discord: วันลพ มีงบมาก
-3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
+3) RUN write_it.py you will get output.txt
 
+4) RUN write_json.py you will get courses.json
 
-```bash
-python -m ocr_system.cli ocr data/input/sample.pdf --engine ensemble
+5) RUN fix_json.py you will get courses_courses.json
 
-python -m ocr_system.cli evaluate data/ground_truth/DSBA/DSBA_academic_plan_coop.json outputs/img27_ocr_extracted.json --mode ocr-extracted
-
-python -m ocr_system.cli evaluate data/ground_truth/DSBA/DSBA_academic_plan_coop.json outputs/img27_ocr_extracted.json
-```
+6) RUN evaluate.py you will get output from terminal
