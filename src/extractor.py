@@ -408,6 +408,13 @@ class CurriculumExtractor:
         final_credits = credits_clean if credits_clean else "3(3-0-6)"
         if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
             final_credits = "6(0-35-0)"
+        
+        if code.startswith("90") :
+            category = "หมวดวิชาศึกษาทั่วไป"
+        elif code.startswith("xx") :
+            category = "หมวดวิชาเสรี"
+        else :
+            category = "หมวดวิชาเฉพาะ"
 
         return {
             "code": code,
@@ -584,7 +591,6 @@ class CurriculumExtractor:
                     # Remove spaces within each item, then join them together
                     cleaned_th_words = [w.replace(" ", "") for w in th_words]
                     name_th = "".join(cleaned_th_words).strip()
-                    name_th = re.sub(r"\bแคลคูลส\b", "แคลคูลัส", name_th)
 
                 # Assemble English name with single-space separators
                 if en_words:
@@ -699,6 +705,17 @@ class CurriculumExtractor:
                         }
                     )
                 else:  # specific / faculty course codes (06xxxxx)
+                    if self.program == "DSBA" :
+                        flex_year = "3/1, 3/2, 4/1"
+                    elif self.program == "IT" and self.plan == "coop":
+                        flex_year = "4/1"
+                    elif self.program == "IT" :
+                        flex_year = "3/1, 3/2, 4/1"
+                    elif self.program == "AIT" :
+                        flex_year = "3/1, 3/2"
+                    elif self.program == "BIT" :
+                        flex_year = "4/2"
+                    
                     courses.append(
                         {
                             "code": code,
@@ -710,8 +727,8 @@ class CurriculumExtractor:
                             "category": "หมวดวิชาเฉพาะ",
                             "type": "เลือก",
                             "prerequisite": prerequisite,
-                            "flexible_year_semester": "3/1, 3/2, 4/1",
-                            "note": None,
+                            "flexible_year_semester": flex_year,
+                            "note": "เฉพาะโครงการเข้าร่วมสหกิจ" if "สหกิจศึกษา" in name_th else None,
                         }
                     )
                 i = j

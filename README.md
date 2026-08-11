@@ -77,8 +77,6 @@ python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/
 ใช้สำหรับรันประมวลผลรูปภาพเอกสารตามเลขหน้าที่กำหนด และสกัดออกมาเป็น JSON รายวิชาทันที
 
 ```bash
-# รันแบบกำหนดช่วงหน้า (เช่น หน้า 32 ถึง 36)
-python -m src.run_pipeline -p 32-36 -i inputs/dsba
 
 # ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
 python -m src.run_pipeline -p 26-32 -i dsba --plan no_coop --program DSBA
