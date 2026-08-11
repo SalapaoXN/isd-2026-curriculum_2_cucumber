@@ -7,7 +7,7 @@ from .checker import OCRSpellChecker
 from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
-from .llm_clean_txt import clean_extracted_courses, clean_ocr_text
+from .pre_clean import pre_clean_with_regex
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp"]
@@ -118,6 +118,11 @@ def main():
 
         lines = [line.upper() for line in lines]
 
+        # Step 1.5: Deterministic regex pre-clean (before extraction)
+        raw_text_joined = "\n".join(lines)
+        raw_text_joined = pre_clean_with_regex(raw_text_joined)
+        lines = [line for line in raw_text_joined.split("\n") if line.strip()]
+
         # Step 1.5: Autocorrect English text (pyspellchecker)
         # lines, typos = spell_checker.process_lines(lines)
         # print(f"   ├─ Autocorrect fixed {len(typos)} points")
@@ -125,23 +130,14 @@ def main():
         #     for t in typos:
         #         print(f"   │    L{t['line']}: {t['original']} -> {t['corrected']}")
 
-        # Step 1.5: Clean OCR Text with LLM
-        print("   ├─ Cleaning OCR typos and formatting with LLM (Qwen2.5)...")
-        raw_text_joined = "\n".join(lines)
-        cleaned_text = clean_ocr_text(raw_text_joined)
-        lines = [line.strip() for line in cleaned_text.split("\n") if line.strip()]
-
         save_ocr_results(lines, output_dir, base_name)
 
         # Step 2: Extract
         ocr_json_file = output_dir / f"{base_name}_ocr.json"
         extracted_data = extractor.process_file(ocr_json_file)
 
-        # Step 2.5: Clean extracted courses with LLM
-        courses = extracted_data.get("courses", [])
-        cleaned_courses = clean_extracted_courses(courses)
-        extracted_data["courses"] = cleaned_courses
-        print(f"   ├─ Cleaned {len(courses)} extracted courses with LLM")
+        # Step 2.5: Post-extraction cleaning is handled by the deterministic
+        # extractor itself (pre_clean + universal anchors).  No LLM needed.
 
         # Step 3: Save Output
         output_filename = output_dir / f"{base_name}_ocr_extracted.json"

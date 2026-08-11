@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+from .pre_clean import pre_clean_with_regex
+
 
 def clean_ocr_en_text(text: str) -> str:
     """Fix common OCR typos in English text."""
@@ -103,11 +105,14 @@ class CurriculumExtractor:
     JUNK_PLACEHOLDER_RE = re.compile(r"^[xXwWoOnN]{3,6}$", re.IGNORECASE)
 
     # Credits: "3 (3-0-6)" or an alternative "3 (3-0-6) หรือ 3 (2-2-5)".
+    # Placeholder credits use X wildcards, e.g. "3 (X-X-X)", "3 (X-X X)",
+    # "3 (X X X)" (separators are OCR-noisy dashes/spaces).
+    CREDIT_GROUP_RE = r"(?:\d+\s*)?\([0-9xX]+[ -][0-9xX]+[ -][0-9xX]+\)"
     CREDITS_RE = re.compile(
-        r"(?:\d+\s*)?\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*(?:\d+\s*)?\(\d+-\d+-\d+\))?",
+        rf"{CREDIT_GROUP_RE}(?:\s*(?:หรือ|or|/)\s*{CREDIT_GROUP_RE})?",
         re.IGNORECASE,
     )
-    SINGLE_CREDIT_RE = re.compile(r"(?:\d+\s*)?\(\d+-\d+-\d+\)")
+    SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
 
     CATEGORY_HEADER_RE = re.compile(r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE)
     OR_KEYWORD_RE = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
@@ -149,9 +154,17 @@ class CurriculumExtractor:
         program: str = "DSBA",
         plan: str = "coop",
         source: str = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop",
+        coop_pairs: Optional[List[Tuple[str, str, str]]] = None,
     ):
         self.program = program
         self.plan = plan
+        # Co-op / alternative course pairs to merge.  Each tuple is
+        # (code_a, code_b, merged_credits).  Universal default keeps the
+        # known pairs; callers may override for their own curriculum.
+        self.coop_pairs = coop_pairs if coop_pairs is not None else [
+            ("06026259", "06026260", "6(0-35-0)"),
+            ("06046443", "06046444", "6(0-45-0)"),
+        ]
         if program == "DSBA" and plan == "coop":
             self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
         elif program == "DSBA" and plan == "no_coop":
@@ -405,6 +418,13 @@ class CurriculumExtractor:
         if credits_clean.startswith("(0-35"):
             credits_clean = f"6{credits_clean}"
 
+        # Normalize placeholder credits to GT convention: "3(X X X)" -> "3(x-x-x)".
+        credits_clean = re.sub(
+            r"\(([0-9xX])\s*[-\s]\s*([0-9xX])\s*[-\s]\s*([0-9xX])\)",
+            lambda m: "({}-{}-{})".format(*m.group(1, 2, 3)).lower(),
+            credits_clean,
+        )
+
         final_credits = credits_clean if credits_clean else "3(3-0-6)"
         if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
             final_credits = "6(0-35-0)"
@@ -423,7 +443,7 @@ class CurriculumExtractor:
             "credits": final_credits,
             "year": block.year,
             "semester": block.semester,
-            "category": block.category,
+            "category": category,
             "type": block.type,
             "prerequisite": prerequisite,
             "flexible_year_semester": None,
@@ -437,27 +457,34 @@ class CurriculumExtractor:
         """
         High-level combinations applied to the extracted course list.
 
-        Combines the co-op (cooperative education) course pair 06026259 /
-        06026260 into a single course entry occupying a 6-credit co-op slot.
+        Combines co-op (cooperative education) alternative course pairs into a
+        single entry occupying the co-op slot.  Pairs are configured via
+        `coop_pairs` (universal default covers the DSBA / AIT curricula).
         """
         combined: List[Dict] = []
         idx = 0
         while idx < len(courses):
             current = courses[idx]
 
-            # Merge 06026259 + 06026260 into one "หรือ" alternative.
-            if (
-                idx + 1 < len(courses)
-                and current["code"] == "06026259"
-                and courses[idx + 1]["code"] == "06026260"
-            ):
+            # Merge any configured co-op alternative pair (code_a + code_b)
+            # into one "code_a หรือ code_b" entry.
+            merged_credits = None
+            for code_a, code_b, credits in self.coop_pairs:
+                if (
+                    idx + 1 < len(courses)
+                    and current["code"] == code_a
+                    and courses[idx + 1]["code"] == code_b
+                ):
+                    merged_credits = credits
+                    break
+            if merged_credits is not None:
                 nxt = courses[idx + 1]
                 merged = {
                     **current,
-                    "code": "06026259 หรือ 06026260",
+                    "code": f"{current['code']} หรือ {nxt['code']}",
                     "name_th": f"{current['name_th']}\n{nxt['name_th']}",
                     "name_en": f"{current['name_en']}\n{nxt['name_en']}",
-                    "credits": "6(0-35-0)",
+                    "credits": merged_credits,
                 }
                 combined.append(merged)
                 idx += 2
@@ -523,6 +550,7 @@ class CurriculumExtractor:
                 name_th = ""
                 name_en = ""
                 credits = "3(3-0-6)"
+                credits_seen = False
                 prerequisite = "ไม่มี"
 
                 th_words = []
@@ -562,6 +590,7 @@ class CurriculumExtractor:
                     c_match = credit_regex.search(curr)
                     if c_match:
                         credits = c_match.group(0).strip()
+                        credits_seen = True
                         before_c = curr[: c_match.start()].strip()
                         if before_c and not before_c.isdigit():
                             th_words.append(before_c)
@@ -577,8 +606,11 @@ class CurriculumExtractor:
                     elif en_words and curr in ["1", "2", "3", "L", "l"]:
                         en_words.append(clean_ocr_en_text(curr).upper())
 
-                    # Collect multi-line Thai names
-                    elif has_thai_regex.search(curr):
+                    # Collect multi-line Thai names.  The Thai course name always
+                    # precedes the credits line, so once a credit line has been
+                    # read the Thai name is complete: any later Thai line is the
+                    # course-description body, not the name.
+                    elif has_thai_regex.search(curr) and not credits_seen:
                         if not (curr.isdigit() and len(curr) <= 2):
                             th_words.append(curr)
                     elif th_words and curr in ["1", "2", "3"]:
@@ -668,7 +700,14 @@ class CurriculumExtractor:
                     if clean_prereq in ["NONE", "ไม่มี", ""]:
                         prerequisite = "ไม่มี"
                     else:
-                        prerequisite = clean_prereq
+                        # GT stores prerequisites as plain course codes, so reduce
+                        # any captured text to just the 8-digit codes (e.g.
+                        # "06046401 CALC01US 2, 06046402 LINEAR" -> "06046401, 06046402").
+                        codes_found = re.findall(r"\b\d{8}\b", clean_prereq)
+                        if codes_found:
+                            prerequisite = ", ".join(dict.fromkeys(codes_found))
+                        else:
+                            prerequisite = clean_prereq
                 else:
                     prerequisite = "ไม่มี"
 
@@ -758,6 +797,13 @@ class CurriculumExtractor:
             lines = file_path.read_text(encoding="utf-8").splitlines()
 
         lines = [line.upper() for line in lines]
+        content_upper = "\n".join(lines)
+
+        # Universal pre-clean (deterministic regex, no LLM): repair OCR noise
+        # so extraction only trusts the two universal anchors (8-digit codes
+        # and X(X-X-X) credits).  Works for ANY university's OCR output.
+        cleaned = pre_clean_with_regex(content_upper)
+        lines = [ln for ln in cleaned.split("\n") if ln.strip()]
         content_upper = "\n".join(lines)
 
         #  Fix point 1: detect the "study plan" structure decisively (contains "ปีที่/ชั้นปีที่" or has a course code + credits table header)

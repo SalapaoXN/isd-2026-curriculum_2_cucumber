@@ -94,25 +94,63 @@ def evaluate_json_structure(
     total_gt_courses = len(gt_courses)
     total_pred_courses = len(pred_courses)
 
+    # ---- Course alignment by code ---------------------------------------- #
+    # The GT and prediction lists may legitimately differ in length or order
+    # (e.g. an OCR page missing one course).  Match each GT course to the best
+    # remaining prediction by code similarity so the remaining courses align.
+    # Two passes: exact code matches first, then fuzzy for the leftovers so a
+    # genuinely-missing GT course cannot steal a correctly-extracted course.
+    def code_sim(a: dict, b: dict) -> float:
+        return calculate_similarity(normalize_str(a.get("code")), normalize_str(b.get("code")))
+
+    def exact_code(a: dict, b: dict) -> bool:
+        return normalize_str(a.get("code")) == normalize_str(b.get("code")) and normalize_str(a.get("code")) != ""
+
+    pairs: List[tuple[dict, dict]] = []  # (gt, pred) aligned pairs
+    matched_pred: List[bool] = [False] * total_pred_courses
+
+    for gt_item in gt_courses:
+        for j, pred_item in enumerate(pred_courses):
+            if matched_pred[j]:
+                continue
+            if exact_code(gt_item, pred_item):
+                matched_pred[j] = True
+                pairs.append((gt_item, pred_item))
+                break
+
+    for gt_item in gt_courses:
+        if any(g is gt_item for g, _ in pairs):
+            continue
+        best_idx = -1
+        best_sim = fuzzy_threshold
+        for j, pred_item in enumerate(pred_courses):
+            if matched_pred[j]:
+                continue
+            sim = code_sim(gt_item, pred_item)
+            if sim > best_sim:
+                best_sim = sim
+                best_idx = j
+        if best_idx >= 0:
+            matched_pred[best_idx] = True
+            pairs.append((gt_item, pred_courses[best_idx]))
+
+    matched_courses = len(pairs)
+
     metrics: Dict[str, FieldMetric] = {f: FieldMetric() for f in target_fields}
-    page_is_perfect = total_gt_courses == total_pred_courses
+    page_is_perfect = matched_courses == total_gt_courses and matched_courses == total_pred_courses
 
-    max_len = max(total_gt_courses, total_pred_courses)
-
-    for i in range(max_len):
-        gt_item = gt_courses[i] if i < total_gt_courses else {}
-        pred_item = pred_courses[i] if i < total_pred_courses else {}
-
+    for gt_item, pred_item in pairs:
         course_is_perfect = True
 
         for field in target_fields:
+            if field not in gt_item:
+                continue
+
             gt_val = normalize_str(gt_item.get(field))
             pred_val = normalize_str(pred_item.get(field))
 
             m = metrics[field]
-
-            if field in gt_item:
-                m.total_gt += 1
+            m.total_gt += 1
             if field in pred_item:
                 m.total_pred += 1
 
@@ -138,7 +176,6 @@ def evaluate_json_structure(
     overall_r = (total_correct / total_gt_fields * 100) if total_gt_fields > 0 else 0.0
     overall_f1 = (2 * overall_p * overall_r / (overall_p + overall_r)) if (overall_p + overall_r) > 0 else 0.0
 
-    matched_courses = min(total_gt_courses, total_pred_courses)
     c_p = (matched_courses / total_pred_courses * 100) if total_pred_courses > 0 else 0.0
     c_r = (matched_courses / total_gt_courses * 100) if total_gt_courses > 0 else 0.0
     c_f1 = (2 * c_p * c_r / (c_p + c_r)) if (c_p + c_r) > 0 else 0.0

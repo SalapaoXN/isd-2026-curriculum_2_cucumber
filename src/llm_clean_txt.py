@@ -22,18 +22,12 @@ def clean_ocr_text(raw_ocr_text: str) -> str:
     1. Fix English/Tech terms based on IT context.
     2. Fix Thai typos & credits format to x(x-x-x).
     3. Do NOT change course codes (numbers). Do NOT merge/split lines.
-    4. COURSE CODE WILDCARDS: 
-    - If course name is "วิชาเลือกเสรี...", enforce course code above it to be "XXXXXXXX".
-    - If course code has partial 'X' (e.g. 06026XXX, 9064XXXX), preserve the 'X's.
 
-    5. FIX OCR NUMBER CONFUSION:
-    - Trailing letters 'L', 'l', '|', 'I' at the end of course names or on their own line after a course name are usually the number '1' or '2' (e.g., "CALCULUS L" -> "CALCULUS 1"). Fix them to Arabic numbers.
-
-    6. BILINGUAL NUMBER ALIGNMENT:
+    4. BILINGUAL NUMBER ALIGNMENT:
     - Ensure course sequence numbers (1, 2, 3, etc.) are synchronized between Thai and English names.
     - If one language has a suffix number (e.g., "CALCULUS 1") but the other is missing it (e.g., "แคลคูลัส"), ADD the corresponding number to the missing language so both match (e.g., "แคลคูลัส 1").
 
-    7. Return ONLY cleaned text. No chat, no markdown.
+    5. Return ONLY cleaned text. No chat, no markdown.
 
     Text:
     {raw_ocr_text}"""
@@ -87,10 +81,7 @@ def clean_extracted_courses(courses: List[Dict]) -> List[Dict]:
 Task: Fix OCR typos in the extracted course JSON below.
 
 Rules:
-1. COURSE CODE: must be exactly 8 digits starting with "06" (e.g. "06066100").
-   - If a leading digit was dropped by OCR (e.g. "6066100" -> "06066100"), restore it.
-   - If a code keeps 'X' wildcards (e.g. "06026XXX"), preserve the 'X's and do not invent digits.
-   - Do NOT change codes that are already valid 8-digit codes.
+1. COURSE CODE: do NOT modify it. Codes are already validated upstream (8 digits, or 'x' placeholders for unknown digits). Keep them exactly as provided.
 2. NAME_TH: fix Thai OCR typos using Thai curriculum context (e.g. "เพือ" -> "เพื่อ", "แคลคูลส" -> "แคลคูลัส", "ไม่ต่อเนือง" -> "ไม่ต่อเนื่อง").
 3. NAME_EN: fix English / IT-term OCR typos (e.g. "LIEAR ALGEBRA" -> "LINEAR ALGEBRA", "COMPUTER PROGRAMMNG" -> "COMPUTER PROGRAMMING", "ITRODUCTION" -> "INTRODUCTION", "CYBERSECURITV" -> "CYBERSECURITY", "PROBABILITV" -> "PROBABILITY").
 4. CREDITS: must be format X(X-X-X) (e.g. "3(3-0-6)"). Normalize separators if OCR mangled them.
