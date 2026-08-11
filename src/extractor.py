@@ -1,10 +1,27 @@
+"""
+Block-Based curriculum extractor.
+
+Academic-curriculum OCR text (the "study plan" tables) is parsed through a
+clean 3-step pipeline instead of one monolithic loop:
+
+    Step 1  split_into_blocks  : group raw OCR lines into course blocks,
+                                 tracking the surrounding year / semester /
+                                 category context for each block.
+    Step 2  parse_single_block : turn one block into a structured course dict,
+                                 cleaning common OCR noise along the way.
+    Step 3  post_process       : high-level combinations / clean-ups applied
+                                 to the full extracted course list.
+"""
+
 import json
-from pathlib import Path
 import re
-from typing import Dict, List, Union
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
 
 
 def clean_ocr_en_text(text: str) -> str:
+    """Fix common OCR typos in English text."""
     if not text:
         return text
     text = re.sub(r"\bEDUCATIOM\b", "EDUCATION", text, flags=re.IGNORECASE)
@@ -17,6 +34,12 @@ def clean_ocr_en_text(text: str) -> str:
 
 
 def normalize_course_code(code: str) -> str:
+    """
+    Normalize a course code.
+
+    Codes containing letters (OCR placeholders like '06026XX' or 'XWX') are
+    padded with trailing 'x' so that every code is exactly 8 characters.
+    """
     code = code.strip()
     code_lower = code.lower()
 
@@ -28,6 +51,7 @@ def normalize_course_code(code: str) -> str:
         return "xxxxxxxx"
 
     return code
+
 
 CODE_ONLY_LINE_REGEX = re.compile(r"^[0-9xX\)\.\|_]{4,12}$", re.IGNORECASE)
 def try_clean_code_line(line: str) -> Union[str, None]:
@@ -50,7 +74,66 @@ def try_clean_code_line(line: str) -> Union[str, None]:
     return None
 
 
+@dataclass
+class CourseBlock:
+    """A single course group collected from the OCR lines of a study-plan table."""
+    code: str = ""                                       # normalized course code
+    lines: List[str] = field(default_factory=list)       # content lines (after the code)
+    year: int = 1
+    semester: int = 1
+    category: str = "หมวดวิชาเฉพาะ"
+    type: str = "บังคับ"
+
+
 class CurriculumExtractor:
+
+    # ------------------------------------------------------------------ #
+    #  OCR patterns & regexes used by the study-plan pipeline             #
+    # ------------------------------------------------------------------ #
+    HAS_THAI_RE = re.compile(r"[\u0e00-\u0e7f]")
+    HAS_ENG_RE = re.compile(r"[a-zA-Z]")
+
+    # A standard course-code line: 8 digits, a padded placeholder (e.g. 06026XX),
+    # or a run of X/O/W placeholder letters.
+    COURSE_CODE_RE = re.compile(
+        r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xXoOwW]{3,8}$)(?:\s|$)"
+    )
+    # Elective placeholder codes that OCR mangled into letters, e.g. XNWWX / XOWX / XWX.
+    # These are normalized to the generic elective code "xxxxxxxx".
+    JUNK_PLACEHOLDER_RE = re.compile(r"^[xXwWoOnN]{3,6}$", re.IGNORECASE)
+
+    # Credits: "3 (3-0-6)" or an alternative "3 (3-0-6) หรือ 3 (2-2-5)".
+    CREDITS_RE = re.compile(
+        r"(?:\d+\s*)?\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*(?:\d+\s*)?\(\d+-\d+-\d+\))?",
+        re.IGNORECASE,
+    )
+    SINGLE_CREDIT_RE = re.compile(r"(?:\d+\s*)?\(\d+-\d+-\d+\)")
+
+    CATEGORY_HEADER_RE = re.compile(r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE)
+    OR_KEYWORD_RE = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
+
+    # Year / semester headers, with or without the number on the same line.
+    YEAR_HEADER_RE = re.compile(r"(?:ชั้น)?[ปขชบ]ี\s*ที่?")                    # "ปีที่"
+    SEM_HEADER_RE = re.compile(r"(?:ภาค|เทอม)\s*(?:การศึกษา|เรียน)?\s*ที่?")   # "ภาคการศึกษาที่"
+    YEAR_VALUE_RE = re.compile(r"(?:ชั้น)?[ปขชบ]ี\s*ที่?\s*(\d+)")
+    SEM_VALUE_RE = re.compile(r"(?:ภาค|เทอม)\s*(?:การศึกษา|เรียน)?\s*ที่?\s*(\d+)")
+    # Whole-line match for a pure meta header: "ปีที่ 4", "ภาคการศึกษาที่ 1",
+    # "ปีที่", or "ปีที่ 2 ภาคการศึกษาที่" (number spilled onto the next line).
+    META_LINE_RE = re.compile(
+        r"^\s*"
+        r"(?:(?:ชั้น)?[ปขชบ]ี\s*ที่?\s*\d*|(?:ภาค|เทอม)\s*(?:การศึกษา|เรียน)?\s*ที่?\s*\d*)"
+        r"(?:\s+(?:(?:ชั้น)?[ปขชบ]ี\s*ที่?\s*\d*|(?:ภาค|เทอม)\s*(?:การศึกษา|เรียน)?\s*ที่?\s*\d*))*"
+        r"\s*$"
+    )
+
+    PREREQ_KEYWORD_RE = re.compile(
+        r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|prerequisite|pre-requisite|PRERE\s*[A-Z]*|PRERECUISITE)",
+        re.IGNORECASE,
+    )
+    NOTE_RE = re.compile(
+        r"^\s*[-*]|(?:ประเมิน|เกณฑ์|ผลการเรียน|ผ่าน\s*\(S\)|\(S\)|\(U\)|ให้นักศึกษา)",
+        re.IGNORECASE,
+    )
 
     def __init__(
         self,
@@ -62,310 +145,299 @@ class CurriculumExtractor:
         self.plan = plan
         self.source = source
 
-    def extract_from_lines(self, lines: List[str]) -> Dict:
-        print(" [DEBUG] running: extract_from_lines (study plan table)")
-        courses = []
+    # ------------------------------------------------------------------ #
+    #  Step 1: split raw OCR lines into course blocks                     #
+    # ------------------------------------------------------------------ #
+    def split_into_blocks(self, lines: List[str]) -> List[CourseBlock]:
+        """
+        Group raw OCR lines into individual course blocks.
 
-        current_year = 1
-        current_semester = 1
-        current_category = "หมวดวิชาเฉพาะ"
-        current_type = "บังคับ"
+        Walks the lines once, keeping track of the surrounding year, semester,
+        category and course type. A block starts at a course-code line and is
+        closed whenever a new term, category, or noise line appears.
+        """
+        # Context carried between blocks (fresh per call).
+        self._ctx_year = 1
+        self._ctx_semester = 1
+        self._ctx_category = "หมวดวิชาเฉพาะ"
+        self._ctx_type = "บังคับ"
 
-        course_code_regex = re.compile(
-            r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xXoOwW]{3,8}$)(?:\s|$)"
-        )
-        credits_regex = re.compile(
-            r"(?:\d+\s*)?\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*(?:\d+\s*)?\(\d+-\d+-\d+\))?",
-            re.IGNORECASE,
-        )
-        single_credit_regex = re.compile(r"(?:\d+\s*)?\(\d+-\d+-\d+\)")
-        category_header_regex = re.compile(
-            r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE
-        )
-        or_keyword_regex = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
-        year_regex = re.compile(r"(?:ชั้น|[ปขชบ])ี\s*ที่?\s*(\d+)", re.IGNORECASE)
-        sem_regex = re.compile(
-            r"(?:ภาค|เทอม)\s*(?:การศึกษา|เรียน)?\s*ที่?\s*(\d+)", re.IGNORECASE
-        )
-        prereq_keyword_regex = re.compile(
-            r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|prerequisite|pre-requisite|PRERE\s*[A-Z]*|PRERECUISITE)",
-            re.IGNORECASE,
-        )
-        note_regex = re.compile(
-            r"^\s*[-*]|(?:ประเมิน|เกณฑ์|ผลการเรียน|ผ่าน\s*\(S\)|\(S\)|\(U\)|ให้นักศึกษา)",
-            re.IGNORECASE,
-        )
-
-        has_thai_regex = re.compile(r"[\u0e00-\u0e7f]")
-        has_eng_regex = re.compile(r"[a-zA-Z]")
+        blocks: List[CourseBlock] = []
+        current: Optional[CourseBlock] = None
 
         idx = 0
-        total = len(lines)
-        pending_headless = False
-
-        while idx < total:
+        n = len(lines)
+        while idx < n:
             line = lines[idx].strip()
-            if not line or line == "รวม":
+            if not line:
                 idx += 1
                 continue
 
-            if pending_headless:
-                is_synthetic_trigger = (
-                    (has_thai_regex.search(line) or has_eng_regex.search(line))
-                    and not (
-                        course_code_regex.search(line)
-                        or try_clean_code_line(line)
-                        or category_header_regex.search(line)
-                        or year_regex.search(line)
-                        or sem_regex.search(line)
-                        or note_regex.search(line)
-                        or credits_regex.search(line)
-                        or or_keyword_regex.search(line)
-                        or line == "รวม"
-                    )
-                )
-                if is_synthetic_trigger:
-                    line = f"XXXXXXXX {line}"  # prepend a fake code so the regex below can match
-                pending_headless = False
-
-            if note_regex.search(line) and not course_code_regex.search(line):
-                idx += 1
+            # 1) Year / semester header -> a new term starts, close any open block.
+            if self.META_LINE_RE.match(line):
+                current = None
+                idx += self._apply_meta_context(line, lines, idx)
                 continue
 
-            y_match = year_regex.search(line)
-            s_match = sem_regex.search(line)
-
-            if y_match or s_match:
-                if y_match:
-                    current_year = int(y_match.group(1))
-                if s_match:
-                    current_semester = int(s_match.group(1))
-
-            if (
-                (y_match or s_match)
-                and not course_code_regex.search(line)
-                and not credits_regex.search(line)
-            ):
-                idx += 1
-                continue
-
-            is_category_header = bool(category_header_regex.search(line)) and not (
-                course_code_regex.search(line) or credits_regex.search(line)
-            )
-
-            if is_category_header:
-                current_category = line
-                current_type = "เลือก" if "เลือก" in line else "บังคับ"
-                idx += 1
-                continue
-
-            if prereq_keyword_regex.search(line) and courses:
-                p_text = line.split(":", 1)[1].strip() if ":" in line else line
-                courses[-1]["prerequisite"] = p_text.upper() if p_text else "ไม่มี"
-                idx += 1
-                continue
-
-            cleaned_code_line = try_clean_code_line(line)
-            code_match = cleaned_code_line or course_code_regex.search(line)
-
-            if code_match and not prereq_keyword_regex.search(line):
-                if cleaned_code_line:
-                    raw_code = cleaned_code_line
-                    line_after_code = ""          # the whole line is the code, no remaining content
-                else:
-                    raw_code = code_match.group(1)
-                    idx_code = line.upper().find(raw_code.upper())
-                    if idx_code != -1:
-                        line_after_code = line[idx_code + len(raw_code):].strip()
-                    else:
-                        line_after_code = line.replace(raw_code, "").strip()
-
-                code = normalize_course_code(raw_code)
-
-                idx_code = line.upper().find(raw_code.upper())
-                if idx_code != -1:
-                    line_after_code = line[idx_code + len(raw_code):].strip()
-                else:
-                    line_after_code = line.replace(raw_code, "").strip()
-
-                name_th = ""
-                name_en = ""
-                credits = ""
-                prerequisite = "ไม่มี"
-
-                same_line_cred = credits_regex.search(line_after_code)
-                if same_line_cred:
-                    credits = same_line_cred.group(0).strip()
-                    line_after_code = line_after_code.replace(credits, "").strip()
-
-                if line_after_code:
-                    if has_thai_regex.search(line_after_code):
-                        name_th = line_after_code
-                    elif has_eng_regex.search(line_after_code):
-                        name_en = line_after_code
-
-                j = idx + 1
-                while j < total:
-                    next_line = lines[j].strip()
-                    if not next_line:
-                        j += 1
-                        continue
-
-                    # Check if it's a new course code
-                    next_cleaned_code = try_clean_code_line(next_line)
-                    is_next_code = (
-                        bool(next_cleaned_code)
-                        or (bool(course_code_regex.search(next_line)) and not prereq_keyword_regex.search(next_line))
-                    )
-
-                    # If the current course already has an 8-digit numeric code (e.g. 06026200)
-                    # but the next line is a single junk "X" that slipped through, skip it without breaking
-                    if is_next_code and next_line.upper() in ["X", "^", "D9", "L"]:
-                        if len(code) == 8 and code.isdigit():
-                            j += 1
-                            continue # skip this OCR junk and continue to the next line
-
-                    is_next_category = bool(
-                        category_header_regex.search(next_line)
-                    ) and not (
-                        course_code_regex.search(next_line)
-                        or credits_regex.search(next_line)
-                    )
-
-                    # Break to close the current course only when a real new course is found
-                    if (
-                        is_next_code
-                        or (
-                            year_regex.search(next_line)
-                            and not credits_regex.search(next_line)
-                        )
-                        or (
-                            sem_regex.search(next_line)
-                            and not credits_regex.search(next_line)
-                        )
-                        or is_next_category
-                        or next_line == "รวม"
-                    ):
-                        break
-
-                    if prereq_keyword_regex.search(next_line):
-                        p_val = (
-                            next_line.split(":", 1)[1].strip()
-                            if ":" in next_line
-                            else next_line
-                        )
-                        prerequisite = p_val.upper() if p_val else "ไม่มี"
-                        j += 1
-                        continue
-                    
-                    if next_line.upper() in ["L", "1", "2", "3", "4", "I", "II"]:
-                        if not name_en:
-                            num = "1" if next_line.upper() in ["L", "I"] else ("2" if next_line.upper() == "II" else next_line)
-                            name_th = f"{name_th} {num}".strip()
-                        else:
-                            name_en = f"{name_en} {clean_ocr_en_text(next_line).upper()}".strip()
-                        j += 1
-                        continue
-
-                    if single_credit_regex.search(next_line) or or_keyword_regex.search(
-                        next_line
-                    ):
-                        clean_credit_text = "หรือ" if "หรอ" in next_line else next_line
-
-                        if not credits:
-                            credits = clean_credit_text
-                        else:
-                            credits += f" {clean_credit_text}"
-                        j += 1
-                        continue
-
-                    if has_thai_regex.search(next_line):
-                        name_th = f"{name_th} {next_line}".strip()
-                    elif has_eng_regex.search(next_line):
-                        name_en = f"{name_en} {next_line}".strip()
-
-                    j += 1
-
-                # Remove "กลุ่ม วิชาที่กำหนดโดยคณะ*" (supports spaces and optional asterisk)
-                name_th = re.sub(r"กลุ่ม\s*วิชาที่กำหนดโดยคณะ\*", "", name_th).strip()
-                
-                # Remove the | (Pipe) symbol caused by OCR scanning table borders
-                name_th = name_th.replace("|", "").strip()
-
-                # Remove leading dash or colon
-                name_th = re.sub(r"^\s*[-:]\s*", "", name_th).strip()
-                name_en = re.sub(r"^\s*[-:]\s*", "", name_en).strip()
-                name_en = clean_ocr_en_text(name_en).upper()
-
-                credits_clean = re.sub(r"\s*\(\s*", "(", credits)
-                credits_clean = re.sub(r"\s*\)\s*", ")", credits_clean)
-                credits_clean = re.sub(r"\)+", ")", credits_clean)
-                credits_clean = re.sub(r"\s*(?:หรือ|or|/)\s*$", "", credits_clean, flags=re.IGNORECASE).strip()
-
-                if credits_clean.startswith("(0-35"):
-                    credits_clean = f"6{credits_clean}"
-
-                final_credits = credits_clean if credits_clean else "3(3-0-6)"
-                if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
-                    final_credits = "6(0-35-0)"
-
-                pending_headless = " หรือ" in credits_clean
-
-                courses.append(
-                    {
-                        "code": code,
-                        "name_th": name_th if name_th else "ไม่ระบุ",
-                        "name_en": name_en if name_en else "N/A",
-                        "credits": credits_clean if credits_clean else "3(3-0-6)",
-                        "year": current_year,
-                        "semester": current_semester,
-                        "category": current_category,
-                        "type": current_type,
-                        "prerequisite": prerequisite,
-                        "flexible_year_semester": None,
-                        "note": None,
-                    }
-                )
-
-                idx = j
-                continue
-
-            idx += 1
-        
-        # ==========================================
-        # Logic to combine elective courses 06026259/06026260
-        # ==========================================
-        combined_courses = []
-        idx_c = 0
-        while idx_c < len(courses):
-            current_course = courses[idx_c]
-            
-            # Check if there is a next course and it is the pair 06026259 and 06026260
-            if idx_c + 1 < len(courses):
-                next_course = courses[idx_c + 1]
-                
-                if current_course["code"] == "06026259" and next_course["code"] == "06026260":
-                    # 1. Combine codes
-                    current_course["code"] = f"{current_course['code']} หรือ {next_course['code']}"
-                    
-                    # 2. Combine Thai names, separated by \n
-                    current_course["name_th"] = f"{current_course['name_th']}\n{next_course['name_th']}"
-                    
-                    # 3. Combine English names, separated by \n
-                    current_course["name_en"] = f"{current_course['name_en']}\n{next_course['name_en']}"
-                    
-                    # 4. Force credits to 6(0-35-0)
-                    current_course["credits"] = "6(0-35-0)"
-                    
-                    combined_courses.append(current_course)
-                    idx_c += 2  # skip the next course since it was already combined
+            # 2) Course-code line -> begin a new block.
+            code, remainder = self._extract_code(line)
+            if code is not None:
+                # Drop lone OCR junk tokens that trail a fully numeric code
+                # (e.g. a stray 'X' after "06026200").
+                if (
+                    line.upper() in {"X", "^", "D9", "L"}
+                    and blocks
+                    and len(blocks[-1].code) == 8
+                    and blocks[-1].code.isdigit()
+                ):
+                    idx += 1
                     continue
-                    
-            combined_courses.append(current_course)
-            idx_c += 1
-            
-        courses = combined_courses
-        # ==========================================
+
+                current = CourseBlock(
+                    code=code,
+                    year=self._ctx_year,
+                    semester=self._ctx_semester,
+                    category=self._ctx_category,
+                    type=self._ctx_type,
+                )
+                # The name / credits may share the code's line (rare) -> keep the tail.
+                if remainder:
+                    current.lines.append(remainder)
+                blocks.append(current)
+                idx += 1
+                continue
+
+            # 3) Table / total / page-number noise -> close any open block.
+            if self._is_noise_line(line):
+                current = None
+                idx += 1
+                continue
+
+            # 4) Category header -> update context, close any open block.
+            if self.CATEGORY_HEADER_RE.search(line) and not self.CREDITS_RE.search(line):
+                self._ctx_category = line
+                self._ctx_type = "เลือก" if "เลือก" in line else "บังคับ"
+                current = None
+                idx += 1
+                continue
+
+            # 5) Anything else belongs to the current block (or is ignored).
+            if current is not None:
+                current.lines.append(line)
+            idx += 1
+
+        return blocks
+
+    def _apply_meta_context(self, line: str, lines: List[str], idx: int) -> int:
+        """Apply a year/semester header to the context; return lines consumed."""
+        yv = self.YEAR_VALUE_RE.search(line)
+        sv = self.SEM_VALUE_RE.search(line)
+        if yv:
+            self._ctx_year = int(yv.group(1))
+        if sv:
+            self._ctx_semester = int(sv.group(1))
+
+        # The number may have spilled onto the next line (e.g. "ปีที่" / "1").
+        needs_year = yv is None and self.YEAR_HEADER_RE.search(line) is not None
+        needs_sem = sv is None and self.SEM_HEADER_RE.search(line) is not None
+        if needs_year or needs_sem:
+            j = idx + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines) and re.fullmatch(r"\d{1,2}", lines[j].strip()):
+                value = int(lines[j].strip())
+                if needs_year:
+                    self._ctx_year = value
+                elif needs_sem:
+                    self._ctx_semester = value
+                return j - idx + 1
+        return 1
+
+    def _is_noise_line(self, line: str) -> bool:
+        """Table headers, totals, page numbers and note lines are never course content."""
+        if line.startswith("รวม"):
+            return True
+        if line.startswith("มคอ."):
+            return True
+        if (
+            line.startswith("หน่วยกิต")
+            or line.startswith("รหัสวิชา")
+            or line.startswith("ชื่อวิชา")
+        ):
+            return True
+        if line.startswith("(บรรยาย"):
+            return True
+        # Page numbers / credit totals (course-number suffixes are single digits).
+        if re.fullmatch(r"\d{2,}", line):
+            return True
+        if self.NOTE_RE.search(line):
+            return True
+        return False
+
+    def _extract_code(self, line: str) -> Tuple[Optional[str], str]:
+        """
+        Return (normalized_code, remainder_after_code) if `line` holds a course
+        code, otherwise (None, "").
+        """
+        # OCR-mangled elective placeholder code (XNWWX / XOWX / XWX).
+        if self.JUNK_PLACEHOLDER_RE.match(line):
+            return "xxxxxxxx", ""
+
+        # A clean code line (possibly containing junk chars OCR added).
+        cleaned = try_clean_code_line(line)
+        if cleaned:
+            return normalize_course_code(cleaned), ""
+
+        # A code embedded in a line (the tail, if any, is course content).
+        m = self.COURSE_CODE_RE.search(line)
+        if m:
+            return normalize_course_code(m.group(1)), line[m.end(1):].strip()
+
+        return None, ""
+
+    # ------------------------------------------------------------------ #
+    #  Step 2: turn one block into a structured course                    #
+    # ------------------------------------------------------------------ #
+    def parse_single_block(self, block: CourseBlock) -> Dict:
+        """
+        Process a single course block (3-6 OCR lines) into a structured course.
+
+        Extracts code, Thai/English name, credits, type and prerequisite while
+        handling common OCR noise:
+          - alternative credit rows joined with "หรือ"/"or",
+          - course-number suffixes on their own line ("CALCULUS" + "1"),
+          - OCR junk codes like "XNWWX" (already normalized by Step 1),
+          - stray "|" pipes and trailing hyphens from table borders.
+        """
+        code = block.code
+        name_th = ""
+        name_en = ""
+        credits = ""
+        prerequisite = "ไม่มี"
+
+        for line in block.lines:
+            # Prerequisite (rare in the plan tables, kept for robustness).
+            if self.PREREQ_KEYWORD_RE.search(line):
+                p_val = line.split(":", 1)[1].strip() if ":" in line else line
+                prerequisite = p_val.upper() if p_val else "ไม่มี"
+                continue
+
+            # Lone OCR junk tokens that slip past a fully numeric code.
+            if (
+                len(code) == 8
+                and code.isdigit()
+                and line.upper() in {"X", "^", "D9", "L"}
+            ):
+                continue
+
+            # A lone number / letter is a course-number suffix (e.g. "CALCULUS" + "1").
+            if line.upper() in {"L", "1", "2", "3", "4", "I", "II"}:
+                num = "1" if line.upper() in {"L", "I"} else ("2" if line.upper() == "II" else line)
+                if not name_en:
+                    name_th = f"{name_th} {num}".strip()
+                else:
+                    name_en = f"{name_en} {clean_ocr_en_text(line).upper()}".strip()
+                continue
+
+            # Credits and the "หรือ" keyword that joins alternative credit rows.
+            if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
+                credit_piece = "หรือ" if "หรอ" in line else line
+                credits = f"{credits} {credit_piece}".strip() if credits else credit_piece
+                continue
+
+            # Thai / English course names can wrap across several lines.
+            if self.HAS_THAI_RE.search(line):
+                name_th = f"{name_th} {line}".strip()
+            elif self.HAS_ENG_RE.search(line):
+                name_en = f"{name_en} {line}".strip()
+
+        # ---- clean up OCR noise ---------------------------------------------- #
+        # Remove the "กลุ่ม วิชาที่กำหนดโดยคณะ*" label (supports spaces + asterisk).
+        name_th = re.sub(r"กลุ่ม\s*วิชาที่กำหนดโดยคณะ\*", "", name_th).strip()
+        # Remove "|" pipes (OCR table borders) and leading/trailing dashes/colons.
+        name_th = name_th.replace("|", "").strip()
+        name_th = re.sub(r"^\s*[-:]\s*", "", name_th).strip()
+        name_th = re.sub(r"\s*[-–—]\s*$", "", name_th).strip()
+        name_en = name_en.replace("|", "").strip()
+        name_en = re.sub(r"^\s*[-:]\s*", "", name_en).strip()
+        name_en = re.sub(r"\s*[-–—]\s*$", "", name_en).strip()
+        name_en = clean_ocr_en_text(name_en).upper()
+
+        # Normalize credits: "3 (3-0-6)" -> "3(3-0-6)".
+        credits_clean = re.sub(r"\s*\(\s*", "(", credits)
+        credits_clean = re.sub(r"\s*\)\s*", ")", credits_clean)
+        credits_clean = re.sub(r"\)+", ")", credits_clean)
+        credits_clean = re.sub(
+            r"\s*(?:หรือ|or|/)\s*$", "", credits_clean, flags=re.IGNORECASE
+        ).strip()
+        if credits_clean.startswith("(0-35"):
+            credits_clean = f"6{credits_clean}"
+
+        final_credits = credits_clean if credits_clean else "3(3-0-6)"
+        if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
+            final_credits = "6(0-35-0)"
+
+        return {
+            "code": code,
+            "name_th": name_th if name_th else "ไม่ระบุ",
+            "name_en": name_en if name_en else "N/A",
+            "credits": final_credits,
+            "year": block.year,
+            "semester": block.semester,
+            "category": block.category,
+            "type": block.type,
+            "prerequisite": prerequisite,
+            "flexible_year_semester": None,
+            "note": None,
+        }
+
+    # ------------------------------------------------------------------ #
+    #  Step 3: post-process the whole course list                         #
+    # ------------------------------------------------------------------ #
+    def post_process(self, courses: List[Dict]) -> List[Dict]:
+        """
+        High-level combinations applied to the extracted course list.
+
+        Combines the co-op (cooperative education) course pair 06026259 /
+        06026260 into a single course entry occupying a 6-credit co-op slot.
+        """
+        combined: List[Dict] = []
+        idx = 0
+        while idx < len(courses):
+            current = courses[idx]
+
+            # Merge 06026259 + 06026260 into one "หรือ" alternative.
+            if (
+                idx + 1 < len(courses)
+                and current["code"] == "06026259"
+                and courses[idx + 1]["code"] == "06026260"
+            ):
+                nxt = courses[idx + 1]
+                merged = {
+                    **current,
+                    "code": "06026259 หรือ 06026260",
+                    "name_th": f"{current['name_th']}\n{nxt['name_th']}",
+                    "name_en": f"{current['name_en']}\n{nxt['name_en']}",
+                    "credits": "6(0-35-0)",
+                }
+                combined.append(merged)
+                idx += 2
+                continue
+
+            combined.append(current)
+            idx += 1
+
+        return combined
+
+    # ------------------------------------------------------------------ #
+    #  Public entry points                                                #
+    # ------------------------------------------------------------------ #
+    def extract_from_lines(self, lines: List[str]) -> Dict:
+        """Run the full block-based pipeline over the study-plan OCR lines."""
+        print(" [DEBUG] running: extract_from_lines (study plan table)")
+        blocks = self.split_into_blocks(lines)
+        courses = [self.parse_single_block(block) for block in blocks]
+        courses = self.post_process(courses)
 
         return {
             "source": self.source,
@@ -479,19 +551,23 @@ class CurriculumExtractor:
 
                 # Read the PREREQUISITE part (skip all Thai until English PREREQUISITE is found)
                 prereq_tokens = []
+                prev_line = ""
 
                 while j < total:
                     curr = lines[j].strip()
                     if not curr:
                         j += 1
                         continue
-                    
+
+                    # A course code directly after a prerequisite keyword (Thai/English) is
+                    # the prerequisite itself, not the start of a new course (e.g. page 321).
                     stop_code_match = code_regex.search(curr)
                     if (
                         stop_code_match
                         and stop_code_match.group(0) != code
                         and stop_code_match.group(0) not in seen_codes
                         and not prereq_eng_key_regex.search(curr)
+                        and not any_prereq_key_regex.search(prev_line)
                     ):
                         break
 
@@ -527,6 +603,7 @@ class CurriculumExtractor:
 
                         break
 
+                    prev_line = curr
                     j += 1
 
                 # Summarize prerequisite value

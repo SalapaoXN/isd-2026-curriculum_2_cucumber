@@ -7,7 +7,7 @@ from .checker import OCRSpellChecker
 from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
-from .llm_clean_txt import clean_ocr_text
+from .llm_clean_txt import clean_extracted_courses, clean_ocr_text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp"]
@@ -136,6 +136,12 @@ def main():
         # Step 2: Extract
         ocr_json_file = output_dir / f"{base_name}_ocr.json"
         extracted_data = extractor.process_file(ocr_json_file)
+
+        # Step 2.5: Clean extracted courses with LLM
+        courses = extracted_data.get("courses", [])
+        cleaned_courses = clean_extracted_courses(courses)
+        extracted_data["courses"] = cleaned_courses
+        print(f"   ├─ Cleaned {len(courses)} extracted courses with LLM")
 
         # Step 3: Save Output
         output_filename = output_dir / f"{base_name}_ocr_extracted.json"

@@ -5,6 +5,9 @@ __pycache__/
 inputs/*
 outputs/*
 consolidated_outputs/*
+.opencode/
+.opencodeignore
+opencode.json
 
 # keep folder
 !inputs/.gitkeep
