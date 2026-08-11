@@ -130,6 +130,15 @@ class CurriculumExtractor:
         r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|prerequisite|pre-requisite|PRERE\s*[A-Z]*|PRERECUISITE)",
         re.IGNORECASE,
     )
+    # Course-description paragraph openers (Thai & English). A general
+    # description (e.g. "วิชานี้จะศึกษา...", "ศึกษาเกี่ยวกับ...", "Study of...")
+    # only ever appears AFTER a block's metadata (code, Thai name, credits,
+    # English name, prerequisite). Hitting one ends the block.
+    DESCRIPTION_START_RE = re.compile(
+        r"(?:วิชานี้|วิชานี|จะศึกษา|ศึกษาเกี่ยวกับ|ศึกษาถึง|เน้นการ|มุ่งเน้น|โดยเน้น|"
+        r"THIS COURSE|COURSE WILL|COURSE DESCRIPTION|STUDY OF)",
+        re.IGNORECASE,
+    )
     NOTE_RE = re.compile(
         r"^\s*[-*]|(?:ประเมิน|เกณฑ์|ผลการเรียน|ผ่าน\s*\(S\)|\(S\)|\(U\)|ให้นักศึกษา)",
         re.IGNORECASE,
@@ -143,7 +152,22 @@ class CurriculumExtractor:
     ):
         self.program = program
         self.plan = plan
-        self.source = source
+        if program == "DSBA" and plan == "coop":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
+        elif program == "DSBA" and plan == "no_coop":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA N0 coop"
+        elif program == "BIT" and plan == "coop":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — BIT coop"
+        elif program == "BIT" and plan == "no_coop":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — BIT no coop"
+        elif program == "IT" and plan == "coop":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — IT coop"
+        elif program == "IT" and plan == "no_coop":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — IT no coop"
+        elif program == "AIT":
+            self.source = "GT_Template-2.xlsx / Academic Plan GT — AIT"
+        else:
+            self.source = source
 
     # ------------------------------------------------------------------ #
     #  Step 1: split raw OCR lines into course blocks                     #
@@ -322,6 +346,14 @@ class CurriculumExtractor:
                 prerequisite = p_val.upper() if p_val else "ไม่มี"
                 continue
 
+            # Truncation rule: a line that opens a course-description paragraph
+            # (e.g. "วิชานี้จะศึกษา...", "ศึกษาเกี่ยวกับ...", "THIS COURSE...",
+            # "STUDY OF ...") marks the end of this block's metadata. STOP
+            # reading further lines so all trailing description text is
+            # discarded and never bleeds into the name / credit / prereq fields.
+            if self.DESCRIPTION_START_RE.search(line):
+                break
+
             # Lone OCR junk tokens that slip past a fully numeric code.
             if (
                 len(code) == 8
@@ -454,7 +486,7 @@ class CurriculumExtractor:
         i = 0
         total = len(lines)
 
-        code_regex = re.compile(r"\b\d{7,8}\b")
+        code_regex = re.compile(r"\b\d{8}\b")
         credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
         
         # Combine mandatory keywords in both Thai and English to stop reading the course name
@@ -505,6 +537,17 @@ class CurriculumExtractor:
                     if not curr:
                         j += 1
                         continue
+
+                    # Block boundary: a line holding the next 8-digit course code ends
+                    # this block's metadata (a missing prereq keyword must not swallow
+                    # the following course's lines as this course's name).
+                    boundary_code_match = code_regex.search(curr)
+                    if (
+                        boundary_code_match
+                        and boundary_code_match.group(0) != code
+                        and boundary_code_match.group(0) not in seen_codes
+                    ):
+                        break
 
                     if any_prereq_key_regex.search(curr):
                         break
@@ -591,8 +634,15 @@ class CurriculumExtractor:
                                 j += 1
                                 continue
 
-                            #  When Thai is found (course description line) = stop collecting Prerequisite immediately!
+                            #  When Thai is found (course description line) = stop collecting
+                            #  Prerequisite immediately. A prerequisite course code may share
+                            #  that line (e.g. "06066001 ความน่าจะเจ็") — the code is the
+                            #  prerequisite, NOT the start of a new course block.
                             if has_thai_regex.search(sub_line):
+                                prereq_code_match = code_regex.search(sub_line)
+                                if prereq_code_match and prereq_code_match.group(0) != code:
+                                    prereq_tokens.append(prereq_code_match.group(0))
+                                j += 1
                                 break
 
                             sub_upper = clean_ocr_en_text(sub_line).upper()
