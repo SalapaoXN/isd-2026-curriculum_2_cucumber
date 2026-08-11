@@ -72,7 +72,7 @@ class CurriculumExtractor:
         current_type = "บังคับ"
 
         course_code_regex = re.compile(
-            r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xX][wW]$)(?:\s|$)"
+            r"(?:^|\s)(\b[0-9]{8}\b|\b[0-9xX]{5,9}\b|\b\d{5}[a-zA-Z]{3}\b|^[xX]+$|^[xXoOwW]{3,8}$)(?:\s|$)"
         )
         credits_regex = re.compile(
             r"(?:\d+\s*)?\(\d+-\d+-\d+\)(?:\s*(?:หรือ|or|/)\s*(?:\d+\s*)?\(\d+-\d+-\d+\))?",
@@ -309,7 +309,7 @@ class CurriculumExtractor:
                 if final_credits == "3(3-0-6)" and ("สหกิจ" in name_th or "COOP" in name_en):
                     final_credits = "6(0-35-0)"
 
-                pending_headless = "หรือ" in credits_clean
+                pending_headless = " หรือ" in credits_clean
 
                 courses.append(
                     {

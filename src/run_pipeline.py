@@ -7,6 +7,7 @@ from .checker import OCRSpellChecker
 from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
+from .llm_clean_txt import clean_ocr_text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp"]
@@ -76,7 +77,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    input_dir = Path(args.input_dir)
+    input_dir = Path("inputs/" + args.input_dir)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -90,11 +91,11 @@ def main():
 
     use_gpu = not args.no_gpu
     engine = OCREngine(languages=["th", "en"], gpu=use_gpu)
-    spell_checker = OCRSpellChecker()
+    # spell_checker = OCRSpellChecker()
     extractor = CurriculumExtractor(program=args.program, plan=args.plan)
 
     for page_num in pages:
-        base_name = f"curriculum_page_{page_num:03d}"
+        base_name = f"{args.input_dir}_page_{page_num:03d}"
 
         img_file = None
         for ext in IMAGE_EXTENSIONS:
@@ -118,11 +119,17 @@ def main():
         lines = [line.upper() for line in lines]
 
         # Step 1.5: Autocorrect English text (pyspellchecker)
-        lines, typos = spell_checker.process_lines(lines)
-        print(f"   ├─ Autocorrect fixed {len(typos)} points")
-        if typos:
-            for t in typos:
-                print(f"   │    L{t['line']}: {t['original']} -> {t['corrected']}")
+        # lines, typos = spell_checker.process_lines(lines)
+        # print(f"   ├─ Autocorrect fixed {len(typos)} points")
+        # if typos:
+        #     for t in typos:
+        #         print(f"   │    L{t['line']}: {t['original']} -> {t['corrected']}")
+
+        # Step 1.5: Clean OCR Text with LLM
+        print("   ├─ Cleaning OCR typos and formatting with LLM (Qwen2.5)...")
+        raw_text_joined = "\n".join(lines)
+        cleaned_text = clean_ocr_text(raw_text_joined)
+        lines = [line.strip() for line in cleaned_text.split("\n") if line.strip()]
 
         save_ocr_results(lines, output_dir, base_name)
 

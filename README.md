@@ -81,10 +81,12 @@ python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/
 python -m src.run_pipeline -p 32-36 -i inputs/dsba
 
 # ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
-python -m src.run_pipeline -p 23-29 -i inputs/dsba --plan no_coop
-python -m src.run_pipeline -p 30-36 -i inputs/dsba --plan coop
-python -m src.run_pipeline -p 151-224 -i inputs/dsba --plan gened
-python -m src.run_pipeline -p 314-341 -i inputs/dsba --plan other
+python -m src.run_pipeline -p 26-32 -i dsba --plan no_coop
+python -m src.run_pipeline -p 33-39 -i dsba --plan coop
+
+
+python -m src.run_pipeline -p -i inputs/gened --plan gened
+python -m src.run_pipeline -p -i inputs/rule --plan rule
 ```
 
 ### Merge JSON
