@@ -81,6 +81,7 @@ python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/
 # ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
 python -m src.run_pipeline -p 26-32 -i dsba --plan no_coop --program DSBA
 python -m src.run_pipeline -p 33-39 -i dsba --plan coop --program DSBA
+python -m src.run_pipeline -p 317-344 -i dsba --program DSBA
 
 python -m src.run_pipeline -p 26-32 -i it --plan no_coop --program IT
 python -m src.run_pipeline -p 33-39 -i it --plan coop --program IT
@@ -100,6 +101,12 @@ python -m src.run_pipeline -p -i rule --plan rule
 รวมไฟล์จาก output เป็น consolidate
 ```bash
 python merge_consecutive.py -p 16-30 --plan gened
+python merge_consecutive.py --prefix it
+python merge_consecutive.py --prefix dsba --plan coop -d 317-344
+python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
+python merge_consecutive.py --prefix ait -d 287-302
+python merge_consecutive.py --prefix bit
+
 ```
 
 ### Consolidated

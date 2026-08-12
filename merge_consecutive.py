@@ -23,11 +23,35 @@ def parse_page_range(page_input: str) -> set:
     return pages
 
 
+def dedupe_courses(courses: List[dict]) -> List[dict]:
+    seen = set()
+    result = []
+    for course in courses:
+        code = course.get("code")
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        result.append(course)
+    return result
+
+
+def merge_plan_with_description(table_courses: List[dict], desc_courses: List[dict], metadata: dict) -> dict:
+    """Combine table courses with description courses, reusing the consolidator's merge logic."""
+    from src.consolidator import CurriculumConsolidator
+
+    plan_data = dict(metadata)
+    plan_data["courses"] = table_courses
+    desc_data = {"courses": desc_courses}
+    return CurriculumConsolidator(plan_data, desc_data).consolidate()
+
+
 def merge_consecutive_files(
     input_dir: str = "outputs",
     output_dir: str = "consolidated_outputs",
     plan_filter: str = None,
     pages: str = None,
+    prefix: str = None,
+    desc_pages: str = None,
 ):
     """Group *_extracted.json files by plan + consecutive pages, dedupe courses by code, and merge."""
     input_path = Path(input_dir)
@@ -39,15 +63,19 @@ def merge_consecutive_files(
         return
 
     target_pages = parse_page_range(pages) if pages else None
+    target_desc_pages = parse_page_range(desc_pages) if desc_pages else None
 
     # 1. Read each file: (plan, page_num, data)
     records: List[Tuple[str, int, dict]] = []
     for file in json_files:
+        if prefix and not file.name.startswith(prefix):
+            continue
         page_num = extract_page_num(file)
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
         plan = data.get("plan", "unknown")
-        if plan_filter and plan != plan_filter:
+        is_desc_page = target_desc_pages is not None and page_num in target_desc_pages
+        if plan_filter and plan != plan_filter and not is_desc_page:
             continue
         if target_pages is not None and page_num not in target_pages:
             continue
@@ -140,6 +168,54 @@ def merge_consecutive_files(
 
     print(f"\n Merge successful! {merged_count} output file(s) saved in {output_folder.resolve()}")
 
+    # 5. Optional: combine each plan's table courses with its description courses into one full file.
+    if desc_pages:
+        target_desc_pages = parse_page_range(desc_pages)
+        combined_count = 0
+        for plan in plans:
+            plan_records = sorted(
+                (r for r in records if r[0] == plan), key=lambda r: r[1]
+            )
+            table_records = [r for r in plan_records if r[1] not in target_desc_pages]
+            desc_records = [r for r in records if r[1] in target_desc_pages]
+            if not table_records or not desc_records:
+                continue
+
+            table_courses = []
+            for _, _, data in table_records:
+                table_courses.extend(data.get("courses", []))
+            desc_courses = []
+            for _, _, data in desc_records:
+                desc_courses.extend(data.get("courses", []))
+
+            first = table_records[0][2]
+            metadata = {
+                "source": first.get("source", ""),
+                "description": first.get("description", ""),
+                "program": first.get("program", "DSBA"),
+                "plan": first.get("plan", "coop"),
+            }
+            final = merge_plan_with_description(
+                dedupe_courses(table_courses),
+                dedupe_courses(desc_courses),
+                metadata,
+            )
+
+            output_filename = f"merged_{plan}_full.json"
+            output_file_path = output_folder / output_filename
+            output_folder.mkdir(parents=True, exist_ok=True)
+            with open(output_file_path, "w", encoding="utf-8") as f:
+                json.dump(final, f, ensure_ascii=False, indent=4)
+
+            combined_count += 1
+            print(
+                f" Combined plan '{plan}' table ({len(table_records)} files) + "
+                f"description ({len(desc_records)} files) "
+                f"-> {len(final.get('courses', []))} courses: {output_file_path.name}"
+            )
+
+        print(f"\n Table+description merge successful! {combined_count} full file(s) saved.")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -169,6 +245,19 @@ if __name__ == "__main__":
         default=None,
         help="Only merge these page numbers (e.g. '16-18', '16,18')",
     )
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        default=None,
+        help="Only merge files whose name starts with this prefix (e.g. 'gened')",
+    )
+    parser.add_argument(
+        "-d",
+        "--desc-pages",
+        type=str,
+        default=None,
+        help="Page range of course descriptions to merge with the plan table (e.g. '317-344')",
+    )
 
     args = parser.parse_args()
 
@@ -177,4 +266,6 @@ if __name__ == "__main__":
         output_dir=args.output_dir,
         plan_filter=args.plan,
         pages=args.p,
+        prefix=args.prefix,
+        desc_pages=args.desc_pages,
     )
