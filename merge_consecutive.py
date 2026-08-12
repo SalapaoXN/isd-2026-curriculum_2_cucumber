@@ -59,8 +59,13 @@ def merge_consecutive_files(
     for _, _, data in records:
         for course in data.get("courses", []):
             code = course.get("code")
-            if code:
-                code_lookup.setdefault(code, course)
+            if not code:
+                continue
+            known = code_lookup.get(code)
+            if known is None:
+                code_lookup[code] = course
+            elif course.get("prerequisite") not in (None, "") and known.get("prerequisite") in (None, ""):
+                code_lookup[code] = course
 
     def enrich_prerequisite(course: dict) -> dict:
         code = course.get("code")
