@@ -2,49 +2,9 @@ import argparse
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List
 import Levenshtein
-
-
-@dataclass
-class FieldMetric:
-    exact_matches: int = 0
-    total_gt: int = 0
-    total_pred: int = 0
-    correct_preds: int = 0
-    total_similarity: float = 0.0
-
-    @property
-    def precision(self) -> float:
-        return (self.correct_preds / self.total_pred) * 100 if self.total_pred > 0 else 0.0
-
-    @property
-    def recall(self) -> float:
-        return (self.correct_preds / self.total_gt) * 100 if self.total_gt > 0 else 0.0
-
-    @property
-    def f1_score(self) -> float:
-        p, r = self.precision, self.recall
-        return (2 * p * r) / (p + r) if (p + r) > 0 else 0.0
-
-    @property
-    def avg_similarity(self) -> float:
-        return (self.total_similarity / self.total_gt) * 100 if self.total_gt > 0 else 0.0
-
-
-@dataclass
-class JSONEvaluationResult:
-    file_name: str
-    page_level_exact_match: bool
-    course_precision: float
-    course_recall: float
-    course_f1: float
-    overall_field_precision: float
-    overall_field_recall: float
-    overall_field_f1: float
-    per_field_metrics: Dict[str, Dict[str, float]]
 
 
 def normalize_str(text: Any) -> str:
@@ -60,8 +20,26 @@ def calculate_similarity(s1: str, s2: str) -> float:
     max_len = max(len(s1), len(s2))
     if max_len == 0:
         return 1.0
-    dist = Levenshtein.distance(s1, s2)
-    return 1.0 - (dist / max_len)
+    return 1.0 - (Levenshtein.distance(s1, s2) / max_len)
+
+
+def calculate_cer(gt: str, pred: str) -> float:
+    if not gt:
+        return 0.0
+    return Levenshtein.distance(gt, pred) / len(gt)
+
+
+def calculate_wer(gt: str, pred: str) -> float:
+    gt_words = gt.split()
+    if not gt_words:
+        return 0.0
+    return Levenshtein.distance(gt_words, pred.split()) / len(gt_words)
+
+
+def is_plan_course(course: dict) -> bool:
+    year = course.get("year")
+    semester = course.get("semester")
+    return year not in (None, 0, "") or semester not in (None, 0, "")
 
 
 def evaluate_json_structure(
@@ -75,7 +53,6 @@ def evaluate_json_structure(
 
     gt_path = Path(ground_truth_json)
     pred_path = Path(prediction_json)
-
     if not gt_path.exists():
         raise FileNotFoundError(f"Ground Truth file not found: {gt_path}")
     if not pred_path.exists():
@@ -89,25 +66,15 @@ def evaluate_json_structure(
     gt_courses: List[dict] = gt_data.get("courses", [])
     pred_courses: List[dict] = pred_data.get("courses", [])
 
-    file_name = pred_path.name
-
-    total_gt_courses = len(gt_courses)
-    total_pred_courses = len(pred_courses)
-
-    # ---- Course alignment by code ---------------------------------------- #
-    # The GT and prediction lists may legitimately differ in length or order
-    # (e.g. an OCR page missing one course).  Match each GT course to the best
-    # remaining prediction by code similarity so the remaining courses align.
-    # Two passes: exact code matches first, then fuzzy for the leftovers so a
-    # genuinely-missing GT course cannot steal a correctly-extracted course.
+    # ---- Course alignment by code (exact first, then fuzzy) ----- #
     def code_sim(a: dict, b: dict) -> float:
         return calculate_similarity(normalize_str(a.get("code")), normalize_str(b.get("code")))
 
     def exact_code(a: dict, b: dict) -> bool:
         return normalize_str(a.get("code")) == normalize_str(b.get("code")) and normalize_str(a.get("code")) != ""
 
-    pairs: List[tuple[dict, dict]] = []  # (gt, pred) aligned pairs
-    matched_pred: List[bool] = [False] * total_pred_courses
+    pairs: List[tuple[dict, dict]] = []
+    matched_pred: List[bool] = [False] * len(pred_courses)
 
     for gt_item in gt_courses:
         for j, pred_item in enumerate(pred_courses):
@@ -121,93 +88,72 @@ def evaluate_json_structure(
     for gt_item in gt_courses:
         if any(g is gt_item for g, _ in pairs):
             continue
-        best_idx = -1
-        best_sim = fuzzy_threshold
+        best_idx, best_sim = -1, fuzzy_threshold
         for j, pred_item in enumerate(pred_courses):
             if matched_pred[j]:
                 continue
             sim = code_sim(gt_item, pred_item)
             if sim > best_sim:
-                best_sim = sim
-                best_idx = j
+                best_sim, best_idx = sim, j
         if best_idx >= 0:
             matched_pred[best_idx] = True
             pairs.append((gt_item, pred_courses[best_idx]))
 
-    matched_courses = len(pairs)
-
-    metrics: Dict[str, FieldMetric] = {f: FieldMetric() for f in target_fields}
-    page_is_perfect = matched_courses == total_gt_courses and matched_courses == total_pred_courses
+    # ---- CER/WER accumulators ---- #
+    field_stats = {f: {"cer": 0.0, "wer": 0.0, "count": 0} for f in target_fields}
+    page_stats = {"cer": 0.0, "wer": 0.0, "count": 0}
+    cat_stats = {
+        "plan": {"cer": 0.0, "wer": 0.0, "count": 0},
+        "description": {"cer": 0.0, "wer": 0.0, "count": 0},
+    }
 
     for gt_item, pred_item in pairs:
-        course_is_perfect = True
-
+        category = "plan" if is_plan_course(gt_item) else "description"
         for field in target_fields:
             if field not in gt_item:
                 continue
-
             gt_val = normalize_str(gt_item.get(field))
             pred_val = normalize_str(pred_item.get(field))
+            cer_val = calculate_cer(gt_val, pred_val)
+            wer_val = calculate_wer(gt_val, pred_val)
 
-            m = metrics[field]
-            m.total_gt += 1
-            if field in pred_item:
-                m.total_pred += 1
+            field_stats[field]["cer"] += cer_val
+            field_stats[field]["wer"] += wer_val
+            field_stats[field]["count"] += 1
 
-            sim = calculate_similarity(gt_val, pred_val)
-            m.total_similarity += sim
+            page_stats["cer"] += cer_val
+            page_stats["wer"] += wer_val
+            page_stats["count"] += 1
 
-            if gt_val == pred_val and (gt_val != ""):
-                m.exact_matches += 1
-                m.correct_preds += 1
-            elif sim >= fuzzy_threshold:
-                m.correct_preds += 1
-            else:
-                course_is_perfect = False
+            cat_stats[category]["cer"] += cer_val
+            cat_stats[category]["wer"] += wer_val
+            cat_stats[category]["count"] += 1
 
-        if not course_is_perfect:
-            page_is_perfect = False
-
-    total_correct = sum(m.correct_preds for m in metrics.values())
-    total_gt_fields = sum(m.total_gt for m in metrics.values())
-    total_pred_fields = sum(m.total_pred for m in metrics.values())
-
-    overall_p = (total_correct / total_pred_fields * 100) if total_pred_fields > 0 else 0.0
-    overall_r = (total_correct / total_gt_fields * 100) if total_gt_fields > 0 else 0.0
-    overall_f1 = (2 * overall_p * overall_r / (overall_p + overall_r)) if (overall_p + overall_r) > 0 else 0.0
-
-    c_p = (matched_courses / total_pred_courses * 100) if total_pred_courses > 0 else 0.0
-    c_r = (matched_courses / total_gt_courses * 100) if total_gt_courses > 0 else 0.0
-    c_f1 = (2 * c_p * c_r / (c_p + c_r)) if (c_p + c_r) > 0 else 0.0
-
-    per_field_summary = {}
-    for f_name, m in metrics.items():
-        per_field_summary[f_name] = {
-            "exact_match_count": m.exact_matches,
-            "precision": round(m.precision, 2),
-            "recall": round(m.recall, 2),
-            "f1_score": round(m.f1_score, 2),
-            "avg_similarity": round(m.avg_similarity, 2),
+    def average(stat: dict) -> dict:
+        n = stat["count"]
+        return {
+            "cer": round(stat["cer"] / n, 4) if n else 0.0,
+            "wer": round(stat["wer"] / n, 4) if n else 0.0,
+            "count": n,
         }
 
-    res = JSONEvaluationResult(
-        file_name=file_name,
-        page_level_exact_match=page_is_perfect,
-        course_precision=round(c_p, 2),
-        course_recall=round(c_r, 2),
-        course_f1=round(c_f1, 2),
-        overall_field_precision=round(overall_p, 2),
-        overall_field_recall=round(overall_r, 2),
-        overall_field_f1=round(overall_f1, 2),
-        per_field_metrics=per_field_summary,
-    )
-
-    return asdict(res)
+    return {
+        "file_name": pred_path.name,
+        "total_gt_courses": len(gt_courses),
+        "total_pred_courses": len(pred_courses),
+        "matched_courses": len(pairs),
+        "page_level": average(page_stats),
+        "field_level": {f: average(field_stats[f]) for f in target_fields},
+        "category_level": {
+            "plan": average(cat_stats["plan"]),
+            "description": average(cat_stats["description"]),
+        },
+    }
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="CLI evaluator for measuring the accuracy of JSON structured data"
+        description="CLI evaluator for CER/WER between Prediction and Ground Truth JSON"
     )
     parser.add_argument(
         "prediction_json",

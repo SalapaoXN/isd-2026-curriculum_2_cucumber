@@ -2,7 +2,7 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 
 def extract_page_num(file_path: Path) -> int:
@@ -53,7 +53,30 @@ def merge_consecutive_files(
             continue
         records.append((plan, page_num, data))
 
-    # 2. Group by plan
+    # 2. Build a code -> course lookup from ALL files (Study Plan + Course Description
+    #    pages together) so prerequisites can be enriched even across separate groups.
+    code_lookup: Dict[str, dict] = {}
+    for _, _, data in records:
+        for course in data.get("courses", []):
+            code = course.get("code")
+            if code:
+                code_lookup.setdefault(code, course)
+
+    def enrich_prerequisite(course: dict) -> dict:
+        code = course.get("code")
+        prereq = course.get("prerequisite")
+        if not code or prereq not in (None, ""):
+            return course
+        desc_course = code_lookup.get(code)
+        if not desc_course:
+            return course
+        merged_course = dict(course)
+        for field in ("prerequisite", "desc_th", "desc_en"):
+            if field in desc_course and desc_course.get(field) not in (None, ""):
+                merged_course[field] = desc_course[field]
+        return merged_course
+
+    # 3. Group by plan
     plans = sorted({r[0] for r in records})
     merged_count = 0
 
@@ -83,7 +106,7 @@ def merge_consecutive_files(
                     if code in seen_codes:
                         continue
                     seen_codes.add(code)
-                    all_courses.append(course)
+                    all_courses.append(enrich_prerequisite(course))
 
             first = group[0][2]
             base_metadata = {
