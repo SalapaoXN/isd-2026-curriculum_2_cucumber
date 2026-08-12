@@ -92,8 +92,8 @@ python -m src.run_pipeline -p 26-32 -i bit --plan no_coop --program IT
 python -m src.run_pipeline -p 33-39 -i bit --plan coop --program IT
 
 
-python -m src.run_pipeline -p -i inputs/gened --plan gened
-python -m src.run_pipeline -p -i inputs/rule --plan rule
+python -m src.run_pipeline -p -i gened --plan gened
+python -m src.run_pipeline -p -i rule --plan rule
 ```
 
 ### Merge JSON

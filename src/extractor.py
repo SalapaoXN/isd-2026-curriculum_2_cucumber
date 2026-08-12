@@ -441,8 +441,8 @@ class CurriculumExtractor:
             "name_th": name_th if name_th else "ไม่ระบุ",
             "name_en": name_en if name_en else "N/A",
             "credits": final_credits,
-            "year": block.year,
-            "semester": block.semester,
+            "year": 0 if self.plan == "gened" else block.year,
+            "semester": 0 if self.plan == "gened" else block.semester,
             "category": category,
             "type": block.type,
             "prerequisite": prerequisite,
@@ -737,6 +737,8 @@ class CurriculumExtractor:
                             "name_en": name_en if name_en else "N/A",
                             "credits": credits,
                             "category": "หมวดวิชาศึกษาทั่วไป",
+                            "year": 0,
+                            "semester": 0,
                             "type": "เลือก",
                             "prerequisite": None,
                             "flexible_year_semester": None,
@@ -755,6 +757,13 @@ class CurriculumExtractor:
                     elif self.program == "BIT" :
                         flex_year = "4/2"
                     
+                    if code.startswith("90") :
+                        category = "หมวดวิชาศึกษาทั่วไป"
+                    elif code.startswith("xx") :
+                        category = "หมวดวิชาเสรี"
+                    else :
+                        category = "หมวดวิชาเฉพาะ"
+                    
                     courses.append(
                         {
                             "code": code,
@@ -763,7 +772,7 @@ class CurriculumExtractor:
                             "credits": credits,
                             "year": 0,
                             "semester": 0,
-                            "category": "หมวดวิชาเฉพาะ",
+                            "category": category,
                             "type": "เลือก",
                             "prerequisite": prerequisite,
                             "flexible_year_semester": flex_year,
