@@ -444,8 +444,8 @@ class CurriculumExtractor:
             "year": 0 if self.plan == "gened" else block.year,
             "semester": 0 if self.plan == "gened" else block.semester,
             "category": category,
-            "type": block.type,
-            "prerequisite": prerequisite,
+            "type": "เลือก" if self.plan == "gened" else block.type,
+            "prerequisite": None if self.plan == "gened" else prerequisite,
             "flexible_year_semester": None,
             "note": None,
         }

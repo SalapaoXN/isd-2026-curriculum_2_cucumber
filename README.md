@@ -99,7 +99,7 @@ python -m src.run_pipeline -p -i rule --plan rule
 ### Merge JSON
 รวมไฟล์จาก output เป็น consolidate
 ```bash
-python merge_json.py -p 30-36
+python merge_consecutive.py -p 16-30 --plan gened
 ```
 
 ### Consolidated
