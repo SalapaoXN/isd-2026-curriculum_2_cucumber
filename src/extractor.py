@@ -620,8 +620,17 @@ class CurriculumExtractor:
 
                 # Assemble Thai name without spaces
                 if th_words:
-                    # Remove spaces within each item, then join them together
-                    cleaned_th_words = [w.replace(" ", "") for w in th_words]
+                    # Remove spaces within each item, but keep one space before a
+                    # trailing course number (e.g. "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 5").
+                    cleaned_th_words = []
+                    for w in th_words:
+                        trailing_num = re.match(r"^(.*?)\s+(\d+)$", w)
+                        if trailing_num:
+                            cleaned_th_words.append(
+                                trailing_num.group(1).replace(" ", "") + " " + trailing_num.group(2)
+                            )
+                        else:
+                            cleaned_th_words.append(w.replace(" ", ""))
                     name_th = "".join(cleaned_th_words).strip()
 
                 # Assemble English name with single-space separators

@@ -35,10 +35,85 @@ def dedupe_courses(courses: List[dict]) -> List[dict]:
     return result
 
 
-def merge_plan_with_description(table_courses: List[dict], desc_courses: List[dict], metadata: dict) -> dict:
-    """Combine table courses with description courses, reusing the consolidator's merge logic."""
-    from src.consolidator import CurriculumConsolidator
+class CurriculumConsolidator:
+    """Merge plan table courses with course descriptions (primary = plan)."""
 
+    def __init__(self, plan_data: Dict, description_data: Dict):
+        self.plan_data = plan_data
+        self.description_data = description_data
+
+    def consolidate(self) -> Dict:
+        descriptions = self.description_data.get("descriptions") or self.description_data.get("courses", [])
+
+        desc_lookup = {}
+        for desc in descriptions:
+            code = desc.get("code")
+            if code:
+                desc_lookup[code] = desc
+
+        consolidated_courses = []
+        processed_codes = set()
+
+        for course in self.plan_data.get("courses", []):
+            course_code = course.get("code", "")
+            merged_course = course.copy()
+
+            if "หรือ" not in course_code and course_code in desc_lookup:
+                target_desc = desc_lookup[course_code]
+                for field in ("prerequisite", "desc_th", "desc_en"):
+                    if field in target_desc:
+                        merged_course[field] = target_desc[field]
+                processed_codes.add(course_code)
+
+            elif "หรือ" in course_code:
+                sub_codes = [c.strip() for c in course_code.split("หรือ")]
+                th_list = []
+                en_list = []
+                for sub_code in sub_codes:
+                    if sub_code in desc_lookup:
+                        target_desc = desc_lookup[sub_code]
+                        if target_desc.get("desc_th"):
+                            th_list.append(target_desc.get("desc_th"))
+                        if target_desc.get("desc_en"):
+                            en_list.append(target_desc.get("desc_en"))
+                        processed_codes.add(sub_code)
+                if th_list:
+                    merged_course["desc_th"] = "\n".join(th_list)
+                if en_list:
+                    merged_course["desc_en"] = "\n".join(en_list)
+                processed_codes.add(course_code)
+
+            else:
+                if course_code:
+                    processed_codes.add(course_code)
+
+            merged_course.setdefault("flexible_year_semester", None)
+            consolidated_courses.append(merged_course)
+
+        for code, desc_item in desc_lookup.items():
+            if code not in processed_codes:
+                new_elective_course = desc_item.copy()
+                new_elective_course.setdefault("year", 0)
+                new_elective_course.setdefault("semester", 0)
+                new_elective_course.setdefault("category", "หมวดวิชาเฉพาะ")
+                new_elective_course.setdefault("type", "เลือก")
+                new_elective_course.setdefault("prerequisite", "ไม่มี")
+                new_elective_course.setdefault("flexible_year_semester", None)
+                consolidated_courses.append(new_elective_course)
+                processed_codes.add(code)
+
+        return {
+            "source": self.plan_data.get("source", "Merged Academic Plan & Course Descriptions"),
+            "description": self.plan_data.get("description", "Ground Truth รายวิชาหลักสูตร"),
+            "program": self.plan_data.get("program", ""),
+            "plan": self.plan_data.get("plan", ""),
+            "total_courses": len(consolidated_courses),
+            "courses": consolidated_courses,
+        }
+
+
+def merge_plan_with_description(table_courses: List[dict], desc_courses: List[dict], metadata: dict) -> dict:
+    """Combine table courses with description courses."""
     plan_data = dict(metadata)
     plan_data["courses"] = table_courses
     desc_data = {"courses": desc_courses}
