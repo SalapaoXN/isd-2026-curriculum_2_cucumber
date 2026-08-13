@@ -12,7 +12,7 @@ Member:
 ## Run guide:
 
 ### Step by step (full pipeline)
-Run the whole pipeline in order: OCR → Extract → Merge → Consolidate → Evaluate.
+Run the whole pipeline in order: OCR → Extract → Merge (table + description) → Evaluate.
 
 ```bash
 # 1. OCR a folder of images into outputs/ (per-page .txt + .json)
@@ -21,20 +21,17 @@ python cli.py inputs/dsba/ -o outputs
 # 2. Extract structured courses from each OCR file
 python extract.py outputs/ -o outputs
 
-# 3. Merge extracted files by page range into consolidated_outputs/
-python merge_json.py -i outputs -o consolidated_outputs
+# 3. Merge plan table + course descriptions into a full file (saved in consolidated_outputs/)
+python merge_consecutive.py --prefix dsba --plan coop -d 317-344
 
-# 4. Consolidate plan + description into a full file (synces GENED categories automatically)
-python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
-
-# 5. Evaluate against ground truth
-python evaluate.py consolidated_outputs/dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+# 4. Evaluate against ground truth
+python evaluate.py consolidated_outputs/merged_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
 ```
 
-For the no-coop plan, replace page ranges and ground truth accordingly:
+For the no-coop plan, replace the plan flag and ground truth accordingly:
 ```bash
-python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
-python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
+python evaluate.py consolidated_outputs/merged_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
 ```
 
 ### OCR
@@ -69,71 +66,60 @@ python extract.py outputs/curriculum_page_016_ocr.txt \
 ### Evaluate
 
 ```bash
-python evaluate.py consolidated_outputs/dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
-python evaluate.py consolidated_outputs/dsba_nocoop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+python evaluate.py consolidated_outputs/merged_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python evaluate.py consolidated_outputs/merged_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
 ```
 
 ### รัน Pipeline อัตโนมัติ (OCR -> Extract)
 ใช้สำหรับรันประมวลผลรูปภาพเอกสารตามเลขหน้าที่กำหนด และสกัดออกมาเป็น JSON รายวิชาทันที
 
+โปรแกรมที่มีแผนการเรียน 2 แบบ (coop / no_coop) รันแบบนี้:
 ```bash
-
-# ตัวเลือกเพิ่มเติม (เปลี่ยนโฟลเดอร์ หรือ ปรับแผนการเรียน)
+# DSBA
 python -m src.run_pipeline -p 26-32 -i dsba --plan no_coop --program DSBA
 python -m src.run_pipeline -p 33-39 -i dsba --plan coop --program DSBA
 python -m src.run_pipeline -p 317-344 -i dsba --program DSBA
 
+# IT
 python -m src.run_pipeline -p 26-32 -i it --plan no_coop --program IT
 python -m src.run_pipeline -p 33-39 -i it --plan coop --program IT
 
+# BIT
+python -m src.run_pipeline -p 26-32 -i bit --plan no_coop --program IT
+python -m src.run_pipeline -p 33-39 -i bit --plan coop --program IT
+```
+
+โปรแกรมที่ไม่มีแผนการเรียน เขียนได้บรรทัดเดียว:
+```bash
+# AIT
 python -m src.run_pipeline -p 23-26 -i ait --program AIT
 python -m src.run_pipeline -p 287-302 -i ait --program AIT
 
-python -m src.run_pipeline -p 26-32 -i bit --plan no_coop --program IT
-python -m src.run_pipeline -p 33-39 -i bit --plan coop --program IT
+# GENED
+python -m src.run_pipeline -p 16-30 -i gened --plan gened --program DSBA
 
-
-python -m src.run_pipeline -p -i gened --plan gened
-python -m src.run_pipeline -p -i rule --plan rule
+# RULE
+python -m src.run_pipeline -p 1-13 -i rule --plan rule --program DSBA
 ```
 
-### Merge JSON
-รวมไฟล์จาก output เป็น consolidate
+### Merge (รวม table + description)
+รวมไฟล์จาก output และควบรายวิชาจากตารางแผนการเรียนกับคำอธิบายรายวิชาเข้าเป็นไฟล์เดียว
+
+โปรแกรมที่มีแผนการเรียน 2 แบบ (coop / no_coop):
 ```bash
-python merge_consecutive.py -p 16-30 --plan gened
-python merge_consecutive.py --prefix it
 python merge_consecutive.py --prefix dsba --plan coop -d 317-344
 python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
+python merge_consecutive.py --prefix it --plan coop -d 328-371
+python merge_consecutive.py --prefix it --plan no_coop -d 328-371
+python merge_consecutive.py --prefix bit --plan coop -d 328-371
+python merge_consecutive.py --prefix bit --plan no_coop -d 328-371
+```
+
+โปรแกรมที่ไม่มีแผนการเรียน เขียนได้บรรทัดเดียว:
+```bash
 python merge_consecutive.py --prefix ait -d 287-302
-python merge_consecutive.py --prefix bit
-
+python merge_consecutive.py --prefix gened
+python merge_consecutive.py --prefix rule
 ```
 
-### Consolidated
-รวมไฟล์ consolidate เป็น full coop, nocoop
-```bash
-python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
-python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
-```
-
-### Transfer categories (GENED -> full)
-ซิงค์หมวดหมู่วิชา GENED จากไฟล์ consolidate ของหมวด GENED เข้าสู่ไฟล์ full หลัง consolidate เสร็จ ก่อนนำไป evaluate
-
-**รันอัตโนมัติ:** consolidator จะค้นหาไฟล์ `consolidated_page_*.json` ที่เหลือใน `consolidated_outputs/` แล้วซิงค์หมวดหมู่ให้เอง
-```bash
-python src/consolidator.py -p 023-029 -d 314-341 -o consolidated_outputs/dsba_nocoop_full.json
-python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json
-```
-
-ระบุไฟล์ GENED เองได้ (ข้ามการค้นหาอัตโนมัติ):
-```bash
-python src/consolidator.py -p 030-036 -d 314-341 -o consolidated_outputs/dsba_coop_full.json \
-  --gened consolidated_outputs/consolidated_page_151-224.json
-```
-
-หรือรันแยกเป็นขั้นตอน:
-```bash
-python src/transfer.py --gened consolidated_outputs/consolidated_page_151-224.json \
-  --input consolidated_outputs/dsba_coop_full.json \
-  --output consolidated_outputs/dsba_coop_full_updated.json
-```
+ผลลัพธ์: ไฟล์ `merged_<plan>_full.json` (เช่น `merged_coop_full.json`) จะถูกบันทึกใน `consolidated_outputs/`
