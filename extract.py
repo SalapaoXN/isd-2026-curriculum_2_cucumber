@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -6,8 +7,27 @@ from src import CurriculumExtractor
 
 
 def _safe_identifier(value: str, fallback: str = "input") -> str:
-    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", str(value or "")).strip("_")
-    return cleaned or fallback
+    raw = "" if value is None else str(value)
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", raw).strip("_")
+    if not raw:
+        return fallback
+    if not cleaned:
+        cleaned = fallback
+    if cleaned != raw:
+        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+        cleaned = f"{cleaned}_{digest}"
+    return cleaned
+
+
+def _input_group_identifier(input_path: Path) -> str:
+    parts = list(input_path.parts)
+    input_indexes = [i for i, part in enumerate(parts) if part.casefold() == "inputs"]
+    if input_indexes:
+        parts = parts[input_indexes[-1] + 1 :]
+    else:
+        parts = parts[-2:]
+    source = "/".join(parts) or input_path.name
+    return _safe_identifier(source)
 
 
 def parse_arguments():
@@ -107,7 +127,7 @@ def main():
             "plan": args.plan,
             "courses": all_courses
         }
-        group_id = _safe_identifier(input_path.name)
+        group_id = _input_group_identifier(input_path)
         program_id = _safe_identifier(args.program)
         plan_id = _safe_identifier(args.plan)
         consolidated_file = output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"

@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -11,8 +12,27 @@ def extract_page_num(file_path: Path) -> int:
 
 
 def _safe_identifier(value: str, fallback: str = "input") -> str:
-    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", str(value or "")).strip("_")
-    return cleaned or fallback
+    raw = "" if value is None else str(value)
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", raw).strip("_")
+    if not raw:
+        return fallback
+    if not cleaned:
+        cleaned = fallback
+    if cleaned != raw:
+        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+        cleaned = f"{cleaned}_{digest}"
+    return cleaned
+
+
+def _input_group_identifier(input_path: Path) -> str:
+    parts = list(input_path.parts)
+    input_indexes = [i for i, part in enumerate(parts) if part.casefold() == "inputs"]
+    if input_indexes:
+        parts = parts[input_indexes[-1] + 1 :]
+    else:
+        parts = parts[-2:]
+    source = "/".join(parts) or input_path.name
+    return _safe_identifier(source)
 
 
 def parse_page_range(page_input: str) -> set:
@@ -46,14 +66,16 @@ class CurriculumConsolidator:
         desc_lookup = {}
         for desc in descriptions:
             code = desc.get("code")
-            if code:
+            if isinstance(code, str) and code:
                 desc_lookup[code] = desc
 
         consolidated_courses = []
         processed_codes = set()
 
         for course in self.plan_data.get("courses", []):
-            course_code = course.get("code", "")
+            course_code = course.get("code")
+            if not isinstance(course_code, str):
+                course_code = ""
             merged_course = course.copy()
 
             if "หรือ" not in course_code and course_code in desc_lookup:
@@ -129,7 +151,7 @@ def merge_consecutive_files(
     """Group *_extracted.json files by plan + consecutive pages, dedupe courses by code, and merge."""
     input_path = Path(input_dir)
     output_folder = Path(output_dir)
-    group_id = _safe_identifier(prefix or input_path.name)
+    group_id = _safe_identifier(prefix) if prefix else _input_group_identifier(input_path)
 
     json_files = list(input_path.glob("*_extracted.json"))
     if not json_files:
@@ -161,7 +183,7 @@ def merge_consecutive_files(
     for _, _, data in records:
         for course in data.get("courses", []):
             code = course.get("code")
-            if not code:
+            if not isinstance(code, str) or not code:
                 continue
             known = code_lookup.get(code)
             if known is None:
@@ -172,7 +194,7 @@ def merge_consecutive_files(
     def enrich_prerequisite(course: dict) -> dict:
         code = course.get("code")
         prereq = course.get("prerequisite")
-        if not code or prereq not in (None, ""):
+        if not isinstance(code, str) or not code or prereq not in (None, ""):
             return course
         desc_course = code_lookup.get(code)
         if not desc_course:
