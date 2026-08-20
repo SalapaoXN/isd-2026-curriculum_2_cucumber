@@ -29,10 +29,14 @@ def _input_group_identifier(input_path: Path) -> str:
     input_indexes = [i for i, part in enumerate(parts) if part.casefold() == "inputs"]
     if input_indexes:
         parts = parts[input_indexes[-1] + 1 :]
-    else:
-        parts = parts[-2:]
-    source = "/".join(parts) or input_path.name
-    return _safe_identifier(source)
+        source = "/".join(parts) or input_path.name
+        return _safe_identifier(source)
+
+    source = "/".join(parts[-2:]) or input_path.name
+    readable = _safe_identifier(source)
+    normalized_path = str(input_path.expanduser().resolve())
+    path_digest = hashlib.sha256(normalized_path.encode("utf-8")).hexdigest()[:12]
+    return f"{readable}_{path_digest}"
 
 
 def parse_page_range(page_input: str) -> set:
