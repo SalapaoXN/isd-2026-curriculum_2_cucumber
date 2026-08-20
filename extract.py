@@ -56,7 +56,14 @@ def main():
 
     files_to_process = []
     if input_path.is_dir():
-        files_to_process = list(input_path.glob("*.txt")) + list(input_path.glob("*.json"))
+        files_by_stem = {
+            file.stem: file
+            for file in input_path.glob("*.txt")
+        }
+        for file in input_path.glob("*.json"):
+            if not file.name.endswith("_extracted.json"):
+                files_by_stem[file.stem] = file
+        files_to_process = list(files_by_stem.values())
     else:
         files_to_process = [input_path]
 
