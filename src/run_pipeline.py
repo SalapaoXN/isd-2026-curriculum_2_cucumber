@@ -45,7 +45,7 @@ def parse_arguments():
         "-i", "--input-dir",
         type=str,
         default=str(BASE_DIR / "inputs/dsba"),
-        help="Directory containing images (default: 'inputs')"
+        help="Directory containing images (default: 'inputs/dsba')"
     )
     parser.add_argument(
         "-o", "--output-dir",
@@ -77,7 +77,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    input_dir = Path("inputs/" + args.input_dir)
+    input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -95,7 +95,7 @@ def main():
     extractor = CurriculumExtractor(program=args.program, plan=args.plan)
 
     for page_num in pages:
-        base_name = f"{args.input_dir}_page_{page_num:03d}"
+        base_name = f"{input_dir.name}_page_{page_num:03d}"
 
         img_file = None
         for ext in IMAGE_EXTENSIONS:
