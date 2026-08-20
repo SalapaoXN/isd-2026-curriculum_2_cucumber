@@ -9,6 +9,31 @@ Member:
 3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
 
 
+## Setup
+
+Use Python `3.10–3.13`. Python `3.11` is the preferred baseline.
+
+From a fresh clone, create and activate a virtual environment from the repository root:
+
+**Windows PowerShell**
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+**Unix-like (macOS/Linux)**
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the dependencies:
+```bash
+python -m pip install -r requirements.txt
+```
+
+These commands do not configure CUDA. Use the existing `--no-gpu` option for CPU execution; GPU/CUDA setup is outside this baseline.
+
 ## Run guide:
 
 ### Step by step (full pipeline)
