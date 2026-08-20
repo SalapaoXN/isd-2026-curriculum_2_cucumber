@@ -58,6 +58,22 @@ Supported image extensions are `.jpg`, `.jpeg`, `.png`, `.webp`, and `.bmp`.
 
 The OCR, extraction, and merge commands create their output directories when needed, so `outputs/` and `consolidated_outputs/` do not need to be created in advance.
 
+### One-page smoke check
+
+Use one image that you provide yourself; no smoke image or dataset is included in the repository. Place it at `inputs/dsba/dsba_page_026.jpg`, then run exactly one page with the CPU baseline:
+```bash
+python -m src.run_pipeline -p 26 -i inputs/dsba -o outputs/smoke --program DSBA --plan coop --no-gpu
+```
+
+If the pipeline completes successfully, verify that these files exist:
+```text
+outputs/smoke/dsba_page_026_ocr.txt
+outputs/smoke/dsba_page_026_ocr.json
+outputs/smoke/dsba_page_026_ocr_extracted.json
+```
+
+This check verifies pipeline execution and output creation only; it does not require an OCR accuracy threshold. Do not commit the user-provided image or generated smoke outputs.
+
 ### Optional LLM experiment
 
 The normal OCR pipeline requires no OpenAI API key, no `openai` package, no environment variable, and no Ollama service. `src/llm_clean_txt.py` is an optional, inactive experiment and is not imported by the active OCR pipeline, so `openai` is intentionally not part of the core requirements.
