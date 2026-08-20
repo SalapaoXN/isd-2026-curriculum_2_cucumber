@@ -1,7 +1,13 @@
 import argparse
 import json
+import re
 from pathlib import Path
 from src import CurriculumExtractor
+
+
+def _safe_identifier(value: str, fallback: str = "input") -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", str(value or "")).strip("_")
+    return cleaned or fallback
 
 
 def parse_arguments():
@@ -101,7 +107,10 @@ def main():
             "plan": args.plan,
             "courses": all_courses
         }
-        consolidated_file = output_dir / f"consolidated_curriculum_{args.program}_{args.plan}.json"
+        group_id = _safe_identifier(input_path.name)
+        program_id = _safe_identifier(args.program)
+        plan_id = _safe_identifier(args.plan)
+        consolidated_file = output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
         with open(consolidated_file, "w", encoding="utf-8") as f:
             json.dump(merged_result, f, ensure_ascii=False, indent=4)
         print(f"\n Saved consolidated result ({len(all_courses)} courses total): {consolidated_file}")

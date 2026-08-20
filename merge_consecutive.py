@@ -10,6 +10,11 @@ def extract_page_num(file_path: Path) -> int:
     return int(match.group(1)) if match else -1
 
 
+def _safe_identifier(value: str, fallback: str = "input") -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", str(value or "")).strip("_")
+    return cleaned or fallback
+
+
 def parse_page_range(page_input: str) -> set:
     pages = set()
     parts = page_input.split(",")
@@ -124,6 +129,7 @@ def merge_consecutive_files(
     """Group *_extracted.json files by plan + consecutive pages, dedupe courses by code, and merge."""
     input_path = Path(input_dir)
     output_folder = Path(output_dir)
+    group_id = _safe_identifier(prefix or input_path.name)
 
     json_files = list(input_path.glob("*_extracted.json"))
     if not json_files:
@@ -215,7 +221,8 @@ def merge_consecutive_files(
             base_metadata["courses"] = all_courses
 
             page_nums = [r[1] for r in group]
-            output_filename = f"merged_{plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
+            safe_plan = _safe_identifier(plan)
+            output_filename = f"merged_{group_id}_{safe_plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
             output_file_path = output_folder / output_filename
 
             output_folder.mkdir(parents=True, exist_ok=True)
@@ -264,7 +271,8 @@ def merge_consecutive_files(
                 metadata,
             )
 
-            output_filename = f"merged_{plan}_full.json"
+            safe_plan = _safe_identifier(plan)
+            output_filename = f"merged_{group_id}_{safe_plan}_full.json"
             output_file_path = output_folder / output_filename
             output_folder.mkdir(parents=True, exist_ok=True)
             with open(output_file_path, "w", encoding="utf-8") as f:
