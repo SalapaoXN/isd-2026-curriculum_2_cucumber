@@ -45,6 +45,23 @@ To verify that the Thai and English models are available using CPU mode:
 python -c "import easyocr; easyocr.Reader(['th', 'en'], gpu=False); print('EasyOCR models ready')"
 ```
 
+### Input files and output directories
+
+Input images are not included in the repository. Create and populate the required directory under `inputs/` yourself. The automated page pipeline expects each file to use the input directory name, a zero-padded three-digit page number, and a supported extension. For example:
+```text
+inputs/dsba/dsba_page_026.jpg
+```
+
+Supported image extensions are `.jpg`, `.jpeg`, `.png`, `.webp`, and `.bmp`.
+
+`python -m src.run_pipeline` checks the exact page filenames in `--input-dir`; it does not discover arbitrary names or search nested directories. `python cli.py` is more flexible: it accepts one supported image file or scans only the files directly inside a supplied directory, and its image filenames do not need to follow the automated page naming convention.
+
+The OCR, extraction, and merge commands create their output directories when needed, so `outputs/` and `consolidated_outputs/` do not need to be created in advance.
+
+### Optional LLM experiment
+
+The normal OCR pipeline requires no OpenAI API key, no `openai` package, no environment variable, and no Ollama service. `src/llm_clean_txt.py` is an optional, inactive experiment and is not imported by the active OCR pipeline, so `openai` is intentionally not part of the core requirements.
+
 ## Run guide:
 
 ### Step by step (full pipeline)
