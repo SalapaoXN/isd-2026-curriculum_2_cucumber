@@ -34,6 +34,17 @@ python -m pip install -r requirements.txt
 
 These commands do not configure CUDA. Use the existing `--no-gpu` option for CPU execution; GPU/CUDA setup is outside this baseline.
 
+### EasyOCR models
+
+The current OCR pipeline uses EasyOCR with Thai (`th`) and English (`en`) models. On first use, EasyOCR automatically downloads any missing detector and recognition model files, so the first run may require internet access. The files are cached in EasyOCR's local model directory and reused on later runs; the exact location may vary by platform or configuration.
+
+Use `--no-gpu` for the reproducible CPU baseline. GPU/CUDA support is optional and machine-specific; CUDA installation is not covered here.
+
+To verify that the Thai and English models are available using CPU mode:
+```bash
+python -c "import easyocr; easyocr.Reader(['th', 'en'], gpu=False); print('EasyOCR models ready')"
+```
+
 ## Run guide:
 
 ### Step by step (full pipeline)
