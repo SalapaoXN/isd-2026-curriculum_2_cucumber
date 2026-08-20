@@ -24,15 +24,8 @@ def parse_page_range(page_input: str) -> set:
 
 
 def dedupe_courses(courses: List[dict]) -> List[dict]:
-    seen = set()
-    result = []
-    for course in courses:
-        code = course.get("code")
-        if not code or code in seen:
-            continue
-        seen.add(code)
-        result.append(course)
-    return result
+    """Preserve source entries; course codes are not unique placement keys."""
+    return list(courses)
 
 
 class CurriculumConsolidator:
@@ -207,13 +200,8 @@ def merge_consecutive_files(
         # 4. Merge each consecutive group
         for group in groups:
             all_courses = []
-            seen_codes = set()
             for plan_name, page_num, data in group:
                 for course in data.get("courses", []):
-                    code = course.get("code")
-                    if code in seen_codes:
-                        continue
-                    seen_codes.add(code)
                     all_courses.append(enrich_prerequisite(course))
 
             first = group[0][2]
