@@ -115,6 +115,10 @@ class CurriculumExtractor:
     SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
 
     CATEGORY_HEADER_RE = re.compile(r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE)
+    GROUP_LABEL_RE = re.compile(
+        r"^\s*(?:กลุ่ม|หมวด)\s*วิชา.*กำหนด\s*โดย\s*คณะ\s*\*?\s*$",
+        re.IGNORECASE,
+    )
     OR_KEYWORD_RE = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
 
     # Year / semester headers, with or without the number on the same line.
@@ -352,7 +356,40 @@ class CurriculumExtractor:
         credits = ""
         prerequisite = "ไม่มี"
 
-        for line in block.lines:
+        # A few table rows place a group label before the credit and the real
+        # Thai course title after it.  Only discard a label when that structure
+        # is explicit; otherwise preserve the normal line-based behavior.
+        group_label_index = None
+        group_label = None
+        first_credit_index = None
+        for line_index, line in enumerate(block.lines):
+            if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
+                first_credit_index = line_index
+                break
+            if group_label_index is None and self.GROUP_LABEL_RE.match(line):
+                group_label_index = line_index
+                group_label = line.strip()
+
+        drop_group_label = False
+        if group_label_index is not None and first_credit_index is not None:
+            for line in block.lines[first_credit_index + 1 :]:
+                if self.HAS_ENG_RE.search(line):
+                    break
+                if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
+                    continue
+                if self.HAS_THAI_RE.search(line):
+                    drop_group_label = True
+                    break
+
+        note = None
+        if drop_group_label and group_label:
+            note = re.sub(r"^\s*(กลุ่ม|หมวด)\s+วิชา", r"\1วิชา", group_label)
+            note = re.sub(r"\s*\*\s*$", "", note).strip()
+
+        for line_index, line in enumerate(block.lines):
+            if drop_group_label and line_index == group_label_index:
+                continue
+
             # Prerequisite (rare in the plan tables, kept for robustness).
             if self.PREREQ_KEYWORD_RE.search(line):
                 p_val = line.split(":", 1)[1].strip() if ":" in line else line
@@ -447,7 +484,7 @@ class CurriculumExtractor:
             "type": "เลือก" if self.plan == "gened" else block.type,
             "prerequisite": None if self.plan == "gened" else prerequisite,
             "flexible_year_semester": None,
-            "note": None,
+            "note": note,
         }
 
     # ------------------------------------------------------------------ #
