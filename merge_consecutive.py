@@ -100,7 +100,6 @@ class CurriculumConsolidator:
                             th_list.append(target_desc.get("desc_th"))
                         if target_desc.get("desc_en"):
                             en_list.append(target_desc.get("desc_en"))
-                        processed_codes.add(sub_code)
                 if th_list:
                     merged_course["desc_th"] = "\n".join(th_list)
                 if en_list:

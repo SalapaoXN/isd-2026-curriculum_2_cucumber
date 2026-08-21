@@ -9,6 +9,7 @@ example/*
 .opencode/
 .opencodeignore
 opencode.json
+TODO_PIPELINE.md
 
 # keep folder
 !inputs/.gitkeep
