@@ -175,6 +175,10 @@ class CurriculumExtractor:
     SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
 
     CATEGORY_HEADER_RE = re.compile(r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE)
+    IT_SECTION_HEADER_RE = re.compile(
+        r"^\s*(?:\d+\.\s*)?(?:หมวด|กลุ่ม)\s*วิชา(?!ที่กำหนด)",
+        re.IGNORECASE,
+    )
     GROUP_LABEL_RE = re.compile(
         r"^\s*(?:กลุ่ม|หมวด)\s*วิชา.*กำหนด\s*โดย\s*คณะ\s*\*?\s*$",
         re.IGNORECASE,
@@ -356,9 +360,29 @@ class CurriculumExtractor:
                 continue
 
             # 4) Category header -> update context, close any open block.
-            if self.CATEGORY_HEADER_RE.search(line) and not self.CREDITS_RE.search(line):
+            is_category_header = self.CATEGORY_HEADER_RE.search(line) is not None
+            is_it_section_header = (
+                self.program == "IT" and self.IT_SECTION_HEADER_RE.search(line) is not None
+            )
+            if (is_category_header or is_it_section_header) and not self.CREDITS_RE.search(line):
                 self._ctx_category = line
                 self._ctx_type = "เลือก" if "เลือก" in line else "บังคับ"
+                current = None
+                idx += 1
+                continue
+
+            # IT plan OCR sometimes emits a section-heading continuation as a
+            # Thai-only line after a complete course row. It is not part of the
+            # preceding title; discard it until the next course code.
+            if (
+                self.program == "IT"
+                and current is not None
+                and self._has_completed_course_metadata(current)
+                and self.HAS_THAI_RE.search(line)
+                and not self.HAS_ENG_RE.search(line)
+                and not self.PREREQ_KEYWORD_RE.search(line)
+                and not self.GROUP_LABEL_RE.match(line)
+            ):
                 current = None
                 idx += 1
                 continue
@@ -414,6 +438,17 @@ class CurriculumExtractor:
             return True
         if self.NOTE_RE.search(line):
             return True
+        return False
+
+    def _has_completed_course_metadata(self, block: CourseBlock) -> bool:
+        """Return whether a block already contains credits followed by English text."""
+        credit_seen = False
+        for line in block.lines:
+            if self.SINGLE_CREDIT_RE.search(line):
+                credit_seen = True
+                continue
+            if credit_seen and self.HAS_ENG_RE.search(line):
+                return True
         return False
 
     def _extract_code(self, line: str) -> Tuple[Optional[str], str]:
