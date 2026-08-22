@@ -162,6 +162,111 @@ The additive `rubric` namespace reports:
 
 Current DSBA ground truth does not contain authoritative per-record page provenance, so rubric Page Level reports `unavailable` rather than inferring pages. `code_page_mapping.csv` is a project-created helper and is not authoritative ground truth. Legacy evaluation outputs remain available for compatibility.
 
+## Usage / Command Reference
+
+### OCR CLI
+
+`cli.py` runs EasyOCR only. It accepts one image or images directly inside a directory:
+```bash
+# Single image
+python cli.py inputs/dsba/curriculum_page_016.jpg
+
+# Directory batch
+python cli.py inputs/dsba/
+
+# Custom output, languages, and CPU mode
+python cli.py inputs/dsba/ -o outputs/dsba_raw_ocr --languages th,en --no-gpu
+```
+
+### Extraction
+
+`extract.py` accepts an OCR TXT file, OCR JSON file, or directory:
+```bash
+# Explicit TXT input
+python extract.py outputs/curriculum_page_016_ocr.txt
+
+# Explicit JSON input
+python extract.py outputs/curriculum_page_016_ocr.json
+
+# Directory input
+python extract.py outputs/
+python extract.py outputs/dsba_raw_ocr
+
+# Explicit metadata and output directory
+python extract.py outputs/curriculum_page_016_ocr.txt \
+  --program DSBA \
+  --plan coop \
+  --output-dir outputs/extracted \
+  --source "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
+```
+
+### Automated page runner
+
+The automated runner requires `-p/--pages` and supports `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and the opt-in `--english-second-pass`:
+```bash
+# DSBA
+python -m src.run_pipeline -p 26-32 -i inputs/dsba --plan no_coop --program DSBA
+python -m src.run_pipeline -p 33-39 -i inputs/dsba --plan coop --program DSBA
+python -m src.run_pipeline -p 317-344 -i inputs/dsba --program DSBA
+
+# IT
+python -m src.run_pipeline -p 26-32 -i inputs/it --plan no_coop --program IT
+python -m src.run_pipeline -p 33-39 -i inputs/it --plan coop --program IT
+
+# BIT
+python -m src.run_pipeline -p 26-32 -i inputs/bit --plan no_coop --program BIT
+python -m src.run_pipeline -p 33-39 -i inputs/bit --plan coop --program BIT
+
+# AIT
+python -m src.run_pipeline -p 23-26 -i inputs/ait --program AIT
+python -m src.run_pipeline -p 287-302 -i inputs/ait --program AIT
+
+# General education pages using the existing plan selector
+python -m src.run_pipeline -p 16-30 -i inputs/gened --plan gened --program DSBA
+```
+
+### Consolidation
+
+`merge_consecutive.py` supports `--input-dir`, `--output-dir`, `--prefix`, `--plan`, `-p/--pages`, and `-d/--desc-pages`:
+```bash
+# DSBA
+python merge_consecutive.py --prefix dsba --plan coop -d 317-344
+python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
+
+# IT and BIT
+python merge_consecutive.py --prefix it --plan coop -d 328-371
+python merge_consecutive.py --prefix it --plan no_coop -d 328-371
+python merge_consecutive.py --prefix bit --plan coop -d 328-371
+python merge_consecutive.py --prefix bit --plan no_coop -d 328-371
+
+# AIT and general education
+python merge_consecutive.py --prefix ait -d 287-302
+python merge_consecutive.py --prefix gened
+```
+
+Use explicit directories when outputs are not in the defaults:
+```bash
+python merge_consecutive.py \
+  --input-dir outputs \
+  --output-dir consolidated_outputs \
+  --prefix dsba \
+  --plan coop \
+  --desc-pages 317-344
+```
+
+### Evaluation commands
+
+```bash
+python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+
+# Save a JSON report
+python evaluate.py \
+  consolidated_outputs/merged_dsba_coop_full.json \
+  --gt ground_truth/DSBA/DSBA_academic_plan_coop.json \
+  --out reports/dsba_coop_evaluation.json
+```
+
 ### Testing
 
 Tracked regression suites cover evaluator behavior, English enrichment, and source provenance:
