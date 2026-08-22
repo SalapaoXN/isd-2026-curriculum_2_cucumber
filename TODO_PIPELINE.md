@@ -92,7 +92,14 @@ Expose unmatched GT and prediction records plus match diagnostics while preservi
 
 ### Verification
 
-The DSBA coop artifact reports its 90 GT, 82 predicted, 82 matched, and 8 missing counts with reproducible coverage metrics. These numbers must not be generalized to other datasets without their own benchmark results.
+- Added GT count, prediction count, matched, missing, extra, precision, recall, and F1 coverage metrics.
+- Existing exact-first, fuzzy fallback, and one-to-one matching remains unchanged.
+- Existing CER/WER behavior remains unchanged.
+- Six focused tests passed.
+- DSBA validation: GT `90`; predictions `89`; matched `89`; missing `1`; extra `0`; precision `1.0`; recall `0.9889`; F1 `0.9944`; CER `0.0188`; WER `0.1433`.
+- These DSBA benchmark numbers must not be generalized to other datasets without their own evaluation.
+- Phase 4 is complete.
+- Next phase: Phase 5 — Preserve Source/Page Provenance.
 
 ## Phase 5 — Preserve Source/Page Provenance
 

@@ -99,6 +99,22 @@ def evaluate_json_structure(
             matched_pred[best_idx] = True
             pairs.append((gt_item, pred_courses[best_idx]))
 
+    # ---- Coverage metrics from the existing one-to-one alignment ---- #
+    gt_record_count = len(gt_courses)
+    prediction_record_count = len(pred_courses)
+    matched_count = len(pairs)
+    missing_gt_count = gt_record_count - matched_count
+    extra_prediction_count = prediction_record_count - matched_count
+    precision = (
+        matched_count / prediction_record_count if prediction_record_count else 0.0
+    )
+    recall = matched_count / gt_record_count if gt_record_count else 0.0
+    f1 = (
+        2 * precision * recall / (precision + recall)
+        if precision + recall
+        else 0.0
+    )
+
     # ---- CER/WER accumulators ---- #
     field_stats = {f: {"cer": 0.0, "wer": 0.0, "count": 0} for f in target_fields}
     page_stats = {"cer": 0.0, "wer": 0.0, "count": 0}
@@ -142,6 +158,16 @@ def evaluate_json_structure(
         "total_gt_courses": len(gt_courses),
         "total_pred_courses": len(pred_courses),
         "matched_courses": len(pairs),
+        "coverage": {
+            "gt_record_count": gt_record_count,
+            "prediction_record_count": prediction_record_count,
+            "matched_count": matched_count,
+            "missing_gt_count": missing_gt_count,
+            "extra_prediction_count": extra_prediction_count,
+            "precision": round(precision, 4),
+            "recall": round(recall, 4),
+            "f1": round(f1, 4),
+        },
         "page_level": average(page_stats),
         "field_level": {f: average(field_stats[f]) for f in target_fields},
         "category_level": {
