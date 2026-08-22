@@ -24,6 +24,7 @@ DEFAULT_INPUT_DIR = PROJECT_ROOT / "inputs" / "dsba"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "prototype_outputs" / "dsba_english_second_pass"
 
 CODE_RE = re.compile(r"^\d{8}$")
+PLACEHOLDER_CODE_RE = re.compile(r"^\d{4,8}X+$")
 CREDIT_RE = re.compile(r"\d+\s*\(\s*\d+\s*[-–]\s*\d+\s*[-–]\s*\d+\s*\)")
 PREREQUISITE_RE = re.compile(r"^PRERE[A-Z]*\b", re.IGNORECASE)
 HAS_ASCII_LETTER_RE = re.compile(r"[A-Z]", re.IGNORECASE)
@@ -106,6 +107,13 @@ def exact_numeric_code(value: Any) -> str | None:
     return text if CODE_RE.fullmatch(text) else None
 
 
+def placeholder_code_like(value: Any) -> bool:
+    """Return whether a normalized placeholder code can delimit a row."""
+
+    text = re.sub(r"\s+", "", str(value or "").strip()).upper()
+    return bool(PLACEHOLDER_CODE_RE.fullmatch(text))
+
+
 def _bbox_values(bbox: Iterable[Iterable[Any]]) -> tuple[list[list[float]], float, float, float, float]:
     points = [[float(point[0]), float(point[1])] for point in bbox]
     xs = [point[0] for point in points]
@@ -153,7 +161,12 @@ def _is_prerequisite_detection(detection: Detection) -> bool:
 
 def _is_title_detection(detection: Detection) -> bool:
     text = detection.text.strip()
-    if not text or exact_numeric_code(text) or _is_credit_detection(detection):
+    if (
+        not text
+        or exact_numeric_code(text)
+        or placeholder_code_like(text)
+        or _is_credit_detection(detection)
+    ):
         return False
     if _is_prerequisite_detection(detection) or text == "NONE":
         return False
@@ -326,20 +339,22 @@ def process_page(
     english_results = english_engine.extract_text(image_path, detail=1)
     ordered = ordered_detections(english_results)
     code_anchors: dict[str, list[tuple[int, Detection]]] = defaultdict(list)
-    all_code_positions: list[tuple[int, str, Detection]] = []
+    row_boundary_positions: list[int] = []
     for position, detection in enumerate(ordered):
         code = _is_code_detection(detection)
         if code is None:
+            if placeholder_code_like(detection.text):
+                row_boundary_positions.append(position)
             continue
         occurrence = len(code_anchors[code])
         code_anchors[code].append((position, detection))
-        all_code_positions.append((position, code, detection))
+        row_boundary_positions.append(position)
 
     next_code_position: dict[int, int | None] = {}
-    for index, (position, _code, _detection) in enumerate(all_code_positions):
+    for index, position in enumerate(row_boundary_positions):
         next_code_position[position] = (
-            all_code_positions[index + 1][0]
-            if index + 1 < len(all_code_positions)
+            row_boundary_positions[index + 1]
+            if index + 1 < len(row_boundary_positions)
             else None
         )
 
