@@ -99,6 +99,110 @@ class RuleExtractorTests(unittest.TestCase):
         self.assertEqual(records["44"]["category"], "หมวด 11 เกียรติและศักดิ์")
         self.assertNotIn("บททั่วไป", records["4"]["rule_text"])
 
+    def test_numeric_ocr_repairs_preserve_rule_text(self):
+        result = RuleExtractor().extract_from_lines(
+            [
+                "ข้อ ๑๙ การวัดผล",
+                "๑๙.๒ ก่อนหน้า",
+                "ด๙.๓ ข้อความที่มี OCR ด",
+                "๑๙.๔ ถัดไป",
+                "ข้อ ๒๗ การสำเร็จการศึกษา",
+                "๒๗.๑.๔ ก่อนหน้า",
+                "๒๗.๑:๕ ข้อความที่มี :",
+                "๒๗.๑.๖ ถัดไป",
+                "ข้อ ๓๑ การลา",
+                "๓๑.๒ ก่อนหน้า",
+                "๓ด.๓ ข้อความที่มี OCR ด",
+                "๓๑.๔ ถัดไป",
+            ]
+        )
+
+        records = {rule["section_number"]: rule for rule in result["rules"]}
+        self.assertIn("19.3", records)
+        self.assertIn("27.1.5", records)
+        self.assertIn("31.3", records)
+        self.assertEqual(records["19.3"]["rule_text"], "ข้อความที่มี OCR ด")
+        self.assertEqual(records["27.1.5"]["rule_text"], "ข้อความที่มี :")
+        self.assertEqual(records["31.3"]["rule_text"], "ข้อความที่มี OCR ด")
+
+    def test_truncated_nested_anchors_require_one_sibling_gap(self):
+        result = RuleExtractor().extract_from_lines(
+            [
+                "ข้อ ๔๕ เกียรติ",
+                "๔๕.๗ ก่อนหน้า",
+                "๔๕.",
+                "ข้อความของข้อที่ถูกตัด",
+                "๔๕.๙ ถัดไป",
+                "ข้อ ๕๑ อุทธรณ์",
+                "ข้อความของข้อ ๕๑",
+                "๕๑",
+                "ข้อความของข้อ ๕๑.๑",
+                "๕๑.๒ ถัดไป",
+            ]
+        )
+
+        records = {rule["section_number"]: rule for rule in result["rules"]}
+        self.assertEqual(records["45.8"]["rule_text"], "ข้อความของข้อที่ถูกตัด")
+        self.assertEqual(records["51.1"]["rule_text"], "ข้อความของข้อ ๕๑.๑")
+
+        no_guess = RuleExtractor().extract_from_lines(
+            ["ข้อ ๔๕ เกียรติ", "๔๕.๗ ก่อนหน้า", "๔๕.", "๔๕.๑๐ ถัดไป"]
+        )
+        self.assertNotIn("45.8", {rule["section_number"] for rule in no_guess["rules"]})
+        self.assertIn("๔๕.", no_guess["rules"][1]["rule_text"])
+        self.assertIn("45.10", {rule["section_number"] for rule in no_guess["rules"]})
+
+    def test_numeric_values_require_active_hierarchy(self):
+        result = RuleExtractor().extract_from_lines(
+            [
+                "ข้อ ๑๙ การวัดผล",
+                "๑๙.๓ ตารางคะแนน",
+                "๔.00 ดีเลิศ",
+                "๓.๕๑ ดีมาก",
+                "๒.๕0 ดีพอใช้",
+                "๑.00 อ่อนมาก",
+                "ข้อ ๒๗ การสำเร็จการศึกษา",
+                "๒๗.๒.๑ เกียรตินิยม",
+                "๓.๗๕ และ",
+            ]
+        )
+
+        records = {rule["section_number"]: rule for rule in result["rules"]}
+        self.assertEqual(list(records), ["19", "19.3", "27", "27.2.1"])
+        self.assertIn("๔.00 ดีเลิศ", records["19.3"]["rule_text"])
+        self.assertIn("๓.๗๕ และ", records["27.2.1"]["rule_text"])
+
+    def test_split_references_do_not_create_duplicate_rules(self):
+        result = RuleExtractor().extract_from_lines(
+            [
+                "ข้อ ๓๓ การพ้นสภาพ",
+                "๓๓.๑ เสียชีวิต",
+                "ตามข้อ",
+                "๓๓.๒ ข้อ",
+                "๓๓.๕",
+                "ข้อ",
+                "๓๓.๖",
+                "ข้อ",
+                "๓๓.๑0",
+                "ข้อ ๕O คำสั่งถัดไป",
+            ]
+        )
+
+        records = result["rules"]
+        self.assertEqual(
+            [rule["section_number"] for rule in records], ["33", "33.1", "50"]
+        )
+        self.assertEqual(
+            records[1]["references"], ["33.2", "33.5", "33.6", "33.10"]
+        )
+
+    def test_unresolved_numeric_lines_are_preserved(self):
+        result = RuleExtractor().extract_from_lines(
+            ["ข้อ ๑ กฎหนึ่ง", "๙๙", "ข้อความต่อเนื่อง"]
+        )
+
+        self.assertIn("๙๙", result["rules"][0]["rule_text"])
+
     def test_nested_hierarchy_derives_paths_and_parents(self):
         result = RuleExtractor().extract_from_lines(
             [

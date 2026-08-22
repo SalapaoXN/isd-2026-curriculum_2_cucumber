@@ -196,16 +196,21 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Chapter and sub-rule hierarchy is supported with deterministic parent IDs and section paths.
 - Cross-page rule continuation preserves source-page provenance.
 - Only explicit rule references are extracted.
-- Phase 7A focused tests: 14 passed; full suite: 65 passed.
+- Phase 7A focused tests: 19 passed; full suite: 70 passed.
 - Existing Rules OCR replay: top-level rule recovery `41/53 -> 53/53`.
 - Existing Rules OCR replay: category-less records `20 -> 8`.
 - Existing Rules OCR replay: chapter-9 over-assignment `49 -> 0`.
+- Numeric-context replay: nested anchor recovery `0/5 -> 5/5`.
+- Numeric-context replay: false numeric rule IDs `-> 0`.
+- Numeric-context replay: duplicate reference records removed.
+- Numeric-context replay: top-level rules remain `53/53`.
+- Numeric-context replay: cross-page rules are `15`, `19.3`, and `48`.
 - Rule anchors tolerate `ข้อ`/`ขอ` OCR variants.
 - Wrapped rule anchors recover adjacent-line `ข้อ` plus identifier pairs.
 - Explicit anchors only apply contextual `O`/`D -> 0` identifier normalization.
 - Split and numberless chapter headings are recovered sequentially.
-- Remaining nested misses: `19.3`, `27.1.5`, `31.3`, `45.8`, `51.1`.
-- Table false IDs and signature contamination remain unresolved.
+- Numeric context preserves table values as text and removes false numeric IDs.
+- Signature contamination remains unresolved.
 - No OCR was rerun; verification replayed existing Rules OCR artifacts.
 
 ## Phase 7 — Extract Academic Rules Separately
