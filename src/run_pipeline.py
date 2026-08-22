@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 
 from .checker import OCRSpellChecker
+from .english_name_enricher import enrich_courses
 from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
@@ -70,6 +71,11 @@ def parse_arguments():
         action="store_true",
         help="Force CPU mode"
     )
+    parser.add_argument(
+        "--english-second-pass",
+        action="store_true",
+        help="Enable opt-in English-only course-name enrichment",
+    )
     
     return parser.parse_args()
 
@@ -91,6 +97,20 @@ def main():
 
     use_gpu = not args.no_gpu
     engine = OCREngine(languages=["th", "en"], gpu=use_gpu)
+    english_engine = None
+    if args.english_second_pass:
+        if not use_gpu:
+            print(" English second pass skipped because --no-gpu was requested.")
+        else:
+            try:
+                import torch
+
+                if not torch.cuda.is_available():
+                    print(" English second pass skipped because CUDA is unavailable.")
+                else:
+                    english_engine = OCREngine(languages=["en"], gpu=True)
+            except Exception as exc:
+                print(f" English second pass skipped: {type(exc).__name__}")
     # spell_checker = OCRSpellChecker()
     extractor = CurriculumExtractor(program=args.program, plan=args.plan)
 
@@ -138,6 +158,8 @@ def main():
 
         # Step 2.5: Post-extraction cleaning is handled by the deterministic
         # extractor itself (pre_clean + universal anchors).  No LLM needed.
+        if english_engine is not None:
+            enrich_courses(extracted_data, img_file, english_engine)
 
         # Step 3: Save Output
         output_filename = output_dir / f"{base_name}_ocr_extracted.json"

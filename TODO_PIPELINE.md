@@ -70,7 +70,10 @@ Compare Thai and English name CER/WER on the same benchmark before and after the
 - The placeholder-code boundary fix is complete. Normalized placeholders matching `^\d{4,8}X+$` terminate title regions, but are not exact-code anchors or associations.
 - Development holdout after the fix: canonical CER `43/1162 = 0.037005`; candidate CER `1/1162 = 0.000861`; association coverage `47/52`; improved `28`; worsened `0`; unchanged `19`; exact regressions `0`; exact improvements `28`; candidate exact `46/47`.
 - The remaining OCR-only error is `90644007`: `FOUNDATION ENGLISH` versus GT `FOUNDATION ENGLISH 1`.
-- The production pipeline remains unchanged.
+- Production integration review: PASS. The opt-in production path is available through `python -m src.run_pipeline --english-second-pass`.
+- Independent unseen production validation: unavailable. No unused course-bearing DSBA pages remain; the remaining unused page is non-course content.
+- The prototype previously passed an independent unseen holdout. That result is prototype evidence only and must not be reported as production regression evidence.
+- The production path is now undergoing regression/equivalence validation on previously validated course-bearing DSBA sets. These regression results are not unseen validation.
 - This development holdout is no longer considered unseen because it was used to debug the heuristic.
 
 ## Phase 4 — Add Evaluation Coverage Metrics
