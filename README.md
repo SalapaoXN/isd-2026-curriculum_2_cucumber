@@ -255,8 +255,19 @@ python merge_consecutive.py \
 ### Evaluation commands
 
 ```bash
+# DSBA
 python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
 python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+
+# IT
+python evaluate.py consolidated_outputs/merged_it_coop_full.json --gt ground_truth/IT/IT_academic_plan_coop.json
+python evaluate.py consolidated_outputs/merged_it_no_coop_full.json --gt ground_truth/IT/IT_academic_plan_no_coop.json
+
+# AIT
+python evaluate.py consolidated_outputs/merged_ait_no_plan_full.json --gt ground_truth/AIT/AIT_academic_plan.json
+
+# GENED
+python evaluate.py consolidated_outputs/merged_gened_gened_page_016-030.json --gt ground_truth/general_education_ground_truth.json
 
 # Save a JSON report
 python evaluate.py \
