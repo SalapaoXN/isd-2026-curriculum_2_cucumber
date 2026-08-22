@@ -223,17 +223,21 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Correct cross-page rules remain `15`, `19.3`, and `48`.
 - Remaining limitations: raw OCR table text and uncertain physical page-number noise.
 - No OCR was rerun; verification replayed existing Rules OCR artifacts.
-- RulesPolicyMapper now supports all 11 Rules-only instructor categories.
-- All 11 categories replay with `present=true` on the current 155-rule output.
+- RulesPolicyMapper now supports all 12 Rules-only instructor categories.
+- Added the Honors category from rules 27 through 27.2.3.
+- Honors mapping requires 12 rule records and replays with `present=true` on the current 155-rule output.
+- Honors emits only safe values: GPA thresholds `3.75` and `3.25`, plus `2/3` institution-credit requirements.
+- Damaged OCR values (`3.51`, `F`/`บ`, and `8`/`S`) are intentionally omitted from structured values.
+- Honors rule IDs, raw text, snippets, and full source/page provenance are preserved.
 - Safe structured numeric extraction only; raw OCR evidence remains unchanged.
 - Probation thresholds remain extracted as `2.00`.
 - Grading emits A=`4.00`, C+=`2.50`, and C=`2.00`.
 - Uncertain B+/B/D+/D/F values are intentionally omitted.
 - Appeal deadlines are preserved per distinct procedure and source rule.
 - Disciplinary counts are validated from complete child-rule structure.
-- RulesPolicyMapper focused tests: `18 passed`; full suite: `91 passed`.
+- RulesPolicyMapper focused tests: `21 passed`; full suite: `94 passed`.
 - No OCR was rerun.
-- The remaining five instructor categories require additional/program-specific evidence.
+- The remaining four instructor categories require additional/program-specific evidence.
 
 ## Phase 7 — Extract Academic Rules Separately
 

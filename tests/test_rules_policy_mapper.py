@@ -8,6 +8,7 @@ from src.rules_policy_mapper import (
     DISCIPLINARY_PENALTY_CATEGORY,
     EXAM_CATEGORY,
     GRADING_CATEGORY,
+    HONORS_CATEGORY,
     LEAVE_CATEGORY,
     PROBATION_CATEGORY,
     REENTRY_CATEGORY,
@@ -181,13 +182,117 @@ class RulesPolicyMapperTests(unittest.TestCase):
         self.assertEqual(result["source"], "Academic Rules")
         self.assertEqual(category(result, REENTRY_CATEGORY)["present"], True)
 
-    def test_mapper_emits_all_eleven_categories(self):
+    def test_mapper_emits_all_twelve_categories(self):
         result = RulesPolicyMapper().map_data({"rules": []})
 
         self.assertEqual(
             [item["category"] for item in result["categories"]],
             list(CATEGORY_RULES),
         )
+
+    def test_honors_category_extracts_safe_values_and_preserves_damaged_conditions(self):
+        result = RulesPolicyMapper().map_data(
+            {
+                "rules": mapped_category_rules(
+                    HONORS_CATEGORY,
+                    {
+                        "27.1.2": "ไม่มีรายวิชาใดได้ค่าระดับคะแนน F หรือ บ.",
+                        "27.2.1": "ค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๗๕",
+                        "27.2.2": (
+                            "ค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๕๑ "
+                            "ค่าระดับคะแนนไม่ต่ำกว่า 8 หรือค่าระดับคะแนน S "
+                            "ศึกษาสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร"
+                        ),
+                        "27.2.3": (
+                            "ค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๒๕ "
+                            "ค่าระดับคะแนนไม่ต่ำกว่า 8 หรือค่าระดับคะแนน S "
+                            "ศึกษาสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร"
+                        ),
+                    },
+                )
+            }
+        )
+
+        honors = category(result, HONORS_CATEGORY)
+        self.assertTrue(honors["present"])
+        self.assertEqual(
+            {
+                (item["source_rule_id"], item["value"], item["condition"])
+                for item in honors["values"]
+            },
+            {
+                ("rule:27.2.1", "3.75", "at_least"),
+                ("rule:27.2.2", "2/3", "at_least"),
+                ("rule:27.2.3", "3.25", "at_least"),
+                ("rule:27.2.3", "2/3", "at_least"),
+            },
+        )
+        self.assertNotIn("3.51", {item["value"] for item in honors["values"]})
+        self.assertEqual(
+            honors["evidence"]["rule_ids"],
+            [f"rule:{section}" for section in CATEGORY_RULES[HONORS_CATEGORY]],
+        )
+
+        evidence_by_rule = {
+            item["rule_id"]: item for item in honors["evidence"]["supporting_rule_text"]
+        }
+        self.assertEqual(
+            evidence_by_rule["rule:27.1.2"]["rule_text"],
+            "ไม่มีรายวิชาใดได้ค่าระดับคะแนน F หรือ บ.",
+        )
+        self.assertIn(
+            "source_unsafe_or_ambiguous",
+            {
+                item["status"]
+                for item in evidence_by_rule["rule:27.2.2"]["snippets"]
+                if "status" in item
+            },
+        )
+        self.assertIn(
+            "damaged_grade_symbol",
+            {
+                item["status"]
+                for item in evidence_by_rule["rule:27.1.2"]["snippets"]
+                if "status" in item
+            },
+        )
+        self.assertIn(
+            "damaged_grade_symbol",
+            {
+                item["status"]
+                for item in evidence_by_rule["rule:27.2.2"]["snippets"]
+                if "status" in item
+            },
+        )
+
+    def test_honors_category_requires_all_twelve_rules(self):
+        result = RulesPolicyMapper().map_data(
+            {"rules": mapped_category_rules(HONORS_CATEGORY)[:-1]}
+        )
+
+        honors = category(result, HONORS_CATEGORY)
+        self.assertIsNone(honors["present"])
+        self.assertEqual(honors["evidence"]["missing_rule_ids"], ["rule:27.2.3"])
+
+    def test_honors_fraction_is_limited_to_transfer_requirements(self):
+        result = RulesPolicyMapper().map_data(
+            {
+                "rules": mapped_category_rules(
+                    HONORS_CATEGORY,
+                    {"27.1.1": "เงื่อนไขทั่วไปสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร"},
+                )
+            }
+        )
+
+        honors = category(result, HONORS_CATEGORY)
+        self.assertTrue(honors["present"])
+        self.assertEqual(honors["values"], [])
+        rule_2711 = next(
+            item
+            for item in honors["evidence"]["supporting_rule_text"]
+            if item["rule_id"] == "rule:27.1.1"
+        )
+        self.assertEqual(rule_2711["snippets"], [])
 
     def test_status_category_extracts_complete_threshold(self):
         result = RulesPolicyMapper().map_data(

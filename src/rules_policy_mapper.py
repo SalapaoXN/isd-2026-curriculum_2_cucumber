@@ -18,6 +18,7 @@ PROBATION_CATEGORY = "เกณฑ์ภาคทัณฑ์ (probation)"
 REENTRY_CATEGORY = "การกลับเข้าศึกษา"
 STATUS_CATEGORY = "เกณฑ์พ้นสภาพนักศึกษา"
 GRADING_CATEGORY = "ระบบเกรด/การคิดคะแนน"
+HONORS_CATEGORY = "เกณฑ์เกียรตินิยม"
 LEAVE_CATEGORY = "การลาพักการศึกษา"
 RESIGNATION_CATEGORY = "การลาออก"
 EXAM_CATEGORY = "การสอบ/วัดผล"
@@ -54,6 +55,20 @@ CATEGORY_RULES: dict[str, tuple[str, ...]] = {
         "21.2.1",
         "21.2.2",
         "21.2.3",
+    ),
+    HONORS_CATEGORY: (
+        "27",
+        "27.1",
+        "27.1.1",
+        "27.1.2",
+        "27.1.3",
+        "27.1.4",
+        "27.1.5",
+        "27.1.6",
+        "27.2",
+        "27.2.1",
+        "27.2.2",
+        "27.2.3",
     ),
     LEAVE_CATEGORY: ("31", "31.1", "31.2", "31.3", "31.4"),
     RESIGNATION_CATEGORY: ("32",),
@@ -116,6 +131,21 @@ _GRADE_ROW_RE = re.compile(
     r"(?m)^[ \t]*(?P<grade>A|B\+|C\+|D\+|B|C|D|F)[ \t]*\r?\n"
     r"[ \t]*(?P<value>[^\r\n \t]+)[ \t]*(?:\r?\n|$)"
 )
+_HONORS_GPA_RE = re.compile(
+    r"ค่าระดับคะแนน\s*เฉลี่ย\s*สะสม\s*ไม(?:่)?ต่ำกว่า\s*"
+    rf"(?P<value>{_STRUCTURED_NUMBER}){_STRUCTURED_NUMBER_END}"
+)
+_HONORS_FRACTION_RE = re.compile(
+    r"(?P<value>สองในสาม)\s*ของจำนวนหน่วยกิตรวมตลอดหลักสูตร"
+)
+_HONORS_DAMAGED_GRADE_RE = re.compile(r"ค่าระดับคะแนน\s*F\s*หรือ\s*บ\.")
+_HONORS_DAMAGED_TRANSFER_RE = re.compile(
+    r"ค่าระดับคะแนนไม่ต่ำกว่า\s*8\s*หรือ\s*ค่าระดับคะแนน\s*S"
+)
+_HONORS_SAFE_GPA_THRESHOLDS = {
+    "rule:27.2.1": "3.75",
+    "rule:27.2.3": "3.25",
+}
 _SUSPENSION_PERIOD_RE = re.compile(
     r"พักการเรียนในภาคการศึกษาปกติถัดไปอีก\s*"
     rf"(?P<value>{_STRUCTURED_NUMBER})\s*ภาคการศึกษา{_STRUCTURED_NUMBER_END}"
@@ -391,6 +421,114 @@ def _grade_values(
     return values, snippets
 
 
+def _honors_values(
+    records: Sequence[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+    values: list[dict[str, Any]] = []
+    snippets: dict[str, list[dict[str, Any]]] = {}
+    seen: set[tuple[str, str, str]] = set()
+    honors_rank_rules = {"rule:27.2.1", "rule:27.2.2", "rule:27.2.3"}
+    fraction_rules = {"rule:27.2.2", "rule:27.2.3"}
+    threshold_labels = {
+        "rule:27.2.1": "GPA ขั้นต่ำเกียรตินิยมอันดับหนึ่งเหรียญทอง",
+        "rule:27.2.3": "GPA ขั้นต่ำเกียรตินิยมอันดับสอง",
+    }
+
+    for record in records:
+        rule_id = str(record["rule_id"])
+        text = str(record.get("rule_text", ""))
+        snippets[rule_id] = []
+
+        for match in _HONORS_GPA_RE.finditer(text):
+            if rule_id not in honors_rank_rules:
+                continue
+            raw_value = match.group("value")
+            snippet = {
+                "kind": "honors_gpa_threshold",
+                "text": _snippet(text, match.start(), match.end()),
+                "raw_value": raw_value,
+            }
+            snippets[rule_id].append(snippet)
+            normalized_value = _try_normalize_structured_number(raw_value)
+            if (
+                rule_id not in _HONORS_SAFE_GPA_THRESHOLDS
+                or normalized_value is None
+                or normalized_value != _HONORS_SAFE_GPA_THRESHOLDS[rule_id]
+            ):
+                snippet["status"] = "source_unsafe_or_ambiguous"
+                continue
+
+            identity = (rule_id, "gpa_threshold", normalized_value)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            values.append(
+                {
+                    "value": normalized_value,
+                    "label": threshold_labels[rule_id],
+                    "condition": "at_least",
+                    "basis": "curriculum_structure_and_cumulative_gpa",
+                    "raw_value": raw_value,
+                    "source_rule_id": rule_id,
+                    "source_snippet": _snippet(text, match.start(), match.end()),
+                }
+            )
+
+        for match in _HONORS_FRACTION_RE.finditer(text):
+            if rule_id not in fraction_rules:
+                continue
+            raw_value = match.group("value")
+            snippet_text = _snippet(text, match.start(), match.end())
+            snippets[rule_id].append(
+                {
+                    "kind": "honors_institution_credit_fraction",
+                    "text": snippet_text,
+                    "raw_value": raw_value,
+                }
+            )
+            identity = (rule_id, "institution_credit_fraction", "2/3")
+            if identity in seen:
+                continue
+            seen.add(identity)
+            values.append(
+                {
+                    "value": "2/3",
+                    "unit": "ของหน่วยกิตรวมตลอดหลักสูตร",
+                    "label": "สัดส่วนหน่วยกิตที่ต้องศึกษาที่สถาบัน",
+                    "condition": "at_least",
+                    "raw_value": raw_value,
+                    "source_rule_id": rule_id,
+                    "source_snippet": snippet_text,
+                }
+            )
+
+        for match in _HONORS_DAMAGED_GRADE_RE.finditer(text):
+            if rule_id != "rule:27.1.2":
+                continue
+            snippets[rule_id].append(
+                {
+                    "kind": "honors_excluded_grade",
+                    "text": _snippet(text, match.start(), match.end()),
+                    "raw_value": match.group(0),
+                    "status": "damaged_grade_symbol",
+                }
+            )
+
+        for match in _HONORS_DAMAGED_TRANSFER_RE.finditer(text):
+            if rule_id not in fraction_rules:
+                continue
+            snippets[rule_id].append(
+                {
+                    "kind": "honors_transfer_grade",
+                    "text": _snippet(text, match.start(), match.end()),
+                    "raw_value": match.group(0),
+                    "status": "damaged_grade_symbol",
+                }
+            )
+
+    return values, snippets
+
+
 def _suspension_period_values(
     records: Sequence[Mapping[str, Any]],
     label: str,
@@ -595,6 +733,7 @@ _VALUE_EXTRACTORS: dict[str, Any] = {
     REENTRY_CATEGORY: _reentry_values,
     STATUS_CATEGORY: _status_values,
     GRADING_CATEGORY: _grade_values,
+    HONORS_CATEGORY: _honors_values,
     LEAVE_CATEGORY: _text_only_values,
     RESIGNATION_CATEGORY: _text_only_values,
     EXAM_CATEGORY: _exam_suspension_values,
