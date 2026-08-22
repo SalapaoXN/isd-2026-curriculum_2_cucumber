@@ -117,7 +117,19 @@ Carry input filename, page number, and relevant OCR references through extractio
 
 ### Verification
 
-Trace sampled merged courses back to their extracted page artifacts and OCR evidence.
+- Added per-record `source_provenance` with `program`, `source_filename`, `source_page`, and `document_category`.
+- Provenance is source-derived only; no GT or `code_page_mapping.csv` data is used.
+- OCR metadata now preserves the original filename, page, and program.
+- Legacy and explicit TXT/JSON inputs remain supported.
+- Plan + description merges union provenance in source order.
+- Co-op alternatives preserve provenance from all contributing records.
+- Repeated same-code records remain independent.
+- Duplicate provenance entries are removed.
+- English second-pass provenance remains separate.
+- `evaluate.py` remains unchanged.
+- Tests: provenance `9` passed; English enrichment `8` passed; evaluator compatibility `6` passed.
+- Phase 5 is complete.
+- Next phase: Phase 6 — rubric-aligned Field/Page/Category evaluation.
 
 ## Phase 6 — Align Field/Page/Category Evaluation with the Rubric
 

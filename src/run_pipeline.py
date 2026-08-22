@@ -150,7 +150,14 @@ def main():
         #     for t in typos:
         #         print(f"   │    L{t['line']}: {t['original']} -> {t['corrected']}")
 
-        save_ocr_results(lines, output_dir, base_name)
+        save_ocr_results(
+            lines,
+            output_dir,
+            base_name,
+            source_filename=img_file.name,
+            source_page=page_num,
+            program=args.program,
+        )
 
         # Step 2: Extract
         ocr_json_file = output_dir / f"{base_name}_ocr.json"

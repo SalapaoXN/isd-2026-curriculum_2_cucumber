@@ -22,6 +22,66 @@ from typing import Dict, List, Optional, Tuple, Union
 from .pre_clean import pre_clean_with_regex
 
 
+SOURCE_PROVENANCE_KEY = "source_provenance"
+SOURCE_PROVENANCE_FIELDS = (
+    "program",
+    "source_filename",
+    "source_page",
+    "document_category",
+)
+PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
+
+
+def merge_source_provenance(*records) -> List[Dict]:
+    """Combine source entries in order without duplicating an occurrence."""
+    merged: List[Dict] = []
+    seen = set()
+
+    for record in records:
+        if isinstance(record, dict):
+            entries = record.get(SOURCE_PROVENANCE_KEY, [])
+        elif isinstance(record, list):
+            entries = record
+        else:
+            continue
+
+        if isinstance(entries, dict):
+            entries = [entries]
+        if not isinstance(entries, list):
+            continue
+
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            normalized = {
+                field: entry.get(field) for field in SOURCE_PROVENANCE_FIELDS
+            }
+            identity = tuple(normalized[field] for field in SOURCE_PROVENANCE_FIELDS)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            merged.append(normalized)
+
+    return merged
+
+
+def _page_number(value) -> Optional[int]:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    return None
+
+
+def _page_number_from_name(value: str | None) -> Optional[int]:
+    if not value:
+        return None
+    match = PAGE_RE.search(value)
+    return int(match.group(1)) if match else None
+
+
 def clean_ocr_en_text(text: str) -> str:
     """Fix common OCR typos in English text."""
     if not text:
@@ -185,6 +245,45 @@ class CurriculumExtractor:
             self.source = "GT_Template-2.xlsx / Academic Plan GT — AIT"
         else:
             self.source = source
+
+    def _source_context(
+        self,
+        input_path: Path | None = None,
+        metadata: Optional[dict] = None,
+        document_category: str = "unknown",
+    ) -> Dict:
+        metadata = metadata if isinstance(metadata, dict) else {}
+
+        source_filename = metadata.get("source_filename")
+        if not isinstance(source_filename, str) or not source_filename.strip():
+            source_filename = input_path.name if input_path is not None else None
+        else:
+            source_filename = Path(source_filename).name
+
+        source_page = _page_number(metadata.get("source_page"))
+        if source_page is None:
+            source_page = _page_number_from_name(source_filename)
+        if source_page is None and input_path is not None:
+            source_page = _page_number_from_name(input_path.name)
+
+        program = metadata.get("program")
+        if not isinstance(program, str) or not program.strip():
+            program = self.program if isinstance(self.program, str) and self.program.strip() else None
+
+        return {
+            "program": program,
+            "source_filename": source_filename,
+            "source_page": source_page,
+            "document_category": document_category
+            if document_category in {"plan", "description"}
+            else "unknown",
+        }
+
+    @staticmethod
+    def _attach_source_provenance(course: Dict, source_context: Dict) -> Dict:
+        result = dict(course)
+        result[SOURCE_PROVENANCE_KEY] = [dict(source_context)]
+        return result
 
     # ------------------------------------------------------------------ #
     #  Step 1: split raw OCR lines into course blocks                     #
@@ -523,6 +622,7 @@ class CurriculumExtractor:
                     "name_en": f"{current['name_en']}\n{nxt['name_en']}",
                     "credits": merged_credits,
                 }
+                merged[SOURCE_PROVENANCE_KEY] = merge_source_provenance(current, nxt)
                 combined.append(merged)
                 idx += 2
                 continue
@@ -535,11 +635,19 @@ class CurriculumExtractor:
     # ------------------------------------------------------------------ #
     #  Public entry points                                                #
     # ------------------------------------------------------------------ #
-    def extract_from_lines(self, lines: List[str]) -> Dict:
+    def extract_from_lines(
+        self, lines: List[str], source_context: Optional[Dict] = None
+    ) -> Dict:
         """Run the full block-based pipeline over the study-plan OCR lines."""
         print(" [DEBUG] running: extract_from_lines (study plan table)")
+        source_context = source_context or self._source_context(
+            document_category="unknown"
+        )
         blocks = self.split_into_blocks(lines)
-        courses = [self.parse_single_block(block) for block in blocks]
+        courses = [
+            self._attach_source_provenance(self.parse_single_block(block), source_context)
+            for block in blocks
+        ]
         courses = self.post_process(courses)
 
         return {
@@ -550,8 +658,13 @@ class CurriculumExtractor:
             "courses": courses,
         }
 
-    def extract_descriptions(self, lines: List[str]) -> Dict:
+    def extract_descriptions(
+        self, lines: List[str], source_context: Optional[Dict] = None
+    ) -> Dict:
         print(" [DEBUG] running: extract_descriptions (course descriptions)")
+        source_context = source_context or self._source_context(
+            document_category="unknown"
+        )
         courses = []
         seen_codes = set()
         i = 0
@@ -830,6 +943,11 @@ class CurriculumExtractor:
             i += 1
 
 
+        courses = [
+            self._attach_source_provenance(course, source_context)
+            for course in courses
+        ]
+
         return {
             "source": self.source,
             "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
@@ -844,10 +962,12 @@ class CurriculumExtractor:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         lines = []
+        metadata = {}
         if file_path.suffix == ".json":
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 lines = data.get("text_lines", [])
+                metadata = data if isinstance(data, dict) else {}
         else:
             lines = file_path.read_text(encoding="utf-8").splitlines()
 
@@ -866,7 +986,10 @@ class CurriculumExtractor:
                        (bool(re.search(r"รหัสวิชา", content_upper)) and bool(re.search(r"หน่วยกิต", content_upper)))
 
         if is_plan_page:
-            return self.extract_from_lines(lines)
+            return self.extract_from_lines(
+                lines,
+                self._source_context(file_path, metadata, "plan"),
+            )
 
         # If not a study plan, check whether it is a course description page
         is_description_page = bool(
@@ -874,6 +997,12 @@ class CurriculumExtractor:
         )
 
         if is_description_page:
-            return self.extract_descriptions(lines)
+            return self.extract_descriptions(
+                lines,
+                self._source_context(file_path, metadata, "description"),
+            )
 
-        return self.extract_from_lines(lines)
+        return self.extract_from_lines(
+            lines,
+            self._source_context(file_path, metadata, "unknown"),
+        )

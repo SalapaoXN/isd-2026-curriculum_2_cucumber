@@ -5,6 +5,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from src.extractor import merge_source_provenance
+
 
 def extract_page_num(file_path: Path) -> int:
     match = re.search(r"page_(\d+)", file_path.name)
@@ -68,10 +70,22 @@ class CurriculumConsolidator:
         descriptions = self.description_data.get("descriptions") or self.description_data.get("courses", [])
 
         desc_lookup = {}
+        desc_occurrences: Dict[str, List[dict]] = {}
         for desc in descriptions:
             code = desc.get("code")
             if isinstance(code, str) and code:
                 desc_lookup[code] = desc
+                desc_occurrences.setdefault(code, []).append(desc)
+
+        consumed_desc_occurrences: Dict[str, int] = {}
+
+        def consume_description(code: str) -> List[dict]:
+            occurrences = desc_occurrences.get(code, [])
+            index = consumed_desc_occurrences.get(code, 0)
+            if index >= len(occurrences):
+                return []
+            consumed_desc_occurrences[code] = index + 1
+            return [occurrences[index]]
 
         consolidated_courses = []
         processed_codes = set()
@@ -87,12 +101,16 @@ class CurriculumConsolidator:
                 for field in ("prerequisite", "desc_th", "desc_en"):
                     if field in target_desc:
                         merged_course[field] = target_desc[field]
+                merged_course["source_provenance"] = merge_source_provenance(
+                    course, *consume_description(course_code)
+                )
                 processed_codes.add(course_code)
 
             elif "หรือ" in course_code:
                 sub_codes = [c.strip() for c in course_code.split("หรือ")]
                 th_list = []
                 en_list = []
+                description_sources = []
                 for sub_code in sub_codes:
                     if sub_code in desc_lookup:
                         target_desc = desc_lookup[sub_code]
@@ -100,10 +118,14 @@ class CurriculumConsolidator:
                             th_list.append(target_desc.get("desc_th"))
                         if target_desc.get("desc_en"):
                             en_list.append(target_desc.get("desc_en"))
+                        description_sources.extend(consume_description(sub_code))
                 if th_list:
                     merged_course["desc_th"] = "\n".join(th_list)
                 if en_list:
                     merged_course["desc_en"] = "\n".join(en_list)
+                merged_course["source_provenance"] = merge_source_provenance(
+                    course, *description_sources
+                )
                 processed_codes.add(course_code)
 
             else:
@@ -206,6 +228,9 @@ def merge_consecutive_files(
         for field in ("prerequisite", "desc_th", "desc_en"):
             if field in desc_course and desc_course.get(field) not in (None, ""):
                 merged_course[field] = desc_course[field]
+        merged_course["source_provenance"] = merge_source_provenance(
+            course, desc_course
+        )
         return merged_course
 
     # 3. Group by plan
