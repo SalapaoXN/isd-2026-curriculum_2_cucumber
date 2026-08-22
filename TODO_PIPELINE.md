@@ -190,6 +190,14 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Temporary AIT replay: total courses `57 -> 56`; matched `56 -> 56`; missing `2 -> 2`; extra `1 -> 0`; precision `0.9825 -> 1.0`; recall `0.9655 -> 0.9655`; F1 `0.9739 -> 0.9825`.
 - Numeric course-code focused tests: 10 passed; full suite: 51 passed.
 - No OCR was run for numeric course-code validation.
+- Added standalone `RuleExtractor` for Academic Rules.
+- Added `extract_rules.py` for consolidated Rule OCR TXT/JSON extraction.
+- Thai and Arabic rule IDs are supported.
+- Chapter and sub-rule hierarchy is supported with deterministic parent IDs and section paths.
+- Cross-page rule continuation preserves source-page provenance.
+- Only explicit rule references are extracted.
+- Phase 7A focused tests: 12 passed; full suite: 63 passed.
+- No real Rules OCR has been tested yet.
 
 ## Phase 7 — Extract Academic Rules Separately
 
