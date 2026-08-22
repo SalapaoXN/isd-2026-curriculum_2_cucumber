@@ -73,6 +73,7 @@ _SIGNATURE_RE = re.compile(
     r"^(?:ประกาศ\s+ณ\s+วันที่|ลงชื่อ|ผู้รับสนองพระบรมราชโองการ)",
     re.IGNORECASE,
 )
+_SIGNATURE_START_RE = re.compile(r"^\s*ประกาศ\s*$", re.IGNORECASE)
 _PAGE_NAME_RE = re.compile(r"(?:page|หน้า)[_-]?(\d+)", re.IGNORECASE)
 
 
@@ -284,6 +285,17 @@ class RuleExtractor:
         return bool(_PAGE_NUMBER_RE.fullmatch(line) or _SEPARATOR_RE.fullmatch(line))
 
     @staticmethod
+    def _is_confident_page_number(
+        line: str, page: RulePage, line_index: int, line_count: int
+    ) -> bool:
+        if not _PAGE_NUMBER_RE.fullmatch(line) or page.source_page is None:
+            return False
+        normalized = normalize_identifier(line)
+        if not normalized.isdigit() or int(normalized) != page.source_page:
+            return False
+        return line_index == 0 or line_index >= max(0, line_count - 3)
+
+    @staticmethod
     def _format_category(number: str, title: Optional[str] = None) -> str:
         category = f"หมวด {normalize_identifier(number)}"
         if title and title.strip():
@@ -460,6 +472,7 @@ class RuleExtractor:
         reference_prefix_pending = False
         last_chapter_number: Optional[int] = None
         current_rule: Optional[_RuleBuilder] = None
+        pending_signature_lines: Optional[list[tuple[str, RulePage]]] = None
         signature_started = False
 
         def close_rule() -> None:
@@ -509,8 +522,17 @@ class RuleExtractor:
             pending_truncated_anchor = None
             return True
 
+        def flush_pending_signature() -> None:
+            nonlocal pending_signature_lines
+            if pending_signature_lines is None:
+                return
+            if current_rule is not None:
+                for signature_line, signature_page in pending_signature_lines:
+                    current_rule.append(signature_line, signature_page)
+            pending_signature_lines = None
+
         for page in page_list:
-            for raw_line in page.lines:
+            for line_index, raw_line in enumerate(page.lines):
                 line = self._clean_line(raw_line)
                 if not line:
                     continue
@@ -518,7 +540,23 @@ class RuleExtractor:
                     continue
                 if _SIGNATURE_RE.match(line):
                     flush_truncated_anchor()
+                    pending_signature_lines = None
                     signature_started = True
+                    continue
+
+                if pending_signature_lines is not None:
+                    expected_line = "ณ" if len(pending_signature_lines) == 1 else "วันที่"
+                    if line == expected_line:
+                        pending_signature_lines.append((line, page))
+                        if expected_line == "วันที่":
+                            pending_signature_lines = None
+                            signature_started = True
+                        continue
+                    flush_pending_signature()
+
+                if _SIGNATURE_START_RE.match(line):
+                    flush_truncated_anchor()
+                    pending_signature_lines = [(line, page)]
                     continue
 
                 if pending_truncated_anchor is not None:
@@ -716,13 +754,21 @@ class RuleExtractor:
                     continue
 
                 if _PAGE_NUMBER_RE.fullmatch(line):
-                    if pending_category_number is not None:
-                        current_category = self._format_category(
-                            pending_category_number
-                        )
-                        pending_category_number = None
+                    if self._is_confident_page_number(
+                        line, page, line_index, len(page.lines)
+                    ):
+                        if pending_category_number is not None:
+                            current_category = self._format_category(
+                                pending_category_number
+                            )
+                            pending_category_number = None
                     elif current_rule is not None:
                         current_rule.append(line, page)
+                    elif pending_category_number is not None:
+                        current_category = self._format_category(
+                            pending_category_number, line
+                        )
+                        pending_category_number = None
                     continue
 
                 if pending_category_number is not None:
@@ -736,6 +782,7 @@ class RuleExtractor:
                     current_rule.append(line, page)
                     reference_prefix_pending = self._line_ends_reference_prefix(line)
 
+        flush_pending_signature()
         flush_truncated_anchor()
         close_rule()
         return {

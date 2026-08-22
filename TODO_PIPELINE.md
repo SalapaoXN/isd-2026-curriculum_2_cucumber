@@ -196,7 +196,7 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Chapter and sub-rule hierarchy is supported with deterministic parent IDs and section paths.
 - Cross-page rule continuation preserves source-page provenance.
 - Only explicit rule references are extracted.
-- Phase 7A focused tests: 19 passed; full suite: 70 passed.
+- Phase 7A focused tests: 22 passed; full suite: 73 passed.
 - Existing Rules OCR replay: top-level rule recovery `41/53 -> 53/53`.
 - Existing Rules OCR replay: category-less records `20 -> 8`.
 - Existing Rules OCR replay: chapter-9 over-assignment `49 -> 0`.
@@ -210,7 +210,18 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Explicit anchors only apply contextual `O`/`D -> 0` identifier normalization.
 - Split and numberless chapter headings are recovered sequentially.
 - Numeric context preserves table values as text and removes false numeric IDs.
-- Signature contamination remains unresolved.
+- Signature/date footer contamination is fixed.
+- Rule 53 was reduced from 15 to 6 source-rule lines.
+- Numeric-only page noise is removed only with confident page-boundary evidence.
+- Uncertain numeric text is preserved conservatively.
+- Noise-clean replay total records: `155`.
+- Noise-clean replay unique IDs: `155`.
+- Noise-clean replay top-level rules: `53/53`.
+- Noise-clean replay nested targets: `5/5`.
+- Noise-clean replay false numeric IDs: `0`.
+- Noise-clean replay duplicate IDs: `0`.
+- Correct cross-page rules remain `15`, `19.3`, and `48`.
+- Remaining limitations: raw OCR table text and uncertain physical page-number noise.
 - No OCR was rerun; verification replayed existing Rules OCR artifacts.
 
 ## Phase 7 — Extract Academic Rules Separately

@@ -303,6 +303,49 @@ class RuleExtractorTests(unittest.TestCase):
         self.assertNotIn("ประกาศ", result["rules"][0]["rule_text"])
         self.assertNotIn("ศาสตราจารย์", result["rules"][0]["rule_text"])
 
+    def test_split_signature_date_footer_is_not_rule_text(self):
+        result = RuleExtractor().extract_from_pages(
+            [
+                page(
+                    13,
+                    [
+                        "ข้อ ๕๓ การใช้บังคับ",
+                        "เนื้อหาของข้อ ๕๓",
+                        "ประกาศ",
+                        "ณ",
+                        "วันที่",
+                        "๒O สิงหาคม พ.ศ. ๒๕๖๔",
+                        "(ผู้ลงนาม)",
+                    ],
+                )
+            ]
+        )
+
+        self.assertEqual(result["rules"][0]["rule_text"], "การใช้บังคับ\nเนื้อหาของข้อ ๕๓")
+
+    def test_unconfirmed_signature_marker_is_preserved(self):
+        result = RuleExtractor().extract_from_lines(
+            ["ข้อ ๑ เนื้อหา", "ประกาศ", "เป็นประกาศทั่วไป"]
+        )
+
+        self.assertIn("ประกาศ", result["rules"][0]["rule_text"])
+        self.assertIn("เป็นประกาศทั่วไป", result["rules"][0]["rule_text"])
+
+    def test_only_boundary_source_page_numbers_are_removed(self):
+        uncertain = RuleExtractor().extract_from_pages(
+            [
+                page(7, ["ข้อ ๑ เนื้อหา", "บรรทัด", "๗", "ต่อ", "ต่อ", "ต่อ", "จบ"])
+            ]
+        )
+        confirmed = RuleExtractor().extract_from_pages(
+            [
+                page(7, ["ข้อ ๑ เนื้อหา", "ต่อ", "ต่อ", "ต่อ", "ต่อ", "๗"])
+            ]
+        )
+
+        self.assertIn("๗", uncertain["rules"][0]["rule_text"])
+        self.assertNotIn("๗", confirmed["rules"][0]["rule_text"])
+
     def test_explicit_rule_references_are_normalized_and_deduplicated(self):
         result = RuleExtractor().extract_from_lines(
             [
