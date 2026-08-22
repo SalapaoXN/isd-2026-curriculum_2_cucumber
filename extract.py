@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 from src import CurriculumExtractor
+from src.pipeline_config import plan_label, resolve_plan, resolve_program
 
 
 def _safe_identifier(value: str, fallback: str = "input") -> str:
@@ -52,14 +53,14 @@ def parse_arguments():
     parser.add_argument(
         "--program",
         type=str,
-        default="DSBA",
-        help="Program name (default: 'DSBA')"
+        default=None,
+        help="Program name; derived from a supported input directory when omitted"
     )
     parser.add_argument(
         "--plan",
         type=str,
-        default="coop",
-        help="Study plan name (e.g. 'coop', 'regular') (default: 'coop')"
+        default=None,
+        help="Study plan: coop, no_coop, or gened; required where applicable"
     )
     parser.add_argument(
         "--source",
@@ -78,9 +79,16 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    program_input = input_path if input_path.is_dir() else input_path.parent
+    try:
+        program = resolve_program(args.program, program_input)
+        plan = resolve_plan(args.plan, program)
+    except ValueError as exc:
+        raise SystemExit(f"Error: {exc}") from exc
+
     extractor = CurriculumExtractor(
-        program=args.program,
-        plan=args.plan,
+        program=program,
+        plan=plan,
         source=args.source
     )
 
@@ -125,15 +133,15 @@ def main():
     # If processing multiple files, also output a merged summary file
     if len(files_to_process) > 1 and last_result:
         merged_result = {
-            "source": args.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {args.program} (แผน {args.plan}) - Consolidated",
-            "program": args.program,
-            "plan": args.plan,
+            "source": last_result.get("source", args.source),
+            "description": f"Ground Truth รายวิชาหลักสูตร {program} (แผน {plan_label(plan)}) - Consolidated",
+            "program": program,
+            "plan": plan,
             "courses": all_courses
         }
         group_id = _input_group_identifier(input_path)
-        program_id = _safe_identifier(args.program)
-        plan_id = _safe_identifier(args.plan)
+        program_id = _safe_identifier(program)
+        plan_id = _safe_identifier(plan_label(plan))
         consolidated_file = output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
         with open(consolidated_file, "w", encoding="utf-8") as f:
             json.dump(merged_result, f, ensure_ascii=False, indent=4)

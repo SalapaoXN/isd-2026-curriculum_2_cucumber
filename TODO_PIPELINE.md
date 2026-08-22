@@ -162,6 +162,21 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Phase 6 is complete for everything supported by current authoritative data.
 - Next phase: Phase 7 — Academic Rules OCR / extraction.
 
+## Current Progress
+
+- `src.run_pipeline --pages` is now optional.
+- When omitted, valid `<group>_page_<NNN>` images are discovered and sorted numerically.
+- Explicit page selection remains supported.
+- The program can be derived safely from supported input directories.
+- An explicit `--program` still overrides derivation.
+- `coop` / `no_coop` is never inferred automatically.
+- AIT uses `plan = null` internally; `no_plan` is naming-only.
+- GenEd uses `program=GENED`, `plan=gened`.
+- IT `coop` / `no_coop` page allocation remains user-supplied; it is not inferred.
+- Rules remain outside the course pipeline.
+- CLI cleanup verification: 37 unit tests passed.
+- No OCR was run for this cleanup.
+
 ## Phase 7 — Extract Academic Rules Separately
 
 ### Objective

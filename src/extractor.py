@@ -216,7 +216,7 @@ class CurriculumExtractor:
     def __init__(
         self,
         program: str = "DSBA",
-        plan: str = "coop",
+        plan: Optional[str] = "coop",
         source: str = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop",
         coop_pairs: Optional[List[Tuple[str, str, str]]] = None,
     ):
@@ -243,6 +243,8 @@ class CurriculumExtractor:
             self.source = "GT_Template-2.xlsx / Academic Plan GT — IT no coop"
         elif program == "AIT":
             self.source = "GT_Template-2.xlsx / Academic Plan GT — AIT"
+        elif program == "GENED":
+            self.source = "GT_Template-2.xlsx / General Education"
         else:
             self.source = source
 

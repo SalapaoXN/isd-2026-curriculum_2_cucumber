@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from src.extractor import merge_source_provenance
+from src.pipeline_config import plan_label
 
 
 def extract_page_num(file_path: Path) -> int:
@@ -234,7 +235,7 @@ def merge_consecutive_files(
         return merged_course
 
     # 3. Group by plan
-    plans = sorted({r[0] for r in records})
+    plans = sorted({r[0] for r in records}, key=lambda value: "" if value is None else str(value))
     merged_count = 0
 
     for plan in plans:
@@ -264,14 +265,14 @@ def merge_consecutive_files(
             base_metadata = {
                 "source": first.get("source", ""),
                 "description": first.get("description", ""),
-                "program": first.get("program", "DSBA"),
-                "plan": first.get("plan", "coop"),
+                "program": first.get("program", ""),
+                "plan": first.get("plan") if "plan" in first else None,
             }
             base_metadata["total_courses"] = len(all_courses)
             base_metadata["courses"] = all_courses
 
             page_nums = [r[1] for r in group]
-            safe_plan = _safe_identifier(plan)
+            safe_plan = _safe_identifier(plan_label(plan))
             output_filename = f"merged_{group_id}_{safe_plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
             output_file_path = output_folder / output_filename
 
@@ -281,7 +282,7 @@ def merge_consecutive_files(
 
             merged_count += 1
             print(
-                f" Merged {len(group)} files (plan '{plan}', "
+                f" Merged {len(group)} files (plan '{plan_label(plan)}', "
                 f"pages {min(page_nums):03d}-{max(page_nums):03d}) "
                 f"-> {len(all_courses)} courses: {output_file_path.name}"
             )
@@ -312,8 +313,8 @@ def merge_consecutive_files(
             metadata = {
                 "source": first.get("source", ""),
                 "description": first.get("description", ""),
-                "program": first.get("program", "DSBA"),
-                "plan": first.get("plan", "coop"),
+                "program": first.get("program", ""),
+                "plan": first.get("plan") if "plan" in first else None,
             }
             final = merge_plan_with_description(
                 dedupe_courses(table_courses),
@@ -321,7 +322,7 @@ def merge_consecutive_files(
                 metadata,
             )
 
-            safe_plan = _safe_identifier(plan)
+            safe_plan = _safe_identifier(plan_label(plan))
             output_filename = f"merged_{group_id}_{safe_plan}_full.json"
             output_file_path = output_folder / output_filename
             output_folder.mkdir(parents=True, exist_ok=True)
@@ -330,7 +331,7 @@ def merge_consecutive_files(
 
             combined_count += 1
             print(
-                f" Combined plan '{plan}' table ({len(table_records)} files) + "
+                f" Combined plan '{plan_label(plan)}' table ({len(table_records)} files) + "
                 f"description ({len(desc_records)} files) "
                 f"-> {len(final.get('courses', []))} courses: {output_file_path.name}"
             )

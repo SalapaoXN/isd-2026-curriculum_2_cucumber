@@ -52,7 +52,7 @@ inputs/dsba/dsba_page_026.jpg
 
 Supported image extensions are `.jpg`, `.jpeg`, `.png`, `.webp`, and `.bmp`.
 
-`python -m src.run_pipeline` checks exact page filenames in `--input-dir` and does not search nested directories. `python cli.py` accepts one image or scans images directly inside a directory; its filenames do not need the automated page naming convention.
+`python -m src.run_pipeline` checks direct-child page filenames in `--input-dir` and does not search nested directories. When `--pages` is omitted, it discovers files matching `<input-directory-name>_page_<NNN>.<ext>`, deduplicates page numbers, and sorts them numerically. `python cli.py` accepts one image or scans images directly inside a directory; its filenames do not need the automated page naming convention.
 
 The pipeline creates `outputs/` and `consolidated_outputs/` when needed. Automated runs write per-page OCR text/JSON and extracted JSON files such as:
 ```text
@@ -82,7 +82,7 @@ Run the normal canonical path with the reproducible CPU baseline:
 python -m src.run_pipeline -p 26 -i inputs/dsba -o outputs/smoke --program DSBA --plan coop --no-gpu
 ```
 
-`src.run_pipeline` accepts `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and `--english-second-pass`. It performs OCR, extraction, and output writing for the requested pages.
+`src.run_pipeline` accepts optional `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and `--english-second-pass`. If pages are omitted, the runner discovers direct-child page images. The program is derived only from supported input directory names (`dsba`, `it`, `ait`, `gened`, `bit`) when `--program` is omitted. DSBA, IT, and BIT require an explicit `--plan coop` or `--plan no_coop`; GENED requires `--plan gened`; AIT has no plan and must omit `--plan`.
 
 For a one-page smoke check, provide `inputs/dsba/dsba_page_026.jpg` yourself and verify the three files listed above after the command completes. This checks execution and output creation only; it does not set an OCR accuracy threshold. Do not commit the image or generated smoke outputs.
 
@@ -183,14 +183,14 @@ python cli.py inputs/dsba/ -o outputs/dsba_raw_ocr --languages th,en --no-gpu
 `extract.py` accepts an OCR TXT file, OCR JSON file, or directory:
 ```bash
 # Explicit TXT input
-python extract.py outputs/curriculum_page_016_ocr.txt
+python extract.py outputs/curriculum_page_016_ocr.txt --program DSBA --plan coop
 
 # Explicit JSON input
-python extract.py outputs/curriculum_page_016_ocr.json
+python extract.py outputs/curriculum_page_016_ocr.json --program DSBA --plan coop
 
 # Directory input
-python extract.py outputs/
-python extract.py outputs/dsba_raw_ocr
+python extract.py outputs/ --program DSBA --plan coop
+python extract.py outputs/dsba_raw_ocr --program DSBA --plan coop
 
 # Explicit metadata and output directory
 python extract.py outputs/curriculum_page_016_ocr.txt \
@@ -202,27 +202,25 @@ python extract.py outputs/curriculum_page_016_ocr.txt \
 
 ### Automated page runner
 
-The automated runner requires `-p/--pages` and supports `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and the opt-in `--english-second-pass`:
+The automated runner supports `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and the opt-in `--english-second-pass`. `-p/--pages` is optional; omission discovers direct-child files using the input directory's page filename convention. Do not use an inferred co-op variant: DSBA, IT, and BIT require explicit `coop` or `no_coop`.
 ```bash
 # DSBA
 python -m src.run_pipeline -p 26-32 -i inputs/dsba --plan no_coop --program DSBA
 python -m src.run_pipeline -p 33-39 -i inputs/dsba --plan coop --program DSBA
-python -m src.run_pipeline -p 317-344 -i inputs/dsba --program DSBA
+python -m src.run_pipeline -p 317-344 -i inputs/dsba --plan coop --program DSBA
 
 # IT
-python -m src.run_pipeline -p 26-32 -i inputs/it --plan no_coop --program IT
-python -m src.run_pipeline -p 33-39 -i inputs/it --plan coop --program IT
-
+python -m src.run_pipeline -p 32-38 -i inputs/it --plan no_coop --program IT
+python -m src.run_pipeline -p 39-45 -i inputs/it --plan coop --program IT
+python -m src.run_pipeline -p 328-371 -i inputs/it --plan coop --program IT
 # BIT
-python -m src.run_pipeline -p 26-32 -i inputs/bit --plan no_coop --program BIT
-python -m src.run_pipeline -p 33-39 -i inputs/bit --plan coop --program BIT
+# Supply BIT source images and confirmed plan page ranges before running.
 
-# AIT
-python -m src.run_pipeline -p 23-26 -i inputs/ait --program AIT
-python -m src.run_pipeline -p 287-302 -i inputs/ait --program AIT
+# AIT: no --plan; omitted pages are discovered automatically
+python -m src.run_pipeline -i inputs/ait --program AIT
 
-# General education pages using the existing plan selector
-python -m src.run_pipeline -p 16-30 -i inputs/gened --plan gened --program DSBA
+# General education: explicit GENED program and plan
+python -m src.run_pipeline -i inputs/gened --plan gened --program GENED
 ```
 
 ### Consolidation
@@ -233,13 +231,13 @@ python -m src.run_pipeline -p 16-30 -i inputs/gened --plan gened --program DSBA
 python merge_consecutive.py --prefix dsba --plan coop -d 317-344
 python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
 
-# IT and BIT
+# IT and BIT description pages, after the corresponding source inputs are available
 python merge_consecutive.py --prefix it --plan coop -d 328-371
 python merge_consecutive.py --prefix it --plan no_coop -d 328-371
 python merge_consecutive.py --prefix bit --plan coop -d 328-371
 python merge_consecutive.py --prefix bit --plan no_coop -d 328-371
 
-# AIT and general education
+# AIT has JSON plan null and uses a neutral filename label only
 python merge_consecutive.py --prefix ait -d 287-302
 python merge_consecutive.py --prefix gened
 ```
@@ -271,6 +269,7 @@ python evaluate.py \
 
 Tracked regression suites cover evaluator behavior, English enrichment, and source provenance:
 ```bash
+python -m unittest discover -s tests -p "test_cli_semantics.py"
 python -m unittest discover -s tests -p "test_evaluate.py"
 python -m unittest discover -s tests -p "test_english_name_enricher.py"
 python -m unittest discover -s tests -p "test_provenance.py"
