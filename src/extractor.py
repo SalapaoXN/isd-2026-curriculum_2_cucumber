@@ -115,6 +115,11 @@ def normalize_course_code(code: str) -> str:
     return code
 
 
+def _is_valid_numeric_course_code(code: str) -> bool:
+    """Accept fully numeric course codes only when they contain eight digits."""
+    return not code.isdigit() or len(code) == 8
+
+
 CODE_ONLY_LINE_REGEX = re.compile(r"^[0-9xX\)\.\|_]{4,12}$", re.IGNORECASE)
 def try_clean_code_line(line: str) -> Union[str, None]:
     """
@@ -131,7 +136,11 @@ def try_clean_code_line(line: str) -> Union[str, None]:
 
     # Must keep a reasonable length (real course codes are 5-9 chars before normalize)
     # and must contain at least one digit (avoid treating a lone 'X' or 'L' as a code)
-    if 5 <= len(cleaned) <= 9 and re.search(r"\d", cleaned):
+    if (
+        5 <= len(cleaned) <= 9
+        and re.search(r"\d", cleaned)
+        and _is_valid_numeric_course_code(cleaned)
+    ):
         return cleaned
     return None
 
@@ -468,7 +477,10 @@ class CurriculumExtractor:
         # A code embedded in a line (the tail, if any, is course content).
         m = self.COURSE_CODE_RE.search(line)
         if m:
-            return normalize_course_code(m.group(1)), line[m.end(1):].strip()
+            candidate = m.group(1)
+            if not _is_valid_numeric_course_code(candidate):
+                return None, ""
+            return normalize_course_code(candidate), line[m.end(1):].strip()
 
         return None, ""
 

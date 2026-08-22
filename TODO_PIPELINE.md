@@ -185,6 +185,11 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Temporary replay prerequisite CER: `coop` `0.0352 -> 0.0295`; `no_coop` `0.0346 -> 0.0290`.
 - Repeated-course focused tests: 13 passed; full suite: 45 passed.
 - No OCR was run for the repeated-course guard.
+- Fully numeric course-code candidates now require exactly eight digits in standalone and embedded extraction; placeholder semantics remain unchanged.
+- AIT page-24 truncated code `0604640` is rejected, following valid code `06046408` remains extracted, and description record `06046407` remains unchanged.
+- Temporary AIT replay: total courses `57 -> 56`; matched `56 -> 56`; missing `2 -> 2`; extra `1 -> 0`; precision `0.9825 -> 1.0`; recall `0.9655 -> 0.9655`; F1 `0.9739 -> 0.9825`.
+- Numeric course-code focused tests: 10 passed; full suite: 51 passed.
+- No OCR was run for numeric course-code validation.
 
 ## Phase 7 — Extract Academic Rules Separately
 
