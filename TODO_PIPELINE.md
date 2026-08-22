@@ -223,6 +223,10 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Correct cross-page rules remain `15`, `19.3`, and `48`.
 - Remaining limitations: raw OCR table text and uncertain physical page-number noise.
 - No OCR was rerun; verification replayed existing Rules OCR artifacts.
+- RulesPolicyMapper applies context-aware `O/o -> 0` normalization only to structured numeric policy values; raw OCR evidence remains unchanged.
+- Probation thresholds now extract as `2.00`.
+- RulesPolicyMapper focused tests: `7 passed`; full suite: `80 passed`.
+- No OCR was rerun for numeric normalization.
 
 ## Phase 7 — Extract Academic Rules Separately
 
