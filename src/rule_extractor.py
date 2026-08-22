@@ -13,16 +13,30 @@ THAI_DIGIT_TRANSLATION = str.maketrans(
     "๐๑๒๓๔๕๖๗๘๙",
     "0123456789",
 )
+OCR_IDENTIFIER_TRANSLATION = str.maketrans(
+    {
+        "O": "0",
+        "o": "0",
+        "D": "0",
+        "d": "0",
+    }
+)
 
-_IDENTIFIER = r"[0-9๐-๙]+(?:\.[0-9๐-๙]+)*"
 _SUBRULE_IDENTIFIER = r"[0-9๐-๙]+\.[0-9๐-๙]+(?:\.[0-9๐-๙]+)*"
+_EXPLICIT_IDENTIFIER = r"[0-9๐-๙OoDd]+(?:\.[0-9๐-๙OoDd]+)*"
 _CHAPTER_RE = re.compile(
-    r"^\s*หมวด\s+([0-9๐-๙]+)(?:\s+(.*?))?\s*$",
+    rf"^\s*หมวด\s+[`'\"|:;,.]?\s*([0-9๐-๙OoDd]+)(?:\s+(.*?))?\s*$",
     re.IGNORECASE,
 )
+_CHAPTER_ONLY_RE = re.compile(r"^\s*หมวด\s*$", re.IGNORECASE)
 _SPECIAL_HEADING_RE = re.compile(r"^\s*บทเฉพาะกาล(?:\s+(.*?))?\s*$")
 _RULE_RE = re.compile(
-    rf"^\s*ข้อ\s+({_IDENTIFIER})(?:\s+(.*))?\s*$",
+    rf"^\s*ข้?อ\s+({_EXPLICIT_IDENTIFIER})(?:\s+(.*))?\s*$",
+    re.IGNORECASE,
+)
+_RULE_PREFIX_RE = re.compile(r"^\s*ข้?อ\s*$", re.IGNORECASE)
+_RULE_IDENTIFIER_LINE_RE = re.compile(
+    rf"^\s*({_EXPLICIT_IDENTIFIER})(?:\s+(.*))?\s*$",
     re.IGNORECASE,
 )
 _SUBRULE_RE = re.compile(
@@ -30,7 +44,7 @@ _SUBRULE_RE = re.compile(
     re.IGNORECASE,
 )
 _REFERENCE_RE = re.compile(
-    rf"ข้อ\s*({_IDENTIFIER})",
+    rf"ข้?อ\s*({_EXPLICIT_IDENTIFIER})",
     re.IGNORECASE,
 )
 _PAGE_NUMBER_RE = re.compile(r"^[0-9๐-๙]{1,3}$")
@@ -43,8 +57,10 @@ _PAGE_NAME_RE = re.compile(r"(?:page|หน้า)[_-]?(\d+)", re.IGNORECASE)
 
 
 def normalize_identifier(identifier: str) -> str:
-    """Normalize Thai digits in an identifier without changing other text."""
-    return str(identifier).translate(THAI_DIGIT_TRANSLATION)
+    """Normalize Thai digits and scoped OCR zero variants in an identifier."""
+    return str(identifier).translate(THAI_DIGIT_TRANSLATION).translate(
+        OCR_IDENTIFIER_TRANSLATION
+    )
 
 
 def _page_number_from_name(value: str | Path) -> Optional[int]:
@@ -269,6 +285,18 @@ class RuleExtractor:
         return None
 
     @staticmethod
+    def _parse_wrapped_rule_anchor(line: str) -> Optional[tuple[str, str]]:
+        match = _RULE_IDENTIFIER_LINE_RE.match(line)
+        if not match:
+            return None
+        return normalize_identifier(match.group(1)), (match.group(2) or "").strip()
+
+    @staticmethod
+    def _chapter_number(value: str) -> Optional[int]:
+        normalized = normalize_identifier(value)
+        return int(normalized) if normalized.isdigit() else None
+
+    @staticmethod
     def _coerce_page(page: RulePage | Mapping[str, Any], index: int) -> RulePage:
         if isinstance(page, RulePage):
             return page
@@ -303,6 +331,8 @@ class RuleExtractor:
         records: list[dict[str, Any]] = []
         current_category: Optional[str] = None
         pending_category_number: Optional[str] = None
+        pending_rule_prefix: Optional[tuple[str, RulePage]] = None
+        last_chapter_number: Optional[int] = None
         current_rule: Optional[_RuleBuilder] = None
         signature_started = False
 
@@ -322,7 +352,36 @@ class RuleExtractor:
                 if _SIGNATURE_RE.match(line):
                     signature_started = True
                     continue
+
+                if pending_rule_prefix is not None:
+                    wrapped_anchor = self._parse_wrapped_rule_anchor(line)
+                    if wrapped_anchor:
+                        if pending_category_number is not None:
+                            current_category = self._format_category(
+                                pending_category_number
+                            )
+                            pending_category_number = None
+                        close_rule()
+                        section_number, text = wrapped_anchor
+                        current_rule = _RuleBuilder(
+                            section_number=section_number,
+                            category=current_category,
+                        )
+                        current_rule.append(text, page)
+                        pending_rule_prefix = None
+                        continue
+
+                    if current_rule is not None:
+                        prefix_line, prefix_page = pending_rule_prefix
+                        current_rule.append(prefix_line, prefix_page)
+                    pending_rule_prefix = None
+
                 if self._is_noise_line(line):
+                    if pending_category_number is not None:
+                        current_category = self._format_category(
+                            pending_category_number
+                        )
+                        pending_category_number = None
                     continue
 
                 special_match = _SPECIAL_HEADING_RE.match(line)
@@ -339,12 +398,28 @@ class RuleExtractor:
                     close_rule()
                     number = normalize_identifier(chapter_match.group(1))
                     title = chapter_match.group(2)
+                    chapter_number = self._chapter_number(number)
+                    if chapter_number is not None:
+                        last_chapter_number = chapter_number
                     pending_category_number = number if not title else None
                     current_category = (
                         self._format_category(number, title)
                         if title
                         else None
                     )
+                    continue
+
+                if _CHAPTER_ONLY_RE.match(line):
+                    close_rule()
+                    # A numberless chapter heading advances the document's sequence.
+                    inferred_number = (last_chapter_number or 0) + 1
+                    last_chapter_number = inferred_number
+                    pending_category_number = str(inferred_number)
+                    current_category = None
+                    continue
+
+                if _RULE_PREFIX_RE.match(line):
+                    pending_rule_prefix = (line, page)
                     continue
 
                 anchor = self._parse_rule_anchor(line)

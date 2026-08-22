@@ -39,6 +39,66 @@ class RuleExtractorTests(unittest.TestCase):
         )
         self.assertEqual(result["rules"][0]["category"], "หมวด 6 การวัดและประมวลผลการศึกษา")
 
+    def test_audited_ocr_variants_recover_missing_top_level_rules(self):
+        result = RuleExtractor().extract_from_lines(
+            [
+                "ขอ ๕ เนื้อหา ๕",
+                "ข้อ",
+                "๗ เนื้อหา ๗",
+                "ข้อ ๑D เนื้อหา ๑D",
+                "ข้อ",
+                "๑๑ เนื้อหา ๑๑",
+                "ข้อ ๒O เนื้อหา ๒O",
+                "ขอ ๒๕ เนื้อหา ๒๕",
+                "ขอ ๒๘ เนื้อหา ๒๘",
+                "ข้อ ๓O เนื้อหา ๓O",
+                "ขอ",
+                "๓๖ เนื้อหา ๓๖",
+                "ขอ",
+                "๓๗ เนื้อหา ๓๗",
+                "ขอ ๓๙ เนื้อหา ๓๙",
+                "ข้อ ๕O เนื้อหา ๕O",
+            ]
+        )
+
+        records = {rule["section_number"]: rule for rule in result["rules"]}
+        self.assertEqual(
+            list(records),
+            ["5", "7", "10", "11", "20", "25", "28", "30", "36", "37", "39", "50"],
+        )
+        self.assertEqual(records["10"]["rule_text"], "เนื้อหา ๑D")
+        self.assertEqual(records["50"]["rule_text"], "เนื้อหา ๕O")
+
+    def test_audited_wrapped_and_numberless_chapter_headings(self):
+        result = RuleExtractor().extract_from_lines(
+            [
+                "ข้อ ๔ ก่อนหน้า",
+                "หมวด",
+                "บททั่วไป",
+                "ข้อ ๕ เนื้อหาหมวดหนึ่ง",
+                "หมวด `๒",
+                "การจัดการศึกษา",
+                "ข้อ ๖ เนื้อหาหมวดสอง",
+                "หมวด ๙",
+                "บทเก้า",
+                "ข้อ ๓๑ เนื้อหาหมวดเก้า",
+                "หมวด",
+                "วินัยนักศึกษา",
+                "ข้อ ๓๗ เนื้อหาหมวดสิบ",
+                "หมวด",
+                "เกียรติและศักดิ์",
+                "ข้อ ๔๔ เนื้อหาหมวดสิบเอ็ด",
+            ]
+        )
+
+        records = {rule["section_number"]: rule for rule in result["rules"]}
+        self.assertEqual(records["5"]["category"], "หมวด 1 บททั่วไป")
+        self.assertEqual(records["6"]["category"], "หมวด 2 การจัดการศึกษา")
+        self.assertEqual(records["31"]["category"], "หมวด 9 บทเก้า")
+        self.assertEqual(records["37"]["category"], "หมวด 10 วินัยนักศึกษา")
+        self.assertEqual(records["44"]["category"], "หมวด 11 เกียรติและศักดิ์")
+        self.assertNotIn("บททั่วไป", records["4"]["rule_text"])
+
     def test_nested_hierarchy_derives_paths_and_parents(self):
         result = RuleExtractor().extract_from_lines(
             [
