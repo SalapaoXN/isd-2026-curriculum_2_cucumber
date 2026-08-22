@@ -176,6 +176,15 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Rules remain outside the course pipeline.
 - CLI cleanup verification: 37 unit tests passed.
 - No OCR was run for this cleanup.
+- The repeated-code description association defect was fixed.
+- Automatic description enrichment now occurs only for unique 1-plan/1-description matches.
+- Ambiguous repeated groups preserve plan occurrences independently; no association is guessed by occurrence order.
+- Unmatched/ambiguous description information is preserved additively in `unresolved_descriptions`; top-level course-count semantics remain unchanged.
+- Page-group prerequisite enrichment has the same multiplicity protection.
+- IT course counts and coverage remain unchanged after temporary replay.
+- Temporary replay prerequisite CER: `coop` `0.0352 -> 0.0295`; `no_coop` `0.0346 -> 0.0290`.
+- Repeated-course focused tests: 13 passed; full suite: 45 passed.
+- No OCR was run for the repeated-course guard.
 
 ## Phase 7 — Extract Academic Rules Separately
 

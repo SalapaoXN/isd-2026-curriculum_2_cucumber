@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from merge_consecutive import merge_plan_with_description
+from merge_consecutive import merge_consecutive_files, merge_plan_with_description
 from src.extractor import CurriculumExtractor
 from src.file_handler import save_ocr_results
 
@@ -46,6 +46,15 @@ def course(code, marker, source_page):
             }
         ],
     }
+
+
+def description_course(code, marker, source_page, prerequisite="DESC PREREQUISITE"):
+    item = course(code, marker, source_page)
+    item["prerequisite"] = prerequisite
+    item["desc_th"] = f"DESC TH {marker}"
+    item["desc_en"] = f"DESC EN {marker}"
+    item["source_provenance"][0]["document_category"] = "description"
+    return item
 
 
 class ProvenanceTests(unittest.TestCase):
@@ -169,6 +178,7 @@ class ProvenanceTests(unittest.TestCase):
         )
         self.assertEqual(result["courses"][0]["desc_th"], "DESCRIPTION TH")
         self.assertEqual(result["courses"][0]["desc_en"], "DESCRIPTION EN")
+        self.assertNotIn("unresolved_descriptions", result)
 
     def test_alternative_course_unions_both_contributing_sources(self):
         extractor = CurriculumExtractor(
@@ -213,11 +223,12 @@ class ProvenanceTests(unittest.TestCase):
             [first_before["source_provenance"], second_before["source_provenance"]],
         )
 
-    def test_duplicate_description_occurrences_get_consumed_provenance(self):
+    def test_duplicate_description_occurrences_remain_unresolved(self):
         plans = [course("06000001", "FIRST", 26), course("06000001", "SECOND", 27)]
-        descriptions = [course("06000001", "DESC1", 317), course("06000001", "DESC2", 318)]
-        descriptions[0].update({"desc_th": "TH 1", "desc_en": "EN 1"})
-        descriptions[1].update({"desc_th": "TH 2", "desc_en": "EN 2"})
+        descriptions = [
+            description_course("06000001", "DESC1", 317),
+            description_course("06000001", "DESC2", 318),
+        ]
 
         result = merge_plan_with_description(plans, descriptions, {})
 
@@ -226,14 +237,123 @@ class ProvenanceTests(unittest.TestCase):
             [("06000001", "EN FIRST"), ("06000001", "EN SECOND")],
         )
         self.assertEqual(
-            [item["desc_en"] for item in result["courses"]], ["EN 2", "EN 2"]
+            [item.get("desc_en") for item in result["courses"]], [None, None]
         )
         self.assertEqual(
             [
                 [entry["source_page"] for entry in item["source_provenance"]]
                 for item in result["courses"]
             ],
-            [[26, 317], [27, 318]],
+            [[26], [27]],
+        )
+        self.assertEqual(
+            [item["desc_en"] for item in result["unresolved_descriptions"]],
+            ["DESC EN DESC1", "DESC EN DESC2"],
+        )
+
+    def test_two_plans_one_description_are_not_order_paired(self):
+        plans = [course("06016418", "SAME", 36), course("06016418", "SAME", 36)]
+        plans[0]["prerequisite"] = "ไม่มี"
+        plans[1]["prerequisite"] = "ไม่มี"
+        descriptions = [description_course("06016418", "ONLY", 336, "06016408")]
+
+        result = merge_plan_with_description(plans, descriptions, {})
+
+        self.assertEqual(
+            [item["prerequisite"] for item in result["courses"]],
+            ["ไม่มี", "ไม่มี"],
+        )
+        self.assertEqual(
+            [item["source_provenance"] for item in result["courses"]],
+            [plan["source_provenance"] for plan in plans],
+        )
+        self.assertEqual(
+            result["unresolved_descriptions"][0]["prerequisite"], "06016408"
+        )
+        self.assertEqual(result["total_courses"], 2)
+
+    def test_one_plan_two_descriptions_preserves_both_candidates(self):
+        plan = course("06000002", "PLAN", 26)
+        descriptions = [
+            description_course("06000002", "FIRST", 317),
+            description_course("06000002", "SECOND", 318),
+        ]
+
+        result = merge_plan_with_description([plan], descriptions, {})
+
+        self.assertEqual(result["courses"][0]["name_en"], plan["name_en"])
+        self.assertEqual(
+            result["courses"][0]["source_provenance"], plan["source_provenance"]
+        )
+        self.assertEqual(
+            [item["desc_en"] for item in result["unresolved_descriptions"]],
+            ["DESC EN FIRST", "DESC EN SECOND"],
+        )
+        self.assertEqual(result["total_courses"], 1)
+
+    def test_two_plans_two_descriptions_do_not_pair_by_order(self):
+        plans = [course("06000003", "PLAN FIRST", 26), course("06000003", "PLAN SECOND", 27)]
+        descriptions = [
+            description_course("06000003", "DESC FIRST", 317),
+            description_course("06000003", "DESC SECOND", 318),
+        ]
+
+        result = merge_plan_with_description(plans, descriptions, {})
+
+        self.assertEqual(
+            [item["name_en"] for item in result["courses"]],
+            ["EN PLAN FIRST", "EN PLAN SECOND"],
+        )
+        self.assertEqual(
+            [item["source_provenance"] for item in result["courses"]],
+            [plan["source_provenance"] for plan in plans],
+        )
+        self.assertEqual(
+            [item["desc_en"] for item in result["unresolved_descriptions"]],
+            ["DESC EN DESC FIRST", "DESC EN DESC SECOND"],
+        )
+
+    def test_page_group_enrichment_respects_multiplicity_guard(self):
+        plans = [
+            course("06016418", "FIRST", 32),
+            course("06016418", "SECOND", 33),
+        ]
+        for plan in plans:
+            plan["prerequisite"] = ""
+        description = description_course("06016418", "ONLY", 336, "06016408")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            input_dir = Path(temp_dir) / "outputs"
+            output_dir = Path(temp_dir) / "consolidated"
+            input_dir.mkdir()
+            for page, plan in ((32, plans[0]), (33, plans[1])):
+                (input_dir / f"it_page_{page:03d}_ocr_extracted.json").write_text(
+                    json.dumps({"program": "IT", "plan": "coop", "courses": [plan]}),
+                    encoding="utf-8",
+                )
+            (input_dir / "it_page_336_ocr_extracted.json").write_text(
+                json.dumps(
+                    {"program": "IT", "plan": "coop", "courses": [description]}
+                ),
+                encoding="utf-8",
+            )
+
+            merge_consecutive_files(
+                input_dir=str(input_dir),
+                output_dir=str(output_dir),
+                plan_filter="coop",
+                prefix="it",
+                desc_pages="336",
+            )
+
+            result = json.loads(
+                (output_dir / "merged_it_coop_full.json").read_text(encoding="utf-8")
+            )
+
+        self.assertEqual([item["prerequisite"] for item in result["courses"]], ["", ""])
+        self.assertEqual(result["total_courses"], 2)
+        self.assertEqual(
+            result["unresolved_descriptions"][0]["prerequisite"], "06016408"
         )
 
 

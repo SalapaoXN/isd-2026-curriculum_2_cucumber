@@ -78,18 +78,37 @@ class CurriculumConsolidator:
                 desc_lookup[code] = desc
                 desc_occurrences.setdefault(code, []).append(desc)
 
-        consumed_desc_occurrences: Dict[str, int] = {}
+        plan_occurrences: Dict[str, int] = {}
+        for course in self.plan_data.get("courses", []):
+            course_code = course.get("code")
+            if not isinstance(course_code, str) or not course_code:
+                continue
+            codes = (
+                [part.strip() for part in course_code.split("หรือ")]
+                if "หรือ" in course_code
+                else [course_code]
+            )
+            for code in codes:
+                if code:
+                    plan_occurrences[code] = plan_occurrences.get(code, 0) + 1
 
-        def consume_description(code: str) -> List[dict]:
+        def unique_description(code: str) -> dict | None:
             occurrences = desc_occurrences.get(code, [])
-            index = consumed_desc_occurrences.get(code, 0)
-            if index >= len(occurrences):
-                return []
-            consumed_desc_occurrences[code] = index + 1
-            return [occurrences[index]]
+            if plan_occurrences.get(code) == 1 and len(occurrences) == 1:
+                return occurrences[0]
+            return None
+
+        def has_ambiguous_description(code: str) -> bool:
+            description_count = len(desc_occurrences.get(code, []))
+            plan_count = plan_occurrences.get(code, 0)
+            return description_count > 1 or (description_count > 0 and plan_count > 1)
 
         consolidated_courses = []
         processed_codes = set()
+        ambiguous_codes = set()
+        for code, occurrences in desc_occurrences.items():
+            if len(occurrences) > 1 and plan_occurrences.get(code, 0) == 0:
+                ambiguous_codes.add(code)
 
         for course in self.plan_data.get("courses", []):
             course_code = course.get("code")
@@ -98,13 +117,17 @@ class CurriculumConsolidator:
             merged_course = course.copy()
 
             if "หรือ" not in course_code and course_code in desc_lookup:
-                target_desc = desc_lookup[course_code]
-                for field in ("prerequisite", "desc_th", "desc_en"):
-                    if field in target_desc:
-                        merged_course[field] = target_desc[field]
-                merged_course["source_provenance"] = merge_source_provenance(
-                    course, *consume_description(course_code)
-                )
+                target_desc = unique_description(course_code)
+                if target_desc is None:
+                    if has_ambiguous_description(course_code):
+                        ambiguous_codes.add(course_code)
+                else:
+                    for field in ("prerequisite", "desc_th", "desc_en"):
+                        if field in target_desc:
+                            merged_course[field] = target_desc[field]
+                    merged_course["source_provenance"] = merge_source_provenance(
+                        course, target_desc
+                    )
                 processed_codes.add(course_code)
 
             elif "หรือ" in course_code:
@@ -113,13 +136,15 @@ class CurriculumConsolidator:
                 en_list = []
                 description_sources = []
                 for sub_code in sub_codes:
-                    if sub_code in desc_lookup:
-                        target_desc = desc_lookup[sub_code]
+                    target_desc = unique_description(sub_code)
+                    if target_desc is not None:
                         if target_desc.get("desc_th"):
                             th_list.append(target_desc.get("desc_th"))
                         if target_desc.get("desc_en"):
                             en_list.append(target_desc.get("desc_en"))
-                        description_sources.extend(consume_description(sub_code))
+                        description_sources.append(target_desc)
+                    elif has_ambiguous_description(sub_code):
+                        ambiguous_codes.add(sub_code)
                 if th_list:
                     merged_course["desc_th"] = "\n".join(th_list)
                 if en_list:
@@ -137,7 +162,7 @@ class CurriculumConsolidator:
             consolidated_courses.append(merged_course)
 
         for code, desc_item in desc_lookup.items():
-            if code not in processed_codes:
+            if code not in processed_codes and code not in ambiguous_codes:
                 new_elective_course = desc_item.copy()
                 new_elective_course.setdefault("year", 0)
                 new_elective_course.setdefault("semester", 0)
@@ -148,7 +173,13 @@ class CurriculumConsolidator:
                 consolidated_courses.append(new_elective_course)
                 processed_codes.add(code)
 
-        return {
+        unresolved_descriptions = [
+            desc.copy()
+            for desc in descriptions
+            if isinstance(desc.get("code"), str) and desc.get("code") in ambiguous_codes
+        ]
+
+        result = {
             "source": self.plan_data.get("source", "Merged Academic Plan & Course Descriptions"),
             "description": self.plan_data.get("description", "Ground Truth รายวิชาหลักสูตร"),
             "program": self.plan_data.get("program", ""),
@@ -156,6 +187,9 @@ class CurriculumConsolidator:
             "total_courses": len(consolidated_courses),
             "courses": consolidated_courses,
         }
+        if unresolved_descriptions:
+            result["unresolved_descriptions"] = unresolved_descriptions
+        return result
 
 
 def merge_plan_with_description(table_courses: List[dict], desc_courses: List[dict], metadata: dict) -> dict:
@@ -206,11 +240,22 @@ def merge_consecutive_files(
     # 2. Build a code -> course lookup from ALL files (Study Plan + Course Description
     #    pages together) so prerequisites can be enriched even across separate groups.
     code_lookup: Dict[str, dict] = {}
+    plan_occurrences: Dict[str, int] = {}
+    description_occurrences: Dict[str, int] = {}
     for _, _, data in records:
         for course in data.get("courses", []):
             code = course.get("code")
             if not isinstance(code, str) or not code:
                 continue
+            categories = {
+                entry.get("document_category")
+                for entry in course.get("source_provenance", [])
+                if isinstance(entry, dict)
+            }
+            if "plan" in categories:
+                plan_occurrences[code] = plan_occurrences.get(code, 0) + 1
+            if "description" in categories:
+                description_occurrences[code] = description_occurrences.get(code, 0) + 1
             known = code_lookup.get(code)
             if known is None:
                 code_lookup[code] = course
@@ -225,6 +270,9 @@ def merge_consecutive_files(
         desc_course = code_lookup.get(code)
         if not desc_course:
             return course
+        if code in plan_occurrences or code in description_occurrences:
+            if plan_occurrences.get(code, 0) != 1 or description_occurrences.get(code, 0) != 1:
+                return course
         merged_course = dict(course)
         for field in ("prerequisite", "desc_th", "desc_en"):
             if field in desc_course and desc_course.get(field) not in (None, ""):
