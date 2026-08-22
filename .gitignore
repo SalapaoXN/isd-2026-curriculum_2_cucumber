@@ -5,11 +5,12 @@ __pycache__/
 inputs/*
 outputs/*
 consolidated_outputs/*
+prototype_outputs/*
 example/*
 .opencode/
 .opencodeignore
 opencode.json
-TODO_PIPELINE.md
+project_snapshot.zip
 
 # keep folder
 !inputs/.gitkeep
