@@ -27,179 +27,152 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install the dependencies:
+Install the pinned dependencies:
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-These commands do not configure CUDA. Use the existing `--no-gpu` option for CPU execution; GPU/CUDA setup is outside this baseline.
+The baseline does not configure CUDA. Use `--no-gpu` for CPU execution; GPU support is optional and follows the existing EasyOCR/runtime environment.
 
 ### EasyOCR models
 
-The current OCR pipeline uses EasyOCR with Thai (`th`) and English (`en`) models. On first use, EasyOCR automatically downloads any missing detector and recognition model files, so the first run may require internet access. The files are cached in EasyOCR's local model directory and reused on later runs; the exact location may vary by platform or configuration.
+The canonical OCR engine uses EasyOCR with Thai and English (`['th', 'en']`). On first use, EasyOCR may download missing detector and recognition models; later runs reuse its local cache.
 
-Use `--no-gpu` for the reproducible CPU baseline. GPU/CUDA support is optional and machine-specific; CUDA installation is not covered here.
-
-To verify that the Thai and English models are available using CPU mode:
+Use `--no-gpu` for the reproducible CPU baseline. To check the canonical models in CPU mode:
 ```bash
 python -c "import easyocr; easyocr.Reader(['th', 'en'], gpu=False); print('EasyOCR models ready')"
 ```
 
-### Input files and output directories
+### Inputs and outputs
 
-Input images are not included in the repository. Create and populate the required directory under `inputs/` yourself. The automated page pipeline expects each file to use the input directory name, a zero-padded three-digit page number, and a supported extension. For example:
+Input images are not included. The automated production runner expects the input directory name, a zero-padded page number, and a supported extension, for example:
 ```text
 inputs/dsba/dsba_page_026.jpg
 ```
 
 Supported image extensions are `.jpg`, `.jpeg`, `.png`, `.webp`, and `.bmp`.
 
-`python -m src.run_pipeline` checks the exact page filenames in `--input-dir`; it does not discover arbitrary names or search nested directories. `python cli.py` is more flexible: it accepts one supported image file or scans only the files directly inside a supplied directory, and its image filenames do not need to follow the automated page naming convention.
+`python -m src.run_pipeline` checks exact page filenames in `--input-dir` and does not search nested directories. `python cli.py` accepts one image or scans images directly inside a directory; its filenames do not need the automated page naming convention.
 
-The OCR, extraction, and merge commands create their output directories when needed, so `outputs/` and `consolidated_outputs/` do not need to be created in advance.
+The pipeline creates `outputs/` and `consolidated_outputs/` when needed. Automated runs write per-page OCR text/JSON and extracted JSON files such as:
+```text
+outputs/dsba_page_026_ocr.txt
+outputs/dsba_page_026_ocr.json
+outputs/dsba_page_026_ocr_extracted.json
+```
 
-### One-page smoke check
+### Pipeline overview
 
-Use one image that you provide yourself; no smoke image or dataset is included in the repository. Place it at `inputs/dsba/dsba_page_026.jpg`, then run exactly one page with the CPU baseline:
+The current production flow is:
+```text
+Image
+  -> canonical EasyOCR (`['th', 'en']`)
+  -> structured course extraction
+  -> optional English name enrichment
+  -> merge/consolidation
+  -> evaluation
+```
+
+The canonical Thai/English OCR and extracted fields are authoritative by default. English enrichment is opt-in and changes only `name_en` when a safe auxiliary candidate is accepted.
+
+### Canonical production run
+
+Run the normal canonical path with the reproducible CPU baseline:
 ```bash
 python -m src.run_pipeline -p 26 -i inputs/dsba -o outputs/smoke --program DSBA --plan coop --no-gpu
 ```
 
-If the pipeline completes successfully, verify that these files exist:
-```text
-outputs/smoke/dsba_page_026_ocr.txt
-outputs/smoke/dsba_page_026_ocr.json
-outputs/smoke/dsba_page_026_ocr_extracted.json
-```
+`src.run_pipeline` accepts `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and `--english-second-pass`. It performs OCR, extraction, and output writing for the requested pages.
 
-This check verifies pipeline execution and output creation only; it does not require an OCR accuracy threshold. Do not commit the user-provided image or generated smoke outputs.
+For a one-page smoke check, provide `inputs/dsba/dsba_page_026.jpg` yourself and verify the three files listed above after the command completes. This checks execution and output creation only; it does not set an OCR accuracy threshold. Do not commit the image or generated smoke outputs.
 
-### Optional LLM experiment
+### Optional English name enrichment
 
-The normal OCR pipeline requires no OpenAI API key, no `openai` package, no environment variable, and no Ollama service. `src/llm_clean_txt.py` is an optional, inactive experiment and is not imported by the active OCR pipeline, so `openai` is intentionally not part of the core requirements.
-
-## Run guide:
-
-### Step by step (full pipeline)
-Run the whole pipeline in order: OCR → Extract → Merge (table + description) → Evaluate.
-
+The second pass is opt-in only. The default pipeline remains canonical-only:
 ```bash
-# 1. OCR a folder of images into outputs/ (per-page .txt + .json)
-python cli.py inputs/dsba/ -o outputs
-
-# 2. Extract structured courses from each OCR file
-python extract.py outputs/ -o outputs
-
-# 3. Merge plan table + course descriptions into a full file (saved in consolidated_outputs/)
-python merge_consecutive.py --prefix dsba --plan coop -d 317-344
-
-# 4. Evaluate against ground truth
-python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python -m src.run_pipeline -p 26 -i inputs/dsba -o outputs/enriched --program DSBA --plan coop --english-second-pass
 ```
 
-For the no-coop plan, replace the plan flag and ground truth accordingly:
+When enabled, an auxiliary English-only OCR pass may improve `name_en`. Unsafe or ambiguous candidates fall back to the canonical `name_en`; Thai names, credits, prerequisites, categories, and other canonical fields are not replaced. The canonical `['th', 'en']` OCR remains authoritative.
+
+The decision and auxiliary evidence are stored per record under `english_second_pass`, separately from `source_provenance`. `--no-gpu` skips the auxiliary pass. The pass also safely skips when CUDA is unavailable or the auxiliary engine cannot be initialized, while the canonical pipeline continues.
+
+Do not assume this pass runs by default or that every candidate is accepted. `experiments/dsba_english_second_pass.py` remains an experiment, not the production path.
+
+### Batch OCR, extraction, and merge
+
+For a separate OCR-only batch, use the generic CLI:
 ```bash
-python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
-python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+python cli.py inputs/dsba/ -o outputs --no-gpu
+python extract.py outputs/ -o outputs --program DSBA --plan coop
 ```
 
-### OCR
+`extract.py` also accepts one `.txt`/`.json` OCR file or a directory. When matching `.txt` and `.json` files share a stem, JSON is preferred and the page is processed once. It writes per-file extracted JSON and, for multiple inputs, a consolidated summary.
+
+Merge extracted plan and description pages with:
 ```bash
-# ocr each .jpg/.png file
-python cli.py inputs/dsba/curriculum_page_016.jpg
-
-# ocr entire folder
-python cli.py inputs/dsba/
-
-# -o outputs/..... (set specific output folder)
-python cli.py inputs/dsba/ -o outputs/dsba_raw_ocr
+python merge_consecutive.py --input-dir outputs --output-dir consolidated_outputs --prefix dsba --plan coop -d 317-344
 ```
 
-### JSON Extraction
-```bash
-# extract an explicitly supplied TXT file
-python extract.py outputs/curriculum_page_016_ocr.txt
+Page-range outputs use `merged_<group>_<plan>_page_<start>-<end>.json`; full table-plus-description outputs use `merged_<group>_<plan>_full.json`.
 
-# explicitly supplied JSON files are also supported
-python extract.py outputs/curriculum_page_016_ocr.json
+### Source provenance
 
-# extract entire folder
-python extract.py outputs/
-python extract.py outputs/dsba_raw_ocr
-
-# full Customize
-python extract.py outputs/curriculum_page_016_ocr.txt \
-  --program DSBA \
-  --plan coop \
-  --output-dir outputs/extracted \
-  --source "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
+Each extracted record has the additive `source_provenance` field:
+```json
+{
+  "source_provenance": [
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_026.png",
+      "source_page": 26,
+      "document_category": "plan"
+    }
+  ]
+}
 ```
 
-When a folder contains matching `.txt` and `.json` files with the same stem, that OCR page is processed once and JSON is preferred. TXT-only and JSON-only files still work.
+Provenance is derived from source/input context, not ground truth. It survives extraction and merge; repeated records retain independent entries, and merged plan/description records may contain multiple entries. `document_category` is `plan`, `description`, or `unknown` where the source context cannot establish it. This field is separate from `english_second_pass`.
 
-### Evaluate
+The automated runner writes the original image filename, page, and program into OCR metadata. Legacy or explicitly supplied TXT/JSON inputs use safe filename/page fallbacks when that metadata is unavailable.
 
+### Evaluation
+
+Evaluate a consolidated file against accepted ground truth:
 ```bash
 python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
 python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
 ```
 
-### รัน Pipeline อัตโนมัติ (OCR -> Extract)
-ใช้สำหรับรันประมวลผลรูปภาพเอกสารตามเลขหน้าที่กำหนด และสกัดออกมาเป็น JSON รายวิชาทันที
+The evaluator preserves its existing text metrics and output levels:
+- CER and WER for matched text fields
+- legacy `field_level`, `page_level`, and `category_level`
 
-`--input-dir` is a filesystem path. The default is `inputs/dsba`; use paths such as `inputs/dsba` or `inputs/it` when running from the repository root.
+It also reports coverage separately:
+- GT record count
+- prediction record count
+- matched, missing, and extra records
+- precision, recall, and F1
 
-โปรแกรมที่มีแผนการเรียน 2 แบบ (coop / no_coop) รันแบบนี้:
+The additive `rubric` namespace reports:
+- `rubric.overall_text`
+- `rubric.field_level`, including text quality and field-presence coverage
+- `rubric.page_level`, with true per-page metrics only when every GT record has authoritative `source_provenance`
+- `rubric.category_level`, grouped by GT curriculum `category`
+
+Current DSBA ground truth does not contain authoritative per-record page provenance, so rubric Page Level reports `unavailable` rather than inferring pages. `code_page_mapping.csv` is a project-created helper and is not authoritative ground truth. Legacy evaluation outputs remain available for compatibility.
+
+### Testing
+
+Tracked regression suites cover evaluator behavior, English enrichment, and source provenance:
 ```bash
-# DSBA
-python -m src.run_pipeline -p 26-32 -i inputs/dsba --plan no_coop --program DSBA
-python -m src.run_pipeline -p 33-39 -i inputs/dsba --plan coop --program DSBA
-python -m src.run_pipeline -p 317-344 -i inputs/dsba --program DSBA
-
-# IT
-python -m src.run_pipeline -p 26-32 -i inputs/it --plan no_coop --program IT
-python -m src.run_pipeline -p 33-39 -i inputs/it --plan coop --program IT
-
-# BIT
-python -m src.run_pipeline -p 26-32 -i inputs/bit --plan no_coop --program IT
-python -m src.run_pipeline -p 33-39 -i inputs/bit --plan coop --program IT
+python -m unittest discover -s tests -p "test_evaluate.py"
+python -m unittest discover -s tests -p "test_english_name_enricher.py"
+python -m unittest discover -s tests -p "test_provenance.py"
 ```
 
-โปรแกรมที่ไม่มีแผนการเรียน เขียนได้บรรทัดเดียว:
-```bash
-# AIT
-python -m src.run_pipeline -p 23-26 -i inputs/ait --program AIT
-python -m src.run_pipeline -p 287-302 -i inputs/ait --program AIT
+### Experimental and current scope
 
-# GENED
-python -m src.run_pipeline -p 16-30 -i inputs/gened --plan gened --program DSBA
+The active repository is primarily a curriculum data-preparation pipeline: OCR, structured extraction, optional English name enrichment, source/page provenance, consolidation, and evaluation. The normal OCR path needs no OpenAI API key, `openai` package, or Ollama service. The LLM cleaner under `src/llm_clean_txt.py` is inactive and not required by the production OCR path.
 
-# RULE
-python -m src.run_pipeline -p 1-13 -i inputs/rule --plan rule --program DSBA
-```
-
-### Merge (รวม table + description)
-รวมไฟล์จาก output และควบรายวิชาจากตารางแผนการเรียนกับคำอธิบายรายวิชาเข้าเป็นไฟล์เดียว
-
-โปรแกรมที่มีแผนการเรียน 2 แบบ (coop / no_coop):
-```bash
-python merge_consecutive.py --prefix dsba --plan coop -d 317-344
-python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
-python merge_consecutive.py --prefix it --plan coop -d 328-371
-python merge_consecutive.py --prefix it --plan no_coop -d 328-371
-python merge_consecutive.py --prefix bit --plan coop -d 328-371
-python merge_consecutive.py --prefix bit --plan no_coop -d 328-371
-```
-
-โปรแกรมที่ไม่มีแผนการเรียน เขียนได้บรรทัดเดียว:
-```bash
-python merge_consecutive.py --prefix ait -d 287-302
-python merge_consecutive.py --prefix gened
-python merge_consecutive.py --prefix rule
-```
-
-ผลลัพธ์: ไฟล์ page-range ใช้รูปแบบ `merged_<group>_<plan>_page_<start>-<end>.json` และไฟล์เต็มใช้รูปแบบ `merged_<group>_<plan>_full.json` เช่น `merged_dsba_coop_full.json` จะถูกบันทึกใน `consolidated_outputs/`
-
-การรวมหลักสูตรจะรักษารายการที่มีการลงซ้ำอย่างถูกต้องตามตำแหน่งและลำดับต้นฉบับ ไม่ลบรายการเพียงเพราะใช้รหัสวิชาเดียวกัน และจะรักษารายการที่ไม่มีรหัส, มีรหัสเป็น null หรือมีรหัสที่ใช้ค้นหาไม่ได้ไว้ด้วย รหัสวิชาที่ใช้ได้ยังสามารถรับข้อมูล metadata เพิ่มเติมได้
-
-ไฟล์สรุปจาก `extract.py` ใช้รูปแบบ `consolidated_curriculum_<group>_<program>_<plan>.json` กลุ่มข้อมูลใช้ตัวระบุที่กำหนดแน่นอนและปลอดภัยต่อชื่อไฟล์ โดย path ปกติอย่าง `inputs/dsba` ยังคงใช้ชื่อสั้น `dsba`; path ที่มีอักขระต้องแปลง, Unicode, nested หรืออยู่นอก `inputs/` อาจมี digest ต่อท้ายเพื่อป้องกันชื่อซ้ำ
+Dedicated Rules extraction, RAG/retrieval, chatbot, API, database, and UI implementations are not complete production components in this repository.
