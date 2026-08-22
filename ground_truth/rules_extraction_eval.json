@@ -1,0 +1,269 @@
+{
+  "schema_version": "1.0",
+  "source": {
+    "document": "Academic Rules",
+    "source_directory": "inputs/rule",
+    "labeling": "Manual transcription from the source PNG pages",
+    "dataset_type": "INTERNAL_RULE_EXTRACTION_REGRESSION_SUBSET",
+    "purpose": "Internal RuleExtractor structure, hierarchy, text, reference, and provenance regression checks only",
+    "official_semantic_gt": false,
+    "runtime_policy_truth": false,
+    "primary_instructor_gt": "ground_truth/rules_ground_truth.json",
+    "selected_rule_count": 14
+  },
+  "records": [
+    {
+      "rule_id": "rule:1",
+      "section_number": "1",
+      "parent_rule_id": null,
+      "category": null,
+      "section_path": ["1"],
+      "rule_text": "ข้อบังคับนี้เรียกว่า “ข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ว่าด้วยการศึกษาระดับปริญญาตรี พ.ศ. ๒๕๖๔”",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Simple top-level rule from the document opening."
+    },
+    {
+      "rule_id": "rule:5",
+      "section_number": "5",
+      "parent_rule_id": null,
+      "category": "หมวด 1 บททั่วไป",
+      "section_path": ["5"],
+      "rule_text": "ในข้อบังคับนี้\n“สถาบัน” หมายความว่า สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n“อธิการบดี” หมายความว่า อธิการบดีสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n“นักศึกษา” หมายความว่า ผู้เข้ารับการศึกษาในระดับปริญญาตรีในสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n“ส่วนงานวิชาการ” หมายความว่า ส่วนงานวิชาการที่ดำเนินการสอนหลักสูตรปริญญาตรีในสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n“หัวหน้าส่วนงานวิชาการ” หมายความว่า คณบดีและให้หมายรวมถึงรองอธิการบดีที่ได้รับมอบหมายให้ควบคุมดูแลวิทยาเขต\n“คณะกรรมการประจำส่วนงานวิชาการ” หมายความว่า คณะกรรมการประจำส่วนงานวิชาการในสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง และให้หมายรวมถึงคณะกรรมการประจำวิทยาเขตด้วย\n“คณะกรรมการประจำส่วนงานอื่น” หมายความว่า คณะกรรมการประจำสำนักวิชาศึกษาทั่วไป และให้หมายรวมถึงคณะกรรมการประจำส่วนงานอื่นในสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบังด้วย\n“ภาคการศึกษาพิเศษ” หมายความว่า การศึกษาภาคฤดูร้อน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "OCR-noisy split anchor and unnumbered chapter heading."
+    },
+    {
+      "rule_id": "rule:6.1",
+      "section_number": "6.1",
+      "parent_rule_id": "rule:6",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": ["6", "6.1"],
+      "rule_text": "การศึกษาในสถาบันใช้ระบบการศึกษาแบบทวิภาค โดยปีการศึกษาหนึ่ง ๆ แบ่งออกเป็น ภาคการศึกษาปกติ คือ ภาคการศึกษาที่ ๑ และภาคการศึกษาที่ ๒ และอาจมีภาคการศึกษาพิเศษอีกหนึ่งภาคการศึกษาได้ โดย ๑ ภาคการศึกษาปกติมีระยะเวลาศึกษาไม่น้อยกว่า ๑๕ สัปดาห์ ซึ่งอาจแบ่งช่วงได้ ส่วนภาคการศึกษาพิเศษอาจจัดได้ตามความจำเป็นของแต่ละส่วนงานวิชาการ และให้กำหนดระยะเวลาและจำนวนหน่วยกิต โดยมีสัดส่วนเทียบเคียงกันได้กับภาคการศึกษาปกติ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Nested rule under rule 6."
+    },
+    {
+      "rule_id": "rule:6.3.1",
+      "section_number": "6.3.1",
+      "parent_rule_id": "rule:6.3",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": ["6", "6.3", "6.3.1"],
+      "rule_text": "รายวิชาภาคทฤษฎี ที่ใช้เวลาบรรยาย หรืออภิปรายปัญหา หรือการเรียนการสอนที่ไม่น้อยกว่า ๑๕ ชั่วโมงต่อภาคการศึกษา คิดเป็นปริมาณการศึกษา ๑ หน่วยกิตระบบทวิภาค",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Deep nested rule under 6.3."
+    },
+    {
+      "rule_id": "rule:15",
+      "section_number": "15",
+      "parent_rule_id": null,
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": ["15"],
+      "rule_text": "ในภาคการศึกษาปกติ นักศึกษาที่ลงทะเบียนเรียนแล้วจะต้องชำระค่าธรรมเนียมการศึกษาให้ครบถ้วนภายในระยะเวลาที่กำหนดในปฏิทินการศึกษา หากพ้นระยะเวลาที่กำหนดแล้วนักศึกษาจะต้องชำระค่าปรับภายในระยะเวลาตามที่กำหนด หากนักศึกษายังไม่ชำระค่าธรรมเนียมการศึกษาและค่าปรับให้ครบถ้วน สถาบันจะไม่อนุญาตให้นักศึกษาเข้าสอบปลายภาคในภาคการศึกษานั้น และนักศึกษาต้องยื่นคำร้องขอลาพักการศึกษา มิฉะนั้นจะพ้นสภาพการเป็นนักศึกษา\nในภาคการศึกษาพิเศษ หลังพ้นระยะเวลาที่กำหนดในปฏิทินการศึกษาแล้ว นักศึกษาที่ลงทะเบียนเรียนแต่ยังไม่ชำระค่าธรรมเนียมการศึกษาและค่าปรับให้ครบถ้วน ให้ถือว่านักศึกษาถอนรายวิชาทั้งหมดที่ลงทะเบียนเรียน โดยสำนักทะเบียนและประมวลผลจะดำเนินการถอนวิชาได้ทันทีและถือว่าการลงทะเบียนเรียนนั้นเป็นโมฆะ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule"
+        },
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Unnumbered continuation crosses from page 4 to page 5."
+    },
+    {
+      "rule_id": "rule:19.3",
+      "section_number": "19.3",
+      "parent_rule_id": "rule:19",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": ["19", "19.3"],
+      "rule_text": "ให้ใช้ระบบหน่วยกิตเป็นหลักในการวัดผลการศึกษา การวัดและรายงานผลการศึกษาให้กำหนดค่าระดับคะแนนเป็นตัวอักษรและการคิดค่าระดับคะแนนเฉลี่ยให้เทียบค่าระดับคะแนนเป็นแต้ม ดังนี้\nค่าระดับคะแนน แต้ม ผลการศึกษา\nA ๔.๐๐ ดีเลิศ (Excellent)\nB+ ๓.๕๐ ดีมาก (Very Good)\nB ๓.๐๐ ดี (Good)\nC+ ๒.๕๐ ดีพอใช้ (Fairly Good)\nC ๒.๐๐ พอใช้ (Fair)\nD+ ๑.๕๐ อ่อน (Poor)\nD ๑.๐๐ อ่อนมาก (Very Poor)\nF ๐ ตก (Failed)\nI - ไม่สมบูรณ์ (Incomplete)\nS - พอใจ (Satisfactory)\nU - ไม่พอใจ (Unsatisfactory)\nT - รับโอน (Transfer)",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule"
+        },
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Preserve the grade table as legitimate rule content; OCR misread several values."
+    },
+    {
+      "rule_id": "rule:27.1.5",
+      "section_number": "27.1.5",
+      "parent_rule_id": "rule:27.1",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": ["27", "27.1", "27.1.5"],
+      "rule_text": "ในกรณีที่นักศึกษาไปศึกษาระยะสั้นหรือฝึกงานที่ต่างประเทศจนเป็นเหตุให้ไม่สำเร็จการศึกษาในระยะเวลาตามที่แผนการศึกษากำหนด อาจยื่นคำร้องเพื่อขอยกเว้นการนับระยะเวลาระหว่างที่ไปศึกษาระยะสั้นหรือฝึกงานที่ต่างประเทศได้ โดยให้ผู้อำนวยการสำนักทะเบียนและประมวลผลเป็นผู้พิจารณา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Deep nested rule recovered from a colon-like OCR anchor."
+    },
+    {
+      "rule_id": "rule:36",
+      "section_number": "36",
+      "parent_rule_id": null,
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": ["36"],
+      "rule_text": "ในกรณีที่มีความจำเป็น นักศึกษาที่พ้นสภาพการเป็นนักศึกษาตามข้อ ๓๓.๒ ข้อ ๓๓.๕ ข้อ ๓๓.๖ และข้อ ๓๓.๑๐ อาจยื่นคำร้องขอกลับเข้าศึกษาในสถาบันได้โดยให้อธิการบดีเป็นผู้อนุมัติโดยความเห็นชอบของหัวหน้าส่วนงานวิชาการที่นักศึกษาสังกัด โดยให้นักศึกษาลาพักการศึกษาย้อนหลังและชำระค่าธรรมเนียมการศึกษารวมถึงค่าปรับทั้งหมดให้ครบถ้วน ทั้งนี้ ต้องไม่เกิน ๑ ปีนับจากวันที่พ้นสภาพนักศึกษาและต้องไม่ขัดกับระยะเวลาการศึกษาสูงสุดของหลักสูตร",
+      "references": ["33.2", "33.5", "33.6", "33.10"],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Explicit references are split across lines in the source."
+    },
+    {
+      "rule_id": "rule:37",
+      "section_number": "37",
+      "parent_rule_id": null,
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": ["37"],
+      "rule_text": "นักศึกษาต้องรักษาวินัยตามข้อบังคับนี้โดยเคร่งครัดอยู่เสมอ ผู้ใดฝ่าฝืนหรือไม่ปฏิบัติตามให้ถือว่าผู้นั้นกระทำผิดทางวินัยและต้องได้รับโทษตามที่กำหนดไว้ในข้อบังคับนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Chapter transition with an OCR-noisy split top-level anchor."
+    },
+    {
+      "rule_id": "rule:45.8",
+      "section_number": "45.8",
+      "parent_rule_id": "rule:45",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": ["45", "45.8"],
+      "rule_text": "ไม่เป็นผู้คัดลอกหรือจ้างวานให้ผู้อื่นทำปริญญานิพนธ์ วิทยานิพนธ์ ปัญหาพิเศษ หรือที่เรียกชื่อเป็นอย่างอื่น ให้แก่ตน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Recovered from the truncated source anchor ๔๕. between sibling rules."
+    },
+    {
+      "rule_id": "rule:48",
+      "section_number": "48",
+      "parent_rule_id": null,
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": ["48"],
+      "rule_text": "ในทุกสิ้นปีการศึกษา หากมีนักศึกษาที่ขาดคุณสมบัติตามข้อ ๔๕ ให้คณะกรรมการประจำส่วนงานวิชาการดำเนินการตามข้อ ๔๗ และส่งผลการพิจารณามาที่สำนักทะเบียนและประมวลผลเพื่อนำเสนอสภาสถาบันพิจารณา นักศึกษาผู้ใดที่สภาสถาบันพิจารณาเห็นสมควรไม่เสนอชื่อให้ได้รับปริญญา ถ้าเห็นว่าตนไม่ได้รับความเป็นธรรมให้มีสิทธิอุทธรณ์ได้ โดยทำเป็นหนังสือลงลายมือชื่อของผู้อุทธรณ์ต่ออธิการบดี พร้อมทั้งทำสำเนารับรองถูกต้องยื่นต่อหัวหน้าส่วนงานวิชาการภายใน ๑๕ วันทำการ นับตั้งแต่วันที่ทราบว่าตนเป็นผู้ไม่สมควรได้รับปริญญา",
+      "references": ["45", "47"],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule"
+        },
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Cross-page continuation and explicit references to rules 45 and 47."
+    },
+    {
+      "rule_id": "rule:51.1",
+      "section_number": "51.1",
+      "parent_rule_id": "rule:51",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": ["51", "51.1"],
+      "rule_text": "มีพยานหลักฐานใหม่ อันอาจทำให้ข้อเท็จจริงที่ฟังเป็นยุติแล้วนั้น เปลี่ยนแปลงไปในสาระสำคัญ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Numberless nested-item recovery from a bare ๕๑ anchor."
+    },
+    {
+      "rule_id": "rule:52",
+      "section_number": "52",
+      "parent_rule_id": null,
+      "category": "บทเฉพาะกาล",
+      "section_path": ["52"],
+      "rule_text": "ในกรณีที่เกิดปัญหาเกี่ยวกับการปฏิบัติตามข้อบังคับนี้ ให้อธิการบดีวินิจฉัยสั่งการ ให้เป็นไปด้วยความเหมาะสมตามควรแก่กรณีเป็นเรื่อง ๆ ไป โดยในกรณีที่เกี่ยวกับนักศึกษาที่เข้าศึกษาก่อนที่ข้อบังคับนี้จะมีผลใช้บังคับ ให้อธิการบดีวินิจฉัยโดยคำนึงถึงข้อบังคับ ระเบียบหรือหลักเกณฑ์เดิมประกอบด้วย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "First rule in the final special-provisions section."
+    },
+    {
+      "rule_id": "rule:53",
+      "section_number": "53",
+      "parent_rule_id": null,
+      "category": "บทเฉพาะกาล",
+      "section_path": ["53"],
+      "rule_text": "ในระหว่างที่ยังไม่มีระเบียบ ประกาศ คำสั่ง หรือมติเพื่อปฏิบัติการตามข้อบังคับนี้ ให้นำข้อบังคับ ระเบียบ ประกาศ คำสั่ง หรือมติที่ใช้บังคับอยู่ในวันที่ข้อบังคับนี้มีผลใช้บังคับ มาใช้บังคับโดยอนุโลมไปพลางก่อนเท่าที่ไม่ขัดหรือแย้งกับข้อบังคับนี้จนกว่าจะได้มีระเบียบ ประกาศ คำสั่ง หรือมติเพื่อปฏิบัติการตามข้อบังคับนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule"
+        }
+      ],
+      "label_notes": "Final rule; exclude the date, signature, and footer after the rule text."
+    }
+  ]
+}
