@@ -147,7 +147,20 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 
 ### Verification
 
-Rubric scenarios produce the expected Field, Page, and Category results using clearly defined inputs and matching rules.
+- Added additive `rubric` evaluation namespace: `overall_text`, `field_level`, `page_level`, and `category_level`.
+- Field Level: existing CER/WER is preserved; field-presence coverage and `matched_prediction_field_missing_count` were added.
+- Page Level: true per-page evaluation is implemented and requires authoritative GT `source_provenance`.
+- Current DSBA GT lacks authoritative per-record page provenance, so DSBA page-level rubric evaluation reports unavailable.
+- `code_page_mapping.csv` is not used as authoritative GT.
+- Category Level: grouped by GT curriculum category; plan/description is not used as the new rubric category definition.
+- Legacy `category_level` remains preserved for backward compatibility.
+- Existing CER/WER, coverage, `field_level`, legacy `page_level`, and legacy `category_level` are unchanged.
+- Exact-first, fuzzy fallback, and one-to-one matching are unchanged.
+- Evaluator suite: 14 tests passed.
+- Authoritative GT page annotation is still required for real DSBA Page Level scoring.
+- Instructor clarification may still be useful for the exact intended meaning of rubric Category Level.
+- Phase 6 is complete for everything supported by current authoritative data.
+- Next phase: Phase 7 — Academic Rules OCR / extraction.
 
 ## Phase 7 — Extract Academic Rules Separately
 
