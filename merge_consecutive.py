@@ -135,6 +135,7 @@ class CurriculumConsolidator:
 
     def consolidate(self) -> Dict:
         descriptions = self.description_data.get("descriptions") or self.description_data.get("courses", [])
+        gened_catalog_merge = self.plan_data.get("program") == "GENED"
 
         desc_lookup = {}
         desc_occurrences: Dict[str, List[dict]] = {}
@@ -229,6 +230,8 @@ class CurriculumConsolidator:
 
         for code, desc_item in desc_lookup.items():
             if code not in processed_codes and code not in ambiguous_codes:
+                if gened_catalog_merge:
+                    continue
                 new_elective_course = desc_item.copy()
                 new_elective_course.setdefault("year", 0)
                 new_elective_course.setdefault("semester", 0)
@@ -244,6 +247,16 @@ class CurriculumConsolidator:
             for desc in descriptions
             if isinstance(desc.get("code"), str) and desc.get("code") in ambiguous_codes
         ]
+        if gened_catalog_merge:
+            unresolved_descriptions.extend(
+                desc.copy()
+                for desc in descriptions
+                if (
+                    isinstance(desc.get("code"), str)
+                    and desc.get("code") not in plan_occurrences
+                    and desc.get("code") not in ambiguous_codes
+                )
+            )
 
         result = {
             "source": self.plan_data.get("source", "Merged Academic Plan & Course Descriptions"),

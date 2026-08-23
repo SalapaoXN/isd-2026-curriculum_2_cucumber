@@ -188,6 +188,10 @@ class CurriculumExtractor:
         r"^\s*(?:\d+\.\s*)?(?:หมวด|กลุ่ม)\s*วิชา(?!ที่กำหนด)",
         re.IGNORECASE,
     )
+    NUMERIC_SECTION_HEADER_RE = re.compile(
+        r"^\s*\d+(?:\.\d+)+\s+.+$",
+        re.IGNORECASE,
+    )
     GROUP_LABEL_RE = re.compile(
         r"^\s*(?:กลุ่ม|หมวด)\s*วิชา.*กำหนด\s*โดย\s*คณะ\s*\*?\s*$",
         re.IGNORECASE,
@@ -232,9 +236,18 @@ class CurriculumExtractor:
         r"^\s*(?:คำอธิบายรายวิชา(?:เฉพาะ)?|รายละเอียดหลักสูตร)\s*$",
         re.IGNORECASE,
     )
+    GENED_DESCRIPTION_SECTION_BOUNDARY_RE = re.compile(
+        r"^\s*กลุ่ม\s*ทักษะ\b",
+        re.IGNORECASE,
+    )
     DESCRIPTION_FOOTER_RE = re.compile(
         r"(?:วท\.?\s*\.?บ\.?|^\s*วท\.?\s*$|^\s*\.?บ\.?\s*\(|"
         r"คณะเทคโนโลยีสารสนเทศ|สาขาวิชา)",
+        re.IGNORECASE,
+    )
+    GENED_DESCRIPTION_FOOTER_RE = re.compile(
+        r"(?:วท\.?\s*\.?บ\.?|^\s*วท\.?\s*$|^\s*\.?บ\.?\s*\(|"
+        r"คณะเทคโนโลยีสารสนเทศ)",
         re.IGNORECASE,
     )
     NOTE_RE = re.compile(
@@ -397,16 +410,25 @@ class CurriculumExtractor:
                 continue
 
             # IT plan OCR sometimes emits a section-heading continuation as a
-            # Thai-only line after a complete course row. It is not part of the
-            # preceding title; discard it until the next course code.
+            # Thai-only line after a complete course row. GenEd pages likewise
+            # emit numeric section headings (and sometimes a bilingual
+            # continuation) between course rows. Neither is course content.
             if (
-                self.program == "IT"
-                and current is not None
+                current is not None
                 and self._has_completed_course_metadata(current)
-                and self.HAS_THAI_RE.search(line)
-                and not self.HAS_ENG_RE.search(line)
-                and not self.PREREQ_KEYWORD_RE.search(line)
-                and not self.GROUP_LABEL_RE.match(line)
+                and (
+                    (
+                        self.program == "IT"
+                        and self.HAS_THAI_RE.search(line)
+                        and not self.HAS_ENG_RE.search(line)
+                        and not self.PREREQ_KEYWORD_RE.search(line)
+                        and not self.GROUP_LABEL_RE.match(line)
+                    )
+                    or (
+                        self.program == "GENED"
+                        and self.NUMERIC_SECTION_HEADER_RE.match(line)
+                    )
+                )
             ):
                 current = None
                 idx += 1
@@ -731,15 +753,40 @@ class CurriculumExtractor:
     def _is_description_page_header(cls, line: str) -> bool:
         return cls.DESCRIPTION_PAGE_HEADER_RE.match(line.strip()) is not None
 
-    @classmethod
-    def _is_description_structural_boundary(cls, line: str) -> bool:
+    def _is_description_footer(self, line: str) -> bool:
+        footer_re = (
+            self.GENED_DESCRIPTION_FOOTER_RE
+            if self.program == "GENED"
+            else self.DESCRIPTION_FOOTER_RE
+        )
+        return footer_re.search(line) is not None
+
+    def _is_description_structural_boundary(self, line: str) -> bool:
         stripped = line.strip()
         return (
-            cls._is_description_code_anchor(stripped)
-            or cls._is_description_page_header(stripped)
-            or cls.DESCRIPTION_SECTION_BOUNDARY_RE.search(stripped) is not None
-            or cls.DESCRIPTION_FOOTER_RE.search(stripped) is not None
+            self._is_description_code_anchor(stripped)
+            or self._is_description_page_header(stripped)
+            or self.DESCRIPTION_SECTION_BOUNDARY_RE.search(stripped) is not None
+            or (
+                self.program == "GENED"
+                and self.GENED_DESCRIPTION_SECTION_BOUNDARY_RE.search(stripped)
+                is not None
+            )
+            or self._is_description_footer(stripped)
             or re.fullmatch(r"\d{1,4}", stripped) is not None
+        )
+
+    def _is_gened_inline_description_number(
+        self, lines: List[str], index: int
+    ) -> bool:
+        """Keep standalone body numbers when another course follows on-page."""
+        if self.program != "GENED":
+            return False
+        if re.fullmatch(r"\d{1,4}", lines[index].strip()) is None:
+            return False
+        return any(
+            self._is_description_code_anchor(line)
+            for line in lines[index + 1 :]
         )
 
     @staticmethod
@@ -850,9 +897,15 @@ class CurriculumExtractor:
                     if self._is_description_page_header(line):
                         i += 1
                         continue
-                    if self.DESCRIPTION_SECTION_BOUNDARY_RE.search(line):
+                    if (
+                        self.DESCRIPTION_SECTION_BOUNDARY_RE.search(line)
+                        or (
+                            self.program == "GENED"
+                            and self.GENED_DESCRIPTION_SECTION_BOUNDARY_RE.search(line)
+                        )
+                    ):
                         leading_blocked = True
-                    elif self.DESCRIPTION_FOOTER_RE.search(line):
+                    elif self._is_description_footer(line):
                         leading_blocked = True
                     elif not re.fullmatch(r"\d{1,4}", line):
                         leading_lines.append(line)
@@ -993,6 +1046,10 @@ class CurriculumExtractor:
                 if not curr:
                     j += 1
                     continue
+                if self._is_gened_inline_description_number(lines, j):
+                    desc_lines.append(curr)
+                    j += 1
+                    continue
                 if self._is_description_structural_boundary(curr):
                     break
                 desc_lines.append(curr)
@@ -1008,7 +1065,7 @@ class CurriculumExtractor:
                 "semester": 0,
                 "category": "หมวดวิชาศึกษาทั่วไป" if is_gened else "หมวดวิชาเฉพาะ",
                 "type": "เลือก",
-                "prerequisite": None if is_gened else prerequisite,
+                "prerequisite": prerequisite,
                 "flexible_year_semester": (
                     None
                     if is_gened
@@ -1108,9 +1165,29 @@ class CurriculumExtractor:
         lines = [ln for ln in cleaned.split("\n") if ln.strip()]
         content_upper = "\n".join(lines)
 
-        #  Fix point 1: detect the "study plan" structure decisively (contains "ปีที่/ชั้นปีที่" or has a course code + credits table header)
-        is_plan_page = bool(re.search(r"(?:ปีที่|ชั้นปีที่)\s*\d+", content_upper)) or \
-                       (bool(re.search(r"รหัสวิชา", content_upper)) and bool(re.search(r"หน่วยกิต", content_upper)))
+        # Detect the study-plan structure decisively. GenEd catalog pages do
+        # not repeat the year/table headers, but they are still code + credit
+        # lists and must retain plan provenance.
+        has_description_marker = bool(
+            re.search(
+                r"(?:คำอธิบายรายวิชา|COURSE\s*DESCRIPTION|PREREQUISITE|PRERE)",
+                content_upper,
+            )
+        )
+        is_gened_catalog_page = (
+            self.program == "GENED"
+            and bool(re.search(r"\b\d{8}\b", content_upper))
+            and bool(self.CREDITS_RE.search(content_upper))
+            and not has_description_marker
+        )
+        is_plan_page = (
+            bool(re.search(r"(?:ปีที่|ชั้นปีที่)\s*\d+", content_upper))
+            or (
+                bool(re.search(r"รหัสวิชา", content_upper))
+                and bool(re.search(r"หน่วยกิต", content_upper))
+            )
+            or is_gened_catalog_page
+        )
 
         if is_plan_page:
             return self.extract_from_lines(
@@ -1119,9 +1196,7 @@ class CurriculumExtractor:
             )
 
         # If not a study plan, check whether it is a course description page
-        is_description_page = bool(
-            re.search(r"(?:คำอธิบายรายวิชา|COURSE\s*DESCRIPTION|PREREQUISITE|PRERE)", content_upper)
-        )
+        is_description_page = has_description_marker
 
         if is_description_page:
             return self.extract_descriptions(

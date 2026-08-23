@@ -281,6 +281,12 @@ Known course and rule queries retrieve the relevant passages with source and pag
 - OCR-derived Thai and English body text is preserved as `desc_th` and `desc_en`.
 - Cross-page description continuation preserves every contributing source page in provenance and removes duplicate page-edge overlap.
 - Description merge remains conservative: only unique 1-plan / 1-description matches are enriched; ambiguous repeated-code candidates remain in `unresolved_descriptions`.
+- GenEd pre-RAG cleanup is accepted with pages `016-030` retained as the authoritative catalog/plan source and pages `044-117` retained as the description source.
+- GenEd catalog extraction contains `269` records and `266` distinct course codes.
+- GenEd description integration produced `263` conservative unique 1-catalog / 1-description matches.
+- Repeated GenEd catalog codes `90644004`, `90644005`, and `90644006` remain unresolved; no occurrence-order pairing is performed.
+- GenEd plan and description records carry explicit `document_category` provenance values.
+- GenEd generated OCR and consolidated artifacts are intentionally not committed; they will be regenerated during the later retrieval artifact freeze.
 - Retrieval artifact freeze is not complete.
 - Existing generated `*_ocr_extracted.json` artifacts may predate strict eight-digit numeric course-code validation and must be refreshed from stored OCR during the upcoming artifact-freeze task.
 
