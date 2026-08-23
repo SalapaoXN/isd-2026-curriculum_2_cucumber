@@ -275,6 +275,15 @@ Define chunking, metadata, source/page identifiers, and a retrieval benchmark.
 
 Known course and rule queries retrieve the relevant passages with source and page metadata.
 
+### Current Progress
+
+- Course-description body preservation is complete for the pre-RAG subphase.
+- OCR-derived Thai and English body text is preserved as `desc_th` and `desc_en`.
+- Cross-page description continuation preserves every contributing source page in provenance and removes duplicate page-edge overlap.
+- Description merge remains conservative: only unique 1-plan / 1-description matches are enriched; ambiguous repeated-code candidates remain in `unresolved_descriptions`.
+- Retrieval artifact freeze is not complete.
+- Existing generated `*_ocr_extracted.json` artifacts may predate strict eight-digit numeric course-code validation and must be refreshed from stored OCR during the upcoming artifact-freeze task.
+
 ## Phase 9 — Build LLM Q&A with Source/Page Citations
 
 ### Objective

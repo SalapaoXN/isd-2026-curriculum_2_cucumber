@@ -5,7 +5,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from src.extractor import merge_source_provenance
+from src.extractor import CurriculumExtractor, merge_source_provenance
+from src.pre_clean import pre_clean_with_regex
 from src.pipeline_config import plan_label
 
 
@@ -53,6 +54,71 @@ def parse_page_range(page_input: str) -> set:
         elif part.isdigit():
             pages.add(int(part))
     return pages
+
+
+def _raw_ocr_path(extracted_path: Path) -> Path | None:
+    if extracted_path.name.endswith("_ocr_extracted.json"):
+        json_path = extracted_path.with_name(
+            extracted_path.name.replace("_ocr_extracted.json", "_ocr.json")
+        )
+        if json_path.exists():
+            return json_path
+        txt_path = extracted_path.with_name(
+            extracted_path.name.replace("_ocr_extracted.json", "_ocr.txt")
+        )
+        if txt_path.exists():
+            return txt_path
+    return None
+
+
+def _load_ordered_description_courses(
+    page_records: List[Tuple[str, int, dict]], source_files: Dict[Tuple[str, int], Path]
+) -> List[dict] | None:
+    """Re-extract stored description OCR pages in numeric order when available."""
+    if not page_records:
+        return []
+
+    first_data = page_records[0][2]
+    extractor = CurriculumExtractor(
+        program=first_data.get("program", "DSBA"),
+        plan=first_data.get("plan"),
+    )
+    pages = []
+
+    for plan, page_num, page_data in sorted(page_records, key=lambda item: item[1]):
+        extracted_path = source_files.get((plan, page_num))
+        raw_path = _raw_ocr_path(extracted_path) if extracted_path else None
+        if raw_path is None:
+            return None
+
+        metadata = {}
+        if raw_path.suffix.lower() == ".json":
+            with raw_path.open("r", encoding="utf-8") as handle:
+                raw_data = json.load(handle)
+            lines = raw_data.get("text_lines", []) if isinstance(raw_data, dict) else []
+            metadata = raw_data if isinstance(raw_data, dict) else {}
+        else:
+            lines = raw_path.read_text(encoding="utf-8").splitlines()
+
+        normalized_lines = [str(line).upper() for line in lines]
+        cleaned = pre_clean_with_regex("\n".join(normalized_lines))
+        normalized_lines = [line for line in cleaned.split("\n") if line.strip()]
+        source_context = extractor._source_context(raw_path, metadata, "description")
+        if raw_path.suffix.lower() != ".json":
+            for course in page_data.get("courses", []):
+                provenance = course.get("source_provenance", [])
+                description_entries = [
+                    entry
+                    for entry in provenance
+                    if isinstance(entry, dict)
+                    and entry.get("document_category") == "description"
+                ]
+                if description_entries:
+                    source_context = description_entries[0]
+                    break
+        pages.append((normalized_lines, source_context))
+
+    return extractor.extract_descriptions_from_pages(pages).get("courses", [])
 
 
 def dedupe_courses(courses: List[dict]) -> List[dict]:
@@ -223,6 +289,7 @@ def merge_consecutive_files(
 
     # 1. Read each file: (plan, page_num, data)
     records: List[Tuple[str, int, dict]] = []
+    source_files: Dict[Tuple[str, int], Path] = {}
     for file in json_files:
         if prefix and not file.name.startswith(prefix):
             continue
@@ -236,6 +303,7 @@ def merge_consecutive_files(
         if target_pages is not None and page_num not in target_pages:
             continue
         records.append((plan, page_num, data))
+        source_files[(plan, page_num)] = file
 
     # 2. Build a code -> course lookup from ALL files (Study Plan + Course Description
     #    pages together) so prerequisites can be enriched even across separate groups.
@@ -284,6 +352,17 @@ def merge_consecutive_files(
 
     # 3. Group by plan
     plans = sorted({r[0] for r in records}, key=lambda value: "" if value is None else str(value))
+    ordered_description_courses: Dict[str, List[dict] | None] = {}
+    if target_desc_pages is not None:
+        for plan in plans:
+            description_page_records = [
+                record
+                for record in records
+                if record[0] == plan and record[1] in target_desc_pages
+            ]
+            ordered_description_courses[plan] = _load_ordered_description_courses(
+                description_page_records, source_files
+            )
     merged_count = 0
 
     for plan in plans:
@@ -305,9 +384,18 @@ def merge_consecutive_files(
         # 4. Merge each consecutive group
         for group in groups:
             all_courses = []
+            group_has_description_pages = (
+                target_desc_pages is not None
+                and any(page_num in target_desc_pages for _, page_num, _ in group)
+            )
             for plan_name, page_num, data in group:
+                if group_has_description_pages and page_num in target_desc_pages:
+                    continue
                 for course in data.get("courses", []):
                     all_courses.append(enrich_prerequisite(course))
+
+            if group_has_description_pages:
+                all_courses.extend(ordered_description_courses.get(plan) or [])
 
             first = group[0][2]
             base_metadata = {
@@ -346,16 +434,18 @@ def merge_consecutive_files(
                 (r for r in records if r[0] == plan), key=lambda r: r[1]
             )
             table_records = [r for r in plan_records if r[1] not in target_desc_pages]
-            desc_records = [r for r in records if r[1] in target_desc_pages]
+            desc_records = [r for r in plan_records if r[1] in target_desc_pages]
             if not table_records or not desc_records:
                 continue
 
             table_courses = []
             for _, _, data in table_records:
                 table_courses.extend(data.get("courses", []))
-            desc_courses = []
-            for _, _, data in desc_records:
-                desc_courses.extend(data.get("courses", []))
+            desc_courses = ordered_description_courses.get(plan)
+            if desc_courses is None:
+                desc_courses = []
+                for _, _, data in desc_records:
+                    desc_courses.extend(data.get("courses", []))
 
             first = table_records[0][2]
             metadata = {

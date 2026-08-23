@@ -221,6 +221,22 @@ class CurriculumExtractor:
         r"THIS COURSE|COURSE WILL|COURSE DESCRIPTION|STUDY OF)",
         re.IGNORECASE,
     )
+    DESCRIPTION_CODE_LINE_RE = re.compile(r"^\s*\d{8}\s*$")
+    DESCRIPTION_PAGE_HEADER_RE = re.compile(
+        r"^\s*(?:\d{1,4}|มคอ\.?\s*\d*|รายละเอียดหลักสูตร|"
+        r"คำอธิบายรายวิชา(?:เฉพาะ)?|หน่วยกิต)\s*$",
+        re.IGNORECASE,
+    )
+    DESCRIPTION_SECTION_BOUNDARY_RE = re.compile(
+        r"^\s*(?:หมวด|กลุ่ม)\s*\d*\s*[| ]*วิชา|"
+        r"^\s*(?:คำอธิบายรายวิชา(?:เฉพาะ)?|รายละเอียดหลักสูตร)\s*$",
+        re.IGNORECASE,
+    )
+    DESCRIPTION_FOOTER_RE = re.compile(
+        r"(?:วท\.?\s*\.?บ\.?|^\s*วท\.?\s*$|^\s*\.?บ\.?\s*\(|"
+        r"คณะเทคโนโลยีสารสนเทศ|สาขาวิชา)",
+        re.IGNORECASE,
+    )
     NOTE_RE = re.compile(
         r"^\s*[-*]|(?:ประเมิน|เกณฑ์|ผลการเรียน|ผ่าน\s*\(S\)|\(S\)|\(U\)|ให้นักศึกษา)",
         re.IGNORECASE,
@@ -707,6 +723,313 @@ class CurriculumExtractor:
             "courses": courses,
         }
 
+    @classmethod
+    def _is_description_code_anchor(cls, line: str) -> bool:
+        return cls.DESCRIPTION_CODE_LINE_RE.fullmatch(line.strip()) is not None
+
+    @classmethod
+    def _is_description_page_header(cls, line: str) -> bool:
+        return cls.DESCRIPTION_PAGE_HEADER_RE.match(line.strip()) is not None
+
+    @classmethod
+    def _is_description_structural_boundary(cls, line: str) -> bool:
+        stripped = line.strip()
+        return (
+            cls._is_description_code_anchor(stripped)
+            or cls._is_description_page_header(stripped)
+            or cls.DESCRIPTION_SECTION_BOUNDARY_RE.search(stripped) is not None
+            or cls.DESCRIPTION_FOOTER_RE.search(stripped) is not None
+            or re.fullmatch(r"\d{1,4}", stripped) is not None
+        )
+
+    @staticmethod
+    def _join_description_lines(lines: List[str]) -> str:
+        return "\n".join(line.strip() for line in lines if line.strip()).strip()
+
+    def _split_description_lines(
+        self, lines: List[str], english_started: bool = False
+    ) -> Tuple[List[str], List[str]]:
+        """Split source lines without correcting their OCR wording."""
+        thai_lines: List[str] = []
+        english_lines: List[str] = []
+
+        for raw_line in lines:
+            line = raw_line.strip()
+            if not line:
+                continue
+
+            if english_started:
+                english_lines.append(line)
+                continue
+
+            has_thai = self.HAS_THAI_RE.search(line) is not None
+            has_english = self.HAS_ENG_RE.search(line) is not None
+            if has_thai:
+                thai_lines.append(line)
+            elif has_english:
+                english_started = True
+                english_lines.append(line)
+            elif thai_lines:
+                thai_lines.append(line)
+
+        return thai_lines, english_lines
+
+    def _append_description_lines(
+        self, course: Dict, lines: List[str], source_context: Optional[Dict] = None
+    ) -> None:
+        """Append source lines to description fields, removing page-edge overlap."""
+        thai_lines, english_lines = self._split_description_lines(
+            lines, english_started=bool(course.get("desc_en"))
+        )
+
+        def append_field(field: str, field_lines: List[str]) -> bool:
+            addition = self._join_description_lines(field_lines)
+            if not addition:
+                return False
+
+            existing = self._join_description_lines(
+                str(course.get(field, "")).splitlines()
+            )
+            if not existing:
+                course[field] = addition
+                return True
+
+            existing_lines = existing.splitlines()
+            addition_lines = addition.splitlines()
+            overlap = 0
+            max_overlap = min(len(existing_lines), len(addition_lines))
+            for size in range(max_overlap, 0, -1):
+                if existing_lines[-size:] == addition_lines[:size]:
+                    overlap = size
+                    break
+
+            remaining = addition_lines[overlap:]
+            if remaining:
+                course[field] = "\n".join(existing_lines + remaining)
+                return True
+            return False
+
+        changed = append_field("desc_th", thai_lines)
+        changed = append_field("desc_en", english_lines) or changed
+        if (changed or any(line.strip() for line in lines)) and source_context:
+            course[SOURCE_PROVENANCE_KEY] = merge_source_provenance(
+                course, [source_context]
+            )
+
+    def _extract_description_page(
+        self, lines: List[str], source_context: Dict
+    ) -> Tuple[List[Dict], List[str]]:
+        """Extract one description page and retain leading continuation lines."""
+        courses = []
+        leading_lines: List[str] = []
+        leading_blocked = False
+        saw_course = False
+        total = len(lines)
+
+        code_regex = re.compile(r"\b\d{8}\b")
+        credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
+        any_prereq_key_regex = re.compile(
+            r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|PRERE\s*[A-Z]*|"
+            r"PRERECUISITE|PRERECUSITE|PREREQUISITE)",
+            re.IGNORECASE,
+        )
+        prereq_eng_key_regex = re.compile(
+            r"(?:PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE|"
+            r"PRLRLCUISIIT|PRERLOUSIIE|FRFRROUISIIT)",
+            re.IGNORECASE,
+        )
+        has_thai_regex = re.compile(r"[\u0e00-\u0e7f]")
+
+        i = 0
+        while i < total:
+            line = lines[i].strip()
+            code_match = code_regex.search(line)
+
+            if not code_match or any_prereq_key_regex.search(line):
+                if not saw_course and not leading_blocked and line:
+                    if self._is_description_page_header(line):
+                        i += 1
+                        continue
+                    if self.DESCRIPTION_SECTION_BOUNDARY_RE.search(line):
+                        leading_blocked = True
+                    elif self.DESCRIPTION_FOOTER_RE.search(line):
+                        leading_blocked = True
+                    elif not re.fullmatch(r"\d{1,4}", line):
+                        leading_lines.append(line)
+                i += 1
+                continue
+
+            code = code_match.group(0)
+            saw_course = True
+            name_th = ""
+            name_en = ""
+            credits = "3(3-0-6)"
+            credits_seen = False
+
+            th_words = []
+            line_after_code = line[code_match.end() :].strip()
+            if line_after_code and not line_after_code.isdigit():
+                th_words.append(line_after_code)
+
+            j = i + 1
+            en_words: List[str] = []
+
+            # Read the Thai course name, credits, and English course name.
+            while j < total:
+                curr = lines[j].strip()
+                if not curr:
+                    j += 1
+                    continue
+
+                if (
+                    self._is_description_code_anchor(curr)
+                ):
+                    break
+
+                if any_prereq_key_regex.search(curr):
+                    break
+
+                c_match = credit_regex.search(curr)
+                if c_match:
+                    credits = c_match.group(0).strip()
+                    credits_seen = True
+                    before_c = curr[: c_match.start()].strip()
+                    if before_c and not before_c.isdigit():
+                        th_words.append(before_c)
+                    j += 1
+                    continue
+
+                if re.search(r"[a-zA-Z]", curr) and not has_thai_regex.search(curr):
+                    clean_en = clean_ocr_en_text(curr).upper()
+                    if clean_en and clean_en not in ["L", "NONE"]:
+                        en_words.append(clean_en)
+                elif en_words and curr in ["1", "2", "3", "L", "l"]:
+                    en_words.append(curr)
+                elif has_thai_regex.search(curr) and not credits_seen:
+                    if not (curr.isdigit() and len(curr) <= 2):
+                        th_words.append(curr)
+                elif th_words and curr in ["1", "2", "3"]:
+                    th_words.append(curr)
+
+                j += 1
+
+            if th_words:
+                cleaned_th_words = []
+                for word in th_words:
+                    trailing_num = re.match(r"^(.*?)\s+(\d+)$", word)
+                    if trailing_num:
+                        cleaned_th_words.append(
+                            trailing_num.group(1).replace(" ", "")
+                            + " "
+                            + trailing_num.group(2)
+                        )
+                    else:
+                        cleaned_th_words.append(word.replace(" ", ""))
+                name_th = "".join(cleaned_th_words).strip()
+
+            if en_words:
+                name_en = re.sub(r"\s+", " ", " ".join(en_words)).strip()
+
+            # Read the prerequisite value without consuming the next course.
+            prereq_tokens = []
+            prev_line = ""
+            while j < total:
+                curr = lines[j].strip()
+                if not curr:
+                    j += 1
+                    continue
+
+                stop_code_match = code_regex.search(curr)
+                if (
+                    stop_code_match
+                    and stop_code_match.group(0) != code
+                    and not prereq_eng_key_regex.search(curr)
+                    and not any_prereq_key_regex.search(prev_line)
+                ):
+                    break
+
+                if prereq_eng_key_regex.search(curr):
+                    remainder = re.sub(prereq_eng_key_regex, "", curr).strip(": ").strip()
+                    if remainder:
+                        if has_thai_regex.search(remainder):
+                            break
+                        cleaned_rem = clean_ocr_en_text(remainder).upper()
+                        if cleaned_rem:
+                            prereq_tokens.append(cleaned_rem)
+
+                    j += 1
+                    while j < total:
+                        sub_line = lines[j].strip()
+                        if not sub_line:
+                            j += 1
+                            continue
+
+                        if has_thai_regex.search(sub_line):
+                            prereq_code_match = code_regex.search(sub_line)
+                            if prereq_code_match and prereq_code_match.group(0) != code:
+                                prereq_tokens.append(prereq_code_match.group(0))
+                                j += 1
+                            break
+
+                        sub_upper = clean_ocr_en_text(sub_line).upper()
+                        if sub_upper:
+                            prereq_tokens.append(sub_upper)
+                        j += 1
+                    break
+
+                prev_line = curr
+                j += 1
+
+            prerequisite = "ไม่มี"
+            if prereq_tokens:
+                clean_prereq = " ".join(prereq_tokens).strip()
+                if clean_prereq not in ["NONE", "ไม่มี", ""]:
+                    codes_found = re.findall(r"\b\d{8}\b", clean_prereq)
+                    prerequisite = ", ".join(dict.fromkeys(codes_found)) if codes_found else clean_prereq
+
+            desc_lines: List[str] = []
+            while j < total:
+                curr = lines[j].strip()
+                if not curr:
+                    j += 1
+                    continue
+                if self._is_description_structural_boundary(curr):
+                    break
+                desc_lines.append(curr)
+                j += 1
+
+            is_gened = code.startswith("90")
+            course = {
+                "code": code,
+                "name_th": name_th if name_th else "ไม่ระบุ",
+                "name_en": name_en if name_en else "N/A",
+                "credits": credits.replace(" ", "").replace("{", "(").replace("}", ")"),
+                "year": 0,
+                "semester": 0,
+                "category": "หมวดวิชาศึกษาทั่วไป" if is_gened else "หมวดวิชาเฉพาะ",
+                "type": "เลือก",
+                "prerequisite": None if is_gened else prerequisite,
+                "flexible_year_semester": (
+                    None
+                    if is_gened
+                    else "3/1, 3/2, 4/1"
+                    if self.program == "DSBA"
+                    else "4/1"
+                    if self.program == "IT" and self.plan == "coop"
+                    else "3/1, 3/2, 4/1"
+                    if self.program == "IT"
+                    else "3/1, 3/2"
+                    if self.program == "AIT"
+                    else "4/2"
+                ),
+                "note": "เฉพาะโครงการเข้าร่วมสหกิจ" if "สหกิจศึกษา" in name_th else None,
+            }
+            self._append_description_lines(course, desc_lines)
+            courses.append(self._attach_source_provenance(course, source_context))
+            i = j
+
+        return courses, leading_lines
+
     def extract_descriptions(
         self, lines: List[str], source_context: Optional[Dict] = None
     ) -> Dict:
@@ -714,288 +1037,43 @@ class CurriculumExtractor:
         source_context = source_context or self._source_context(
             document_category="unknown"
         )
-        courses = []
-        seen_codes = set()
-        i = 0
-        total = len(lines)
+        courses, _ = self._extract_description_page(lines, source_context)
+        return {
+            "source": self.source,
+            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "program": self.program,
+            "plan": self.plan,
+            "courses": courses,
+        }
 
-        code_regex = re.compile(r"\b\d{8}\b")
-        credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
-        
-        # Combine mandatory keywords in both Thai and English to stop reading the course name
-        any_prereq_key_regex = re.compile(
-            r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE)",
-            re.IGNORECASE,
+    def extract_descriptions_from_pages(
+        self, pages: List[Tuple[List[str], Dict]]
+    ) -> Dict:
+        """Extract ordered description pages and join page-edge continuations."""
+
+        def page_sort_key(item):
+            index, (_, context) = item
+            page = _page_number(context.get("source_page")) if isinstance(context, dict) else None
+            if page is None and isinstance(context, dict):
+                page = _page_number_from_name(context.get("source_filename"))
+            return (0, page) if page is not None else (1, index)
+
+        ordered_pages = sorted(
+            enumerate(pages),
+            key=page_sort_key,
         )
-        
-        # English keywords for starting to collect the prerequisite value
-        prereq_eng_key_regex = re.compile(
-            r"(?:PRERE\s*[A-Z]*|PRERECUISITE|PRERECUSITE|PREREQUISITE|PRLRLCUISIIT|PRERLOUSIIE|FRFRROUISIIT)",
-            re.IGNORECASE,
-        )
-        has_thai_regex = re.compile(r"[\u0e00-\u0e7f]")
 
-        while i < total:
-            line = lines[i].strip()
-            code_match = code_regex.search(line)
-
-            if code_match and not any_prereq_key_regex.search(line):
-                code = code_match.group(0)
-
-                if code in seen_codes:
-                    i += 1
-                    continue
-
-                name_th = ""
-                name_en = ""
-                credits = "3(3-0-6)"
-                credits_seen = False
-                prerequisite = "ไม่มี"
-
-                th_words = []
-                line_after_code = line[code_match.end() :].strip()
-                if line_after_code and not line_after_code.isdigit():
-                    th_words.append(line_after_code)
-
-                j = i + 1
-
-                # 1. Read the Thai course name, credits, and English name
-                name_en = ""
-                en_words = [] # use a List to hold English chunks across multiple lines
-                
-                if name_en: 
-                    en_words.append(name_en)
-
-                while j < total:
-                    curr = lines[j].strip()
-                    if not curr:
-                        j += 1
-                        continue
-
-                    # Block boundary: a line holding the next 8-digit course code ends
-                    # this block's metadata (a missing prereq keyword must not swallow
-                    # the following course's lines as this course's name).
-                    boundary_code_match = code_regex.search(curr)
-                    if (
-                        boundary_code_match
-                        and boundary_code_match.group(0) != code
-                        and boundary_code_match.group(0) not in seen_codes
-                    ):
-                        break
-
-                    if any_prereq_key_regex.search(curr):
-                        break
-
-                    c_match = credit_regex.search(curr)
-                    if c_match:
-                        credits = c_match.group(0).strip()
-                        credits_seen = True
-                        before_c = curr[: c_match.start()].strip()
-                        if before_c and not before_c.isdigit():
-                            th_words.append(before_c)
-                        j += 1
-                        continue
-
-                    # Collect multi-line English names
-                    if re.search(r"[a-zA-Z]", curr) and not has_thai_regex.search(curr):
-                        clean_en = clean_ocr_en_text(curr).upper()
-                        if clean_en and clean_en not in ["L", "NONE"]:
-                            en_words.append(clean_en)
-                    # Case: lone numbers that fell onto their own line
-                    elif en_words and curr in ["1", "2", "3", "L", "l"]:
-                        en_words.append(clean_ocr_en_text(curr).upper())
-
-                    # Collect multi-line Thai names.  The Thai course name always
-                    # precedes the credits line, so once a credit line has been
-                    # read the Thai name is complete: any later Thai line is the
-                    # course-description body, not the name.
-                    elif has_thai_regex.search(curr) and not credits_seen:
-                        if not (curr.isdigit() and len(curr) <= 2):
-                            th_words.append(curr)
-                    elif th_words and curr in ["1", "2", "3"]:
-                        th_words.append(curr)
-
-                    j += 1
-
-                # Assemble Thai name without spaces
-                if th_words:
-                    # Remove spaces within each item, but keep one space before a
-                    # trailing course number (e.g. "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 5").
-                    cleaned_th_words = []
-                    for w in th_words:
-                        trailing_num = re.match(r"^(.*?)\s+(\d+)$", w)
-                        if trailing_num:
-                            cleaned_th_words.append(
-                                trailing_num.group(1).replace(" ", "") + " " + trailing_num.group(2)
-                            )
-                        else:
-                            cleaned_th_words.append(w.replace(" ", ""))
-                    name_th = "".join(cleaned_th_words).strip()
-
-                # Assemble English name with single-space separators
-                if en_words:
-                    name_en = " ".join(en_words).strip()
-                    # Remove any spaces that exceed 1 space
-                    name_en = re.sub(r'\s+', ' ', name_en)
-
-                # Read the PREREQUISITE part (skip all Thai until English PREREQUISITE is found)
-                prereq_tokens = []
-                prev_line = ""
-
-                while j < total:
-                    curr = lines[j].strip()
-                    if not curr:
-                        j += 1
-                        continue
-
-                    # A course code directly after a prerequisite keyword (Thai/English) is
-                    # the prerequisite itself, not the start of a new course (e.g. page 321).
-                    stop_code_match = code_regex.search(curr)
-                    if (
-                        stop_code_match
-                        and stop_code_match.group(0) != code
-                        and stop_code_match.group(0) not in seen_codes
-                        and not prereq_eng_key_regex.search(curr)
-                        and not any_prereq_key_regex.search(prev_line)
-                    ):
-                        break
-
-                    if prereq_eng_key_regex.search(curr):
-                        remainder = re.sub(prereq_eng_key_regex, "", curr).strip(": ").strip()
-                        
-                        if remainder:
-                            if has_thai_regex.search(remainder):
-                                break
-                            else:
-                                #  Fix item 2: clean text via clean_ocr_en_text (change L to 1 if at word end)
-                                cleaned_rem = clean_ocr_en_text(remainder).upper()
-                                if cleaned_rem:
-                                    prereq_tokens.append(cleaned_rem)
-
-                        j += 1
-
-                        while j < total:
-                            sub_line = lines[j].strip()
-                            if not sub_line:
-                                j += 1
-                                continue
-
-                            #  When Thai is found (course description line) = stop collecting
-                            #  Prerequisite immediately. A prerequisite course code may share
-                            #  that line (e.g. "06066001 ความน่าจะเจ็") — the code is the
-                            #  prerequisite, NOT the start of a new course block.
-                            if has_thai_regex.search(sub_line):
-                                prereq_code_match = code_regex.search(sub_line)
-                                if prereq_code_match and prereq_code_match.group(0) != code:
-                                    prereq_tokens.append(prereq_code_match.group(0))
-                                j += 1
-                                break
-
-                            sub_upper = clean_ocr_en_text(sub_line).upper()
-                            if len(sub_upper) > 0:
-                                prereq_tokens.append(sub_upper)
-
-                            j += 1
-
-                        break
-
-                    prev_line = curr
-                    j += 1
-
-                # Summarize prerequisite value
-                if prereq_tokens:
-                    clean_prereq = " ".join(prereq_tokens).strip()
-                    if clean_prereq in ["NONE", "ไม่มี", ""]:
-                        prerequisite = "ไม่มี"
-                    else:
-                        # GT stores prerequisites as plain course codes, so reduce
-                        # any captured text to just the 8-digit codes (e.g.
-                        # "06046401 CALC01US 2, 06046402 LINEAR" -> "06046401, 06046402").
-                        codes_found = re.findall(r"\b\d{8}\b", clean_prereq)
-                        if codes_found:
-                            prerequisite = ", ".join(dict.fromkeys(codes_found))
-                        else:
-                            prerequisite = clean_prereq
-                else:
-                    prerequisite = "ไม่มี"
-
-                # 3. Skip course description content lines to find the next course code
-                while j < total:
-                    curr = lines[j].strip()
-                    m_next = code_regex.search(curr)
-
-                    if m_next and not any_prereq_key_regex.search(curr):
-                        next_code = m_next.group(0)
-                        if next_code != code and next_code not in seen_codes:
-                            break
-
-                    if curr.startswith("วท.บ."):
-                        break
-
-                    j += 1
-
-                seen_codes.add(code)
-                credits = credits.replace(" ", "").replace("{", "(").replace("}", ")")
-                
-                if code.startswith("90"):  # institutional GenEd code
-                    courses.append(
-                        {
-                            "code": code,
-                            "name_th": name_th if name_th else "ไม่ระบุ",
-                            "name_en": name_en if name_en else "N/A",
-                            "credits": credits,
-                            "category": "หมวดวิชาศึกษาทั่วไป",
-                            "year": 0,
-                            "semester": 0,
-                            "type": "เลือก",
-                            "prerequisite": None,
-                            "flexible_year_semester": None,
-                            "note": None,
-                        }
-                    )
-                else:  # specific / faculty course codes (06xxxxx)
-                    if self.program == "DSBA" :
-                        flex_year = "3/1, 3/2, 4/1"
-                    elif self.program == "IT" and self.plan == "coop":
-                        flex_year = "4/1"
-                    elif self.program == "IT" :
-                        flex_year = "3/1, 3/2, 4/1"
-                    elif self.program == "AIT" :
-                        flex_year = "3/1, 3/2"
-                    elif self.program == "BIT" :
-                        flex_year = "4/2"
-                    
-                    if code.startswith("90") :
-                        category = "หมวดวิชาศึกษาทั่วไป"
-                    elif code.startswith("xx") :
-                        category = "หมวดวิชาเสรี"
-                    else :
-                        category = "หมวดวิชาเฉพาะ"
-                    
-                    courses.append(
-                        {
-                            "code": code,
-                            "name_th": name_th if name_th else "ไม่ระบุ",
-                            "name_en": name_en if name_en else "N/A",
-                            "credits": credits,
-                            "year": 0,
-                            "semester": 0,
-                            "category": category,
-                            "type": "เลือก",
-                            "prerequisite": prerequisite,
-                            "flexible_year_semester": flex_year,
-                            "note": "เฉพาะโครงการเข้าร่วมสหกิจ" if "สหกิจศึกษา" in name_th else None,
-                        }
-                    )
-                i = j
-                continue
-            i += 1
-
-
-        courses = [
-            self._attach_source_provenance(course, source_context)
-            for course in courses
-        ]
+        courses: List[Dict] = []
+        for _, page in ordered_pages:
+            lines, source_context = page
+            page_courses, leading_lines = self._extract_description_page(
+                lines, source_context
+            )
+            if leading_lines and courses:
+                self._append_description_lines(
+                    courses[-1], leading_lines, source_context
+                )
+            courses.extend(page_courses)
 
         return {
             "source": self.source,
