@@ -1,10 +1,12 @@
 import argparse
+import csv
 import json
 import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
 import Levenshtein
+from pythainlp.tokenize import word_tokenize
 
 
 def normalize_str(text: Any) -> str:
@@ -34,6 +36,74 @@ def calculate_wer(gt: str, pred: str) -> float:
     if not gt_words:
         return 0.0
     return Levenshtein.distance(gt_words, pred.split()) / len(gt_words)
+
+
+THAI_WER_FIELDS = {"name_th", "desc_th"}
+WHITESPACE_WER_FIELDS = {"name_en", "desc_en", "prerequisite"}
+WER_NOT_APPLICABLE_FIELDS = {"code", "credits", "year", "semester"}
+REPORT_DIR = Path("reports/evaluation")
+SUMMARY_COLUMNS = (
+    "program",
+    "plan",
+    "gt_total",
+    "pred_total",
+    "tp",
+    "fn",
+    "fp",
+    "precision",
+    "recall",
+    "f1",
+    "precision_percent",
+    "recall_percent",
+    "f1_percent",
+)
+FIELD_METRIC_COLUMNS = (
+    "program",
+    "plan",
+    "field",
+    "sample_count",
+    "cer",
+    "character_accuracy_percent",
+    "wer",
+    "word_accuracy_percent",
+)
+ERROR_COLUMNS = (
+    "program",
+    "plan",
+    "alignment_status",
+    "code",
+    "field",
+    "gt_value",
+    "pred_value",
+    "cer",
+    "wer",
+)
+
+
+def _wer_tokens(field: str, text: Any) -> List[str]:
+    normalized = normalize_str(text)
+    if field in THAI_WER_FIELDS:
+        return [
+            token
+            for token in word_tokenize(normalized, engine="newmm")
+            if token.strip()
+        ]
+    return normalized.split()
+
+
+def calculate_field_wer(field: str, gt: Any, pred: Any) -> float | None:
+    """Calculate report WER with field-specific tokenization."""
+    if (
+        field in WER_NOT_APPLICABLE_FIELDS
+        or field not in THAI_WER_FIELDS | WHITESPACE_WER_FIELDS
+    ):
+        return None
+
+    gt_tokens = _wer_tokens(field, gt)
+    if not gt_tokens:
+        return 0.0
+    pred_tokens = _wer_tokens(field, pred)
+    return Levenshtein.distance(gt_tokens, pred_tokens) / len(gt_tokens)
 
 
 def is_plan_course(course: dict) -> bool:
@@ -167,7 +237,9 @@ def evaluate_json_structure(
     prediction_json: str | Path,
     target_fields: List[str] = None,
     fuzzy_threshold: float = 0.85,
-) -> dict:
+    return_details: bool = False,
+) -> dict | tuple[dict, dict]:
+    target_fields_was_default = target_fields is None
     if target_fields is None:
         target_fields = ["code", "name_th", "name_en", "credits", "prerequisite"]
 
@@ -462,7 +534,7 @@ def evaluate_json_structure(
         "category_level": rubric_category_level,
     }
 
-    return {
+    result = {
         "file_name": pred_path.name,
         "total_gt_courses": len(gt_courses),
         "total_pred_courses": len(pred_courses),
@@ -486,6 +558,266 @@ def evaluate_json_structure(
         "rubric": rubric,
     }
 
+    if return_details:
+        report_fields = list(target_fields)
+        if target_fields_was_default:
+            for field in ("desc_th", "desc_en"):
+                if field not in report_fields and any(
+                    field in gt_item for gt_item in gt_courses
+                ):
+                    report_fields.append(field)
+        return result, {
+            "gt_courses": gt_courses,
+            "pred_courses": pred_courses,
+            "pairs": pairs,
+            "target_fields": list(target_fields),
+            "report_fields": report_fields,
+            "gt_data": gt_data,
+            "pred_data": pred_data,
+        }
+
+    return result
+
+
+def _metadata_value(data: dict, field: str) -> Any:
+    value = data.get(field)
+    if value is not None and str(value).strip():
+        return value
+
+    if field == "program":
+        values = set()
+        for course in data.get("courses", []):
+            for entry in course.get("source_provenance", []):
+                if not isinstance(entry, dict):
+                    continue
+                program = entry.get("program")
+                if program is not None and str(program).strip():
+                    values.add(str(program).strip())
+        if len(values) == 1:
+            return values.pop()
+    return None
+
+
+def _resolve_metadata(pred_data: dict, gt_data: dict, field: str) -> Any:
+    """Prefer explicit prediction metadata, then explicit GT metadata."""
+    for data in (pred_data, gt_data):
+        value = _metadata_value(data, field)
+        if value is not None and str(value).strip():
+            return value
+    return None
+
+
+def evaluate_pair(
+    ground_truth_json: str | Path,
+    prediction_json: str | Path,
+) -> dict:
+    result, details = evaluate_json_structure(
+        ground_truth_json=ground_truth_json,
+        prediction_json=prediction_json,
+        return_details=True,
+    )
+    return {
+        "program": _resolve_metadata(
+            details["pred_data"], details["gt_data"], "program"
+        ),
+        "plan": _resolve_metadata(
+            details["pred_data"], details["gt_data"], "plan"
+        ),
+        "result": result,
+        "details": details,
+    }
+
+
+def _report_metric_fields(details: dict) -> List[str]:
+    return list(details.get("report_fields", details["target_fields"]))
+
+
+def _average_metric(total: float, count: int) -> float:
+    return round(total / count, 4) if count else 0.0
+
+
+def _accuracy_percent(metric: float) -> float:
+    return round((1.0 - metric) * 100.0, 2)
+
+
+def _coverage_percent(metric: float) -> float:
+    return round(metric * 100.0, 2)
+
+
+def _field_metric_rows(case: dict) -> List[dict]:
+    details = case["details"]
+    rows = []
+    for field in _report_metric_fields(details):
+        cer_total = 0.0
+        wer_total = 0.0
+        sample_count = 0
+        wer_applicable = field in THAI_WER_FIELDS | WHITESPACE_WER_FIELDS
+
+        for gt_item, pred_item in details["pairs"]:
+            if field not in gt_item:
+                continue
+            gt_value = normalize_str(gt_item.get(field))
+            pred_value = normalize_str(pred_item.get(field))
+            cer_total += calculate_cer(gt_value, pred_value)
+            if wer_applicable:
+                wer_total += calculate_field_wer(field, gt_value, pred_value) or 0.0
+            sample_count += 1
+
+        cer = _average_metric(cer_total, sample_count)
+        wer = _average_metric(wer_total, sample_count) if wer_applicable else None
+        rows.append(
+            {
+                "program": case["program"],
+                "plan": case["plan"],
+                "field": field,
+                "sample_count": sample_count,
+                "cer": cer,
+                "character_accuracy_percent": _accuracy_percent(cer),
+                "wer": wer if wer is not None else "",
+                "word_accuracy_percent": (
+                    _accuracy_percent(wer) if wer is not None else ""
+                ),
+            }
+        )
+    return rows
+
+
+def _csv_value(value: Any) -> str:
+    return "" if value is None else str(value)
+
+
+def _useful_error_value(field: str, value: Any) -> bool:
+    return bool(normalize_str(value))
+
+
+def _error_row(
+    case: dict,
+    status: str,
+    code: Any,
+    field: str,
+    gt_value: Any,
+    pred_value: Any,
+) -> dict:
+    gt_normalized = normalize_str(gt_value)
+    pred_normalized = normalize_str(pred_value)
+    wer = calculate_field_wer(field, gt_normalized, pred_normalized)
+    return {
+        "program": case["program"],
+        "plan": case["plan"],
+        "alignment_status": status,
+        "code": code,
+        "field": field,
+        "gt_value": _csv_value(gt_value),
+        "pred_value": _csv_value(pred_value),
+        "cer": round(calculate_cer(gt_normalized, pred_normalized), 4),
+        "wer": round(wer, 4) if wer is not None else "",
+    }
+
+
+def _evaluation_error_rows(case: dict) -> List[dict]:
+    details = case["details"]
+    fields = _report_metric_fields(details)
+    rows = []
+    matched_gt_ids = {id(gt_item) for gt_item, _ in details["pairs"]}
+    matched_pred_ids = {id(pred_item) for _, pred_item in details["pairs"]}
+
+    for gt_item, pred_item in details["pairs"]:
+        code = gt_item.get("code", pred_item.get("code"))
+        for field in fields:
+            if field not in gt_item:
+                continue
+            gt_value = gt_item.get(field)
+            pred_present = field in pred_item
+            pred_value = pred_item.get(field)
+            if pred_present and normalize_str(gt_value) == normalize_str(pred_value):
+                continue
+            if not _useful_error_value(field, gt_value) and not _useful_error_value(
+                field, pred_value
+            ):
+                continue
+            rows.append(_error_row(case, "matched", code, field, gt_value, pred_value))
+
+    for gt_item in details["gt_courses"]:
+        if id(gt_item) in matched_gt_ids:
+            continue
+        code = gt_item.get("code")
+        for field in fields:
+            if field not in gt_item or not _useful_error_value(field, gt_item.get(field)):
+                continue
+            rows.append(
+                _error_row(case, "missing", code, field, gt_item.get(field), "")
+            )
+
+    for pred_item in details["pred_courses"]:
+        if id(pred_item) in matched_pred_ids:
+            continue
+        code = pred_item.get("code")
+        for field in fields:
+            if field not in pred_item or not _useful_error_value(field, pred_item.get(field)):
+                continue
+            rows.append(
+                _error_row(case, "extra", code, field, "", pred_item.get(field))
+            )
+
+    return rows
+
+
+def _write_csv(path: Path, columns: tuple[str, ...], rows: List[dict]) -> None:
+    with path.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(columns))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def write_evaluation_reports(
+    cases: List[dict], reports_dir: str | Path | None = None
+) -> dict:
+    reports_path = Path(REPORT_DIR if reports_dir is None else reports_dir)
+    reports_path.mkdir(parents=True, exist_ok=True)
+
+    results = []
+    summary_rows = []
+    field_rows = []
+    error_rows = []
+
+    for case in cases:
+        result = dict(case["result"])
+        result["program"] = case["program"]
+        result["plan"] = case["plan"]
+        results.append(result)
+
+        coverage = case["result"]["coverage"]
+        summary_rows.append(
+            {
+                "program": case["program"],
+                "plan": case["plan"],
+                "gt_total": coverage["gt_record_count"],
+                "pred_total": coverage["prediction_record_count"],
+                "tp": coverage["matched_count"],
+                "fn": coverage["missing_gt_count"],
+                "fp": coverage["extra_prediction_count"],
+                "precision": coverage["precision"],
+                "recall": coverage["recall"],
+                "f1": coverage["f1"],
+                "precision_percent": _coverage_percent(coverage["precision"]),
+                "recall_percent": _coverage_percent(coverage["recall"]),
+                "f1_percent": _coverage_percent(coverage["f1"]),
+            }
+        )
+        field_rows.extend(_field_metric_rows(case))
+        error_rows.extend(_evaluation_error_rows(case))
+
+    payload = {"results": results}
+    with (reports_path / "evaluation.json").open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+
+    _write_csv(
+        reports_path / "evaluation_summary.csv", SUMMARY_COLUMNS, summary_rows
+    )
+    _write_csv(reports_path / "field_metrics.csv", FIELD_METRIC_COLUMNS, field_rows)
+    _write_csv(reports_path / "evaluation_errors.csv", ERROR_COLUMNS, error_rows)
+    return payload
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -493,6 +825,7 @@ def main():
     )
     parser.add_argument(
         "prediction_json",
+        nargs="?",
         type=str,
         help="Path of the Prediction JSON produced by the model/code",
     )
@@ -500,8 +833,15 @@ def main():
         "--gt",
         dest="ground_truth_json",
         type=str,
-        required=True,
+        required=False,
         help="Path of the Ground Truth JSON file",
+    )
+    parser.add_argument(
+        "--pair",
+        action="append",
+        nargs=2,
+        metavar=("PREDICTION_JSON", "GROUND_TRUTH_JSON"),
+        help="Add a prediction/ground-truth pair; repeat for batch evaluation",
     )
     parser.add_argument(
         "--out",
@@ -515,19 +855,38 @@ def main():
     args = parser.parse_args()
 
     try:
-        result = evaluate_json_structure(
-            ground_truth_json=args.ground_truth_json,
-            prediction_json=args.prediction_json,
-        )
+        if args.pair:
+            if args.prediction_json or args.ground_truth_json:
+                parser.error(
+                    "Use either a single prediction/--gt pair or --pair options, not both."
+                )
+            pairs = [
+                (prediction, ground_truth)
+                for prediction, ground_truth in args.pair
+            ]
+        else:
+            if not args.prediction_json or not args.ground_truth_json:
+                parser.error(
+                    "A prediction JSON and --gt are required unless --pair is used."
+                )
+            pairs = [(args.prediction_json, args.ground_truth_json)]
 
-        formatted_result = json.dumps(result, indent=2, ensure_ascii=False)
+        cases = [
+            evaluate_pair(ground_truth, prediction)
+            for prediction, ground_truth in pairs
+        ]
+        report_payload = write_evaluation_reports(cases)
+        output_payload = (
+            cases[0]["result"] if len(cases) == 1 else report_payload
+        )
+        formatted_result = json.dumps(output_payload, indent=2, ensure_ascii=False)
         print(formatted_result)
 
         if args.output_json:
             out_path = Path(args.output_json)
             out_path.parent.mkdir(parents=True, exist_ok=True)
             with out_path.open("w", encoding="utf-8") as f:
-                f.write(formatted_result)
+                json.dump(output_payload, f, indent=2, ensure_ascii=False)
             print(f"\n Report saved successfully at: {out_path}")
 
     except Exception as e:
