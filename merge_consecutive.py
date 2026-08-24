@@ -1,13 +1,46 @@
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from src.extractor import CurriculumExtractor, merge_source_provenance
+from src.pre_clean import pre_clean_with_regex
+from src.pipeline_config import plan_label
+
 
 def extract_page_num(file_path: Path) -> int:
     match = re.search(r"page_(\d+)", file_path.name)
     return int(match.group(1)) if match else -1
+
+
+def _safe_identifier(value: str, fallback: str = "input") -> str:
+    raw = "" if value is None else str(value)
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", raw).strip("_")
+    if not raw:
+        return fallback
+    if not cleaned:
+        cleaned = fallback
+    if cleaned != raw:
+        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+        cleaned = f"{cleaned}_{digest}"
+    return cleaned
+
+
+def _input_group_identifier(input_path: Path) -> str:
+    parts = list(input_path.parts)
+    input_indexes = [i for i, part in enumerate(parts) if part.casefold() == "inputs"]
+    if input_indexes:
+        parts = parts[input_indexes[-1] + 1 :]
+        source = "/".join(parts) or input_path.name
+        return _safe_identifier(source)
+
+    source = "/".join(parts[-2:]) or input_path.name
+    readable = _safe_identifier(source)
+    normalized_path = str(input_path.expanduser().resolve())
+    path_digest = hashlib.sha256(normalized_path.encode("utf-8")).hexdigest()[:12]
+    return f"{readable}_{path_digest}"
 
 
 def parse_page_range(page_input: str) -> set:
@@ -23,16 +56,74 @@ def parse_page_range(page_input: str) -> set:
     return pages
 
 
+def _raw_ocr_path(extracted_path: Path) -> Path | None:
+    if extracted_path.name.endswith("_ocr_extracted.json"):
+        json_path = extracted_path.with_name(
+            extracted_path.name.replace("_ocr_extracted.json", "_ocr.json")
+        )
+        if json_path.exists():
+            return json_path
+        txt_path = extracted_path.with_name(
+            extracted_path.name.replace("_ocr_extracted.json", "_ocr.txt")
+        )
+        if txt_path.exists():
+            return txt_path
+    return None
+
+
+def _load_ordered_description_courses(
+    page_records: List[Tuple[str, int, dict]], source_files: Dict[Tuple[str, int], Path]
+) -> List[dict] | None:
+    """Re-extract stored description OCR pages in numeric order when available."""
+    if not page_records:
+        return []
+
+    first_data = page_records[0][2]
+    extractor = CurriculumExtractor(
+        program=first_data.get("program", "DSBA"),
+        plan=first_data.get("plan"),
+    )
+    pages = []
+
+    for plan, page_num, page_data in sorted(page_records, key=lambda item: item[1]):
+        extracted_path = source_files.get((plan, page_num))
+        raw_path = _raw_ocr_path(extracted_path) if extracted_path else None
+        if raw_path is None:
+            return None
+
+        metadata = {}
+        if raw_path.suffix.lower() == ".json":
+            with raw_path.open("r", encoding="utf-8") as handle:
+                raw_data = json.load(handle)
+            lines = raw_data.get("text_lines", []) if isinstance(raw_data, dict) else []
+            metadata = raw_data if isinstance(raw_data, dict) else {}
+        else:
+            lines = raw_path.read_text(encoding="utf-8").splitlines()
+
+        normalized_lines = [str(line).upper() for line in lines]
+        cleaned = pre_clean_with_regex("\n".join(normalized_lines))
+        normalized_lines = [line for line in cleaned.split("\n") if line.strip()]
+        source_context = extractor._source_context(raw_path, metadata, "description")
+        if raw_path.suffix.lower() != ".json":
+            for course in page_data.get("courses", []):
+                provenance = course.get("source_provenance", [])
+                description_entries = [
+                    entry
+                    for entry in provenance
+                    if isinstance(entry, dict)
+                    and entry.get("document_category") == "description"
+                ]
+                if description_entries:
+                    source_context = description_entries[0]
+                    break
+        pages.append((normalized_lines, source_context))
+
+    return extractor.extract_descriptions_from_pages(pages).get("courses", [])
+
+
 def dedupe_courses(courses: List[dict]) -> List[dict]:
-    seen = set()
-    result = []
-    for course in courses:
-        code = course.get("code")
-        if not code or code in seen:
-            continue
-        seen.add(code)
-        result.append(course)
-    return result
+    """Preserve source entries; course codes are not unique placement keys."""
+    return list(courses)
 
 
 class CurriculumConsolidator:
@@ -44,43 +135,90 @@ class CurriculumConsolidator:
 
     def consolidate(self) -> Dict:
         descriptions = self.description_data.get("descriptions") or self.description_data.get("courses", [])
+        gened_catalog_merge = self.plan_data.get("program") == "GENED"
 
         desc_lookup = {}
+        desc_occurrences: Dict[str, List[dict]] = {}
         for desc in descriptions:
             code = desc.get("code")
-            if code:
+            if isinstance(code, str) and code:
                 desc_lookup[code] = desc
+                desc_occurrences.setdefault(code, []).append(desc)
+
+        plan_occurrences: Dict[str, int] = {}
+        for course in self.plan_data.get("courses", []):
+            course_code = course.get("code")
+            if not isinstance(course_code, str) or not course_code:
+                continue
+            codes = (
+                [part.strip() for part in course_code.split("หรือ")]
+                if "หรือ" in course_code
+                else [course_code]
+            )
+            for code in codes:
+                if code:
+                    plan_occurrences[code] = plan_occurrences.get(code, 0) + 1
+
+        def unique_description(code: str) -> dict | None:
+            occurrences = desc_occurrences.get(code, [])
+            if plan_occurrences.get(code) == 1 and len(occurrences) == 1:
+                return occurrences[0]
+            return None
+
+        def has_ambiguous_description(code: str) -> bool:
+            description_count = len(desc_occurrences.get(code, []))
+            plan_count = plan_occurrences.get(code, 0)
+            return description_count > 1 or (description_count > 0 and plan_count > 1)
 
         consolidated_courses = []
         processed_codes = set()
+        ambiguous_codes = set()
+        for code, occurrences in desc_occurrences.items():
+            if len(occurrences) > 1 and plan_occurrences.get(code, 0) == 0:
+                ambiguous_codes.add(code)
 
         for course in self.plan_data.get("courses", []):
-            course_code = course.get("code", "")
+            course_code = course.get("code")
+            if not isinstance(course_code, str):
+                course_code = ""
             merged_course = course.copy()
 
             if "หรือ" not in course_code and course_code in desc_lookup:
-                target_desc = desc_lookup[course_code]
-                for field in ("prerequisite", "desc_th", "desc_en"):
-                    if field in target_desc:
-                        merged_course[field] = target_desc[field]
+                target_desc = unique_description(course_code)
+                if target_desc is None:
+                    if has_ambiguous_description(course_code):
+                        ambiguous_codes.add(course_code)
+                else:
+                    for field in ("prerequisite", "desc_th", "desc_en"):
+                        if field in target_desc:
+                            merged_course[field] = target_desc[field]
+                    merged_course["source_provenance"] = merge_source_provenance(
+                        course, target_desc
+                    )
                 processed_codes.add(course_code)
 
             elif "หรือ" in course_code:
                 sub_codes = [c.strip() for c in course_code.split("หรือ")]
                 th_list = []
                 en_list = []
+                description_sources = []
                 for sub_code in sub_codes:
-                    if sub_code in desc_lookup:
-                        target_desc = desc_lookup[sub_code]
+                    target_desc = unique_description(sub_code)
+                    if target_desc is not None:
                         if target_desc.get("desc_th"):
                             th_list.append(target_desc.get("desc_th"))
                         if target_desc.get("desc_en"):
                             en_list.append(target_desc.get("desc_en"))
-                        processed_codes.add(sub_code)
+                        description_sources.append(target_desc)
+                    elif has_ambiguous_description(sub_code):
+                        ambiguous_codes.add(sub_code)
                 if th_list:
                     merged_course["desc_th"] = "\n".join(th_list)
                 if en_list:
                     merged_course["desc_en"] = "\n".join(en_list)
+                merged_course["source_provenance"] = merge_source_provenance(
+                    course, *description_sources
+                )
                 processed_codes.add(course_code)
 
             else:
@@ -91,7 +229,9 @@ class CurriculumConsolidator:
             consolidated_courses.append(merged_course)
 
         for code, desc_item in desc_lookup.items():
-            if code not in processed_codes:
+            if code not in processed_codes and code not in ambiguous_codes:
+                if gened_catalog_merge:
+                    continue
                 new_elective_course = desc_item.copy()
                 new_elective_course.setdefault("year", 0)
                 new_elective_course.setdefault("semester", 0)
@@ -102,7 +242,23 @@ class CurriculumConsolidator:
                 consolidated_courses.append(new_elective_course)
                 processed_codes.add(code)
 
-        return {
+        unresolved_descriptions = [
+            desc.copy()
+            for desc in descriptions
+            if isinstance(desc.get("code"), str) and desc.get("code") in ambiguous_codes
+        ]
+        if gened_catalog_merge:
+            unresolved_descriptions.extend(
+                desc.copy()
+                for desc in descriptions
+                if (
+                    isinstance(desc.get("code"), str)
+                    and desc.get("code") not in plan_occurrences
+                    and desc.get("code") not in ambiguous_codes
+                )
+            )
+
+        result = {
             "source": self.plan_data.get("source", "Merged Academic Plan & Course Descriptions"),
             "description": self.plan_data.get("description", "Ground Truth รายวิชาหลักสูตร"),
             "program": self.plan_data.get("program", ""),
@@ -110,6 +266,9 @@ class CurriculumConsolidator:
             "total_courses": len(consolidated_courses),
             "courses": consolidated_courses,
         }
+        if unresolved_descriptions:
+            result["unresolved_descriptions"] = unresolved_descriptions
+        return result
 
 
 def merge_plan_with_description(table_courses: List[dict], desc_courses: List[dict], metadata: dict) -> dict:
@@ -131,6 +290,7 @@ def merge_consecutive_files(
     """Group *_extracted.json files by plan + consecutive pages, dedupe courses by code, and merge."""
     input_path = Path(input_dir)
     output_folder = Path(output_dir)
+    group_id = _safe_identifier(prefix) if prefix else _input_group_identifier(input_path)
 
     json_files = list(input_path.glob("*_extracted.json"))
     if not json_files:
@@ -142,6 +302,7 @@ def merge_consecutive_files(
 
     # 1. Read each file: (plan, page_num, data)
     records: List[Tuple[str, int, dict]] = []
+    source_files: Dict[Tuple[str, int], Path] = {}
     for file in json_files:
         if prefix and not file.name.startswith(prefix):
             continue
@@ -155,15 +316,27 @@ def merge_consecutive_files(
         if target_pages is not None and page_num not in target_pages:
             continue
         records.append((plan, page_num, data))
+        source_files[(plan, page_num)] = file
 
     # 2. Build a code -> course lookup from ALL files (Study Plan + Course Description
     #    pages together) so prerequisites can be enriched even across separate groups.
     code_lookup: Dict[str, dict] = {}
+    plan_occurrences: Dict[str, int] = {}
+    description_occurrences: Dict[str, int] = {}
     for _, _, data in records:
         for course in data.get("courses", []):
             code = course.get("code")
-            if not code:
+            if not isinstance(code, str) or not code:
                 continue
+            categories = {
+                entry.get("document_category")
+                for entry in course.get("source_provenance", [])
+                if isinstance(entry, dict)
+            }
+            if "plan" in categories:
+                plan_occurrences[code] = plan_occurrences.get(code, 0) + 1
+            if "description" in categories:
+                description_occurrences[code] = description_occurrences.get(code, 0) + 1
             known = code_lookup.get(code)
             if known is None:
                 code_lookup[code] = course
@@ -173,19 +346,36 @@ def merge_consecutive_files(
     def enrich_prerequisite(course: dict) -> dict:
         code = course.get("code")
         prereq = course.get("prerequisite")
-        if not code or prereq not in (None, ""):
+        if not isinstance(code, str) or not code or prereq not in (None, ""):
             return course
         desc_course = code_lookup.get(code)
         if not desc_course:
             return course
+        if code in plan_occurrences or code in description_occurrences:
+            if plan_occurrences.get(code, 0) != 1 or description_occurrences.get(code, 0) != 1:
+                return course
         merged_course = dict(course)
         for field in ("prerequisite", "desc_th", "desc_en"):
             if field in desc_course and desc_course.get(field) not in (None, ""):
                 merged_course[field] = desc_course[field]
+        merged_course["source_provenance"] = merge_source_provenance(
+            course, desc_course
+        )
         return merged_course
 
     # 3. Group by plan
-    plans = sorted({r[0] for r in records})
+    plans = sorted({r[0] for r in records}, key=lambda value: "" if value is None else str(value))
+    ordered_description_courses: Dict[str, List[dict] | None] = {}
+    if target_desc_pages is not None:
+        for plan in plans:
+            description_page_records = [
+                record
+                for record in records
+                if record[0] == plan and record[1] in target_desc_pages
+            ]
+            ordered_description_courses[plan] = _load_ordered_description_courses(
+                description_page_records, source_files
+            )
     merged_count = 0
 
     for plan in plans:
@@ -207,27 +397,32 @@ def merge_consecutive_files(
         # 4. Merge each consecutive group
         for group in groups:
             all_courses = []
-            seen_codes = set()
+            group_has_description_pages = (
+                target_desc_pages is not None
+                and any(page_num in target_desc_pages for _, page_num, _ in group)
+            )
             for plan_name, page_num, data in group:
+                if group_has_description_pages and page_num in target_desc_pages:
+                    continue
                 for course in data.get("courses", []):
-                    code = course.get("code")
-                    if code in seen_codes:
-                        continue
-                    seen_codes.add(code)
                     all_courses.append(enrich_prerequisite(course))
+
+            if group_has_description_pages:
+                all_courses.extend(ordered_description_courses.get(plan) or [])
 
             first = group[0][2]
             base_metadata = {
                 "source": first.get("source", ""),
                 "description": first.get("description", ""),
-                "program": first.get("program", "DSBA"),
-                "plan": first.get("plan", "coop"),
+                "program": first.get("program", ""),
+                "plan": first.get("plan") if "plan" in first else None,
             }
             base_metadata["total_courses"] = len(all_courses)
             base_metadata["courses"] = all_courses
 
             page_nums = [r[1] for r in group]
-            output_filename = f"merged_{plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
+            safe_plan = _safe_identifier(plan_label(plan))
+            output_filename = f"merged_{group_id}_{safe_plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
             output_file_path = output_folder / output_filename
 
             output_folder.mkdir(parents=True, exist_ok=True)
@@ -236,7 +431,7 @@ def merge_consecutive_files(
 
             merged_count += 1
             print(
-                f" Merged {len(group)} files (plan '{plan}', "
+                f" Merged {len(group)} files (plan '{plan_label(plan)}', "
                 f"pages {min(page_nums):03d}-{max(page_nums):03d}) "
                 f"-> {len(all_courses)} courses: {output_file_path.name}"
             )
@@ -252,23 +447,25 @@ def merge_consecutive_files(
                 (r for r in records if r[0] == plan), key=lambda r: r[1]
             )
             table_records = [r for r in plan_records if r[1] not in target_desc_pages]
-            desc_records = [r for r in records if r[1] in target_desc_pages]
+            desc_records = [r for r in plan_records if r[1] in target_desc_pages]
             if not table_records or not desc_records:
                 continue
 
             table_courses = []
             for _, _, data in table_records:
                 table_courses.extend(data.get("courses", []))
-            desc_courses = []
-            for _, _, data in desc_records:
-                desc_courses.extend(data.get("courses", []))
+            desc_courses = ordered_description_courses.get(plan)
+            if desc_courses is None:
+                desc_courses = []
+                for _, _, data in desc_records:
+                    desc_courses.extend(data.get("courses", []))
 
             first = table_records[0][2]
             metadata = {
                 "source": first.get("source", ""),
                 "description": first.get("description", ""),
-                "program": first.get("program", "DSBA"),
-                "plan": first.get("plan", "coop"),
+                "program": first.get("program", ""),
+                "plan": first.get("plan") if "plan" in first else None,
             }
             final = merge_plan_with_description(
                 dedupe_courses(table_courses),
@@ -276,7 +473,8 @@ def merge_consecutive_files(
                 metadata,
             )
 
-            output_filename = f"merged_{plan}_full.json"
+            safe_plan = _safe_identifier(plan_label(plan))
+            output_filename = f"merged_{group_id}_{safe_plan}_full.json"
             output_file_path = output_folder / output_filename
             output_folder.mkdir(parents=True, exist_ok=True)
             with open(output_file_path, "w", encoding="utf-8") as f:
@@ -284,7 +482,7 @@ def merge_consecutive_files(
 
             combined_count += 1
             print(
-                f" Combined plan '{plan}' table ({len(table_records)} files) + "
+                f" Combined plan '{plan_label(plan)}' table ({len(table_records)} files) + "
                 f"description ({len(desc_records)} files) "
                 f"-> {len(final.get('courses', []))} courses: {output_file_path.name}"
             )

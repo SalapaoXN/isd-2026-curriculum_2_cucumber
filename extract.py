@@ -1,7 +1,38 @@
 import argparse
+import hashlib
 import json
+import re
 from pathlib import Path
 from src import CurriculumExtractor
+from src.pipeline_config import plan_label, resolve_plan, resolve_program
+
+
+def _safe_identifier(value: str, fallback: str = "input") -> str:
+    raw = "" if value is None else str(value)
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", raw).strip("_")
+    if not raw:
+        return fallback
+    if not cleaned:
+        cleaned = fallback
+    if cleaned != raw:
+        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+        cleaned = f"{cleaned}_{digest}"
+    return cleaned
+
+
+def _input_group_identifier(input_path: Path) -> str:
+    parts = list(input_path.parts)
+    input_indexes = [i for i, part in enumerate(parts) if part.casefold() == "inputs"]
+    if input_indexes:
+        parts = parts[input_indexes[-1] + 1 :]
+        source = "/".join(parts) or input_path.name
+        return _safe_identifier(source)
+
+    source = "/".join(parts[-2:]) or input_path.name
+    readable = _safe_identifier(source)
+    normalized_path = str(input_path.expanduser().resolve())
+    path_digest = hashlib.sha256(normalized_path.encode("utf-8")).hexdigest()[:12]
+    return f"{readable}_{path_digest}"
 
 
 def parse_arguments():
@@ -22,14 +53,14 @@ def parse_arguments():
     parser.add_argument(
         "--program",
         type=str,
-        default="DSBA",
-        help="Program name (default: 'DSBA')"
+        default=None,
+        help="Program name; derived from a supported input directory when omitted"
     )
     parser.add_argument(
         "--plan",
         type=str,
-        default="coop",
-        help="Study plan name (e.g. 'coop', 'regular') (default: 'coop')"
+        default=None,
+        help="Study plan: coop, no_coop, or gened; required where applicable"
     )
     parser.add_argument(
         "--source",
@@ -48,15 +79,29 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    program_input = input_path if input_path.is_dir() else input_path.parent
+    try:
+        program = resolve_program(args.program, program_input)
+        plan = resolve_plan(args.plan, program)
+    except ValueError as exc:
+        raise SystemExit(f"Error: {exc}") from exc
+
     extractor = CurriculumExtractor(
-        program=args.program,
-        plan=args.plan,
+        program=program,
+        plan=plan,
         source=args.source
     )
 
     files_to_process = []
     if input_path.is_dir():
-        files_to_process = list(input_path.glob("*.txt")) + list(input_path.glob("*.json"))
+        files_by_stem = {
+            file.stem: file
+            for file in input_path.glob("*.txt")
+        }
+        for file in input_path.glob("*.json"):
+            if not file.name.endswith("_extracted.json"):
+                files_by_stem[file.stem] = file
+        files_to_process = list(files_by_stem.values())
     else:
         files_to_process = [input_path]
 
@@ -88,13 +133,16 @@ def main():
     # If processing multiple files, also output a merged summary file
     if len(files_to_process) > 1 and last_result:
         merged_result = {
-            "source": args.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {args.program} (แผน {args.plan}) - Consolidated",
-            "program": args.program,
-            "plan": args.plan,
+            "source": last_result.get("source", args.source),
+            "description": f"Ground Truth รายวิชาหลักสูตร {program} (แผน {plan_label(plan)}) - Consolidated",
+            "program": program,
+            "plan": plan,
             "courses": all_courses
         }
-        consolidated_file = output_dir / f"consolidated_curriculum_{args.program}_{args.plan}.json"
+        group_id = _input_group_identifier(input_path)
+        program_id = _safe_identifier(program)
+        plan_id = _safe_identifier(plan_label(plan))
+        consolidated_file = output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
         with open(consolidated_file, "w", encoding="utf-8") as f:
             json.dump(merged_result, f, ensure_ascii=False, indent=4)
         print(f"\n Saved consolidated result ({len(all_courses)} courses total): {consolidated_file}")
