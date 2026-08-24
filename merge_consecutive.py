@@ -5,7 +5,15 @@ import re
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from src.extractor import CurriculumExtractor, merge_source_provenance
+from src.extractor import (
+    DEFAULT_COOP_PAIRS,
+    CurriculumExtractor,
+    merge_alternative_courses,
+    merge_source_provenance,
+    parse_document_page,
+    prediction_description,
+    prediction_source_label,
+)
 from src.pre_clean import pre_clean_with_regex
 from src.pipeline_config import plan_label
 
@@ -43,6 +51,23 @@ def _input_group_identifier(input_path: Path) -> str:
     return f"{readable}_{path_digest}"
 
 
+def _prediction_metadata(data: dict, plan) -> dict:
+    """Keep generated merge metadata neutral even when inputs are stale."""
+    program = data.get("program", "")
+    source = data.get("source")
+    description = data.get("description")
+    if not isinstance(source, str) or not source.strip() or "gt_template" in source.casefold() or "ground truth" in source.casefold():
+        source = prediction_source_label(program, plan)
+    if not isinstance(description, str) or not description.strip() or "ground truth" in description.casefold():
+        description = prediction_description(program, plan)
+    return {
+        "source": source,
+        "description": description,
+        "program": program,
+        "plan": plan,
+    }
+
+
 def parse_page_range(page_input: str) -> set:
     pages = set()
     parts = page_input.split(",")
@@ -71,6 +96,63 @@ def _raw_ocr_path(extracted_path: Path) -> Path | None:
     return None
 
 
+def _read_raw_ocr(raw_path: Path) -> tuple[List[str], dict]:
+    if raw_path.suffix.lower() == ".json":
+        with raw_path.open("r", encoding="utf-8") as handle:
+            raw_data = json.load(handle)
+        if not isinstance(raw_data, dict):
+            return [], {}
+        return raw_data.get("text_lines", []), raw_data
+    return raw_path.read_text(encoding="utf-8").splitlines(), {}
+
+
+def _hydrate_page_document_pages(
+    data: dict, extracted_path: Path, plan: str
+) -> None:
+    """Fill missing page metadata from stored OCR without changing provenance identity."""
+    raw_path = _raw_ocr_path(extracted_path)
+    if raw_path is None:
+        return
+
+    lines, metadata = _read_raw_ocr(raw_path)
+    categories = {
+        entry.get("document_category")
+        for course in data.get("courses", [])
+        for entry in course.get("source_provenance", [])
+        if isinstance(entry, dict)
+    }
+    categories.intersection_update({"plan", "description"})
+    if not categories:
+        return
+
+    extractor = CurriculumExtractor(
+        program=data.get("program", "DSBA"),
+        plan=plan,
+    )
+    for category in categories:
+        source_context = extractor._source_context(
+            raw_path,
+            metadata,
+            category,
+            text_lines=lines,
+        )
+        document_page = source_context.get("document_page")
+        source_page = source_context.get("source_page")
+        if document_page is None:
+            continue
+
+        for course in data.get("courses", []):
+            for entry in course.get("source_provenance", []):
+                if (
+                    not isinstance(entry, dict)
+                    or entry.get("document_category") != category
+                    or entry.get("source_page") != source_page
+                    or parse_document_page(entry.get("document_page")) is not None
+                ):
+                    continue
+                entry["document_page"] = document_page
+
+
 def _load_ordered_description_courses(
     page_records: List[Tuple[str, int, dict]], source_files: Dict[Tuple[str, int], Path]
 ) -> List[dict] | None:
@@ -78,10 +160,10 @@ def _load_ordered_description_courses(
     if not page_records:
         return []
 
-    first_data = page_records[0][2]
+    first_plan, _, first_data = page_records[0]
     extractor = CurriculumExtractor(
         program=first_data.get("program", "DSBA"),
-        plan=first_data.get("plan"),
+        plan=first_plan,
     )
     pages = []
 
@@ -91,19 +173,15 @@ def _load_ordered_description_courses(
         if raw_path is None:
             return None
 
-        metadata = {}
-        if raw_path.suffix.lower() == ".json":
-            with raw_path.open("r", encoding="utf-8") as handle:
-                raw_data = json.load(handle)
-            lines = raw_data.get("text_lines", []) if isinstance(raw_data, dict) else []
-            metadata = raw_data if isinstance(raw_data, dict) else {}
-        else:
-            lines = raw_path.read_text(encoding="utf-8").splitlines()
+        lines, metadata = _read_raw_ocr(raw_path)
 
         normalized_lines = [str(line).upper() for line in lines]
         cleaned = pre_clean_with_regex("\n".join(normalized_lines))
         normalized_lines = [line for line in cleaned.split("\n") if line.strip()]
-        source_context = extractor._source_context(raw_path, metadata, "description")
+        raw_source_context = extractor._source_context(
+            raw_path, metadata, "description", text_lines=lines
+        )
+        source_context = raw_source_context
         if raw_path.suffix.lower() != ".json":
             for course in page_data.get("courses", []):
                 provenance = course.get("source_provenance", [])
@@ -114,7 +192,11 @@ def _load_ordered_description_courses(
                     and entry.get("document_category") == "description"
                 ]
                 if description_entries:
-                    source_context = description_entries[0]
+                    source_context = dict(description_entries[0])
+                    if parse_document_page(source_context.get("document_page")) is None:
+                        source_context["document_page"] = raw_source_context.get(
+                            "document_page"
+                        )
                     break
         pages.append((normalized_lines, source_context))
 
@@ -220,6 +302,8 @@ class CurriculumConsolidator:
                     course, *description_sources
                 )
                 processed_codes.add(course_code)
+                if self.plan_data.get("program") == "IT":
+                    processed_codes.update(sub_codes)
 
             else:
                 if course_code:
@@ -228,7 +312,38 @@ class CurriculumConsolidator:
             merged_course.setdefault("flexible_year_semester", None)
             consolidated_courses.append(merged_course)
 
+        # IT's co-op alternatives are present in the description catalog even
+        # when the no_coop plan table has no corresponding plan row.  Merge
+        # only this configured pair when both descriptions are unique and
+        # neither code has a plan occurrence.  Other curricula keep their
+        # existing unmatched-description behavior.
+        description_pair_by_code = {}
+        description_pair_heads = set()
+        if self.plan_data.get("program") == "IT":
+            for code_a, code_b, credits in DEFAULT_COOP_PAIRS:
+                if (code_a, code_b) != ("06016481", "06016482"):
+                    continue
+                first_description = desc_occurrences.get(code_a, [])
+                second_description = desc_occurrences.get(code_b, [])
+                if (
+                    plan_occurrences.get(code_a, 0) == 0
+                    and plan_occurrences.get(code_b, 0) == 0
+                    and len(first_description) == 1
+                    and len(second_description) == 1
+                ):
+                    merged_description = merge_alternative_courses(
+                        first_description[0], second_description[0], credits
+                    )
+                    description_pair_by_code[code_a] = merged_description
+                    description_pair_by_code[code_b] = merged_description
+                    description_pair_heads.add(code_a)
+
         for code, desc_item in desc_lookup.items():
+            if code in description_pair_by_code:
+                if code in description_pair_heads:
+                    consolidated_courses.append(description_pair_by_code[code])
+                    processed_codes.update(description_pair_by_code[code]["code"].split(" หรือ "))
+                continue
             if code not in processed_codes and code not in ambiguous_codes:
                 if gened_catalog_merge:
                     continue
@@ -259,10 +374,7 @@ class CurriculumConsolidator:
             )
 
         result = {
-            "source": self.plan_data.get("source", "Merged Academic Plan & Course Descriptions"),
-            "description": self.plan_data.get("description", "Ground Truth รายวิชาหลักสูตร"),
-            "program": self.plan_data.get("program", ""),
-            "plan": self.plan_data.get("plan", ""),
+            **_prediction_metadata(self.plan_data, self.plan_data.get("plan")),
             "total_courses": len(consolidated_courses),
             "courses": consolidated_courses,
         }
@@ -309,12 +421,14 @@ def merge_consecutive_files(
         page_num = extract_page_num(file)
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
-        plan = data.get("plan", "unknown")
+        artifact_plan = data.get("plan", "unknown")
         is_desc_page = target_desc_pages is not None and page_num in target_desc_pages
-        if plan_filter and plan != plan_filter and not is_desc_page:
+        plan = plan_filter if is_desc_page and plan_filter is not None else artifact_plan
+        if plan_filter and plan != plan_filter:
             continue
         if target_pages is not None and page_num not in target_pages:
             continue
+        _hydrate_page_document_pages(data, file, plan)
         records.append((plan, page_num, data))
         source_files[(plan, page_num)] = file
 
@@ -411,12 +525,7 @@ def merge_consecutive_files(
                 all_courses.extend(ordered_description_courses.get(plan) or [])
 
             first = group[0][2]
-            base_metadata = {
-                "source": first.get("source", ""),
-                "description": first.get("description", ""),
-                "program": first.get("program", ""),
-                "plan": first.get("plan") if "plan" in first else None,
-            }
+            base_metadata = _prediction_metadata(first, plan)
             base_metadata["total_courses"] = len(all_courses)
             base_metadata["courses"] = all_courses
 
@@ -461,12 +570,7 @@ def merge_consecutive_files(
                     desc_courses.extend(data.get("courses", []))
 
             first = table_records[0][2]
-            metadata = {
-                "source": first.get("source", ""),
-                "description": first.get("description", ""),
-                "program": first.get("program", ""),
-                "plan": first.get("plan") if "plan" in first else None,
-            }
+            metadata = _prediction_metadata(first, plan)
             final = merge_plan_with_description(
                 dedupe_courses(table_courses),
                 dedupe_courses(desc_courses),

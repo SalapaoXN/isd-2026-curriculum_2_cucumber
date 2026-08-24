@@ -19,6 +19,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+from .page_metadata import (
+    document_page_candidates_from_lines,
+    document_page_from_lines,
+    parse_document_page,
+)
 from .pre_clean import pre_clean_with_regex
 
 
@@ -30,12 +35,19 @@ SOURCE_PROVENANCE_FIELDS = (
     "document_category",
 )
 PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
+GENED_DESCRIPTION_SOURCE_PAGE_MIN = 44
+GENED_DESCRIPTION_SOURCE_PAGE_MAX = 117
+DEFAULT_COOP_PAIRS = (
+    ("06026259", "06026260", "6(0-35-0)"),
+    ("06046443", "06046444", "6(0-45-0)"),
+    ("06016481", "06016482", "6(0-36-0)"),
+)
 
 
 def merge_source_provenance(*records) -> List[Dict]:
     """Combine source entries in order without duplicating an occurrence."""
     merged: List[Dict] = []
-    seen = set()
+    seen = {}
 
     for record in records:
         if isinstance(record, dict):
@@ -56,12 +68,64 @@ def merge_source_provenance(*records) -> List[Dict]:
             normalized = {
                 field: entry.get(field) for field in SOURCE_PROVENANCE_FIELDS
             }
+            if "document_page" in entry:
+                normalized["document_page"] = parse_document_page(
+                    entry.get("document_page")
+                )
             identity = tuple(normalized[field] for field in SOURCE_PROVENANCE_FIELDS)
             if identity in seen:
+                existing = merged[seen[identity]]
+                if (
+                    normalized.get("document_page") is not None
+                    and existing.get("document_page") is None
+                ):
+                    existing["document_page"] = normalized["document_page"]
                 continue
-            seen.add(identity)
+            seen[identity] = len(merged)
             merged.append(normalized)
 
+    return merged
+
+
+def prediction_source_label(program: str, plan: Optional[str]) -> str:
+    """Return a neutral root source label for generated prediction artifacts."""
+    program_label = str(program or "UNKNOWN").strip().upper()
+    plan_label = f" {str(plan).strip()}" if plan not in (None, "") else ""
+    return f"OCR extraction / Academic Plan - {program_label}{plan_label}"
+
+
+def prediction_description(
+    program: str, plan: Optional[str], consolidated: bool = False
+) -> str:
+    """Describe generated prediction data without implying Ground Truth status."""
+    program_label = str(program or "UNKNOWN").strip().upper()
+    plan_label = f" (plan {str(plan).strip()})" if plan not in (None, "") else ""
+    suffix = " - consolidated" if consolidated else ""
+    return f"OCR-extracted curriculum records for {program_label}{plan_label}{suffix}"
+
+
+def _combine_alternative_values(first, second) -> str:
+    values = []
+    for value in (first, second):
+        if value in (None, ""):
+            continue
+        if value not in values:
+            values.append(value)
+    return "\n".join(str(value) for value in values)
+
+
+def merge_alternative_courses(first: Dict, second: Dict, credits: str) -> Dict:
+    """Merge two explicitly configured alternative records without losing fields."""
+    merged = dict(first)
+    merged["code"] = f"{first.get('code', '')} หรือ {second.get('code', '')}"
+
+    for field in ("name_th", "name_en", "desc_th", "desc_en", "prerequisite", "note"):
+        combined = _combine_alternative_values(first.get(field), second.get(field))
+        if combined:
+            merged[field] = combined
+
+    merged["credits"] = credits
+    merged[SOURCE_PROVENANCE_KEY] = merge_source_provenance(first, second)
     return merged
 
 
@@ -259,42 +323,22 @@ class CurriculumExtractor:
         self,
         program: str = "DSBA",
         plan: Optional[str] = "coop",
-        source: str = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop",
+        source: Optional[str] = None,
         coop_pairs: Optional[List[Tuple[str, str, str]]] = None,
     ):
         self.program = program
         self.plan = plan
         # Co-op / alternative course pairs to merge.  Each tuple is
-        # (code_a, code_b, merged_credits).  Universal default keeps the
-        # known pairs; callers may override for their own curriculum.
-        self.coop_pairs = coop_pairs if coop_pairs is not None else [
-            ("06026259", "06026260", "6(0-35-0)"),
-            ("06046443", "06046444", "6(0-45-0)"),
-        ]
-        if program == "DSBA" and plan == "coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
-        elif program == "DSBA" and plan == "no_coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA N0 coop"
-        elif program == "BIT" and plan == "coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — BIT coop"
-        elif program == "BIT" and plan == "no_coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — BIT no coop"
-        elif program == "IT" and plan == "coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — IT coop"
-        elif program == "IT" and plan == "no_coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — IT no coop"
-        elif program == "AIT":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — AIT"
-        elif program == "GENED":
-            self.source = "GT_Template-2.xlsx / General Education"
-        else:
-            self.source = source
+        # (code_a, code_b, merged_credits). Callers may override the defaults.
+        self.coop_pairs = list(coop_pairs) if coop_pairs is not None else list(DEFAULT_COOP_PAIRS)
+        self.source = source or prediction_source_label(program, plan)
 
     def _source_context(
         self,
         input_path: Path | None = None,
         metadata: Optional[dict] = None,
         document_category: str = "unknown",
+        text_lines: Optional[List[str]] = None,
     ) -> Dict:
         metadata = metadata if isinstance(metadata, dict) else {}
 
@@ -314,10 +358,30 @@ class CurriculumExtractor:
         if not isinstance(program, str) or not program.strip():
             program = self.program if isinstance(self.program, str) and self.program.strip() else None
 
+        document_page = parse_document_page(metadata.get("document_page"))
+        ocr_candidates = set()
+        if document_page is None:
+            document_page = document_page_from_lines(text_lines)
+            if document_page is None:
+                ocr_candidates = document_page_candidates_from_lines(text_lines)
+
+        if (
+            document_page is None
+            and not ocr_candidates
+            and isinstance(source_page, int)
+            and str(program).strip().upper() == "GENED"
+            and document_category == "description"
+            and GENED_DESCRIPTION_SOURCE_PAGE_MIN
+            <= source_page
+            <= GENED_DESCRIPTION_SOURCE_PAGE_MAX
+        ):
+            document_page = source_page - 4
+
         return {
             "program": program,
             "source_filename": source_filename,
             "source_page": source_page,
+            "document_page": document_page,
             "document_category": document_category
             if document_category in {"plan", "description"}
             else "unknown",
@@ -701,16 +765,9 @@ class CurriculumExtractor:
                     merged_credits = credits
                     break
             if merged_credits is not None:
-                nxt = courses[idx + 1]
-                merged = {
-                    **current,
-                    "code": f"{current['code']} หรือ {nxt['code']}",
-                    "name_th": f"{current['name_th']}\n{nxt['name_th']}",
-                    "name_en": f"{current['name_en']}\n{nxt['name_en']}",
-                    "credits": merged_credits,
-                }
-                merged[SOURCE_PROVENANCE_KEY] = merge_source_provenance(current, nxt)
-                combined.append(merged)
+                combined.append(
+                    merge_alternative_courses(courses[idx], courses[idx + 1], merged_credits)
+                )
                 idx += 2
                 continue
 
@@ -728,7 +785,7 @@ class CurriculumExtractor:
         """Run the full block-based pipeline over the study-plan OCR lines."""
         print(" [DEBUG] running: extract_from_lines (study plan table)")
         source_context = source_context or self._source_context(
-            document_category="unknown"
+            document_category="unknown", text_lines=lines
         )
         blocks = self.split_into_blocks(lines)
         courses = [
@@ -739,7 +796,7 @@ class CurriculumExtractor:
 
         return {
             "source": self.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
             "courses": courses,
@@ -1092,12 +1149,12 @@ class CurriculumExtractor:
     ) -> Dict:
         print(" [DEBUG] running: extract_descriptions (course descriptions)")
         source_context = source_context or self._source_context(
-            document_category="unknown"
+            document_category="unknown", text_lines=lines
         )
         courses, _ = self._extract_description_page(lines, source_context)
         return {
             "source": self.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
             "courses": courses,
@@ -1134,7 +1191,7 @@ class CurriculumExtractor:
 
         return {
             "source": self.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
             "courses": courses,
@@ -1145,17 +1202,17 @@ class CurriculumExtractor:
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        lines = []
+        source_lines = []
         metadata = {}
         if file_path.suffix == ".json":
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                lines = data.get("text_lines", [])
+                source_lines = data.get("text_lines", [])
                 metadata = data if isinstance(data, dict) else {}
         else:
-            lines = file_path.read_text(encoding="utf-8").splitlines()
+            source_lines = file_path.read_text(encoding="utf-8").splitlines()
 
-        lines = [line.upper() for line in lines]
+        lines = [line.upper() for line in source_lines]
         content_upper = "\n".join(lines)
 
         # Universal pre-clean (deterministic regex, no LLM): repair OCR noise
@@ -1192,7 +1249,9 @@ class CurriculumExtractor:
         if is_plan_page:
             return self.extract_from_lines(
                 lines,
-                self._source_context(file_path, metadata, "plan"),
+                self._source_context(
+                    file_path, metadata, "plan", text_lines=source_lines
+                ),
             )
 
         # If not a study plan, check whether it is a course description page
@@ -1201,10 +1260,14 @@ class CurriculumExtractor:
         if is_description_page:
             return self.extract_descriptions(
                 lines,
-                self._source_context(file_path, metadata, "description"),
+                self._source_context(
+                    file_path, metadata, "description", text_lines=source_lines
+                ),
             )
 
         return self.extract_from_lines(
             lines,
-            self._source_context(file_path, metadata, "unknown"),
+            self._source_context(
+                file_path, metadata, "unknown", text_lines=source_lines
+            ),
         )

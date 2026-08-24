@@ -3,7 +3,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from src import CurriculumExtractor
+from src.extractor import CurriculumExtractor, prediction_description
 from src.pipeline_config import plan_label, resolve_plan, resolve_program
 
 
@@ -65,7 +65,7 @@ def parse_arguments():
     parser.add_argument(
         "--source",
         type=str,
-        default="GT_Template-2.xlsx / Academic Plan GT — DSBA coop",
+        default=None,
         help="Source label for metadata"
     )
 
@@ -134,7 +134,7 @@ def main():
     if len(files_to_process) > 1 and last_result:
         merged_result = {
             "source": last_result.get("source", args.source),
-            "description": f"Ground Truth รายวิชาหลักสูตร {program} (แผน {plan_label(plan)}) - Consolidated",
+            "description": prediction_description(program, plan, consolidated=True),
             "program": program,
             "plan": plan,
             "courses": all_courses

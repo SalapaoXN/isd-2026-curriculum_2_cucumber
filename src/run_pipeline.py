@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 from typing import List
 
-from .checker import OCRSpellChecker
 from .english_name_enricher import enrich_courses
 from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
