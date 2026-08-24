@@ -262,6 +262,43 @@ class CurriculumExtractor:
     )
     OR_KEYWORD_RE = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
 
+    @classmethod
+    def _standalone_course_suffix(cls, line: str) -> Optional[str]:
+        token = line.strip().upper()
+        if re.fullmatch(r"[1-9]", token):
+            return token
+        if token in {"L", "I"}:
+            return "1"
+        if token == "II":
+            return "2"
+        return None
+
+    @classmethod
+    def _next_nonempty_line(cls, lines: List[str], index: int) -> Optional[str]:
+        for next_line in lines[index + 1 :]:
+            stripped = next_line.strip()
+            if stripped:
+                return stripped
+        return None
+
+    @classmethod
+    def _is_strong_suffix_position(
+        cls, lines: List[str], index: int, credits_seen: bool
+    ) -> bool:
+        token = lines[index].strip().upper()
+        if token not in {"L", "I", "II"}:
+            return False
+
+        next_line = cls._next_nonempty_line(lines, index)
+        if next_line is None:
+            return credits_seen
+        return bool(
+            cls.SINGLE_CREDIT_RE.search(next_line)
+            or cls.OR_KEYWORD_RE.fullmatch(next_line)
+            or cls.PREREQ_KEYWORD_RE.search(next_line)
+            or cls.DESCRIPTION_CODE_LINE_RE.fullmatch(next_line)
+        )
+
     # Year / semester headers, with or without the number on the same line.
     YEAR_HEADER_RE = re.compile(r"(?:ชั้น)?[ปขชบ]ี\s*ที่?")                    # "ปีที่"
     SEM_HEADER_RE = re.compile(r"(?:ภาค|เทอม)\s*(?:การศึกษา|เรียน)?\s*ที่?")   # "ภาคการศึกษาที่"
@@ -487,6 +524,8 @@ class CurriculumExtractor:
                         and not self.HAS_ENG_RE.search(line)
                         and not self.PREREQ_KEYWORD_RE.search(line)
                         and not self.GROUP_LABEL_RE.match(line)
+                        and not self.SINGLE_CREDIT_RE.search(line)
+                        and not self.OR_KEYWORD_RE.search(line)
                     )
                     or (
                         self.program == "GENED"
@@ -605,6 +644,9 @@ class CurriculumExtractor:
         name_en = ""
         credits = ""
         prerequisite = "ไม่มี"
+        credits_seen = False
+        last_name_field = None
+        last_name_line_index = None
 
         # A few table rows place a group label before the credit and the real
         # Thai course title after it.  Only discard a label when that structure
@@ -654,34 +696,50 @@ class CurriculumExtractor:
             if self.DESCRIPTION_START_RE.search(line):
                 break
 
+            suffix_value = self._standalone_course_suffix(line)
+            if suffix_value is not None:
+                immediately_after_name = (
+                    last_name_field is not None
+                    and last_name_line_index == line_index - 1
+                )
+                is_numeric_suffix = re.fullmatch(r"[1-9]", line.strip()) is not None
+                if immediately_after_name and (
+                    is_numeric_suffix
+                    or self._is_strong_suffix_position(
+                        block.lines, line_index, credits_seen
+                    )
+                ):
+                    if last_name_field == "name_th":
+                        name_th = f"{name_th} {suffix_value}".strip()
+                    else:
+                        name_en = f"{name_en} {suffix_value}".strip()
+                continue
+
             # Lone OCR junk tokens that slip past a fully numeric code.
             if (
                 len(code) == 8
                 and code.isdigit()
-                and line.upper() in {"X", "^", "D9", "L"}
+                and line.upper() in {"X", "^", "D9"}
             ):
-                continue
-
-            # A lone number / letter is a course-number suffix (e.g. "CALCULUS" + "1").
-            if line.upper() in {"L", "1", "2", "3", "4", "I", "II"}:
-                num = "1" if line.upper() in {"L", "I"} else ("2" if line.upper() == "II" else line)
-                if not name_en:
-                    name_th = f"{name_th} {num}".strip()
-                else:
-                    name_en = f"{name_en} {clean_ocr_en_text(line).upper()}".strip()
                 continue
 
             # Credits and the "หรือ" keyword that joins alternative credit rows.
             if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
                 credit_piece = "หรือ" if "หรอ" in line else line
                 credits = f"{credits} {credit_piece}".strip() if credits else credit_piece
+                if self.SINGLE_CREDIT_RE.search(line):
+                    credits_seen = True
                 continue
 
             # Thai / English course names can wrap across several lines.
             if self.HAS_THAI_RE.search(line):
                 name_th = f"{name_th} {line}".strip()
+                last_name_field = "name_th"
+                last_name_line_index = line_index
             elif self.HAS_ENG_RE.search(line):
                 name_en = f"{name_en} {line}".strip()
+                last_name_field = "name_en"
+                last_name_line_index = line_index
 
         # ---- clean up OCR noise ---------------------------------------------- #
         # Remove the "กลุ่ม วิชาที่กำหนดโดยคณะ*" label (supports spaces + asterisk).
@@ -699,6 +757,11 @@ class CurriculumExtractor:
         credits_clean = re.sub(r"\s*\(\s*", "(", credits)
         credits_clean = re.sub(r"\s*\)\s*", ")", credits_clean)
         credits_clean = re.sub(r"\)+", ")", credits_clean)
+        credits_clean = re.sub(
+            rf"({self.CREDIT_GROUP_RE})\s*หรือ\s*(?={self.CREDIT_GROUP_RE})",
+            r"\1 หรือ ",
+            credits_clean,
+        )
         credits_clean = re.sub(
             r"\s*(?:หรือ|or|/)\s*$", "", credits_clean, flags=re.IGNORECASE
         ).strip()
@@ -1009,6 +1072,36 @@ class CurriculumExtractor:
                     j += 1
                     continue
 
+                suffix_value = self._standalone_course_suffix(curr)
+                if suffix_value is not None:
+                    is_numeric_suffix = re.fullmatch(r"[1-9]", curr) is not None
+                    strong_position = self._is_strong_suffix_position(
+                        lines, j, credits_seen
+                    )
+                    next_line = self._next_nonempty_line(lines, j)
+                    next_is_credit = bool(
+                        next_line and self.SINGLE_CREDIT_RE.search(next_line)
+                    )
+                    if en_words and credits_seen and (
+                        (is_numeric_suffix and (next_line is None or strong_position or
+                                               bool(any_prereq_key_regex.search(next_line)) or
+                                               self._is_description_code_anchor(next_line)))
+                        or (not is_numeric_suffix and strong_position)
+                    ):
+                        en_words.append(suffix_value)
+                        j += 1
+                        continue
+                    if th_words and not credits_seen and (
+                        (is_numeric_suffix and next_is_credit)
+                        or (not is_numeric_suffix and strong_position)
+                    ):
+                        th_words.append(suffix_value)
+                        j += 1
+                        continue
+                    # Do not reinterpret an ambiguous standalone token as a name.
+                    j += 1
+                    continue
+
                 if re.search(r"[a-zA-Z]", curr) and not has_thai_regex.search(curr):
                     clean_en = clean_ocr_en_text(curr).upper()
                     if clean_en and clean_en not in ["L", "NONE"]:
@@ -1026,6 +1119,9 @@ class CurriculumExtractor:
             if th_words:
                 cleaned_th_words = []
                 for word in th_words:
+                    if re.fullmatch(r"[1-9]", word.strip()):
+                        cleaned_th_words.append(f" {word.strip()}")
+                        continue
                     trailing_num = re.match(r"^(.*?)\s+(\d+)$", word)
                     if trailing_num:
                         cleaned_th_words.append(
