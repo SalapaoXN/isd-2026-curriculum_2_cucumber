@@ -162,6 +162,15 @@ Document official evaluation inputs and aggregation rules. Treat `code_page_mapp
 - Phase 6 is complete for everything supported by current authoritative data.
 - Next phase: Phase 7 — Academic Rules OCR / extraction.
 
+## Evaluation/reporting checkpoint
+
+- The evaluation/reporting upgrade is complete without changing evaluator alignment or metric semantics.
+- `evaluate.py` supports single-dataset evaluation and repeatable `--pair` batch evaluation.
+- Flat evidence is generated under `reports/evaluation/`: JSON results, coverage summary, field CER/WER metrics, and concrete evaluation errors.
+- Thai WER uses PyThaiNLP; coverage reports TP/FN/FP and does not fabricate TN.
+- Current artifacts contain six evaluated results: AIT, DSBA coop/no_coop, GENED, and IT coop/no_coop.
+- Full test suite: `116` passed. No OCR was rerun.
+
 ## Current Progress
 
 - `src.run_pipeline --pages` is now optional.

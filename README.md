@@ -274,7 +274,20 @@ python evaluate.py \
   consolidated_outputs/merged_dsba_coop_full.json \
   --gt ground_truth/DSBA/DSBA_academic_plan_coop.json \
   --out reports/dsba_coop_evaluation.json
+
+# Batch evaluation; repeat --pair for each prediction/ground-truth pair
+python evaluate.py \
+  --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json \
+  --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json
 ```
+
+Every single or batch evaluation also writes these flat reports to `reports/evaluation/`:
+- `evaluation.json` — existing evaluator results combined under `results`.
+- `evaluation_summary.csv` — TP/FN/FP plus Precision/Recall/F1 and percentages.
+- `field_metrics.csv` — CER/WER plus character and word accuracy percentages; Thai WER uses PyThaiNLP.
+- `evaluation_errors.csv` — concrete GT/prediction differences for matched, missing, and extra records.
+
+True negatives are not fabricated because this is extraction coverage, not binary classification. Use the positional prediction path with `--gt` for a single dataset, or repeat `--pair PREDICTION_JSON GROUND_TRUTH_JSON` for batch evaluation. `--out` remains optional for saving the single or combined JSON output separately.
 
 ### Testing
 
