@@ -45,6 +45,64 @@ def _filter_files_by_prefix(files, prefix):
         if file.name.casefold().startswith(normalized_prefix)
     ]
 
+def _parse_pages(page_input):
+    pages = set()
+
+    for part in page_input.split(","):
+        part = part.strip()
+        if not part:
+            continue
+
+        if "-" in part:
+            bounds = part.split("-")
+            if (
+                len(bounds) != 2
+                or not bounds[0].strip().isdigit()
+                or not bounds[1].strip().isdigit()
+            ):
+                raise ValueError(
+                    f"Invalid page range '{part}'. Use a range such as 26-32."
+                )
+
+            start = int(bounds[0].strip())
+            end = int(bounds[1].strip())
+
+            if start > end:
+                raise ValueError(
+                    f"Invalid descending page range '{part}'."
+                )
+
+            pages.update(range(start, end + 1))
+
+        elif part.isdigit():
+            pages.add(int(part))
+
+        else:
+            raise ValueError(
+                f"Invalid page value '{part}'."
+            )
+
+    return pages
+
+
+def _filter_files_by_pages(files, pages):
+    if pages is None:
+        return list(files)
+
+    result = []
+
+    for file in files:
+        match = re.search(
+            r"page_(\d+)",
+            file.name,
+            re.IGNORECASE,
+        )
+
+        if match and int(match.group(1)) in pages:
+            result.append(file)
+
+    return result
+
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description="Extract structured course and curriculum data from OCR outputs."
@@ -77,6 +135,13 @@ def parse_arguments():
         type=str,
         default=None,
         help="Only process OCR files whose filenames start with this prefix"
+    )
+    parser.add_argument(
+        "-p",
+        "--pages",
+        type=str,
+        default=None,
+        help="Only process selected OCR pages, e.g. 26-32 or 26-32,44-117"
     )
     parser.add_argument(
         "--source",
@@ -121,8 +186,23 @@ def main():
     else:
         files_to_process = [input_path]
     
-    # Prefix func
-    files_to_process = _filter_files_by_prefix(files_to_process, args.prefix)
+    # Filter by filename prefix
+    files_to_process = _filter_files_by_prefix(
+        files_to_process,
+        args.prefix,
+    )
+
+    # Filter by source page
+    if args.pages is not None:
+        try:
+            selected_pages = _parse_pages(args.pages)
+        except ValueError as exc:
+            raise SystemExit(f"Error: {exc}") from exc
+
+        files_to_process = _filter_files_by_pages(
+            files_to_process,
+            selected_pages,
+        )
 
     if not files_to_process:
         print(f" No valid .txt or .json files found at {input_path}")

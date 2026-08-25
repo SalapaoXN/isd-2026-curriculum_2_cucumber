@@ -3,7 +3,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from extract import _filter_files_by_prefix
+from extract import (
+    _filter_files_by_pages,
+    _filter_files_by_prefix,
+    _parse_pages,
+)
 from merge_consecutive import merge_consecutive_files
 from src.run_pipeline import parse_pages
 from src.pipeline_config import (
@@ -114,6 +118,30 @@ class CliSemanticsTests(unittest.TestCase):
                 "gened",
             ),
             [Path("outputs/GENED_page_016_ocr.json")],
+        )
+        
+    def test_extract_pages_filters_requested_page_range(self):
+        files = [
+            Path("outputs/dsba_page_026_ocr.json"),
+            Path("outputs/dsba_page_027_ocr.json"),
+            Path("outputs/dsba_page_032_ocr.json"),
+            Path("outputs/dsba_page_033_ocr.json"),
+        ]
+
+        pages = _parse_pages("26-27,32")
+
+        result = _filter_files_by_pages(
+            files,
+            pages,
+        )
+
+        self.assertEqual(
+            [file.name for file in result],
+            [
+                "dsba_page_026_ocr.json",
+                "dsba_page_027_ocr.json",
+                "dsba_page_032_ocr.json",
+            ],
         )
 
 
