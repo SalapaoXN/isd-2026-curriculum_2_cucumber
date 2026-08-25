@@ -1268,7 +1268,7 @@ class CurriculumExtractor:
             if prereq_tokens:
                 clean_prereq = " ".join(prereq_tokens).strip()
 
-                is_missing_prerequisite = clean_prereq in {"", "ไม่มี"} or (
+                is_missing_prerequisite = clean_prereq in {"", "NONE", "ไม่มี"} or (
                     self.program == "GENED"
                     and self.GENED_NONE_PREREQ_RE.fullmatch(clean_prereq)
                 )

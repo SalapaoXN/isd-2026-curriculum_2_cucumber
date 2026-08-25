@@ -382,5 +382,41 @@ class EvaluateCoverageTests(unittest.TestCase):
         self.assertEqual(pages[2]["coverage"]["extra_prediction_count"], 1)
 
 
+    def test_prerequisite_absence_representations_are_semantically_equal(self):
+        gt_record = course("A0000001", "ONE")
+        prediction = course("A0000001", "ONE")
+
+        gt_record["prerequisite"] = "ไม่มี"
+        prediction["prerequisite"] = "NONE"
+
+        result = self.evaluate(
+            [gt_record],
+            [prediction],
+        )
+
+        prerequisite = result["field_level"]["prerequisite"]
+
+        self.assertEqual(prerequisite["cer"], 0.0)
+        self.assertEqual(prerequisite["wer"], 0.0)
+        self.assertEqual(prerequisite["count"], 1)
+
+
+    def test_real_prerequisite_mismatch_is_still_penalized(self):
+        gt_record = course("A0000001", "ONE")
+        prediction = course("A0000001", "ONE")
+
+        gt_record["prerequisite"] = "ไม่มี"
+        prediction["prerequisite"] = "06016413"
+
+        result = self.evaluate(
+            [gt_record],
+            [prediction],
+        )
+
+        prerequisite = result["field_level"]["prerequisite"]
+
+        self.assertGreater(prerequisite["cer"], 0.0)
+        self.assertGreater(prerequisite["wer"], 0.0)
+
 if __name__ == "__main__":
     unittest.main()

@@ -15,6 +15,26 @@ def normalize_str(text: Any) -> str:
     text_str = str(text).strip().lower()
     return re.sub(r"\s+", " ", text_str)
 
+PREREQUISITE_ABSENCE_VALUES = {
+    "",
+    "none",
+    "ไม่มี",
+}
+
+PREREQUISITE_ABSENCE_TOKEN = "<no_prerequisite>"
+
+
+def normalize_field_for_eval(field: str, value: Any) -> str:
+    normalized = normalize_str(value)
+
+    if (
+        field == "prerequisite"
+        and normalized in PREREQUISITE_ABSENCE_VALUES
+    ):
+        return PREREQUISITE_ABSENCE_TOKEN
+
+    return normalized
+
 
 def calculate_similarity(s1: str, s2: str) -> float:
     if not s1 and not s2:
@@ -81,7 +101,7 @@ ERROR_COLUMNS = (
 
 
 def _wer_tokens(field: str, text: Any) -> List[str]:
-    normalized = normalize_str(text)
+    normalized = normalize_field_for_eval(field, text)
     if field in THAI_WER_FIELDS:
         return [
             token
@@ -217,8 +237,14 @@ def _text_stats_for_pairs(pairs: List[tuple[dict, dict]], target_fields: List[st
         for field in target_fields:
             if field not in gt_item:
                 continue
-            gt_val = normalize_str(gt_item.get(field))
-            pred_val = normalize_str(pred_item.get(field))
+            gt_val = normalize_field_for_eval(
+                field,
+                gt_item.get(field),
+            )
+            pred_val = normalize_field_for_eval(
+                field,
+                pred_item.get(field),
+            )
             stats["cer"] += calculate_cer(gt_val, pred_val)
             stats["wer"] += calculate_wer(gt_val, pred_val)
             stats["count"] += 1
@@ -337,8 +363,15 @@ def evaluate_json_structure(
                 field_presence_stats[field]["matched"] += 1
             else:
                 field_presence_stats[field]["matched_pred_missing"] += 1
-            gt_val = normalize_str(gt_item.get(field))
-            pred_val = normalize_str(pred_item.get(field))
+            gt_val = normalize_field_for_eval(
+                field,
+                gt_item.get(field),
+            )
+            pred_val = normalize_field_for_eval(
+                field,
+                pred_item.get(field),
+            )
+
             cer_val = calculate_cer(gt_val, pred_val)
             wer_val = calculate_wer(gt_val, pred_val)
 
@@ -656,8 +689,14 @@ def _field_metric_rows(case: dict) -> List[dict]:
         for gt_item, pred_item in details["pairs"]:
             if field not in gt_item:
                 continue
-            gt_value = normalize_str(gt_item.get(field))
-            pred_value = normalize_str(pred_item.get(field))
+            gt_value = normalize_field_for_eval(
+                field,
+                gt_item.get(field),
+            )
+            pred_value = normalize_field_for_eval(
+                field,
+                pred_item.get(field),
+            )
             cer_total += calculate_cer(gt_value, pred_value)
             if wer_applicable:
                 wer_total += calculate_field_wer(field, gt_value, pred_value) or 0.0
@@ -687,7 +726,15 @@ def _csv_value(value: Any) -> str:
 
 
 def _useful_error_value(field: str, value: Any) -> bool:
-    return bool(normalize_str(value))
+    normalized = normalize_field_for_eval(field, value)
+
+    if (
+        field == "prerequisite"
+        and normalized == PREREQUISITE_ABSENCE_TOKEN
+    ):
+        return False
+
+    return bool(normalized)
 
 
 def _error_row(
@@ -698,8 +745,14 @@ def _error_row(
     gt_value: Any,
     pred_value: Any,
 ) -> dict:
-    gt_normalized = normalize_str(gt_value)
-    pred_normalized = normalize_str(pred_value)
+    gt_normalized = normalize_field_for_eval(
+        field,
+        gt_value,
+    )
+    pred_normalized = normalize_field_for_eval(
+        field,
+        pred_value,
+    )
     wer = calculate_field_wer(field, gt_normalized, pred_normalized)
     return {
         "program": case["program"],
@@ -729,7 +782,11 @@ def _evaluation_error_rows(case: dict) -> List[dict]:
             gt_value = gt_item.get(field)
             pred_present = field in pred_item
             pred_value = pred_item.get(field)
-            if pred_present and normalize_str(gt_value) == normalize_str(pred_value):
+            if (
+                pred_present
+                and normalize_field_for_eval(field, gt_value)
+                == normalize_field_for_eval(field, pred_value)
+            ):
                 continue
             if not _useful_error_value(field, gt_value) and not _useful_error_value(
                 field, pred_value
