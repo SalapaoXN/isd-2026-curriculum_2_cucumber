@@ -223,6 +223,90 @@ def _authoritative_source_provenance(record: dict) -> List[dict]:
     return result
 
 
+CATALOG_EQUIVALENCE_FIELDS = (
+    "name_th",
+    "name_en",
+    "credits",
+    "prerequisite",
+)
+
+
+def _catalog_records_equivalent(first: dict, second: dict) -> bool:
+    for field in CATALOG_EQUIVALENCE_FIELDS:
+        if (field in first) != (field in second):
+            return False
+
+        if normalize_field_for_eval(
+            field,
+            first.get(field),
+        ) != normalize_field_for_eval(
+            field,
+            second.get(field),
+        ):
+            return False
+
+    return True
+
+
+def _prediction_evaluation_view(
+    gt_courses: List[dict],
+    pred_courses: List[dict],
+) -> tuple[List[dict], int]:
+    """
+    Collapse equivalent repeated prediction placements for canonical GT.
+
+    Repeated GT codes or GT records with authoritative source provenance
+    remain occurrence-sensitive and are not collapsed.
+    """
+    gt_code_counts: Dict[str, int] = {}
+    preserve_codes = set()
+
+    for course in gt_courses:
+        code = normalize_str(course.get("code"))
+        if not code:
+            continue
+
+        gt_code_counts[code] = gt_code_counts.get(code, 0) + 1
+
+        if _authoritative_source_provenance(course):
+            preserve_codes.add(code)
+
+    preserve_codes.update(
+        code
+        for code, count in gt_code_counts.items()
+        if count > 1
+    )
+
+    result: List[dict] = []
+    kept_indices_by_code: Dict[str, List[int]] = {}
+    collapsed_count = 0
+
+    for course in pred_courses:
+        code = normalize_str(course.get("code"))
+
+        if not code or code in preserve_codes:
+            result.append(course)
+            continue
+
+        existing_indices = kept_indices_by_code.get(code, [])
+
+        if any(
+            _catalog_records_equivalent(
+                result[index],
+                course,
+            )
+            for index in existing_indices
+        ):
+            collapsed_count += 1
+            continue
+
+        index = len(result)
+        result.append(course)
+        kept_indices_by_code.setdefault(code, []).append(index)
+
+    return result, collapsed_count
+
+
 def _source_identity(entry: dict) -> tuple:
     return tuple(entry[field] for field in SOURCE_PROVENANCE_FIELDS)
 
@@ -282,7 +366,13 @@ def evaluate_json_structure(
         pred_data = json.load(f)
 
     gt_courses: List[dict] = gt_data.get("courses", [])
-    pred_courses: List[dict] = pred_data.get("courses", [])
+
+    raw_pred_courses: List[dict] = pred_data.get("courses", [])
+
+    pred_courses, collapsed_prediction_count = _prediction_evaluation_view(
+        gt_courses,
+        raw_pred_courses,
+    )
 
     # ---- Course alignment by code (exact first, then fuzzy) ----- #
     def code_sim(a: dict, b: dict) -> float:
@@ -571,6 +661,11 @@ def evaluate_json_structure(
         "file_name": pred_path.name,
         "total_gt_courses": len(gt_courses),
         "total_pred_courses": len(pred_courses),
+        "prediction_view": {
+            "raw_record_count": len(raw_pred_courses),
+            "evaluated_record_count": len(pred_courses),
+            "collapsed_equivalent_repeated_records": collapsed_prediction_count,
+        },
         "matched_courses": len(pairs),
         "coverage": {
             "gt_record_count": gt_record_count,

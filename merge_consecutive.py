@@ -358,14 +358,12 @@ class CurriculumConsolidator:
 
         def unique_description(code: str) -> dict | None:
             occurrences = desc_occurrences.get(code, [])
-            if plan_occurrences.get(code) == 1 and len(occurrences) == 1:
+            if len(occurrences) == 1:
                 return occurrences[0]
             return None
 
         def has_ambiguous_description(code: str) -> bool:
-            description_count = len(desc_occurrences.get(code, []))
-            plan_count = plan_occurrences.get(code, 0)
-            return description_count > 1 or (description_count > 0 and plan_count > 1)
+            return len(desc_occurrences.get(code, [])) > 1
 
         consolidated_courses = []
         processed_codes = set()
