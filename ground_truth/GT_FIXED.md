@@ -18,3 +18,13 @@ Corrections made after verification against the official curriculum document.
 - Ground truth prerequisite: `06016408`
 - No GT correction made.
 - Note: The official curriculum confirms `06016408 Object-Oriented Programming`; current extraction output is missing this prerequisite and should be fixed in the extractor.
+
+### 90644008 — Foundation English 2
+- Original prerequisite: `null`
+- Corrected prerequisite: `FOUNDATION ENGLISH 1`
+- Reason: The official curriculum explicitly lists `FOUNDATION ENGLISH 1` as the prerequisite.
+
+### 90642020 — Advance Creative STEM Design
+- Original prerequisite: `null`
+- Corrected prerequisite: `BASIC CREATIVE STEM DESIGN`
+- Reason: The official curriculum explicitly lists `BASIC CREATIVE STEM DESIGN` as the prerequisite.
