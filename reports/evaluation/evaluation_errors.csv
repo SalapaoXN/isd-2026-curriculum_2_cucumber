@@ -1,279 +1,725 @@
 ﻿program,plan,alignment_status,code,field,gt_value,pred_value,cer,wer
-DSBA,coop,matched,06026200,name_th,แคลคูลัส 1,แคลคูลัส,0.2,0.5
+DSBA,coop,matched,06026200,name_th,แคลคูลัส 1,ไม่ระบุ,1.0,1.0
+DSBA,coop,matched,06026202,name_th,พีชคณิตเชิงเส้น,พืชคณิตเชิงเส้น,0.0667,1.0
+DSBA,coop,matched,06026202,name_en,LINEAR ALGEBRA,LIEAR ALGEBRA,0.0714,0.5
 DSBA,coop,matched,06066303,name_th,การแก้ปัญหาและโปรแกรมคอมพิวเตอร์,การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์,0.0938,0.3333
 DSBA,coop,matched,90641001,name_th,โรงเรียนสร้างเสน่าห์,โรงเรียนสร้างเสน่ห์,0.05,0.5
-DSBA,coop,matched,90641003,name_th,กีฬาและนันทนาการ,กีฬาและนันทนาการ 1,0.125,0.3333
-DSBA,coop,matched,90641003,credits,1(0-3-2),(0-3-2),0.125,
-DSBA,coop,matched,06026201,prerequisite,06026200,ไม่มี,1.0,1.0
+DSBA,coop,matched,90641003,name_en,SPORTS AND RECREATIONAL ACTIVITIES,SPORTS AND RECREATIONAL ACTMTIES,0.0882,0.25
+DSBA,coop,matched,90644007,name_en,FOUNDATION ENGLISH 1,FOUNDATION ENGLISH,0.1,0.3333
+DSBA,coop,matched,06026203,name_en,COMPUTER PROGRAMMING,COMPUTER PROCRAMMNG,0.1,0.5
 DSBA,coop,matched,06026205,name_th,การตลาดเบื้อต้น,การตลาดเบื้องต้น,0.0667,0.6667
 DSBA,coop,matched,06066304,name_th,การวิเคราะห์และอออกแบบระบบสารสนเทศ,การวิเคราะห์และออกแบบระบบสารสนเทศ,0.0294,0.375
-DSBA,coop,matched,90644xxx,name_th,วิชาเลือกภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสื่อสาร,0.1538,0.25
-DSBA,coop,matched,90644xxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
+DSBA,coop,matched,06066304,name_en,INFORMATION SYSTEM ANALYSIS AND DESIGN,INFORMATION SVSTEM ANALYSIS AND DESIGN,0.0263,0.2
+DSBA,coop,matched,90644xxx,name_th,วิชาเลือกภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสือสาร,0.1923,1.0
+DSBA,coop,matched,90644xxx,name_en,ELECTIVE IN LANGUAGE AND COMMUNICATION,ELECIE IN LANGUAGE AND COMMUNICATON,0.0789,0.4
 DSBA,coop,matched,06026204,name_th,เครือข่ายและความมั่นคงทางไซเบอร์เบื่องต้น,เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น,0.0244,0.375
 DSBA,coop,matched,06066102,prerequisite,06066101,ไม่มี,1.0,1.0
 DSBA,coop,matched,06026212,prerequisite,06066300,ไม่มี,1.0,1.0
 DSBA,coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE
 ELECTIVE IN STATISTICAL ANALYSIS 1
-ELECTIVE IN DATA ENGINEERING 1","ELECTIVE IN DATA SCIENCE 1, ELECTIVE IN STATISTICAL ANALYSIS 1, ELECTIVE IN DATA ENGINEERING 1",0.0444,0.1429
-DSBA,coop,matched,06026xxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
+ELECTIVE IN DATA ENGINEERING 1",ELECTIE IN DATA SCIENCE ELECTIE IN STATISTICAL ANAL YSIS 1 ELECTIE IN DATA ENGINEERNNG 1,0.0556,0.4286
 DSBA,coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 2
 ELECTIVE IN STATISTICAL ANALYTICS 2
-ELECTIVE IN DATA ENGINEERING 2","ELECTIVE IN DATA SCIENCE 2, ELECTIVE IN STATISTICAL ANALYTICS 2, ELECTIVE IN DATA ENGINEERING 2",0.0215,0.1333
-DSBA,coop,matched,06026xxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
-DSBA,coop,matched,9064xxxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
-DSBA,coop,matched,06026213,name_th,ระบบข้อมูลมหัต,ระบบข้อมูลขนาดใหญ่,0.5,0.5
-DSBA,coop,matched,06026213,prerequisite,06066300,ไม่มี,1.0,1.0
+ELECTIVE IN DATA ENGINEERING 2",ELECTIE IN DATA SCIENCE 2 ELECTIE IN STATISTICAL ANALTICS 2 ELECTIE IN DATA ENGINEERIN6 2,0.0538,0.3333
+DSBA,coop,matched,9064xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษา ทั่วไป,0.0357,0.0
+DSBA,coop,matched,9064xxxx,name_en,ELECTIVE IN GENERAL EDUCATION,ELECTIE IN GENERAL EDUCATION,0.0345,0.25
+DSBA,coop,matched,90644042,name_th,การสื่อสารและการนำเสนออย่างมืออาชีพ,การสือสารและการนำเสนออย่างมืออาชีพ,0.0286,0.5
+DSBA,coop,matched,06026213,name_th,ระบบข้อมูลมหัต,ระบบ ข้อมูลมหัต,0.0714,0.0
+DSBA,coop,matched,06026213,name_en,BIG DATA SYSTEMS,BIG DATA SVSTEMS,0.0625,0.3333
+DSBA,coop,matched,06026214,name_en,"PROJECT IN DATA SCIENCE AND BUSINESS
+ANALYTICS 1",PROJECT IN DATA SCIENCE AND BUSINESS ANALITICS 1,0.0208,0.125
 DSBA,coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 3
 ELECTIVE IN STATISTICAL ANALYTICS 3
-ELECTIVE IN DATA ENGINEERING 3","ELECTIVE IN DATA SCIENCE 3, ELECTIVE IN STATISTICAL ANALYTICS 3, ELECTIVE IN DATA ENGINEERING 3",0.0215,0.1333
-DSBA,coop,matched,06026xxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
+ELECTIVE IN DATA ENGINEERING 3",ELECTIE IN DATA SCIENCE 3 ELECTIE IN STATISTICAL ANALYTICS 3 ELECTIE IN DATA ENGINEERING 3,0.0323,0.2
+DSBA,coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 4
+วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4
+วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล,0.0505,0.1875
 DSBA,coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 4
 ELECTIVE IN STATISTICAL ANALYTICS 4
-ELECTIVE IN DATA ENGINEERING 4","ELECTIVE IN DATA SCIENCE 4, ELECTIVE IN STATISTICAL ANALYTICS 4, ELECTIVE IN DATA ENGINEERING 4",0.0215,0.1333
-DSBA,coop,matched,06026xxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
-DSBA,coop,matched,06026215,prerequisite,06026214,ไม่มี,1.0,1.0
-DSBA,coop,matched,9064xxxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
-DSBA,coop,matched,xxxxxxxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
-DSBA,coop,matched,xxxxxxxx,credits,3(3-0-6) หรือ 3(2-2-5),3(3-0-6)หรือ 3(2-2-5),0.0455,
-DSBA,coop,matched,06026225,name_th,การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวิดีโอทางการแพทย์,การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์,0.0339,0.375
+ELECTIVE IN DATA ENGINEERING 4",A ELECTIE IN DATA SCIENCE 4 ELECTIE IN STATISTICAL ANALWTICS 4 ELECTIE IN DATA ENGINEERINC 4,0.0753,0.4
+DSBA,coop,matched,06066100,name_en,"INFORMATION TECHNOLOGY PROJECT
+MANAGEMENT",IFORMATION TECHNOLOGY PROJECT MANAGEMENT,0.0244,0.25
+DSBA,coop,matched,06026215,name_en,"PROJECT IN DATA SCIENCE AND BUSINESS
+ANALYTICS 2",PROECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2,0.0208,0.125
+DSBA,coop,matched,9064xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,0.0357,0.4
+DSBA,coop,matched,9064xxxx,name_en,ELECTIVE IN GENERAL EDUCATION,ELECIME IN GENERAL EDUCATLON,0.1034,0.5
+DSBA,coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 1,FREE ELECIIE COURSE 1,0.0909,0.25
+DSBA,coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 2,FREE ELECIIE COURSE 2,0.0909,0.25
+DSBA,coop,matched,06026259 หรือ 06026260,name_th,"สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ","สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการ วิเคราะห์1เชิงธุรกิจ",0.0174,0.0588
+DSBA,coop,matched,06026259 หรือ 06026260,name_en,"COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS
+OVERSEA COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS","O COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALTICS
+OVERSEA COOPERATIE EDUCATION IN DATA SCIENCE AND BUSINESS ANALTICS",0.0388,0.2353
+DSBA,coop,matched,06026217,name_en,MACHINE LEARNING,MACHINE LEARNNG,0.0625,0.5
+DSBA,coop,matched,06026218,name_en,DEEP LEARNING,DEEP LEARNNG,0.0769,0.5
+DSBA,coop,matched,06026219,name_en,NATURAL LANGUAGE PROCESSING,NATURAL LANGUAGE PROCESSIG,0.037,0.3333
+DSBA,coop,matched,06026223,name_en,IMAGE PROCESSING,IMAGE PROCESSWG,0.125,0.5
+DSBA,coop,matched,06026224,name_en,IMAGE TRANSFORMATION AND RECOGNITION,IMAGE TRANSFORMATION AND RECOGTION,0.0556,0.25
+DSBA,coop,matched,06026225,name_th,การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวิดีโอทางการแพทย์,การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการ,0.1186,0.5
+DSBA,coop,matched,06026225,name_en,"DEEP LEARNING IN MEDICAL IMAGE AND VIDEO
+ANALYSIS",DEEP LEARNNG II MEDICAL IMAGE AND VIDEO ANALYSIS,0.0408,0.25
 DSBA,coop,matched,06026226,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 1,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 1,0.1333,0.2
+DSBA,coop,matched,06026226,name_en,SPECIAL TOPICS IN DATA SCIENCE 1,SPECIAL TOPICS IN DATA SCIENCE1,0.0312,0.3333
 DSBA,coop,matched,06026227,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 2,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 2,0.1333,0.2
+DSBA,coop,matched,06026227,name_en,SPECIAL TOPICS IN DATA SCIENCE 2,SPECIAL TOPICS IN DATA SCIENCE2,0.0312,0.3333
 DSBA,coop,matched,06026228,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 1,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 1,0.1176,0.2
 DSBA,coop,matched,06026229,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 2,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2,0.1176,0.2
 DSBA,coop,matched,06026230,name_th,อนุกรมเวลาและการพยากรณ์,อนุกรมเวลาและการพยากรณ์เบื้องต้น,0.3913,0.2
-DSBA,coop,matched,06026230,name_en,TIME SERIES AND FORECASTING,INTRODUCTION TO TIME SERIES AND FORECASTING,0.5926,0.5
+DSBA,coop,matched,06026230,name_en,TIME SERIES AND FORECASTING,ITRODUCTION TO TLME SERIES AND FORECASTING,0.5556,0.75
+DSBA,coop,matched,06026231,name_en,BAYESIAN STATISTICS,BAYESAN STATISTICS,0.0526,0.5
+DSBA,coop,matched,06026232,name_en,INTRODUCTION TO STOCHASTIC PROCESS,INTRODUCTIOM TO STOCHASTIC PROCESS,0.0294,0.25
+DSBA,coop,matched,06026233,name_en,MULTIVARIATE DATA ANALYSIS,MULTWARATE DATA ANALSIS,0.1538,0.6667
+DSBA,coop,matched,06026234,name_en,EXPERIMENTAL DESIGN,EXPERMMENTAL DESIGI,0.1053,1.0
+DSBA,coop,matched,06026235,name_en,SPECIAL TOPICS IN STATISTICAL ANALYTICS 1,SPECAL TOPICS IN STATISTICAL ANALYTICS 1,0.0244,0.1667
+DSBA,coop,matched,06026238,name_en,SPECIAL WORKSHOP IN STATISTICAL ANALYTICS 2,SPECIAL WORKSHOP IN STATISTICAL ANALTICS 2,0.0233,0.1667
 DSBA,coop,matched,06026239,name_th,สถิาปัตยกรรมข้อมูลแบบไปป์ไลน์,สถาปัตยกรรมข้อมูลแบบไปป์ไลน์,0.0345,0.3333
 DSBA,coop,matched,06026245,name_th,ระบบข้อมูลแบบกระจาย,ระบบฐานข้อมูลแบบกระจาย,0.1579,0.6667
-DSBA,coop,matched,06026257,name_en,"BUSINESS STRATEGIC AND PERFORMANCE
-MANAGEMENT",BUSINESS STRATEGY AND PERFORMANCE MANAGEMENT,0.0444,0.2
+DSBA,coop,matched,06026245,name_en,DISTRIBUTED DATABASE SYSTEMS,DISTRIBUTED DATABASE SVSTEMS,0.0357,0.3333
+DSBA,coop,matched,06026246,name_en,SPECIAL TOPICS IN DATA ENGINEERING 1,SPECAL TOPICS IN DATA ENGINEERING 1,0.0278,0.1667
+DSBA,coop,matched,06026247,name_en,SPECIAL TOPICS IN DATA ENGINEERING 2,SPECAL TOPICS IN DATA ENGINEERIN6 2,0.0556,0.3333
+DSBA,coop,matched,06026249,name_en,SPECIAL WORKSHOP IN DATA ENGINEERING 2,SPECIAL WORKSHOP II DATA ENGIIEERIN6 2,0.0789,0.3333
+DSBA,coop,matched,06026251,name_en,FINANCIAL ACCOUNTING,FINANCAL ACCOUNTIG,0.1,1.0
+DSBA,coop,matched,06026252,name_en,FINANCIAL ANALYTICS,FLANCAL ANALTICS,0.2105,1.0
+DSBA,coop,matched,06026253,name_en,MARKETING ANALYTICS,MARKETING ANALTICS,0.0526,0.5
+DSBA,coop,matched,06026254,name_en,INTRODUCTION TO HEALTH ANALYTICS,ITRODUCTLON TO HEALTH ANALYTICS,0.0625,0.25
+DSBA,coop,matched,06026255,name_en,CLINICAL DATA ACQUISITION AND MANAGEMENT,CLIICAL DATA ACOUSITION AND MANAGEMENT,0.075,0.4
 DSBA,coop,matched,06026258,name_en,SOCIAL NETWORK ANALYSIS,SOCIAL NETWORK ANALYTICS,0.087,0.3333
-DSBA,coop,missing,06016401,code,06016401,,1.0,
-DSBA,coop,missing,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,,1.0,1.0
-DSBA,coop,missing,06016401,name_en,MATHEMATICS FOR INFORMATION TECHNOLOGY,,1.0,1.0
-DSBA,coop,missing,06016401,credits,3(3-0-6),,1.0,
-DSBA,coop,missing,06016401,prerequisite,ไม่มี,,1.0,1.0
-DSBA,coop,extra,06026xxx,code,,06026xxx,0.0,
-DSBA,coop,extra,06026xxx,name_th,,วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1,0.0,0.0
-DSBA,coop,extra,06026xxx,name_en,,ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL COURSES 1,0.0,0.0
-DSBA,coop,extra,06026xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,06026xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026xxx,code,,06026xxx,0.0,
-DSBA,coop,extra,06026xxx,name_th,,วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2,0.0,0.0
-DSBA,coop,extra,06026xxx,name_en,,ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL COURSES 2,0.0,0.0
-DSBA,coop,extra,06026xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,06026xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026200,code,,06026200,0.0,
-DSBA,coop,extra,06026200,name_th,,แคลคูลัส 1,0.0,0.0
-DSBA,coop,extra,06026200,name_en,,CALCULUS 1,0.0,0.0
-DSBA,coop,extra,06026200,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026200,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026202,code,,06026202,0.0,
-DSBA,coop,extra,06026202,name_th,,พีชคณิตเชิงเส้น,0.0,0.0
-DSBA,coop,extra,06026202,name_en,,LINEAR ALGEBRA,0.0,0.0
-DSBA,coop,extra,06026202,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026202,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066101,code,,06066101,0.0,
-DSBA,coop,extra,06066101,name_th,,พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ,0.0,0.0
-DSBA,coop,extra,06066101,name_en,,BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY,0.0,0.0
-DSBA,coop,extra,06066101,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06066101,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066303,code,,06066303,0.0,
-DSBA,coop,extra,06066303,name_th,,การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์,0.0,0.0
-DSBA,coop,extra,06066303,name_en,,PROBLEM SOLVING AND COMPUTER PROGRAMMING,0.0,0.0
-DSBA,coop,extra,06066303,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06066303,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90641001,code,,90641001,0.0,
-DSBA,coop,extra,90641001,name_th,,โรงเรียนสร้างเสน่ห์,0.0,0.0
-DSBA,coop,extra,90641001,name_en,,CHARM SCHOOL,0.0,0.0
-DSBA,coop,extra,90641001,credits,,2(1-2-3),0.0,
-DSBA,coop,extra,90641001,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90641003,code,,90641003,0.0,
-DSBA,coop,extra,90641003,name_th,,กีฬาและนันทนาการ,0.0,0.0
-DSBA,coop,extra,90641003,name_en,,SPORTS AND RECREATIONAL ACTIVITIES,0.0,0.0
-DSBA,coop,extra,90641003,credits,,1(0-3-2),0.0,
-DSBA,coop,extra,90641003,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90644007,code,,90644007,0.0,
-DSBA,coop,extra,90644007,name_th,,ภาษาอังกฤษพื้นฐาน,0.0,0.0
-DSBA,coop,extra,90644007,name_en,,FOUNDATION ENGLISH,0.0,0.0
-DSBA,coop,extra,90644007,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,90644007,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026201,code,,06026201,0.0,
-DSBA,coop,extra,06026201,name_th,,แคลคูลัส 2,0.0,0.0
-DSBA,coop,extra,06026201,name_en,,CALCULUS 2,0.0,0.0
-DSBA,coop,extra,06026201,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026201,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026203,code,,06026203,0.0,
-DSBA,coop,extra,06026203,name_th,,การโปรแกรมคอมพิวเตอร์,0.0,0.0
-DSBA,coop,extra,06026203,name_en,,COMPUTER PROGRAMMING,0.0,0.0
-DSBA,coop,extra,06026203,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026203,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026205,code,,06026205,0.0,
-DSBA,coop,extra,06026205,name_th,,การตลาดเบื้องต้น,0.0,0.0
-DSBA,coop,extra,06026205,name_en,,INTRODUCTION TO MARKETING,0.0,0.0
-DSBA,coop,extra,06026205,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026205,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066001,code,,06066001,0.0,
-DSBA,coop,extra,06066001,name_th,,ความน่าจะเป็นและสถิติ,0.0,0.0
-DSBA,coop,extra,06066001,name_en,,PROBABILITY AND STATISTICS,0.0,0.0
-DSBA,coop,extra,06066001,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06066001,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90641002,code,,90641002,0.0,
-DSBA,coop,extra,90641002,name_th,,ความฉลาดทางดิจิทัล,0.0,0.0
-DSBA,coop,extra,90641002,name_en,,DIGITAL INTELLIGENCE QUOTIENT,0.0,0.0
-DSBA,coop,extra,90641002,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,90641002,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90642033,code,,90642033,0.0,
-DSBA,coop,extra,90642033,name_th,,กฎหมายสำหรับคนรุ่นใหม่,0.0,0.0
-DSBA,coop,extra,90642033,name_en,,LAW FOR NEW GENERATION,0.0,0.0
-DSBA,coop,extra,90642033,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,90642033,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90644008,code,,90644008,0.0,
-DSBA,coop,extra,90644008,name_th,,ภาษาอังกฤษพื้นฐาน 2,0.0,0.0
-DSBA,coop,extra,90644008,name_en,,FOUNDATION ENGLISH 2,0.0,0.0
-DSBA,coop,extra,90644008,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,90644008,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026206,code,,06026206,0.0,
-DSBA,coop,extra,06026206,name_th,,การวิเคราะห์ข้อมูลและการโปรแกรม,0.0,0.0
-DSBA,coop,extra,06026206,name_en,,DATA ANALYTICS AND PROGRAMMING,0.0,0.0
-DSBA,coop,extra,06026206,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026206,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066000,code,,06066000,0.0,
-DSBA,coop,extra,06066000,name_th,,คณิตศาสตร์ไม่ต่อเนื่อง,0.0,0.0
-DSBA,coop,extra,06066000,name_en,,DISCRETE MATHEMATICS,0.0,0.0
-DSBA,coop,extra,06066000,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06066000,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066300,code,,06066300,0.0,
-DSBA,coop,extra,06066300,name_th,,แนวคิดระบบฐานข้อมูล,0.0,0.0
-DSBA,coop,extra,06066300,name_en,,DATABASE SYSTEM CONCEPTS,0.0,0.0
-DSBA,coop,extra,06066300,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06066300,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066302,code,,06066302,0.0,
-DSBA,coop,extra,06066302,name_th,,การเขียนโปรแกรมเว็บพื้นฐาน,0.0,0.0
-DSBA,coop,extra,06066302,name_en,,FUNDAMENTAL WEB PROGRAMMING,0.0,0.0
-DSBA,coop,extra,06066302,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06066302,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066304,code,,06066304,0.0,
-DSBA,coop,extra,06066304,name_th,,การวิเคราะห์และออกแบบระบบสารสนเทศ,0.0,0.0
-DSBA,coop,extra,06066304,name_en,,INFORMATION SYSTEM ANALYSIS AND DESIGN,0.0,0.0
-DSBA,coop,extra,06066304,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06066304,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90644xxx,code,,90644xxx,0.0,
-DSBA,coop,extra,90644xxx,name_th,,วิชาเลือกด้านภาษาและการสื่อสาร,0.0,0.0
-DSBA,coop,extra,90644xxx,name_en,,ELECTIVE IN LANGUAGE AND COMMUNICATION,0.0,0.0
-DSBA,coop,extra,90644xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,90644xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026204,code,,06026204,0.0,
-DSBA,coop,extra,06026204,name_th,,เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น,0.0,0.0
-DSBA,coop,extra,06026204,name_en,,INTRODUCTION TO NETWORKS AND CYBERSECURITY,0.0,0.0
-DSBA,coop,extra,06026204,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026204,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026207,code,,06026207,0.0,
-DSBA,coop,extra,06026207,name_th,,ระบบฐานข้อมูลแบบโนเอสคิวแอล,0.0,0.0
-DSBA,coop,extra,06026207,name_en,,NOSQL DATABASE SYSTEMS,0.0,0.0
-DSBA,coop,extra,06026207,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026207,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026208,code,,06026208,0.0,
-DSBA,coop,extra,06026208,name_th,,พื้นฐานวิทยาการข้อมูล,0.0,0.0
-DSBA,coop,extra,06026208,name_en,,FUNDAMENTALS OF DATA SCIENCE,0.0,0.0
-DSBA,coop,extra,06026208,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026208,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026209,code,,06026209,0.0,
-DSBA,coop,extra,06026209,name_th,,การแสดงข้อมูลด้วยแผนภาพ,0.0,0.0
-DSBA,coop,extra,06026209,name_en,,DATA VISUALIZATION,0.0,0.0
-DSBA,coop,extra,06026209,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026209,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026210,code,,06026210,0.0,
-DSBA,coop,extra,06026210,name_th,,การหาค่าที่เหมาะที่สุด,0.0,0.0
-DSBA,coop,extra,06026210,name_en,,OPTIMIZATION,0.0,0.0
-DSBA,coop,extra,06026210,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06026210,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066102,code,,06066102,0.0,
-DSBA,coop,extra,06066102,name_th,,ระบบสารสนเทศเพื่อการจัดการ,0.0,0.0
-DSBA,coop,extra,06066102,name_en,,MANAGEMENT INFORMATION SYSTEMS,0.0,0.0
-DSBA,coop,extra,06066102,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06066102,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066301,code,,06066301,0.0,
-DSBA,coop,extra,06066301,name_th,,โครงสร้างข้อมูลและอัลกอริทึม,0.0,0.0
-DSBA,coop,extra,06066301,name_en,,DATA STRUCTURES AND ALGORITHMS,0.0,0.0
-DSBA,coop,extra,06066301,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06066301,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026211,code,,06026211,0.0,
-DSBA,coop,extra,06026211,name_th,,การเรียนรู้ของเครื่องเชิงประยุกต์,0.0,0.0
-DSBA,coop,extra,06026211,name_en,,APPLIED MACHINE LEARNING,0.0,0.0
-DSBA,coop,extra,06026211,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026211,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026212,code,,06026212,0.0,
-DSBA,coop,extra,06026212,name_th,,การสร้างคลังข้อมูล,0.0,0.0
-DSBA,coop,extra,06026212,name_en,,DATA WAREHOUSING,0.0,0.0
-DSBA,coop,extra,06026212,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026212,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026xxx,code,,06026xxx,0.0,
-DSBA,coop,extra,06026xxx,name_th,,วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1,0.0,0.0
-DSBA,coop,extra,06026xxx,name_en,,"ELECTIVE IN DATA SCIENCE 1, ELECTIVE IN STATISTICAL ANALYSIS 1, ELECTIVE IN DATA ENGINEERING 1",0.0,0.0
-DSBA,coop,extra,06026xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,06026xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026xxx,code,,06026xxx,0.0,
-DSBA,coop,extra,06026xxx,name_th,,วิชาเลือกกลุ่มวิทยาการข้อมูล 2 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 2,0.0,0.0
-DSBA,coop,extra,06026xxx,name_en,,"ELECTIVE IN DATA SCIENCE 2, ELECTIVE IN STATISTICAL ANALYTICS 2, ELECTIVE IN DATA ENGINEERING 2",0.0,0.0
-DSBA,coop,extra,06026xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,06026xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,9064xxxx,code,,9064xxxx,0.0,
-DSBA,coop,extra,9064xxxx,name_th,,วิชาเลือกหมวดวิชาศึกษาทั่วไป,0.0,0.0
-DSBA,coop,extra,9064xxxx,name_en,,ELECTIVE IN GENERAL EDUCATION,0.0,0.0
-DSBA,coop,extra,9064xxxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,9064xxxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90644042,code,,90644042,0.0,
-DSBA,coop,extra,90644042,name_th,,การสื่อสารและการนำเสนออย่างมืออาชีพ,0.0,0.0
-DSBA,coop,extra,90644042,name_en,,PROFESSIONAL COMMUNICATION AND PRESENTATION,0.0,0.0
-DSBA,coop,extra,90644042,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,90644042,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026213,code,,06026213,0.0,
-DSBA,coop,extra,06026213,name_th,,ระบบข้อมูลขนาดใหญ่,0.0,0.0
-DSBA,coop,extra,06026213,name_en,,BIG DATA SYSTEMS,0.0,0.0
-DSBA,coop,extra,06026213,credits,,3(2-2-5),0.0,
-DSBA,coop,extra,06026213,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026214,code,,06026214,0.0,
-DSBA,coop,extra,06026214,name_th,,โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1,0.0,0.0
-DSBA,coop,extra,06026214,name_en,,PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1,0.0,0.0
-DSBA,coop,extra,06026214,credits,,3(0-9-0),0.0,
-DSBA,coop,extra,06026214,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026xxx,code,,06026xxx,0.0,
-DSBA,coop,extra,06026xxx,name_th,,วิชาเลือกกลุ่มวิทยาการข้อมูล 3 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 3 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 3,0.0,0.0
-DSBA,coop,extra,06026xxx,name_en,,"ELECTIVE IN DATA SCIENCE 3, ELECTIVE IN STATISTICAL ANALYTICS 3, ELECTIVE IN DATA ENGINEERING 3",0.0,0.0
-DSBA,coop,extra,06026xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,06026xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026xxx,code,,06026xxx,0.0,
-DSBA,coop,extra,06026xxx,name_th,,วิชาเลือกกลุ่มวิทยาการข้อมูล 4 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4,0.0,0.0
-DSBA,coop,extra,06026xxx,name_en,,"ELECTIVE IN DATA SCIENCE 4, ELECTIVE IN STATISTICAL ANALYTICS 4, ELECTIVE IN DATA ENGINEERING 4",0.0,0.0
-DSBA,coop,extra,06026xxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,06026xxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06066100,code,,06066100,0.0,
-DSBA,coop,extra,06066100,name_th,,การบริหารโครงการเทคโนโลยีสารสนเทศ,0.0,0.0
-DSBA,coop,extra,06066100,name_en,,INFORMATION TECHNOLOGY PROJECT MANAGEMENT,0.0,0.0
-DSBA,coop,extra,06066100,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,06066100,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,90643021,code,,90643021,0.0,
-DSBA,coop,extra,90643021,name_th,,ผู้ประกอบการสมัยใหม่,0.0,0.0
-DSBA,coop,extra,90643021,name_en,,MODERN ENTREPRENEURS,0.0,0.0
-DSBA,coop,extra,90643021,credits,,3(3-0-6),0.0,
-DSBA,coop,extra,90643021,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,06026215,code,,06026215,0.0,
-DSBA,coop,extra,06026215,name_th,,โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2,0.0,0.0
-DSBA,coop,extra,06026215,name_en,,PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2,0.0,0.0
-DSBA,coop,extra,06026215,credits,,3(0-9-0),0.0,
-DSBA,coop,extra,06026215,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,9064xxxx,code,,9064xxxx,0.0,
-DSBA,coop,extra,9064xxxx,name_th,,วิชาเลือกหมวดวิชาศึกษาทั่วไป,0.0,0.0
-DSBA,coop,extra,9064xxxx,name_en,,ELECTIVE IN GENERAL EDUCATION,0.0,0.0
-DSBA,coop,extra,9064xxxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,9064xxxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,xxxxxxxx,code,,xxxxxxxx,0.0,
-DSBA,coop,extra,xxxxxxxx,name_th,,วิชาเลือกเสรี 1,0.0,0.0
-DSBA,coop,extra,xxxxxxxx,name_en,,FREE ELECTIVE COURSE 1,0.0,0.0
-DSBA,coop,extra,xxxxxxxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,xxxxxxxx,prerequisite,,ไม่มี,0.0,0.0
-DSBA,coop,extra,xxxxxxxx,code,,xxxxxxxx,0.0,
-DSBA,coop,extra,xxxxxxxx,name_th,,วิชาเลือกเสรี 2,0.0,0.0
-DSBA,coop,extra,xxxxxxxx,name_en,,FREE ELECTIVE COURSE 2,0.0,0.0
-DSBA,coop,extra,xxxxxxxx,credits,,3(3-0-6)หรือ 3(2-2-5),0.0,
-DSBA,coop,extra,xxxxxxxx,prerequisite,,ไม่มี,0.0,0.0
+DSBA,coop,matched,06026259,name_en,"COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS",COOPERATIE EDUCATION IN DATA SCIENCE AND BUSIESS ANALTICS,0.05,0.375
+DSBA,coop,matched,06026260,name_th,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง,0.0968,0.1111
+DSBA,coop,matched,06026260,name_en,"OVERSEA COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS",OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS,0.0147,0.1111
+DSBA,no_coop,matched,06026200,name_th,แคลคูลัส 1,แคลคูลัส,0.2,0.5
+DSBA,no_coop,matched,06026202,name_en,LINEAR ALGEBRA,LIEAR ALGEBRA,0.0714,0.5
+DSBA,no_coop,matched,06066101,name_th,พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ,พืนฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ,0.0256,0.4
+DSBA,no_coop,matched,06066101,name_en,"BUSINESS FUNDAMENTALS FOR INFORMATION
+TECHNOLOGY",BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOCV,0.0417,0.2
+DSBA,no_coop,matched,06066303,name_th,การแก้ปัญหาและโปรแกรมคอมพิวเตอร์,การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์,0.0938,0.3333
+DSBA,no_coop,matched,06066303,name_en,"PROBLEM SOLVING AND COMPUTER
+PROGRAMMING",PROBLEM SOLVNG AND COMPUTER PROCRAMMNG,0.075,0.4
+DSBA,no_coop,matched,90641001,name_th,โรงเรียนสร้างเสน่าห์,โรงเรียนสร้างเสน่ห์,0.05,0.5
+DSBA,no_coop,matched,90641003,name_th,กีฬาและนันทนาการ,กีฬาและนันทนาการ 1,0.125,0.3333
+DSBA,no_coop,matched,90641003,name_en,SPORTS AND RECREATIONAL ACTIVITIES,SPORTS AND RECREATIONAL ACTMTIES,0.0882,0.25
+DSBA,no_coop,matched,90641003,credits,1(0-3-2),(0-3-2),0.125,
+DSBA,no_coop,matched,06026203,name_en,COMPUTER PROGRAMMING,COMPUTER PROCRAMMNG,0.1,0.5
+DSBA,no_coop,matched,06026205,name_th,การตลาดเบื้อต้น,การตลาดเบื้องต้น,0.0667,0.6667
+DSBA,no_coop,matched,06026205,name_en,INTRODUCTION TO MARKETING,INTRODUCTION TO MARKETNG,0.04,0.3333
+DSBA,no_coop,matched,06066001,name_en,PROBABILITY AND STATISTICS,PROBABILITV AND STATISTICS,0.0385,0.3333
+DSBA,no_coop,matched,90642033,name_en,LAW FOR NEW GENERATION,LAW FOR NEW GENERATLON,0.0455,0.25
+DSBA,no_coop,matched,06026206,name_th,การวิเคราะห์ข้อมูลและการโปรแกรม,การวิเคราะห์ ข้อมูลและการโปรแกรม,0.0323,0.0
+DSBA,no_coop,matched,06026206,name_en,DATA ANALYTICS AND PROGRAMMING,DATA ANAL TICS AND PROCRAMMNG,0.1,0.75
+DSBA,no_coop,matched,06066300,name_th,แนวคิดระบบฐานข้อมูล,แ เนวคิดระบบฐานข้อมูล,0.1053,1.0
+DSBA,no_coop,matched,06066300,name_en,DATABASE SYSTEM CONCEPTS,DATABASE SVSTEM CONCEPTS,0.0417,0.3333
+DSBA,no_coop,matched,06066302,name_en,FUNDAMENTAL WEB PROGRAMMING,FUNDAMENTAL WEB PROCRAMMNG,0.0741,0.3333
+DSBA,no_coop,matched,06066304,name_th,การวิเคราะห์และอออกแบบระบบสารสนเทศ,การวิเคราะห์และออกแบบระบบสารสนเทศ,0.0294,0.375
+DSBA,no_coop,matched,06066304,name_en,INFORMATION SYSTEM ANALYSIS AND DESIGN,INFORMATION SVSTEM ANALYSIS AND DESIGN,0.0263,0.2
+DSBA,no_coop,matched,90644xxx,name_th,วิชาเลือกภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสือสาร,0.1923,1.0
+DSBA,no_coop,matched,90644xxx,name_en,ELECTIVE IN LANGUAGE AND COMMUNICATION,ELECIVE IN LANGUAGE AND COMMUNICATLON,0.0526,0.4
+DSBA,no_coop,matched,06026204,name_th,เครือข่ายและความมั่นคงทางไซเบอร์เบื่องต้น,เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น,0.0244,0.375
+DSBA,no_coop,matched,06026204,name_en,"INTRODUCTION TO NETWORKS AND
+CYBERSECURITY",ITRODUCTION TO NETWORKS AND CYBERSECURITV,0.0476,0.4
+DSBA,no_coop,matched,06026207,name_en,NOSQL DATABASE SYSTEMS,NOSOL DATABASE SVSTEMS,0.0909,0.6667
+DSBA,no_coop,matched,06026209,name_en,DATA VISUALIZATION,DATA VISUALLZATON,0.1111,0.5
+DSBA,no_coop,matched,06026210,name_en,OPTIMIZATION,OPTIMLZATION,0.0833,1.0
+DSBA,no_coop,matched,06066102,name_th,ระบบสารสนเทศเพื่อการจัดการ,ระบบสารสนเทศเพือการจัดการ,0.0385,0.2
+DSBA,no_coop,matched,06066102,name_en,MANAGEMENT INFORMATION SYSTEMS,MANAGEMENT INFORMATION SVSTEMS,0.0333,0.3333
+DSBA,no_coop,matched,06026211,name_en,APPLIED MACHINE LEARNING,APPLIED MACHINE LEARNNG,0.0417,0.3333
+DSBA,no_coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 1
+วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1
+วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1,0.0202,0.0625
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE
+ELECTIVE IN STATISTICAL ANALYSIS 1
+ELECTIVE IN DATA ENGINEERING 1",ELECTIE IN DATA SCIENCE ELECTIE IN STATISTICAL ANAL YSIS 1 ELECTIE IN DATA ENGINEERNNG 1,0.0556,0.4286
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 2
+ELECTIVE IN STATISTICAL ANALYTICS 2
+ELECTIVE IN DATA ENGINEERING 2",ELECTIE IN DATA SCIENCE 2 ELECTIE IN STATISTICAL ANALYTICS 2 ELECTIE IN DATA ENGINEERINC 2,0.043,0.2667
+DSBA,no_coop,matched,9064xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,0.0357,0.4
+DSBA,no_coop,matched,9064xxxx,name_en,ELECTIVE IN GENERAL EDUCATION,ELECTIE IN GENERAL EDUCATION,0.0345,0.25
+DSBA,no_coop,matched,90644042,name_th,การสื่อสารและการนำเสนออย่างมืออาชีพ,การสือสารและการนำเสนออย่างมืออาชีพ,0.0286,0.5
+DSBA,no_coop,matched,06026213,name_th,ระบบข้อมูลมหัต,ระบบ ข้อมูลมหัต,0.0714,0.0
+DSBA,no_coop,matched,06026214,name_en,"PROJECT IN DATA SCIENCE AND BUSINESS
+ANALYTICS 1",PROJECT IN DATA SCIENCE AND BUSINESS ANAL WTICS 1,0.0417,0.25
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 3
+ELECTIVE IN STATISTICAL ANALYTICS 3
+ELECTIVE IN DATA ENGINEERING 3",ELECTIE IN DATA SCIENCE 3 ELECTIE IN STATISTICAL ANALYTICS 3 ELECTIE IN DATA ENGINEERING 3,0.0323,0.2
+DSBA,no_coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 4
+วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4
+วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล,0.0505,0.1875
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 4
+ELECTIVE IN STATISTICAL ANALYTICS 4
+ELECTIVE IN DATA ENGINEERING 4",ELECTIE IN DATA SCIENCE 4 ELECTIE IN STATISTICAL ANALWTICS ELECTIVE IN DATA ENGINEER NG 1,0.0753,0.4667
+DSBA,no_coop,matched,06066100,name_en,"INFORMATION TECHNOLOGY PROJECT
+MANAGEMENT",INFORMATION TECHNOLOGV PROJECT MANAGEMENT,0.0244,0.25
+DSBA,no_coop,matched,06026215,name_en,"PROJECT IN DATA SCIENCE AND BUSINESS
+ANALYTICS 2",PROECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2,0.0208,0.125
+DSBA,no_coop,matched,06026xxx,name_th,วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาเฉพาะด้าน 1,วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1,0.0612,0.1
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN ELECTIVE OR SPECIFIC
+PROFESSIONAL COURSES 1",ELECTIE IN ELECTIVE OR SPECIIC PROFESSIONAL COURSES 1,0.0364,0.25
+DSBA,no_coop,matched,06026xxx,name_th,วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาเฉพาะด้าน 2,วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2,0.0612,0.1
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL
+COURSES 2",ELECTIE IN ELECTIE OR SPECIFIC PROFESSIONAL COURSES 2,0.0364,0.25
+DSBA,no_coop,matched,9064xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,0.0357,0.4
+DSBA,no_coop,matched,9064xxxx,name_en,ELECTIVE IN GENERAL EDUCATION,ELECIME IN GENERAL EDUCATLON,0.1034,0.5
+DSBA,no_coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 1,FREE ELECIIE COURSE 1,0.0909,0.25
+DSBA,no_coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 2,FREE ELECIIE COURSE 2,0.0909,0.25
+DSBA,no_coop,matched,06026217,name_en,MACHINE LEARNING,MACHINE LEARNNG,0.0625,0.5
+DSBA,no_coop,matched,06026218,name_en,DEEP LEARNING,DEEP LEARNNG,0.0769,0.5
+DSBA,no_coop,matched,06026219,name_en,NATURAL LANGUAGE PROCESSING,NATURAL LANGUAGE PROCESSIG,0.037,0.3333
+DSBA,no_coop,matched,06026223,name_en,IMAGE PROCESSING,IMAGE PROCESSWG,0.125,0.5
+DSBA,no_coop,matched,06026224,name_en,IMAGE TRANSFORMATION AND RECOGNITION,IMAGE TRANSFORMATION AND RECOGTION,0.0556,0.25
+DSBA,no_coop,matched,06026225,name_th,การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวิดีโอทางการแพทย์,การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการ,0.1186,0.5
+DSBA,no_coop,matched,06026225,name_en,"DEEP LEARNING IN MEDICAL IMAGE AND VIDEO
+ANALYSIS",DEEP LEARNNG II MEDICAL IMAGE AND VIDEO ANALYSIS,0.0408,0.25
+DSBA,no_coop,matched,06026226,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 1,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 1,0.1333,0.2
+DSBA,no_coop,matched,06026226,name_en,SPECIAL TOPICS IN DATA SCIENCE 1,SPECIAL TOPICS IN DATA SCIENCE1,0.0312,0.3333
+DSBA,no_coop,matched,06026227,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 2,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 2,0.1333,0.2
+DSBA,no_coop,matched,06026227,name_en,SPECIAL TOPICS IN DATA SCIENCE 2,SPECIAL TOPICS IN DATA SCIENCE2,0.0312,0.3333
+DSBA,no_coop,matched,06026228,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 1,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 1,0.1176,0.2
+DSBA,no_coop,matched,06026229,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 2,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2,0.1176,0.2
+DSBA,no_coop,matched,06026230,name_th,อนุกรมเวลาและการพยากรณ์,อนุกรมเวลาและการพยากรณ์เบื้องต้น,0.3913,0.2
+DSBA,no_coop,matched,06026230,name_en,TIME SERIES AND FORECASTING,ITRODUCTION TO TLME SERIES AND FORECASTING,0.5556,0.75
+DSBA,no_coop,matched,06026231,name_en,BAYESIAN STATISTICS,BAYESAN STATISTICS,0.0526,0.5
+DSBA,no_coop,matched,06026232,name_en,INTRODUCTION TO STOCHASTIC PROCESS,INTRODUCTIOM TO STOCHASTIC PROCESS,0.0294,0.25
+DSBA,no_coop,matched,06026233,name_en,MULTIVARIATE DATA ANALYSIS,MULTWARATE DATA ANALSIS,0.1538,0.6667
+DSBA,no_coop,matched,06026234,name_en,EXPERIMENTAL DESIGN,EXPERMMENTAL DESIGI,0.1053,1.0
+DSBA,no_coop,matched,06026235,name_en,SPECIAL TOPICS IN STATISTICAL ANALYTICS 1,SPECAL TOPICS IN STATISTICAL ANALYTICS 1,0.0244,0.1667
+DSBA,no_coop,matched,06026238,name_en,SPECIAL WORKSHOP IN STATISTICAL ANALYTICS 2,SPECIAL WORKSHOP IN STATISTICAL ANALTICS 2,0.0233,0.1667
+DSBA,no_coop,matched,06026239,name_th,สถิาปัตยกรรมข้อมูลแบบไปป์ไลน์,สถาปัตยกรรมข้อมูลแบบไปป์ไลน์,0.0345,0.3333
+DSBA,no_coop,matched,06026239,name_en,DATA PIPELINE ARCHITECTURE,DATA PLPELINE ARCHITECTURE,0.0385,0.3333
+DSBA,no_coop,matched,06026240,name_en,INTELLIGENT SYSTEM DEVELOPMENT,INTELLIGENT SVSTEM DEVELOPMENT,0.0333,0.3333
+DSBA,no_coop,matched,06026241,name_en,MACHINE LEARNING OPERATIONS,MACHINE LEARNNG OPERATIONS,0.037,0.3333
+DSBA,no_coop,matched,06026242,name_en,CLOUD TECHNOLOGY INFRASTRUCTURE,CLOUD TECHNOLOGV INFRASTRUCTURE,0.0323,0.3333
+DSBA,no_coop,matched,06026243,name_th,ระบบฐานข้อมูลขั้นสูง,ระบบฐานข้อมูลขันสูง,0.05,0.6667
+DSBA,no_coop,matched,06026244,name_en,"DATABASE SYSTEM MAINTENANCE AND
+ADMINISTRATION",DATABASE SYSTEM MANTENANCE AND ADMNISTRATION,0.0435,0.4
+DSBA,no_coop,matched,06026245,name_th,ระบบข้อมูลแบบกระจาย,ระบบฐานข้อมูลแบบกระจาย,0.1579,0.6667
+DSBA,no_coop,matched,06026245,name_en,DISTRIBUTED DATABASE SYSTEMS,DISTRIBUTED DATABASE SVSTEMS,0.0357,0.3333
+DSBA,no_coop,matched,06026246,name_en,SPECIAL TOPICS IN DATA ENGINEERING 1,SPECAL TOPICS IN DATA ENGINEERING 1,0.0278,0.1667
+DSBA,no_coop,matched,06026247,name_en,SPECIAL TOPICS IN DATA ENGINEERING 2,SPECAL TOPICS IN DATA ENGINEERIN6 2,0.0556,0.3333
+DSBA,no_coop,matched,06026249,name_en,SPECIAL WORKSHOP IN DATA ENGINEERING 2,SPECIAL WORKSHOP II DATA ENGIIEERIN6 2,0.0789,0.3333
+DSBA,no_coop,matched,06026251,name_en,FINANCIAL ACCOUNTING,FINANCAL ACCOUNTIG,0.1,1.0
+DSBA,no_coop,matched,06026252,name_en,FINANCIAL ANALYTICS,FLANCAL ANALTICS,0.2105,1.0
+DSBA,no_coop,matched,06026253,name_en,MARKETING ANALYTICS,MARKETING ANALTICS,0.0526,0.5
+DSBA,no_coop,matched,06026254,name_en,INTRODUCTION TO HEALTH ANALYTICS,ITRODUCTLON TO HEALTH ANALYTICS,0.0625,0.25
+DSBA,no_coop,matched,06026255,name_en,CLINICAL DATA ACQUISITION AND MANAGEMENT,CLIICAL DATA ACOUSITION AND MANAGEMENT,0.075,0.4
+DSBA,no_coop,matched,06026258,name_en,SOCIAL NETWORK ANALYSIS,SOCIAL NETWORK ANALYTICS,0.087,0.3333
+DSBA,no_coop,matched,06026259,name_en,"COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS",COOPERATIE EDUCATION IN DATA SCIENCE AND BUSIESS ANALTICS,0.05,0.375
+DSBA,no_coop,matched,06026260,name_th,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง,0.0968,0.1111
+DSBA,no_coop,matched,06026260,name_en,"OVERSEA COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS",OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS,0.0147,0.1111
+IT,coop,matched,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,0.0303,0.0
+IT,coop,matched,06016401,name_en,MATHEMATICS FOR INFORMATION TECHNOLOGY,MATHEMATICS FOR INFORMATION TECHNOLOCY,0.0263,0.25
+IT,coop,matched,06016402,name_en,INFORMATION TECHNOLOGY FUNDAMENTALS,IFORMATION TECHNOLOGY FUNDAMENTALS,0.0286,0.3333
+IT,coop,matched,06016411,name_en,INTRODUCTION TO COMPUTER SYSTEMS,INTRODUCTION TO COMPUTER SVSTEMS,0.0312,0.25
+IT,coop,matched,06066303,name_en,PROBLEM SOLVING AND COMPUTER PROGRAMMING,PROBLEM SOLVING AND COMPUTER PROCRAMMNG,0.05,0.2
+IT,coop,matched,90641003,name_en,SPORTS AND RECREATIONAL ACTIVITIES,SPORTS AND RECREATIONAL ACTMITIES,0.0588,0.25
+IT,coop,matched,90644007,name_th,ภาษาอังกฤษพื้นฐาน 1,ภาษาอังกฤษพืนฐาน 1,0.0526,0.6667
+IT,coop,matched,06016408,name_en,OBJECT-ORIENTED PROGRAMMING,OBECT ORIENTED PROCRAMMNG,0.1481,1.5
+IT,coop,matched,06066001,name_th,ความน่าจะเป็นและสถิติ,ความน่าจะเป็นและสถิ,0.0952,0.3333
+IT,coop,matched,06066001,name_en,PROBABILITY AND STATISTICS,PROBABILTV AND STATISTICS,0.0769,0.3333
+IT,coop,matched,06066101,name_en,BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY,BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOCY,0.0208,0.2
+IT,coop,matched,06066301,name_th,โครงสร้างข้อมูลและอัลกอรึทึม,โครงสร้างข้อมูลและอัลกอริทึม,0.0357,0.5
+IT,coop,matched,06016403,name_th,เทคโนโลยีสื่อประสม,เทคโนโลยีสือประสม,0.0556,0.3333
+IT,coop,matched,06016403,name_en,MULTIMEDIA TECHNOLOGY,MULTMMEDLA TECHNOLOCY,0.1429,1.0
+IT,coop,matched,06016409,name_th,การประมวลผลทางกายภาพ,การประมวลทางกายภาพ,0.1,0.5
+IT,coop,matched,06016409,name_en,PHYSICAL COMPUTING,PHVSICAL COMPUTIG,0.1111,1.0
+IT,coop,matched,06016413,name_en,INTRODUCTION TO NETWORK SYSTEMS,ITRODUCTION TO NETWORK SSTEMS,0.0645,0.5
+IT,coop,matched,06066300,name_en,DATABASE SYSTEM CONCEPTS,DATABASE SVSTEM CONCEPTS,0.0417,0.3333
+IT,coop,matched,06066304,name_en,INFORMATION SYSTEM ANALYSIS AND DESIGN,INFORMATION SVSTEM ANALSIS AND DESIGN,0.0526,0.4
+IT,coop,matched,06016405,name_th,พื้นฐานความมั่นคงปลอดภัยไซเบอร์,พืนฐานความมันคงปลอดภัยไซเบอร์,0.0645,1.0
+IT,coop,matched,06016405,name_en,CYBERSECURITY FUNDAMENTALS,CYBERSECURITV FUNDAMENTALS,0.0385,0.5
+IT,coop,matched,06016410,name_en,SOFTWARE ENGINEERING,SOFTWARE ENGINEERNG,0.05,0.5
+IT,coop,matched,06016412,name_th,โครงสร้างระบบคอมพิวเตอร์และระบบปฎิบัติการ,โครงสร้างระบบคอมพิวเตอร์และ ระบบปฏิบัติการ,0.0488,0.4286
+IT,coop,matched,06016412,name_en,COMPUTER ORGANIZATION AND OPERATING SYSTEM,COMPUTER ORCANIZATON AND OPERATING SSTEM,0.0714,0.4
+IT,coop,matched,06066302,name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเจ็,0.3462,0.5
+IT,coop,matched,06066302,name_en,FUNDAMENTAL WEB PROGRAMMING,FUNDAMENTAL WEB PROCRAMMNG,0.0741,0.3333
+IT,coop,matched,06016414,name_en,NOSQL DATABASE SYSTEMS,NOSOL DATABASE SYSTEMS,0.0455,0.3333
+IT,coop,matched,06016415,name_en,FUNCTIONAL PROGRAMMING,FUNCTLONAL PROCRAMMNG,0.1364,1.0
+IT,coop,matched,06016424,name_en,HUMAN INTERFACE DESIGN,HUMAN ITERFACE DESIGN,0.0455,0.3333
+IT,coop,matched,06016425,name_en,VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA,VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDLA,0.0208,0.1667
+IT,coop,matched,06016425,credits,3(3-0-6),3(2-2-5),0.375,
+IT,coop,matched,06066102,name_th,ระบบสารสนเทศเพื่อการจัดการ,ระบบสารสนเทศเพือการจัดการ,0.0385,0.2
+IT,coop,matched,90644xxx,name_th,วิชาเลือกหมวดภาษาและการสื่อสาร,วิชาเลือกหมวดภาษาและการสือสาร,0.0333,0.6
+IT,coop,matched,90644xxx,name_en,ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION,ELECTIVE COURSE IN LANCUAGE AND COMMUNICATION,0.0222,0.1667
+IT,coop,matched,06016416,name_en,REQUIREMENT ENGINEERING,REOUIREMENT ENGINEERING,0.0435,0.5
+IT,coop,matched,06016417,name_en,SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS,SOFTARE DEVELOPMENT TOOLS AND ENVIRONMENTS,0.0233,0.2
+IT,coop,matched,06016418,name_th,การพัฒนาเว็บฝั่งเซิร์ฟเวอร์,การพัฒนาเว็บฝังเซิร์ฟเวอร์,0.037,0.25
+IT,coop,matched,06016418,name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,0.037,0.6667
+IT,coop,matched,06016421,name_en,INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY,INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITV,0.0217,0.25
+IT,coop,matched,06016422,name_th,อินเทอร์เน็ตของสรรพสิ่ง,อินเทอร์เน็ตของสรรพสิง,0.0435,0.6667
+IT,coop,matched,06016422,name_en,INTERNET OF THINGS,ITERNET OF THINGS,0.0556,0.3333
+IT,coop,matched,06016423,name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานทีสามารถโปรแกรมได้,0.0392,0.1818
+IT,coop,matched,06016423,name_en,INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION,INFRASTRUCTURE PROGRAMMABILITV AND AUTOMATION,0.0222,0.25
+IT,coop,matched,06016426,name_en,COMPUTER GRAPHICS AND ANIMATION,COMPUTER GRAPHICS AND ANMMATION,0.0323,0.25
+IT,coop,matched,06016427,name_th,การออกแบบและพัฒนาเกมเบื้องต้น,การออกแบบและพัฒนาเกมเบืองต้น,0.0345,0.5
+IT,coop,matched,"06016481
+หรือ
+06016482",name_th,"สหกิจศึกษา
+หรือ
+สหกิจศึกษาต่างประเทศ","สหกิจศึกษา
+สหกิจศึกษาต่างประเทศ",0.1389,0.25
+IT,coop,matched,"06016481
+หรือ
+06016482",name_en,"COOPERATIVE EDUCATION
+OR
+OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
+OVERSEA COOPERATIVE EDUCATION",0.0556,0.1667
+IT,coop,matched,06016406,name_th,โครงงาน 1,ไม่ระบุ,1.0,1.0
+IT,coop,matched,06016406,name_en,PROJECT 1,PROECT 1,0.1111,0.5
+IT,coop,matched,060164xx,name_en,ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1,ELECTIE COURSE IN INFORMATION TECHNOLOGY 1,0.0233,0.1667
+IT,coop,matched,9064xxxx,name_th,วิชาเลือกหมวดศึกษาทั่วไป 1,วิชาเลือก หมวดศึกษาทัวไป 1,0.0769,0.4
+IT,coop,matched,06016407,name_th,โครงงาน 2,ไม่ระบุ,1.0,1.0
+IT,coop,matched,90642033,name_en,LAW FOR NEW GENERATION,LAW FOR NEW GENERATLON,0.0455,0.25
+IT,coop,matched,90644042,name_th,การสื่อสารและการนำเสนออย่างมืออาชีพ,การสือสารและการนำเสนออย่างมืออาชีพ,0.0286,0.5
+IT,coop,matched,9064xxxx,name_th,วิชาเลือกหมวดศึกษาทั่วไป 2,วิชาเลือก หมวดศึกษาทัวไป 2,0.0769,0.4
+IT,coop,matched,06016428,name_en,MICROSERVICE DESIGN AND DEVELOPMENT,MICROSERVICE DESIGI AND DEVELOPMENT,0.0286,0.25
+IT,coop,matched,06016429,name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,0.037,0.6667
+IT,coop,matched,06016432,name_en,SOFTWARE VERIFICATION AND VALIDATION,SOFTWARE VERIFICATION AND VALLDATION,0.0278,0.25
+IT,coop,matched,06016433,name_en,AUTOMATION TESTING IN AGILE,AUTOMATIOM TESTWG IN AGILE,0.1111,0.5
+IT,coop,matched,06016436,name_en,DATA VISUALIZATION,DATA VISUALLZATION,0.0556,0.5
+IT,coop,matched,06016438,name_en,CLOUD SECURITY,CLOUD SECURITV,0.0714,0.5
+IT,coop,matched,06016440,name_en,INFORMATION NETWORK DESIGN,INFORMATION NETWORK DESIGI,0.0385,0.3333
+IT,coop,matched,06016442,name_th,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง,0.0208,0.2857
+IT,coop,matched,06016442,name_en,INTERNET OF THINGS HARDWARE DESIGN,ITERNET OF THIGS HARDWARE DESIGI,0.0882,0.6
+IT,coop,matched,06016443,name_th,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเตอร์เน็ตแห่งสรรพสิ่ง,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง,0.0323,0.3333
+IT,coop,matched,06016443,name_en,INTERNET OF THINGS DATA ANALYTICS AND APPLICATIONS,ITERNET OF THIGS DATA ANALTICS AND APPLICATIONS,0.06,0.4286
+IT,coop,matched,06016444,name_en,WEB DESIGN,WEB DESIGI,0.1,0.5
+IT,coop,matched,06016445,name_en,ADVANCED SCRIPTING FOR DESIGN,ADVANCED SCRIPTING FOR DESIGI,0.0345,0.25
+IT,coop,matched,06016448,name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขันสูงด้วยเกมเอนจิน,0.0625,0.5714
+IT,coop,matched,06016450,name_en,GAME DEVELOPMENT WITH REALITY TECHNOLOGY,GAME DEVELOPMENT WTH REALTV TECHNOLOGY,0.075,0.4
+IT,coop,matched,06016453,name_en,CUSTOMER RELATIONSHIP MANAGEMENT,CUSTOMER RELATIONSH|P MANAGEMENT,0.0312,0.3333
+IT,coop,matched,06016457,name_th,ระบบฐานข้อมูลขั้นสูง,ระบบฐานข้อมูลขันสูง,0.05,0.6667
+IT,coop,matched,06016458,name_en,DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION,DATABASE SYSTEM MAITENANCE AND ADMINISTRATION,0.0217,0.2
+IT,coop,matched,06016459,name_en,SOFTWARE STANDARD AND QUALITY ASSURANCE,SOFTWARE STANDARD AND QUALTV ASSURANCE,0.0513,0.2
+IT,coop,matched,06016460,name_en,ARTIFICIAL INTELLIGENCE,ARTIFICIAL ITELLIGENCE,0.0435,0.5
+IT,coop,matched,06016462,name_th,เทคโนโลยีสื่อสารการเคลื่อนที่,เทคโนโลยีสื่อสารเคลื่อนที่,0.1034,0.25
+IT,coop,matched,06016463,name_en,HYBRID COMPUTING TECHNOLOGY,HYBRLD COMPUTIG TECHOLOGY,0.1111,1.0
+IT,coop,matched,06016464,name_en,PRACTICAL CYBER SECURITY,PRACTICAL CYBER SECURIT,0.0417,0.3333
+IT,coop,matched,06016465,name_th,การออกแบบศูนย์ข้อมูล,การออกแบบศูนย์,0.3,0.25
+IT,coop,matched,06016465,name_en,DATA CENTER DESIGN,DATA CENTER DESIGI,0.0556,0.3333
+IT,coop,matched,06016466,name_en,NETWORK AND SYSTEM TROUBLE SHOOTING,NETWORK AND SYSTEM TROUBLE SHOOTNG,0.0286,0.2
+IT,coop,matched,06016467,name_en,IMAGE TRANSFORMATION AND RECOGNITION,IMAGE TRANSFORMATION AND RECOGIITION,0.0278,0.25
+IT,coop,matched,06016468,name_en,DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS,DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS,0.0204,0.125
+IT,coop,matched,06016470,name_en,CLINICAL DATA ACQUISITION AND MANAGEMENT,CLINICAL DATA ACOUSITION AND MANAGEMENT,0.05,0.2
+IT,coop,matched,06016475,name_en,SPECIAL TOPICS IN INFORMATION TECHNOLOGY 3,SPECAL TOPICS II INFORMATIOM TECHNOLOGY 3,0.0714,0.5
+IT,coop,matched,06016476,name_en,SPECIAL TOPICS IN INFORMATION TECHNOLOGY 4,SPECAL TOPICS II INFORMATION TECHNOLOGY 4,0.0476,0.3333
+IT,coop,matched,06016477,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 1,SPECAL WORKSHOP II INFORMATIOM TECHOLOGY 1,0.0909,0.6667
+IT,coop,matched,06016478,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 2,SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 2,0.0227,0.1667
+IT,coop,matched,06016479,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 3,SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 3,0.0227,0.1667
+IT,coop,matched,06016480,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 4,SPECAL WORKSHOP II INFORMATIOM TECHNOLOGV 4,0.0909,0.6667
+IT,no_coop,matched,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,0.0303,0.0
+IT,no_coop,matched,06016401,name_en,MATHEMATICS FOR INFORMATION TECHNOLOGY,MATHEMATICS FOR INFORMATION TECHNOLOCY,0.0263,0.25
+IT,no_coop,matched,06016402,name_en,INFORMATION TECHNOLOGY FUNDAMENTALS,IFORMATION TECHNOLOGY FUNDAMENTALS,0.0286,0.3333
+IT,no_coop,matched,06016411,name_en,INTRODUCTION TO COMPUTER SYSTEMS,INTRODUCTION TO COMPUTER SVSTEMS,0.0312,0.25
+IT,no_coop,matched,06066303,name_en,PROBLEM SOLVING AND COMPUTER PROGRAMMING,PROBLEM SOLVING AND COMPUTER PROCRAMMNG,0.05,0.2
+IT,no_coop,matched,90641003,name_en,SPORTS AND RECREATIONAL ACTIVITIES,SPORTS AND RECREATIONAL ACTMTIES,0.0882,0.25
+IT,no_coop,matched,06016408,name_en,OBJECT-ORIENTED PROGRAMMING,OBECT ORIENTED PROCRAMMNG,0.1481,1.5
+IT,no_coop,matched,06066001,name_th,ความน่าจะเป็นและสถิติ,ความน่าจะเป็นและสถิ,0.0952,0.3333
+IT,no_coop,matched,06066001,name_en,PROBABILITY AND STATISTICS,PROBABILTV AND STATISTICS,0.0769,0.3333
+IT,no_coop,matched,06066101,name_en,BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY,BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOCY,0.0208,0.2
+IT,no_coop,matched,06066301,name_th,โครงสร้างข้อมูลและอัลกอรึทึม,โครงสร้างข้อมูลและอัลกอริทึม,0.0357,0.5
+IT,no_coop,matched,06016403,name_th,เทคโนโลยีสื่อประสม,เทคโนโลยีสือประสม,0.0556,0.3333
+IT,no_coop,matched,06016403,name_en,MULTIMEDIA TECHNOLOGY,MULTMMEDLA TECHNOLOCY,0.1429,1.0
+IT,no_coop,matched,06016409,name_th,การประมวลผลทางกายภาพ,การประมวลทางกายภาพ,0.1,0.5
+IT,no_coop,matched,06016409,name_en,PHYSICAL COMPUTING,PHVSICAL COMPUTIG,0.1111,1.0
+IT,no_coop,matched,06016413,name_en,INTRODUCTION TO NETWORK SYSTEMS,ITRODUCTION TO NETWORK SSTEMS,0.0645,0.5
+IT,no_coop,matched,06066300,name_en,DATABASE SYSTEM CONCEPTS,DATABASE SVSTEM CONCEPTS,0.0417,0.3333
+IT,no_coop,matched,06066304,name_en,INFORMATION SYSTEM ANALYSIS AND DESIGN,INFORMATION SVSTEM ANALSIS AND DESIGN,0.0526,0.4
+IT,no_coop,matched,06016405,name_th,พื้นฐานความมั่นคงปลอดภัยไซเบอร์,พืนฐานความมันคงปลอดภัยไซเบอร์,0.0645,1.0
+IT,no_coop,matched,06016405,name_en,CYBERSECURITY FUNDAMENTALS,CYBERSECURITV FUNDAMENTALS,0.0385,0.5
+IT,no_coop,matched,06016410,name_en,SOFTWARE ENGINEERING,SOFTWARE ENGINEERNG,0.05,0.5
+IT,no_coop,matched,06016412,name_th,โครงสร้างระบบคอมพิวเตอร์และระบบปฎิบัติการ,โครงสร้างระบบคอมพิวเตอร์และ ระบบปฏิบัติการ,0.0488,0.4286
+IT,no_coop,matched,06016412,name_en,COMPUTER ORGANIZATION AND OPERATING SYSTEM,COMPUTER ORCANIZATON AND OPERATING SSTEM,0.0714,0.4
+IT,no_coop,matched,06066302,name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเจ็,0.3462,0.5
+IT,no_coop,matched,06066302,name_en,FUNDAMENTAL WEB PROGRAMMING,FUNDAMENTAL WEB PROCRAMMNG,0.0741,0.3333
+IT,no_coop,matched,06016414,name_en,NOSQL DATABASE SYSTEMS,NOSOL DATABASE SYSTEMS,0.0455,0.3333
+IT,no_coop,matched,06016415,name_en,FUNCTIONAL PROGRAMMING,FUNCTLONAL PROCRAMMNG,0.1364,1.0
+IT,no_coop,matched,06016424,name_en,HUMAN INTERFACE DESIGN,HUMAN ITERFACE DESIGN,0.0455,0.3333
+IT,no_coop,matched,06016425,name_en,VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA,VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDLA,0.0208,0.1667
+IT,no_coop,matched,06016425,credits,3(3-0-6),3(2-2-5),0.375,
+IT,no_coop,matched,06066102,name_th,ระบบสารสนเทศเพื่อการจัดการ,ระบบสารสนเทศเพือการจัดการ,0.0385,0.2
+IT,no_coop,matched,90644xxx,name_th,วิชาเลือกหมวดภาษาและการสื่อสาร,วิชาเลือกหมวดภาษาและการสือสาร,0.0333,0.6
+IT,no_coop,matched,90644xxx,name_en,ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION,ELECTIVE COURSE IN LANCUAGE AND COMMUNICATION,0.0222,0.1667
+IT,no_coop,matched,06016416,name_en,REQUIREMENT ENGINEERING,REOUIREMENT ENGINEERING,0.0435,0.5
+IT,no_coop,matched,06016417,name_en,SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS,SOFTARE DEVELOPMENT TOOLS AND ENVIRONMENTS,0.0233,0.2
+IT,no_coop,matched,06016418,name_th,การพัฒนาเว็บฝั่งเซิร์ฟเวอร์,การพัฒนาเว็บฝังเซิร์ฟเวอร์,0.037,0.25
+IT,no_coop,matched,06016418,name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,0.037,0.6667
+IT,no_coop,matched,06016421,name_en,INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY,INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITV,0.0217,0.25
+IT,no_coop,matched,06016422,name_th,อินเทอร์เน็ตของสรรพสิ่ง,อินเทอร์เน็ตของสรรพสิง,0.0435,0.6667
+IT,no_coop,matched,06016422,name_en,INTERNET OF THINGS,ITERNET OF THINGS,0.0556,0.3333
+IT,no_coop,matched,06016423,name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานทีสามารถโปรแกรมได้,0.0392,0.1818
+IT,no_coop,matched,06016423,name_en,INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION,INFRASTRUCTURE PROGRAMMABILITV AND AUTOMATION,0.0222,0.25
+IT,no_coop,matched,06016426,name_en,COMPUTER GRAPHICS AND ANIMATION,COMPUTER GRAPHICS AND ANMMATION,0.0323,0.25
+IT,no_coop,matched,06016427,name_th,การออกแบบและพัฒนาเกมเบื้องต้น,การออกแบบและพัฒนาเกมเบืองต้น,0.0345,0.5
+IT,no_coop,matched,060164xx,name_en,ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1,ELECTIE COURSE INV INFORMATION TECHNOLOGV 1,0.0698,0.5
+IT,no_coop,matched,060164xx,name_en,ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2,ELECTIE COURSE INV INFORMATION TECHNOLOGV 2,0.0698,0.5
+IT,no_coop,matched,90644042,name_th,การสื่อสารและการนำเสนออย่างมืออาชีพ,การสือสารและการนำเสนออย่างมืออาชีพ,0.0286,0.5
+IT,no_coop,matched,060164xx,name_en,ELECTIVE COURSE IN INFORMATION TECHNOLOGY 3,ELECTIE COURSE IN INFORMATION TECHNOLOGY 3,0.0233,0.1667
+IT,no_coop,matched,90643021,name_th,ผู้ประกอบการสมัยใหม่,ผู้ ประกอบการสมัยใหม่,0.05,1.0
+IT,no_coop,matched,9064xxxx,name_th,วิชาเลือกหมวดศึกษาทั่วไป 1,วิชาเลือกหมวดศึกษาทัวไป,0.1154,0.4
+IT,no_coop,matched,9064xxxx,name_en,ELECTIVE COURSE IN GENERAL EDUCATION 1,ELECTIVE COURSE IN GENERAL EDUCATION,0.0526,0.1667
+IT,no_coop,matched,xxxxxxxx,name_th,วิชาเลือกเสรี 1,วิชาเลือกเสรี,0.1333,0.5
+IT,no_coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 1,FREE ELECTIE COURSE,0.1364,0.5
+IT,no_coop,matched,9064xxxx,name_th,วิชาเลือกหมวดศึกษาทั่วไป 2,วิชาเลือกหมวดศึกษาทัวไป 2,0.0385,0.4
+IT,no_coop,matched,9064xxxx,name_en,ELECTIVE COURSE IN GENERAL EDUCATION 2,ELECTIE COURSE IN GENERAL EDUCATION 2,0.0263,0.1667
+IT,no_coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 2,FREE ELECTIE COURSE 2,0.0455,0.25
+IT,no_coop,matched,06016428,name_en,MICROSERVICE DESIGN AND DEVELOPMENT,MICROSERVICE DESIGI AND DEVELOPMENT,0.0286,0.25
+IT,no_coop,matched,06016429,name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,0.037,0.6667
+IT,no_coop,matched,06016432,name_en,SOFTWARE VERIFICATION AND VALIDATION,SOFTWARE VERIFICATION AND VALLDATION,0.0278,0.25
+IT,no_coop,matched,06016433,name_en,AUTOMATION TESTING IN AGILE,AUTOMATIOM TESTWG IN AGILE,0.1111,0.5
+IT,no_coop,matched,06016436,name_en,DATA VISUALIZATION,DATA VISUALLZATION,0.0556,0.5
+IT,no_coop,matched,06016438,name_en,CLOUD SECURITY,CLOUD SECURITV,0.0714,0.5
+IT,no_coop,matched,06016440,name_en,INFORMATION NETWORK DESIGN,INFORMATION NETWORK DESIGI,0.0385,0.3333
+IT,no_coop,matched,06016442,name_th,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง,0.0208,0.2857
+IT,no_coop,matched,06016442,name_en,INTERNET OF THINGS HARDWARE DESIGN,ITERNET OF THIGS HARDWARE DESIGI,0.0882,0.6
+IT,no_coop,matched,06016443,name_th,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเตอร์เน็ตแห่งสรรพสิ่ง,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง,0.0323,0.3333
+IT,no_coop,matched,06016443,name_en,INTERNET OF THINGS DATA ANALYTICS AND APPLICATIONS,ITERNET OF THIGS DATA ANALTICS AND APPLICATIONS,0.06,0.4286
+IT,no_coop,matched,06016444,name_en,WEB DESIGN,WEB DESIGI,0.1,0.5
+IT,no_coop,matched,06016445,name_en,ADVANCED SCRIPTING FOR DESIGN,ADVANCED SCRIPTING FOR DESIGI,0.0345,0.25
+IT,no_coop,matched,06016448,name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขันสูงด้วยเกมเอนจิน,0.0625,0.5714
+IT,no_coop,matched,06016450,name_en,GAME DEVELOPMENT WITH REALITY TECHNOLOGY,GAME DEVELOPMENT WTH REALTV TECHNOLOGY,0.075,0.4
+IT,no_coop,matched,06016453,name_en,CUSTOMER RELATIONSHIP MANAGEMENT,CUSTOMER RELATIONSH|P MANAGEMENT,0.0312,0.3333
+IT,no_coop,matched,06016457,name_th,ระบบฐานข้อมูลขั้นสูง,ระบบฐานข้อมูลขันสูง,0.05,0.6667
+IT,no_coop,matched,06016458,name_en,DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION,DATABASE SYSTEM MAITENANCE AND ADMINISTRATION,0.0217,0.2
+IT,no_coop,matched,06016459,name_en,SOFTWARE STANDARD AND QUALITY ASSURANCE,SOFTWARE STANDARD AND QUALTV ASSURANCE,0.0513,0.2
+IT,no_coop,matched,06016460,name_en,ARTIFICIAL INTELLIGENCE,ARTIFICIAL ITELLIGENCE,0.0435,0.5
+IT,no_coop,matched,06016462,name_th,เทคโนโลยีสื่อสารการเคลื่อนที่,เทคโนโลยีสื่อสารเคลื่อนที่,0.1034,0.25
+IT,no_coop,matched,06016463,name_en,HYBRID COMPUTING TECHNOLOGY,HYBRLD COMPUTIG TECHOLOGY,0.1111,1.0
+IT,no_coop,matched,06016464,name_en,PRACTICAL CYBER SECURITY,PRACTICAL CYBER SECURIT,0.0417,0.3333
+IT,no_coop,matched,06016465,name_th,การออกแบบศูนย์ข้อมูล,การออกแบบศูนย์,0.3,0.25
+IT,no_coop,matched,06016465,name_en,DATA CENTER DESIGN,DATA CENTER DESIGI,0.0556,0.3333
+IT,no_coop,matched,06016466,name_en,NETWORK AND SYSTEM TROUBLE SHOOTING,NETWORK AND SYSTEM TROUBLE SHOOTNG,0.0286,0.2
+IT,no_coop,matched,06016467,name_en,IMAGE TRANSFORMATION AND RECOGNITION,IMAGE TRANSFORMATION AND RECOGIITION,0.0278,0.25
+IT,no_coop,matched,06016468,name_en,DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS,DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS,0.0204,0.125
+IT,no_coop,matched,06016470,name_en,CLINICAL DATA ACQUISITION AND MANAGEMENT,CLINICAL DATA ACOUSITION AND MANAGEMENT,0.05,0.2
+IT,no_coop,matched,06016475,name_en,SPECIAL TOPICS IN INFORMATION TECHNOLOGY 3,SPECAL TOPICS II INFORMATIOM TECHNOLOGY 3,0.0714,0.5
+IT,no_coop,matched,06016476,name_en,SPECIAL TOPICS IN INFORMATION TECHNOLOGY 4,SPECAL TOPICS II INFORMATION TECHNOLOGY 4,0.0476,0.3333
+IT,no_coop,matched,06016477,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 1,SPECAL WORKSHOP II INFORMATIOM TECHOLOGY 1,0.0909,0.6667
+IT,no_coop,matched,06016478,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 2,SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 2,0.0227,0.1667
+IT,no_coop,matched,06016479,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 3,SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 3,0.0227,0.1667
+IT,no_coop,matched,06016480,name_en,SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 4,SPECAL WORKSHOP II INFORMATIOM TECHNOLOGV 4,0.0909,0.6667
+IT,no_coop,matched,"06016481
+หรือ
+06016482",name_th,"สหกิจศึกษา
+หรือ
+สหกิจศึกษาต่างประเทศ","สหกิจศึกษา
+สหกิจศึกษาต่างประเทศ",0.1389,0.25
+IT,no_coop,matched,"06016481
+หรือ
+06016482",name_en,"COOPERATIVE EDUCATION
+OR
+OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
+OVERSEA COOPERATIVE EDUCATION",0.0556,0.1667
+AIT,,matched,06046400,name_th,แคลคูลัส 1,แคลคลัส 1,0.1,1.0
+AIT,,matched,06046402,name_th,พีชคณิตเชิงเส้น,พืชคณิตเชิงเส้น,0.0667,1.0
+AIT,,matched,06046402,name_en,LINEAR ALGEBRA,LIEAR ALGEBRA,0.0714,0.5
+AIT,,matched,06066000,name_th,คณิตศาสตร์ไม่ต่อเนื่อง,คณิตศาสตร์ไม่ต่อเนือง,0.0455,0.6667
+AIT,,matched,06066001,name_en,PROBABILITY AND STATISTICS,PROBABILITX AND STATISTICS,0.0385,0.3333
+AIT,,matched,06066303,name_th,การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์,การแก้ปัญหาและการโปรแกรมคอมพิวเตอ,0.0571,1.25
+AIT,,matched,06066303,name_en,"PROBLEM SOLVING AND COMPUTER PROGRAMMING
+PROGRAMMING",PROBLEM SOLVING AND COMPUTER PROGRAMMNG,0.25,0.3333
+AIT,,matched,90641008,name_th,พื้นฐานทักษะการสื่อสารภาษาอังกฤษ,พืนฐานทักษะการสือสารภาษาอังกฤษ,0.0625,1.25
+AIT,,matched,90641008,credits,0(0-0-45),(0-0-45),0.1111,
+AIT,,matched,06066301,name_en,DATA STRUCTURES AND ALGORITHMS,DATA STRUCTURES AND ALGORTHMS,0.0333,0.25
+AIT,,matched,06046404,name_th,พื้นฐานของระบบสมองกลฝังตัว,พืนฐานของระบบสมองกลฝังตัว,0.0385,0.4
+AIT,,matched,90641004,name_en,TEAM-PROJECT 1,TEAM PR0ECT,0.3571,1.0
+AIT,,matched,9064xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,0.0357,0.4
+AIT,,matched,06066300,name_en,DATABASE SYSTEM CONCEPTS,DATABASE SVSTEM CONCEPTS,0.0417,0.3333
+AIT,,matched,06046405,name_th,การเรียนรู้ของเครื่องเชิงความน่าจะเป็น,การเรียนรู้ของเครืองเชิงความน่าจะเป็น,0.0263,0.4
+AIT,,matched,06046405,name_en,PROBABILISTIC MACHINE LEARNING,PROBABILISTIC MACHINE LEARNNG,0.0333,0.3333
+AIT,,matched,06046406,name_th,พื้นฐานการเรียนรู้เชิงลึก,พืนฐานการเรียนรู้เชิงลึก,0.04,1.0
+AIT,,matched,06046406,name_en,FUNDAMENTALS OF DEEP LEARNING,FUNDAMENTALS OF DEEP LEARNNG,0.0345,0.25
+AIT,,matched,06046409,name_th,คอมพิวเตอร์วิทัศน์เบื้องต้น,คอมพิวเตอร์วิทัศน์เบืองต้น,0.037,1.0
+AIT,,matched,06046413,name_th,ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง,ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง,0.0476,0.8
+AIT,,matched,90641009,name_th,ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1,ทักษะการสือสารภาษา อังกฤษระหว่างวัฒนธรรม,0.0952,1.0
+AIT,,matched,90641009,name_en,INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1,INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH,0.0426,0.1667
+AIT,,matched,06046408,name_th,การแสดงข้อมูลด้วยแผนภาพ,การแสดง เข้อมูลด้วยแผนภาพ,0.087,0.75
+AIT,,matched,06046408,name_en,DATA VISUALIZATION,DATA VISUALLZATION,0.0556,0.5
+AIT,,matched,06046410,name_th,การประมวลผลภาษาธรรมชาติเบื้องต้น,การประมวลผลภาษาธรรมชาติเบือง,0.125,0.6667
+AIT,,matched,06046412,name_th,การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม,การเพิมประสิทธิภาพโครงข่ายประสาทเทียม ก,0.0789,0.6
+AIT,,matched,06046412,name_en,NEURAL NETWORK OPTIMIZATION,NEURAL NETWORK OPTMMLZATION,0.0741,0.3333
+AIT,,matched,06046411,name_th,การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย,การวิเคราะห์และเพิมประสิทธิภาพเครือข่าย,0.025,0.4
+AIT,,matched,06046411,name_en,NETWORK ANALYSIS AND OPTIMIZATION,NETWORK ANALSIS AND OPTMMLZATON,0.1212,0.5
+AIT,,matched,90641010,name_th,ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2,ทักษะการสือสารภาษาอังกฤษระหว่างวัฒนธรรม 2,0.0238,0.5
+AIT,,matched,90641005,name_en,TEAM-PROJECT 2,TEAM PR0JECT 2,0.1429,1.0
+AIT,,matched,06046414,name_en,NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING,NATURAL LANCUAGE PROCESSING WITH DEEP LEARNNG,0.0435,0.3333
+AIT,,matched,90642012,name_en,DESIGN THINKING,DESIGN THINKNG,0.0667,0.5
+AIT,,matched,060464xx,name_en,ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION,ELECTIE IN ARTIFICIAL INTELLIGENCE SPECIALLZATION,0.04,0.4
+AIT,,matched,060464xx,credits,6(3-0-6),(3-0-6),0.125,
+AIT,,matched,06046440,name_th,วิชาสัมมนาปัญญาประดิษฐ์,วิชาสัมมนาปัญญาประะ,0.2174,1.0
+AIT,,matched,060464xx,name_th,วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง,วิชาเลือกเทคโนโลยีปัญญาป ร ดิษฐ์ เฉพาะทาง,0.0769,1.0
+AIT,,matched,060464xx,name_en,ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION,ELECTIE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION,0.02,0.2
+AIT,,matched,060464xx,credits,6(3-0-6),3(3-0-6),0.125,
+AIT,,matched,06046441,name_th,โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1,โครงงานเทคโนโลยีปัญญาประดิษฐ์,0.0645,0.25
+AIT,,matched,06046441,name_en,PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1,PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY,0.0426,0.1667
+AIT,,matched,90641006,name_en,TEAM-PROJECT 3,TEAM PROECT 3,0.1429,1.0
+AIT,,matched,90641006,credits,1(0-2-1),(0-2-1),0.125,
+AIT,,matched,xxxxxxxx,name_th,วิชาเลือกเสรี 1,วิชาเลือกเสรี,0.1333,0.5
+AIT,,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 1,FREE ELECTIVE COURSE,0.0909,0.25
+AIT,,matched,9064xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,0.0357,0.4
+AIT,,matched,90644xxx,name_th,วิชาเลือกด้านภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสือสาร,0.0333,0.6
+AIT,,matched,06046443 หรือ 06046444,name_th,"สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์ 
+สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์","สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์
+สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์ ู",0.0247,0.1429
+AIT,,matched,06046443 หรือ 06046444,name_en,"COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY 
+OVERSEA COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY","COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY
+OVERSEA COOPERATIE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOC",0.0233,0.1538
+AIT,,matched,06046418,name_th,การระบุตำแหน่งและการสร้างแผนที่ของหุ่นยนต์,การระบุตำแหน่งและการสร้างแผนทีของหุ่นยนต์,0.0238,0.2222
+AIT,,matched,06046418,name_en,ROBOT LOCALIZATION AND MAPPING,ROBOT LOCALZATION AND MAPPING,0.0333,0.25
+AIT,,matched,06046419,name_th,การเรียนรู้แบบเสริมกำลัง,การเรียนร้แบบเสริมกำลัง,0.0417,0.6667
+AIT,,matched,06046420,name_en,INTELLIGENT RECOMMENDATION SYSTEMS,INTELLIGET RECOMMENDATION SVSTEMS,0.0588,0.6667
+AIT,,matched,06046422,name_th,จริยธรรมด้านปัญญาประดิษฐ์,จริยธรรมด้านปัญญาประดษ,0.12,1.0
+AIT,,matched,06046423,name_en,ARTIFICIAL INTELLIGIENCE SERVICE DESIGN,ARTIFICAL INTELLIGIENCE SERVICE DESIGI,0.0513,0.5
+AIT,,matched,06046430,name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 1,SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 1,0.0227,0.1667
+AIT,,matched,06046431,name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 2,SELECTED TOPICS IN ARTIFICIAL INTEL LIGENCE 2,0.0227,0.3333
+AIT,,matched,06046432,name_th,หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 3,หัวข้อคัดสรรด้านปัญญาประดิษฐ์,0.0645,0.2
+AIT,,matched,06046433,name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 4,SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 4,0.0227,0.1667
+AIT,,matched,06046434,name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 5,SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 5,0.0227,0.1667
+AIT,,matched,06046435,name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 6,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE,0.0455,0.1667
+GENED,gened,matched,90641002,name_en,DIGITAL INTELLIGENCE QUOTIENT,DIGITAL INTELLIGENCE QUOTLENT,0.0345,0.3333
+GENED,gened,matched,90641003,name_th,กีฬาและนันทนาการ,กีฬาและนันทนาการ 1,0.125,0.3333
+GENED,gened,matched,90641003,name_en,SPORTS AND RECREATIONAL ACTIVITIES,SPORTS AND RECREATIONAL ACTMITIES,0.0588,0.25
+GENED,gened,matched,90642001,name_th,ปฏิบัติงานตามทักษะด้านบุคคลและสนับสนุนวิชาชีพ 1,ปฏิบัติงานตามทักษะด้านบุคคลและสนับสนุนวิชาชีพ,0.0426,0.1111
+GENED,gened,matched,90642004,name_en,ANALYTICAL THINKING,ANALTICAL THINKNG,0.1053,1.0
+GENED,gened,matched,90642005,name_en,CREATIVE THINKING,CREATIE THINKNG,0.1176,1.0
+GENED,gened,matched,90642006,name_en,INNOVATIVE THINKING,INNOVATIE THIKNNG,0.1579,1.0
+GENED,gened,matched,90642007,name_en,POSITIVE THINKING,POSITIE THINKNG,0.1176,1.0
+GENED,gened,matched,90642008,name_en,PROBLEM SOLVING,PROBLEM SOLNG,0.1333,0.5
+GENED,gened,matched,90642009,name_en,STRATEGIC THINKING,STRATEGIC THIKNG,0.1111,0.5
+GENED,gened,matched,90642010,name_en,SYSTEM THINKING,SVSTEM THINKNG,0.1333,1.0
+GENED,gened,matched,90642011,name_en,CRITICAL THINKING,CRITICAL THINKNG,0.0588,0.5
+GENED,gened,matched,90642012,name_en,DESIGN THINKING,DESIGN THINKNG,0.0667,0.5
+GENED,gened,matched,90642013,name_en,INTEGRATED THINKING,ITECRATED THINKNG,0.1579,1.0
+GENED,gened,matched,90642014,name_en,INNOVATIVE AND SYSTEM THINKING,INNOVATIE AND SSTEM THINKNG,0.1,0.75
+GENED,gened,matched,90642015,name_en,CREATIVE THINKING AND INNOVATION,CREATIVE THINKNG AND INNOVATION,0.0312,0.25
+GENED,gened,matched,90642018,name_en,CREATIVE PRODUCTION TECHNOLOGY,CREATIE PRODUCTION TECHNOLOCV,0.1,0.6667
+GENED,gened,matched,90642019,name_th,การออกแบบสะเต็มอย่างสร้างสรรค์ขั้นพื้นฐาน,การออกแจ .เบบสะเต็มอย่างสร้างสรรค์ขั้นพื้นฐาน,0.0976,0.5714
+GENED,gened,matched,90642019,name_en,BASIC CREATIVE STEM DESIGN,BASIC CREATIE STEM DESIGN,0.0385,0.25
+GENED,gened,matched,90642020,name_en,ADVANCE CREATIVE STEM DESIGN,ADVANCE CREATIE STEM DESIGN,0.0357,0.25
+GENED,gened,matched,90642020,prerequisite,,BASIC CREATIE STEM DESIGV,1.1765,4.0
+GENED,gened,matched,90642023,name_en,EMERGING TRENDS IN ENGINEERING,EMERGING TRENDS IN ENGINEERNG,0.0333,0.25
+GENED,gened,matched,90642025,name_en,FATCS BEHIND NUMBERS,FACTS BEHIND NUMBERS,0.1,0.3333
+GENED,gened,matched,90642027,name_th,การตีความและการใช้เหตุผล,การตีความและการใช้เหตุและผล,0.125,0.5
+GENED,gened,matched,90642027,name_en,INTERPRETATION AND ARGUMENT,ITERPRETATION AND ARCUMENT,0.0741,0.6667
+GENED,gened,matched,90642028,name_th,รู้เท่าทันการพนัน,รู้ เท่าทันการพนัน,0.0588,1.0
+GENED,gened,matched,90642028,name_en,GAMBLING LITERACY,GAMBLNG LITERACY,0.0588,0.5
+GENED,gened,matched,90642029,name_en,"MEDICAL ETHICS, LAWS AND PROFESSIONALOSM","MEDICAL ETHICS, LAWS AND PROFESSIONALISM",0.025,0.2
+GENED,gened,matched,90642030,name_en,ENGINEERING ETHICS AND LAWS,ENGINEERNNG ETHICS AND LAW,0.0741,0.5
+GENED,gened,matched,90642034,name_en,LAW AND REGULATION IN AVIATION INDUSTRY,LAW AND REGULATLON IN AVIATION INDUSTRY,0.0256,0.1667
+GENED,gened,matched,90642036,name_en,PRE-ACTIVITIES FOR ENGINEERS,PRE ACTMITIES FOR ENGINEERS,0.1071,0.6667
+GENED,gened,matched,90642038,name_th,ความปลอดภัยในที่ทำงาน,ความปลอดภัยในทีทำงาน,0.0476,0.6667
+GENED,gened,matched,90642038,name_en,OCCUPATIONAL SAFETY AND HEALTH,OCCUPATIONAL SAFETV AND HEALTH,0.0333,0.25
+GENED,gened,matched,90642039,name_en,QUICK-FIX @ HOME,QUICK FIX HOME,0.1875,0.6667
+GENED,gened,matched,90642040,name_en,COFFEE MANIA,COFFEE MANA,0.0833,0.5
+GENED,gened,matched,90642045,name_en,BE MY BEV.,BE MV BEV.,0.1,0.3333
+GENED,gened,matched,90642046,name_en,RICE-SARA,RICE SARA,0.1111,2.0
+GENED,gened,matched,90642049,name_en,MICROBIAL UTILIZATION FOR DAILY LIFE,MICROBIAL UTILLZATION FOR DAILV LIFE,0.0556,0.4
+GENED,gened,matched,90642050,name_th,พืชพรรณที่เป็นยา,พืชพรรณทีเป็นยา,0.0625,0.25
+GENED,gened,matched,90642051,name_en,BIOTECHNOLOGY FOR BETTER LIVING,BLOTECHNOLOCY FOR BETTER LIING,0.0968,0.5
+GENED,gened,matched,90642052,name_th,จากเส้นสาย DNA สู่พันธุกรรม,จากเส้นสาย DNA,0.4815,0.4
+GENED,gened,matched,90642052,name_en,GENES & GENETICS : FROM HELIX TO HEREDITARY,GENES GENETICS FROM HELIX TO HEREDITARY,0.093,0.25
+GENED,gened,matched,90642053,name_th,สาระน่ารู้อณูพันธุศาสตร์,สาระน่ารู้อญูพันธุศาสตร์,0.0417,0.25
+GENED,gened,matched,90642053,name_en,INTERESTING MOLECULAR GENETICS,ITERESTNG MOLECULAR GENETICS,0.0667,0.3333
+GENED,gened,matched,90642054,name_th,สิ่งพิทักษ์ร่างกาย,สิงพิทักษ์ร่างกาย,0.0556,0.3333
+GENED,gened,matched,90642054,name_en,GUARDIANS OF OUR BODIES,GUARDANS OF OUR BODIES,0.0435,0.25
+GENED,gened,matched,90642055,name_en,LIVING WITH MICROBES,LIING WTH MICROBES,0.1,0.6667
+GENED,gened,matched,90642056,name_th,โรคระบาดในศตวรรษที่ 21,โรคระบาดในศตวรรษที 21,0.0455,0.2
+GENED,gened,matched,90642056,name_en,EPIDEMICS IN THE 21st CENTURY,ST EPLDEMICS IN THE 21 CENTURV,0.2414,0.8
+GENED,gened,matched,90642057,name_en,IMMUNITY THROUGH MEDIA,IMMUNT THROUCH MEDIA,0.1364,0.6667
+GENED,gened,matched,90642058,name_en,UNDERSTANDING HEALTH POLICY AND PUBLIC WELFARE,UNDERSTANDIG HEALTH POLICV AND PUBLIC WELFARE,0.0435,0.3333
+GENED,gened,matched,90642060,name_en,SELF-DISCOVERY,SELF DISCOVERY,0.0714,2.0
+GENED,gened,matched,90642062,name_th,เรื่ื่องกินเรื่องใหญ่,เรื่องกินเรื่องใหญ่,0.0952,0.5
+GENED,gened,matched,90642062,name_en,ALL ABOUT FOOD,ALL ABOUT FOQD,0.0714,0.3333
+GENED,gened,matched,90642063,name_en,HOLISTIC HEALTH DEVELOPMENT,HOLSTIC HEALTH DEVELOPMENT,0.037,0.3333
+GENED,gened,matched,90642065,name_th,รักบี้ฟุตบอล,ไม่ระบุ,0.9167,1.0
+GENED,gened,matched,90642065,name_en,RUGBY FOOTBALL,RUGBV FOOTBALL,0.0714,0.5
+GENED,gened,matched,90642071,name_en,BADMINTON,BADMNTON,0.1111,1.0
+GENED,gened,matched,90642074,name_en,E-SPORTS,E SPORTS,0.125,2.0
+GENED,gened,matched,90642080,name_en,INTRODUCTION TO MUSIC COMPOSITION,NTRODUCTION TO MUSIC COMPOSITION,0.0303,0.25
+GENED,gened,matched,90642081,name_en,RAP APPRECIATION,RAP APPRECATION,0.0625,0.5
+GENED,gened,matched,90642082,name_en,MUSIC APPRECIATION,MUSIC APPRECATION,0.0556,0.5
+GENED,gened,matched,90642083,name_th,ศิลปะแห่งภาพยนต์,ศิลปะแห่งภาพยนตร์,0.0625,0.5
+GENED,gened,matched,90642083,name_en,FILM APPRECIATION,FLLM APPRECATION,0.1176,1.0
+GENED,gened,matched,90642084,name_en,PHOTOGRAPHY APPRECIATION,PHOTOCRAPHY APPRECATION,0.0833,1.0
+GENED,gened,matched,90642085,name_th,วัฒนธรรมร่วมสมัย,วัฒนธรรมรวมสมัย,0.0625,1.0
+GENED,gened,matched,90642086,name_en,INTRODUCTION TO DESIGN CULTURE,ITRODUCTION TO DESIGN CULTURE,0.0333,0.25
+GENED,gened,matched,90642088,name_th,วัฒนธรรมจีนดั้งเดิม,วัฒนธรรมจีนดังเดิม,0.0526,0.3333
+GENED,gened,matched,90642089,name_th,สังคม เศรษฐกิจ และการเมืองจีน,สังคม ฺเศรษฐกิจ และการเมืองจีน,0.0345,0.2
+GENED,gened,matched,90642089,name_en,"CHINESE SOCIETY, ECONOMY AND POLITICS","CHINESE SOCIETV, ECONOMV AND POLITICS",0.0541,0.4
+GENED,gened,matched,90642091,name_en,ASIAN STUDY,ASAN STUDV,0.1818,1.0
+GENED,gened,matched,90642092,name_en,CIVIC EDUCATION,CMIC EDUCATION,0.1333,0.5
+GENED,gened,matched,90642093,name_en,COMMUNITY ENGAGEMENT,COMMUNTV ENGAGEMENT,0.1,0.5
+GENED,gened,matched,90642094,name_en,PRINCIPLES OF COMMUNITY DEVELOPMENT,PRINCPLES OF COMMUMTV DEVELOPMENT,0.1143,0.5
+GENED,gened,matched,90642095,name_th,การพัฒนาตวามมั่นคงแห่งชาติ,การพัฒนาความมันคงแห่งชาติ,0.0769,0.6
+GENED,gened,matched,90642095,name_en,NATIONAL SECURITY DEVELOPMENT,NATIONAL SECURITV DEVELOPMENT,0.0345,0.3333
+GENED,gened,matched,90642097,name_en,APPLIED THAI WISDOMS,APPLIED THA/ WISDOMS,0.05,0.3333
+GENED,gened,matched,90642098,name_en,DYNAMICS OF THAI SOCIETY,DVNAMICS OF THAL SOCIET,0.125,0.75
+GENED,gened,matched,90642099,name_en,ACTIVE AGING SOCIETY,ACTIVE AGING SOCIET,0.05,0.3333
+GENED,gened,matched,90642103,name_en,LIVING IN DIGITAL SOCIETY,LNG IN DIGITAL SOCIET,0.16,0.5
+GENED,gened,matched,90642105,name_th,อินเทอร์เน็ตพื้นฐานของสรรพสิ่ง,อินเทอร์ รเน็ตพื้นฐานของสรรพสิ่ง,0.0667,1.0
+GENED,gened,matched,90642105,name_en,BASIC INTERNET OF THINGS (IOT),BASIC INTERNET OF THINGS (LOT),0.0333,0.2
+GENED,gened,matched,90642106,name_th,เล่าเรื่องการเดินทางแบบดิจิทัล,เล่าเรืองการเดินทางแบบดิจิทัล,0.0333,0.4
+GENED,gened,matched,90642106,name_en,DIGITAL STORYTELLING IN JOURNEY,DIGITAL STORWTELLNG IN JOURNEV,0.0968,0.5
+GENED,gened,matched,90642108,name_en,DIGITAL PHOTOGRAPHY TECHNOLOGY,DIGITAL PHOTOCRAPHY TECHNOLOCY,0.0667,0.6667
+GENED,gened,matched,90642110,name_th,สนุกกับวิทยาศาสตร์ข้อมูล,สนุกกับวิทยาศาสตร์ ข้อมูล,0.0417,0.0
+GENED,gened,matched,90642111,name_th,สนุุกกับการเขียนโค้ด,สนุกกับการเขียนโค้ด,0.05,0.5
+GENED,gened,matched,90642111,name_en,FUN WITH CODING,FUN WITH CODG,0.1333,0.3333
+GENED,gened,matched,90642112,name_en,FUN WITH AI,FUN WTH AL,0.1818,0.6667
+GENED,gened,matched,90642113,name_th,หุ่นยนต์และปัญญาประดิษฐ์,หุ่นยนต์และปัญญา ประดิษฐ์,0.0417,0.6667
+GENED,gened,matched,90642113,name_en,ROBOTICS AND AI,ROBOTICS AND AL,0.0667,0.3333
+GENED,gened,matched,90642115,name_en,GREEN TECHNOLOGY AND ALTERNATIVE ENERGY,GREEN TECHNOLOGV AND ALTERNATIE ENERGV,0.0769,0.6
+GENED,gened,matched,90642116,name_en,SMART CITY AND INNOVATION,SMART CIT AND CITV INNOVATION,0.24,0.5
+GENED,gened,matched,90642117,name_th,ทักษะการรู้สารสนเทศแห่งศตวรรษที่ 21,ทักษะการรู้สารสนเทศแห่งศตวรรษที 21,0.0286,0.125
+GENED,gened,matched,90642117,name_en,INFORMATION LITERACY SKILLS FOR THE 21st CENTURY,INFORMATION LITERACY SKILLS FOR THE 2IST CENTURY,0.0208,0.1429
+GENED,gened,matched,90642119,name_en,COMPUTER FOR DEVELOPMENT OF ANALYTICAL THINKING PROCESS,COMPUTER FOR DEVELOPMENT OF ANAL ITICAL THINKING PROCESS,0.0364,0.2857
+GENED,gened,matched,90642120,name_th,เอ็กเซลเพื่อความเป็นมืออาชีพ,เอ็กเซลเพือความเป็นมืออาชีพ,0.0357,0.2857
+GENED,gened,matched,90642121,name_en,DATA ANALYSIS AND MANAGEMENT WITH COMPUTATIONAL PROGRAM,DATA ANALYSIS AND MANACEMENT WITH COMPUTATIONAL PROCRAM,0.0364,0.2857
+GENED,gened,matched,90642122,name_th,การใช้แอพลิเคชัน ไมโครคอมพิวเตอร์,การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์,0.0303,0.5714
+GENED,gened,matched,90642122,name_en,INTRODUCTION TO MICROCOMPUTER APPLICATION,ITRODUCTION TO MICR0COMPUTER APPLICATION,0.0488,0.5
+GENED,gened,matched,90642123,name_th,เทคโนโลยี คอมพิวเตอร์ดนตรี,เทคโนโลยีคอมพิวเตอร์ดนตรี,0.0385,0.0
+GENED,gened,matched,90642123,name_en,TECHNOLOGY IN MUSICAL SEQUENCING,TECHNOLOGV IN MUSICAL SEOUENCING,0.0625,0.5
+GENED,gened,matched,90642124,name_th,เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์สำหรับ SDGs,เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDCS,0.0444,0.1667
+GENED,gened,matched,90642124,name_en,SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS,SCIENCE TECHNOLOGV AND SCIENCE INNOVATION FOR SDGS,0.02,0.1429
+GENED,gened,matched,90642125,name_th,การดำรงชีวิตท่ามกลางภัยพิบัติและวิกฤตในอนาคต,การดำรงชีพท่ามกลางภัยพิบัติและวิกฤติในอนาคต,0.0909,0.5
+GENED,gened,matched,90642125,name_en,LIVING IN FUTURE DISASTER AND CRISIS,LING IN FUTURE DISASTER AND CRISIS,0.0556,0.1667
+GENED,gened,matched,90642128,name_th,นิเวศวิทยาและการรักษาสิ่งแวดล้อม,นิเวศวิทยาและการรักษาสิงแวดล้อม,0.0312,0.5
+GENED,gened,matched,90642130,name_th,การท่องเที่ี่ยวเชิงกีฬา,การท่องเที่ยวเชิงกีฬา,0.087,0.6
+GENED,gened,matched,90642131,name_th,วัฒนธรรมไทยกับการท่องเที่ยว,วัฒนธรรมไทยกับการท่องเทียว,0.037,0.5
+GENED,gened,matched,90642131,name_en,THAI CULTURE AND TOURISM,THA/ CULTURE AND TOURISM,0.0417,0.25
+GENED,gened,matched,90642132,name_en,CHUMPHON STUDY FOR TOURISM,CHUMPHON STUDV FOR TOURISM,0.0385,0.25
+GENED,gened,matched,90642133,name_th,รอบรั้วชุมพรศึกษา,รอบรัวชุมพรศึกษา,0.0588,0.25
+GENED,gened,matched,90642133,name_en,CHUMPHON AREA STUDY,CHUMPHON AREA STUDV,0.0526,0.3333
+GENED,gened,matched,90642134,name_th,แผ่นดินพระจอมเกล้าฯศึกษา,แผ่นดินพระจอมเกล้าๆ ศึกษา,0.0833,0.2
+GENED,gened,matched,90642134,name_en,KING MONGKUT'S REIGN STUDY,KING MONGKUTS REIGN STUDV,0.0769,0.5
+GENED,gened,matched,90642135,name_en,PHILOSOPHY OF SUFFICIENCY ECONOMY,PHILOSOPHY OF SUFFICIENCY ECONOM,0.0303,0.25
+GENED,gened,matched,90642137,name_th,ดูละครแล้วย้อนตัว,ดูละครแล้วย้อนดู,0.1765,0.2
+GENED,gened,matched,90642137,name_en,SERIES IN DAILY LIFE,SERIES IN DAILV LIFE,0.05,0.25
+GENED,gened,matched,90642138,name_th,สมาธิเพื่อพัฒนาชีวิต,สมาธิเพือพัฒนาชีวิต,0.05,0.25
+GENED,gened,matched,90642140,name_th,ภูมิคุุ้มกันทางใจ,ภูมิคุ้มกันทางใจ,0.0588,0.75
+GENED,gened,matched,90642140,name_en,IMMUNITY OF MIND,IMMUNTV OF MIND,0.125,0.3333
+GENED,gened,matched,90642141,name_th,จิตวิทยาเพื่อการพัฒนาตนเอง,จิตวิทยาเพือการพัฒนาตนเอง,0.0385,0.25
+GENED,gened,matched,90642141,name_en,PSYCHOLOGY OF SELF-DEVELOPMENT,PSICHOLOCY OF SELF DEVELOPMENT,0.1,1.0
+GENED,gened,matched,90642142,name_th,จิตวิทยาสำหรับสื่อสาร,จิตวิทยาสำหรับการสือสาร,0.1905,1.0
+GENED,gened,matched,90642142,name_en,PSYCHOLOGY IN COMMUNICATION,PSXCHOLOGV IN COMMUNICATION,0.0741,0.3333
+GENED,gened,matched,90642143,name_en,DESIGNING YOUR LIFE,DESIGNNG YOUR LIFE,0.0526,0.3333
+GENED,gened,matched,90642145,name_en,POWER OF PERSONALITY,POWER OF PERSONALIT,0.05,0.3333
+GENED,gened,matched,90642148,name_en,ARTS OF EMOTION DEVELOPMENT,ARTS OF EMOTLON DEVELOPMENT,0.037,0.25
+GENED,gened,matched,90642149,name_th,ศิลปะการสร้างสรรค์เพื่อพัฒนาอารมณ์และจิตวิญญาณ,ศิลปะสร้างสรรค์เพื่อพัฒนาอารมณ์และจิตวิญญาณ,0.0652,0.125
+GENED,gened,matched,90642149,name_en,IMAGINATIVE ART,IMAGINATIE ART,0.0667,0.5
+GENED,gened,matched,90642152,name_th,ปันสุข,ไม่ระบุ,1.1667,1.0
+GENED,gened,matched,90642152,name_en,JOY OF SHARING,JOV OF SHARNG,0.1429,0.6667
+GENED,gened,matched,90642153,name_en,UNDERSTANDING HUMAN BEHAVIOR,UNDERSTANDING HUMAN BEHAVOR,0.0357,0.3333
+GENED,gened,matched,90642154,name_en,FAIL-ABLE,FALL ABLE,0.2222,2.0
+GENED,gened,matched,90642155,name_th,การสร้างมนุษย์สัมพันธ์กับการสื่อสาร,การสร้างมนุษยสัมพันธ์กับการสื่อสาร,0.0286,0.3333
+GENED,gened,matched,90642156,name_en,FENG SHUI,FENG SHUL,0.1111,0.5
+GENED,gened,matched,90642157,name_en,THAI ASTROLOGY,THAL ASTROLOGV,0.1429,1.0
+GENED,gened,matched,90642158,name_th,มุมมองของวิทยาศาสตร์และเทคโนโลยีร่วมสมัย,มุมมองวิทยาศาสตร์และเทคโนโลยีร่วมสมัย,0.075,0.1667
+GENED,gened,matched,90642158,name_en,COMTEMPORARY SCIENCE AND TECHNOLOGY,CONTEMPORARY SCIENCE AND TECHNOLOCY,0.0571,0.5
+GENED,gened,matched,90642159,name_en,INTRODUCTION TO PSYCHOLOGY,ITRODUCTION TO PSXCHOLOCY,0.1154,0.6667
+GENED,gened,matched,90643001,name_th,ปฎิบัติงานตามทักษะด้านการจัดการ 1,ปฏิบัติงานตามทักษะด้านการจัดการ,0.0909,0.375
+GENED,gened,matched,90643001,name_en,PRACTICE UNDER MANAGEMENT SKILL 1,PRACTICE UNDER MANAGEMENT SKILLS 1,0.0303,0.2
+GENED,gened,matched,90643002,name_th,ปฎิบัติงานตามทักษะด้านการจัดการ 2,ปฏิบัติงานตามทักษะด้านการจัดการ 2,0.0303,0.25
+GENED,gened,matched,90643002,name_en,PRACTICE UNDER MANAGEMENT SKILL 2,PRACTICE UNDER MANAGEMENT SKILLS 2,0.0303,0.2
+GENED,gened,matched,90643003,name_th,ปฎิบัติงานตามทักษะด้านการจัดการ 3,ปฏิบัติงานตามทักษะด้านการจัดการ 3,0.0303,0.25
+GENED,gened,matched,90643003,name_en,PRACTICE UNDER MANAGEMENT SKILL 3,PRACTICE UNDER MANAGEMENT SKILLS 3,0.0303,0.2
+GENED,gened,matched,90643004,name_en,POSITIVE POWER LEADER,POSITIE POWER LEADER,0.0476,0.3333
+GENED,gened,matched,90643008,name_en,SCIENCE OF NEGOTIATION,SCIENCE OF NEGOTATION,0.0455,0.3333
+GENED,gened,matched,90643010,name_en,CONTEMPORARY MARKETING,CONTEMPORAR MARKETING,0.0455,0.5
+GENED,gened,matched,90643011,name_th,ศิลปะแห่งการบริหารการสื่อสาร,ศิลปะแห่งการบริหารการสือสาร,0.0357,0.75
+GENED,gened,matched,90643013,name_en,INDUSTRIAL MANAGEMENT,INDUSTRLAL MANAGEMENT,0.0476,0.5
+GENED,gened,matched,90643014,name_th,ความรู้ทั่วไปเกี่ยวกับธุรกิจ,ความรู้ ทั่วไปเกี่ยวกับธุรกิจ,0.0357,0.0
+GENED,gened,matched,90643015,name_th,การบัญชีทางธุรกิจสำหรับคนรุ่นใหม่,การบัญชีทางธุรกิจฺสำหรับคนรุ่นใหม่,0.0303,0.2
+GENED,gened,matched,90643018,name_en,INTERNATIONAL BUSINESS,ITERNATLONAL BUSINESS,0.0909,0.5
+GENED,gened,matched,90643019,name_th,เศรษฐศาสตร์กับการเป็นผู้ประกอบการ,เศร ษฐศาสตร์กับการเป็นผู้ประกอบการ,0.0303,0.6
+GENED,gened,matched,90643020,name_en,INNOVATIVE ENTREPRENEURS,INNOVATIE ENTREPRENEURS,0.0417,0.5
+GENED,gened,matched,90643024,name_en,HAPPINESS FARMS,HAPPNNESS FARMS,0.0667,0.5
+GENED,gened,matched,90643025,name_th,เส้นทางสู่ IPO,เส้นทางสู่ LIPO,0.0714,0.3333
+GENED,gened,matched,90643026,name_th,การวางแผนเพื่อการลงทุน,การวางแผนเพือการลงทุน,0.0455,0.3333
+GENED,gened,matched,90643026,name_en,INVESTMENT PLANNING,INVESTMENT PLANNNG,0.0526,0.5
+GENED,gened,matched,90643027,name_th,มนุษย์ เงิน และคณิตศาสตร์,เงิน และคณิตศาสตร์,0.28,0.25
+GENED,gened,matched,90643027,name_en,"MAN, MONEY AND MATH","MAN, MONEV AND MATH",0.0526,0.25
+GENED,gened,matched,90643028,name_en,SMART TIPS FOR BEGINNING INVESTERS,SMART TIPS FOR BEGINMNG INVESTERS,0.0588,0.2
+GENED,gened,matched,90643029,name_en,DIGITAL ECONOMY,DIGITAL ECONOMV,0.0667,0.5
+GENED,gened,matched,90643030,name_th,เศรษศาสตร์ทั่ไป และการศึกษาความเป็นไปได้ของโครงการ,เศร ริษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ,0.1,0.5556
+GENED,gened,matched,90643030,name_en,GENERAL ECONOMICS AND PROJECT FEASIBILITY STUDY,GENERAL ECONOMICS AND PROJECT FEASIBILITV STUDV,0.0426,0.3333
+GENED,gened,matched,90643031,name_en,CIRCULAR ECONOMIC LIFESTYLE FOR 21st CENTURY,CIRCULAR ECONOMIC LIFESTLE FOR 21ST CENTURV,0.0455,0.3333
+GENED,gened,matched,90643032,name_en,BCG ECONOMY IN ACTION,BCG ECONOMV IN ACTION,0.0476,0.25
+GENED,gened,matched,90643034,name_en,MANAGEMENT AND CREATIVITY,MANAGEMENT AND CREATMITV,0.12,0.3333
+GENED,gened,matched,90643035,name_th,การจัดการความรู้เพื่อการพัฒนานวัตกรรม,การจัดการความรู้เพือการพัฒนานวัตกรรม,0.027,0.1667
+GENED,gened,matched,90643035,name_en,KNOWLEDGE MANAGEMENT FOR INNOVATION DEVELOPMENT,KNOWLEDGE MANAGEMENT FOR INOVATION DEVELOPMENT,0.0213,0.2
+GENED,gened,matched,90643036,name_th,การจัดการความรู้เพื่อการบริหารโครงการ,การจัดการความรู้เพือการบริหารโครงการ,0.027,0.1667
+GENED,gened,matched,90643037,name_th,การบัริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21,การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่,0.0816,0.3333
+GENED,gened,matched,90643037,name_en,PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY,N/A,0.9661,1.0
+GENED,gened,matched,90643038,name_en,REBRANDING,REBRANDNG,0.1,1.0
+GENED,gened,matched,90644001,name_th,ปฎิบัติงานตามทักษะด้านการสื่อสาร 1,ปฏิบัติงานตามทักษะด้านการสื่อสาร 1,0.0294,0.2857
+GENED,gened,matched,90644002,name_th,ปฎิบัติงานตามทักษะด้านการสื่อสาร 2,ปฏิบัติงานตามทักษะด้านการสือสาร 2,0.0588,0.7143
+GENED,gened,matched,90644003,name_th,ปฎิบัติงานตามทักษะด้านการสื่อสาร 3,ปฏิบัติงานตามทักษะด้านการสือสาร 3,0.0588,0.7143
+GENED,gened,matched,90644004,name_en,ACADEMIC LISTENING AND SPEAKING,ACADEMIC LISTENNG AND SPEAKNG,0.0645,0.5
+GENED,gened,matched,90644008,prerequisite,,FOUNDATION ENGLISH,1.0,2.0
+GENED,gened,matched,90644010,name_en,DEVELOPMENT OF READING AND WRITING SKILLS IN ENGLISH,DEVELOPMENT OF READNG AND WRTING SKILLS IN ENGLISH,0.0385,0.25
+GENED,gened,matched,90644011,name_th,ภาษาอังกฤษเชิงวิชาการ,ภาษา อังกฤษเชิงวิชาการ,0.0476,0.6667
+GENED,gened,matched,90644012,name_th,ภาษาอังกฤษเพื่อการสื่อสาร,ภาษา อังกฤษเพือการสื่อสาร,0.08,1.0
+GENED,gened,matched,90644013,name_th,การรเขียนภาษาอังกฤษเพื่อการสื่อสาร,การเขียนภาษาอังกฤษเพื่อการสื่อสาร,0.0294,0.5
+GENED,gened,matched,90644013,name_en,ENGLISH FOR COMMUNICATIVE WRITING,ENGLISH FOR COMMUNICATIE WRITING,0.0303,0.25
+GENED,gened,matched,90644014,name_th,ภาษาอังกฤษเพื่อการสื่อสารทางวิชาการ,ภาษาอังกฤษเพือการสือสารทางวิชาชีพ,0.1429,1.5
+GENED,gened,matched,90644015,name_th,ภาษาอังกฤษเพื่อการศึกษาต่อ,ภาษา อังกฤษเพื่อการศึกษาต่อ,0.0385,0.5
+GENED,gened,matched,90644016,name_th,อังกฤษเพื่ออุสาหกรรม,อังกฤษเพื่ออุตสาหกรรม,0.05,0.6667
+GENED,gened,matched,90644016,name_en,ENGLISH FOR INDUSTRY,ENGLISH FOR NDUSTRY,0.05,0.3333
+GENED,gened,matched,90644017,name_th,ภาษาอังกฤษสำหรับธุรกิจ,ภาษา อังกฤษสำหรับธุรกิจ,0.0455,0.6667
+GENED,gened,matched,90644018,name_th,ภาษาอังกฤษเพื่อการตลาด,ภาษาอังกฤษเพือการตลาด,0.0455,0.3333
+GENED,gened,matched,90644019,name_th,ภาษาอังกฤษเพื่อการจัดการ,ภาษา อังกฤษเพือการจัดการ,0.0833,0.75
+GENED,gened,matched,90644020,name_en,ENGLISH FOR MADIA,ENGLISH FOR MEDIA,0.0588,0.3333
+GENED,gened,matched,90644021,name_th,ภาษาอังกฤษเพื่อการสื่อสารระหว่างวัฒนธรรม,ภาษา อังกฤษเพือการสือสารระหว่างวัฒนธรรม,0.075,1.2
+GENED,gened,matched,90644021,name_en,ENGLISH FOR INTERCURAL COMMUNICATION,ENGLISH FOR INTERCULTURAL COMMUNICATION,0.0833,0.25
+GENED,gened,matched,90644023,name_th,ภาษาอังกฤษเพื่อเตรียมตัวทำงาน,ภาษาอังกฤษเพือเตรียมตัวทำงาน,0.0345,0.25
+GENED,gened,matched,90644023,name_en,ENGLISH FOR WORK PREPATION,ENGLISH FOR WORK PREPARATION,0.0769,0.25
+GENED,gened,matched,90644024,name_en,ENGLISH FOR TOURISM AND TRAVELLING,ENGLISH FOR TOURISM AND TRAVELLNNG,0.0294,0.2
+GENED,gened,matched,90644025,name_en,ENGLISH FOR ARCHITECTURAL ARTS & DESIGN COMMUNICATION,ENGLISH FOR ARCHTECTURAL ARTS DESIGN COMMUNICATION,0.0566,0.2857
+GENED,gened,matched,90644026,name_th,ภาษาอังกฤษเพื่อการนำเสนอในงานสถาปัตยกรรม,ภาษา อังกฤษเพือการนำเสนอในงานสถาปัตยกรรม,0.05,0.4286
+GENED,gened,matched,90644026,name_en,ENGLISH FOR ARCHITECTURAL ARTS & DESIGN PRESENTATION,ENGLISH FOR ARCHITECTURAL ARTS DESIGN PRESENTATION,0.0385,0.1429
+GENED,gened,matched,90644027,name_th,ภาษาอังกฤษสำหระบการเขียนพรรณา,ภาษาอังกฤษสำหรับการเขียนพรรณนา,0.069,0.7143
+GENED,gened,matched,90644027,name_en,ENGLISH FOR NARRATIVE WRITING,ENGLISH FOR NARRATIE WRITNG,0.069,0.5
+GENED,gened,matched,90644029,name_th,ภาษาอังกฤษสำหรับวิชาชีพสุขภาพ,ภาษา อังกฤษสำหรับวิชาชีพสุขภาพ,0.0345,0.5
+GENED,gened,matched,90644030,name_th,ภาษาอังกฤษเพื่อการประชาสัมพันธ์,ภาษา อังกฤษเพื่อการประชาสัมพันธ์,0.0323,0.5
+GENED,gened,matched,90644031,name_th,ภาษาอังกฤษสำหรับวิทยาศาสตร์และเทคโนโลยี,ภาษา อังกฤษสำหรับวิทยาศาสตร์และเทคโนโลยี,0.0256,0.4
+GENED,gened,matched,90644032,name_th,ภาษาอังกฤษสำหรับการบิน,ภาษา อังกฤษสำหรับการบิน,0.0455,0.5
+GENED,gened,matched,90644033,name_en,WRITING AND SPEAKING IN THE PROFESSIONS,WRITING AND SPEAKNNG IN THE PROFESSIONS,0.0256,0.1667
+GENED,gened,matched,90644035,name_th,การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร์สุขภาพ,การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร,0.1429,0.2222
+GENED,gened,matched,90644035,name_en,ACADEMIC READING AND WRITING FOR HEALTH SCIENCES,ACAPEMIC READING AND WRITING FOR HEALTH SCIENCES,0.0208,0.1429
+GENED,gened,matched,90644036,name_th,การพัฒนาทักษะทางภาษาอังกฤษเพื่อการเรียนรู้ตลอดชีวิต,การพัฒนาทักษะทางภาษาอังกฤษเบ เพื่อการเรียนรู้ตลอดชีี,0.1176,0.5714
+GENED,gened,matched,90644036,name_en,ENLISH SKILL DEVELOPMENT FOR LIFE-LONG LEARNING,ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNNG,0.0638,0.6667
+GENED,gened,matched,90644037,name_th,การสื่อสารข้ามวัฒนธรรม,การสือสารข้ามวัฒนธรรม,0.0455,1.0
+GENED,gened,matched,90644038,name_th,การสื่อสารนวัตกรรม,การสือสารนวัตกรรม,0.0556,1.5
+GENED,gened,matched,90644038,name_en,INNOVATIVE COMMUNICATION,INNOVATIE COMMUNICATION,0.0417,0.5
+GENED,gened,matched,90644039,name_th,ทักษะการสื่อสารผ่านการอภิปราย,ทักษะการสือสารผ่านการอภิปราย,0.0345,0.6
+GENED,gened,matched,90644040,name_th,ทักษะการสื่อสารผ่านละคร,ทักษะการสือสารผ่านละคร,0.0435,0.75
+GENED,gened,matched,90644040,name_en,COMMUNICATION SKILLS THROUGH DRAMA,COMMUNICATION SKILLS THROUCH DRAMA,0.0294,0.25
+GENED,gened,matched,90644041,name_en,ENGLISH FROM ENTERTAINMENT MEDIA,ENGLISH FROM ENTERTA NMENT MEDIA,0.0312,0.5
+GENED,gened,matched,90644043,name_en,PUBLIC SPEAKING,PUBLIC SPEAKNNG,0.0667,0.5
+GENED,gened,matched,90644044,name_th,พูดได้ พูดดี พูดเป็น,ไม่ระบุ,0.95,1.0
+GENED,gened,matched,90644046,name_th,การฟังและการอ่านเพื่อพัฒนาคุณภาพชีวิต,การฟังและการอ่านเพือพัฒนาคุณภาพชีวิต,0.027,0.125
+GENED,gened,matched,90644046,name_en,LISTENING AND READING FOR IMPROVING LIFE QUALITY,LISTENING AND READING FOR IMPROVNG LIFE QUALTV,0.0625,0.2857
+GENED,gened,matched,90644047,name_en,DEVELOPMENT OF THAI CREATIVE WRITING SKILLS,DEVELOPMENT OF THAL CREATIVE WRTNG SKILLS,0.0698,0.3333
+GENED,gened,matched,90644048,name_en,LANGUAGE IN THAI SOCIETY,LANGUAGE IN THAL SOCIET,0.0833,0.5
+GENED,gened,matched,90644049,name_en,THAI LANGUAGE FOR CREATIVITY,THA LANGUAGE FOR CREATMITV,0.1429,0.5
+GENED,gened,matched,90644050,name_th,การเขียนภาษาไทยในที่ทำงาน,การเขียนภาษาไทยในทีทำงาน,0.04,0.5
+GENED,gened,matched,90644050,name_en,THAI WRITING IN WORKPLACE,THAR WRITING IN WORKPLACE,0.04,0.25
+GENED,gened,matched,90644051,name_en,THAI FOR DENTAL PROFESSIONS,THA FOR DENTAL PROFESSIONS,0.037,0.25
+GENED,gened,matched,90644052,name_en,COMMUNICATION IN THAI FOR CULINARY PROFESSIONALS,COMMUNICATION IN THAL FOR CULINARY PROFESSIONALS,0.0208,0.1667
+GENED,gened,matched,90644053,name_en,FUNDAMENTAL CHINESE FOR LISTENING AND SPEAKING,FUNDAMENTAL CHINESE FOR LISTENNG AND SPEAK NG,0.0435,0.5
+GENED,gened,matched,90644054,name_th,การอ่านและการเขียนภาษาจีนพื้นฐาน,การอ่านและเขียนภาษาจีนพื้นฐาน,0.0938,0.1667
+GENED,gened,matched,90644056,name_th,วัฒนธรรม สำนวนและสุภาษิตจีน,วัฒนธรรม ฺสำนวนและสุภาษิตจีน,0.037,0.2
+GENED,gened,matched,90644056,name_en,CHINESE CULTURE IDIOMS AND PROVERBS,CHIESE CULTURE IDIOMS AND PROVERBS,0.0286,0.2
+GENED,gened,matched,90644057,name_th,ภาษาจีนเพื่อการสื่อสาร,ภาษาจีนเพือการสื่อสาร,0.0455,0.3333
+GENED,gened,matched,90644057,name_en,CHINESE FOR COMMUNUCATION,CHIESE FOR COMMUNICATION,0.08,0.6667
+GENED,gened,matched,90644058,name_th,ภาษาจีนสำหรับแฟนด้อม,ภาษาจินฉบับแฟนด้อม,0.25,0.75
+GENED,gened,matched,90644059,name_th,ภาษาจีนเพื่อการท่องเที่ยว,ภาษาจีนเพือการท่องเทียว,0.08,1.0
+GENED,gened,matched,90644059,name_en,CHINESE FOR TRAVEL,CHIESE FOR TRAVEL,0.0556,0.3333
+GENED,gened,matched,90644060,name_th,ภาษาเยอรมันเพื่อการสื่อสาร,ภาษาเยอรมันเพือการสือสาร,0.0769,1.3333
+GENED,gened,matched,90644060,name_en,GERMAN FOR COMMUNUCATION,GERMAN FOR COMMUNICATION,0.0417,0.3333
+GENED,gened,matched,90644064,name_th,ภาษาเกาหลีเพื่อการท่องเที่ยว,ภาษา[เกาหลีเพื่อการท่องเที่ยว,0.0357,0.25
+GENED,gened,matched,90644065,name_th,ภาษาเวียดนามเพื่อการท่องเที่ยว,ภาษาเวียดนามเพือการท่องเทียว,0.0667,0.75

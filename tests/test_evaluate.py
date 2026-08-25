@@ -382,5 +382,118 @@ class EvaluateCoverageTests(unittest.TestCase):
         self.assertEqual(pages[2]["coverage"]["extra_prediction_count"], 1)
 
 
+    def test_prerequisite_absence_representations_are_semantically_equal(self):
+        gt_record = course("A0000001", "ONE")
+        prediction = course("A0000001", "ONE")
+
+        gt_record["prerequisite"] = "ไม่มี"
+        prediction["prerequisite"] = "NONE"
+
+        result = self.evaluate(
+            [gt_record],
+            [prediction],
+        )
+
+        prerequisite = result["field_level"]["prerequisite"]
+
+        self.assertEqual(prerequisite["cer"], 0.0)
+        self.assertEqual(prerequisite["wer"], 0.0)
+        self.assertEqual(prerequisite["count"], 1)
+
+
+    def test_real_prerequisite_mismatch_is_still_penalized(self):
+        gt_record = course("A0000001", "ONE")
+        prediction = course("A0000001", "ONE")
+
+        gt_record["prerequisite"] = "ไม่มี"
+        prediction["prerequisite"] = "06016413"
+
+        result = self.evaluate(
+            [gt_record],
+            [prediction],
+        )
+
+        prerequisite = result["field_level"]["prerequisite"]
+
+        self.assertGreater(prerequisite["cer"], 0.0)
+        self.assertGreater(prerequisite["wer"], 0.0)
+
+    def test_equivalent_repeated_prediction_is_collapsed_for_canonical_gt(self):
+        gt_record = course("06016418", "WEB")
+
+        first = course("06016418", "WEB")
+        first["prerequisite"] = "06016408"
+        first["year"] = 3
+        first["semester"] = 1
+
+        second = course("06016418", "WEB")
+        second["prerequisite"] = "06016408"
+        second["year"] = 3
+        second["semester"] = 1
+
+        gt_record["prerequisite"] = "06016408"
+
+        result = self.evaluate(
+            [gt_record],
+            [first, second],
+        )
+
+        self.assertEqual(
+            result["coverage"]["prediction_record_count"],
+            1,
+        )
+        self.assertEqual(
+            result["coverage"]["matched_count"],
+            1,
+        )
+        self.assertEqual(
+            result["coverage"]["extra_prediction_count"],
+            0,
+        )
+
+        self.assertEqual(
+            result["prediction_view"],
+            {
+                "raw_record_count": 2,
+                "evaluated_record_count": 1,
+                "collapsed_equivalent_repeated_records": 1,
+            },
+        )
+
+
+    def test_conflicting_repeated_prediction_is_not_collapsed(self):
+        gt_record = course("06016418", "WEB")
+        gt_record["prerequisite"] = "06016408"
+
+        first = course("06016418", "WEB")
+        first["prerequisite"] = "06016408"
+
+        second = course("06016418", "WEB")
+        second["prerequisite"] = "06016413"
+
+        result = self.evaluate(
+            [gt_record],
+            [first, second],
+        )
+
+        self.assertEqual(
+            result["coverage"]["prediction_record_count"],
+            2,
+        )
+        self.assertEqual(
+            result["coverage"]["matched_count"],
+            1,
+        )
+        self.assertEqual(
+            result["coverage"]["extra_prediction_count"],
+            1,
+        )
+        self.assertEqual(
+            result["prediction_view"][
+                "collapsed_equivalent_repeated_records"
+            ],
+            0,
+        )
+
 if __name__ == "__main__":
     unittest.main()

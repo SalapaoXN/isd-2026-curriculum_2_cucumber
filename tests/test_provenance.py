@@ -81,6 +81,7 @@ class ProvenanceTests(unittest.TestCase):
                     "program": "DSBA",
                     "source_filename": "dsba_page_026.png",
                     "source_page": 26,
+                    "document_page": None,
                     "document_category": "plan",
                 }
             ],
@@ -105,6 +106,7 @@ class ProvenanceTests(unittest.TestCase):
                 "program": "IT",
                 "source_filename": "it_page_041_ocr.txt",
                 "source_page": 41,
+                "document_page": None,
                 "document_category": "plan",
             },
         )
@@ -114,6 +116,7 @@ class ProvenanceTests(unittest.TestCase):
                 "program": "AIT",
                 "source_filename": "ait_page_042_ocr.json",
                 "source_page": 42,
+                "document_page": None,
                 "document_category": "plan",
             },
         )

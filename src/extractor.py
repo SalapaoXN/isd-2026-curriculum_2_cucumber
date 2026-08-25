@@ -19,6 +19,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+from .page_metadata import (
+    document_page_candidates_from_lines,
+    document_page_from_lines,
+    parse_document_page,
+)
 from .pre_clean import pre_clean_with_regex
 
 
@@ -30,12 +35,19 @@ SOURCE_PROVENANCE_FIELDS = (
     "document_category",
 )
 PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
+GENED_DESCRIPTION_SOURCE_PAGE_MIN = 44
+GENED_DESCRIPTION_SOURCE_PAGE_MAX = 117
+DEFAULT_COOP_PAIRS = (
+    ("06026259", "06026260", "6(0-35-0)"),
+    ("06046443", "06046444", "6(0-45-0)"),
+    ("06016481", "06016482", "6(0-36-0)"),
+)
 
 
 def merge_source_provenance(*records) -> List[Dict]:
     """Combine source entries in order without duplicating an occurrence."""
     merged: List[Dict] = []
-    seen = set()
+    seen = {}
 
     for record in records:
         if isinstance(record, dict):
@@ -56,12 +68,64 @@ def merge_source_provenance(*records) -> List[Dict]:
             normalized = {
                 field: entry.get(field) for field in SOURCE_PROVENANCE_FIELDS
             }
+            if "document_page" in entry:
+                normalized["document_page"] = parse_document_page(
+                    entry.get("document_page")
+                )
             identity = tuple(normalized[field] for field in SOURCE_PROVENANCE_FIELDS)
             if identity in seen:
+                existing = merged[seen[identity]]
+                if (
+                    normalized.get("document_page") is not None
+                    and existing.get("document_page") is None
+                ):
+                    existing["document_page"] = normalized["document_page"]
                 continue
-            seen.add(identity)
+            seen[identity] = len(merged)
             merged.append(normalized)
 
+    return merged
+
+
+def prediction_source_label(program: str, plan: Optional[str]) -> str:
+    """Return a neutral root source label for generated prediction artifacts."""
+    program_label = str(program or "UNKNOWN").strip().upper()
+    plan_label = f" {str(plan).strip()}" if plan not in (None, "") else ""
+    return f"OCR extraction / Academic Plan - {program_label}{plan_label}"
+
+
+def prediction_description(
+    program: str, plan: Optional[str], consolidated: bool = False
+) -> str:
+    """Describe generated prediction data without implying Ground Truth status."""
+    program_label = str(program or "UNKNOWN").strip().upper()
+    plan_label = f" (plan {str(plan).strip()})" if plan not in (None, "") else ""
+    suffix = " - consolidated" if consolidated else ""
+    return f"OCR-extracted curriculum records for {program_label}{plan_label}{suffix}"
+
+
+def _combine_alternative_values(first, second) -> str:
+    values = []
+    for value in (first, second):
+        if value in (None, ""):
+            continue
+        if value not in values:
+            values.append(value)
+    return "\n".join(str(value) for value in values)
+
+
+def merge_alternative_courses(first: Dict, second: Dict, credits: str) -> Dict:
+    """Merge two explicitly configured alternative records without losing fields."""
+    merged = dict(first)
+    merged["code"] = f"{first.get('code', '')} หรือ {second.get('code', '')}"
+
+    for field in ("name_th", "name_en", "desc_th", "desc_en", "prerequisite", "note"):
+        combined = _combine_alternative_values(first.get(field), second.get(field))
+        if combined:
+            merged[field] = combined
+
+    merged["credits"] = credits
+    merged[SOURCE_PROVENANCE_KEY] = merge_source_provenance(first, second)
     return merged
 
 
@@ -182,6 +246,9 @@ class CurriculumExtractor:
         re.IGNORECASE,
     )
     SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
+    PAREN_ONLY_CREDIT_RE = re.compile(
+        r"^\s*\([0-9xX]+[ -][0-9xX]+[ -][0-9xX]+\)\s*$"
+    )
 
     CATEGORY_HEADER_RE = re.compile(r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE)
     IT_SECTION_HEADER_RE = re.compile(
@@ -197,6 +264,47 @@ class CurriculumExtractor:
         re.IGNORECASE,
     )
     OR_KEYWORD_RE = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
+    GENED_AUDIT_NOTE_RE = re.compile(
+        r"(?:ไม่\s*เก็บ\s*หน่วยกิต|\bAUDIT\b)",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def _standalone_course_suffix(cls, line: str) -> Optional[str]:
+        token = line.strip().upper()
+        if re.fullmatch(r"[1-9]", token):
+            return token
+        if token in {"L", "I"}:
+            return "1"
+        if token == "II":
+            return "2"
+        return None
+
+    @classmethod
+    def _next_nonempty_line(cls, lines: List[str], index: int) -> Optional[str]:
+        for next_line in lines[index + 1 :]:
+            stripped = next_line.strip()
+            if stripped:
+                return stripped
+        return None
+
+    @classmethod
+    def _is_strong_suffix_position(
+        cls, lines: List[str], index: int, credits_seen: bool
+    ) -> bool:
+        token = lines[index].strip().upper()
+        if token not in {"L", "I", "II"}:
+            return False
+
+        next_line = cls._next_nonempty_line(lines, index)
+        if next_line is None:
+            return credits_seen
+        return bool(
+            cls.SINGLE_CREDIT_RE.search(next_line)
+            or cls.OR_KEYWORD_RE.fullmatch(next_line)
+            or cls.PREREQ_KEYWORD_RE.search(next_line)
+            or cls.DESCRIPTION_CODE_LINE_RE.fullmatch(next_line)
+        )
 
     # Year / semester headers, with or without the number on the same line.
     YEAR_HEADER_RE = re.compile(r"(?:ชั้น)?[ปขชบ]ี\s*ที่?")                    # "ปีที่"
@@ -212,6 +320,11 @@ class CurriculumExtractor:
         r"\s*$"
     )
 
+    GENED_NONE_PREREQ_RE = re.compile(
+        r"^NO[NV][E=]$",
+        re.IGNORECASE,
+    )
+    
     PREREQ_KEYWORD_RE = re.compile(
         r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|prerequisite|pre-requisite|PRERE\s*[A-Z]*|PRERECUISITE)",
         re.IGNORECASE,
@@ -259,42 +372,22 @@ class CurriculumExtractor:
         self,
         program: str = "DSBA",
         plan: Optional[str] = "coop",
-        source: str = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop",
+        source: Optional[str] = None,
         coop_pairs: Optional[List[Tuple[str, str, str]]] = None,
     ):
         self.program = program
         self.plan = plan
         # Co-op / alternative course pairs to merge.  Each tuple is
-        # (code_a, code_b, merged_credits).  Universal default keeps the
-        # known pairs; callers may override for their own curriculum.
-        self.coop_pairs = coop_pairs if coop_pairs is not None else [
-            ("06026259", "06026260", "6(0-35-0)"),
-            ("06046443", "06046444", "6(0-45-0)"),
-        ]
-        if program == "DSBA" and plan == "coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
-        elif program == "DSBA" and plan == "no_coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — DSBA N0 coop"
-        elif program == "BIT" and plan == "coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — BIT coop"
-        elif program == "BIT" and plan == "no_coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — BIT no coop"
-        elif program == "IT" and plan == "coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — IT coop"
-        elif program == "IT" and plan == "no_coop":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — IT no coop"
-        elif program == "AIT":
-            self.source = "GT_Template-2.xlsx / Academic Plan GT — AIT"
-        elif program == "GENED":
-            self.source = "GT_Template-2.xlsx / General Education"
-        else:
-            self.source = source
+        # (code_a, code_b, merged_credits). Callers may override the defaults.
+        self.coop_pairs = list(coop_pairs) if coop_pairs is not None else list(DEFAULT_COOP_PAIRS)
+        self.source = source or prediction_source_label(program, plan)
 
     def _source_context(
         self,
         input_path: Path | None = None,
         metadata: Optional[dict] = None,
         document_category: str = "unknown",
+        text_lines: Optional[List[str]] = None,
     ) -> Dict:
         metadata = metadata if isinstance(metadata, dict) else {}
 
@@ -314,10 +407,30 @@ class CurriculumExtractor:
         if not isinstance(program, str) or not program.strip():
             program = self.program if isinstance(self.program, str) and self.program.strip() else None
 
+        document_page = parse_document_page(metadata.get("document_page"))
+        ocr_candidates = set()
+        if document_page is None:
+            document_page = document_page_from_lines(text_lines)
+            if document_page is None:
+                ocr_candidates = document_page_candidates_from_lines(text_lines)
+
+        if (
+            document_page is None
+            and not ocr_candidates
+            and isinstance(source_page, int)
+            and str(program).strip().upper() == "GENED"
+            and document_category == "description"
+            and GENED_DESCRIPTION_SOURCE_PAGE_MIN
+            <= source_page
+            <= GENED_DESCRIPTION_SOURCE_PAGE_MAX
+        ):
+            document_page = source_page - 4
+
         return {
             "program": program,
             "source_filename": source_filename,
             "source_page": source_page,
+            "document_page": document_page,
             "document_category": document_category
             if document_category in {"plan", "description"}
             else "unknown",
@@ -328,6 +441,34 @@ class CurriculumExtractor:
         result = dict(course)
         result[SOURCE_PROVENANCE_KEY] = [dict(source_context)]
         return result
+
+    def _gened_audit_course_codes(self, lines: List[str]) -> List[str]:
+        if self.program != "GENED":
+            return []
+
+        audit_index = next(
+            (
+                index
+                for index, line in enumerate(lines)
+                if self.GENED_AUDIT_NOTE_RE.search(line)
+            ),
+            None,
+        )
+        if audit_index is None:
+            return []
+
+        last_credit_index = -1
+        for index in range(audit_index):
+            if self.SINGLE_CREDIT_RE.search(lines[index]):
+                last_credit_index = index
+
+        codes = []
+        for line in lines[last_credit_index + 1 : audit_index]:
+            code, _ = self._extract_code(line)
+            if code is not None and code not in codes:
+                codes.append(code)
+
+        return codes
 
     # ------------------------------------------------------------------ #
     #  Step 1: split raw OCR lines into course blocks                     #
@@ -354,6 +495,28 @@ class CurriculumExtractor:
         while idx < n:
             line = lines[idx].strip()
             if not line:
+                idx += 1
+                continue
+            
+            # GENED catalog contains an Audit footnote that repeats existing
+            # course codes without normal credit rows. These repeated entries
+            # are explanatory notes, not additional course occurrences.
+            if (
+                self.program == "GENED"
+                and self.GENED_AUDIT_NOTE_RE.search(line)
+            ):
+                current = None
+
+                # Remove only the trailing blocks that do not have a credit row.
+                # On the real GENED page this removes 90644004, 90644005,
+                # and 90644006 from the Audit-note section, while stopping
+                # at 90644066 because that is a normal course with credits.
+                while blocks and not any(
+                    self.SINGLE_CREDIT_RE.search(block_line)
+                    for block_line in blocks[-1].lines
+                ):
+                    blocks.pop()
+
                 idx += 1
                 continue
 
@@ -423,6 +586,8 @@ class CurriculumExtractor:
                         and not self.HAS_ENG_RE.search(line)
                         and not self.PREREQ_KEYWORD_RE.search(line)
                         and not self.GROUP_LABEL_RE.match(line)
+                        and not self.SINGLE_CREDIT_RE.search(line)
+                        and not self.OR_KEYWORD_RE.search(line)
                     )
                     or (
                         self.program == "GENED"
@@ -541,6 +706,9 @@ class CurriculumExtractor:
         name_en = ""
         credits = ""
         prerequisite = "ไม่มี"
+        credits_seen = False
+        last_name_field = None
+        last_name_line_index = None
 
         # A few table rows place a group label before the credit and the real
         # Thai course title after it.  Only discard a label when that structure
@@ -590,34 +758,60 @@ class CurriculumExtractor:
             if self.DESCRIPTION_START_RE.search(line):
                 break
 
+            suffix_value = self._standalone_course_suffix(line)
+            if suffix_value is not None:
+                immediately_after_name = (
+                    last_name_field is not None
+                    and last_name_line_index == line_index - 1
+                )
+                is_numeric_suffix = re.fullmatch(r"[1-9]", line.strip()) is not None
+                if immediately_after_name and (
+                    is_numeric_suffix
+                    or self._is_strong_suffix_position(
+                        block.lines, line_index, credits_seen
+                    )
+                ):
+                    if last_name_field == "name_th":
+                        name_th = f"{name_th} {suffix_value}".strip()
+                    else:
+                        name_en = f"{name_en} {suffix_value}".strip()
+                continue
+
             # Lone OCR junk tokens that slip past a fully numeric code.
             if (
                 len(code) == 8
                 and code.isdigit()
-                and line.upper() in {"X", "^", "D9", "L"}
+                and line.upper() in {"X", "^", "D9"}
             ):
                 continue
 
-            # A lone number / letter is a course-number suffix (e.g. "CALCULUS" + "1").
-            if line.upper() in {"L", "1", "2", "3", "4", "I", "II"}:
-                num = "1" if line.upper() in {"L", "I"} else ("2" if line.upper() == "II" else line)
-                if not name_en:
-                    name_th = f"{name_th} {num}".strip()
-                else:
-                    name_en = f"{name_en} {clean_ocr_en_text(line).upper()}".strip()
-                continue
-
+            if line.strip() == "0":
+                next_line = self._next_nonempty_line(block.lines, line_index)
+                if (
+                    not credits
+                    and next_line is not None
+                    and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
+                ):
+                    credits = "0"
+                    continue
+            
             # Credits and the "หรือ" keyword that joins alternative credit rows.
             if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
                 credit_piece = "หรือ" if "หรอ" in line else line
                 credits = f"{credits} {credit_piece}".strip() if credits else credit_piece
+                if self.SINGLE_CREDIT_RE.search(line):
+                    credits_seen = True
                 continue
 
             # Thai / English course names can wrap across several lines.
             if self.HAS_THAI_RE.search(line):
                 name_th = f"{name_th} {line}".strip()
+                last_name_field = "name_th"
+                last_name_line_index = line_index
             elif self.HAS_ENG_RE.search(line):
                 name_en = f"{name_en} {line}".strip()
+                last_name_field = "name_en"
+                last_name_line_index = line_index
 
         # ---- clean up OCR noise ---------------------------------------------- #
         # Remove the "กลุ่ม วิชาที่กำหนดโดยคณะ*" label (supports spaces + asterisk).
@@ -635,6 +829,11 @@ class CurriculumExtractor:
         credits_clean = re.sub(r"\s*\(\s*", "(", credits)
         credits_clean = re.sub(r"\s*\)\s*", ")", credits_clean)
         credits_clean = re.sub(r"\)+", ")", credits_clean)
+        credits_clean = re.sub(
+            rf"({self.CREDIT_GROUP_RE})\s*หรือ\s*(?={self.CREDIT_GROUP_RE})",
+            r"\1 หรือ ",
+            credits_clean,
+        )
         credits_clean = re.sub(
             r"\s*(?:หรือ|or|/)\s*$", "", credits_clean, flags=re.IGNORECASE
         ).strip()
@@ -659,19 +858,23 @@ class CurriculumExtractor:
         else :
             category = "หมวดวิชาเฉพาะ"
 
-        return {
+        course = {
             "code": code,
             "name_th": name_th if name_th else "ไม่ระบุ",
             "name_en": name_en if name_en else "N/A",
             "credits": final_credits,
-            "year": 0 if self.plan == "gened" else block.year,
-            "semester": 0 if self.plan == "gened" else block.semester,
             "category": category,
             "type": "เลือก" if self.plan == "gened" else block.type,
             "prerequisite": None if self.plan == "gened" else prerequisite,
             "flexible_year_semester": None,
             "note": note,
         }
+
+        if self.plan != "gened":
+            course["year"] = block.year
+            course["semester"] = block.semester
+
+        return course
 
     # ------------------------------------------------------------------ #
     #  Step 3: post-process the whole course list                         #
@@ -701,16 +904,9 @@ class CurriculumExtractor:
                     merged_credits = credits
                     break
             if merged_credits is not None:
-                nxt = courses[idx + 1]
-                merged = {
-                    **current,
-                    "code": f"{current['code']} หรือ {nxt['code']}",
-                    "name_th": f"{current['name_th']}\n{nxt['name_th']}",
-                    "name_en": f"{current['name_en']}\n{nxt['name_en']}",
-                    "credits": merged_credits,
-                }
-                merged[SOURCE_PROVENANCE_KEY] = merge_source_provenance(current, nxt)
-                combined.append(merged)
+                combined.append(
+                    merge_alternative_courses(courses[idx], courses[idx + 1], merged_credits)
+                )
                 idx += 2
                 continue
 
@@ -728,8 +924,9 @@ class CurriculumExtractor:
         """Run the full block-based pipeline over the study-plan OCR lines."""
         print(" [DEBUG] running: extract_from_lines (study plan table)")
         source_context = source_context or self._source_context(
-            document_category="unknown"
+            document_category="unknown", text_lines=lines
         )
+        audit_course_codes = self._gened_audit_course_codes(lines)
         blocks = self.split_into_blocks(lines)
         courses = [
             self._attach_source_provenance(self.parse_single_block(block), source_context)
@@ -739,9 +936,10 @@ class CurriculumExtractor:
 
         return {
             "source": self.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
+            "audit_course_codes": audit_course_codes,
             "courses": courses,
         }
 
@@ -952,6 +1150,36 @@ class CurriculumExtractor:
                     j += 1
                     continue
 
+                suffix_value = self._standalone_course_suffix(curr)
+                if suffix_value is not None:
+                    is_numeric_suffix = re.fullmatch(r"[1-9]", curr) is not None
+                    strong_position = self._is_strong_suffix_position(
+                        lines, j, credits_seen
+                    )
+                    next_line = self._next_nonempty_line(lines, j)
+                    next_is_credit = bool(
+                        next_line and self.SINGLE_CREDIT_RE.search(next_line)
+                    )
+                    if en_words and credits_seen and (
+                        (is_numeric_suffix and (next_line is None or strong_position or
+                                               bool(any_prereq_key_regex.search(next_line)) or
+                                               self._is_description_code_anchor(next_line)))
+                        or (not is_numeric_suffix and strong_position)
+                    ):
+                        en_words.append(suffix_value)
+                        j += 1
+                        continue
+                    if th_words and not credits_seen and (
+                        (is_numeric_suffix and next_is_credit)
+                        or (not is_numeric_suffix and strong_position)
+                    ):
+                        th_words.append(suffix_value)
+                        j += 1
+                        continue
+                    # Do not reinterpret an ambiguous standalone token as a name.
+                    j += 1
+                    continue
+
                 if re.search(r"[a-zA-Z]", curr) and not has_thai_regex.search(curr):
                     clean_en = clean_ocr_en_text(curr).upper()
                     if clean_en and clean_en not in ["L", "NONE"]:
@@ -969,6 +1197,9 @@ class CurriculumExtractor:
             if th_words:
                 cleaned_th_words = []
                 for word in th_words:
+                    if re.fullmatch(r"[1-9]", word.strip()):
+                        cleaned_th_words.append(f" {word.strip()}")
+                        continue
                     trailing_num = re.match(r"^(.*?)\s+(\d+)$", word)
                     if trailing_num:
                         cleaned_th_words.append(
@@ -1033,12 +1264,24 @@ class CurriculumExtractor:
                 prev_line = curr
                 j += 1
 
-            prerequisite = "ไม่มี"
+            prerequisite = None if self.program == "GENED" else "ไม่มี"
             if prereq_tokens:
                 clean_prereq = " ".join(prereq_tokens).strip()
-                if clean_prereq not in ["NONE", "ไม่มี", ""]:
+
+                is_missing_prerequisite = clean_prereq in {"", "NONE", "ไม่มี"} or (
+                    self.program == "GENED"
+                    and self.GENED_NONE_PREREQ_RE.fullmatch(clean_prereq)
+                )
+
+                if is_missing_prerequisite:
+                    prerequisite = None if self.program == "GENED" else "ไม่มี"
+                else:
                     codes_found = re.findall(r"\b\d{8}\b", clean_prereq)
-                    prerequisite = ", ".join(dict.fromkeys(codes_found)) if codes_found else clean_prereq
+                    prerequisite = (
+                        ", ".join(dict.fromkeys(codes_found))
+                        if codes_found
+                        else clean_prereq
+                    )
 
             desc_lines: List[str] = []
             while j < total:
@@ -1061,8 +1304,6 @@ class CurriculumExtractor:
                 "name_th": name_th if name_th else "ไม่ระบุ",
                 "name_en": name_en if name_en else "N/A",
                 "credits": credits.replace(" ", "").replace("{", "(").replace("}", ")"),
-                "year": 0,
-                "semester": 0,
                 "category": "หมวดวิชาศึกษาทั่วไป" if is_gened else "หมวดวิชาเฉพาะ",
                 "type": "เลือก",
                 "prerequisite": prerequisite,
@@ -1081,6 +1322,11 @@ class CurriculumExtractor:
                 ),
                 "note": "เฉพาะโครงการเข้าร่วมสหกิจ" if "สหกิจศึกษา" in name_th else None,
             }
+            
+            if self.program != "GENED":
+                course["year"] = 0
+                course["semester"] = 0
+            
             self._append_description_lines(course, desc_lines)
             courses.append(self._attach_source_provenance(course, source_context))
             i = j
@@ -1092,12 +1338,12 @@ class CurriculumExtractor:
     ) -> Dict:
         print(" [DEBUG] running: extract_descriptions (course descriptions)")
         source_context = source_context or self._source_context(
-            document_category="unknown"
+            document_category="unknown", text_lines=lines
         )
         courses, _ = self._extract_description_page(lines, source_context)
         return {
             "source": self.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
             "courses": courses,
@@ -1134,7 +1380,7 @@ class CurriculumExtractor:
 
         return {
             "source": self.source,
-            "description": f"Ground Truth รายวิชาหลักสูตร {self.program} (แผน {self.plan})",
+            "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
             "courses": courses,
@@ -1145,17 +1391,17 @@ class CurriculumExtractor:
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        lines = []
+        source_lines = []
         metadata = {}
         if file_path.suffix == ".json":
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                lines = data.get("text_lines", [])
+                source_lines = data.get("text_lines", [])
                 metadata = data if isinstance(data, dict) else {}
         else:
-            lines = file_path.read_text(encoding="utf-8").splitlines()
+            source_lines = file_path.read_text(encoding="utf-8").splitlines()
 
-        lines = [line.upper() for line in lines]
+        lines = [line.upper() for line in source_lines]
         content_upper = "\n".join(lines)
 
         # Universal pre-clean (deterministic regex, no LLM): repair OCR noise
@@ -1192,7 +1438,9 @@ class CurriculumExtractor:
         if is_plan_page:
             return self.extract_from_lines(
                 lines,
-                self._source_context(file_path, metadata, "plan"),
+                self._source_context(
+                    file_path, metadata, "plan", text_lines=source_lines
+                ),
             )
 
         # If not a study plan, check whether it is a course description page
@@ -1201,10 +1449,14 @@ class CurriculumExtractor:
         if is_description_page:
             return self.extract_descriptions(
                 lines,
-                self._source_context(file_path, metadata, "description"),
+                self._source_context(
+                    file_path, metadata, "description", text_lines=source_lines
+                ),
             )
 
         return self.extract_from_lines(
             lines,
-            self._source_context(file_path, metadata, "unknown"),
+            self._source_context(
+                file_path, metadata, "unknown", text_lines=source_lines
+            ),
         )

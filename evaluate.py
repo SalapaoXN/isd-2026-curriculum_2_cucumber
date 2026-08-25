@@ -15,6 +15,26 @@ def normalize_str(text: Any) -> str:
     text_str = str(text).strip().lower()
     return re.sub(r"\s+", " ", text_str)
 
+PREREQUISITE_ABSENCE_VALUES = {
+    "",
+    "none",
+    "ไม่มี",
+}
+
+PREREQUISITE_ABSENCE_TOKEN = "<no_prerequisite>"
+
+
+def normalize_field_for_eval(field: str, value: Any) -> str:
+    normalized = normalize_str(value)
+
+    if (
+        field == "prerequisite"
+        and normalized in PREREQUISITE_ABSENCE_VALUES
+    ):
+        return PREREQUISITE_ABSENCE_TOKEN
+
+    return normalized
+
 
 def calculate_similarity(s1: str, s2: str) -> float:
     if not s1 and not s2:
@@ -81,7 +101,7 @@ ERROR_COLUMNS = (
 
 
 def _wer_tokens(field: str, text: Any) -> List[str]:
-    normalized = normalize_str(text)
+    normalized = normalize_field_for_eval(field, text)
     if field in THAI_WER_FIELDS:
         return [
             token
@@ -203,6 +223,90 @@ def _authoritative_source_provenance(record: dict) -> List[dict]:
     return result
 
 
+CATALOG_EQUIVALENCE_FIELDS = (
+    "name_th",
+    "name_en",
+    "credits",
+    "prerequisite",
+)
+
+
+def _catalog_records_equivalent(first: dict, second: dict) -> bool:
+    for field in CATALOG_EQUIVALENCE_FIELDS:
+        if (field in first) != (field in second):
+            return False
+
+        if normalize_field_for_eval(
+            field,
+            first.get(field),
+        ) != normalize_field_for_eval(
+            field,
+            second.get(field),
+        ):
+            return False
+
+    return True
+
+
+def _prediction_evaluation_view(
+    gt_courses: List[dict],
+    pred_courses: List[dict],
+) -> tuple[List[dict], int]:
+    """
+    Collapse equivalent repeated prediction placements for canonical GT.
+
+    Repeated GT codes or GT records with authoritative source provenance
+    remain occurrence-sensitive and are not collapsed.
+    """
+    gt_code_counts: Dict[str, int] = {}
+    preserve_codes = set()
+
+    for course in gt_courses:
+        code = normalize_str(course.get("code"))
+        if not code:
+            continue
+
+        gt_code_counts[code] = gt_code_counts.get(code, 0) + 1
+
+        if _authoritative_source_provenance(course):
+            preserve_codes.add(code)
+
+    preserve_codes.update(
+        code
+        for code, count in gt_code_counts.items()
+        if count > 1
+    )
+
+    result: List[dict] = []
+    kept_indices_by_code: Dict[str, List[int]] = {}
+    collapsed_count = 0
+
+    for course in pred_courses:
+        code = normalize_str(course.get("code"))
+
+        if not code or code in preserve_codes:
+            result.append(course)
+            continue
+
+        existing_indices = kept_indices_by_code.get(code, [])
+
+        if any(
+            _catalog_records_equivalent(
+                result[index],
+                course,
+            )
+            for index in existing_indices
+        ):
+            collapsed_count += 1
+            continue
+
+        index = len(result)
+        result.append(course)
+        kept_indices_by_code.setdefault(code, []).append(index)
+
+    return result, collapsed_count
+
+
 def _source_identity(entry: dict) -> tuple:
     return tuple(entry[field] for field in SOURCE_PROVENANCE_FIELDS)
 
@@ -217,8 +321,14 @@ def _text_stats_for_pairs(pairs: List[tuple[dict, dict]], target_fields: List[st
         for field in target_fields:
             if field not in gt_item:
                 continue
-            gt_val = normalize_str(gt_item.get(field))
-            pred_val = normalize_str(pred_item.get(field))
+            gt_val = normalize_field_for_eval(
+                field,
+                gt_item.get(field),
+            )
+            pred_val = normalize_field_for_eval(
+                field,
+                pred_item.get(field),
+            )
             stats["cer"] += calculate_cer(gt_val, pred_val)
             stats["wer"] += calculate_wer(gt_val, pred_val)
             stats["count"] += 1
@@ -256,7 +366,13 @@ def evaluate_json_structure(
         pred_data = json.load(f)
 
     gt_courses: List[dict] = gt_data.get("courses", [])
-    pred_courses: List[dict] = pred_data.get("courses", [])
+
+    raw_pred_courses: List[dict] = pred_data.get("courses", [])
+
+    pred_courses, collapsed_prediction_count = _prediction_evaluation_view(
+        gt_courses,
+        raw_pred_courses,
+    )
 
     # ---- Course alignment by code (exact first, then fuzzy) ----- #
     def code_sim(a: dict, b: dict) -> float:
@@ -337,8 +453,15 @@ def evaluate_json_structure(
                 field_presence_stats[field]["matched"] += 1
             else:
                 field_presence_stats[field]["matched_pred_missing"] += 1
-            gt_val = normalize_str(gt_item.get(field))
-            pred_val = normalize_str(pred_item.get(field))
+            gt_val = normalize_field_for_eval(
+                field,
+                gt_item.get(field),
+            )
+            pred_val = normalize_field_for_eval(
+                field,
+                pred_item.get(field),
+            )
+
             cer_val = calculate_cer(gt_val, pred_val)
             wer_val = calculate_wer(gt_val, pred_val)
 
@@ -538,6 +661,11 @@ def evaluate_json_structure(
         "file_name": pred_path.name,
         "total_gt_courses": len(gt_courses),
         "total_pred_courses": len(pred_courses),
+        "prediction_view": {
+            "raw_record_count": len(raw_pred_courses),
+            "evaluated_record_count": len(pred_courses),
+            "collapsed_equivalent_repeated_records": collapsed_prediction_count,
+        },
         "matched_courses": len(pairs),
         "coverage": {
             "gt_record_count": gt_record_count,
@@ -656,8 +784,14 @@ def _field_metric_rows(case: dict) -> List[dict]:
         for gt_item, pred_item in details["pairs"]:
             if field not in gt_item:
                 continue
-            gt_value = normalize_str(gt_item.get(field))
-            pred_value = normalize_str(pred_item.get(field))
+            gt_value = normalize_field_for_eval(
+                field,
+                gt_item.get(field),
+            )
+            pred_value = normalize_field_for_eval(
+                field,
+                pred_item.get(field),
+            )
             cer_total += calculate_cer(gt_value, pred_value)
             if wer_applicable:
                 wer_total += calculate_field_wer(field, gt_value, pred_value) or 0.0
@@ -687,7 +821,15 @@ def _csv_value(value: Any) -> str:
 
 
 def _useful_error_value(field: str, value: Any) -> bool:
-    return bool(normalize_str(value))
+    normalized = normalize_field_for_eval(field, value)
+
+    if (
+        field == "prerequisite"
+        and normalized == PREREQUISITE_ABSENCE_TOKEN
+    ):
+        return False
+
+    return bool(normalized)
 
 
 def _error_row(
@@ -698,8 +840,14 @@ def _error_row(
     gt_value: Any,
     pred_value: Any,
 ) -> dict:
-    gt_normalized = normalize_str(gt_value)
-    pred_normalized = normalize_str(pred_value)
+    gt_normalized = normalize_field_for_eval(
+        field,
+        gt_value,
+    )
+    pred_normalized = normalize_field_for_eval(
+        field,
+        pred_value,
+    )
     wer = calculate_field_wer(field, gt_normalized, pred_normalized)
     return {
         "program": case["program"],
@@ -729,7 +877,11 @@ def _evaluation_error_rows(case: dict) -> List[dict]:
             gt_value = gt_item.get(field)
             pred_present = field in pred_item
             pred_value = pred_item.get(field)
-            if pred_present and normalize_str(gt_value) == normalize_str(pred_value):
+            if (
+                pred_present
+                and normalize_field_for_eval(field, gt_value)
+                == normalize_field_for_eval(field, pred_value)
+            ):
                 continue
             if not _useful_error_value(field, gt_value) and not _useful_error_value(
                 field, pred_value

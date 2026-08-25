@@ -251,7 +251,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
-      "prerequisite": null,
+      "prerequisite": "BASIC CREATIVE STEM DESIGN",
       "flexible_year_semester": null,
       "note": null
     },
@@ -2286,7 +2286,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
-      "prerequisite": null,
+      "prerequisite": "FOUNDATION ENGLISH 1",
       "flexible_year_semester": null,
       "note": null
     },

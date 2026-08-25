@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 from typing import List
 
+from .page_metadata import document_page_from_lines
+
 
 def save_ocr_results(
     text_lines: List[str],
@@ -28,6 +30,7 @@ def save_ocr_results(
         "filename": base_name,
         "line_count": len(text_lines),
         "text_lines": text_lines,
+        "document_page": document_page_from_lines(text_lines),
     }
     if source_filename is not None:
         json_data["source_filename"] = Path(source_filename).name

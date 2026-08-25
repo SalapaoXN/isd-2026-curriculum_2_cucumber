@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from src.extractor import CurriculumExtractor
 
@@ -33,6 +34,21 @@ class CourseCodeValidationTests(unittest.TestCase):
 
     def test_eight_digit_numeric_code_is_accepted(self):
         self.assertEqual(extract_codes(course_lines("06046407")), ["06046407"])
+
+    def test_stored_ait_ocr_keeps_valid_codes_without_repair_mapping(self):
+        outputs = Path(__file__).resolve().parents[1] / "outputs"
+        page_24 = CurriculumExtractor(program="AIT").process_file(
+            outputs / "ait_page_024_ocr.json"
+        )
+        page_292 = CurriculumExtractor(program="AIT").process_file(
+            outputs / "ait_page_292_ocr.json"
+        )
+
+        page_24_codes = [course["code"] for course in page_24["courses"]]
+        page_292_codes = [course["code"] for course in page_292["courses"]]
+        self.assertNotIn("0604640", page_24_codes)
+        self.assertIn("06046408", page_24_codes)
+        self.assertIn("06046407", page_292_codes)
 
     def test_nine_digit_numeric_code_is_rejected(self):
         self.assertEqual(extract_codes(course_lines("060464070")), [])

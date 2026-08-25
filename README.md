@@ -182,23 +182,38 @@ python cli.py inputs/dsba/ -o outputs/dsba_raw_ocr --languages th,en --no-gpu
 
 `extract.py` accepts an OCR TXT file, OCR JSON file, or directory:
 ```bash
-# Explicit TXT input
-python extract.py outputs/curriculum_page_016_ocr.txt --program DSBA --plan coop
+# =========================
+# DSBA
+# =========================
+python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+python extract.py outputs --prefix dsba -p 33-39 --program DSBA --plan coop
+python extract.py outputs --prefix dsba -p 317-344 --program DSBA --plan coop
 
-# Explicit JSON input
-python extract.py outputs/curriculum_page_016_ocr.json --program DSBA --plan coop
+# =========================
+# IT
+# =========================
+python extract.py outputs --prefix it -p 32-38 --program IT --plan no_coop
+python extract.py outputs --prefix it -p 39-45 --program IT --plan coop
+python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
 
-# Directory input
-python extract.py outputs/ --program DSBA --plan coop
-python extract.py outputs/dsba_raw_ocr --program DSBA --plan coop
+# =========================
+# AIT
+# =========================
+# AIT has no coop/no_coop variant
+python extract.py outputs --prefix ait --program AIT
 
-# Explicit metadata and output directory
-python extract.py outputs/curriculum_page_016_ocr.txt \
-  --program DSBA \
-  --plan coop \
-  --output-dir outputs/extracted \
-  --source "GT_Template-2.xlsx / Academic Plan GT — DSBA coop"
-```
+# =========================
+# GENED
+# =========================
+# Catalog + course descriptions
+python extract.py outputs --prefix gened -p 16-30,44-117 --program GENED --plan gened
+
+# =========================
+# BIT
+# =========================
+python extract.py outputs --prefix bit -p 26-30 --program BIT --plan no_coop
+python extract.py outputs --prefix bit -p 31-35 --program BIT --plan coop
+python extract.py outputs --prefix bit -p 238-257 --program BIT --plan coop
 
 ### Automated page runner
 
@@ -225,30 +240,55 @@ python -m src.run_pipeline -i inputs/gened --plan gened --program GENED
 
 ### Consolidation
 
-`merge_consecutive.py` supports `--input-dir`, `--output-dir`, `--prefix`, `--plan`, `-p/--pages`, and `-d/--desc-pages`:
+`merge_consecutive.py` combines already extracted `*_ocr_extracted.json`
+files into consolidated curriculum JSON files.
+
+It supports `--input-dir`, `--output-dir`, `--prefix`, `--plan`,
+`-p/--pages`, and `-d/--desc-pages`.
+
+Use explicit page ranges when a program contains multiple study-plan
+variants so that only the intended plan pages and shared description pages
+are included.
+
 ```bash
 # DSBA
-python merge_consecutive.py --prefix dsba --plan coop -d 317-344
-python merge_consecutive.py --prefix dsba --plan no_coop -d 317-344
+python merge_consecutive.py --prefix dsba --plan no_coop -p 26-32,317-344 -d 317-344
+python merge_consecutive.py --prefix dsba --plan coop -p 33-39,317-344 -d 317-344
 
-# IT and BIT description pages, after the corresponding source inputs are available
-python merge_consecutive.py --prefix it --plan coop -d 328-371
-python merge_consecutive.py --prefix it --plan no_coop -d 328-371
-python merge_consecutive.py --prefix bit --plan coop -d 328-371
-python merge_consecutive.py --prefix bit --plan no_coop -d 328-371
+# IT
+python merge_consecutive.py --prefix it --plan no_coop -p 32-38,328-371 -d 328-371
+python merge_consecutive.py --prefix it --plan coop -p 39-45,328-371 -d 328-371
 
-# AIT has JSON plan null and uses a neutral filename label only
+# BIT
+python merge_consecutive.py --prefix bit --plan no_coop -p 26-30,238-257 -d 238-257
+python merge_consecutive.py --prefix bit --plan coop -p 31-35,238-257 -d 238-257
+
+# AIT
 python merge_consecutive.py --prefix ait -d 287-302
-python merge_consecutive.py --prefix gened
+
+# General Education
+python merge_consecutive.py --prefix gened --plan gened -p 16-30,44-117 -d 44-117
 ```
 
-Use explicit directories when outputs are not in the defaults:
+The `-p/--pages` option selects all source pages that belong to the
+consolidated output. The `-d/--desc-pages` option identifies which of those
+pages are course-description pages.
+
+For programs with `coop` and `no_coop` variants, the description pages are
+shared and do not need to be extracted separately for both plans.
+
+By default, extracted files are read from `outputs/` and consolidated files
+are written to `consolidated_outputs/`.
+
+Use explicit directories when different locations are required:
+
 ```bash
 python merge_consecutive.py \
   --input-dir outputs \
   --output-dir consolidated_outputs \
   --prefix dsba \
   --plan coop \
+  --pages 33-39,317-344 \
   --desc-pages 317-344
 ```
 
@@ -281,9 +321,14 @@ python evaluate.py \
   --out reports/dsba_coop_evaluation.json
 
 # Batch evaluation; repeat --pair for each prediction/ground-truth pair
-python evaluate.py \
-  --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json \
-  --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json
+```powershell
+python evaluate.py `
+  --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
+  --pair consolidated_outputs/merged_dsba_no_coop_full.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
+  --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json `
+  --pair consolidated_outputs/merged_it_no_coop_full.json ground_truth/IT/IT_academic_plan_no_coop.json `
+  --pair consolidated_outputs/merged_ait_no_plan_full.json ground_truth/AIT/AIT_academic_plan.json `
+  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json
 ```
 
 Every single or batch evaluation also writes these flat reports to `reports/evaluation/`:

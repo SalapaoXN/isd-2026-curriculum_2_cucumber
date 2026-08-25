@@ -5,19 +5,6 @@
   "plan": "coop",
   "courses": [
     {
-      "code": "06036100",
-      "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
-      "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
-      "credits": "3(2-2-5)",
-      "year": 1,
-      "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "ไม่มี",
-      "flexible_year_semester": null,
-      "note": null
-    },
-    {
       "code": "06036101",
       "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
       "name_en": "MATHEMATICS FOR BUSINESS",
