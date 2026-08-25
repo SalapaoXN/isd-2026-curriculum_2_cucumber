@@ -246,6 +246,9 @@ class CurriculumExtractor:
         re.IGNORECASE,
     )
     SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
+    PAREN_ONLY_CREDIT_RE = re.compile(
+        r"^\s*\([0-9xX]+[ -][0-9xX]+[ -][0-9xX]+\)\s*$"
+    )
 
     CATEGORY_HEADER_RE = re.compile(r"^\s*(?:\d+\.\s*)?(?:หมวดวิชา|กลุ่มวิชา)", re.IGNORECASE)
     IT_SECTION_HEADER_RE = re.compile(
@@ -261,6 +264,10 @@ class CurriculumExtractor:
         re.IGNORECASE,
     )
     OR_KEYWORD_RE = re.compile(r"^\s*(?:หรือ|หรอ|or|/)\s*$", re.IGNORECASE)
+    GENED_AUDIT_NOTE_RE = re.compile(
+        r"(?:ไม่\s*เก็บ\s*หน่วยกิต|\bAUDIT\b)",
+        re.IGNORECASE,
+    )
 
     @classmethod
     def _standalone_course_suffix(cls, line: str) -> Optional[str]:
@@ -313,6 +320,11 @@ class CurriculumExtractor:
         r"\s*$"
     )
 
+    GENED_NONE_PREREQ_RE = re.compile(
+        r"^NO[NV][E=]$",
+        re.IGNORECASE,
+    )
+    
     PREREQ_KEYWORD_RE = re.compile(
         r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|prerequisite|pre-requisite|PRERE\s*[A-Z]*|PRERECUISITE)",
         re.IGNORECASE,
@@ -430,6 +442,34 @@ class CurriculumExtractor:
         result[SOURCE_PROVENANCE_KEY] = [dict(source_context)]
         return result
 
+    def _gened_audit_course_codes(self, lines: List[str]) -> List[str]:
+        if self.program != "GENED":
+            return []
+
+        audit_index = next(
+            (
+                index
+                for index, line in enumerate(lines)
+                if self.GENED_AUDIT_NOTE_RE.search(line)
+            ),
+            None,
+        )
+        if audit_index is None:
+            return []
+
+        last_credit_index = -1
+        for index in range(audit_index):
+            if self.SINGLE_CREDIT_RE.search(lines[index]):
+                last_credit_index = index
+
+        codes = []
+        for line in lines[last_credit_index + 1 : audit_index]:
+            code, _ = self._extract_code(line)
+            if code is not None and code not in codes:
+                codes.append(code)
+
+        return codes
+
     # ------------------------------------------------------------------ #
     #  Step 1: split raw OCR lines into course blocks                     #
     # ------------------------------------------------------------------ #
@@ -455,6 +495,28 @@ class CurriculumExtractor:
         while idx < n:
             line = lines[idx].strip()
             if not line:
+                idx += 1
+                continue
+            
+            # GENED catalog contains an Audit footnote that repeats existing
+            # course codes without normal credit rows. These repeated entries
+            # are explanatory notes, not additional course occurrences.
+            if (
+                self.program == "GENED"
+                and self.GENED_AUDIT_NOTE_RE.search(line)
+            ):
+                current = None
+
+                # Remove only the trailing blocks that do not have a credit row.
+                # On the real GENED page this removes 90644004, 90644005,
+                # and 90644006 from the Audit-note section, while stopping
+                # at 90644066 because that is a normal course with credits.
+                while blocks and not any(
+                    self.SINGLE_CREDIT_RE.search(block_line)
+                    for block_line in blocks[-1].lines
+                ):
+                    blocks.pop()
+
                 idx += 1
                 continue
 
@@ -723,6 +785,16 @@ class CurriculumExtractor:
             ):
                 continue
 
+            if line.strip() == "0":
+                next_line = self._next_nonempty_line(block.lines, line_index)
+                if (
+                    not credits
+                    and next_line is not None
+                    and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
+                ):
+                    credits = "0"
+                    continue
+            
             # Credits and the "หรือ" keyword that joins alternative credit rows.
             if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
                 credit_piece = "หรือ" if "หรอ" in line else line
@@ -786,19 +858,23 @@ class CurriculumExtractor:
         else :
             category = "หมวดวิชาเฉพาะ"
 
-        return {
+        course = {
             "code": code,
             "name_th": name_th if name_th else "ไม่ระบุ",
             "name_en": name_en if name_en else "N/A",
             "credits": final_credits,
-            "year": 0 if self.plan == "gened" else block.year,
-            "semester": 0 if self.plan == "gened" else block.semester,
             "category": category,
             "type": "เลือก" if self.plan == "gened" else block.type,
             "prerequisite": None if self.plan == "gened" else prerequisite,
             "flexible_year_semester": None,
             "note": note,
         }
+
+        if self.plan != "gened":
+            course["year"] = block.year
+            course["semester"] = block.semester
+
+        return course
 
     # ------------------------------------------------------------------ #
     #  Step 3: post-process the whole course list                         #
@@ -850,6 +926,7 @@ class CurriculumExtractor:
         source_context = source_context or self._source_context(
             document_category="unknown", text_lines=lines
         )
+        audit_course_codes = self._gened_audit_course_codes(lines)
         blocks = self.split_into_blocks(lines)
         courses = [
             self._attach_source_provenance(self.parse_single_block(block), source_context)
@@ -862,6 +939,7 @@ class CurriculumExtractor:
             "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
+            "audit_course_codes": audit_course_codes,
             "courses": courses,
         }
 
@@ -1186,12 +1264,24 @@ class CurriculumExtractor:
                 prev_line = curr
                 j += 1
 
-            prerequisite = "ไม่มี"
+            prerequisite = None if self.program == "GENED" else "ไม่มี"
             if prereq_tokens:
                 clean_prereq = " ".join(prereq_tokens).strip()
-                if clean_prereq not in ["NONE", "ไม่มี", ""]:
+
+                is_missing_prerequisite = clean_prereq in {"", "ไม่มี"} or (
+                    self.program == "GENED"
+                    and self.GENED_NONE_PREREQ_RE.fullmatch(clean_prereq)
+                )
+
+                if is_missing_prerequisite:
+                    prerequisite = None if self.program == "GENED" else "ไม่มี"
+                else:
                     codes_found = re.findall(r"\b\d{8}\b", clean_prereq)
-                    prerequisite = ", ".join(dict.fromkeys(codes_found)) if codes_found else clean_prereq
+                    prerequisite = (
+                        ", ".join(dict.fromkeys(codes_found))
+                        if codes_found
+                        else clean_prereq
+                    )
 
             desc_lines: List[str] = []
             while j < total:
@@ -1214,8 +1304,6 @@ class CurriculumExtractor:
                 "name_th": name_th if name_th else "ไม่ระบุ",
                 "name_en": name_en if name_en else "N/A",
                 "credits": credits.replace(" ", "").replace("{", "(").replace("}", ")"),
-                "year": 0,
-                "semester": 0,
                 "category": "หมวดวิชาศึกษาทั่วไป" if is_gened else "หมวดวิชาเฉพาะ",
                 "type": "เลือก",
                 "prerequisite": prerequisite,
@@ -1234,6 +1322,11 @@ class CurriculumExtractor:
                 ),
                 "note": "เฉพาะโครงการเข้าร่วมสหกิจ" if "สหกิจศึกษา" in name_th else None,
             }
+            
+            if self.program != "GENED":
+                course["year"] = 0
+                course["semester"] = 0
+            
             self._append_description_lines(course, desc_lines)
             courses.append(self._attach_source_provenance(course, source_context))
             i = j

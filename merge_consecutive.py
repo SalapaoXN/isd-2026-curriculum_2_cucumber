@@ -17,6 +17,121 @@ from src.extractor import (
 from src.pre_clean import pre_clean_with_regex
 from src.pipeline_config import plan_label
 
+def _recover_credit_from_matching_description(
+    plan_credit: object,
+    desc_credit: object,
+) -> str | None:
+    if not isinstance(plan_credit, str):
+        return None
+    if not isinstance(desc_credit, str):
+        return None
+
+    plan_credit = plan_credit.replace(" ", "").strip()
+    desc_credit = desc_credit.replace(" ", "").strip()
+
+    # Plan lost only the leading credit:
+    # "(0-3-2)"
+    plan_match = re.fullmatch(
+        r"(\([0-9xX]+-[0-9xX]+-[0-9xX]+\))",
+        plan_credit,
+    )
+    if not plan_match:
+        return None
+
+    # Description still has the complete value:
+    # "1(0-3-2)"
+    desc_match = re.fullmatch(
+        r"[0-9]+(\([0-9xX]+-[0-9xX]+-[0-9xX]+\))",
+        desc_credit,
+    )
+    if not desc_match:
+        return None
+
+    # Recover only when the inside workload tuple is identical.
+    if plan_match.group(1) != desc_match.group(1):
+        return None
+
+    return desc_credit
+
+def _apply_gened_audit_credit(course: dict, audit_codes: set[str]) -> dict:
+    code = course.get("code")
+    credits = course.get("credits")
+
+    if code not in audit_codes:
+        return course
+
+    if not isinstance(credits, str):
+        return course
+
+    credits = credits.strip()
+
+    # Recover only a missing leading credit value.
+    # Example: "(4-0-8)" + explicit Audit evidence -> "0(4-0-8)"
+    if not re.fullmatch(
+        r"\([0-9xX]+-[0-9xX]+-[0-9xX]+\)",
+        credits,
+    ):
+        return course
+
+    result = dict(course)
+    result["credits"] = f"0{credits}"
+    return result
+
+def _recover_gened_structural_credit(
+    course: dict,
+    audit_codes: set[str],
+) -> dict:
+    # Do not infer anything when Audit context is unavailable.
+    # This prevents a partial merge from turning an unknown
+    # "(4-0-8)" Audit course into "4(4-0-8)".
+    if not audit_codes:
+        return course
+
+    code = course.get("code")
+    if code in audit_codes:
+        return course
+
+    # Structural recovery is for catalog/plan records only.
+    provenance = course.get("source_provenance", [])
+    if not any(
+        isinstance(entry, dict)
+        and entry.get("document_category") == "plan"
+        for entry in provenance
+    ):
+        return course
+
+    credits = course.get("credits")
+    if not isinstance(credits, str):
+        return course
+
+    compact = credits.replace(" ", "").strip()
+
+    # Missing outer credit only:
+    # (4-0-8)
+    match = re.fullmatch(
+        r"\((\d+)-0-(\d+)\)",
+        compact,
+    )
+    if not match:
+        return course
+
+    lecture_hours = int(match.group(1))
+    self_study_hours = int(match.group(2))
+
+    # Recover only the standard lecture pattern:
+    # n-0-2n  ->  n(n-0-2n)
+    if (
+        lecture_hours <= 0
+        or self_study_hours != lecture_hours * 2
+    ):
+        return course
+
+    result = dict(course)
+    result["credits"] = (
+        f"{lecture_hours}"
+        f"({lecture_hours}-0-{self_study_hours})"
+    )
+    return result
 
 def extract_page_num(file_path: Path) -> int:
     match = re.search(r"page_(\d+)", file_path.name)
@@ -267,16 +382,29 @@ class CurriculumConsolidator:
 
             if "หรือ" not in course_code and course_code in desc_lookup:
                 target_desc = unique_description(course_code)
+
                 if target_desc is None:
                     if has_ambiguous_description(course_code):
                         ambiguous_codes.add(course_code)
+
                 else:
+                    recovered_credit = _recover_credit_from_matching_description(
+                        merged_course.get("credits"),
+                        target_desc.get("credits"),
+                    )
+
+                    if recovered_credit is not None:
+                        merged_course["credits"] = recovered_credit
+
                     for field in ("prerequisite", "desc_th", "desc_en"):
                         if field in target_desc:
                             merged_course[field] = target_desc[field]
+
                     merged_course["source_provenance"] = merge_source_provenance(
-                        course, target_desc
+                        course,
+                        target_desc,
                     )
+
                 processed_codes.add(course_code)
 
             elif "หรือ" in course_code:
@@ -431,6 +559,29 @@ def merge_consecutive_files(
         _hydrate_page_document_pages(data, file, plan)
         records.append((plan, page_num, data))
         source_files[(plan, page_num)] = file
+    
+    audit_codes = {
+        code
+        for _, _, data in records
+        for code in data.get("audit_course_codes", [])
+        if isinstance(code, str) and code
+    }
+
+    if audit_codes:
+        for _, _, data in records:
+            if data.get("program") != "GENED":
+                continue
+
+            data["courses"] = [
+                _recover_gened_structural_credit(
+                    _apply_gened_audit_credit(
+                        course,
+                        audit_codes,
+                    ),
+                    audit_codes,
+                )
+                for course in data.get("courses", [])
+            ]
 
     # 2. Build a code -> course lookup from ALL files (Study Plan + Course Description
     #    pages together) so prerequisites can be enriched even across separate groups.

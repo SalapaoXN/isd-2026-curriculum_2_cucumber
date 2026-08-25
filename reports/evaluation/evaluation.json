@@ -1,1133 +1,23 @@
 {
   "results": [
     {
-      "file_name": "merged_dsba_coop_full.json",
-      "total_gt_courses": 89,
-      "total_pred_courses": 89,
-      "matched_courses": 89,
-      "coverage": {
-        "gt_record_count": 89,
-        "prediction_record_count": 89,
-        "matched_count": 89,
-        "missing_gt_count": 0,
-        "extra_prediction_count": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
-      },
-      "page_level": {
-        "cer": 0.0188,
-        "wer": 0.1433,
-        "count": 445
-      },
-      "field_level": {
-        "code": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 89
-        },
-        "name_th": {
-          "cer": 0.0408,
-          "wer": 0.3745,
-          "count": 89
-        },
-        "name_en": {
-          "cer": 0.0488,
-          "wer": 0.2747,
-          "count": 89
-        },
-        "credits": {
-          "cer": 0.0046,
-          "wer": 0.0674,
-          "count": 89
-        },
-        "prerequisite": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 89
-        }
-      },
-      "category_level": {
-        "plan": {
-          "cer": 0.0195,
-          "wer": 0.1693,
-          "count": 220
-        },
-        "description": {
-          "cer": 0.0182,
-          "wer": 0.1179,
-          "count": 225
-        }
-      },
-      "rubric": {
-        "overall_text": {
-          "cer": 0.0188,
-          "wer": 0.1433,
-          "count": 445
-        },
-        "field_level": {
-          "code": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 89
-            },
-            "presence_coverage": {
-              "gt_record_count": 89,
-              "prediction_record_count": 89,
-              "matched_count": 89,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_th": {
-            "text_quality": {
-              "cer": 0.0408,
-              "wer": 0.3745,
-              "count": 89
-            },
-            "presence_coverage": {
-              "gt_record_count": 89,
-              "prediction_record_count": 89,
-              "matched_count": 89,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_en": {
-            "text_quality": {
-              "cer": 0.0488,
-              "wer": 0.2747,
-              "count": 89
-            },
-            "presence_coverage": {
-              "gt_record_count": 89,
-              "prediction_record_count": 89,
-              "matched_count": 89,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "credits": {
-            "text_quality": {
-              "cer": 0.0046,
-              "wer": 0.0674,
-              "count": 89
-            },
-            "presence_coverage": {
-              "gt_record_count": 89,
-              "prediction_record_count": 89,
-              "matched_count": 89,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "prerequisite": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 89
-            },
-            "presence_coverage": {
-              "gt_record_count": 89,
-              "prediction_record_count": 89,
-              "matched_count": 89,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          }
-        },
-        "page_level": {
-          "status": "unavailable",
-          "reason": "Ground truth records do not contain authoritative source/page provenance."
-        },
-        "category_level": {
-          "status": "available",
-          "basis": "ground_truth_course_category",
-          "groups": {
-            "หมวดวิชาเฉพาะ": {
-              "text_quality": {
-                "cer": 0.0188,
-                "wer": 0.1419,
-                "count": 385
-              },
-              "coverage": {
-                "gt_record_count": 77,
-                "prediction_record_count": 77,
-                "matched_count": 77,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาศึกษาทั่วไป": {
-              "text_quality": {
-                "cer": 0.0175,
-                "wer": 0.1463,
-                "count": 50
-              },
-              "coverage": {
-                "gt_record_count": 10,
-                "prediction_record_count": 10,
-                "matched_count": 10,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาเลือกเสรี": {
-              "text_quality": {
-                "cer": 0.0273,
-                "wer": 0.1833,
-                "count": 10
-              },
-              "coverage": {
-                "gt_record_count": 2,
-                "prediction_record_count": 2,
-                "matched_count": 2,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            }
-          }
-        }
-      },
-      "program": "DSBA",
-      "plan": "coop"
-    },
-    {
-      "file_name": "merged_dsba_no_coop_full.json",
-      "total_gt_courses": 90,
-      "total_pred_courses": 90,
-      "matched_courses": 90,
-      "coverage": {
-        "gt_record_count": 90,
-        "prediction_record_count": 90,
-        "matched_count": 90,
-        "missing_gt_count": 0,
-        "extra_prediction_count": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
-      },
-      "page_level": {
-        "cer": 0.0179,
-        "wer": 0.1498,
-        "count": 450
-      },
-      "field_level": {
-        "code": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 90
-        },
-        "name_th": {
-          "cer": 0.0333,
-          "wer": 0.3722,
-          "count": 90
-        },
-        "name_en": {
-          "cer": 0.0495,
-          "wer": 0.284,
-          "count": 90
-        },
-        "credits": {
-          "cer": 0.0069,
-          "wer": 0.0926,
-          "count": 90
-        },
-        "prerequisite": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 90
-        }
-      },
-      "category_level": {
-        "plan": {
-          "cer": 0.0177,
-          "wer": 0.1816,
-          "count": 225
-        },
-        "description": {
-          "cer": 0.0182,
-          "wer": 0.1179,
-          "count": 225
-        }
-      },
-      "rubric": {
-        "overall_text": {
-          "cer": 0.0179,
-          "wer": 0.1498,
-          "count": 450
-        },
-        "field_level": {
-          "code": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 90
-            },
-            "presence_coverage": {
-              "gt_record_count": 90,
-              "prediction_record_count": 90,
-              "matched_count": 90,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_th": {
-            "text_quality": {
-              "cer": 0.0333,
-              "wer": 0.3722,
-              "count": 90
-            },
-            "presence_coverage": {
-              "gt_record_count": 90,
-              "prediction_record_count": 90,
-              "matched_count": 90,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_en": {
-            "text_quality": {
-              "cer": 0.0495,
-              "wer": 0.284,
-              "count": 90
-            },
-            "presence_coverage": {
-              "gt_record_count": 90,
-              "prediction_record_count": 90,
-              "matched_count": 90,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "credits": {
-            "text_quality": {
-              "cer": 0.0069,
-              "wer": 0.0926,
-              "count": 90
-            },
-            "presence_coverage": {
-              "gt_record_count": 90,
-              "prediction_record_count": 90,
-              "matched_count": 90,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "prerequisite": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 90
-            },
-            "presence_coverage": {
-              "gt_record_count": 90,
-              "prediction_record_count": 90,
-              "matched_count": 90,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          }
-        },
-        "page_level": {
-          "status": "unavailable",
-          "reason": "Ground truth records do not contain authoritative source/page provenance."
-        },
-        "category_level": {
-          "status": "available",
-          "basis": "ground_truth_course_category",
-          "groups": {
-            "หมวดวิชาเฉพาะ": {
-              "text_quality": {
-                "cer": 0.0176,
-                "wer": 0.1457,
-                "count": 390
-              },
-              "coverage": {
-                "gt_record_count": 78,
-                "prediction_record_count": 78,
-                "matched_count": 78,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาศึกษาทั่วไป": {
-              "text_quality": {
-                "cer": 0.0187,
-                "wer": 0.1747,
-                "count": 50
-              },
-              "coverage": {
-                "gt_record_count": 10,
-                "prediction_record_count": 10,
-                "matched_count": 10,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาเลือกเสรี": {
-              "text_quality": {
-                "cer": 0.0273,
-                "wer": 0.1833,
-                "count": 10
-              },
-              "coverage": {
-                "gt_record_count": 2,
-                "prediction_record_count": 2,
-                "matched_count": 2,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            }
-          }
-        }
-      },
-      "program": "DSBA",
-      "plan": "no_coop"
-    },
-    {
-      "file_name": "merged_it_coop_full.json",
-      "total_gt_courses": 106,
-      "total_pred_courses": 106,
-      "matched_courses": 106,
-      "coverage": {
-        "gt_record_count": 106,
-        "prediction_record_count": 106,
-        "matched_count": 106,
-        "missing_gt_count": 0,
-        "extra_prediction_count": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
-      },
-      "page_level": {
-        "cer": 0.0211,
-        "wer": 0.115,
-        "count": 530
-      },
-      "field_level": {
-        "code": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 106
-        },
-        "name_th": {
-          "cer": 0.0364,
-          "wer": 0.2862,
-          "count": 106
-        },
-        "name_en": {
-          "cer": 0.0323,
-          "wer": 0.2437,
-          "count": 106
-        },
-        "credits": {
-          "cer": 0.0075,
-          "wer": 0.017,
-          "count": 106
-        },
-        "prerequisite": {
-          "cer": 0.0292,
-          "wer": 0.0283,
-          "count": 106
-        }
-      },
-      "category_level": {
-        "plan": {
-          "cer": 0.0319,
-          "wer": 0.1514,
-          "count": 265
-        },
-        "description": {
-          "cer": 0.0103,
-          "wer": 0.0787,
-          "count": 265
-        }
-      },
-      "rubric": {
-        "overall_text": {
-          "cer": 0.0211,
-          "wer": 0.115,
-          "count": 530
-        },
-        "field_level": {
-          "code": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 106
-            },
-            "presence_coverage": {
-              "gt_record_count": 106,
-              "prediction_record_count": 106,
-              "matched_count": 106,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_th": {
-            "text_quality": {
-              "cer": 0.0364,
-              "wer": 0.2862,
-              "count": 106
-            },
-            "presence_coverage": {
-              "gt_record_count": 106,
-              "prediction_record_count": 106,
-              "matched_count": 106,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_en": {
-            "text_quality": {
-              "cer": 0.0323,
-              "wer": 0.2437,
-              "count": 106
-            },
-            "presence_coverage": {
-              "gt_record_count": 106,
-              "prediction_record_count": 106,
-              "matched_count": 106,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "credits": {
-            "text_quality": {
-              "cer": 0.0075,
-              "wer": 0.017,
-              "count": 106
-            },
-            "presence_coverage": {
-              "gt_record_count": 106,
-              "prediction_record_count": 106,
-              "matched_count": 106,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "prerequisite": {
-            "text_quality": {
-              "cer": 0.0292,
-              "wer": 0.0283,
-              "count": 106
-            },
-            "presence_coverage": {
-              "gt_record_count": 106,
-              "prediction_record_count": 106,
-              "matched_count": 106,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          }
-        },
-        "page_level": {
-          "status": "unavailable",
-          "reason": "Ground truth records do not contain authoritative source/page provenance."
-        },
-        "category_level": {
-          "status": "available",
-          "basis": "ground_truth_course_category",
-          "groups": {
-            "หมวดวิชาเฉพาะ": {
-              "text_quality": {
-                "cer": 0.0232,
-                "wer": 0.12,
-                "count": 465
-              },
-              "coverage": {
-                "gt_record_count": 93,
-                "prediction_record_count": 93,
-                "matched_count": 93,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาศึกษาทั่วไป": {
-              "text_quality": {
-                "cer": 0.0072,
-                "wer": 0.0939,
-                "count": 55
-              },
-              "coverage": {
-                "gt_record_count": 11,
-                "prediction_record_count": 11,
-                "matched_count": 11,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาเลือกเสรี": {
-              "text_quality": {
-                "cer": 0.0,
-                "wer": 0.0,
-                "count": 10
-              },
-              "coverage": {
-                "gt_record_count": 2,
-                "prediction_record_count": 2,
-                "matched_count": 2,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            }
-          }
-        }
-      },
-      "program": "IT",
-      "plan": "coop"
-    },
-    {
-      "file_name": "merged_it_no_coop_full.json",
-      "total_gt_courses": 108,
-      "total_pred_courses": 108,
-      "matched_courses": 108,
-      "coverage": {
-        "gt_record_count": 108,
-        "prediction_record_count": 108,
-        "matched_count": 108,
-        "missing_gt_count": 0,
-        "extra_prediction_count": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
-      },
-      "page_level": {
-        "cer": 0.0184,
-        "wer": 0.1193,
-        "count": 540
-      },
-      "field_level": {
-        "code": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 108
-        },
-        "name_th": {
-          "cer": 0.0205,
-          "wer": 0.2855,
-          "count": 108
-        },
-        "name_en": {
-          "cer": 0.0342,
-          "wer": 0.2516,
-          "count": 108
-        },
-        "credits": {
-          "cer": 0.0084,
-          "wer": 0.0315,
-          "count": 108
-        },
-        "prerequisite": {
-          "cer": 0.0287,
-          "wer": 0.0278,
-          "count": 108
-        }
-      },
-      "category_level": {
-        "plan": {
-          "cer": 0.0259,
-          "wer": 0.1594,
-          "count": 270
-        },
-        "description": {
-          "cer": 0.0108,
-          "wer": 0.0791,
-          "count": 270
-        }
-      },
-      "rubric": {
-        "overall_text": {
-          "cer": 0.0184,
-          "wer": 0.1193,
-          "count": 540
-        },
-        "field_level": {
-          "code": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 108
-            },
-            "presence_coverage": {
-              "gt_record_count": 108,
-              "prediction_record_count": 108,
-              "matched_count": 108,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_th": {
-            "text_quality": {
-              "cer": 0.0205,
-              "wer": 0.2855,
-              "count": 108
-            },
-            "presence_coverage": {
-              "gt_record_count": 108,
-              "prediction_record_count": 108,
-              "matched_count": 108,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_en": {
-            "text_quality": {
-              "cer": 0.0342,
-              "wer": 0.2516,
-              "count": 108
-            },
-            "presence_coverage": {
-              "gt_record_count": 108,
-              "prediction_record_count": 108,
-              "matched_count": 108,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "credits": {
-            "text_quality": {
-              "cer": 0.0084,
-              "wer": 0.0315,
-              "count": 108
-            },
-            "presence_coverage": {
-              "gt_record_count": 108,
-              "prediction_record_count": 108,
-              "matched_count": 108,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "prerequisite": {
-            "text_quality": {
-              "cer": 0.0287,
-              "wer": 0.0278,
-              "count": 108
-            },
-            "presence_coverage": {
-              "gt_record_count": 108,
-              "prediction_record_count": 108,
-              "matched_count": 108,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          }
-        },
-        "page_level": {
-          "status": "unavailable",
-          "reason": "Ground truth records do not contain authoritative source/page provenance."
-        },
-        "category_level": {
-          "status": "available",
-          "basis": "ground_truth_course_category",
-          "groups": {
-            "หมวดวิชาเฉพาะ": {
-              "text_quality": {
-                "cer": 0.0192,
-                "wer": 0.1198,
-                "count": 475
-              },
-              "coverage": {
-                "gt_record_count": 95,
-                "prediction_record_count": 95,
-                "matched_count": 95,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาศึกษาทั่วไป": {
-              "text_quality": {
-                "cer": 0.0083,
-                "wer": 0.1136,
-                "count": 55
-              },
-              "coverage": {
-                "gt_record_count": 11,
-                "prediction_record_count": 11,
-                "matched_count": 11,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาเลือกเสรี": {
-              "text_quality": {
-                "cer": 0.0315,
-                "wer": 0.125,
-                "count": 10
-              },
-              "coverage": {
-                "gt_record_count": 2,
-                "prediction_record_count": 2,
-                "matched_count": 2,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            }
-          }
-        }
-      },
-      "program": "IT",
-      "plan": "no_coop"
-    },
-    {
-      "file_name": "merged_ait_no_plan_full.json",
-      "total_gt_courses": 56,
-      "total_pred_courses": 56,
-      "matched_courses": 56,
-      "coverage": {
-        "gt_record_count": 56,
-        "prediction_record_count": 56,
-        "matched_count": 56,
-        "missing_gt_count": 0,
-        "extra_prediction_count": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
-      },
-      "page_level": {
-        "cer": 0.0159,
-        "wer": 0.1705,
-        "count": 280
-      },
-      "field_level": {
-        "code": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 56
-        },
-        "name_th": {
-          "cer": 0.0344,
-          "wer": 0.5804,
-          "count": 56
-        },
-        "name_en": {
-          "cer": 0.0365,
-          "wer": 0.201,
-          "count": 56
-        },
-        "credits": {
-          "cer": 0.0087,
-          "wer": 0.0714,
-          "count": 56
-        },
-        "prerequisite": {
-          "cer": 0.0,
-          "wer": 0.0,
-          "count": 56
-        }
-      },
-      "category_level": {
-        "plan": {
-          "cer": 0.0191,
-          "wer": 0.2017,
-          "count": 200
-        },
-        "description": {
-          "cer": 0.0078,
-          "wer": 0.0927,
-          "count": 80
-        }
-      },
-      "rubric": {
-        "overall_text": {
-          "cer": 0.0159,
-          "wer": 0.1705,
-          "count": 280
-        },
-        "field_level": {
-          "code": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 56
-            },
-            "presence_coverage": {
-              "gt_record_count": 56,
-              "prediction_record_count": 56,
-              "matched_count": 56,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_th": {
-            "text_quality": {
-              "cer": 0.0344,
-              "wer": 0.5804,
-              "count": 56
-            },
-            "presence_coverage": {
-              "gt_record_count": 56,
-              "prediction_record_count": 56,
-              "matched_count": 56,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "name_en": {
-            "text_quality": {
-              "cer": 0.0365,
-              "wer": 0.201,
-              "count": 56
-            },
-            "presence_coverage": {
-              "gt_record_count": 56,
-              "prediction_record_count": 56,
-              "matched_count": 56,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "credits": {
-            "text_quality": {
-              "cer": 0.0087,
-              "wer": 0.0714,
-              "count": 56
-            },
-            "presence_coverage": {
-              "gt_record_count": 56,
-              "prediction_record_count": 56,
-              "matched_count": 56,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          },
-          "prerequisite": {
-            "text_quality": {
-              "cer": 0.0,
-              "wer": 0.0,
-              "count": 56
-            },
-            "presence_coverage": {
-              "gt_record_count": 56,
-              "prediction_record_count": 56,
-              "matched_count": 56,
-              "missing_gt_count": 0,
-              "extra_prediction_count": 0,
-              "precision": 1.0,
-              "recall": 1.0,
-              "f1": 1.0
-            },
-            "matched_prediction_field_missing_count": 0
-          }
-        },
-        "page_level": {
-          "status": "unavailable",
-          "reason": "Ground truth records do not contain authoritative source/page provenance."
-        },
-        "category_level": {
-          "status": "available",
-          "basis": "ground_truth_course_category",
-          "groups": {
-            "หมวดวิชาเฉพาะ": {
-              "text_quality": {
-                "cer": 0.0138,
-                "wer": 0.1667,
-                "count": 215
-              },
-              "coverage": {
-                "gt_record_count": 43,
-                "prediction_record_count": 43,
-                "matched_count": 43,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาศึกษาทั่วไป": {
-              "text_quality": {
-                "cer": 0.0232,
-                "wer": 0.203,
-                "count": 55
-              },
-              "coverage": {
-                "gt_record_count": 11,
-                "prediction_record_count": 11,
-                "matched_count": 11,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            },
-            "หมวดวิชาเสรี": {
-              "text_quality": {
-                "cer": 0.0224,
-                "wer": 0.075,
-                "count": 10
-              },
-              "coverage": {
-                "gt_record_count": 2,
-                "prediction_record_count": 2,
-                "matched_count": 2,
-                "missing_gt_count": 0,
-                "extra_prediction_count": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1": 1.0
-              }
-            }
-          }
-        }
-      },
-      "program": "AIT",
-      "plan": null
-    },
-    {
-      "file_name": "merged_gened_gened_page_016-030.json",
+      "file_name": "merged_gened_gened_full.json",
       "total_gt_courses": 266,
-      "total_pred_courses": 269,
+      "total_pred_courses": 266,
       "matched_courses": 266,
       "coverage": {
         "gt_record_count": 266,
-        "prediction_record_count": 269,
+        "prediction_record_count": 266,
         "matched_count": 266,
         "missing_gt_count": 0,
-        "extra_prediction_count": 3,
-        "precision": 0.9888,
+        "extra_prediction_count": 0,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.9944
+        "f1": 1.0
       },
       "page_level": {
-        "cer": 0.0162,
-        "wer": 0.1383,
+        "cer": 0.0158,
+        "wer": 0.1347,
         "count": 1330
       },
       "field_level": {
@@ -1137,18 +27,18 @@
           "count": 266
         },
         "name_th": {
-          "cer": 0.0351,
-          "wer": 0.4041,
+          "cer": 0.0348,
+          "wer": 0.4023,
           "count": 266
         },
         "name_en": {
-          "cer": 0.0443,
-          "wer": 0.2722,
+          "cer": 0.0442,
+          "wer": 0.2715,
           "count": 266
         },
         "credits": {
-          "cer": 0.0019,
-          "wer": 0.015,
+          "cer": 0.0,
+          "wer": 0.0,
           "count": 266
         },
         "prerequisite": {
@@ -1164,15 +54,15 @@
           "count": 0
         },
         "description": {
-          "cer": 0.0162,
-          "wer": 0.1383,
+          "cer": 0.0158,
+          "wer": 0.1347,
           "count": 1330
         }
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.0162,
-          "wer": 0.1383,
+          "cer": 0.0158,
+          "wer": 0.1347,
           "count": 1330
         },
         "field_level": {
@@ -1184,67 +74,67 @@
             },
             "presence_coverage": {
               "gt_record_count": 266,
-              "prediction_record_count": 269,
+              "prediction_record_count": 266,
               "matched_count": 266,
               "missing_gt_count": 0,
-              "extra_prediction_count": 3,
-              "precision": 0.9888,
+              "extra_prediction_count": 0,
+              "precision": 1.0,
               "recall": 1.0,
-              "f1": 0.9944
+              "f1": 1.0
             },
             "matched_prediction_field_missing_count": 0
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.0351,
-              "wer": 0.4041,
+              "cer": 0.0348,
+              "wer": 0.4023,
               "count": 266
             },
             "presence_coverage": {
               "gt_record_count": 266,
-              "prediction_record_count": 269,
+              "prediction_record_count": 266,
               "matched_count": 266,
               "missing_gt_count": 0,
-              "extra_prediction_count": 3,
-              "precision": 0.9888,
+              "extra_prediction_count": 0,
+              "precision": 1.0,
               "recall": 1.0,
-              "f1": 0.9944
+              "f1": 1.0
             },
             "matched_prediction_field_missing_count": 0
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.0443,
-              "wer": 0.2722,
+              "cer": 0.0442,
+              "wer": 0.2715,
               "count": 266
             },
             "presence_coverage": {
               "gt_record_count": 266,
-              "prediction_record_count": 269,
+              "prediction_record_count": 266,
               "matched_count": 266,
               "missing_gt_count": 0,
-              "extra_prediction_count": 3,
-              "precision": 0.9888,
+              "extra_prediction_count": 0,
+              "precision": 1.0,
               "recall": 1.0,
-              "f1": 0.9944
+              "f1": 1.0
             },
             "matched_prediction_field_missing_count": 0
           },
           "credits": {
             "text_quality": {
-              "cer": 0.0019,
-              "wer": 0.015,
+              "cer": 0.0,
+              "wer": 0.0,
               "count": 266
             },
             "presence_coverage": {
               "gt_record_count": 266,
-              "prediction_record_count": 269,
+              "prediction_record_count": 266,
               "matched_count": 266,
               "missing_gt_count": 0,
-              "extra_prediction_count": 3,
-              "precision": 0.9888,
+              "extra_prediction_count": 0,
+              "precision": 1.0,
               "recall": 1.0,
-              "f1": 0.9944
+              "f1": 1.0
             },
             "matched_prediction_field_missing_count": 0
           },
@@ -1256,13 +146,13 @@
             },
             "presence_coverage": {
               "gt_record_count": 266,
-              "prediction_record_count": 269,
+              "prediction_record_count": 266,
               "matched_count": 266,
               "missing_gt_count": 0,
-              "extra_prediction_count": 3,
-              "precision": 0.9888,
+              "extra_prediction_count": 0,
+              "precision": 1.0,
               "recall": 1.0,
-              "f1": 0.9944
+              "f1": 1.0
             },
             "matched_prediction_field_missing_count": 0
           }
@@ -1277,19 +167,19 @@
           "groups": {
             "หมวดวิชาศึกษาทั่วไป": {
               "text_quality": {
-                "cer": 0.0162,
-                "wer": 0.1383,
+                "cer": 0.0158,
+                "wer": 0.1347,
                 "count": 1330
               },
               "coverage": {
                 "gt_record_count": 266,
-                "prediction_record_count": 269,
+                "prediction_record_count": 266,
                 "matched_count": 266,
                 "missing_gt_count": 0,
-                "extra_prediction_count": 3,
-                "precision": 0.9888,
+                "extra_prediction_count": 0,
+                "precision": 1.0,
                 "recall": 1.0,
-                "f1": 0.9944
+                "f1": 1.0
               }
             }
           }

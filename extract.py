@@ -34,6 +34,16 @@ def _input_group_identifier(input_path: Path) -> str:
     path_digest = hashlib.sha256(normalized_path.encode("utf-8")).hexdigest()[:12]
     return f"{readable}_{path_digest}"
 
+def _filter_files_by_prefix(files, prefix):
+    if not prefix:
+        return list(files)
+
+    normalized_prefix = prefix.casefold()
+    return [
+        file
+        for file in files
+        if file.name.casefold().startswith(normalized_prefix)
+    ]
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -61,6 +71,12 @@ def parse_arguments():
         type=str,
         default=None,
         help="Study plan: coop, no_coop, or gened; required where applicable"
+    )
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        default=None,
+        help="Only process OCR files whose filenames start with this prefix"
     )
     parser.add_argument(
         "--source",
@@ -104,6 +120,9 @@ def main():
         files_to_process = list(files_by_stem.values())
     else:
         files_to_process = [input_path]
+    
+    # Prefix func
+    files_to_process = _filter_files_by_prefix(files_to_process, args.prefix)
 
     if not files_to_process:
         print(f" No valid .txt or .json files found at {input_path}")

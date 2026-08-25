@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from extract import _filter_files_by_prefix
 from merge_consecutive import merge_consecutive_files
 from src.run_pipeline import parse_pages
 from src.pipeline_config import (
@@ -11,7 +12,6 @@ from src.pipeline_config import (
     resolve_plan,
     resolve_program,
 )
-
 
 class CliSemanticsTests(unittest.TestCase):
     def test_page_parser_supports_ranges_and_rejects_invalid_values(self):
@@ -90,6 +90,31 @@ class CliSemanticsTests(unittest.TestCase):
             self.assertIn("no_plan", merged_files[0].name)
             result = json.loads(merged_files[0].read_text(encoding="utf-8"))
             self.assertIsNone(result["plan"])
+    
+    def test_extract_prefix_filters_only_matching_ocr_files(self):
+        files = [
+            Path("outputs/gened_page_016_ocr.json"),
+            Path("outputs/gened_page_044_ocr.json"),
+            Path("outputs/dsba_page_026_ocr.json"),
+            Path("outputs/it_page_032_ocr.json"),
+        ]
+
+        result = _filter_files_by_prefix(files, "gened")
+
+        self.assertEqual(
+            [file.name for file in result],
+            [
+                "gened_page_016_ocr.json",
+                "gened_page_044_ocr.json",
+            ],
+        )
+        self.assertEqual(
+            _filter_files_by_prefix(
+                [Path("outputs/GENED_page_016_ocr.json")],
+                "gened",
+            ),
+            [Path("outputs/GENED_page_016_ocr.json")],
+        )
 
 
 if __name__ == "__main__":

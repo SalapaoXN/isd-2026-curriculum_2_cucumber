@@ -98,7 +98,7 @@ class ItPlanBoundaryTests(unittest.TestCase):
         cases = [
             ("DSBA", "coop", "06000001", 1, 1, "บังคับ", "ไม่มี"),
             ("AIT", None, "06000002", 1, 1, "บังคับ", "ไม่มี"),
-            ("GENED", "gened", "90600001", 0, 0, "เลือก", None),
+            ("GENED", "gened", "90600001", None, None, "เลือก", None),
         ]
 
         for program, plan, code, year, semester, course_type, prerequisite in cases:
@@ -117,8 +117,14 @@ class ItPlanBoundaryTests(unittest.TestCase):
                 course = result["courses"][0]
                 self.assertEqual(course["name_th"], "การทดสอบวิชา")
                 self.assertEqual(course["name_en"], "TEST COURSE")
-                self.assertEqual(course["year"], year)
-                self.assertEqual(course["semester"], semester)
+                
+                if program == "GENED":
+                    self.assertNotIn("year", course)
+                    self.assertNotIn("semester", course)
+                else:
+                    self.assertEqual(course["year"], year)
+                    self.assertEqual(course["semester"], semester)
+                    
                 self.assertEqual(course["type"], course_type)
                 self.assertEqual(course["prerequisite"], prerequisite)
 

@@ -239,7 +239,7 @@ python merge_consecutive.py --prefix bit --plan no_coop -d 328-371
 
 # AIT has JSON plan null and uses a neutral filename label only
 python merge_consecutive.py --prefix ait -d 287-302
-python merge_consecutive.py --prefix gened
+python merge_consecutive.py --prefix gened --plan gened -p 16-30,44-117 -d 44-117
 ```
 
 Use explicit directories when outputs are not in the defaults:
@@ -276,9 +276,14 @@ python evaluate.py \
   --out reports/dsba_coop_evaluation.json
 
 # Batch evaluation; repeat --pair for each prediction/ground-truth pair
-python evaluate.py \
-  --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json \
-  --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json
+```powershell
+python evaluate.py `
+  --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
+  --pair consolidated_outputs/merged_dsba_no_coop_full.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
+  --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json `
+  --pair consolidated_outputs/merged_it_no_coop_full.json ground_truth/IT/IT_academic_plan_no_coop.json `
+  --pair consolidated_outputs/merged_ait_no_plan_full.json ground_truth/AIT/AIT_academic_plan.json `
+  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json
 ```
 
 Every single or batch evaluation also writes these flat reports to `reports/evaluation/`:
