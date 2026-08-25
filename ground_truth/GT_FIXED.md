@@ -1,0 +1,20 @@
+# Ground Truth Corrections
+
+Corrections made after verification against the official curriculum document.
+
+## IT
+
+### 06016421 — Information Technology Infrastructure Security
+- Original prerequisite: `ไม่มี`
+- Corrected prerequisite: `06016413`
+- Reason: The official curriculum document explicitly lists `06016413 Introduction to Network Systems` as the prerequisite.
+
+### 06016432 — Software Verification and Validation
+- Original prerequisite: `06016413`
+- Corrected prerequisite: `06066304`
+- Reason: The official curriculum document explicitly lists `06066304 Information System Analysis and Design` as the prerequisite.
+
+### 06016418 — Server-Side Web Development
+- Ground truth prerequisite: `06016408`
+- No GT correction made.
+- Note: The official curriculum confirms `06016408 Object-Oriented Programming`; current extraction output is missing this prerequisite and should be fixed in the extractor.

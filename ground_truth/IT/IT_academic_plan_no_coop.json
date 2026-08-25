@@ -455,7 +455,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี",
+      "prerequisite": "06016418",
       "flexible_year_semester": null,
       "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์"
     },
@@ -468,7 +468,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี",
+      "prerequisite": "06016413",
       "flexible_year_semester": null,
       "note": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ"
     },
@@ -521,19 +521,6 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
-      "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และ เกม"
-    },
-    {
-      "code": "06016418",
-      "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
-      "credits": "3(2-2-5)",
-      "year": 3,
-      "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "06016408",
       "flexible_year_semester": null,
       "note": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และ เกม"
     },
@@ -767,7 +754,7 @@
       "semester": 0,
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
-      "prerequisite": "06016413",
+      "prerequisite": "06066304",
       "flexible_year_semester": "3/2, 4/1, 4/2",
       "note": null
     },
