@@ -455,7 +455,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "06016418",
+      "prerequisite": "06016408",
       "flexible_year_semester": null,
       "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์"
     },
