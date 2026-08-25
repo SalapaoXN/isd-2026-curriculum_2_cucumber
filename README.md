@@ -292,6 +292,11 @@ python merge_consecutive.py \
   --desc-pages 317-344
 ```
 
+### LLM spell corrector
+```bash
+python llm_spell_corrector.py ./consolidated_outputs/merged_dsba_coop_full.json
+```
+
 ### Evaluation commands
 
 ```bash
