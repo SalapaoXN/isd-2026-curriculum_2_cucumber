@@ -12,6 +12,25 @@ from rag.retrieval.chunks import build_chunks
 from rag.structured.loader import load_json_to_sqlite
 
 
+def _reset_database(input_json_path: str | Path, database_path: str | Path) -> None:
+    input_path = Path(input_json_path).resolve()
+    output_path = Path(database_path)
+    if output_path.resolve() == input_path:
+        raise ValueError("input JSON and output database paths must differ")
+
+    for candidate in (
+        output_path,
+        Path(f"{output_path}-wal"),
+        Path(f"{output_path}-shm"),
+        Path(f"{output_path}-journal"),
+    ):
+        if not candidate.exists():
+            continue
+        if not candidate.is_file():
+            raise IsADirectoryError(candidate)
+        candidate.unlink()
+
+
 def run_demo(
     input_json_path: str | Path,
     database_path: str | Path,
@@ -19,6 +38,7 @@ def run_demo(
     top_k: int = 5,
 ) -> None:
     """Build a retrieval database and print ranked evidence for one query."""
+    _reset_database(input_json_path, database_path)
     load_json_to_sqlite(input_json_path, database_path)
     chunks = build_chunks(database_path)
     embeddings = embed_texts(chunk["text"] for chunk in chunks)
