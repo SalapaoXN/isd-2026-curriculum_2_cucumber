@@ -231,14 +231,16 @@ Add BIT evaluation commands after the accepted BIT ground-truth paths are finali
 
 ### Batch Evaluation
 
-```powershell
+```bash
 python evaluate.py `
   --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
   --pair consolidated_outputs/merged_dsba_no_coop_full.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
   --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json `
   --pair consolidated_outputs/merged_it_no_coop_full.json ground_truth/IT/IT_academic_plan_no_coop.json `
   --pair consolidated_outputs/merged_ait_no_plan_full.json ground_truth/AIT/AIT_academic_plan.json `
-  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json
+  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json `
+  --pair consolidated_outputs/merged_bit_coop_full.json ground_truth/BIT/BIT_academic_plan_coop.json `
+  --pair consolidated_outputs/merged_bit_no_coop_full.json ground_truth/BIT/BIT_academic_plan_no_coop.json
 ```
 
 Evaluation reports are written to `reports/evaluation/`:
