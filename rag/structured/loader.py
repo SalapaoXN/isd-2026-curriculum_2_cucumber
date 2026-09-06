@@ -595,6 +595,13 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                         connection, group_id, course_id, member_index, references
                     )
 
+            year_number = _as_integer(raw_course.get("year"))
+            semester_number = _as_integer(raw_course.get("semester"))
+            if year_number == 0:
+                year_number = None
+            if semester_number == 0:
+                semester_number = None
+
             placement_cursor = connection.execute(
                 """
                 INSERT INTO plan_placements (
@@ -607,8 +614,8 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                     plan_id,
                     course_ids[0] if group_id is None else None,
                     group_id,
-                    _as_integer(raw_course.get("year")),
-                    _as_integer(raw_course.get("semester")),
+                    year_number,
+                    semester_number,
                     raw_course.get("category"),
                     raw_course.get("type", raw_course.get("course_type")),
                     placement_index,

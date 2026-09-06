@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from collections import defaultdict
 from contextlib import closing
@@ -18,6 +19,7 @@ _NO_PREREQUISITE = {
     "null",
     "\u0e44\u0e21\u0e48\u0e21\u0e35",
 }
+_FLEXIBLE_TERM_RE = re.compile(r"^(\d+)\s*/\s*(\d+)$")
 
 
 def _clean_text(value: Any) -> str:
@@ -35,6 +37,13 @@ def _add_part(parts: list[str], value: Any) -> None:
     text = _clean_text(value)
     if text and _is_valid(text):
         parts.append(text)
+
+
+def _flexible_term_text(value: Any) -> str:
+    match = _FLEXIBLE_TERM_RE.fullmatch(_clean_text(value))
+    if match is None:
+        return ""
+    return f"ช่วงที่สามารถลงได้: ปี {match.group(1)} ภาคเรียน {match.group(2)}"
 
 
 def _provenance_map(
@@ -133,7 +142,14 @@ def _course_metadata_text(
                 )
             else:
                 parts.append(f"เป็น{_clean_text(placement.get('category'))}")
-        _add_part(parts, placement.get("notes"))
+        flexible_term = placement.get("flexible_year_semester")
+        if flexible_term is None:
+            flexible_term = placement.get("notes")
+        formatted_flexible_term = _flexible_term_text(flexible_term)
+        if formatted_flexible_term:
+            parts.append(formatted_flexible_term)
+        else:
+            _add_part(parts, placement.get("notes"))
         _add_part(parts, placement.get("raw_text"))
     else:
         if _is_valid(course.get("category")):
@@ -263,6 +279,7 @@ def _build_chunks(connection: sqlite3.Connection) -> list[dict[str, Any]]:
             placements.credits_override,
             placements.raw_text,
             placements.notes,
+            placements.notes AS flexible_year_semester,
             plans.program_code,
             plans.plan_code,
             groups.group_key,

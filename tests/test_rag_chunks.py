@@ -10,6 +10,46 @@ from rag.structured.loader import load_json_to_sqlite
 
 
 class RagChunksTest(unittest.TestCase):
+    def test_formats_flexible_year_semester_without_fixed_term(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [
+                {
+                    "code": "C401",
+                    "name_th": "วิชาที่ยืดหยุ่น",
+                    "credits": "3(3-0-6)",
+                    "year": 0,
+                    "semester": 0,
+                    "flexible_year_semester": "4/1",
+                    "source_provenance": [
+                        {
+                            "program": "TEST",
+                            "source_filename": "test_page_43.png",
+                            "source_page": 43,
+                            "document_category": "description",
+                        }
+                    ],
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+            metadata = next(
+                chunk for chunk in build_chunks(database_path)
+                if chunk["chunk_type"] == "metadata"
+            )
+
+        self.assertIn("ช่วงที่สามารถลงได้: ปี 4 ภาคเรียน 1", metadata["text"])
+        self.assertNotIn("เปิดสอนปีที่ 0", metadata["text"])
+        self.assertNotIn("เปิดสอนภาคเรียนที่ 0", metadata["text"])
+
     def test_builds_metadata_and_description_chunks_with_provenance(self):
         document = {
             "program": "TEST",

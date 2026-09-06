@@ -9,6 +9,38 @@ from rag.structured.loader import load_json_to_sqlite
 
 
 class RagLoaderTest(unittest.TestCase):
+    def test_zero_year_and_semester_are_stored_as_null(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [
+                {
+                    "code": "C000",
+                    "name_th": "Description-only course",
+                    "year": 0,
+                    "semester": 0,
+                    "flexible_year_semester": "4/1",
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                placement = connection.execute(
+                    """
+                    SELECT year_number, semester_number, notes
+                    FROM plan_placements
+                    """
+                ).fetchone()
+            self.assertEqual(placement, (None, None, "4/1"))
+
     def test_loads_structured_records_without_mutating_source(self):
         document = {
             "source": "synthetic curriculum",
