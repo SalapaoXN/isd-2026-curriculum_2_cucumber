@@ -164,7 +164,7 @@ class GenEdCleanupTests(unittest.TestCase):
             {"plan", "description"},
         )
 
-    def test_gened_repeated_catalog_code_is_not_occurrence_paired(self):
+    def test_gened_repeated_catalog_code_uses_unique_description_for_all_placements(self):
         plans = [catalog_course("90644004", 26), catalog_course("90644004", 30)]
         description = description_course("90644004", 101)
 
@@ -173,10 +173,11 @@ class GenEdCleanupTests(unittest.TestCase):
         )
 
         self.assertEqual(len(result["courses"]), 2)
-        self.assertEqual([course.get("desc_en") for course in result["courses"]], [None, None])
+        self.assertEqual([course.get("desc_en") for course in result["courses"]], 
+                         ["DESCRIPTION ENGLISH", "DESCRIPTION ENGLISH"])
         self.assertEqual(
-            [item["code"] for item in result["unresolved_descriptions"]],
-            ["90644004"],
+            [item["code"] for item in result.get("unresolved_descriptions", [])],
+            [],
         )
 
     def test_gened_unmatched_description_is_preserved_as_unresolved(self):

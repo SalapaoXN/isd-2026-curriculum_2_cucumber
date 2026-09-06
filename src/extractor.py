@@ -1217,18 +1217,31 @@ class CurriculumExtractor:
             # Read the prerequisite value without consuming the next course.
             prereq_tokens = []
             prev_line = ""
+            prereq_section_seen = False
+
             while j < total:
                 curr = lines[j].strip()
                 if not curr:
                     j += 1
                     continue
 
+                if any_prereq_key_regex.search(curr):
+                    prereq_section_seen = True
+
+                # Once a prerequisite section has started, standalone course codes may
+                # still be prerequisite references (e.g. A OR B), not the next course.
+                if (
+                    prereq_section_seen
+                    and self.DESCRIPTION_START_RE.search(curr)
+                ):
+                    break
+
                 stop_code_match = code_regex.search(curr)
                 if (
                     stop_code_match
                     and stop_code_match.group(0) != code
                     and not prereq_eng_key_regex.search(curr)
-                    and not any_prereq_key_regex.search(prev_line)
+                    and not prereq_section_seen
                 ):
                     break
 
