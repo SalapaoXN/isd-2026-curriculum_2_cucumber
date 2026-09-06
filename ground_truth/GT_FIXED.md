@@ -28,3 +28,10 @@ Corrections made after verification against the official curriculum document.
 - Original prerequisite: `null`
 - Corrected prerequisite: `BASIC CREATIVE STEM DESIGN`
 - Reason: The official curriculum explicitly lists `BASIC CREATIVE STEM DESIGN` as the prerequisite.
+
+## BIT
+
+- Added missing course `06036100` to both BIT GT plans.
+- `06036116` credits corrected from `null` to `3(2-2-5)` in both BIT GT plans.
+- `06036131` credits corrected from `3(2-2-5)` to `3(3-0-6)` in both BIT GT plans.
+- `06036135` credits corrected from `3(2-2-5)` to `3(3-0-6)` in both BIT GT plans.
