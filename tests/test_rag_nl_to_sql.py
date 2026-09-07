@@ -29,6 +29,37 @@ class RagNlToSqlTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             question_to_sql("ลบข้อมูล", "CREATE TABLE courses(id INTEGER);", fake_model)
 
+    def test_course_name_question_instructs_model_to_join_courses(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return (
+                "SELECT DISTINCT v.course_code, c.name_th "
+                "FROM v_plan_courses AS v "
+                "JOIN courses AS c ON c.course_id = v.course_id "
+                "WHERE v.program = 'IT' AND v.year = 1 AND v.semester = 1"
+            )
+
+        sql = question_to_sql(
+            "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+            "CREATE TABLE courses(course_id INTEGER, name_th TEXT, name_en TEXT);",
+            fake_model,
+        )
+
+        self.assertEqual(
+            sql,
+            "SELECT DISTINCT v.course_code, c.name_th FROM v_plan_courses AS v "
+            "JOIN courses AS c ON c.course_id = v.course_id "
+            "WHERE v.program = 'IT' AND v.year = 1 AND v.semester = 1 LIMIT 100",
+        )
+        self.assertIn("v_plan_courses does NOT expose course-name columns", prompts[0])
+        self.assertIn(
+            "JOIN courses ON courses.course_id = v_plan_courses.course_id",
+            prompts[0],
+        )
+        self.assertIn("courses.name_th or courses.name_en", prompts[0])
+
 
 if __name__ == "__main__":
     unittest.main()
