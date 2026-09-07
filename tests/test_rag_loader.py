@@ -9,6 +9,119 @@ from rag.structured.loader import load_json_to_sqlite
 
 
 class RagLoaderTest(unittest.TestCase):
+    def test_repeated_course_code_uses_one_course_row_and_two_placements(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [
+                {"code": "C100", "year": 1, "semester": 1},
+                {"code": " c100 ", "year": 2, "semester": 1},
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                course = connection.execute(
+                    """
+                    SELECT course_code, course_code_normalized
+                    FROM courses
+                    """
+                ).fetchone()
+                course_count = connection.execute(
+                    "SELECT COUNT(*) FROM courses WHERE course_code = 'C100'"
+                ).fetchone()
+                placement_count = connection.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM plan_placements
+                    JOIN courses ON courses.course_id = plan_placements.course_id
+                    WHERE courses.course_code = 'C100'
+                    """
+                ).fetchone()
+                catalog_id = connection.execute(
+                    "SELECT catalog_id FROM catalogs"
+                ).fetchone()[0]
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute(
+                        """
+                        INSERT INTO courses (catalog_id, course_code, course_code_normalized)
+                        VALUES (?, ?, ?)
+                        """,
+                        (catalog_id, "C101", "c100"),
+                    )
+
+            self.assertEqual(course, ("C100", "c100"))
+            self.assertEqual(course_count, (1,))
+            self.assertEqual(placement_count, (2,))
+
+    def test_prerequisite_resolves_to_repeated_course(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [
+                {"code": "C100", "year": 1, "semester": 1},
+                {"code": "C100", "year": 2, "semester": 1},
+                {"code": "C200", "prerequisite": "C100", "year": 2, "semester": 2},
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                prerequisite = connection.execute(
+                    """
+                    SELECT COUNT(*), target.course_code
+                    FROM prerequisites AS prereq
+                    JOIN courses AS course ON course.course_id = prereq.course_id
+                    JOIN courses AS target
+                        ON target.course_id = prereq.prerequisite_course_id
+                    WHERE course.course_code = 'C200'
+                    GROUP BY target.course_code
+                    """
+                ).fetchone()
+
+            self.assertEqual(prerequisite, (1, "C100"))
+
+    def test_alternative_course_members_remain_distinct(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [{"code": "C400 or C500", "type": "choose-one"}],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                alternatives = connection.execute(
+                    """
+                    SELECT courses.course_code
+                    FROM alternative_course_group_members AS members
+                    JOIN courses ON courses.course_id = members.course_id
+                    ORDER BY members.member_order
+                    """
+                ).fetchall()
+
+            self.assertEqual(alternatives, [("C400",), ("C500",)])
+
     def test_zero_year_and_semester_are_stored_as_null(self):
         document = {
             "program": "TEST",

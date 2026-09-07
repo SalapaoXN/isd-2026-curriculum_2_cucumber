@@ -81,6 +81,10 @@ def _split_code_value(value: Any) -> list[str]:
     return [part.strip() for part in _ALTERNATIVE_SEPARATOR.split(text) if part.strip()]
 
 
+def _normalized_course_code(code: str) -> str:
+    return code.strip().casefold()
+
+
 def _course_codes(course: Mapping[str, Any]) -> list[str]:
     codes = _split_code_value(course.get("code"))
     alternatives = _first_value(
@@ -310,7 +314,7 @@ def _prerequisite_tokens(value: Any) -> list[str]:
 def _course_id_for_code(
     code_to_ids: Mapping[str, list[int]], code: str
 ) -> list[int]:
-    return code_to_ids.get(code.casefold(), [])
+    return code_to_ids.get(_normalized_course_code(code), [])
 
 
 def _insert_prerequisite(
@@ -545,31 +549,38 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
             )
             course_ids: list[int] = []
             for member_index, code in enumerate(codes):
-                cursor = connection.execute(
-                    """
-                    INSERT INTO courses (
-                        catalog_id, course_code, name_th, name_en, credits,
-                        description_th, description_en, category, course_type,
-                        prerequisite_text, notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        catalog_id,
-                        code,
-                        _member_value(raw_course.get("name_th"), member_index, len(codes), True),
-                        _member_value(raw_course.get("name_en"), member_index, len(codes), True),
-                        _member_value(raw_course.get("credits"), member_index, len(codes)),
-                        raw_course.get("desc_th", raw_course.get("description_th")),
-                        raw_course.get("desc_en", raw_course.get("description_en")),
-                        raw_course.get("category"),
-                        raw_course.get("type", raw_course.get("course_type")),
-                        _as_text(prerequisite),
-                        raw_course.get("note", raw_course.get("notes")),
-                    ),
-                )
-                course_id = int(cursor.lastrowid)
+                normalized_code = _normalized_course_code(code)
+                existing_ids = code_to_ids[normalized_code]
+                if existing_ids:
+                    course_id = existing_ids[0]
+                else:
+                    cursor = connection.execute(
+                        """
+                        INSERT INTO courses (
+                            catalog_id, course_code, course_code_normalized,
+                            name_th, name_en, credits,
+                            description_th, description_en, category, course_type,
+                            prerequisite_text, notes
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            catalog_id,
+                            code,
+                            normalized_code,
+                            _member_value(raw_course.get("name_th"), member_index, len(codes), True),
+                            _member_value(raw_course.get("name_en"), member_index, len(codes), True),
+                            _member_value(raw_course.get("credits"), member_index, len(codes)),
+                            raw_course.get("desc_th", raw_course.get("description_th")),
+                            raw_course.get("desc_en", raw_course.get("description_en")),
+                            raw_course.get("category"),
+                            raw_course.get("type", raw_course.get("course_type")),
+                            _as_text(prerequisite),
+                            raw_course.get("note", raw_course.get("notes")),
+                        ),
+                    )
+                    course_id = int(cursor.lastrowid)
+                    existing_ids.append(course_id)
                 course_ids.append(course_id)
-                code_to_ids[code.casefold()].append(course_id)
                 _link_provenance(
                     connection,
                     "course_provenance",

@@ -26,6 +26,7 @@ CREATE TABLE courses (
     course_id INTEGER PRIMARY KEY,
     catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
     course_code TEXT NOT NULL,
+    course_code_normalized TEXT NOT NULL,
     name_th TEXT,
     name_en TEXT,
     credits TEXT,
@@ -34,7 +35,8 @@ CREATE TABLE courses (
     category TEXT,
     course_type TEXT,
     prerequisite_text TEXT,
-    notes TEXT
+    notes TEXT,
+    UNIQUE (catalog_id, course_code_normalized)
 );
 
 CREATE TABLE curriculum_plans (
