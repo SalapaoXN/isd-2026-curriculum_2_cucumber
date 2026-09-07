@@ -254,7 +254,7 @@ class ProvenanceTests(unittest.TestCase):
             ["DESC EN DESC1", "DESC EN DESC2"],
         )
 
-    def test_two_plans_one_description_are_not_order_paired(self):
+    def test_two_plans_one_unique_description_enriches_both(self):
         plans = [course("06016418", "SAME", 36), course("06016418", "SAME", 36)]
         plans[0]["prerequisite"] = "ไม่มี"
         plans[1]["prerequisite"] = "ไม่มี"
@@ -264,15 +264,16 @@ class ProvenanceTests(unittest.TestCase):
 
         self.assertEqual(
             [item["prerequisite"] for item in result["courses"]],
-            ["ไม่มี", "ไม่มี"],
+            ["06016408", "06016408"],
         )
         self.assertEqual(
-            [item["source_provenance"] for item in result["courses"]],
-            [plan["source_provenance"] for plan in plans],
+            [
+                [entry["source_page"] for entry in item["source_provenance"]]
+                for item in result["courses"]
+            ],
+            [[36, 336], [36, 336]],
         )
-        self.assertEqual(
-            result["unresolved_descriptions"][0]["prerequisite"], "06016408"
-        )
+        self.assertEqual(result.get("unresolved_descriptions", []), [])
         self.assertEqual(result["total_courses"], 2)
 
     def test_one_plan_two_descriptions_preserves_both_candidates(self):
@@ -308,15 +309,18 @@ class ProvenanceTests(unittest.TestCase):
             ["EN PLAN FIRST", "EN PLAN SECOND"],
         )
         self.assertEqual(
-            [item["source_provenance"] for item in result["courses"]],
-            [plan["source_provenance"] for plan in plans],
+            [
+                [entry["source_page"] for entry in item["source_provenance"]]
+                for item in result["courses"]
+            ],
+            [[26], [27]],
         )
         self.assertEqual(
             [item["desc_en"] for item in result["unresolved_descriptions"]],
             ["DESC EN DESC FIRST", "DESC EN DESC SECOND"],
         )
 
-    def test_page_group_enrichment_respects_multiplicity_guard(self):
+    def test_page_group_enrichment_uses_unique_description_for_repeated_plans(self):
         plans = [
             course("06016418", "FIRST", 32),
             course("06016418", "SECOND", 33),
@@ -353,11 +357,12 @@ class ProvenanceTests(unittest.TestCase):
                 (output_dir / "merged_it_coop_full.json").read_text(encoding="utf-8")
             )
 
-        self.assertEqual([item["prerequisite"] for item in result["courses"]], ["", ""])
-        self.assertEqual(result["total_courses"], 2)
         self.assertEqual(
-            result["unresolved_descriptions"][0]["prerequisite"], "06016408"
+            [item["prerequisite"] for item in result["courses"]],
+            ["06016408", "06016408"],
         )
+        self.assertEqual(result["total_courses"], 2)
+        self.assertEqual(result.get("unresolved_descriptions", []), [])
 
 
 if __name__ == "__main__":

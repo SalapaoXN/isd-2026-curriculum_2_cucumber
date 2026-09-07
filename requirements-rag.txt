@@ -1,0 +1,4 @@
+transformers
+sentencepiece
+sqlite-vec
+google-genai

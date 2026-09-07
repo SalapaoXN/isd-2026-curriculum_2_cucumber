@@ -120,7 +120,7 @@ class DescriptionExtractionTests(unittest.TestCase):
             [317, 318],
         )
 
-    def test_repeated_it_code_keeps_description_unresolved(self):
+    def test_repeated_it_code_uses_unique_description_for_all_placements(self):
         extractor = CurriculumExtractor(program="IT", plan="coop")
         description = next(
             item
@@ -155,14 +155,9 @@ class DescriptionExtractionTests(unittest.TestCase):
         )
 
         self.assertEqual(result["total_courses"], 2)
-        self.assertEqual([item.get("desc_en") for item in result["courses"]], [None, None])
-        self.assertEqual(len(result["unresolved_descriptions"]), 1)
-        self.assertTrue(result["unresolved_descriptions"][0]["desc_th"])
-        self.assertTrue(result["unresolved_descriptions"][0]["desc_en"])
-        self.assertEqual(
-            result["unresolved_descriptions"][0]["source_provenance"][0]["source_page"],
-            336,
-        )
+        self.assertTrue(all(item.get("desc_en") for item in result["courses"]))
+        self.assertTrue(all(item.get("desc_th") for item in result["courses"]))
+        self.assertEqual(len(result.get("unresolved_descriptions", [])), 0)
 
     def test_unique_merge_keeps_plan_identity_and_adds_description(self):
         extractor = CurriculumExtractor(program="DSBA", plan="coop")

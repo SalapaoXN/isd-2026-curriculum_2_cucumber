@@ -400,6 +400,20 @@ class EvaluateCoverageTests(unittest.TestCase):
         self.assertEqual(prerequisite["wer"], 0.0)
         self.assertEqual(prerequisite["count"], 1)
 
+    def test_prerequisite_alternative_separators_are_semantically_equal(self):
+        gt_record = course("A0000001", "ONE")
+        prediction = course("A0000001", "ONE")
+
+        gt_record["prerequisite"] = "06036119 หรือ 06036122"
+        prediction["prerequisite"] = "06036119, 06036122"
+
+        result = self.evaluate([gt_record], [prediction])
+
+        prerequisite = result["field_level"]["prerequisite"]
+        self.assertEqual(prerequisite["cer"], 0.0)
+        self.assertEqual(prerequisite["wer"], 0.0)
+        self.assertEqual(prerequisite["count"], 1)
+
 
     def test_real_prerequisite_mismatch_is_still_penalized(self):
         gt_record = course("A0000001", "ONE")

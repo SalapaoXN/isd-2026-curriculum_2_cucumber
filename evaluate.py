@@ -22,16 +22,21 @@ PREREQUISITE_ABSENCE_VALUES = {
 }
 
 PREREQUISITE_ABSENCE_TOKEN = "<no_prerequisite>"
+PREREQUISITE_ALTERNATIVE_RE = re.compile(
+    r"^(\d{8})\s*(?:\u0e2b\u0e23\u0e37\u0e2d|,)\s*(\d{8})$"
+)
 
 
 def normalize_field_for_eval(field: str, value: Any) -> str:
     normalized = normalize_str(value)
 
-    if (
-        field == "prerequisite"
-        and normalized in PREREQUISITE_ABSENCE_VALUES
-    ):
-        return PREREQUISITE_ABSENCE_TOKEN
+    if field == "prerequisite":
+        if normalized in PREREQUISITE_ABSENCE_VALUES:
+            return PREREQUISITE_ABSENCE_TOKEN
+
+        alternative_match = PREREQUISITE_ALTERNATIVE_RE.fullmatch(normalized)
+        if alternative_match:
+            return f"{alternative_match.group(1)}, {alternative_match.group(2)}"
 
     return normalized
 

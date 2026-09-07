@@ -9,348 +9,302 @@ Member:
 3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
 
 
-## Setup
+## Overview
 
-Use Python `3.10–3.13`. Python `3.11` is the preferred baseline.
+CUCUMBER extracts structured curriculum data from Thai/English curriculum images and prepares the result for evaluation and later LLM/RAG use.
 
-From a fresh clone, create and activate a virtual environment from the repository root:
-
-**Windows PowerShell**
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-**Unix-like (macOS/Linux)**
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-```
-
-Install the pinned dependencies:
-```bash
-python -m pip install -r requirements.txt
-```
-
-The baseline does not configure CUDA. Use `--no-gpu` for CPU execution; GPU support is optional and follows the existing EasyOCR/runtime environment.
-
-### EasyOCR models
-
-The canonical OCR engine uses EasyOCR with Thai and English (`['th', 'en']`). On first use, EasyOCR may download missing detector and recognition models; later runs reuse its local cache.
-
-Use `--no-gpu` for the reproducible CPU baseline. To check the canonical models in CPU mode:
-```bash
-python -c "import easyocr; easyocr.Reader(['th', 'en'], gpu=False); print('EasyOCR models ready')"
-```
-
-### Inputs and outputs
-
-Input images are not included. The automated production runner expects the input directory name, a zero-padded page number, and a supported extension, for example:
-```text
-inputs/dsba/dsba_page_026.jpg
-```
-
-Supported image extensions are `.jpg`, `.jpeg`, `.png`, `.webp`, and `.bmp`.
-
-`python -m src.run_pipeline` checks direct-child page filenames in `--input-dir` and does not search nested directories. When `--pages` is omitted, it discovers files matching `<input-directory-name>_page_<NNN>.<ext>`, deduplicates page numbers, and sorts them numerically. `python cli.py` accepts one image or scans images directly inside a directory; its filenames do not need the automated page naming convention.
-
-The pipeline creates `outputs/` and `consolidated_outputs/` when needed. Automated runs write per-page OCR text/JSON and extracted JSON files such as:
-```text
-outputs/dsba_page_026_ocr.txt
-outputs/dsba_page_026_ocr.json
-outputs/dsba_page_026_ocr_extracted.json
-```
-
-### Pipeline overview
-
-The current production flow is:
 ```text
 Image
-  -> canonical EasyOCR (`['th', 'en']`)
+  -> EasyOCR (Thai + English)
   -> structured course extraction
   -> optional English name enrichment
   -> merge/consolidation
   -> evaluation
 ```
 
-The canonical Thai/English OCR and extracted fields are authoritative by default. English enrichment is opt-in and changes only `name_en` when a safe auxiliary candidate is accepted.
+The canonical OCR/extraction output is authoritative by default. The optional English second pass may improve only `name_en` when a safe candidate is accepted.
 
-### Canonical production run
+## Setup
 
-Run the normal canonical path with the reproducible CPU baseline:
+Use Python `3.10–3.13`; Python `3.11` is the preferred baseline.
+
+### Windows PowerShell
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+### macOS / Linux
+
 ```bash
-python -m src.run_pipeline -p 26 -i inputs/dsba -o outputs/smoke --program DSBA --plan coop --no-gpu
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-`src.run_pipeline` accepts optional `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and `--english-second-pass`. If pages are omitted, the runner discovers direct-child page images. The program is derived only from supported input directory names (`dsba`, `it`, `ait`, `gened`, `bit`) when `--program` is omitted. DSBA, IT, and BIT require an explicit `--plan coop` or `--plan no_coop`; GENED requires `--plan gened`; AIT has no plan and must omit `--plan`.
+EasyOCR uses Thai and English (`['th', 'en']`). Missing models may be downloaded on first use and reused from the local EasyOCR cache.
 
-For a one-page smoke check, provide `inputs/dsba/dsba_page_026.jpg` yourself and verify the three files listed above after the command completes. This checks execution and output creation only; it does not set an OCR accuracy threshold. Do not commit the image or generated smoke outputs.
+Use `--no-gpu` for the reproducible CPU baseline. GPU execution is optional and follows the existing EasyOCR/PyTorch environment.
 
-### Optional English name enrichment
+## Input and Output
 
-The second pass is opt-in only. The default pipeline remains canonical-only:
-```bash
-python -m src.run_pipeline -p 26 -i inputs/dsba -o outputs/enriched --program DSBA --plan coop --english-second-pass
+Production page images use:
+
+```text
+<input-group>_page_<NNN>.<ext>
 ```
 
-When enabled, an auxiliary English-only OCR pass may improve `name_en`. Unsafe or ambiguous candidates fall back to the canonical `name_en`; Thai names, credits, prerequisites, categories, and other canonical fields are not replaced. The canonical `['th', 'en']` OCR remains authoritative.
+Example:
 
-The decision and auxiliary evidence are stored per record under `english_second_pass`, separately from `source_provenance`. `--no-gpu` skips the auxiliary pass. The pass also safely skips when CUDA is unavailable or the auxiliary engine cannot be initialized, while the canonical pipeline continues.
-
-Do not assume this pass runs by default or that every candidate is accepted. `experiments/dsba_english_second_pass.py` remains an experiment, not the production path.
-
-### Batch OCR, extraction, and merge
-
-For a separate OCR-only batch, use the generic CLI:
-```bash
-python cli.py inputs/dsba/ -o outputs --no-gpu
-python extract.py outputs/ -o outputs --program DSBA --plan coop
+```text
+inputs/dsba/dsba_page_026.jpg
 ```
 
-`extract.py` also accepts one `.txt`/`.json` OCR file or a directory. When matching `.txt` and `.json` files share a stem, JSON is preferred and the page is processed once. It writes per-file extracted JSON and, for multiple inputs, a consolidated summary.
+Supported image extensions: `.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`.
 
-Merge extracted plan and description pages with:
-```bash
-python merge_consecutive.py --input-dir outputs --output-dir consolidated_outputs --prefix dsba --plan coop -d 317-344
+Typical per-page outputs:
+
+```text
+outputs/dsba_page_026_ocr.txt
+outputs/dsba_page_026_ocr.json
+outputs/dsba_page_026_ocr_extracted.json
 ```
 
-Page-range outputs use `merged_<group>_<plan>_page_<start>-<end>.json`; full table-plus-description outputs use `merged_<group>_<plan>_full.json`.
+Consolidated curriculum files are written to `consolidated_outputs/`.
 
-### Source provenance
+## OCR
 
-Each extracted record has the additive `source_provenance` field:
-```json
-{
-  "source_provenance": [
-    {
-      "program": "DSBA",
-      "source_filename": "dsba_page_026.png",
-      "source_page": 26,
-      "document_category": "plan"
-    }
-  ]
-}
-```
+Run EasyOCR directly with `cli.py`:
 
-Provenance is derived from source/input context, not ground truth. It survives extraction and merge; repeated records retain independent entries, and merged plan/description records may contain multiple entries. `document_category` is `plan`, `description`, or `unknown` where the source context cannot establish it. This field is separate from `english_second_pass`.
-
-The automated runner writes the original image filename, page, and program into OCR metadata. Legacy or explicitly supplied TXT/JSON inputs use safe filename/page fallbacks when that metadata is unavailable.
-
-### Evaluation
-
-Evaluate a consolidated file against accepted ground truth:
-```bash
-python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
-python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
-```
-
-The evaluator preserves its existing text metrics and output levels:
-- CER and WER for matched text fields
-- legacy `field_level`, `page_level`, and `category_level`
-
-It also reports coverage separately:
-- GT record count
-- prediction record count
-- matched, missing, and extra records
-- precision, recall, and F1
-
-The additive `rubric` namespace reports:
-- `rubric.overall_text`
-- `rubric.field_level`, including text quality and field-presence coverage
-- `rubric.page_level`, with true per-page metrics only when every GT record has authoritative `source_provenance`
-- `rubric.category_level`, grouped by GT curriculum `category`
-
-Current DSBA ground truth does not contain authoritative per-record page provenance, so rubric Page Level reports `unavailable` rather than inferring pages. `code_page_mapping.csv` is a project-created helper and is not authoritative ground truth. Legacy evaluation outputs remain available for compatibility.
-
-## Usage / Command Reference
-
-### OCR CLI
-
-`cli.py` runs EasyOCR only. It accepts one image or images directly inside a directory:
 ```bash
 # Single image
-python cli.py inputs/dsba/curriculum_page_016.jpg
+python cli.py inputs/dsba/dsba_page_026.jpg
 
 # Directory batch
-python cli.py inputs/dsba/
+python cli.py inputs/dsba/ -o outputs
 
-# Custom output, languages, and CPU mode
-python cli.py inputs/dsba/ -o outputs/dsba_raw_ocr --languages th,en --no-gpu
+# CPU mode
+python cli.py inputs/dsba/ -o outputs --no-gpu
 ```
 
-### Extraction
+For the automated page runner:
 
-`extract.py` accepts an OCR TXT file, OCR JSON file, or directory:
 ```bash
-# =========================
-# DSBA
-# =========================
+python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
+```
+
+`src.run_pipeline` supports `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and the opt-in `--english-second-pass`.
+
+## Extraction
+
+`extract.py` reads OCR TXT/JSON files and writes `*_ocr_extracted.json`. When matching TXT and JSON files share a stem, JSON is preferred and processed once.
+
+### DSBA
+
+```bash
+# No co-op plan
 python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+
+# Co-op plan
 python extract.py outputs --prefix dsba -p 33-39 --program DSBA --plan coop
+
+# Course descriptions
 python extract.py outputs --prefix dsba -p 317-344 --program DSBA --plan coop
-
-# =========================
-# IT
-# =========================
-python extract.py outputs --prefix it -p 32-38 --program IT --plan no_coop
-python extract.py outputs --prefix it -p 39-45 --program IT --plan coop
-python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
-
-# =========================
-# AIT
-# =========================
-# AIT has no coop/no_coop variant
-python extract.py outputs --prefix ait --program AIT
-
-# =========================
-# GENED
-# =========================
-# Catalog + course descriptions
-python extract.py outputs --prefix gened -p 16-30,44-117 --program GENED --plan gened
-
-# =========================
-# BIT
-# =========================
-python extract.py outputs --prefix bit -p 26-30 --program BIT --plan no_coop
-python extract.py outputs --prefix bit -p 31-35 --program BIT --plan coop
-python extract.py outputs --prefix bit -p 238-257 --program BIT --plan coop
-
-### Automated page runner
-
-The automated runner supports `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and the opt-in `--english-second-pass`. `-p/--pages` is optional; omission discovers direct-child files using the input directory's page filename convention. Do not use an inferred co-op variant: DSBA, IT, and BIT require explicit `coop` or `no_coop`.
-```bash
-# DSBA
-python -m src.run_pipeline -p 26-32 -i inputs/dsba --plan no_coop --program DSBA
-python -m src.run_pipeline -p 33-39 -i inputs/dsba --plan coop --program DSBA
-python -m src.run_pipeline -p 317-344 -i inputs/dsba --plan coop --program DSBA
-
-# IT
-python -m src.run_pipeline -p 32-38 -i inputs/it --plan no_coop --program IT
-python -m src.run_pipeline -p 39-45 -i inputs/it --plan coop --program IT
-python -m src.run_pipeline -p 328-371 -i inputs/it --plan coop --program IT
-# BIT
-# Supply BIT source images and confirmed plan page ranges before running.
-
-# AIT: no --plan; omitted pages are discovered automatically
-python -m src.run_pipeline -i inputs/ait --program AIT
-
-# General education: explicit GENED program and plan
-python -m src.run_pipeline -i inputs/gened --plan gened --program GENED
 ```
 
-### Consolidation
-
-`merge_consecutive.py` combines already extracted `*_ocr_extracted.json`
-files into consolidated curriculum JSON files.
-
-It supports `--input-dir`, `--output-dir`, `--prefix`, `--plan`,
-`-p/--pages`, and `-d/--desc-pages`.
-
-Use explicit page ranges when a program contains multiple study-plan
-variants so that only the intended plan pages and shared description pages
-are included.
+### IT
 
 ```bash
-# DSBA
+# No co-op plan
+python extract.py outputs --prefix it -p 32-38 --program IT --plan no_coop
+
+# Co-op plan
+python extract.py outputs --prefix it -p 39-45 --program IT --plan coop
+
+# Course descriptions
+python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
+```
+
+### AIT
+
+AIT has no `coop` / `no_coop` plan variant.
+
+```bash
+python extract.py outputs --prefix ait --program AIT
+```
+
+### GENED
+
+```bash
+python extract.py outputs --prefix gened -p 16-30,44-117 --program GENED --plan gened
+```
+
+### BIT
+
+```bash
+# No co-op plan
+python extract.py outputs --prefix bit -p 26-30 --program BIT --plan no_coop
+
+# Co-op plan
+python extract.py outputs --prefix bit -p 31-35 --program BIT --plan coop
+
+# Course descriptions
+python extract.py outputs --prefix bit -p 238-257 --program BIT --plan coop
+```
+
+## Merge / Consolidation
+
+`merge_consecutive.py` combines extracted plan and description pages into consolidated curriculum JSON. `-p/--pages` selects source pages and `-d/--desc-pages` identifies description pages.
+
+Repeated course placements are preserved. A single unambiguous description may enrich repeated placements of the same course code; ambiguous multiple descriptions are not guessed by occurrence order.
+
+### DSBA
+
+```bash
 python merge_consecutive.py --prefix dsba --plan no_coop -p 26-32,317-344 -d 317-344
 python merge_consecutive.py --prefix dsba --plan coop -p 33-39,317-344 -d 317-344
+```
 
-# IT
+### IT
+
+```bash
 python merge_consecutive.py --prefix it --plan no_coop -p 32-38,328-371 -d 328-371
 python merge_consecutive.py --prefix it --plan coop -p 39-45,328-371 -d 328-371
+```
 
-# BIT
-python merge_consecutive.py --prefix bit --plan no_coop -p 26-30,238-257 -d 238-257
-python merge_consecutive.py --prefix bit --plan coop -p 31-35,238-257 -d 238-257
+### AIT
 
-# AIT
+```bash
 python merge_consecutive.py --prefix ait -d 287-302
+```
 
-# General Education
+### GENED
+
+```bash
 python merge_consecutive.py --prefix gened --plan gened -p 16-30,44-117 -d 44-117
 ```
 
-The `-p/--pages` option selects all source pages that belong to the
-consolidated output. The `-d/--desc-pages` option identifies which of those
-pages are course-description pages.
-
-For programs with `coop` and `no_coop` variants, the description pages are
-shared and do not need to be extracted separately for both plans.
-
-By default, extracted files are read from `outputs/` and consolidated files
-are written to `consolidated_outputs/`.
-
-Use explicit directories when different locations are required:
+### BIT
 
 ```bash
-python merge_consecutive.py \
-  --input-dir outputs \
-  --output-dir consolidated_outputs \
-  --prefix dsba \
-  --plan coop \
-  --pages 33-39,317-344 \
-  --desc-pages 317-344
+python merge_consecutive.py --prefix bit --plan no_coop -p 26-30,238-257 -d 238-257
+python merge_consecutive.py --prefix bit --plan coop -p 31-35,238-257 -d 238-257
 ```
 
-### LLM spell corrector
-```bash
-python llm_spell_corrector.py ./consolidated_outputs/merged_dsba_coop_full.json
-```
+## Evaluation
 
-### Evaluation commands
+The evaluator reports text quality with CER/WER and extraction coverage with matched, missing, extra, Precision, Recall, and F1.
+
+Equivalent repeated prediction placements may be collapsed only in the canonical evaluation view when the GT contains one logical course and the repeated records agree on evaluated course fields. The original consolidated artifact remains unchanged.
+
+### DSBA
 
 ```bash
-# DSBA
 python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
 python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+```
 
-# IT
+### IT
+
+```bash
 python evaluate.py consolidated_outputs/merged_it_coop_full.json --gt ground_truth/IT/IT_academic_plan_coop.json
 python evaluate.py consolidated_outputs/merged_it_no_coop_full.json --gt ground_truth/IT/IT_academic_plan_no_coop.json
+```
 
-# AIT
+### AIT
+
+```bash
 python evaluate.py consolidated_outputs/merged_ait_no_plan_full.json --gt ground_truth/AIT/AIT_academic_plan.json
+```
 
-# GENED
-python evaluate.py consolidated_outputs/merged_gened_gened_page_016-030.json --gt ground_truth/general_education_ground_truth.json
+### GENED
 
-# Save a JSON report
-python evaluate.py \
-  consolidated_outputs/merged_dsba_coop_full.json \
-  --gt ground_truth/DSBA/DSBA_academic_plan_coop.json \
-  --out reports/dsba_coop_evaluation.json
+```bash
+python evaluate.py consolidated_outputs/merged_gened_gened_full.json --gt ground_truth/general_education_ground_truth.json
+```
 
-# Batch evaluation; repeat --pair for each prediction/ground-truth pair
-```powershell
+### BIT
+
+Add BIT evaluation commands after the accepted BIT ground-truth paths are finalized.
+
+### Batch Evaluation
+
+```bash
 python evaluate.py `
   --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
   --pair consolidated_outputs/merged_dsba_no_coop_full.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
   --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json `
   --pair consolidated_outputs/merged_it_no_coop_full.json ground_truth/IT/IT_academic_plan_no_coop.json `
   --pair consolidated_outputs/merged_ait_no_plan_full.json ground_truth/AIT/AIT_academic_plan.json `
-  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json
+  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json `
+  --pair consolidated_outputs/merged_bit_coop_full.json ground_truth/BIT/BIT_academic_plan_coop.json `
+  --pair consolidated_outputs/merged_bit_no_coop_full.json ground_truth/BIT/BIT_academic_plan_no_coop.json
 ```
 
-Every single or batch evaluation also writes these flat reports to `reports/evaluation/`:
-- `evaluation.json` — existing evaluator results combined under `results`.
-- `evaluation_summary.csv` — TP/FN/FP plus Precision/Recall/F1 and percentages.
-- `field_metrics.csv` — CER/WER plus character and word accuracy percentages; Thai WER uses PyThaiNLP.
-- `evaluation_errors.csv` — concrete GT/prediction differences for matched, missing, and extra records.
+Evaluation reports are written to `reports/evaluation/`:
 
-True negatives are not fabricated because this is extraction coverage, not binary classification. Use the positional prediction path with `--gt` for a single dataset, or repeat `--pair PREDICTION_JSON GROUND_TRUTH_JSON` for batch evaluation. `--out` remains optional for saving the single or combined JSON output separately.
+- `evaluation.json`
+- `evaluation_summary.csv`
+- `field_metrics.csv`
+- `evaluation_errors.csv`
 
-### Testing
+Page-level evaluation is reported only when GT contains authoritative source/page provenance. It is not inferred from project-created mappings.
 
-Tracked regression suites cover evaluator behavior, English enrichment, and source provenance:
+## Optional English Name Enrichment
+
+Enable the auxiliary English-only OCR pass with:
+
 ```bash
-python -m unittest discover -s tests -p "test_cli_semantics.py"
-python -m unittest discover -s tests -p "test_evaluate.py"
-python -m unittest discover -s tests -p "test_english_name_enricher.py"
-python -m unittest discover -s tests -p "test_provenance.py"
+python -m src.run_pipeline -p 26 -i inputs/dsba --program DSBA --plan coop --english-second-pass
 ```
 
-### Experimental and current scope
+The pass is opt-in. It may update only `name_en`; Thai names, credits, prerequisites, categories, and other canonical fields are not replaced. Unsafe or ambiguous candidates fall back to canonical OCR.
 
-The active repository is primarily a curriculum data-preparation pipeline: OCR, structured extraction, optional English name enrichment, source/page provenance, consolidation, and evaluation. The normal OCR path needs no OpenAI API key, `openai` package, or Ollama service. The LLM cleaner under `src/llm_clean_txt.py` is inactive and not required by the production OCR path.
+## Source Provenance
 
-Dedicated Rules extraction, RAG/retrieval, chatbot, API, database, and UI implementations are not complete production components in this repository.
+Extracted records include `source_provenance`, for example:
+
+```json
+{
+  "program": "DSBA",
+  "source_filename": "dsba_page_026.png",
+  "source_page": 26,
+  "document_category": "plan"
+}
+```
+
+Provenance is derived from source/input context, not ground truth, and is preserved through merge/consolidation.
+
+## LLM Spell Corrector
+
+```bash
+python llm_spell_corrector.py ./consolidated_outputs/merged_dsba_coop_full.json
+```
+
+## Testing
+
+Run the regression suite from the repository root:
+
+```bash
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+Useful focused suites:
+
+```bash
+python -m unittest discover -s tests -p "test_gened_cleanup.py" -v
+python -m unittest discover -s tests -p "test_cli_semantics.py" -v
+python -m unittest discover -s tests -p "test_evaluate.py" -v
+python -m unittest discover -s tests -p "test_evaluation_reports.py" -v
+```
+
+## Notes
+
+- JSON OCR input is preferred when matching TXT/JSON files share a stem.
+- DSBA, IT, and BIT require explicit `coop` or `no_coop` plans.
+- GENED uses `--plan gened`.
+- AIT has no plan variant and must omit `--plan`.
+- Description pages are shared between `coop` and `no_coop` variants where applicable.
+- Missing or ambiguous data is preserved conservatively rather than guessed.

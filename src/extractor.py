@@ -41,6 +41,7 @@ DEFAULT_COOP_PAIRS = (
     ("06026259", "06026260", "6(0-35-0)"),
     ("06046443", "06046444", "6(0-45-0)"),
     ("06016481", "06016482", "6(0-36-0)"),
+    ("06036147", "06036148", "6(0-35-0)"),
 )
 
 
@@ -489,6 +490,7 @@ class CurriculumExtractor:
 
         blocks: List[CourseBlock] = []
         current: Optional[CourseBlock] = None
+        pending_bit_name_lines: List[str] = []
 
         idx = 0
         n = len(lines)
@@ -522,6 +524,7 @@ class CurriculumExtractor:
 
             # 1) Year / semester header -> a new term starts, close any open block.
             if self.META_LINE_RE.match(line):
+                pending_bit_name_lines.clear()
                 current = None
                 idx += self._apply_meta_context(line, lines, idx)
                 continue
@@ -547,6 +550,16 @@ class CurriculumExtractor:
                     category=self._ctx_category,
                     type=self._ctx_type,
                 )
+                if self.program == "BIT" and pending_bit_name_lines:
+                    current.lines.append(
+                        "".join(
+                            part[1:]
+                            if index and pending_bit_name_lines[index - 1][-1:] == part[:1]
+                            else part
+                            for index, part in enumerate(pending_bit_name_lines)
+                        )
+                    )
+                    pending_bit_name_lines.clear()
                 # The name / credits may share the code's line (rare) -> keep the tail.
                 if remainder:
                     current.lines.append(remainder)
@@ -556,6 +569,7 @@ class CurriculumExtractor:
 
             # 3) Table / total / page-number noise -> close any open block.
             if self._is_noise_line(line):
+                pending_bit_name_lines.clear()
                 current = None
                 idx += 1
                 continue
@@ -566,8 +580,26 @@ class CurriculumExtractor:
                 self.program == "IT" and self.IT_SECTION_HEADER_RE.search(line) is not None
             )
             if (is_category_header or is_it_section_header) and not self.CREDITS_RE.search(line):
+                pending_bit_name_lines.clear()
                 self._ctx_category = line
                 self._ctx_type = "เลือก" if "เลือก" in line else "บังคับ"
+                current = None
+                idx += 1
+                continue
+
+            if (
+                self.program == "BIT"
+                and self.HAS_THAI_RE.search(line)
+                and (
+                    current is None
+                    or self._has_completed_course_metadata(current)
+                )
+                and not self.PREREQ_KEYWORD_RE.search(line)
+                and not (
+                    idx > 0 and lines[idx - 1].strip().startswith("(บรรยาย")
+                )
+            ):
+                pending_bit_name_lines.append(line)
                 current = None
                 idx += 1
                 continue
@@ -837,6 +869,14 @@ class CurriculumExtractor:
         credits_clean = re.sub(
             r"\s*(?:หรือ|or|/)\s*$", "", credits_clean, flags=re.IGNORECASE
         ).strip()
+
+        duplicate_credit_match = re.fullmatch(
+            rf"({self.CREDIT_GROUP_RE})(?:\s*\1)+",
+            credits_clean,
+        )
+        if duplicate_credit_match:
+            credits_clean = duplicate_credit_match.group(1)
+
         if credits_clean.startswith("(0-35"):
             credits_clean = f"6{credits_clean}"
 
@@ -892,6 +932,14 @@ class CurriculumExtractor:
         while idx < len(courses):
             current = courses[idx]
 
+            duplicate_credit_match = re.fullmatch(
+                rf"({self.CREDIT_GROUP_RE})(?:\s*\1)+",
+                str(current.get("credits") or ""),
+            )
+            if duplicate_credit_match:
+                current = dict(current)
+                current["credits"] = duplicate_credit_match.group(1)
+
             # Merge any configured co-op alternative pair (code_a + code_b)
             # into one "code_a หรือ code_b" entry.
             merged_credits = None
@@ -905,7 +953,7 @@ class CurriculumExtractor:
                     break
             if merged_credits is not None:
                 combined.append(
-                    merge_alternative_courses(courses[idx], courses[idx + 1], merged_credits)
+                    merge_alternative_courses(current, courses[idx + 1], merged_credits)
                 )
                 idx += 2
                 continue
@@ -1217,18 +1265,31 @@ class CurriculumExtractor:
             # Read the prerequisite value without consuming the next course.
             prereq_tokens = []
             prev_line = ""
+            prereq_section_seen = False
+
             while j < total:
                 curr = lines[j].strip()
                 if not curr:
                     j += 1
                     continue
 
+                if any_prereq_key_regex.search(curr):
+                    prereq_section_seen = True
+
+                # Once a prerequisite section has started, standalone course codes may
+                # still be prerequisite references (e.g. A OR B), not the next course.
+                if (
+                    prereq_section_seen
+                    and self.DESCRIPTION_START_RE.search(curr)
+                ):
+                    break
+
                 stop_code_match = code_regex.search(curr)
                 if (
                     stop_code_match
                     and stop_code_match.group(0) != code
                     and not prereq_eng_key_regex.search(curr)
-                    and not any_prereq_key_regex.search(prev_line)
+                    and not prereq_section_seen
                 ):
                     break
 

@@ -428,7 +428,7 @@ class CurriculumConsolidator:
                     course, *description_sources
                 )
                 processed_codes.add(course_code)
-                if self.plan_data.get("program") == "IT":
+                if self.plan_data.get("program") in {"IT", "BIT"}:
                     processed_codes.update(sub_codes)
 
             else:
@@ -438,16 +438,20 @@ class CurriculumConsolidator:
             merged_course.setdefault("flexible_year_semester", None)
             consolidated_courses.append(merged_course)
 
-        # IT's co-op alternatives are present in the description catalog even
+        # IT's and BIT's co-op alternatives are present in the description catalog even
         # when the no_coop plan table has no corresponding plan row.  Merge
         # only this configured pair when both descriptions are unique and
         # neither code has a plan occurrence.  Other curricula keep their
         # existing unmatched-description behavior.
         description_pair_by_code = {}
         description_pair_heads = set()
-        if self.plan_data.get("program") == "IT":
+        description_pair = {
+            "IT": ("06016481", "06016482"),
+            "BIT": ("06036147", "06036148"),
+        }.get(self.plan_data.get("program"))
+        if description_pair:
             for code_a, code_b, credits in DEFAULT_COOP_PAIRS:
-                if (code_a, code_b) != ("06016481", "06016482"):
+                if (code_a, code_b) != description_pair:
                     continue
                 first_description = desc_occurrences.get(code_a, [])
                 second_description = desc_occurrences.get(code_b, [])
@@ -719,6 +723,10 @@ def merge_consecutive_files(
                     desc_courses.extend(data.get("courses", []))
 
             first = table_records[0][2]
+            table_courses = CurriculumExtractor(
+                program=first.get("program", "DSBA"),
+                plan=plan,
+            ).post_process(table_courses)
             metadata = _prediction_metadata(first, plan)
             final = merge_plan_with_description(
                 dedupe_courses(table_courses),

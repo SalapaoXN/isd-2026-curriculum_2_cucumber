@@ -71,6 +71,124 @@ class CourseCleanupTests(unittest.TestCase):
 
         self.assertEqual([course["code"] for course in result], ["06016479", "06016480"])
 
+    def test_bit_plan_table_assigns_thai_names_before_codes(self):
+        lines = [
+            "หน่วยกิต",
+            "(บรรยาย-ปฏิบัติ-ศึกษา",
+            "ด้วยตนเอง)",
+            "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
+            "06036100",
+            "3(2-2-5)",
+            "INFORMATION TECHNOLOGY FUNDAMENTALS",
+            "การแก",
+            "้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
+            "06036118",
+            "3(2-2-5)",
+            "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
+            "โรงเรียนสร้างเสน่ห์",
+            "96641001",
+            "2(1-2-3)",
+            "CHARM SCHOOL",
+        ]
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+        courses = [
+            extractor.parse_single_block(block)
+            for block in extractor.split_into_blocks(lines)
+        ]
+        names = {course["code"]: course["name_th"] for course in courses}
+
+        self.assertEqual(names["06036100"], "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ")
+        self.assertEqual(
+            names["06036118"], "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ"
+        )
+        self.assertEqual(names["96641001"], "โรงเรียนสร้างเสน่ห์")
+
+    def test_bit_plan_pair_merges_as_one_alternative_slot(self):
+        first = alternative_course("06036147", 35, "plan", "LOCAL")
+        second = alternative_course("06036148", 36, "plan", "OVERSEAS")
+        first["credits"] = second["credits"] = "6(0-35-0)"
+
+        result = CurriculumExtractor(program="BIT", plan="coop").post_process(
+            [first, second]
+        )
+
+        self.assertEqual(len(result), 1)
+        merged = result[0]
+        self.assertEqual(merged["code"], "06036147 หรือ 06036148")
+        self.assertEqual(merged["credits"], "6(0-35-0)")
+        self.assertEqual(merged["name_th"], "Thai LOCAL\nThai OVERSEAS")
+        self.assertEqual(merged["name_en"], "ENGLISH LOCAL\nENGLISH OVERSEAS")
+        self.assertEqual(merged["desc_th"], "DESC TH LOCAL\nDESC TH OVERSEAS")
+        self.assertEqual(merged["desc_en"], "DESC EN LOCAL\nDESC EN OVERSEAS")
+        self.assertEqual(
+            merged["source_provenance"],
+            first["source_provenance"] + second["source_provenance"],
+        )
+
+    def test_merge_consecutive_files_post_processes_bit_table_pair(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir) / "consolidated"
+
+            for plan, page, table_courses in (
+                (
+                    "no_coop",
+                    26,
+                    [alternative_course("06000001", 26, "plan", "OTHER")],
+                ),
+                (
+                    "coop",
+                    31,
+                    [
+                        alternative_course("06036147", 35, "plan", "LOCAL"),
+                        alternative_course("06036148", 36, "plan", "OVERSEAS"),
+                    ],
+                ),
+            ):
+                input_dir = Path(temp_dir) / plan
+                input_dir.mkdir()
+                description_courses = [
+                    alternative_course("06036147", 366, "description", "LOCAL"),
+                    alternative_course("06036148", 367, "description", "OVERSEAS"),
+                ]
+                for page_num, courses in (
+                    (page, table_courses),
+                    (366, description_courses),
+                ):
+                    (input_dir / f"bit_{plan}_page_{page_num:03d}_ocr_extracted.json").write_text(
+                        json.dumps(
+                            {
+                                "program": "BIT",
+                                "plan": plan,
+                                "courses": courses,
+                            },
+                            ensure_ascii=False,
+                        ),
+                        encoding="utf-8",
+                    )
+
+                merge_consecutive_files(
+                    input_dir=str(input_dir),
+                    output_dir=str(output_dir),
+                    plan_filter=plan,
+                    prefix="bit",
+                    desc_pages="366",
+                )
+
+                result = json.loads(
+                    (output_dir / f"merged_bit_{plan}_full.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                combined_code = "06036147 \u0e2b\u0e23\u0e37\u0e2d 06036148"
+                pair_codes = [
+                    course["code"]
+                    for course in result["courses"]
+                    if course["code"] in {"06036147", "06036148"}
+                    or course["code"] == combined_code
+                ]
+                self.assertEqual(pair_codes, [combined_code])
+
+
     def test_it_description_only_pair_merges_for_no_coop(self):
         first = alternative_course("06016481", 366, "description", "LOCAL")
         second = alternative_course("06016482", 367, "description", "OVERSEAS")

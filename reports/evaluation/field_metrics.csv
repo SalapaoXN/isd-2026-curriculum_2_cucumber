@@ -28,4 +28,14 @@ GENED,gened,code,266,0.0,100.0,,
 GENED,gened,name_th,266,0.0348,96.52,0.1786,82.14
 GENED,gened,name_en,266,0.0442,95.58,0.2715,72.85
 GENED,gened,credits,266,0.0,100.0,,
-GENED,gened,prerequisite,266,0.0082,99.18,0.0226,97.74
+GENED,gened,prerequisite,266,0.0007,99.93,0.0031,99.69
+BIT,coop,code,63,0.0,100.0,,
+BIT,coop,name_th,63,0.0172,98.28,0.1223,87.77
+BIT,coop,name_en,63,0.0375,96.25,0.3089,69.11
+BIT,coop,credits,63,0.0195,98.05,,
+BIT,coop,prerequisite,63,0.0,100.0,0.0,100.0
+BIT,no_coop,code,63,0.0,100.0,,
+BIT,no_coop,name_th,63,0.0505,94.95,0.1958,80.42
+BIT,no_coop,name_en,63,0.0377,96.23,0.3002,69.98
+BIT,no_coop,credits,63,0.0195,98.05,,
+BIT,no_coop,prerequisite,63,0.0,100.0,0.0,100.0

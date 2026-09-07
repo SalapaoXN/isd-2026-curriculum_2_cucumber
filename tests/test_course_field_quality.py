@@ -27,6 +27,34 @@ class CourseFieldQualityTests(unittest.TestCase):
             result["courses"][0]["credits"], "3(3-0-6) หรือ 3(2-2-5)"
         )
 
+    def test_exact_duplicate_credit_value_is_collapsed(self):
+        result = CurriculumExtractor(program="DSBA", plan="coop").extract_from_lines(
+            [
+                "06000002",
+                "วิชาทดสอบ",
+                "3(3-0-6)",
+                "3(3-0-6)",
+                "TEST COURSE",
+            ]
+        )
+
+        self.assertEqual(result["courses"][0]["credits"], "3(3-0-6)")
+
+    def test_post_process_collapses_only_exact_duplicate_credit_values(self):
+        courses = [
+            {"code": "06000003", "credits": "3(3-0-6)3(3-0-6)"},
+            {"code": "06000004", "credits": "3(3-0-6)3(2-2-5)"},
+        ]
+
+        result = CurriculumExtractor(program="DSBA", plan="coop").post_process(
+            courses
+        )
+
+        self.assertEqual(
+            [course["credits"] for course in result],
+            ["3(3-0-6)", "3(3-0-6)3(2-2-5)"],
+        )
+
     def test_three_option_credit_connector_preserves_all_groups(self):
         result = CurriculumExtractor(program="IT", plan="no_coop").extract_from_lines(
             [
