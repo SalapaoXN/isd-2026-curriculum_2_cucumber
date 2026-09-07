@@ -7,7 +7,7 @@ from collections.abc import Callable
 from typing import Any
 
 
-DEFAULT_MODEL = "gemini-2.0-flash"
+DEFAULT_MODEL = "gemini-3.5-flash-lite"
 
 
 def _create_client(api_key: str) -> Any:

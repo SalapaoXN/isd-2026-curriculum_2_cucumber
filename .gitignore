@@ -8,6 +8,7 @@ outputs/*
 consolidated_outputs/*
 prototype_outputs/*
 example/*
+demo.db
 .opencode/
 .opencodeignore
 opencode.json
