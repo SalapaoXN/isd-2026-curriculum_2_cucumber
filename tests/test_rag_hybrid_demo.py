@@ -99,10 +99,25 @@ class RagHybridDemoTest(unittest.TestCase):
             answer_model_callable=provider,
         )
 
+    def test_cli_automatically_wires_gemini_to_final_answer(self):
+        provider = lambda _prompt: "คำตอบจาก Gemini"
+        with patch("rag.hybrid_demo.make_gemini_callable", return_value=provider) as factory:
+            with patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
+                main(["curriculum.db", "What topics?"])
+
+        factory.assert_called_once_with()
+        run_demo.assert_called_once_with(
+            Path("curriculum.db"),
+            "What topics?",
+            structured_model_callable=provider,
+            top_k=5,
+            answer_model_callable=provider,
+        )
+
     def test_cli_fails_clearly_when_gemini_api_key_is_missing(self):
         with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
             with self.assertRaisesRegex(RuntimeError, "GEMINI_API_KEY"):
-                main(["curriculum.db", "How many credits?", "--structured-provider", "gemini"])
+                main(["curriculum.db", "How many credits?"])
 
     def test_injected_callables_are_not_replaced(self):
         structured_model_callable = lambda _prompt: "SELECT 1"

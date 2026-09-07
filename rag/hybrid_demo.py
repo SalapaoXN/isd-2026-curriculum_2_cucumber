@@ -125,13 +125,12 @@ def main(
 ) -> None:
     load_dotenv()
     args = _parse_args(argv)
-    if args.structured_provider == "gemini":
-        if structured_model_callable is None or answer_model_callable is None:
-            gemini_callable = make_gemini_callable()
-            if structured_model_callable is None:
-                structured_model_callable = gemini_callable
-            if answer_model_callable is None:
-                answer_model_callable = gemini_callable
+    if structured_model_callable is None or answer_model_callable is None:
+        gemini_callable = make_gemini_callable()
+        if structured_model_callable is None:
+            structured_model_callable = gemini_callable
+        if answer_model_callable is None:
+            answer_model_callable = gemini_callable
     run_kwargs: dict[str, Any] = {
         "structured_model_callable": structured_model_callable,
         "top_k": args.top_k,
