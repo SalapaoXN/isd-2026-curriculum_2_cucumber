@@ -26,6 +26,7 @@ class RagQueriesTest(unittest.TestCase):
                     "credits": "3(3-0-6)",
                     "year": 1,
                     "semester": 1,
+                    "flexible_year_semester": "3/2",
                     "source_provenance": [
                         {
                             "program": "TEST",
@@ -128,6 +129,9 @@ class RagQueriesTest(unittest.TestCase):
                 plan_id = connection.execute(
                     "SELECT plan_id FROM curriculum_plans"
                 ).fetchone()[0]
+                c100_id = connection.execute(
+                    "SELECT course_id FROM courses WHERE course_code = 'C100'"
+                ).fetchone()[0]
                 c300_id = connection.execute(
                     "SELECT course_id FROM courses WHERE course_code = 'C300'"
                 ).fetchone()[0]
@@ -140,6 +144,60 @@ class RagQueriesTest(unittest.TestCase):
                 c700_id = connection.execute(
                     "SELECT course_id FROM courses WHERE course_code = 'C700'"
                 ).fetchone()[0]
+                plan_courses = connection.execute(
+                    """
+                    SELECT program, plan, year, semester, course, credits,
+                           credit_units, credits_raw, flexible_year_number,
+                           flexible_semester_number, flexible_year_semester_raw
+                    FROM v_plan_courses
+                    WHERE placement_id = (
+                        SELECT placement_id
+                        FROM plan_placements
+                        WHERE course_id = ?
+                        ORDER BY placement_id
+                        LIMIT 1
+                    )
+                    """,
+                    (c100_id,),
+                ).fetchone()
+                semester_credits = connection.execute(
+                    """
+                    SELECT program, plan, year, semester, total_credits
+                    FROM v_semester_credits
+                    WHERE plan_id = ? AND year = 1 AND semester = 1
+                    """,
+                    (plan_id,),
+                ).fetchone()
+                prerequisite_edges = connection.execute(
+                    """
+                    SELECT source_course, prerequisite_course
+                    FROM v_prerequisite_edges
+                    WHERE prerequisite_course IS NOT NULL
+                    ORDER BY source_course, alternative_member_order
+                    """
+                ).fetchall()
+
+            self.assertEqual(
+                plan_courses,
+                (
+                    "TEST",
+                    "regular",
+                    1,
+                    1,
+                    "C100",
+                    3,
+                    3,
+                    "3(3-0-6)",
+                    3,
+                    2,
+                    "3/2",
+                ),
+            )
+            self.assertEqual(semester_credits, ("TEST", "regular", 1, 1, 15))
+            self.assertEqual(
+                prerequisite_edges,
+                [("C400", "C300"), ("C700", "C500"), ("C700", "C600")],
+            )
 
             self.assertEqual(semester_total_credits(database_path, plan_id, 1, 1), 15)
 

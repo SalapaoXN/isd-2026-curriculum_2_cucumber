@@ -214,3 +214,94 @@ CREATE INDEX alternative_members_by_group
 
 CREATE INDEX alternative_members_by_course
     ON alternative_course_group_members (course_id);
+
+CREATE VIEW v_plan_courses AS
+SELECT
+    plans.plan_id,
+    plans.program_id,
+    programs.program_code AS program,
+    COALESCE(plans.plan_code, plans.plan_key) AS plan,
+    plans.plan_code,
+    plans.plan_key,
+    placements.placement_id,
+    placements.placement_order,
+    placements.year_number AS year,
+    placements.semester_number AS semester,
+    placements.flexible_year_number,
+    placements.flexible_semester_number,
+    placements.flexible_year_semester_raw,
+    COALESCE(placements.course_id, members.course_id) AS course_id,
+    COALESCE(courses.course_code, member_courses.course_code) AS course,
+    COALESCE(courses.course_code, member_courses.course_code) AS course_code,
+    COALESCE(courses.credit_units, member_courses.credit_units) AS credits,
+    COALESCE(courses.credit_units, member_courses.credit_units) AS credit_units,
+    COALESCE(courses.credits_raw, member_courses.credits_raw) AS credits_raw,
+    placements.alternative_group_id,
+    members.member_order AS alternative_member_order,
+    groups.minimum_choices,
+    groups.maximum_choices,
+    CASE WHEN placements.alternative_group_id IS NULL THEN 0 ELSE 1 END
+        AS is_alternative,
+    placements.category,
+    placements.requirement_type,
+    placements.credits_override,
+    placements.raw_text,
+    placements.notes
+FROM plan_placements AS placements
+JOIN curriculum_plans AS plans
+    ON plans.plan_id = placements.plan_id
+JOIN programs
+    ON programs.program_id = plans.program_id
+LEFT JOIN courses
+    ON courses.course_id = placements.course_id
+LEFT JOIN alternative_course_groups AS groups
+    ON groups.alternative_group_id = placements.alternative_group_id
+LEFT JOIN alternative_course_group_members AS members
+    ON members.alternative_group_id = placements.alternative_group_id
+LEFT JOIN courses AS member_courses
+    ON member_courses.course_id = members.course_id;
+
+CREATE VIEW v_semester_credits AS
+WITH counted_courses AS (
+    SELECT *
+    FROM v_plan_courses
+    WHERE alternative_group_id IS NULL
+       OR (
+           alternative_member_order IS NOT NULL
+           AND alternative_member_order <= minimum_choices
+       )
+)
+SELECT
+    plan_id,
+    program,
+    plan,
+    year,
+    semester,
+    COALESCE(SUM(credit_units), 0) AS total_credits
+FROM counted_courses
+GROUP BY plan_id, program, plan, year, semester;
+
+CREATE VIEW v_prerequisite_edges AS
+SELECT
+    prerequisites.prerequisite_id,
+    source.course_id AS source_course_id,
+    source.course_code AS source_course,
+    source.course_code AS source_course_code,
+    COALESCE(prerequisites.prerequisite_course_id, members.course_id)
+        AS prerequisite_course_id,
+    target.course_code AS prerequisite_course,
+    target.course_code AS prerequisite_code,
+    prerequisites.alternative_group_id,
+    members.member_order AS alternative_member_order,
+    prerequisites.prerequisite_order,
+    prerequisites.requirement_type,
+    prerequisites.raw_text
+FROM prerequisites
+JOIN courses AS source
+    ON source.course_id = prerequisites.course_id
+LEFT JOIN alternative_course_group_members AS members
+    ON members.alternative_group_id = prerequisites.alternative_group_id
+LEFT JOIN courses AS target
+    ON target.course_id = COALESCE(
+        prerequisites.prerequisite_course_id, members.course_id
+    );
