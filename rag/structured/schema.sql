@@ -30,6 +30,8 @@ CREATE TABLE courses (
     name_th TEXT,
     name_en TEXT,
     credits TEXT,
+    credit_units INTEGER,
+    credits_raw TEXT,
     description_th TEXT,
     description_en TEXT,
     category TEXT,

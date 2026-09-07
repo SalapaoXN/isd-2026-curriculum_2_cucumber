@@ -26,6 +26,7 @@ _NO_PREREQUISITE = {
 }
 _DOCUMENT_CATEGORIES = {"plan", "description", "unknown"}
 _FLEXIBLE_YEAR_SEMESTER = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*$")
+_CREDIT_UNITS = re.compile(r"^\s*(\d+)(?:\s*\([^)]*\))?\s*$")
 
 
 def _first_value(mapping: Mapping[str, Any], *names: str) -> Any:
@@ -63,6 +64,16 @@ def _flexible_year_semester_values(value: Any) -> tuple[int | None, int | None, 
     if match is None:
         return None, None, raw_value
     return int(match.group(1)), int(match.group(2)), raw_value
+
+
+def _credit_values(value: Any) -> tuple[int | None, str | None]:
+    raw_value = _as_text(value)
+    if raw_value is None:
+        return None, None
+    match = _CREDIT_UNITS.fullmatch(raw_value)
+    if match is None:
+        return None, raw_value
+    return int(match.group(1)), raw_value
 
 
 def _page_number(value: Any) -> int | None:
@@ -565,14 +576,18 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                 if existing_ids:
                     course_id = existing_ids[0]
                 else:
+                    credits_value = _member_value(
+                        raw_course.get("credits"), member_index, len(codes)
+                    )
+                    credit_units, credits_raw = _credit_values(credits_value)
                     cursor = connection.execute(
                         """
                         INSERT INTO courses (
                             catalog_id, course_code, course_code_normalized,
-                            name_th, name_en, credits,
+                            name_th, name_en, credits, credit_units, credits_raw,
                             description_th, description_en, category, course_type,
                             prerequisite_text, notes
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             catalog_id,
@@ -580,7 +595,9 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                             normalized_code,
                             _member_value(raw_course.get("name_th"), member_index, len(codes), True),
                             _member_value(raw_course.get("name_en"), member_index, len(codes), True),
-                            _member_value(raw_course.get("credits"), member_index, len(codes)),
+                            credits_value,
+                            credit_units,
+                            credits_raw,
                             raw_course.get("desc_th", raw_course.get("description_th")),
                             raw_course.get("desc_en", raw_course.get("description_en")),
                             raw_course.get("category"),

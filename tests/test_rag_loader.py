@@ -122,6 +122,38 @@ class RagLoaderTest(unittest.TestCase):
 
             self.assertEqual(alternatives, [("C400",), ("C500",)])
 
+    def test_credit_units_preserve_raw_credit_values(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [
+                {"code": "C100", "credits": "3(2-2-5)"},
+                {"code": "C200", "credits": "credit varies"},
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                credits = connection.execute(
+                    """
+                    SELECT course_code, credit_units, credits_raw
+                    FROM courses
+                    ORDER BY course_code
+                    """
+                ).fetchall()
+
+            self.assertEqual(
+                credits,
+                [("C100", 3, "3(2-2-5)"), ("C200", None, "credit varies")],
+            )
+
     def test_zero_year_and_semester_are_stored_as_null(self):
         document = {
             "program": "TEST",
