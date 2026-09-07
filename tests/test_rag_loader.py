@@ -133,6 +133,7 @@ class RagLoaderTest(unittest.TestCase):
                     "year": 0,
                     "semester": 0,
                     "flexible_year_semester": "4/1",
+                    "notes": "Placement note",
                 }
             ],
         }
@@ -148,11 +149,13 @@ class RagLoaderTest(unittest.TestCase):
             with closing(sqlite3.connect(database_path)) as connection:
                 placement = connection.execute(
                     """
-                    SELECT year_number, semester_number, notes
+                    SELECT year_number, semester_number,
+                           flexible_year_number, flexible_semester_number,
+                           flexible_year_semester_raw, notes
                     FROM plan_placements
                     """
                 ).fetchone()
-            self.assertEqual(placement, (None, None, "4/1"))
+            self.assertEqual(placement, (None, None, 4, 1, "4/1", "Placement note"))
 
     def test_loads_structured_records_without_mutating_source(self):
         document = {

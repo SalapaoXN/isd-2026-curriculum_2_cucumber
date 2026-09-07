@@ -25,6 +25,7 @@ _NO_PREREQUISITE = {
     "\u0e44\u0e21\u0e48\u0e21\u0e35",
 }
 _DOCUMENT_CATEGORIES = {"plan", "description", "unknown"}
+_FLEXIBLE_YEAR_SEMESTER = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*$")
 
 
 def _first_value(mapping: Mapping[str, Any], *names: str) -> Any:
@@ -52,6 +53,16 @@ def _as_integer(value: Any) -> int | None:
     if isinstance(value, str) and value.strip().lstrip("-").isdigit():
         return int(value.strip())
     return None
+
+
+def _flexible_year_semester_values(value: Any) -> tuple[int | None, int | None, str | None]:
+    raw_value = _as_text(value)
+    if raw_value is None:
+        return None, None, None
+    match = _FLEXIBLE_YEAR_SEMESTER.fullmatch(raw_value)
+    if match is None:
+        return None, None, raw_value
+    return int(match.group(1)), int(match.group(2)), raw_value
 
 
 def _page_number(value: Any) -> int | None:
@@ -612,14 +623,18 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                 year_number = None
             if semester_number == 0:
                 semester_number = None
+            flexible_year_number, flexible_semester_number, flexible_year_semester_raw = (
+                _flexible_year_semester_values(raw_course.get("flexible_year_semester"))
+            )
 
             placement_cursor = connection.execute(
                 """
                 INSERT INTO plan_placements (
                     plan_id, course_id, alternative_group_id, year_number,
-                    semester_number, category, requirement_type, placement_order,
-                    credits_override, raw_text, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    semester_number, flexible_year_number, flexible_semester_number,
+                    flexible_year_semester_raw, category, requirement_type,
+                    placement_order, credits_override, raw_text, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     plan_id,
@@ -627,12 +642,15 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                     group_id,
                     year_number,
                     semester_number,
+                    flexible_year_number,
+                    flexible_semester_number,
+                    flexible_year_semester_raw,
                     raw_course.get("category"),
                     raw_course.get("type", raw_course.get("course_type")),
                     placement_index,
                     raw_course.get("credits_override"),
                     raw_course.get("raw_text"),
-                    raw_course.get("flexible_year_semester"),
+                    raw_course.get("note", raw_course.get("notes")),
                 ),
             )
             placement_id = int(placement_cursor.lastrowid)
