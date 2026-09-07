@@ -90,7 +90,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--structured-provider",
         choices=("gemini",),
-        help="provider for structured SQL generation",
+        help="provider for structured SQL generation and final answers",
     )
     return parser.parse_args(argv)
 
@@ -101,8 +101,13 @@ def main(
     answer_model_callable: Callable[[str], str] | None = None,
 ) -> None:
     args = _parse_args(argv)
-    if structured_model_callable is None and args.structured_provider == "gemini":
-        structured_model_callable = make_gemini_callable()
+    if args.structured_provider == "gemini":
+        if structured_model_callable is None or answer_model_callable is None:
+            gemini_callable = make_gemini_callable()
+            if structured_model_callable is None:
+                structured_model_callable = gemini_callable
+            if answer_model_callable is None:
+                answer_model_callable = gemini_callable
     run_hybrid_demo(
         args.db_path,
         args.question,
