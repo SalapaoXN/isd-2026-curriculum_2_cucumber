@@ -7,6 +7,8 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
 from rag.answer import answer_question
 from rag.providers.gemini import make_gemini_callable
 from rag.retrieval.index import query_index
@@ -121,6 +123,7 @@ def main(
     structured_model_callable: Callable[[str], str] | None = None,
     answer_model_callable: Callable[[str], str] | None = None,
 ) -> None:
+    load_dotenv()
     args = _parse_args(argv)
     if args.structured_provider == "gemini":
         if structured_model_callable is None or answer_model_callable is None:

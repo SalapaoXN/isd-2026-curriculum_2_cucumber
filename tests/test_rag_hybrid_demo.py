@@ -83,10 +83,13 @@ class RagHybridDemoTest(unittest.TestCase):
 
     def test_cli_uses_one_gemini_callable_for_sql_and_final_answer(self):
         provider = lambda _prompt: "SELECT 1"
-        with patch("rag.hybrid_demo.make_gemini_callable", return_value=provider) as factory:
+        with patch("rag.hybrid_demo.load_dotenv") as load_dotenv, patch(
+            "rag.hybrid_demo.make_gemini_callable", return_value=provider
+        ) as factory:
             with patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
                 main(["curriculum.db", "How many credits?", "--structured-provider", "gemini"])
 
+        load_dotenv.assert_called_once_with()
         factory.assert_called_once_with()
         run_demo.assert_called_once_with(
             Path("curriculum.db"),
@@ -120,6 +123,21 @@ class RagHybridDemoTest(unittest.TestCase):
             top_k=5,
             answer_model_callable=answer_model_callable,
         )
+
+    def test_explicit_gemini_api_key_is_not_replaced_by_dotenv(self):
+        provider = lambda _prompt: "SELECT 1"
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "explicit-key"}):
+            with patch("rag.hybrid_demo.make_gemini_callable", return_value=provider):
+                with patch("rag.hybrid_demo.run_hybrid_demo"):
+                    main(
+                        [
+                            "curriculum.db",
+                            "How many credits?",
+                            "--structured-provider",
+                            "gemini",
+                        ]
+                    )
+            self.assertEqual(os.environ["GEMINI_API_KEY"], "explicit-key")
 
 
 if __name__ == "__main__":
