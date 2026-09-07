@@ -103,8 +103,12 @@ def _split_code_value(value: Any) -> list[str]:
     return [part.strip() for part in _ALTERNATIVE_SEPARATOR.split(text) if part.strip()]
 
 
+def _normalized_identity(value: str) -> str:
+    return value.strip().casefold()
+
+
 def _normalized_course_code(code: str) -> str:
-    return code.strip().casefold()
+    return _normalized_identity(code)
 
 
 def _course_codes(course: Mapping[str, Any]) -> list[str]:
@@ -505,6 +509,8 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
         plan_name = _as_text(_first_value(document, "plan_name")) or plan_code
     plan_version = _as_text(_first_value(plan_data, "version", "academic_year"))
     plan_notes = _as_text(_first_value(plan_data, "notes"))
+    program_code_normalized = _normalized_identity(program)
+    plan_key = _normalized_identity(plan_code or plan_name or "default") or "default"
 
     schema = SCHEMA_PATH.read_text(encoding="utf-8")
     with closing(sqlite3.connect(str(output_path))) as connection:
@@ -521,13 +527,33 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
         )
         catalog_id = int(catalog_cursor.lastrowid)
 
+        program_cursor = connection.execute(
+            """
+            INSERT INTO programs (
+                catalog_id, program_code, program_code_normalized
+            ) VALUES (?, ?, ?)
+            """,
+            (catalog_id, program, program_code_normalized),
+        )
+        program_id = int(program_cursor.lastrowid)
+
         plan_cursor = connection.execute(
             """
             INSERT INTO curriculum_plans (
-                catalog_id, program_code, plan_code, plan_name, version, notes
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                catalog_id, program_id, program_code, plan_key,
+                plan_code, plan_name, version, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (catalog_id, program, plan_code, plan_name, plan_version, plan_notes),
+            (
+                catalog_id,
+                program_id,
+                program,
+                plan_key,
+                plan_code,
+                plan_name,
+                plan_version,
+                plan_notes,
+            ),
         )
         plan_id = int(plan_cursor.lastrowid)
 

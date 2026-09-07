@@ -9,6 +9,62 @@ from rag.structured.loader import load_json_to_sqlite
 
 
 class RagLoaderTest(unittest.TestCase):
+    def test_program_and_plan_identity_are_normalized_and_unique(self):
+        document = {
+            "program": "  TEST-PROGRAM  ",
+            "plan": "  Regular  ",
+            "courses": [{"code": "C100"}],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                identity = connection.execute(
+                    """
+                    SELECT programs.program_code,
+                           programs.program_code_normalized,
+                           curriculum_plans.program_id,
+                           curriculum_plans.plan_code,
+                           curriculum_plans.plan_key
+                    FROM programs
+                    JOIN curriculum_plans
+                        ON curriculum_plans.program_id = programs.program_id
+                    """
+                ).fetchone()
+                catalog_id, program_id = connection.execute(
+                    "SELECT catalog_id, program_id FROM curriculum_plans"
+                ).fetchone()
+
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute(
+                        """
+                        INSERT INTO programs (
+                            catalog_id, program_code, program_code_normalized
+                        ) VALUES (?, ?, ?)
+                        """,
+                        (catalog_id, "OTHER", "test-program"),
+                    )
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute(
+                        """
+                        INSERT INTO curriculum_plans (
+                            catalog_id, program_id, program_code, plan_key
+                        ) VALUES (?, ?, ?, ?)
+                        """,
+                        (catalog_id, program_id, "TEST-PROGRAM", "regular"),
+                    )
+
+            self.assertEqual(
+                identity,
+                ("  TEST-PROGRAM  ", "test-program", program_id, "  Regular  ", "regular"),
+            )
+
     def test_repeated_course_code_uses_one_course_row_and_two_placements(self):
         document = {
             "program": "TEST",

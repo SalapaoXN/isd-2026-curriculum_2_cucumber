@@ -22,6 +22,14 @@ CREATE TABLE catalogs (
     notes TEXT
 );
 
+CREATE TABLE programs (
+    program_id INTEGER PRIMARY KEY,
+    catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
+    program_code TEXT NOT NULL,
+    program_code_normalized TEXT NOT NULL,
+    UNIQUE (catalog_id, program_code_normalized)
+);
+
 CREATE TABLE courses (
     course_id INTEGER PRIMARY KEY,
     catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
@@ -44,11 +52,14 @@ CREATE TABLE courses (
 CREATE TABLE curriculum_plans (
     plan_id INTEGER PRIMARY KEY,
     catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
+    program_id INTEGER NOT NULL REFERENCES programs(program_id),
     program_code TEXT NOT NULL,
+    plan_key TEXT NOT NULL,
     plan_code TEXT,
     plan_name TEXT,
     version TEXT,
-    notes TEXT
+    notes TEXT,
+    UNIQUE (catalog_id, program_id, plan_key)
 );
 
 CREATE TABLE alternative_course_groups (
@@ -184,6 +195,9 @@ CREATE INDEX courses_by_catalog_and_code
 
 CREATE INDEX plans_by_catalog
     ON curriculum_plans (catalog_id);
+
+CREATE INDEX programs_by_catalog_and_code
+    ON programs (catalog_id, program_code);
 
 CREATE INDEX placements_by_plan
     ON plan_placements (plan_id, year_number, semester_number, placement_order);
