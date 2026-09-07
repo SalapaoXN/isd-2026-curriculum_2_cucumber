@@ -45,7 +45,7 @@ class RagHybridDemoTest(unittest.TestCase):
         self.assertIn("Route: structured", printed)
         self.assertIn("Final Answer: คำตอบภาษาไทย", printed)
 
-    def test_prints_semantic_route_and_final_answer(self):
+    def test_semantic_route_uses_persistent_index_and_final_answer(self):
         response = {
             "route": "semantic",
             "result": [
@@ -60,15 +60,22 @@ class RagHybridDemoTest(unittest.TestCase):
         output = io.StringIO()
         answer_model_callable = lambda _prompt: "คำตอบจาก Gemini หน้า 12, 13"
 
-        with patch("rag.hybrid_demo.ask", return_value=response):
+        with patch("rag.hybrid_demo.ask") as ask_mock, patch(
+            "rag.hybrid_demo.query_index", return_value=response["result"]
+        ) as query_index_mock:
             with redirect_stdout(output):
                 run_hybrid_demo(
                     "curriculum.db",
                     "What topics?",
                     top_k=1,
                     answer_model_callable=answer_model_callable,
+                    source_json_path="curriculum.json",
                 )
 
+        ask_mock.assert_not_called()
+        query_index_mock.assert_called_once_with(
+            "curriculum.json", "What topics?", top_k=1
+        )
         printed = output.getvalue()
         self.assertIn("Question: What topics?", printed)
         self.assertIn("Route: semantic", printed)

@@ -9,7 +9,9 @@ from typing import Any
 
 from rag.answer import answer_question
 from rag.providers.gemini import make_gemini_callable
+from rag.retrieval.index import query_index
 from rag.qa import ask
+from rag.router import route_question
 
 
 def _print_source_pages(pages: Any) -> None:
@@ -53,14 +55,27 @@ def run_hybrid_demo(
     structured_model_callable: Callable[[str], str] | None = None,
     top_k: int = 5,
     answer_model_callable: Callable[[str], str] | None = None,
+    source_json_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run routed QA and print the grounded final answer."""
-    response = ask(
-        db_path,
-        question,
-        structured_model_callable=structured_model_callable,
-        top_k=top_k,
-    )
+    route = route_question(question)
+    if route == "structured":
+        response = ask(
+            db_path,
+            question,
+            structured_model_callable=structured_model_callable,
+            top_k=top_k,
+        )
+    else:
+        semantic_source_path = source_json_path
+        if semantic_source_path is None and Path(db_path).suffix.casefold() == ".json":
+            semantic_source_path = db_path
+        if semantic_source_path is None:
+            raise ValueError("source_json_path is required for semantic route")
+        response = {
+            "route": route,
+            "result": query_index(semantic_source_path, question, top_k=top_k),
+        }
     if response["route"] == "structured":
         final_answer = answer_question(
             question,
@@ -86,6 +101,12 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("db_path", type=Path)
     parser.add_argument("question")
+    parser.add_argument(
+        "--source-json",
+        dest="source_json_path",
+        type=Path,
+        help="consolidated JSON source for semantic indexing",
+    )
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument(
         "--structured-provider",
@@ -108,12 +129,17 @@ def main(
                 structured_model_callable = gemini_callable
             if answer_model_callable is None:
                 answer_model_callable = gemini_callable
+    run_kwargs: dict[str, Any] = {
+        "structured_model_callable": structured_model_callable,
+        "top_k": args.top_k,
+        "answer_model_callable": answer_model_callable,
+    }
+    if args.source_json_path is not None:
+        run_kwargs["source_json_path"] = args.source_json_path
     run_hybrid_demo(
         args.db_path,
         args.question,
-        structured_model_callable=structured_model_callable,
-        top_k=args.top_k,
-        answer_model_callable=answer_model_callable,
+        **run_kwargs,
     )
 
 
