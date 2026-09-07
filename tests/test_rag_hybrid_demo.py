@@ -92,7 +92,7 @@ class RagHybridDemoTest(unittest.TestCase):
             Path("curriculum.db"),
             "How many credits?",
             structured_model_callable=provider,
-            top_k=5,
+            top_k=10,
             answer_model_callable=provider,
         )
 
@@ -123,9 +123,52 @@ class RagHybridDemoTest(unittest.TestCase):
             Path("rag_artifacts/curriculum.db"),
             question,
             structured_model_callable=structured_model_callable,
-            top_k=5,
+            top_k=10,
             answer_model_callable=answer_model_callable,
         )
+
+    def test_cli_default_passes_nonempty_semantic_evidence_to_answer_model(self):
+        question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
+        database_path = Path("rag_artifacts/curriculum.db")
+        structured_model_callable = lambda _prompt: "SELECT 1"
+        prompts = []
+        semantic_result = [
+            {
+                "chunk_id": "course-244-placement-254-metadata",
+                "distance": 0.1,
+                "text": "06026243 ADVANCED DATABASE SYSTEMS",
+                "source_page": [12],
+            }
+        ]
+
+        def answer_model_callable(prompt):
+            prompts.append(prompt)
+            return "พบวิชา ADVANCED DATABASE SYSTEMS"
+
+        with patch("rag.hybrid_demo.load_dotenv"), patch(
+            "rag.hybrid_demo.canonical_source_paths",
+            return_value=[Path("consolidated_outputs/curriculum.json")],
+        ), patch(
+            "rag.hybrid_demo.ensure_index", return_value=database_path
+        ), patch(
+            "rag.hybrid_demo.ask",
+            return_value={"route": "semantic", "result": semantic_result},
+        ) as ask_mock:
+            with redirect_stdout(io.StringIO()):
+                main(
+                    [question],
+                    structured_model_callable=structured_model_callable,
+                    answer_model_callable=answer_model_callable,
+                )
+
+        ask_mock.assert_called_once_with(
+            database_path,
+            question,
+            structured_model_callable=structured_model_callable,
+            top_k=10,
+        )
+        self.assertEqual(len(prompts), 1)
+        self.assertIn("ADVANCED DATABASE SYSTEMS", prompts[0])
 
     def test_cli_automatically_wires_gemini_to_final_answer(self):
         provider = lambda _prompt: "คำตอบจาก Gemini"
@@ -138,7 +181,7 @@ class RagHybridDemoTest(unittest.TestCase):
             Path("curriculum.db"),
             "What topics?",
             structured_model_callable=provider,
-            top_k=5,
+            top_k=10,
             answer_model_callable=provider,
         )
 
@@ -163,7 +206,7 @@ class RagHybridDemoTest(unittest.TestCase):
             Path("curriculum.db"),
             "How many credits?",
             structured_model_callable=structured_model_callable,
-            top_k=5,
+            top_k=10,
             answer_model_callable=answer_model_callable,
         )
 

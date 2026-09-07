@@ -108,7 +108,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         action="append",
         help="consolidated JSON source for the unified database",
     )
-    parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--top-k", type=int, default=10)
     parser.add_argument(
         "--structured-provider",
         choices=("gemini",),
