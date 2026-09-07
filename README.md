@@ -8,6 +8,76 @@ Member:
 2. 67070063 Thanachin Chukiatchai >> Discord: วันลพ มีงบมาก
 3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
 
+## Quick Commands
+
+### Install Requirements
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### OCR and Extraction
+
+```bash
+python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
+python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+```
+
+### Merge / Consolidation
+
+```bash
+python merge_consecutive.py --prefix dsba --plan no_coop -p 26-32,317-344 -d 317-344
+```
+
+### Tests
+
+```bash
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+### Build Multi-Program Semantic Index
+
+```bash
+python -m rag.build_index \
+  consolidated_outputs/merged_it_coop_full.json \
+  consolidated_outputs/merged_it_no_coop_full.json \
+  consolidated_outputs/merged_dsba_coop_full.json \
+  consolidated_outputs/merged_dsba_no_coop_full.json \
+  consolidated_outputs/merged_bit_coop_full.json \
+  consolidated_outputs/merged_bit_no_coop_full.json \
+  consolidated_outputs/merged_ait_no_plan_full.json \
+  consolidated_outputs/merged_gened_gened_full.json
+```
+
+### Run Hybrid Demo
+
+```bash
+python -m rag.hybrid_demo "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
+```
+
+## RAG
+
+```text
+consolidated JSON
+  -> structured SQLite + semantic sqlite-vec
+  -> router
+  -> structured NL->SQL OR semantic retrieval
+  -> grounded final answer
+```
+
+The semantic index is persistent at `rag_artifacts/semantic.db`. Building it embeds curriculum data once; later semantic queries reuse the index and embed only the user question. A source JSON fingerprint or embedding-model change triggers a rebuild. Stored semantic chunks retain program, plan, and `source_page` metadata when available.
+
+## Environment
+
+Create a local `.env` file:
+
+```dotenv
+GEMINI_API_KEY=...
+HF_TOKEN=...
+```
+
+`.env` is local configuration and must not be committed. `HF_TOKEN` is optional; anonymous Hugging Face access remains available.
+
 
 ## Overview
 
