@@ -5,7 +5,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from rag.hybrid_demo import main, run_hybrid_demo
+from rag.hybrid_demo import DEFAULT_CURRICULUM_DB_PATH, main, run_hybrid_demo
 
 
 class RagHybridDemoTest(unittest.TestCase):
@@ -106,7 +106,7 @@ class RagHybridDemoTest(unittest.TestCase):
             "rag.hybrid_demo.canonical_source_paths", return_value=sources
         ), patch(
             "rag.hybrid_demo.ensure_index",
-            return_value=Path("rag_artifacts/curriculum.db"),
+            return_value=DEFAULT_CURRICULUM_DB_PATH,
         ) as ensure, patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
             main(
                 [question],
@@ -116,11 +116,11 @@ class RagHybridDemoTest(unittest.TestCase):
 
         ensure.assert_called_once_with(
             sources,
-            index_path=Path("rag_artifacts/curriculum.db"),
+            index_path=DEFAULT_CURRICULUM_DB_PATH,
         )
 
         run_demo.assert_called_once_with(
-            Path("rag_artifacts/curriculum.db"),
+            DEFAULT_CURRICULUM_DB_PATH,
             question,
             structured_model_callable=structured_model_callable,
             top_k=10,
@@ -129,7 +129,7 @@ class RagHybridDemoTest(unittest.TestCase):
 
     def test_cli_default_passes_nonempty_semantic_evidence_to_answer_model(self):
         question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
-        database_path = Path("rag_artifacts/curriculum.db")
+        database_path = DEFAULT_CURRICULUM_DB_PATH
         structured_model_callable = lambda _prompt: "SELECT 1"
         prompts = []
         semantic_result = [

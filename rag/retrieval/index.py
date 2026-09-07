@@ -18,12 +18,12 @@ from .embedder import EMBEDDING_DIMENSION, MODEL_NAME, embed_texts
 from .vector_store import insert_embeddings, nearest_neighbor_search
 
 
-ARTIFACTS_DIR = Path("rag_artifacts")
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ARTIFACTS_DIR = _PROJECT_ROOT / "cucumber_outputs" / "runtime"
 DEFAULT_INDEX_NAME = "curriculum.db"
 _METADATA_TABLE = "semantic_index_metadata"
 _SOURCES_TABLE = "semantic_index_sources"
 _CHUNKS_TABLE = "semantic_chunks"
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _CONSOLIDATED_OUTPUTS_DIR = _PROJECT_ROOT / "consolidated_outputs"
 _SOURCE_IDENTITY_FIELDS = (
     "source_document_key",
@@ -177,7 +177,9 @@ def _artifact_path(
     try:
         candidate.relative_to(artifact_root)
     except ValueError as error:
-        raise ValueError("curriculum database must be stored under rag_artifacts") from error
+        raise ValueError(
+            "curriculum database must be stored under cucumber_outputs/runtime"
+        ) from error
     if candidate == input_json_path.resolve():
         raise ValueError("input JSON and semantic index database paths must differ")
     return candidate

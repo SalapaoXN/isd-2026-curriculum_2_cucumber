@@ -10,7 +10,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 from rag.build_index import main as build_index_main
-from rag.retrieval.index import ensure_index, query_index
+from rag.retrieval.index import (
+    ARTIFACTS_DIR,
+    DEFAULT_INDEX_NAME,
+    ensure_index,
+    index_path_for_source,
+    query_index,
+)
 
 
 class RagIndexTest(unittest.TestCase):
@@ -37,12 +43,23 @@ class RagIndexTest(unittest.TestCase):
     def _fake_embeddings(texts):
         return [[0.0] * 384 for _ in texts]
 
+    def test_default_runtime_database_never_uses_legacy_artifacts(self):
+        project_root = Path(__file__).resolve().parents[1]
+        expected_directory = project_root / "cucumber_outputs" / "runtime"
+
+        self.assertEqual(ARTIFACTS_DIR, expected_directory)
+        self.assertEqual(
+            index_path_for_source(Path("curriculum.json")),
+            expected_directory / DEFAULT_INDEX_NAME,
+        )
+        self.assertNotIn("rag_artifacts", str(ARTIFACTS_DIR))
+
     def test_combines_sources_and_persists_chunk_metadata_and_fingerprints(self):
         with tempfile.TemporaryDirectory() as directory:
             directory_path = Path(directory)
             source_a = directory_path / "a.json"
             source_b = directory_path / "b.json"
-            artifact_dir = directory_path / "rag_artifacts"
+            artifact_dir = directory_path / "cucumber_outputs" / "runtime"
             self._write_source(source_a, "course A")
             self._write_source(source_b, "course B")
             with patch("rag.retrieval.index.insert_embeddings") as insert_embeddings:
@@ -117,7 +134,7 @@ class RagIndexTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             directory_path = Path(directory)
             source_path = directory_path / "curriculum.json"
-            artifact_dir = directory_path / "rag_artifacts"
+            artifact_dir = directory_path / "cucumber_outputs" / "runtime"
             self._write_source(source_path, "course")
             embed_calls = []
             chunks = [
@@ -170,7 +187,7 @@ class RagIndexTest(unittest.TestCase):
             directory_path = Path(directory)
             source_a = directory_path / "a.json"
             source_b = directory_path / "b.json"
-            artifact_dir = directory_path / "rag_artifacts"
+            artifact_dir = directory_path / "cucumber_outputs" / "runtime"
             self._write_source(source_a, "a")
             self._write_source(source_b, "b")
 
@@ -225,16 +242,17 @@ class RagIndexTest(unittest.TestCase):
             self._write_source(source_b, "b")
             output = io.StringIO()
 
+            default_index_path = ARTIFACTS_DIR / DEFAULT_INDEX_NAME
             with patch(
                 "rag.build_index.ensure_index",
-                return_value=Path("rag_artifacts/curriculum.db"),
+                return_value=default_index_path,
             ) as ensure:
                 with redirect_stdout(output):
                     build_index_main([str(source_a), str(source_b)])
 
             ensure.assert_called_once_with(
                 [source_a, source_b],
-                index_path=Path("rag_artifacts") / "curriculum.db",
+                index_path=default_index_path,
             )
 
     def test_cli_loads_dotenv_before_embedding_index_starts(self):
@@ -270,7 +288,7 @@ class RagIndexTest(unittest.TestCase):
                 "rag.build_index.load_dotenv", side_effect=dotenv_without_override
             ) as load_dotenv, patch(
                 "rag.build_index.ensure_index",
-                return_value=Path("rag_artifacts/curriculum.db"),
+                return_value=ARTIFACTS_DIR / DEFAULT_INDEX_NAME,
             ) as ensure:
                 with redirect_stdout(io.StringIO()):
                     build_index_main(["curriculum.json"])

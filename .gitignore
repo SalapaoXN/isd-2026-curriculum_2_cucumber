@@ -14,6 +14,11 @@ demo.db
 opencode.json
 project_snapshot.zip
 
+# generated runtime and future evaluation artifacts
+/cucumber_outputs/*
+!/cucumber_outputs/.gitkeep
+/rag_artifacts/
+
 # keep folder
 !inputs/.gitkeep
 !outputs/.gitkeep

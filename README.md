@@ -51,7 +51,7 @@ python -m rag.hybrid_demo "มีวิชาไหนเกี่ยวกั�
 
 ```text
 consolidated JSON
-  -> rag_artifacts/curriculum.db
+  -> cucumber_outputs/runtime/curriculum.db
      - relational curriculum tables and SQL views
      - persisted retrieval chunks and provenance metadata
      - sqlite-vec 384-d embeddings
@@ -59,7 +59,7 @@ consolidated JSON
   -> grounded final answer
 ```
 
-The unified database is persistent at `rag_artifacts/curriculum.db`. Building it loads all canonical consolidated files and embeds curriculum chunks once; later queries reuse the database and embed only the user question when vector matching is used. A source JSON fingerprint or embedding-model change triggers a rebuild. Stored chunks retain program, plan, provenance, and `source_page` metadata when available.
+The unified database is persistent at `cucumber_outputs/runtime/curriculum.db`. Building it loads all canonical consolidated files and embeds curriculum chunks once; later queries reuse the database and embed only the user question when vector matching is used. A source JSON fingerprint or embedding-model change triggers a rebuild. Stored chunks retain program, plan, provenance, and `source_page` metadata when available.
 
 ## Environment
 
