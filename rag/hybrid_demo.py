@@ -7,6 +7,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
+from rag.answer import answer_question
 from rag.providers.gemini import make_gemini_callable
 from rag.qa import ask
 
@@ -51,19 +52,33 @@ def run_hybrid_demo(
     question: str,
     structured_model_callable: Callable[[str], str] | None = None,
     top_k: int = 5,
+    answer_model_callable: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
-    """Run routed QA and print the selected route and raw result."""
+    """Run routed QA and print the grounded final answer."""
     response = ask(
         db_path,
         question,
         structured_model_callable=structured_model_callable,
         top_k=top_k,
     )
-    print(f"selected route: {response['route']}")
     if response["route"] == "structured":
-        _print_structured_result(response["result"])
+        final_answer = answer_question(
+            question,
+            response["route"],
+            structured_result=response["result"],
+            answer_model_callable=answer_model_callable,
+        )
     else:
-        _print_semantic_results(response["result"])
+        final_answer = answer_question(
+            question,
+            response["route"],
+            semantic_chunks=response["result"],
+            answer_model_callable=answer_model_callable,
+        )
+    response["final_answer"] = final_answer
+    print(f"Question: {question}")
+    print(f"Route: {response['route']}")
+    print(f"Final Answer: {final_answer}")
     return response
 
 
@@ -83,6 +98,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def main(
     argv: Sequence[str] | None = None,
     structured_model_callable: Callable[[str], str] | None = None,
+    answer_model_callable: Callable[[str], str] | None = None,
 ) -> None:
     args = _parse_args(argv)
     if structured_model_callable is None and args.structured_provider == "gemini":
@@ -92,6 +108,7 @@ def main(
         args.question,
         structured_model_callable=structured_model_callable,
         top_k=args.top_k,
+        answer_model_callable=answer_model_callable,
     )
 
 
