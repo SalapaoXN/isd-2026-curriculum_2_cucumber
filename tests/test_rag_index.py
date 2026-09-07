@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
@@ -257,6 +258,48 @@ class RagIndexTest(unittest.TestCase):
                 [source_a, source_b],
                 index_path=Path("rag_artifacts") / "semantic.db",
             )
+
+    def test_cli_loads_dotenv_before_embedding_index_starts(self):
+        events = []
+
+        def fake_load_dotenv():
+            events.append("dotenv")
+            os.environ["HF_TOKEN"] = "dotenv-token"
+
+        def fake_ensure_index(_paths, index_path):
+            events.append(os.environ.get("HF_TOKEN"))
+            return Path(index_path)
+
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("HF_TOKEN", None)
+            with patch(
+                "rag.build_index.load_dotenv", side_effect=fake_load_dotenv
+            ) as load_dotenv, patch(
+                "rag.build_index.ensure_index", side_effect=fake_ensure_index
+            ):
+                with redirect_stdout(io.StringIO()):
+                    build_index_main(["curriculum.json"])
+
+        load_dotenv.assert_called_once_with()
+        self.assertEqual(events, ["dotenv", "dotenv-token"])
+
+    def test_cli_preserves_explicit_hf_token(self):
+        def dotenv_without_override():
+            os.environ.setdefault("HF_TOKEN", "dotenv-token")
+
+        with patch.dict(os.environ, {"HF_TOKEN": "explicit-token"}):
+            with patch(
+                "rag.build_index.load_dotenv", side_effect=dotenv_without_override
+            ) as load_dotenv, patch(
+                "rag.build_index.ensure_index",
+                return_value=Path("rag_artifacts/semantic.db"),
+            ) as ensure:
+                with redirect_stdout(io.StringIO()):
+                    build_index_main(["curriculum.json"])
+
+            load_dotenv.assert_called_once_with()
+            self.assertEqual(os.environ["HF_TOKEN"], "explicit-token")
+            ensure.assert_called_once()
 
 
 if __name__ == "__main__":

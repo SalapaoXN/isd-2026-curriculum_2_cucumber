@@ -7,6 +7,8 @@ import glob
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from rag.retrieval.index import ARTIFACTS_DIR, ensure_index
 
 
@@ -29,6 +31,7 @@ def build_index(
 
 
 def main(argv: Sequence[str] | None = None) -> None:
+    load_dotenv()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input_json_paths", nargs="+", help="consolidated curriculum JSON files")
     args = parser.parse_args(argv)
