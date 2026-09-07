@@ -61,7 +61,7 @@ class RagHybridDemoTest(unittest.TestCase):
         answer_model_callable = lambda _prompt: "คำตอบจาก Gemini หน้า 12, 13"
 
         with patch("rag.hybrid_demo.ask") as ask_mock, patch(
-            "rag.hybrid_demo.query_index", return_value=response["result"]
+            "rag.hybrid_demo.search_index", return_value=response["result"]
         ) as query_index_mock:
             with redirect_stdout(output):
                 run_hybrid_demo(
@@ -69,12 +69,11 @@ class RagHybridDemoTest(unittest.TestCase):
                     "What topics?",
                     top_k=1,
                     answer_model_callable=answer_model_callable,
-                    source_json_path="curriculum.json",
                 )
 
         ask_mock.assert_not_called()
         query_index_mock.assert_called_once_with(
-            "curriculum.json", "What topics?", top_k=1
+            Path("rag_artifacts/semantic.db"), "What topics?", top_k=1
         )
         printed = output.getvalue()
         self.assertIn("Question: What topics?", printed)
@@ -97,6 +96,26 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=provider,
             top_k=5,
             answer_model_callable=provider,
+        )
+
+    def test_cli_accepts_question_without_structured_db_path(self):
+        structured_model_callable = lambda _prompt: "SELECT 1"
+        answer_model_callable = lambda _prompt: "คำตอบ"
+        question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
+
+        with patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
+            main(
+                [question],
+                structured_model_callable=structured_model_callable,
+                answer_model_callable=answer_model_callable,
+            )
+
+        run_demo.assert_called_once_with(
+            Path("demo.db"),
+            question,
+            structured_model_callable=structured_model_callable,
+            top_k=5,
+            answer_model_callable=answer_model_callable,
         )
 
     def test_cli_automatically_wires_gemini_to_final_answer(self):

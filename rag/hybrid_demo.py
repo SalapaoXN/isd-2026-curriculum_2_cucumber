@@ -11,9 +11,12 @@ from dotenv import load_dotenv
 
 from rag.answer import answer_question
 from rag.providers.gemini import make_gemini_callable
-from rag.retrieval.index import query_index
+from rag.retrieval.index import ARTIFACTS_DIR, search_index
 from rag.qa import ask
 from rag.router import route_question
+
+SEMANTIC_INDEX_PATH = ARTIFACTS_DIR / "semantic.db"
+DEFAULT_STRUCTURED_DB_PATH = Path("demo.db")
 
 
 def _print_source_pages(pages: Any) -> None:
@@ -69,14 +72,9 @@ def run_hybrid_demo(
             top_k=top_k,
         )
     else:
-        semantic_source_path = source_json_path
-        if semantic_source_path is None and Path(db_path).suffix.casefold() == ".json":
-            semantic_source_path = db_path
-        if semantic_source_path is None:
-            raise ValueError("source_json_path is required for semantic route")
         response = {
             "route": route,
-            "result": query_index(semantic_source_path, question, top_k=top_k),
+            "result": search_index(SEMANTIC_INDEX_PATH, question, top_k=top_k),
         }
     if response["route"] == "structured":
         final_answer = answer_question(
@@ -101,8 +99,8 @@ def run_hybrid_demo(
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("db_path", type=Path)
-    parser.add_argument("question")
+    parser.add_argument("first_argument")
+    parser.add_argument("second_argument", nargs="?")
     parser.add_argument(
         "--source-json",
         dest="source_json_path",
@@ -115,7 +113,14 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         choices=("gemini",),
         help="provider for structured SQL generation and final answers",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.second_argument is None:
+        args.db_path = DEFAULT_STRUCTURED_DB_PATH
+        args.question = args.first_argument
+    else:
+        args.db_path = Path(args.first_argument)
+        args.question = args.second_argument
+    return args
 
 
 def main(
