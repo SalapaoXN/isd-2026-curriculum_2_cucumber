@@ -2,6 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE provenance (
     provenance_id INTEGER PRIMARY KEY,
+    source_document_key TEXT NOT NULL,
     program TEXT,
     source_filename TEXT,
     source_page INTEGER,

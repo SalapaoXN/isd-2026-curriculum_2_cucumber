@@ -65,6 +65,98 @@ class RagLoaderTest(unittest.TestCase):
                 ("  TEST-PROGRAM  ", "test-program", program_id, "  Regular  ", "regular"),
             )
 
+    def test_provenance_has_document_key_and_preserves_source_fields(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [{"code": "C100"}],
+            "source_provenance": [
+                {
+                    "source_filename": "curriculum.pdf",
+                    "source_page": 7,
+                    "document_page": 3,
+                    "document_category": "plan",
+                    "source_uri": "file:///curriculum.pdf",
+                    "source_locator": "page=7",
+                    "excerpt": "C100",
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                provenance = connection.execute(
+                    """
+                    SELECT source_document_key, source_filename, source_page,
+                           document_page, document_category, source_uri,
+                           source_locator, excerpt
+                    FROM provenance
+                    """
+                ).fetchone()
+
+            self.assertEqual(
+                provenance,
+                (
+                    "curriculum.pdf",
+                    "curriculum.pdf",
+                    7,
+                    3,
+                    "plan",
+                    "file:///curriculum.pdf",
+                    "page=7",
+                    "C100",
+                ),
+            )
+
+    def test_production_provenance_without_source_identity_fails_clearly(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [{"code": "C100"}],
+            "source_provenance": [
+                {"source_page": 7, "document_category": "plan"}
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "no usable source identity"):
+                load_json_to_sqlite(input_path, database_path)
+
+    def test_unknown_provenance_without_source_identity_is_retained(self):
+        document = {
+            "program": "TEST",
+            "plan": "regular",
+            "courses": [{"code": "C100"}],
+            "source_provenance": [{"source_page": 7}],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_path = directory_path / "curriculum.json"
+            database_path = directory_path / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                provenance = connection.execute(
+                    "SELECT source_document_key, source_page FROM provenance"
+                ).fetchone()
+
+            self.assertEqual(provenance, ("unknown", 7))
+
     def test_repeated_course_code_uses_one_course_row_and_two_placements(self):
         document = {
             "program": "TEST",

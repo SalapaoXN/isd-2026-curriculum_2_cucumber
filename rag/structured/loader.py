@@ -27,6 +27,17 @@ _NO_PREREQUISITE = {
 _DOCUMENT_CATEGORIES = {"plan", "description", "unknown"}
 _FLEXIBLE_YEAR_SEMESTER = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*$")
 _CREDIT_UNITS = re.compile(r"^\s*(\d+)(?:\s*\([^)]*\))?\s*$")
+_SOURCE_IDENTITY_FIELDS = (
+    "source_document_key",
+    "document_key",
+    "document_id",
+    "source_filename",
+    "document_filename",
+    "source_uri",
+    "source_locator",
+    "source",
+)
+_PRODUCTION_DOCUMENT_CATEGORIES = {"plan", "description"}
 
 
 def _first_value(mapping: Mapping[str, Any], *names: str) -> Any:
@@ -74,6 +85,14 @@ def _credit_values(value: Any) -> tuple[int | None, str | None]:
     if match is None:
         return None, raw_value
     return int(match.group(1)), raw_value
+
+
+def _source_document_key(entry: Mapping[str, Any]) -> str | None:
+    for field in _SOURCE_IDENTITY_FIELDS:
+        value = _as_text(entry.get(field))
+        if value is not None and value.strip():
+            return value.strip()
+    return None
 
 
 def _page_number(value: Any) -> int | None:
@@ -144,12 +163,23 @@ def _provenance_entries(value: Any) -> list[Mapping[str, Any]]:
 
 
 def _normalized_provenance(
-    entry: Mapping[str, Any], default_program: str | None
+    entry: Mapping[str, Any],
+    default_program: str | None,
+    default_source_document_key: str | None,
 ) -> tuple[Any, ...]:
     category = _as_text(entry.get("document_category")) or "unknown"
     if category not in _DOCUMENT_CATEGORIES:
         raise ValueError(f"unsupported document category: {category!r}")
+    source_document_key = _source_document_key(entry) or default_source_document_key
+    if source_document_key is None:
+        if category in _PRODUCTION_DOCUMENT_CATEGORIES:
+            raise ValueError(
+                "production provenance record has no usable source identity "
+                "(source_document_key, source_filename, source_uri, or source_locator)"
+            )
+        source_document_key = "unknown"
     return (
+        source_document_key,
         _as_text(entry.get("program")) or default_program,
         _as_text(entry.get("source_filename")),
         _page_number(entry.get("source_page")),
@@ -165,19 +195,22 @@ def _provenance_ids(
     connection: sqlite3.Connection,
     value: Any,
     default_program: str | None,
+    default_source_document_key: str | None,
     cache: dict[tuple[Any, ...], int],
 ) -> list[tuple[int, int]]:
     references: list[tuple[int, int]] = []
     for source_order, entry in enumerate(_provenance_entries(value)):
-        normalized = _normalized_provenance(entry, default_program)
+        normalized = _normalized_provenance(
+            entry, default_program, default_source_document_key
+        )
         provenance_id = cache.get(normalized)
         if provenance_id is None:
             cursor = connection.execute(
                 """
                 INSERT INTO provenance (
-                    program, source_filename, source_page, document_page,
+                    source_document_key, program, source_filename, source_page, document_page,
                     document_category, source_uri, source_locator, excerpt
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 normalized,
             )
@@ -511,6 +544,7 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
     plan_notes = _as_text(_first_value(plan_data, "notes"))
     program_code_normalized = _normalized_identity(program)
     plan_key = _normalized_identity(plan_code or plan_name or "default") or "default"
+    default_source_document_key = _source_document_key(document)
 
     schema = SCHEMA_PATH.read_text(encoding="utf-8")
     with closing(sqlite3.connect(str(output_path))) as connection:
@@ -562,6 +596,7 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
             connection,
             document.get("source_provenance"),
             program,
+            default_source_document_key,
             provenance_cache,
         )
         _link_catalog_and_plan(connection, catalog_id, plan_id, root_references)
@@ -580,7 +615,11 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                 else document.get("source_provenance")
             )
             references = _provenance_ids(
-                connection, raw_provenance, program, provenance_cache
+                connection,
+                raw_provenance,
+                program,
+                default_source_document_key,
+                provenance_cache,
             )
             _link_catalog_and_plan(connection, catalog_id, plan_id, references)
 
