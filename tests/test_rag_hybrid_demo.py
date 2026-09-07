@@ -42,7 +42,6 @@ class RagHybridDemoTest(unittest.TestCase):
         )
         printed = output.getvalue()
         self.assertIn("Question: How many credits?", printed)
-        self.assertIn("Route: structured", printed)
         self.assertIn("Final Answer: คำตอบภาษาไทย", printed)
 
     def test_semantic_route_uses_persistent_index_and_final_answer(self):
@@ -60,9 +59,7 @@ class RagHybridDemoTest(unittest.TestCase):
         output = io.StringIO()
         answer_model_callable = lambda _prompt: "คำตอบจาก Gemini หน้า 12, 13"
 
-        with patch("rag.hybrid_demo.ask") as ask_mock, patch(
-            "rag.hybrid_demo.search_index", return_value=response["result"]
-        ) as query_index_mock:
+        with patch("rag.hybrid_demo.ask", return_value=response) as ask_mock:
             with redirect_stdout(output):
                 run_hybrid_demo(
                     "curriculum.db",
@@ -71,13 +68,14 @@ class RagHybridDemoTest(unittest.TestCase):
                     answer_model_callable=answer_model_callable,
                 )
 
-        ask_mock.assert_not_called()
-        query_index_mock.assert_called_once_with(
-            Path("rag_artifacts/semantic.db"), "What topics?", top_k=1
+        ask_mock.assert_called_once_with(
+            "curriculum.db",
+            "What topics?",
+            structured_model_callable=None,
+            top_k=1,
         )
         printed = output.getvalue()
         self.assertIn("Question: What topics?", printed)
-        self.assertIn("Route: semantic", printed)
         self.assertIn("Final Answer: คำตอบจาก Gemini หน้า 12, 13", printed)
 
     def test_cli_uses_one_gemini_callable_for_sql_and_final_answer(self):
@@ -103,15 +101,26 @@ class RagHybridDemoTest(unittest.TestCase):
         answer_model_callable = lambda _prompt: "คำตอบ"
         question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
 
-        with patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
+        sources = [Path("consolidated_outputs/curriculum.json")]
+        with patch(
+            "rag.hybrid_demo.canonical_source_paths", return_value=sources
+        ), patch(
+            "rag.hybrid_demo.ensure_index",
+            return_value=Path("rag_artifacts/curriculum.db"),
+        ) as ensure, patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
             main(
                 [question],
                 structured_model_callable=structured_model_callable,
                 answer_model_callable=answer_model_callable,
             )
 
+        ensure.assert_called_once_with(
+            sources,
+            index_path=Path("rag_artifacts/curriculum.db"),
+        )
+
         run_demo.assert_called_once_with(
-            Path("demo.db"),
+            Path("rag_artifacts/curriculum.db"),
             question,
             structured_model_callable=structured_model_callable,
             top_k=5,

@@ -99,6 +99,36 @@ class RagAnswerTest(unittest.TestCase):
         self.assertEqual(len(prompts), 1)
         self.assertIn('"source_page":[33]', prompts[0])
 
+    def test_combined_evidence_is_grounded_in_sql_and_chunks(self):
+        prompts = []
+
+        def answer_model(prompt):
+            prompts.append(prompt)
+            return "คำตอบจากหลักฐานร่วม"
+
+        answer = answer_question(
+            "วิชาฐานข้อมูลปี 1 เรียนเรื่องอะไร",
+            "hybrid",
+            structured_result={
+                "columns": ["course_code", "source_page"],
+                "rows": [("C100", 12)],
+            },
+            semantic_chunks=[
+                {
+                    "chunk_id": "chunk-1",
+                    "text": "C100 ครอบคลุมฐานข้อมูล",
+                    "source_page": [13],
+                }
+            ],
+            answer_model_callable=answer_model,
+        )
+
+        self.assertEqual(answer, "คำตอบจากหลักฐานร่วม")
+        self.assertEqual(len(prompts), 1)
+        self.assertIn("ผลลัพธ์จาก SQL และชิ้นส่วนหลักฐาน", prompts[0])
+        self.assertIn('"sql_rows":[{"course_code":"C100","source_page":12}]', prompts[0])
+        self.assertIn("C100 ครอบคลุมฐานข้อมูล", prompts[0])
+
     def test_injected_callable_is_used(self):
         calls = []
 
@@ -139,7 +169,6 @@ class RagAnswerTest(unittest.TestCase):
 
         self.assertEqual(response["final_answer"], "คำตอบจากหลักฐาน")
         self.assertIn("Question: C100 คืออะไร", output.getvalue())
-        self.assertIn("Route: semantic", output.getvalue())
         self.assertIn("Final Answer: คำตอบจากหลักฐาน", output.getvalue())
 
 

@@ -279,7 +279,7 @@ def _build_chunks(connection: sqlite3.Connection) -> list[dict[str, Any]]:
             placements.credits_override,
             placements.raw_text,
             placements.notes,
-            placements.notes AS flexible_year_semester,
+            placements.flexible_year_semester_raw AS flexible_year_semester,
             plans.program_code,
             plans.plan_code,
             groups.group_key,

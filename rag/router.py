@@ -1,4 +1,4 @@
-"""Deterministic routing between structured and semantic retrieval."""
+"""Deterministic selection of curriculum retrieval capabilities."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import re
 from typing import Literal
 
 
-Route = Literal["structured", "semantic"]
+Route = Literal["structured", "semantic", "hybrid"]
 
 _STRUCTURED_TERMS = (
     "count",
@@ -68,15 +68,19 @@ _THAI_COUNT_RE = re.compile(r"กี่(?!ย)")
 
 
 def route_question(question: str) -> Route:
-    """Route a question using keyword rules only."""
+    """Select SQL, vector, or combined retrieval using keyword rules only."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
 
     normalized = f" {question.casefold().strip()} "
     structured = any(term in normalized for term in _STRUCTURED_TERMS if term != "กี่")
-    if structured or _THAI_COUNT_RE.search(normalized):
+    structured = structured or _THAI_COUNT_RE.search(normalized) is not None
+    semantic = any(term in normalized for term in _SEMANTIC_TERMS)
+    if structured and semantic:
+        return "hybrid"
+    if structured:
         return "structured"
-    if any(term in normalized for term in _SEMANTIC_TERMS):
+    if semantic:
         return "semantic"
     return "semantic"
 

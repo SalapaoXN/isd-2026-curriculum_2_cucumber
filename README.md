@@ -13,7 +13,7 @@ Member:
 ### Install Requirements
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt -r requirements-rag.txt
 ```
 
 ### OCR and Extraction
@@ -35,18 +35,10 @@ python merge_consecutive.py --prefix dsba --plan no_coop -p 26-32,317-344 -d 317
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-### Build Multi-Program Semantic Index
+### Build Unified Curriculum Database
 
 ```bash
-python -m rag.build_index \
-  consolidated_outputs/merged_it_coop_full.json \
-  consolidated_outputs/merged_it_no_coop_full.json \
-  consolidated_outputs/merged_dsba_coop_full.json \
-  consolidated_outputs/merged_dsba_no_coop_full.json \
-  consolidated_outputs/merged_bit_coop_full.json \
-  consolidated_outputs/merged_bit_no_coop_full.json \
-  consolidated_outputs/merged_ait_no_plan_full.json \
-  consolidated_outputs/merged_gened_gened_full.json
+python -m rag.build_index
 ```
 
 ### Run Hybrid Demo
@@ -59,13 +51,15 @@ python -m rag.hybrid_demo "มีวิชาไหนเกี่ยวกั�
 
 ```text
 consolidated JSON
-  -> structured SQLite + semantic sqlite-vec
-  -> router
-  -> structured NL->SQL OR semantic retrieval
+  -> rag_artifacts/curriculum.db
+     - relational curriculum tables and SQL views
+     - persisted retrieval chunks and provenance metadata
+     - sqlite-vec 384-d embeddings
+  -> retrieval selects SQL, vector similarity, or both
   -> grounded final answer
 ```
 
-The semantic index is persistent at `rag_artifacts/semantic.db`. Building it embeds curriculum data once; later semantic queries reuse the index and embed only the user question. A source JSON fingerprint or embedding-model change triggers a rebuild. Stored semantic chunks retain program, plan, and `source_page` metadata when available.
+The unified database is persistent at `rag_artifacts/curriculum.db`. Building it loads all canonical consolidated files and embeds curriculum chunks once; later queries reuse the database and embed only the user question when vector matching is used. A source JSON fingerprint or embedding-model change triggers a rebuild. Stored chunks retain program, plan, provenance, and `source_page` metadata when available.
 
 ## Environment
 
@@ -103,7 +97,7 @@ Use Python `3.10–3.13`; Python `3.11` is the preferred baseline.
 ```powershell
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt -r requirements-rag.txt
 ```
 
 ### macOS / Linux
@@ -111,7 +105,7 @@ python -m pip install -r requirements.txt
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt -r requirements-rag.txt
 ```
 
 EasyOCR uses Thai and English (`['th', 'en']`). Missing models may be downloaded on first use and reused from the local EasyOCR cache.

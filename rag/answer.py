@@ -1,4 +1,4 @@
-"""Grounded final-answer generation for routed curriculum QA."""
+"""Grounded final-answer generation for unified curriculum QA."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 
 
 EMPTY_ANSWER = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
-_ROUTES = {"structured", "semantic"}
+_ROUTES = {"structured", "semantic", "hybrid"}
 
 
 def _structured_rows(structured_result: Any) -> list[Any]:
@@ -86,10 +86,15 @@ def _evidence(
     route: str,
     structured_result: Any,
     semantic_chunks: Any,
-) -> list[Any]:
+) -> Any:
     if route == "structured":
         return _structured_rows(structured_result)
-    return _semantic_chunks(semantic_chunks)
+    if route == "semantic":
+        return _semantic_chunks(semantic_chunks)
+    return {
+        "sql_rows": _structured_rows(structured_result),
+        "retrieved_chunks": _semantic_chunks(semantic_chunks),
+    }
 
 
 def build_grounded_prompt(
@@ -98,15 +103,18 @@ def build_grounded_prompt(
     structured_result: Any = None,
     semantic_chunks: Any = None,
 ) -> str:
-    """Build a compact prompt containing only the selected route's evidence."""
+    """Build a compact prompt containing only retrieved curriculum evidence."""
     normalized_route = route.casefold() if isinstance(route, str) else route
     evidence = _evidence(normalized_route, structured_result, semantic_chunks)
     if normalized_route == "structured":
         evidence_label = "ผลลัพธ์จาก SQL (ใช้ค่าที่มีอยู่แล้วเท่านั้น)"
         rules = "ห้ามนับ รวม คำนวณ หรือสร้างค่าตัวเลขใหม่จากแถวผลลัพธ์"
-    else:
+    elif normalized_route == "semantic":
         evidence_label = "ชิ้นส่วนหลักฐานที่ค้นคืนได้"
         rules = "ตอบจากข้อความในชิ้นส่วนหลักฐานเท่านั้น"
+    else:
+        evidence_label = "ผลลัพธ์จาก SQL และชิ้นส่วนหลักฐานที่ค้นคืนได้"
+        rules = "ใช้ค่าจาก SQL และข้อความในชิ้นส่วนหลักฐานเท่านั้น"
 
     serialized_evidence = json.dumps(
         evidence, ensure_ascii=False, separators=(",", ":"), default=str
@@ -134,15 +142,19 @@ def answer_question(
     semantic_chunks: Any = None,
     answer_model_callable: Callable[[str], str] | None = None,
 ) -> str:
-    """Return a final answer grounded only in structured or semantic evidence."""
+    """Return a final answer grounded only in retrieved curriculum evidence."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
     if not isinstance(route, str) or route.casefold() not in _ROUTES:
-        raise ValueError("route must be structured or semantic")
+        raise ValueError("route must be structured, semantic, or hybrid")
 
     normalized_route = route.casefold()
     evidence = _evidence(normalized_route, structured_result, semantic_chunks)
-    if not evidence:
+    if normalized_route == "hybrid":
+        has_evidence = bool(evidence["sql_rows"] or evidence["retrieved_chunks"])
+    else:
+        has_evidence = bool(evidence)
+    if not has_evidence:
         return EMPTY_ANSWER
     if not callable(answer_model_callable):
         raise ValueError("answer_model_callable is required when evidence is present")

@@ -34,10 +34,6 @@ class RagIndexTest(unittest.TestCase):
         )
 
     @staticmethod
-    def _fake_loader(_source: Path, output: Path) -> None:
-        output.touch()
-
-    @staticmethod
     def _fake_embeddings(texts):
         return [[0.0] * 384 for _ in texts]
 
@@ -49,31 +45,7 @@ class RagIndexTest(unittest.TestCase):
             artifact_dir = directory_path / "rag_artifacts"
             self._write_source(source_a, "course A")
             self._write_source(source_b, "course B")
-            build_calls = []
-
-            def fake_build(_database):
-                source_name = "a" if len(build_calls) == 0 else "b"
-                build_calls.append(source_name)
-                return [
-                    {
-                        "chunk_id": f"chunk-{source_name}",
-                        "text": f"text {source_name}",
-                        "course_code": "C100",
-                        "provenance": [
-                            {
-                                "source_document_key": f"{source_name}.pdf",
-                                "source_page": 7,
-                            }
-                        ],
-                    }
-                ]
-
-            with patch(
-                "rag.retrieval.index.load_json_to_sqlite",
-                side_effect=self._fake_loader,
-            ) as loader, patch(
-                "rag.retrieval.index.build_chunks", side_effect=fake_build
-            ), patch("rag.retrieval.index.insert_embeddings") as insert_embeddings:
+            with patch("rag.retrieval.index.insert_embeddings") as insert_embeddings:
                 index_path = ensure_index(
                     [source_b, source_a],
                     artifact_dir=artifact_dir,
@@ -81,10 +53,8 @@ class RagIndexTest(unittest.TestCase):
                     embedding_model_identity="model-a",
                 )
 
-            self.assertEqual(index_path, artifact_dir.resolve() / "semantic.db")
+            self.assertEqual(index_path, artifact_dir.resolve() / "curriculum.db")
             self.assertTrue(index_path.is_file())
-            self.assertEqual(loader.call_count, 2)
-            self.assertEqual(build_calls, ["a", "b"])
             insert_embeddings.assert_called_once()
 
             with closing(sqlite3.connect(index_path)) as connection:
@@ -106,6 +76,15 @@ class RagIndexTest(unittest.TestCase):
                 chunks = connection.execute(
                     "SELECT chunk_id, chunk_json, source_file_identity FROM semantic_chunks"
                 ).fetchall()
+                relational_counts = connection.execute(
+                    """
+                    SELECT
+                        (SELECT COUNT(*) FROM catalogs),
+                        (SELECT COUNT(*) FROM courses),
+                        (SELECT COUNT(*) FROM curriculum_plans),
+                        (SELECT COUNT(*) FROM plan_placements)
+                    """
+                ).fetchone()
 
             self.assertEqual(len(source_rows), 2)
             self.assertEqual(
@@ -115,16 +94,23 @@ class RagIndexTest(unittest.TestCase):
                     for path in (source_a, source_b)
                 ],
             )
-            self.assertEqual(metadata[1:], ("model-a", 384, 2))
-            self.assertEqual(len(chunks), 2)
+            self.assertEqual(metadata[1:], ("model-a", 384, 4))
+            self.assertEqual(len(chunks), 4)
+            self.assertEqual(relational_counts, (2, 2, 2, 2))
             stored = {row[0]: json.loads(row[1]) for row in chunks}
-            self.assertEqual(stored["chunk-a"]["program"], "PROGRAM")
-            self.assertEqual(stored["chunk-a"]["plan"], "regular")
-            self.assertEqual(stored["chunk-a"]["course_code"], "C100")
-            self.assertEqual(stored["chunk-a"]["source_page"], [7])
-            self.assertEqual(stored["chunk-a"]["source_document_key"], "a.pdf")
+            chunk_a = next(
+                chunk
+                for chunk in stored.values()
+                if chunk["source_filename"] == "a.json"
+                and chunk["chunk_type"] == "metadata"
+            )
+            self.assertEqual(chunk_a["program"], "PROGRAM")
+            self.assertEqual(chunk_a["plan"], "regular")
+            self.assertEqual(chunk_a["course_code"], "C100")
+            self.assertEqual(chunk_a["source_page"], [7])
+            self.assertEqual(chunk_a["source_document_key"], "a.pdf")
             self.assertEqual(
-                stored["chunk-a"]["source_file_identity"], str(source_a.resolve())
+                chunk_a["source_file_identity"], str(source_a.resolve())
             )
 
     def test_valid_index_is_reused_and_query_embeds_only_question(self):
@@ -148,9 +134,6 @@ class RagIndexTest(unittest.TestCase):
                 return [[0.0] * 384 for _ in values]
 
             with patch(
-                "rag.retrieval.index.load_json_to_sqlite",
-                side_effect=self._fake_loader,
-            ) as loader, patch(
                 "rag.retrieval.index.build_chunks", return_value=chunks
             ) as build_chunks, patch(
                 "rag.retrieval.index.insert_embeddings"
@@ -179,7 +162,6 @@ class RagIndexTest(unittest.TestCase):
                 embed_calls,
                 [["indexed curriculum content"], ["คำถามแรก"], ["คำถามที่สอง"]],
             )
-            self.assertEqual(loader.call_count, 1)
             self.assertEqual(build_chunks.call_count, 1)
             self.assertEqual(insert_embeddings.call_count, 1)
 
@@ -193,11 +175,8 @@ class RagIndexTest(unittest.TestCase):
             self._write_source(source_b, "b")
 
             with patch(
-                "rag.retrieval.index.load_json_to_sqlite",
-                side_effect=self._fake_loader,
-            ) as loader, patch(
                 "rag.retrieval.index.build_chunks",
-                return_value=[{"chunk_id": "chunk", "text": "text"}],
+                return_value=[{"chunk_id": "chunk", "text": "text", "course_id": 1}],
             ) as build_chunks, patch(
                 "rag.retrieval.index.insert_embeddings"
             ) as insert_embeddings:
@@ -234,8 +213,7 @@ class RagIndexTest(unittest.TestCase):
                     vector_dimension=128,
                 )
 
-            self.assertEqual(loader.call_count, 8)
-            self.assertEqual(build_chunks.call_count, 8)
+            self.assertEqual(build_chunks.call_count, 4)
             self.assertEqual(insert_embeddings.call_count, 4)
 
     def test_build_index_cli_accepts_multiple_sources(self):
@@ -249,14 +227,14 @@ class RagIndexTest(unittest.TestCase):
 
             with patch(
                 "rag.build_index.ensure_index",
-                return_value=Path("rag_artifacts/semantic.db"),
+                return_value=Path("rag_artifacts/curriculum.db"),
             ) as ensure:
                 with redirect_stdout(output):
                     build_index_main([str(source_a), str(source_b)])
 
             ensure.assert_called_once_with(
                 [source_a, source_b],
-                index_path=Path("rag_artifacts") / "semantic.db",
+                index_path=Path("rag_artifacts") / "curriculum.db",
             )
 
     def test_cli_loads_dotenv_before_embedding_index_starts(self):
@@ -292,7 +270,7 @@ class RagIndexTest(unittest.TestCase):
                 "rag.build_index.load_dotenv", side_effect=dotenv_without_override
             ) as load_dotenv, patch(
                 "rag.build_index.ensure_index",
-                return_value=Path("rag_artifacts/semantic.db"),
+                return_value=Path("rag_artifacts/curriculum.db"),
             ) as ensure:
                 with redirect_stdout(io.StringIO()):
                     build_index_main(["curriculum.json"])

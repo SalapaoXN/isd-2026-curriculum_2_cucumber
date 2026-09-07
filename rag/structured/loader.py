@@ -6,9 +6,9 @@ import json
 import re
 import sqlite3
 from collections import defaultdict
-from contextlib import closing
+from contextlib import closing, nullcontext
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
@@ -499,8 +499,15 @@ def _load_prerequisites(
             )
 
 
-def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path) -> None:
-    """Load one consolidated JSON file into a new structured SQLite database."""
+def _load_json_to_sqlite(
+    input_json_path: str | Path,
+    output_db_path: str | Path,
+    *,
+    connection: sqlite3.Connection | None = None,
+    initialize_schema: bool = True,
+    provenance_cache: dict[tuple[Any, ...], int] | None = None,
+) -> int:
+    """Load one consolidated document into an initialized SQLite database."""
     input_path = Path(input_json_path)
     output_path = Path(output_db_path)
 
@@ -547,9 +554,15 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
     default_source_document_key = _source_document_key(document)
 
     schema = SCHEMA_PATH.read_text(encoding="utf-8")
-    with closing(sqlite3.connect(str(output_path))) as connection:
+    connection_context = (
+        closing(sqlite3.connect(str(output_path)))
+        if connection is None
+        else nullcontext(connection)
+    )
+    with connection_context as connection:
         connection.execute("PRAGMA foreign_keys = ON")
-        connection.executescript(schema)
+        if initialize_schema:
+            connection.executescript(schema)
 
         catalog_cursor = connection.execute(
             """
@@ -591,7 +604,8 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
         )
         plan_id = int(plan_cursor.lastrowid)
 
-        provenance_cache: dict[tuple[Any, ...], int] = {}
+        if provenance_cache is None:
+            provenance_cache = {}
         root_references = _provenance_ids(
             connection,
             document.get("source_provenance"),
@@ -757,3 +771,33 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
 
         _load_prerequisites(connection, records, code_to_ids, catalog_id, plan_id)
         connection.commit()
+    return catalog_id
+
+
+def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path) -> None:
+    """Load one consolidated JSON file into a new structured SQLite database."""
+    _load_json_to_sqlite(input_json_path, output_db_path)
+
+
+def load_jsons_to_sqlite(
+    input_json_paths: Iterable[str | Path],
+    output_db_path: str | Path,
+) -> list[int]:
+    """Load consolidated JSON files into one structured SQLite database."""
+    input_paths = [Path(input_path) for input_path in input_json_paths]
+    if not input_paths:
+        raise ValueError("at least one consolidated JSON input is required")
+
+    output_path = Path(output_db_path)
+    provenance_cache: dict[tuple[Any, ...], int] = {}
+    with closing(sqlite3.connect(str(output_path))) as connection:
+        return [
+            _load_json_to_sqlite(
+                input_path,
+                output_path,
+                connection=connection,
+                initialize_schema=index == 0,
+                provenance_cache=provenance_cache,
+            )
+            for index, input_path in enumerate(input_paths)
+        ]

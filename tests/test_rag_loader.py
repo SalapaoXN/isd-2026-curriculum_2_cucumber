@@ -5,7 +5,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from rag.structured.loader import load_json_to_sqlite
+from rag.structured.loader import load_json_to_sqlite, load_jsons_to_sqlite
 
 
 class RagLoaderTest(unittest.TestCase):
@@ -491,6 +491,74 @@ class RagLoaderTest(unittest.TestCase):
                     source_pages,
                     [(10,), (11,), (12,), (13,), (14,)],
                 )
+
+    def test_loads_multiple_documents_into_one_database_with_views(self):
+        documents = (
+            {
+                "program": "IT",
+                "plan": "coop",
+                "courses": [{"code": "C100", "year": 1, "semester": 1}],
+                "source_provenance": [
+                    {
+                        "source_filename": "it-coop.pdf",
+                        "source_page": 10,
+                        "document_category": "plan",
+                    }
+                ],
+            },
+            {
+                "program": "IT",
+                "plan": "no_coop",
+                "courses": [{"code": "C100", "year": 1, "semester": 1}],
+                "source_provenance": [
+                    {
+                        "source_filename": "it-no-coop.pdf",
+                        "source_page": 20,
+                        "document_category": "plan",
+                    }
+                ],
+            },
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_paths = []
+            for index, document in enumerate(documents):
+                input_path = directory_path / f"curriculum-{index}.json"
+                input_path.write_text(json.dumps(document), encoding="utf-8")
+                input_paths.append(input_path)
+            database_path = directory_path / "curriculum.db"
+
+            catalog_ids = load_jsons_to_sqlite(input_paths, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                counts = connection.execute(
+                    """
+                    SELECT
+                        (SELECT COUNT(*) FROM catalogs),
+                        (SELECT COUNT(*) FROM courses),
+                        (SELECT COUNT(*) FROM curriculum_plans),
+                        (SELECT COUNT(*) FROM plan_placements)
+                    """
+                ).fetchone()
+                view_rows = connection.execute(
+                    """
+                    SELECT program, plan, course_code
+                    FROM v_plan_courses
+                    ORDER BY plan
+                    """
+                ).fetchall()
+                pages = connection.execute(
+                    "SELECT source_page FROM provenance ORDER BY source_page"
+                ).fetchall()
+
+        self.assertEqual(len(catalog_ids), 2)
+        self.assertEqual(counts, (2, 2, 2, 2))
+        self.assertEqual(
+            view_rows,
+            [("IT", "coop", "C100"), ("IT", "no_coop", "C100")],
+        )
+        self.assertEqual(pages, [(10,), (20,)])
 
 
 if __name__ == "__main__":

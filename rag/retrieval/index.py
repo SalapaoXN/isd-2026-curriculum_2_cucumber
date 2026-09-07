@@ -1,18 +1,17 @@
-"""Persistent semantic index construction and querying."""
+"""Persistent unified curriculum database construction and vector querying."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import sqlite3
-import tempfile
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping
 from contextlib import closing
 from pathlib import Path
 from typing import Any
 
-from rag.structured.loader import load_json_to_sqlite
+from rag.structured.loader import load_jsons_to_sqlite
 
 from .chunks import build_chunks
 from .embedder import EMBEDDING_DIMENSION, MODEL_NAME, embed_texts
@@ -20,10 +19,12 @@ from .vector_store import insert_embeddings, nearest_neighbor_search
 
 
 ARTIFACTS_DIR = Path("rag_artifacts")
-DEFAULT_INDEX_NAME = "semantic.db"
+DEFAULT_INDEX_NAME = "curriculum.db"
 _METADATA_TABLE = "semantic_index_metadata"
 _SOURCES_TABLE = "semantic_index_sources"
 _CHUNKS_TABLE = "semantic_chunks"
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_CONSOLIDATED_OUTPUTS_DIR = _PROJECT_ROOT / "consolidated_outputs"
 _SOURCE_IDENTITY_FIELDS = (
     "source_document_key",
     "document_key",
@@ -34,6 +35,31 @@ _SOURCE_IDENTITY_FIELDS = (
     "source_locator",
     "source",
 )
+_RELATIONAL_TABLES = {
+    "catalogs",
+    "programs",
+    "courses",
+    "curriculum_plans",
+    "plan_placements",
+    "prerequisites",
+    "provenance",
+}
+_RELATIONAL_VIEWS = {
+    "v_plan_courses",
+    "v_semester_credits",
+    "v_prerequisite_edges",
+}
+
+
+def canonical_source_paths() -> list[Path]:
+    """Return every canonical consolidated curriculum document in the repository."""
+    paths = sorted(_CONSOLIDATED_OUTPUTS_DIR.glob("merged_*_full.json"))
+    if not paths:
+        raise FileNotFoundError(
+            "no canonical consolidated curriculum JSON files found in "
+            f"{_CONSOLIDATED_OUTPUTS_DIR}"
+        )
+    return paths
 
 
 def _as_text(value: Any) -> str | None:
@@ -128,7 +154,7 @@ def index_path_for_source(
     input_json_paths: str | Path | Iterable[str | Path],
     artifact_dir: str | Path = ARTIFACTS_DIR,
 ) -> Path:
-    """Return the shared semantic index path for one or more source files."""
+    """Return the shared curriculum database path for one or more source files."""
     return Path(artifact_dir) / DEFAULT_INDEX_NAME
 
 
@@ -151,7 +177,7 @@ def _artifact_path(
     try:
         candidate.relative_to(artifact_root)
     except ValueError as error:
-        raise ValueError("semantic index database must be stored under rag_artifacts") from error
+        raise ValueError("curriculum database must be stored under rag_artifacts") from error
     if candidate == input_json_path.resolve():
         raise ValueError("input JSON and semantic index database paths must differ")
     return candidate
@@ -288,6 +314,15 @@ def _write_index_contents(
         connection.commit()
 
 
+def _has_unified_schema(connection: sqlite3.Connection) -> bool:
+    rows = connection.execute(
+        "SELECT name, type FROM sqlite_master WHERE type IN ('table', 'view')"
+    ).fetchall()
+    tables = {name for name, kind in rows if kind == "table"}
+    views = {name for name, kind in rows if kind == "view"}
+    return _RELATIONAL_TABLES <= tables and _RELATIONAL_VIEWS <= views
+
+
 def _is_valid_index(
     database_path: Path,
     source_rows: list[tuple[str, str, str]],
@@ -298,6 +333,8 @@ def _is_valid_index(
         return False
     try:
         with closing(sqlite3.connect(str(database_path))) as connection:
+            if not _has_unified_schema(connection):
+                return False
             metadata = connection.execute(
                 f"""
                 SELECT source_json_fingerprint, embedding_model_identity,
@@ -350,29 +387,33 @@ def _one_or_many(values: Iterable[Any]) -> Any:
 def _enrich_chunks(
     database_path: Path,
     chunks: Iterable[Mapping[str, Any]],
-    input_path: Path,
-    default_program: str,
-    default_plan: str,
-    default_source_document_key: str | None,
+    source_by_catalog_id: Mapping[int, tuple[Path, str, str, str | None]],
 ) -> list[dict[str, Any]]:
     course_codes: dict[int, str] = {}
-    placement_metadata: dict[int, tuple[Any, Any, int | None, int | None, list[str]]] = {}
+    course_catalog_ids: dict[int, int] = {}
+    placement_metadata: dict[
+        int, tuple[Any, Any, int | None, int | None, int, list[str]]
+    ] = {}
     placements_by_course: defaultdict[int, list[tuple[Any, Any]]] = defaultdict(list)
     group_codes: defaultdict[int, list[str]] = defaultdict(list)
+    group_catalog_ids: dict[int, int] = {}
     provenance_keys: dict[int, str] = {}
     try:
         with closing(sqlite3.connect(str(database_path))) as connection:
-            course_codes = {
-                int(row[0]): row[1]
-                for row in connection.execute("SELECT course_id, course_code FROM courses")
-            }
+            for row in connection.execute(
+                "SELECT course_id, catalog_id, course_code FROM courses"
+            ):
+                course_id = int(row[0])
+                course_catalog_ids[course_id] = int(row[1])
+                course_codes[course_id] = row[2]
             for row in connection.execute(
                 """
                 SELECT placements.placement_id,
                        programs.program_code,
                        COALESCE(plans.plan_code, plans.plan_key),
                        placements.course_id,
-                       placements.alternative_group_id
+                       placements.alternative_group_id,
+                       plans.catalog_id
                 FROM plan_placements AS placements
                 JOIN curriculum_plans AS plans
                     ON plans.plan_id = placements.plan_id
@@ -392,6 +433,7 @@ def _enrich_chunks(
                     row[2],
                     course_id,
                     group_id,
+                    int(row[5]),
                     codes,
                 )
             for row in connection.execute(
@@ -404,6 +446,13 @@ def _enrich_chunks(
                 """
             ):
                 group_codes[int(row[0])].append(row[1])
+            group_catalog_ids = {
+                int(row[0]): int(row[1])
+                for row in connection.execute(
+                    "SELECT alternative_group_id, catalog_id "
+                    "FROM alternative_course_groups"
+                )
+            }
             provenance_keys = {
                 int(row[0]): row[1]
                 for row in connection.execute(
@@ -414,10 +463,31 @@ def _enrich_chunks(
     except sqlite3.Error:
         pass
 
-    source_file_identity = str(input_path)
+    def source_context(chunk: Mapping[str, Any]) -> tuple[Path, str, str, str | None]:
+        catalog_id: int | None = None
+        placement_id = chunk.get("placement_id")
+        course_id = chunk.get("course_id")
+        group_id = chunk.get("alternative_group_id")
+        if placement_id is not None:
+            placement = placement_metadata.get(int(placement_id))
+            if placement is not None:
+                catalog_id = placement[4]
+        if catalog_id is None and course_id is not None:
+            catalog_id = course_catalog_ids.get(int(course_id))
+        if catalog_id is None and group_id is not None:
+            catalog_id = group_catalog_ids.get(int(group_id))
+        if catalog_id is not None and catalog_id in source_by_catalog_id:
+            return source_by_catalog_id[catalog_id]
+        if len(source_by_catalog_id) == 1:
+            return next(iter(source_by_catalog_id.values()))
+        raise ValueError("cannot determine a source document for a retrieval chunk")
+
     enriched: list[dict[str, Any]] = []
     for original_chunk in chunks:
         chunk = dict(original_chunk)
+        input_path, default_program, default_plan, default_source_document_key = (
+            source_context(chunk)
+        )
         references = [
             dict(reference)
             for reference in chunk.get("provenance", [])
@@ -451,7 +521,7 @@ def _enrich_chunks(
             placement = placement_metadata[int(placement_id)]
             program_values.append(placement[0])
             plan_values.append(placement[1])
-            course_code_values.extend(placement[4])
+            course_code_values.extend(placement[5])
             if placement[3] is not None:
                 course_code_values.extend(group_codes[int(placement[3])])
         elif course_id is not None:
@@ -479,7 +549,7 @@ def _enrich_chunks(
                 source_pages.append(existing_pages)
 
         chunk["original_chunk_id"] = chunk.get("chunk_id")
-        chunk["source_file_identity"] = source_file_identity
+        chunk["source_file_identity"] = str(input_path)
         chunk["source_filename"] = input_path.name
         chunk["program"] = _one_or_many(program_values)
         chunk["plan"] = _one_or_many(plan_values)
@@ -517,7 +587,7 @@ def ensure_index(
     embedding_model_identity: str | None = None,
     vector_dimension: int | None = None,
 ) -> Path:
-    """Build or reuse one persistent semantic index for all source JSON files."""
+    """Build or reuse the unified curriculum database for source JSON files."""
     source_paths = _source_paths(input_json_paths)
     input_for_path = source_paths[0]
     database_path = _artifact_path(input_for_path, index_path, artifact_dir)
@@ -531,29 +601,18 @@ def ensure_index(
     if _is_valid_index(database_path, source_rows, model_identity, dimension):
         return database_path
 
-    all_chunks: list[dict[str, Any]] = []
-    with tempfile.TemporaryDirectory() as temporary_directory:
-        temporary_root = Path(temporary_directory)
-        for source_index, source_path in enumerate(source_paths):
-            temporary_database = temporary_root / f"source-{source_index}.db"
-            load_json_to_sqlite(source_path, temporary_database)
-            program, plan, document_key = _document_metadata(source_path)
-            all_chunks.extend(
-                _enrich_chunks(
-                    temporary_database,
-                    build_chunks(temporary_database),
-                    source_path,
-                    program,
-                    plan,
-                    document_key,
-                )
-            )
-
-    _make_unique_chunk_ids(all_chunks)
     _remove_database(database_path)
-    with closing(sqlite3.connect(str(database_path))) as connection:
-        _create_index_tables(connection)
-        connection.commit()
+    catalog_ids = load_jsons_to_sqlite(source_paths, database_path)
+    source_by_catalog_id = {
+        catalog_id: (source_path, *_document_metadata(source_path))
+        for source_path, catalog_id in zip(source_paths, catalog_ids, strict=True)
+    }
+    all_chunks = _enrich_chunks(
+        database_path,
+        build_chunks(database_path),
+        source_by_catalog_id,
+    )
+    _make_unique_chunk_ids(all_chunks)
 
     embed = _embedder(embed_texts_callable)
     embeddings = embed(chunk["text"] for chunk in all_chunks)
@@ -642,7 +701,7 @@ def query_index(
     embedding_model_identity: str | None = None,
     vector_dimension: int | None = None,
 ) -> list[dict[str, Any]]:
-    """Ensure a source index is current, then search it with one query embedding."""
+    """Ensure the curriculum database is current, then search it by embedding."""
     database_path = ensure_index(
         input_json_paths,
         index_path=index_path,
@@ -663,6 +722,7 @@ def query_index(
 __all__ = [
     "ARTIFACTS_DIR",
     "DEFAULT_INDEX_NAME",
+    "canonical_source_paths",
     "ensure_index",
     "index_path_for_source",
     "query_index",
