@@ -38,7 +38,7 @@ def _hidden_states(model_output: Any) -> Any:
     return model_output[0]
 
 
-def embed_texts(texts: Iterable[str]) -> np.ndarray:
+def embed_texts(texts: Iterable[str], batch_size: int = 32) -> np.ndarray:
     """Embed texts in input order using attention-mask mean pooling."""
     if isinstance(texts, str):
         batch = [texts]
@@ -47,22 +47,28 @@ def embed_texts(texts: Iterable[str]) -> np.ndarray:
 
     if not batch:
         return np.empty((0, EMBEDDING_DIMENSION), dtype=np.float32)
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
 
     tokenizer, model, torch = _components()
-    encoded = tokenizer(
-        batch,
-        padding=True,
-        truncation=True,
-        return_tensors="pt",
-    )
+    embeddings = []
+    for start in range(0, len(batch), batch_size):
+        encoded = tokenizer(
+            batch[start : start + batch_size],
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+        )
 
-    with torch.no_grad():
-        model_output = model(**encoded)
+        with torch.no_grad():
+            model_output = model(**encoded)
 
-    token_embeddings = _hidden_states(model_output)
-    mask = encoded["attention_mask"].unsqueeze(-1).expand(token_embeddings.size()).float()
-    pooled = (token_embeddings * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1e-9)
-    return np.asarray(pooled.detach().cpu().numpy(), dtype=np.float32)
+        token_embeddings = _hidden_states(model_output)
+        mask = encoded["attention_mask"].unsqueeze(-1).expand(token_embeddings.size()).float()
+        pooled = (token_embeddings * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1e-9)
+        embeddings.append(np.asarray(pooled.detach().cpu().numpy(), dtype=np.float32))
+
+    return np.concatenate(embeddings, axis=0)
 
 
 __all__ = ["EMBEDDING_DIMENSION", "MODEL_NAME", "embed_texts"]
