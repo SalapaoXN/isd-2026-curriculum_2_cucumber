@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from rag.build_index import main as build_index_main
+from rag.retrieval import index as index_module
 from rag.retrieval.index import (
     ARTIFACTS_DIR,
     DEFAULT_INDEX_NAME,
@@ -104,12 +105,15 @@ class RagIndexTest(unittest.TestCase):
                 ).fetchone()
 
             self.assertEqual(len(source_rows), 2)
+            expected_source_rows = []
+            for path in (source_a, source_b):
+                fingerprint = hashlib.sha256(path.read_bytes()).hexdigest()
+                expected_source_rows.append(
+                    (f"content:{fingerprint}", path.name, fingerprint)
+                )
             self.assertEqual(
-                [row[2] for row in source_rows],
-                [
-                    hashlib.sha256(path.read_bytes()).hexdigest()
-                    for path in (source_a, source_b)
-                ],
+                source_rows,
+                sorted(expected_source_rows),
             )
             self.assertEqual(metadata[1:], ("model-a", 384, 4))
             self.assertEqual(len(chunks), 4)
@@ -127,8 +131,100 @@ class RagIndexTest(unittest.TestCase):
             self.assertEqual(chunk_a["source_page"], [7])
             self.assertEqual(chunk_a["source_document_key"], "a.pdf")
             self.assertEqual(
-                chunk_a["source_file_identity"], str(source_a.resolve())
+                chunk_a["source_file_identity"],
+                f"content:{hashlib.sha256(source_a.read_bytes()).hexdigest()}",
             )
+
+    def test_source_identity_is_portable(self):
+        project_root = Path(__file__).resolve().parents[1]
+        canonical_path = (
+            project_root
+            / "outputs"
+            / "consolidated"
+            / "ait"
+            / "full"
+            / "merged_ait_no_plan_full.json"
+        )
+
+        with patch("rag.retrieval.index._PROJECT_ROOT", project_root):
+            canonical_identity = index_module._source_identity(
+                canonical_path, "fingerprint"
+            )
+            path_style_identity = index_module._source_identity(
+                Path(str(canonical_path).replace("\\", "/")), "fingerprint"
+            )
+
+        self.assertEqual(
+            canonical_identity,
+            "repo:outputs/consolidated/ait/full/merged_ait_no_plan_full.json",
+        )
+        self.assertEqual(path_style_identity, canonical_identity)
+        self.assertNotIn("\\", canonical_identity)
+
+        with tempfile.TemporaryDirectory() as directory:
+            first = Path(directory) / "first" / "source.json"
+            second = Path(directory) / "second" / "source.json"
+            fingerprint = "a" * 64
+            self.assertEqual(
+                index_module._source_identity(first, fingerprint),
+                "content:" + fingerprint,
+            )
+            self.assertEqual(
+                index_module._source_identity(second, fingerprint),
+                "content:" + fingerprint,
+            )
+
+    def test_reuses_index_when_repository_root_moves(self):
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            root_a = directory_path / "repo-a"
+            root_b = directory_path / "repo-b"
+            relative_source = Path(
+                "outputs",
+                "consolidated",
+                "program",
+                "full",
+                "merged_program_full.json",
+            )
+            source_a = root_a / relative_source
+            source_b = root_b / relative_source
+            source_a.parent.mkdir(parents=True)
+            source_b.parent.mkdir(parents=True)
+            self._write_source(source_a, "course")
+            self._write_source(source_b, "course")
+            artifact_dir = root_a / "cucumber_outputs" / "runtime"
+
+            with patch(
+                "rag.retrieval.index._PROJECT_ROOT", root_a
+            ), patch(
+                "rag.retrieval.index.build_chunks",
+                return_value=[{"chunk_id": "chunk", "text": "text", "course_id": 1}],
+            ) as build_chunks, patch(
+                "rag.retrieval.index.insert_embeddings"
+            ) as insert_embeddings:
+                ensure_index(
+                    source_a,
+                    artifact_dir=artifact_dir,
+                    embed_texts_callable=self._fake_embeddings,
+                    embedding_model_identity="model-a",
+                )
+                with patch("rag.retrieval.index._PROJECT_ROOT", root_b):
+                    ensure_index(
+                        source_b,
+                        artifact_dir=artifact_dir,
+                        embed_texts_callable=self._fake_embeddings,
+                        embedding_model_identity="model-a",
+                    )
+
+            self.assertEqual(build_chunks.call_count, 1)
+            self.assertEqual(insert_embeddings.call_count, 1)
+            with closing(sqlite3.connect(artifact_dir / DEFAULT_INDEX_NAME)) as connection:
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT source_file_identity FROM semantic_index_sources"
+                    ).fetchone()[0],
+                    "repo:outputs/consolidated/program/full/merged_program_full.json",
+                )
 
     def test_valid_index_is_reused_and_query_embeds_only_question(self):
         with tempfile.TemporaryDirectory() as directory:

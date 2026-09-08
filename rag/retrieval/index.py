@@ -120,6 +120,15 @@ def _source_fingerprint(input_path: Path) -> str:
     return hashlib.sha256(input_path.read_bytes()).hexdigest()
 
 
+def _source_identity(input_path: Path, fingerprint: str) -> str:
+    resolved_path = input_path.resolve()
+    try:
+        relative_path = resolved_path.relative_to(_PROJECT_ROOT.resolve())
+    except ValueError:
+        return f"content:{fingerprint}"
+    return f"repo:{relative_path.as_posix()}"
+
+
 def _source_document_key(entry: Mapping[str, Any]) -> str | None:
     for field in _SOURCE_IDENTITY_FIELDS:
         value = _as_text(entry.get(field))
@@ -242,7 +251,7 @@ def _source_metadata_rows(
                 "source_filename": filename,
                 "source_json_fingerprint": fingerprint,
             }
-            for identity, filename, fingerprint in source_rows
+            for identity, filename, fingerprint in sorted(source_rows)
         ],
         ensure_ascii=False,
         sort_keys=True,
@@ -359,6 +368,7 @@ def _is_valid_index(
             ).fetchone()[0]
     except sqlite3.Error:
         return False
+    expected_source_rows = sorted(source_rows)
     return (
         metadata
         == (
@@ -367,7 +377,7 @@ def _is_valid_index(
             vector_dimension,
             chunk_count,
         )
-        and stored_sources == source_rows
+        and stored_sources == expected_source_rows
     )
 
 
@@ -389,7 +399,7 @@ def _one_or_many(values: Iterable[Any]) -> Any:
 def _enrich_chunks(
     database_path: Path,
     chunks: Iterable[Mapping[str, Any]],
-    source_by_catalog_id: Mapping[int, tuple[Path, str, str, str | None]],
+    source_by_catalog_id: Mapping[int, tuple[Path, str, str, str | None, str]],
 ) -> list[dict[str, Any]]:
     course_codes: dict[int, str] = {}
     course_catalog_ids: dict[int, int] = {}
@@ -465,7 +475,9 @@ def _enrich_chunks(
     except sqlite3.Error:
         pass
 
-    def source_context(chunk: Mapping[str, Any]) -> tuple[Path, str, str, str | None]:
+    def source_context(
+        chunk: Mapping[str, Any],
+    ) -> tuple[Path, str, str, str | None, str]:
         catalog_id: int | None = None
         placement_id = chunk.get("placement_id")
         course_id = chunk.get("course_id")
@@ -487,7 +499,13 @@ def _enrich_chunks(
     enriched: list[dict[str, Any]] = []
     for original_chunk in chunks:
         chunk = dict(original_chunk)
-        input_path, default_program, default_plan, default_source_document_key = (
+        (
+            input_path,
+            default_program,
+            default_plan,
+            default_source_document_key,
+            source_identity,
+        ) = (
             source_context(chunk)
         )
         references = [
@@ -551,7 +569,7 @@ def _enrich_chunks(
                 source_pages.append(existing_pages)
 
         chunk["original_chunk_id"] = chunk.get("chunk_id")
-        chunk["source_file_identity"] = str(input_path)
+        chunk["source_file_identity"] = source_identity
         chunk["source_filename"] = input_path.name
         chunk["program"] = _one_or_many(program_values)
         chunk["plan"] = _one_or_many(plan_values)
@@ -596,9 +614,10 @@ def ensure_index(
     model_identity, dimension = _effective_settings(
         embedding_model_identity, vector_dimension
     )
-    source_rows = [
-        (str(path), path.name, _source_fingerprint(path)) for path in source_paths
-    ]
+    source_rows = []
+    for path in source_paths:
+        fingerprint = _source_fingerprint(path)
+        source_rows.append((_source_identity(path, fingerprint), path.name, fingerprint))
 
     if _is_valid_index(database_path, source_rows, model_identity, dimension):
         return database_path
@@ -606,8 +625,14 @@ def ensure_index(
     _remove_database(database_path)
     catalog_ids = load_jsons_to_sqlite(source_paths, database_path)
     source_by_catalog_id = {
-        catalog_id: (source_path, *_document_metadata(source_path))
-        for source_path, catalog_id in zip(source_paths, catalog_ids, strict=True)
+        catalog_id: (
+            source_path,
+            *_document_metadata(source_path),
+            source_row[0],
+        )
+        for source_path, catalog_id, source_row in zip(
+            source_paths, catalog_ids, source_rows, strict=True
+        )
     }
     all_chunks = _enrich_chunks(
         database_path,
