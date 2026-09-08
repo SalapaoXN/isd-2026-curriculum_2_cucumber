@@ -17,9 +17,10 @@ _SEMANTIC_CHUNKS_TABLE = "semantic_chunks"
 _EXPLICIT_COURSE_CODE = re.compile(r"(?<![0-9])([0-9]{8})(?![0-9])")
 
 
-def _explicit_course_code(query_text: str) -> str | None:
-    match = _EXPLICIT_COURSE_CODE.search(query_text)
-    return match.group(1) if match is not None else None
+def _explicit_course_codes(query_text: str) -> tuple[str, ...]:
+    return tuple(
+        dict.fromkeys(match.group(1) for match in _EXPLICIT_COURSE_CODE.finditer(query_text))
+    )
 
 
 def _chunk_course_codes(chunk: dict[str, Any]) -> list[str]:
@@ -33,7 +34,7 @@ def _chunk_course_codes(chunk: dict[str, Any]) -> list[str]:
 
 def _course_code_candidates(
     db_path: str | Path,
-    course_code: str,
+    course_codes: tuple[str, ...],
 ) -> tuple[set[str], int]:
     try:
         with closing(sqlite3.connect(str(db_path))) as connection:
@@ -44,9 +45,10 @@ def _course_code_candidates(
         return set(), 0
 
     candidate_ids: set[str] = set()
+    requested_codes = set(course_codes)
     for chunk_id, chunk_json in rows:
         chunk = json.loads(chunk_json)
-        if course_code in _chunk_course_codes(chunk):
+        if requested_codes.intersection(_chunk_course_codes(chunk)):
             candidate_ids.add(chunk_id)
     return candidate_ids, len(rows)
 
@@ -57,12 +59,12 @@ def retrieve(
     k: int = 5,
 ) -> list[dict[str, Any]]:
     """Embed one query and return ranked evidence with source references."""
-    course_code = _explicit_course_code(query_text)
+    course_codes = _explicit_course_codes(query_text)
     candidate_ids: set[str] | None = None
     search_k = k
-    if course_code is not None:
+    if course_codes:
         candidate_ids, semantic_chunk_count = _course_code_candidates(
-            db_path, course_code
+            db_path, course_codes
         )
         if not candidate_ids:
             return []

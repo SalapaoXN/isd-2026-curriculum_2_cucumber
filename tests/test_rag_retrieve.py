@@ -124,6 +124,37 @@ class RagRetrieveTest(unittest.TestCase):
         finally:
             directory.cleanup()
 
+    def test_multiple_explicit_course_codes_use_their_union(self):
+        directory, database_path = self._semantic_chunk_database(
+            ["99999999", "06016402", "06016402", "06026207"]
+        )
+        query_embedding = np.zeros(384, dtype=np.float32)
+        search_results = [
+            {"chunk_id": "chunk-0", "distance": 0.1, "text": "unrelated", "provenance": []},
+            {"chunk_id": "chunk-1", "distance": 0.2, "text": "first course", "provenance": []},
+            {"chunk_id": "chunk-2", "distance": 0.3, "text": "first course detail", "provenance": []},
+            {"chunk_id": "chunk-3", "distance": 0.4, "text": "second course", "provenance": []},
+        ]
+        try:
+            with patch(
+                "rag.retrieval.retrieve.embed_texts", return_value=np.array([query_embedding])
+            ), patch(
+                "rag.retrieval.retrieve.search", return_value=search_results
+            ) as search_mock:
+                results = retrieve(
+                    database_path,
+                    "เปรียบเทียบวิชา 06016402 กับ 06026207 และ 06016402",
+                    k=3,
+                )
+
+            self.assertEqual(
+                [result["chunk_id"] for result in results],
+                ["chunk-1", "chunk-2", "chunk-3"],
+            )
+            self.assertEqual(search_mock.call_args.kwargs, {"k": 4})
+        finally:
+            directory.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()
