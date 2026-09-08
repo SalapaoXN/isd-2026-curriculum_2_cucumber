@@ -1,6 +1,6 @@
 import unittest
 
-from rag.structured.nl_to_sql import question_to_sql
+from rag.structured.nl_to_sql import question_to_sql, repair_sql
 
 
 class RagNlToSqlTest(unittest.TestCase):
@@ -59,6 +59,66 @@ class RagNlToSqlTest(unittest.TestCase):
             prompts[0],
         )
         self.assertIn("courses.name_th or courses.name_en", prompts[0])
+
+    def test_repair_returns_a_guarded_select(self):
+        def fake_model(_prompt):
+            return "SELECT course_code FROM courses"
+
+        sql = repair_sql(
+            "แสดงรหัสวิชา",
+            "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+            "SELECT missing_code FROM courses",
+            "no such column: missing_code",
+            fake_model,
+        )
+
+        self.assertEqual(sql, "SELECT course_code FROM courses LIMIT 100")
+
+    def test_repair_removes_sql_fence(self):
+        def fake_model(_prompt):
+            return "```sql\nSELECT course_id FROM courses\n```"
+
+        sql = repair_sql(
+            "แสดงรหัสวิชา",
+            "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+            "SELECT missing_code FROM courses",
+            "no such column: missing_code",
+            fake_model,
+        )
+
+        self.assertEqual(sql, "SELECT course_id FROM courses LIMIT 100")
+
+    def test_repair_rejects_a_write_query(self):
+        def fake_model(_prompt):
+            return "DELETE FROM courses"
+
+        with self.assertRaises(ValueError):
+            repair_sql(
+                "แสดงรหัสวิชา",
+                "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+                "SELECT missing_code FROM courses",
+                "no such column: missing_code",
+                fake_model,
+            )
+
+    def test_repair_prompt_contains_failed_sql_and_error(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return "SELECT course_code FROM courses"
+
+        repair_sql(
+            "แสดงรหัสวิชา",
+            "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+            "SELECT missing_code FROM courses",
+            "no such column: missing_code",
+            fake_model,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        self.assertIn("SELECT missing_code FROM courses", prompts[0])
+        self.assertIn("no such column: missing_code", prompts[0])
 
 
 if __name__ == "__main__":
