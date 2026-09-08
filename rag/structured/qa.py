@@ -3,12 +3,75 @@
 from __future__ import annotations
 
 import sqlite3
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from .execute import execute_readonly, validate_readonly_sql
 from .nl_to_sql import question_to_sql, repair_sql
+
+
+_SQL_RESERVED_WORDS = frozenset(
+    {
+        "as",
+        "cross",
+        "full",
+        "group",
+        "having",
+        "inner",
+        "join",
+        "left",
+        "limit",
+        "on",
+        "order",
+        "outer",
+        "right",
+        "union",
+        "where",
+    }
+)
+_RELATION_REFERENCE = re.compile(
+    r"\b(?:FROM|JOIN)\s+(?P<table>v_plan_courses|courses)\b"
+    r"(?:\s+(?:AS\s+)?(?P<alias>[A-Za-z_]\w*))?",
+    re.IGNORECASE,
+)
+_ON_CLAUSE = re.compile(
+    r"\bON\b(?P<condition>.*?)(?=\b(?:JOIN|LEFT|RIGHT|INNER|OUTER|CROSS|FULL|WHERE|GROUP|ORDER|HAVING|LIMIT|UNION)\b|$)",
+    re.IGNORECASE | re.DOTALL,
+)
+_COURSE_CODE_EQUALITY = re.compile(
+    r"\b(?P<left>[A-Za-z_]\w*)\.course_code\s*=\s*"
+    r"(?P<right>[A-Za-z_]\w*)\.course_code\b",
+    re.IGNORECASE,
+)
+
+
+def _reject_cross_catalog_course_code_join(sql: str) -> None:
+    normalized_sql = re.sub(r"\s+", " ", sql)
+    aliases: dict[str, str] = {}
+    for match in _RELATION_REFERENCE.finditer(normalized_sql):
+        table = match.group("table").casefold()
+        aliases[table] = table
+        alias = match.group("alias")
+        if alias is not None and alias.casefold() not in _SQL_RESERVED_WORDS:
+            aliases[alias.casefold()] = table
+
+    for match in _ON_CLAUSE.finditer(normalized_sql):
+        for equality in _COURSE_CODE_EQUALITY.finditer(match.group("condition")):
+            joined_tables = {
+                aliases.get(equality.group("left").casefold()),
+                aliases.get(equality.group("right").casefold()),
+            }
+            if joined_tables == {"courses", "v_plan_courses"}:
+                raise ValueError(
+                    "join courses to v_plan_courses using course_id, not course_code"
+                )
+
+
+def _validate_structured_sql(db_path: str | Path, sql: str) -> None:
+    _reject_cross_catalog_course_code_join(sql)
+    validate_readonly_sql(db_path, sql)
 
 
 def _is_repairable_validation_error(error: Exception) -> bool:
@@ -48,7 +111,7 @@ def _repair_once(
         raise ValueError("SQL repair failed validation") from None
 
     try:
-        validate_readonly_sql(db_path, repaired_sql)
+        _validate_structured_sql(db_path, repaired_sql)
     except FileNotFoundError:
         raise
     except (ValueError, sqlite3.OperationalError) as error:
@@ -87,7 +150,7 @@ def ask_structured(
         )
     else:
         try:
-            validate_readonly_sql(db_path, sql)
+            _validate_structured_sql(db_path, sql)
         except FileNotFoundError:
             raise
         except (ValueError, sqlite3.OperationalError) as error:
