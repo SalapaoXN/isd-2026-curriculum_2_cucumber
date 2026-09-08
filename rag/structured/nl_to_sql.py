@@ -3,8 +3,37 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import re
 
 from .guard_sql import guard_sql
+
+
+_QUOTED_SQL_VALUE = re.compile(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"|`(?:``|[^`])*`")
+
+
+def _has_top_level_limit(sql: str) -> bool:
+    masked = _QUOTED_SQL_VALUE.sub(" ", sql)
+    depth = 0
+    for token in re.finditer(r"\(|\)|\bLIMIT\b", masked, re.IGNORECASE):
+        if token.group(0) == "(":
+            depth += 1
+        elif token.group(0) == ")":
+            depth = max(0, depth - 1)
+        elif depth == 0:
+            return True
+    return False
+
+
+def _guard_generated_sql(sql: str) -> str:
+    if _has_top_level_limit(sql):
+        return guard_sql(sql)
+
+    stripped = sql.rstrip()
+    if stripped.endswith(";"):
+        bounded = f"{stripped[:-1].rstrip()} LIMIT 100;"
+    else:
+        bounded = f"{stripped} LIMIT 100"
+    return guard_sql(bounded)
 
 
 def _remove_code_fence(value: str) -> str:
@@ -43,7 +72,7 @@ def question_to_sql(
     if not isinstance(generated, str):
         raise TypeError("model_callable must return a SQL string")
 
-    return guard_sql(_remove_code_fence(generated))
+    return _guard_generated_sql(_remove_code_fence(generated))
 
 
 def repair_sql(
@@ -80,7 +109,7 @@ def repair_sql(
     if not isinstance(repaired, str):
         raise TypeError("model_callable must return a SQL string")
 
-    return guard_sql(_remove_code_fence(repaired))
+    return _guard_generated_sql(_remove_code_fence(repaired))
 
 
 __all__ = ["question_to_sql", "repair_sql"]

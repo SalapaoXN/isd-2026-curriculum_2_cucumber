@@ -45,6 +45,99 @@ _COURSE_CODE_EQUALITY = re.compile(
     r"(?P<right>[A-Za-z_]\w*)\.course_code\b",
     re.IGNORECASE,
 )
+_CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
+_PREDICATE_START = re.compile(r"\b(?:WHERE|HAVING|ON)\b", re.IGNORECASE)
+_PREDICATE_END = re.compile(
+    r"\b(?:WHERE|HAVING|GROUP\s+BY|ORDER\s+BY|LIMIT|UNION|JOIN|"
+    r"LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN|CROSS\s+JOIN)\b",
+    re.IGNORECASE,
+)
+_PLAN_REFERENCE = re.compile(
+    r"\b(?:[A-Za-z_]\w*\.)?(?P<column>plan_key|plan_name|plan_code|plan)\b",
+    re.IGNORECASE,
+)
+_PLAN_OPERATOR = re.compile(
+    r"\s*(?P<operator>NOT\s+LIKE|LIKE|NOT\s+IN|IN|!=|<>|=)",
+    re.IGNORECASE,
+)
+_STRING_LITERAL = re.compile(r"'((?:''|[^'])*)'")
+
+
+def _predicate_fragments(sql: str) -> list[str]:
+    normalized_sql = re.sub(r"\s+", " ", sql)
+    fragments: list[str] = []
+    for start_match in _PREDICATE_START.finditer(normalized_sql):
+        condition_start = start_match.end()
+        end_match = _PREDICATE_END.search(normalized_sql, condition_start)
+        condition_end = end_match.start() if end_match else len(normalized_sql)
+        fragments.append(normalized_sql[condition_start:condition_end])
+    return fragments
+
+
+def _reject_unsafe_plan_filters(sql: str) -> None:
+    """Require curriculum plan predicates to use canonical plan_key values."""
+    for fragment in _predicate_fragments(sql):
+        references = list(_PLAN_REFERENCE.finditer(fragment))
+        for reference in references:
+            column = reference.group("column").casefold()
+            operator_match = _PLAN_OPERATOR.match(fragment, reference.end())
+            if column != "plan_key":
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+            if operator_match is None:
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+
+            operator = re.sub(r"\s+", " ", operator_match.group("operator")).upper()
+            value_start = operator_match.end()
+            if operator == "=":
+                value_text = fragment[value_start:].lstrip()
+                value_match = _STRING_LITERAL.match(value_text)
+                if value_match is None:
+                    tokens = value_text.split()
+                    if not tokens:
+                        raise ValueError(
+                            "unsafe plan filter: use exact canonical plan_key values"
+                        )
+                    value = tokens[0]
+                    if value.casefold().endswith(".plan_key"):
+                        continue
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+                values = [value_match.group(1).replace("''", "'").casefold()]
+            elif operator == "IN":
+                value_text = fragment[value_start:].lstrip()
+                if not value_text.startswith("("):
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+                close = value_text.find(")", 1)
+                if close < 0:
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+                values = [
+                    match.group(1).replace("''", "'").casefold()
+                    for match in _STRING_LITERAL.finditer(
+                        value_text[1:close]
+                    )
+                ]
+                if not values:
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+            else:
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+
+            if any(value not in _CANONICAL_PLAN_KEYS for value in values):
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
 
 
 def _reject_cross_catalog_course_code_join(sql: str) -> None:
@@ -70,6 +163,7 @@ def _reject_cross_catalog_course_code_join(sql: str) -> None:
 
 
 def _validate_structured_sql(db_path: str | Path, sql: str) -> None:
+    _reject_unsafe_plan_filters(sql)
     _reject_cross_catalog_course_code_join(sql)
     validate_readonly_sql(db_path, sql)
 
