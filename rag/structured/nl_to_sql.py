@@ -9,6 +9,15 @@ from .guard_sql import guard_sql
 
 
 _QUOTED_SQL_VALUE = re.compile(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"|`(?:``|[^`])*`")
+_CANONICAL_PLAN_GUIDANCE = (
+    "Canonical plan mapping: สหกิจ or coop -> curriculum_plans.plan_key = 'coop'; "
+    "ไม่สหกิจ or no_coop -> curriculum_plans.plan_key = 'no_coop'; "
+    "AIT/default -> curriculum_plans.plan_key = 'default'; GENED -> "
+    "curriculum_plans.plan_key = 'gened'. Program codes belong in program or "
+    "program_code, never plan_key. Filter plan identity only with exact "
+    "plan_key equality or IN. Never filter plan identity with plan_name, plan, "
+    "plan_code, LIKE, NOT LIKE, or NOT IN."
+)
 
 
 def _has_top_level_limit(sql: str) -> bool:
@@ -65,6 +74,7 @@ def question_to_sql(
         "are needed, JOIN courses ON courses.course_id = v_plan_courses.course_id "
         "and use courses.name_th or courses.name_en. Prefer qualified column "
         "names in joins.\n\n"
+        f"{_CANONICAL_PLAN_GUIDANCE}\n\n"
         f"Schema:\n{schema_text}\n\n"
         f"Question:\n{question.strip()}"
     )
@@ -100,6 +110,7 @@ def repair_sql(
         "columns in the provided schema. Return exactly one SQLite SELECT or "
         "WITH query, SQL only, without explanations or Markdown fences. Do not "
         "execute the query.\n\n"
+        f"{_CANONICAL_PLAN_GUIDANCE}\n\n"
         f"Schema:\n{schema_text}\n\n"
         f"Original question:\n{question.strip()}\n\n"
         f"Failed SQL:\n{failed_sql}\n\n"

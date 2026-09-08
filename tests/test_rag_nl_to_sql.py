@@ -4,6 +4,30 @@ from rag.structured.nl_to_sql import question_to_sql, repair_sql
 
 
 class RagNlToSqlTest(unittest.TestCase):
+    def _assert_canonical_plan_guidance(self, prompt):
+        for text in (
+            "สหกิจ or coop -> curriculum_plans.plan_key = 'coop'",
+            "ไม่สหกิจ or no_coop -> curriculum_plans.plan_key = 'no_coop'",
+            "AIT/default -> curriculum_plans.plan_key = 'default'",
+            "GENED -> curriculum_plans.plan_key = 'gened'",
+            "Program codes belong in program or program_code, never plan_key",
+            "exact plan_key equality or IN",
+            "Never filter plan identity with plan_name, plan, plan_code, LIKE, NOT LIKE, or NOT IN",
+        ):
+            self.assertIn(text, prompt)
+
+    def test_generation_prompt_includes_canonical_plan_guidance(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return "SELECT 1"
+
+        question_to_sql("แผนสหกิจ", "curriculum_plans(plan_key)", fake_model)
+
+        self.assertEqual(len(prompts), 1)
+        self._assert_canonical_plan_guidance(prompts[0])
+
     def test_fake_model_output_is_fenced_and_guarded(self):
         prompts = []
 
@@ -119,6 +143,24 @@ class RagNlToSqlTest(unittest.TestCase):
         self.assertEqual(len(prompts), 1)
         self.assertIn("SELECT missing_code FROM courses", prompts[0])
         self.assertIn("no such column: missing_code", prompts[0])
+
+    def test_repair_prompt_includes_canonical_plan_guidance(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return "SELECT 1"
+
+        repair_sql(
+            "แผนไม่สหกิจ",
+            "curriculum_plans(plan_key, plan_name, plan, plan_code)",
+            "SELECT * FROM curriculum_plans WHERE plan_name LIKE '%ไม่สหกิจ%'",
+            "unsafe plan filter",
+            fake_model,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        self._assert_canonical_plan_guidance(prompts[0])
 
 
 if __name__ == "__main__":
