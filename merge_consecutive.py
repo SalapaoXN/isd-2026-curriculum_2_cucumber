@@ -523,7 +523,7 @@ def merge_plan_with_description(table_courses: List[dict], desc_courses: List[di
 
 def merge_consecutive_files(
     input_dir: str = "outputs",
-    output_dir: str = "consolidated_outputs",
+    output_dir: str = "outputs/consolidated",
     plan_filter: str = None,
     pages: str = None,
     prefix: str = None,
@@ -764,7 +764,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--output-dir",
-        default="consolidated_outputs",
+        default="outputs/consolidated",
         help="Output folder for merged JSON",
     )
     parser.add_argument(

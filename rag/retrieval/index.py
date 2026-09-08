@@ -24,7 +24,7 @@ DEFAULT_INDEX_NAME = "curriculum.db"
 _METADATA_TABLE = "semantic_index_metadata"
 _SOURCES_TABLE = "semantic_index_sources"
 _CHUNKS_TABLE = "semantic_chunks"
-_CONSOLIDATED_OUTPUTS_DIR = _PROJECT_ROOT / "consolidated_outputs"
+_CONSOLIDATED_DIR = _PROJECT_ROOT / "outputs" / "consolidated"
 _SOURCE_IDENTITY_FIELDS = (
     "source_document_key",
     "document_key",
@@ -53,11 +53,11 @@ _RELATIONAL_VIEWS = {
 
 def canonical_source_paths() -> list[Path]:
     """Return every canonical consolidated curriculum document in the repository."""
-    paths = sorted(_CONSOLIDATED_OUTPUTS_DIR.glob("merged_*_full.json"))
+    paths = sorted(_CONSOLIDATED_DIR.rglob("merged_*_full.json"))
     if not paths:
         raise FileNotFoundError(
             "no canonical consolidated curriculum JSON files found in "
-            f"{_CONSOLIDATED_OUTPUTS_DIR}"
+            f"{_CONSOLIDATED_DIR}"
         )
     return paths
 

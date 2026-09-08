@@ -12,7 +12,6 @@ project_snapshot.zip
 # Generated project data
 inputs/*
 outputs/*
-consolidated_outputs/*
 prototype_outputs/*
 example/*
 demo.db
@@ -20,7 +19,6 @@ demo.db
 # Keep tracked placeholder folders
 !inputs/.gitkeep
 !outputs/.gitkeep
-!consolidated_outputs/.gitkeep
 
 # CUCUMBER generated outputs
 /cucumber_outputs/*

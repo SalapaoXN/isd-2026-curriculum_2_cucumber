@@ -241,7 +241,7 @@ program + source_filename + source_page + document_category
 
 ### ภาพรวม
 
-Artifacts ภายใต้ `inputs/`, `outputs/`, `consolidated_outputs/` และ `prototype_outputs/` ถูก ignore ใน `.gitignore`. สิ่งที่เห็นใน workspace ช่วยตรวจพฤติกรรมได้ แต่ไม่ใช่ portable tracked artifact จาก fresh clone. Course GT กลับถูกเก็บใน `ground_truth/`
+Artifacts ภายใต้ `inputs/`, `outputs/` (รวม `outputs/consolidated/`) และ `prototype_outputs/` ถูก ignore ใน `.gitignore`. สิ่งที่เห็นใน workspace ช่วยตรวจพฤติกรรมได้ แต่ไม่ใช่ portable tracked artifact จาก fresh clone. Course GT กลับถูกเก็บใน `ground_truth/`
 
 | Dataset | Data/status ที่มี | Plan semantics | RAG readiness ปัจจุบัน |
 |---|---|---|---|
@@ -685,7 +685,7 @@ Provenance ทำให้ answer ในอนาคตสามารถส่�
 
 | Finding | Evidence | ผลกระทบ/ข้อเสนอแนะ |
 |---|---|---|
-| Generated inputs/outputs ถูก ignore และ tests บางส่วนพึ่ง local artifacts | `.gitignore` ignore `inputs/*`, `outputs/*`, `consolidated_outputs/*`; fresh clone อาจ reproduce suite/data ไม่ได้ | ทำ source/artifact manifest และ fixture strategy ขนาดเล็กหรือ external versioned storage |
+| Generated inputs/outputs ถูก ignore และ tests บางส่วนพึ่ง local artifacts | `.gitignore` ignore `inputs/*`, `outputs/*` (รวม `outputs/consolidated/`); fresh clone อาจ reproduce suite/data ไม่ได้ | ทำ source/artifact manifest และ fixture strategy ขนาดเล็กหรือ external versioned storage |
 | OCR prediction ถูก label เป็น GT ที่ root | `CurriculumExtractor.__init__()` hardcode `GT_Template`/`Ground Truth` labels | แยก `prediction_artifact` จาก GT metadata ใน future schema/manifest; อย่า cite root label เป็น authority |
 | Prefix category mapping ไม่ครอบคลุม BIT | `src/extractor.py:655-660` รู้ `90...` และ `xx...`; BIT GT มี `9664...` | validate/parameterize category mapping ก่อน BIT ingestion |
 | Evaluator coverage ไม่ใช่ semantic/placement correctness | code-first alignment, fuzzy threshold, category grouped from GT, true page unavailable | รายงาน metrics พร้อม caveat; เพิ่ม placement/category/description evaluation เมื่อมี authoritative GT ไม่ต้อง block retrieval prototype |

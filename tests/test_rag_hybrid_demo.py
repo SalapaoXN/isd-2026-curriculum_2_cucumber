@@ -101,7 +101,7 @@ class RagHybridDemoTest(unittest.TestCase):
         answer_model_callable = lambda _prompt: "คำตอบ"
         question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
 
-        sources = [Path("consolidated_outputs/curriculum.json")]
+        sources = [Path("outputs/consolidated/it/coop/full/curriculum.json")]
         with patch(
             "rag.hybrid_demo.canonical_source_paths", return_value=sources
         ), patch(
@@ -147,7 +147,7 @@ class RagHybridDemoTest(unittest.TestCase):
 
         with patch("rag.hybrid_demo.load_dotenv"), patch(
             "rag.hybrid_demo.canonical_source_paths",
-            return_value=[Path("consolidated_outputs/curriculum.json")],
+            return_value=[Path("outputs/consolidated/it/coop/full/curriculum.json")],
         ), patch(
             "rag.hybrid_demo.ensure_index", return_value=database_path
         ), patch(
