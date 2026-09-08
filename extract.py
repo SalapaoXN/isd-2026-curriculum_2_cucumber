@@ -243,7 +243,9 @@ def main():
         group_id = _input_group_identifier(input_path)
         program_id = _safe_identifier(program)
         plan_id = _safe_identifier(plan_label(plan))
-        consolidated_file = output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
+        legacy_output_dir = output_dir / "legacy" / "consolidated_summaries"
+        legacy_output_dir.mkdir(parents=True, exist_ok=True)
+        consolidated_file = legacy_output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
         with open(consolidated_file, "w", encoding="utf-8") as f:
             json.dump(merged_result, f, ensure_ascii=False, indent=4)
         print(f"\n Saved consolidated result ({len(all_courses)} courses total): {consolidated_file}")
