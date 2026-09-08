@@ -1,5 +1,6 @@
-import tempfile
+import io
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -7,38 +8,23 @@ from rag.demo import run_demo
 
 
 class RagDemoTest(unittest.TestCase):
-    def test_rebuilds_existing_database_and_sidecars_before_each_run(self):
-        with tempfile.TemporaryDirectory() as directory:
-            directory_path = Path(directory)
-            input_path = directory_path / "curriculum.json"
-            database_path = directory_path / "curriculum.db"
-            input_path.write_text("{}", encoding="utf-8")
-            database_path.write_text("old database", encoding="utf-8")
-            sidecars = [
-                Path(f"{database_path}-wal"),
-                Path(f"{database_path}-shm"),
-                Path(f"{database_path}-journal"),
-            ]
-            for sidecar in sidecars:
-                sidecar.write_text("old sidecar", encoding="utf-8")
+    def test_uses_the_canonical_unified_database(self):
+        sources = [Path("consolidated_outputs/merged_it_coop_full.json")]
+        evidence = [
+            {
+                "chunk_id": "chunk-1",
+                "distance": 0.1,
+                "text": "curriculum evidence",
+                "source_page": [12],
+            }
+        ]
 
-            loader_calls = []
+        with patch("rag.demo.canonical_source_paths", return_value=sources), patch(
+            "rag.demo.query_index", return_value=evidence
+        ) as query_index, redirect_stdout(io.StringIO()):
+            run_demo("วิชาฐานข้อมูล", top_k=1)
 
-            def fake_loader(source_path, output_path):
-                loader_calls.append((source_path, output_path))
-                self.assertFalse(output_path.exists())
-                self.assertFalse(any(sidecar.exists() for sidecar in sidecars))
-                output_path.write_text("new database", encoding="utf-8")
-
-            with patch("rag.demo.load_json_to_sqlite", side_effect=fake_loader), patch(
-                "rag.demo.build_chunks", return_value=[{"text": "chunk"}]
-            ), patch("rag.demo.embed_texts", return_value=object()), patch(
-                "rag.demo.insert_embeddings"
-            ), patch("rag.demo.retrieve", return_value=[]):
-                run_demo(input_path, database_path, "วิชา", top_k=1)
-                run_demo(input_path, database_path, "วิชา", top_k=1)
-
-            self.assertEqual(len(loader_calls), 2)
+        query_index.assert_called_once_with(sources, "วิชาฐานข้อมูล", top_k=1)
 
 
 if __name__ == "__main__":

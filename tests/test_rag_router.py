@@ -12,6 +12,7 @@ class RagRouterTest(unittest.TestCase):
             "What is the prerequisite for C101?",
             "Compare the credits of C101 and C102.",
             "มีวิชาทั้งหมดกี่วิชาในภาคเรียนที่ 1",
+            "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
         )
         for question in questions:
             with self.subTest(question=question):
@@ -29,6 +30,12 @@ class RagRouterTest(unittest.TestCase):
         for question in questions:
             with self.subTest(question=question):
                 self.assertEqual(route_question(question), "semantic")
+
+    def test_combined_rules_use_both_retrieval_capabilities(self):
+        self.assertEqual(
+            route_question("What database topics are offered in year 1 semester 1?"),
+            "hybrid",
+        )
 
 
 if __name__ == "__main__":

@@ -1,19 +1,29 @@
-# ignore
+# Environment / Python
 .env
 .venv/
 __pycache__/
 
-inputs/*
-outputs/*
-consolidated_outputs/*
-prototype_outputs/*
-example/*
+# Local tooling
 .opencode/
 .opencodeignore
 opencode.json
 project_snapshot.zip
 
-# keep folder
+# Generated project data
+inputs/*
+outputs/*
+consolidated_outputs/*
+prototype_outputs/*
+example/*
+demo.db
+
+# Keep tracked placeholder folders
 !inputs/.gitkeep
 !outputs/.gitkeep
 !consolidated_outputs/.gitkeep
+
+# CUCUMBER generated outputs
+/cucumber_outputs/*
+!/cucumber_outputs/.gitkeep
+!/cucumber_outputs/runtime/
+!/cucumber_outputs/runtime/curriculum.db

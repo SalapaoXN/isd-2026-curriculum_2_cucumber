@@ -6,9 +6,9 @@ import json
 import re
 import sqlite3
 from collections import defaultdict
-from contextlib import closing
+from contextlib import closing, nullcontext
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
@@ -25,6 +25,19 @@ _NO_PREREQUISITE = {
     "\u0e44\u0e21\u0e48\u0e21\u0e35",
 }
 _DOCUMENT_CATEGORIES = {"plan", "description", "unknown"}
+_FLEXIBLE_YEAR_SEMESTER = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*$")
+_CREDIT_UNITS = re.compile(r"^\s*(\d+)(?:\s*\([^)]*\))?\s*$")
+_SOURCE_IDENTITY_FIELDS = (
+    "source_document_key",
+    "document_key",
+    "document_id",
+    "source_filename",
+    "document_filename",
+    "source_uri",
+    "source_locator",
+    "source",
+)
+_PRODUCTION_DOCUMENT_CATEGORIES = {"plan", "description"}
 
 
 def _first_value(mapping: Mapping[str, Any], *names: str) -> Any:
@@ -54,6 +67,34 @@ def _as_integer(value: Any) -> int | None:
     return None
 
 
+def _flexible_year_semester_values(value: Any) -> tuple[int | None, int | None, str | None]:
+    raw_value = _as_text(value)
+    if raw_value is None:
+        return None, None, None
+    match = _FLEXIBLE_YEAR_SEMESTER.fullmatch(raw_value)
+    if match is None:
+        return None, None, raw_value
+    return int(match.group(1)), int(match.group(2)), raw_value
+
+
+def _credit_values(value: Any) -> tuple[int | None, str | None]:
+    raw_value = _as_text(value)
+    if raw_value is None:
+        return None, None
+    match = _CREDIT_UNITS.fullmatch(raw_value)
+    if match is None:
+        return None, raw_value
+    return int(match.group(1)), raw_value
+
+
+def _source_document_key(entry: Mapping[str, Any]) -> str | None:
+    for field in _SOURCE_IDENTITY_FIELDS:
+        value = _as_text(entry.get(field))
+        if value is not None and value.strip():
+            return value.strip()
+    return None
+
+
 def _page_number(value: Any) -> int | None:
     if value is None:
         return None
@@ -79,6 +120,14 @@ def _split_code_value(value: Any) -> list[str]:
     if text is None:
         return []
     return [part.strip() for part in _ALTERNATIVE_SEPARATOR.split(text) if part.strip()]
+
+
+def _normalized_identity(value: str) -> str:
+    return value.strip().casefold()
+
+
+def _normalized_course_code(code: str) -> str:
+    return _normalized_identity(code)
 
 
 def _course_codes(course: Mapping[str, Any]) -> list[str]:
@@ -114,12 +163,23 @@ def _provenance_entries(value: Any) -> list[Mapping[str, Any]]:
 
 
 def _normalized_provenance(
-    entry: Mapping[str, Any], default_program: str | None
+    entry: Mapping[str, Any],
+    default_program: str | None,
+    default_source_document_key: str | None,
 ) -> tuple[Any, ...]:
     category = _as_text(entry.get("document_category")) or "unknown"
     if category not in _DOCUMENT_CATEGORIES:
         raise ValueError(f"unsupported document category: {category!r}")
+    source_document_key = _source_document_key(entry) or default_source_document_key
+    if source_document_key is None:
+        if category in _PRODUCTION_DOCUMENT_CATEGORIES:
+            raise ValueError(
+                "production provenance record has no usable source identity "
+                "(source_document_key, source_filename, source_uri, or source_locator)"
+            )
+        source_document_key = "unknown"
     return (
+        source_document_key,
         _as_text(entry.get("program")) or default_program,
         _as_text(entry.get("source_filename")),
         _page_number(entry.get("source_page")),
@@ -135,19 +195,22 @@ def _provenance_ids(
     connection: sqlite3.Connection,
     value: Any,
     default_program: str | None,
+    default_source_document_key: str | None,
     cache: dict[tuple[Any, ...], int],
 ) -> list[tuple[int, int]]:
     references: list[tuple[int, int]] = []
     for source_order, entry in enumerate(_provenance_entries(value)):
-        normalized = _normalized_provenance(entry, default_program)
+        normalized = _normalized_provenance(
+            entry, default_program, default_source_document_key
+        )
         provenance_id = cache.get(normalized)
         if provenance_id is None:
             cursor = connection.execute(
                 """
                 INSERT INTO provenance (
-                    program, source_filename, source_page, document_page,
+                    source_document_key, program, source_filename, source_page, document_page,
                     document_category, source_uri, source_locator, excerpt
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 normalized,
             )
@@ -310,7 +373,7 @@ def _prerequisite_tokens(value: Any) -> list[str]:
 def _course_id_for_code(
     code_to_ids: Mapping[str, list[int]], code: str
 ) -> list[int]:
-    return code_to_ids.get(code.casefold(), [])
+    return code_to_ids.get(_normalized_course_code(code), [])
 
 
 def _insert_prerequisite(
@@ -436,8 +499,15 @@ def _load_prerequisites(
             )
 
 
-def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path) -> None:
-    """Load one consolidated JSON file into a new structured SQLite database."""
+def _load_json_to_sqlite(
+    input_json_path: str | Path,
+    output_db_path: str | Path,
+    *,
+    connection: sqlite3.Connection | None = None,
+    initialize_schema: bool = True,
+    provenance_cache: dict[tuple[Any, ...], int] | None = None,
+) -> int:
+    """Load one consolidated document into an initialized SQLite database."""
     input_path = Path(input_json_path)
     output_path = Path(output_db_path)
 
@@ -479,11 +549,20 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
         plan_name = _as_text(_first_value(document, "plan_name")) or plan_code
     plan_version = _as_text(_first_value(plan_data, "version", "academic_year"))
     plan_notes = _as_text(_first_value(plan_data, "notes"))
+    program_code_normalized = _normalized_identity(program)
+    plan_key = _normalized_identity(plan_code or plan_name or "default") or "default"
+    default_source_document_key = _source_document_key(document)
 
     schema = SCHEMA_PATH.read_text(encoding="utf-8")
-    with closing(sqlite3.connect(str(output_path))) as connection:
+    connection_context = (
+        closing(sqlite3.connect(str(output_path)))
+        if connection is None
+        else nullcontext(connection)
+    )
+    with connection_context as connection:
         connection.execute("PRAGMA foreign_keys = ON")
-        connection.executescript(schema)
+        if initialize_schema:
+            connection.executescript(schema)
 
         catalog_cursor = connection.execute(
             """
@@ -495,21 +574,43 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
         )
         catalog_id = int(catalog_cursor.lastrowid)
 
+        program_cursor = connection.execute(
+            """
+            INSERT INTO programs (
+                catalog_id, program_code, program_code_normalized
+            ) VALUES (?, ?, ?)
+            """,
+            (catalog_id, program, program_code_normalized),
+        )
+        program_id = int(program_cursor.lastrowid)
+
         plan_cursor = connection.execute(
             """
             INSERT INTO curriculum_plans (
-                catalog_id, program_code, plan_code, plan_name, version, notes
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                catalog_id, program_id, program_code, plan_key,
+                plan_code, plan_name, version, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (catalog_id, program, plan_code, plan_name, plan_version, plan_notes),
+            (
+                catalog_id,
+                program_id,
+                program,
+                plan_key,
+                plan_code,
+                plan_name,
+                plan_version,
+                plan_notes,
+            ),
         )
         plan_id = int(plan_cursor.lastrowid)
 
-        provenance_cache: dict[tuple[Any, ...], int] = {}
+        if provenance_cache is None:
+            provenance_cache = {}
         root_references = _provenance_ids(
             connection,
             document.get("source_provenance"),
             program,
+            default_source_document_key,
             provenance_cache,
         )
         _link_catalog_and_plan(connection, catalog_id, plan_id, root_references)
@@ -528,7 +629,11 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                 else document.get("source_provenance")
             )
             references = _provenance_ids(
-                connection, raw_provenance, program, provenance_cache
+                connection,
+                raw_provenance,
+                program,
+                default_source_document_key,
+                provenance_cache,
             )
             _link_catalog_and_plan(connection, catalog_id, plan_id, references)
 
@@ -545,31 +650,44 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
             )
             course_ids: list[int] = []
             for member_index, code in enumerate(codes):
-                cursor = connection.execute(
-                    """
-                    INSERT INTO courses (
-                        catalog_id, course_code, name_th, name_en, credits,
-                        description_th, description_en, category, course_type,
-                        prerequisite_text, notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        catalog_id,
-                        code,
-                        _member_value(raw_course.get("name_th"), member_index, len(codes), True),
-                        _member_value(raw_course.get("name_en"), member_index, len(codes), True),
-                        _member_value(raw_course.get("credits"), member_index, len(codes)),
-                        raw_course.get("desc_th", raw_course.get("description_th")),
-                        raw_course.get("desc_en", raw_course.get("description_en")),
-                        raw_course.get("category"),
-                        raw_course.get("type", raw_course.get("course_type")),
-                        _as_text(prerequisite),
-                        raw_course.get("note", raw_course.get("notes")),
-                    ),
-                )
-                course_id = int(cursor.lastrowid)
+                normalized_code = _normalized_course_code(code)
+                existing_ids = code_to_ids[normalized_code]
+                if existing_ids:
+                    course_id = existing_ids[0]
+                else:
+                    credits_value = _member_value(
+                        raw_course.get("credits"), member_index, len(codes)
+                    )
+                    credit_units, credits_raw = _credit_values(credits_value)
+                    cursor = connection.execute(
+                        """
+                        INSERT INTO courses (
+                            catalog_id, course_code, course_code_normalized,
+                            name_th, name_en, credits, credit_units, credits_raw,
+                            description_th, description_en, category, course_type,
+                            prerequisite_text, notes
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            catalog_id,
+                            code,
+                            normalized_code,
+                            _member_value(raw_course.get("name_th"), member_index, len(codes), True),
+                            _member_value(raw_course.get("name_en"), member_index, len(codes), True),
+                            credits_value,
+                            credit_units,
+                            credits_raw,
+                            raw_course.get("desc_th", raw_course.get("description_th")),
+                            raw_course.get("desc_en", raw_course.get("description_en")),
+                            raw_course.get("category"),
+                            raw_course.get("type", raw_course.get("course_type")),
+                            _as_text(prerequisite),
+                            raw_course.get("note", raw_course.get("notes")),
+                        ),
+                    )
+                    course_id = int(cursor.lastrowid)
+                    existing_ids.append(course_id)
                 course_ids.append(course_id)
-                code_to_ids[code.casefold()].append(course_id)
                 _link_provenance(
                     connection,
                     "course_provenance",
@@ -601,14 +719,18 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                 year_number = None
             if semester_number == 0:
                 semester_number = None
+            flexible_year_number, flexible_semester_number, flexible_year_semester_raw = (
+                _flexible_year_semester_values(raw_course.get("flexible_year_semester"))
+            )
 
             placement_cursor = connection.execute(
                 """
                 INSERT INTO plan_placements (
                     plan_id, course_id, alternative_group_id, year_number,
-                    semester_number, category, requirement_type, placement_order,
-                    credits_override, raw_text, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    semester_number, flexible_year_number, flexible_semester_number,
+                    flexible_year_semester_raw, category, requirement_type,
+                    placement_order, credits_override, raw_text, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     plan_id,
@@ -616,12 +738,15 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
                     group_id,
                     year_number,
                     semester_number,
+                    flexible_year_number,
+                    flexible_semester_number,
+                    flexible_year_semester_raw,
                     raw_course.get("category"),
                     raw_course.get("type", raw_course.get("course_type")),
                     placement_index,
                     raw_course.get("credits_override"),
                     raw_course.get("raw_text"),
-                    raw_course.get("flexible_year_semester"),
+                    raw_course.get("note", raw_course.get("notes")),
                 ),
             )
             placement_id = int(placement_cursor.lastrowid)
@@ -646,3 +771,33 @@ def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path)
 
         _load_prerequisites(connection, records, code_to_ids, catalog_id, plan_id)
         connection.commit()
+    return catalog_id
+
+
+def load_json_to_sqlite(input_json_path: str | Path, output_db_path: str | Path) -> None:
+    """Load one consolidated JSON file into a new structured SQLite database."""
+    _load_json_to_sqlite(input_json_path, output_db_path)
+
+
+def load_jsons_to_sqlite(
+    input_json_paths: Iterable[str | Path],
+    output_db_path: str | Path,
+) -> list[int]:
+    """Load consolidated JSON files into one structured SQLite database."""
+    input_paths = [Path(input_path) for input_path in input_json_paths]
+    if not input_paths:
+        raise ValueError("at least one consolidated JSON input is required")
+
+    output_path = Path(output_db_path)
+    provenance_cache: dict[tuple[Any, ...], int] = {}
+    with closing(sqlite3.connect(str(output_path))) as connection:
+        return [
+            _load_json_to_sqlite(
+                input_path,
+                output_path,
+                connection=connection,
+                initialize_schema=index == 0,
+                provenance_cache=provenance_cache,
+            )
+            for index, input_path in enumerate(input_paths)
+        ]

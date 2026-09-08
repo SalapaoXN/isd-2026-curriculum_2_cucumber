@@ -24,6 +24,9 @@ class _Client:
 
 
 class GeminiProviderTest(unittest.TestCase):
+    def test_default_model_is_gemini_3_5_flash_lite(self):
+        self.assertEqual(DEFAULT_MODEL, "gemini-3.5-flash-lite")
+
     def test_factory_validates_key_and_creates_mocked_client_lazily(self):
         client = _Client()
         with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}), patch(

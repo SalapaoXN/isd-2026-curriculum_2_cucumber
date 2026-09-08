@@ -1,14 +1,25 @@
-"""Command-line demo for routed curriculum QA."""
+"""Command-line demo for unified curriculum QA."""
 
 from __future__ import annotations
 
 import argparse
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
+from rag.answer import answer_question
 from rag.providers.gemini import make_gemini_callable
+from rag.retrieval.index import (
+    ARTIFACTS_DIR,
+    DEFAULT_INDEX_NAME,
+    canonical_source_paths,
+    ensure_index,
+)
 from rag.qa import ask
+
+DEFAULT_CURRICULUM_DB_PATH = ARTIFACTS_DIR / DEFAULT_INDEX_NAME
 
 
 def _print_source_pages(pages: Any) -> None:
@@ -51,47 +62,96 @@ def run_hybrid_demo(
     question: str,
     structured_model_callable: Callable[[str], str] | None = None,
     top_k: int = 5,
+    answer_model_callable: Callable[[str], str] | None = None,
+    source_json_path: str | Path | Iterable[str | Path] | None = None,
 ) -> dict[str, Any]:
-    """Run routed QA and print the selected route and raw result."""
+    """Run unified curriculum QA and print its grounded final answer."""
+    if source_json_path is not None:
+        db_path = ensure_index(source_json_path, index_path=db_path)
+
     response = ask(
         db_path,
         question,
         structured_model_callable=structured_model_callable,
         top_k=top_k,
     )
-    print(f"selected route: {response['route']}")
+    structured_result = None
+    semantic_chunks = None
     if response["route"] == "structured":
-        _print_structured_result(response["result"])
+        structured_result = response["result"]
+    elif response["route"] == "semantic":
+        semantic_chunks = response["result"]
     else:
-        _print_semantic_results(response["result"])
+        structured_result = response["result"]["structured"]
+        semantic_chunks = response["result"]["semantic"]
+    final_answer = answer_question(
+        question,
+        response["route"],
+        structured_result=structured_result,
+        semantic_chunks=semantic_chunks,
+        answer_model_callable=answer_model_callable,
+    )
+    response["final_answer"] = final_answer
+    print(f"Question: {question}")
+    print(f"Final Answer: {final_answer}")
     return response
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("db_path", type=Path)
-    parser.add_argument("question")
-    parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("first_argument")
+    parser.add_argument("second_argument", nargs="?")
+    parser.add_argument(
+        "--source-json",
+        dest="source_json_paths",
+        type=Path,
+        action="append",
+        help="consolidated JSON source for the unified database",
+    )
+    parser.add_argument("--top-k", type=int, default=10)
     parser.add_argument(
         "--structured-provider",
         choices=("gemini",),
-        help="provider for structured SQL generation",
+        help="provider for structured SQL generation and final answers",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.second_argument is None:
+        args.db_path = DEFAULT_CURRICULUM_DB_PATH
+        args.question = args.first_argument
+        args.uses_default_database = True
+    else:
+        args.db_path = Path(args.first_argument)
+        args.question = args.second_argument
+        args.uses_default_database = False
+    return args
 
 
 def main(
     argv: Sequence[str] | None = None,
     structured_model_callable: Callable[[str], str] | None = None,
+    answer_model_callable: Callable[[str], str] | None = None,
 ) -> None:
+    load_dotenv()
     args = _parse_args(argv)
-    if structured_model_callable is None and args.structured_provider == "gemini":
-        structured_model_callable = make_gemini_callable()
+    if args.source_json_paths:
+        args.db_path = ensure_index(args.source_json_paths, index_path=args.db_path)
+    elif args.uses_default_database:
+        args.db_path = ensure_index(canonical_source_paths(), index_path=args.db_path)
+    if structured_model_callable is None or answer_model_callable is None:
+        gemini_callable = make_gemini_callable()
+        if structured_model_callable is None:
+            structured_model_callable = gemini_callable
+        if answer_model_callable is None:
+            answer_model_callable = gemini_callable
+    run_kwargs: dict[str, Any] = {
+        "structured_model_callable": structured_model_callable,
+        "top_k": args.top_k,
+        "answer_model_callable": answer_model_callable,
+    }
     run_hybrid_demo(
         args.db_path,
         args.question,
-        structured_model_callable=structured_model_callable,
-        top_k=args.top_k,
+        **run_kwargs,
     )
 
 

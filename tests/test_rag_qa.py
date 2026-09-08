@@ -28,6 +28,38 @@ class RagQaTest(unittest.TestCase):
             "curriculum.db", "What topics does this course cover?", k=3
         )
 
+    def test_combined_question_uses_sql_and_semantic_evidence(self):
+        model_callable = lambda _prompt: "SELECT 1"
+        structured_result = {"sql": "SELECT 1", "columns": ["x"], "rows": [(1,)]}
+        semantic_result = [{"chunk_id": "chunk-1", "distance": 0.1}]
+
+        with patch(
+            "rag.qa.ask_structured", return_value=structured_result
+        ) as structured, patch("rag.qa.retrieve", return_value=semantic_result) as retrieve:
+            result = ask(
+                "curriculum.db",
+                "What database topics are offered in year 1?",
+                model_callable,
+                top_k=3,
+            )
+
+        self.assertEqual(
+            result,
+            {
+                "route": "hybrid",
+                "result": {
+                    "structured": structured_result,
+                    "semantic": semantic_result,
+                },
+            },
+        )
+        structured.assert_called_once()
+        retrieve.assert_called_once_with(
+            "curriculum.db",
+            "What database topics are offered in year 1?",
+            k=3,
+        )
+
     def test_structured_route_without_callable_fails(self):
         with self.assertRaises(ValueError):
             ask("curriculum.db", "What are the prerequisites?")

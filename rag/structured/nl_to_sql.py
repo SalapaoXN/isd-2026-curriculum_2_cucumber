@@ -32,6 +32,10 @@ def question_to_sql(
         "Convert the user's curriculum question into exactly one SQLite SELECT "
         "or WITH query. Use only tables and columns in the schema. Return SQL "
         "only, without explanations or Markdown fences. Do not execute the query.\n\n"
+        "v_plan_courses does NOT expose course-name columns. When course names "
+        "are needed, JOIN courses ON courses.course_id = v_plan_courses.course_id "
+        "and use courses.name_th or courses.name_en. Prefer qualified column "
+        "names in joins.\n\n"
         f"Schema:\n{schema_text}\n\n"
         f"Question:\n{question.strip()}"
     )

@@ -8,6 +8,70 @@ Member:
 2. 67070063 Thanachin Chukiatchai >> Discord: วันลพ มีงบมาก
 3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
 
+## Quick Commands
+
+### Install Requirements
+
+```bash
+python -m pip install -r requirements.txt -r requirements-rag.txt
+```
+
+### OCR and Extraction
+
+```bash
+python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
+python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+```
+
+### Merge / Consolidation
+
+```bash
+python merge_consecutive.py --prefix dsba --plan no_coop -p 26-32,317-344 -d 317-344
+```
+
+### Tests
+
+```bash
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+### Build Unified Curriculum Database
+
+```bash
+python -m rag.build_index
+```
+
+### Run Hybrid Demo
+
+```bash
+python -m rag.hybrid_demo "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
+```
+
+## RAG
+
+```text
+consolidated JSON
+  -> cucumber_outputs/runtime/curriculum.db
+     - relational curriculum tables and SQL views
+     - persisted retrieval chunks and provenance metadata
+     - sqlite-vec 384-d embeddings
+  -> retrieval selects SQL, vector similarity, or both
+  -> grounded final answer
+```
+
+The unified database is persistent at `cucumber_outputs/runtime/curriculum.db`. Building it loads all canonical consolidated files and embeds curriculum chunks once; later queries reuse the database and embed only the user question when vector matching is used. A source JSON fingerprint or embedding-model change triggers a rebuild. Stored chunks retain program, plan, provenance, and `source_page` metadata when available.
+
+## Environment
+
+Create a local `.env` file:
+
+```dotenv
+GEMINI_API_KEY=...
+HF_TOKEN=...
+```
+
+`.env` is local configuration and must not be committed. `HF_TOKEN` is optional; anonymous Hugging Face access remains available.
+
 
 ## Overview
 
@@ -33,7 +97,7 @@ Use Python `3.10–3.13`; Python `3.11` is the preferred baseline.
 ```powershell
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt -r requirements-rag.txt
 ```
 
 ### macOS / Linux
@@ -41,7 +105,7 @@ python -m pip install -r requirements.txt
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt -r requirements-rag.txt
 ```
 
 EasyOCR uses Thai and English (`['th', 'en']`). Missing models may be downloaded on first use and reused from the local EasyOCR cache.
