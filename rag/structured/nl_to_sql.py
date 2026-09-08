@@ -18,6 +18,17 @@ _CANONICAL_PLAN_GUIDANCE = (
     "plan_key equality or IN. Never filter plan identity with plan_name, plan, "
     "plan_code, LIKE, NOT LIKE, or NOT IN."
 )
+_CROSS_CATALOG_PLACEMENT_GUIDANCE = (
+    "The same course_code may have different course_id values across catalogs or "
+    "plans. Never join coop and no_coop rows by assuming a shared courses.course_id. "
+    "When comparing plans for one course_code, query v_plan_courses rows "
+    "independently and filter by course_code, program, and plan_key; use "
+    "plan_key IN ('coop', 'no_coop') when comparing both. Join courses using each "
+    "row's own ID: courses.course_id = v_plan_courses.course_id. Use year plus "
+    "semester for fixed placement and flexible_year_semester_raw when placement "
+    "is not fixed. Do not discard rows with NULL year or semester when "
+    "flexible_year_semester_raw contains placement information."
+)
 
 
 def _has_top_level_limit(sql: str) -> bool:
@@ -75,6 +86,7 @@ def question_to_sql(
         "and use courses.name_th or courses.name_en. Prefer qualified column "
         "names in joins.\n\n"
         f"{_CANONICAL_PLAN_GUIDANCE}\n\n"
+        f"{_CROSS_CATALOG_PLACEMENT_GUIDANCE}\n\n"
         f"Schema:\n{schema_text}\n\n"
         f"Question:\n{question.strip()}"
     )
@@ -111,6 +123,7 @@ def repair_sql(
         "WITH query, SQL only, without explanations or Markdown fences. Do not "
         "execute the query.\n\n"
         f"{_CANONICAL_PLAN_GUIDANCE}\n\n"
+        f"{_CROSS_CATALOG_PLACEMENT_GUIDANCE}\n\n"
         f"Schema:\n{schema_text}\n\n"
         f"Original question:\n{question.strip()}\n\n"
         f"Failed SQL:\n{failed_sql}\n\n"

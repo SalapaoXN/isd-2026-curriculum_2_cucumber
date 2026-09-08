@@ -288,6 +288,133 @@ class RagStructuredQaTest(unittest.TestCase):
 
         self.assertEqual(len(calls), 2)
 
+    def test_shared_course_id_cross_plan_join_is_repaired_once(self):
+        database_path = self._create_plan_database()
+        calls = []
+        outputs = [
+            """
+            SELECT coop_p.plan_key, no_coop_p.plan_key
+            FROM courses AS c
+            LEFT JOIN v_plan_courses AS coop_p
+              ON coop_p.course_id = c.course_id
+             AND coop_p.plan_key = 'coop'
+            LEFT JOIN v_plan_courses AS no_coop_p
+              ON no_coop_p.course_id = c.course_id
+             AND no_coop_p.plan_key = 'no_coop'
+            WHERE c.course_code = '06016481'
+            """,
+            """
+            SELECT v.plan_key, v.year, v.semester, v.course_code
+            FROM v_plan_courses AS v
+            JOIN courses AS c ON c.course_id = v.course_id
+            WHERE v.program = 'DSBA'
+              AND v.course_code = 'C101'
+              AND v.plan_key IN ('coop', 'no_coop')
+            """,
+        ]
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return outputs[len(calls) - 1]
+
+        result = ask_structured(
+            database_path,
+            "เปรียบเทียบวิชาเดียวกันในแผน coop และ no_coop",
+            "v_plan_courses(program, plan_key, year, semester, course_id, course_code) "
+            "courses(course_id, course_code)",
+            fake_model,
+        )
+
+        self.assertEqual(result["rows"], [("coop", 1, 1, "C101")])
+        self.assertEqual(len(calls), 2)
+        self.assertIn("shared courses.course_id", calls[1])
+
+    def test_single_scan_plan_key_in_cross_plan_query_passes(self):
+        database_path = self._create_plan_database()
+        calls = []
+
+        def fake_model(_prompt):
+            calls.append(True)
+            return """
+                SELECT v.plan_key, v.year, v.semester, v.course_code
+                FROM v_plan_courses AS v
+                JOIN courses AS c ON c.course_id = v.course_id
+                WHERE v.program = 'DSBA'
+                  AND v.course_code = 'C101'
+                  AND v.plan_key IN ('coop', 'no_coop')
+            """
+
+        result = ask_structured(
+            database_path,
+            "วิชา C101 ในทั้งสองแผนอยู่ช่วงไหน",
+            "v_plan_courses(program, plan_key, year, semester, course_id, course_code) "
+            "courses(course_id, course_code)",
+            fake_model,
+        )
+
+        self.assertEqual(result["rows"], [("coop", 1, 1, "C101")])
+        self.assertEqual(len(calls), 1)
+
+    def test_separate_courses_aliases_in_cross_plan_query_pass(self):
+        database_path = self._create_plan_database()
+        calls = []
+
+        def fake_model(_prompt):
+            calls.append(True)
+            return """
+                SELECT coop_p.plan_key, no_coop_p.plan_key
+                FROM v_plan_courses AS coop_p
+                JOIN courses AS c_coop
+                  ON c_coop.course_id = coop_p.course_id
+                JOIN v_plan_courses AS no_coop_p
+                  ON no_coop_p.course_code = coop_p.course_code
+                JOIN courses AS c_no_coop
+                  ON c_no_coop.course_id = no_coop_p.course_id
+                WHERE coop_p.plan_key = 'coop'
+                  AND no_coop_p.plan_key = 'no_coop'
+            """
+
+        result = ask_structured(
+            database_path,
+            "เปรียบเทียบวิชาเดียวกันในแผน coop และ no_coop",
+            "v_plan_courses(plan_key, course_id, course_code) "
+            "courses(course_id, course_code)",
+            fake_model,
+        )
+
+        self.assertEqual(result["rows"], [])
+        self.assertEqual(len(calls), 1)
+
+    def test_shared_course_id_cross_plan_repair_is_bounded(self):
+        database_path = self._create_plan_database()
+        calls = []
+        bad_sql = """
+            SELECT coop_p.plan_key, no_coop_p.plan_key
+            FROM courses AS c
+            LEFT JOIN v_plan_courses AS coop_p
+              ON coop_p.course_id = c.course_id
+             AND coop_p.plan_key = 'coop'
+            LEFT JOIN v_plan_courses AS no_coop_p
+              ON no_coop_p.course_id = c.course_id
+             AND no_coop_p.plan_key = 'no_coop'
+            WHERE c.course_code = '06016481'
+        """
+
+        def fake_model(_prompt):
+            calls.append(True)
+            return bad_sql
+
+        with self.assertRaisesRegex(ValueError, "SQL repair failed validation"):
+            ask_structured(
+                database_path,
+                "เปรียบเทียบวิชาเดียวกันในแผน coop และ no_coop",
+                "v_plan_courses(program, plan_key, year, semester, course_id, course_code) "
+                "courses(course_id, course_code)",
+                fake_model,
+            )
+
+        self.assertEqual(len(calls), 2)
+
     def test_invalid_column_is_repaired_once(self):
         calls = []
         outputs = [

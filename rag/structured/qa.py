@@ -45,6 +45,15 @@ _COURSE_CODE_EQUALITY = re.compile(
     r"(?P<right>[A-Za-z_]\w*)\.course_code\b",
     re.IGNORECASE,
 )
+_COURSE_ID_EQUALITY = re.compile(
+    r"\b(?P<left>[A-Za-z_]\w*)\.course_id\s*=\s*"
+    r"(?P<right>[A-Za-z_]\w*)\.course_id\b",
+    re.IGNORECASE,
+)
+_PLAN_KEY_LITERAL = re.compile(
+    r"\b(?:[A-Za-z_]\w*\.)?plan_key\s*=\s*'(?P<value>(?:''|[^'])*)'",
+    re.IGNORECASE,
+)
 _CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
 _PREDICATE_START = re.compile(r"\b(?:WHERE|HAVING|ON)\b", re.IGNORECASE)
 _PREDICATE_END = re.compile(
@@ -162,9 +171,51 @@ def _reject_cross_catalog_course_code_join(sql: str) -> None:
                 )
 
 
+def _reject_shared_course_id_cross_plan_join(sql: str) -> None:
+    normalized_sql = re.sub(r"\s+", " ", sql)
+    aliases: dict[str, str] = {}
+    for match in _RELATION_REFERENCE.finditer(normalized_sql):
+        table = match.group("table").casefold()
+        aliases[table] = table
+        alias = match.group("alias")
+        if alias is not None and alias.casefold() not in _SQL_RESERVED_WORDS:
+            aliases[alias.casefold()] = table
+
+    course_aliases = {
+        alias for alias, table in aliases.items() if table == "courses"
+    }
+    plan_aliases = {
+        alias for alias, table in aliases.items() if table == "v_plan_courses"
+    }
+    plans_by_course_alias: dict[str, set[str]] = {}
+    for match in _ON_CLAUSE.finditer(normalized_sql):
+        for equality in _COURSE_ID_EQUALITY.finditer(match.group("condition")):
+            left = equality.group("left").casefold()
+            right = equality.group("right").casefold()
+            if left in plan_aliases and right in course_aliases:
+                plans_by_course_alias.setdefault(right, set()).add(left)
+            elif right in plan_aliases and left in course_aliases:
+                plans_by_course_alias.setdefault(left, set()).add(right)
+
+    plan_values = {
+        match.group("value").replace("''", "'").casefold()
+        for match in _PLAN_KEY_LITERAL.finditer(normalized_sql)
+    }
+    shared_anchor = any(
+        len(plan_aliases_for_anchor) >= 2
+        for plan_aliases_for_anchor in plans_by_course_alias.values()
+    )
+    if shared_anchor and {"coop", "no_coop"}.issubset(plan_values):
+        raise ValueError(
+            "cross-plan query must not join plan rows through one shared "
+            "courses.course_id"
+        )
+
+
 def _validate_structured_sql(db_path: str | Path, sql: str) -> None:
     _reject_unsafe_plan_filters(sql)
     _reject_cross_catalog_course_code_join(sql)
+    _reject_shared_course_id_cross_plan_join(sql)
     validate_readonly_sql(db_path, sql)
 
 

@@ -15,6 +15,17 @@ class RagNlToSqlTest(unittest.TestCase):
             "Never filter plan identity with plan_name, plan, plan_code, LIKE, NOT LIKE, or NOT IN",
         ):
             self.assertIn(text, prompt)
+        for text in (
+            "same course_code may have different course_id values across catalogs or plans",
+            "Never join coop and no_coop rows by assuming a shared courses.course_id",
+            "query v_plan_courses rows independently and filter by course_code, program, and plan_key",
+            "plan_key IN ('coop', 'no_coop')",
+            "courses.course_id = v_plan_courses.course_id",
+            "year plus semester for fixed placement",
+            "flexible_year_semester_raw when placement is not fixed",
+            "Do not discard rows with NULL year or semester",
+        ):
+            self.assertIn(text, prompt)
 
     def test_generation_prompt_includes_canonical_plan_guidance(self):
         prompts = []
