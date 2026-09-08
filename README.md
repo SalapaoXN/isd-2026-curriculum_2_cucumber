@@ -20,7 +20,7 @@ python -m pip install -r requirements.txt -r requirements-rag.txt
 
 ```bash
 python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
-python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 26-32 --program DSBA --plan no_coop
 ```
 
 ### Merge / Consolidation
@@ -131,9 +131,9 @@ Supported image extensions: `.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`.
 Typical per-page outputs:
 
 ```text
-outputs/dsba_page_026_ocr.txt
-outputs/dsba_page_026_ocr.json
-outputs/dsba_page_026_ocr_extracted.json
+outputs/ocr/dsba/dsba_page_026_ocr.txt
+outputs/ocr/dsba/dsba_page_026_ocr.json
+outputs/extracted/dsba/dsba_page_026_ocr_extracted.json
 ```
 
 Consolidated curriculum files are written under `outputs/consolidated/`.
@@ -147,10 +147,10 @@ Run EasyOCR directly with `cli.py`:
 python cli.py inputs/dsba/dsba_page_026.jpg
 
 # Directory batch
-python cli.py inputs/dsba/ -o outputs
+python cli.py inputs/dsba/ -o outputs/ocr
 
 # CPU mode
-python cli.py inputs/dsba/ -o outputs --no-gpu
+python cli.py inputs/dsba/ -o outputs/ocr --no-gpu
 ```
 
 For the automated page runner:
@@ -169,26 +169,26 @@ python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
 
 ```bash
 # No co-op plan
-python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 26-32 --program DSBA --plan no_coop
 
 # Co-op plan
-python extract.py outputs --prefix dsba -p 33-39 --program DSBA --plan coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 33-39 --program DSBA --plan coop
 
 # Course descriptions
-python extract.py outputs --prefix dsba -p 317-344 --program DSBA --plan coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 317-344 --program DSBA --plan coop
 ```
 
 ### IT
 
 ```bash
 # No co-op plan
-python extract.py outputs --prefix it -p 32-38 --program IT --plan no_coop
+python extract.py outputs/ocr/it --output-dir outputs/extracted --prefix it -p 32-38 --program IT --plan no_coop
 
 # Co-op plan
-python extract.py outputs --prefix it -p 39-45 --program IT --plan coop
+python extract.py outputs/ocr/it --output-dir outputs/extracted --prefix it -p 39-45 --program IT --plan coop
 
 # Course descriptions
-python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
+python extract.py outputs/ocr/it --output-dir outputs/extracted --prefix it -p 328-371 --program IT --plan coop
 ```
 
 ### AIT
@@ -196,26 +196,26 @@ python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
 AIT has no `coop` / `no_coop` plan variant.
 
 ```bash
-python extract.py outputs --prefix ait --program AIT
+python extract.py outputs/ocr/ait --output-dir outputs/extracted --prefix ait --program AIT
 ```
 
 ### GENED
 
 ```bash
-python extract.py outputs --prefix gened -p 16-30,44-117 --program GENED --plan gened
+python extract.py outputs/ocr/gened --output-dir outputs/extracted --prefix gened -p 16-30,44-117 --program GENED --plan gened
 ```
 
 ### BIT
 
 ```bash
 # No co-op plan
-python extract.py outputs --prefix bit -p 26-30 --program BIT --plan no_coop
+python extract.py outputs/ocr/bit --output-dir outputs/extracted --prefix bit -p 26-30 --program BIT --plan no_coop
 
 # Co-op plan
-python extract.py outputs --prefix bit -p 31-35 --program BIT --plan coop
+python extract.py outputs/ocr/bit --output-dir outputs/extracted --prefix bit -p 31-35 --program BIT --plan coop
 
 # Course descriptions
-python extract.py outputs --prefix bit -p 238-257 --program BIT --plan coop
+python extract.py outputs/ocr/bit --output-dir outputs/extracted --prefix bit -p 238-257 --program BIT --plan coop
 ```
 
 ## Merge / Consolidation

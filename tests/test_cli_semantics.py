@@ -97,10 +97,10 @@ class CliSemanticsTests(unittest.TestCase):
     
     def test_extract_prefix_filters_only_matching_ocr_files(self):
         files = [
-            Path("outputs/gened_page_016_ocr.json"),
-            Path("outputs/gened_page_044_ocr.json"),
-            Path("outputs/dsba_page_026_ocr.json"),
-            Path("outputs/it_page_032_ocr.json"),
+            Path("outputs/ocr/gened/gened_page_016_ocr.json"),
+            Path("outputs/ocr/gened/gened_page_044_ocr.json"),
+            Path("outputs/ocr/dsba/dsba_page_026_ocr.json"),
+            Path("outputs/ocr/it/it_page_032_ocr.json"),
         ]
 
         result = _filter_files_by_prefix(files, "gened")
@@ -114,18 +114,18 @@ class CliSemanticsTests(unittest.TestCase):
         )
         self.assertEqual(
             _filter_files_by_prefix(
-                [Path("outputs/GENED_page_016_ocr.json")],
+                [Path("outputs/ocr/gened/GENED_page_016_ocr.json")],
                 "gened",
             ),
-            [Path("outputs/GENED_page_016_ocr.json")],
+            [Path("outputs/ocr/gened/GENED_page_016_ocr.json")],
         )
         
     def test_extract_pages_filters_requested_page_range(self):
         files = [
-            Path("outputs/dsba_page_026_ocr.json"),
-            Path("outputs/dsba_page_027_ocr.json"),
-            Path("outputs/dsba_page_032_ocr.json"),
-            Path("outputs/dsba_page_033_ocr.json"),
+            Path("outputs/ocr/dsba/dsba_page_026_ocr.json"),
+            Path("outputs/ocr/dsba/dsba_page_027_ocr.json"),
+            Path("outputs/ocr/dsba/dsba_page_032_ocr.json"),
+            Path("outputs/ocr/dsba/dsba_page_033_ocr.json"),
         ]
 
         pages = _parse_pages("26-27,32")

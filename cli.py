@@ -19,8 +19,8 @@ def parse_arguments():
     parser.add_argument(
         "-o", "--output-dir",
         type=str,
-        default="outputs",
-        help="Directory to save OCR outputs (default: 'outputs')"
+        default="outputs/ocr",
+        help="Root directory to save OCR outputs (default: 'outputs/ocr')"
     )
     parser.add_argument(
         "-l", "--languages",
@@ -101,7 +101,8 @@ def main():
 
             lines = [line.upper() for line in lines]
             # Step 4: Save Individual OCR Results (.txt and .json)
-            save_ocr_results(lines, output_dir, img_file.stem)
+            program = img_file.stem.split("_page_", 1)[0].casefold()
+            save_ocr_results(lines, output_dir / program, img_file.stem)
 
         print(f"\n Finished processing all {len(images)} image(s)!")
 

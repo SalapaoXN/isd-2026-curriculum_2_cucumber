@@ -198,16 +198,21 @@ def parse_page_range(page_input: str) -> set:
 
 def _raw_ocr_path(extracted_path: Path) -> Path | None:
     if extracted_path.name.endswith("_ocr_extracted.json"):
-        json_path = extracted_path.with_name(
-            extracted_path.name.replace("_ocr_extracted.json", "_ocr.json")
-        )
-        if json_path.exists():
-            return json_path
-        txt_path = extracted_path.with_name(
-            extracted_path.name.replace("_ocr_extracted.json", "_ocr.txt")
-        )
-        if txt_path.exists():
-            return txt_path
+        stem = extracted_path.name.replace("_ocr_extracted.json", "_ocr")
+        candidate_directories = [extracted_path.parent]
+        if extracted_path.parent.parent.name.casefold() == "extracted":
+            candidate_directories.append(
+                extracted_path.parent.parent.parent
+                / "ocr"
+                / extracted_path.parent.name
+            )
+        for directory in candidate_directories:
+            json_path = directory / f"{stem}.json"
+            if json_path.exists():
+                return json_path
+            txt_path = directory / f"{stem}.txt"
+            if txt_path.exists():
+                return txt_path
     return None
 
 
@@ -522,7 +527,7 @@ def merge_plan_with_description(table_courses: List[dict], desc_courses: List[di
 
 
 def merge_consecutive_files(
-    input_dir: str = "outputs",
+    input_dir: str = "outputs/extracted",
     output_dir: str = "outputs/consolidated",
     plan_filter: str = None,
     pages: str = None,
@@ -534,7 +539,7 @@ def merge_consecutive_files(
     output_folder = Path(output_dir)
     group_id = _safe_identifier(prefix) if prefix else _input_group_identifier(input_path)
 
-    json_files = list(input_path.glob("*_extracted.json"))
+    json_files = list(input_path.rglob("*_extracted.json"))
     if not json_files:
         print(f" No *_extracted.json files found in folder: {input_path.resolve()}")
         return
@@ -758,7 +763,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i",
         "--input-dir",
-        default="outputs",
+        default="outputs/extracted",
         help="Input folder containing *_extracted.json",
     )
     parser.add_argument(
