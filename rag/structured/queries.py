@@ -13,6 +13,8 @@ from typing import Any, Iterator
 
 Database = str | Path | sqlite3.Connection
 _CREDIT_RE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)")
+_COURSE_CODE_RE = re.compile(r"[0-9]{8}")
+_CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
 
 
 @contextmanager
@@ -245,6 +247,189 @@ def _credits_for_placement(
         if value is not None:
             total += value
     return total
+
+
+def _normalize_course_placement_inputs(
+    program: str,
+    course_code: str,
+    plan_keys: str | Iterable[str],
+) -> tuple[str, str, list[str]]:
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError("program must be a non-empty string")
+    if not isinstance(course_code, str) or _COURSE_CODE_RE.fullmatch(course_code) is None:
+        raise ValueError("course_code must contain exactly 8 ASCII digits")
+
+    raw_plan_keys = [plan_keys] if isinstance(plan_keys, str) else list(plan_keys)
+    normalized_plan_keys: list[str] = []
+    for plan_key in raw_plan_keys:
+        if not isinstance(plan_key, str):
+            raise ValueError("plan_keys must contain strings")
+        normalized = plan_key.strip().lower()
+        if normalized not in _CANONICAL_PLAN_KEYS:
+            raise ValueError(f"unsupported canonical plan_key: {plan_key!r}")
+        if normalized not in normalized_plan_keys:
+            normalized_plan_keys.append(normalized)
+    if not normalized_plan_keys:
+        raise ValueError("at least one canonical plan_key is required")
+
+    return program.strip().upper(), course_code, normalized_plan_keys
+
+
+def _course_placement_provenance(
+    connection: sqlite3.Connection,
+    placement_id: int,
+    course_id: int,
+    alternative_group_id: int | None,
+) -> list[dict[str, Any]]:
+    reference_lists: list[list[dict[str, Any]]] = [
+        _provenance_for(
+            connection,
+            "plan_placement_provenance",
+            "placement_id",
+            placement_id,
+        ),
+        _provenance_for(
+            connection,
+            "course_provenance",
+            "course_id",
+            course_id,
+        ),
+    ]
+    if alternative_group_id is not None:
+        reference_lists.append(
+            _provenance_for(
+                connection,
+                "alternative_group_provenance",
+                "alternative_group_id",
+                alternative_group_id,
+            )
+        )
+        member_ids = connection.execute(
+            """
+            SELECT alternative_group_member_id
+            FROM alternative_course_group_members
+            WHERE alternative_group_id = ? AND course_id = ?
+            ORDER BY alternative_group_member_id
+            """,
+            (alternative_group_id, course_id),
+        )
+        for member in member_ids:
+            reference_lists.append(
+                _provenance_for(
+                    connection,
+                    "alternative_group_member_provenance",
+                    "alternative_group_member_id",
+                    int(member["alternative_group_member_id"]),
+                )
+            )
+    return _merge_provenance(*reference_lists)
+
+
+def course_placement(
+    db_path: Database,
+    program: str,
+    course_code: str,
+    plan_keys: str | Iterable[str],
+) -> dict[str, Any]:
+    """Return independent placement rows for a course in requested plans."""
+    normalized_program, normalized_code, normalized_plan_keys = (
+        _normalize_course_placement_inputs(program, course_code, plan_keys)
+    )
+    placeholders = ", ".join("?" for _ in normalized_plan_keys)
+    query = f"""
+        SELECT
+            plan_courses.placement_id,
+            plan_courses.plan_key,
+            plan_courses.plan_id,
+            plans.catalog_id,
+            plan_courses.course_id,
+            plan_courses.year,
+            plan_courses.semester,
+            plan_courses.flexible_year_semester_raw,
+            plan_courses.credits_raw,
+            plan_courses.alternative_group_id
+        FROM v_plan_courses AS plan_courses
+        JOIN curriculum_plans AS plans
+          ON plans.plan_id = plan_courses.plan_id
+        WHERE plan_courses.program = ?
+          AND plan_courses.course_code = ?
+          AND plan_courses.plan_key IN ({placeholders})
+        ORDER BY
+            plan_courses.plan_key,
+            plans.catalog_id,
+            plan_courses.plan_id,
+            plan_courses.placement_id,
+            plan_courses.course_id
+    """
+
+    with _open_database(db_path) as connection:
+        rows = connection.execute(
+            query,
+            (normalized_program, normalized_code, *normalized_plan_keys),
+        ).fetchall()
+        placements: list[dict[str, Any]] = []
+        for row in rows:
+            alternative_group_id = (
+                int(row["alternative_group_id"])
+                if row["alternative_group_id"] is not None
+                else None
+            )
+            placement_id = int(row["placement_id"])
+            course_id = int(row["course_id"])
+            placements.append(
+                {
+                    "placement_id": placement_id,
+                    "plan_key": row["plan_key"],
+                    "plan_id": int(row["plan_id"]),
+                    "catalog_id": int(row["catalog_id"]),
+                    "course_id": course_id,
+                    "year": row["year"],
+                    "semester": row["semester"],
+                    "flexible_year_semester_raw": row[
+                        "flexible_year_semester_raw"
+                    ],
+                    "credits_raw": row["credits_raw"],
+                    "alternative_group_id": alternative_group_id,
+                    "provenance": _course_placement_provenance(
+                        connection,
+                        placement_id,
+                        course_id,
+                        alternative_group_id,
+                    ),
+                }
+            )
+
+    plan_order = {key: index for index, key in enumerate(normalized_plan_keys)}
+    placements.sort(
+        key=lambda placement: (
+            plan_order[placement["plan_key"]],
+            placement["catalog_id"],
+            placement["plan_id"],
+            placement["placement_id"],
+            placement["course_id"],
+        )
+    )
+    found_plan_keys = {placement["plan_key"] for placement in placements}
+    missing_plan_keys = [
+        plan_key
+        for plan_key in normalized_plan_keys
+        if plan_key not in found_plan_keys
+    ]
+    status = (
+        "no_data"
+        if not placements
+        else "partial"
+        if missing_plan_keys
+        else "ok"
+    )
+    return {
+        "status": status,
+        "program": normalized_program,
+        "course_code": normalized_code,
+        "requested_plan_keys": normalized_plan_keys,
+        "missing_plan_keys": missing_plan_keys,
+        "placements": placements,
+    }
 
 
 def semester_total_credits(
@@ -533,6 +718,7 @@ def courses_requiring_prerequisite(
 
 
 __all__ = [
+    "course_placement",
     "courses_in_year_semester",
     "courses_requiring_prerequisite",
     "prerequisites_of_course",
