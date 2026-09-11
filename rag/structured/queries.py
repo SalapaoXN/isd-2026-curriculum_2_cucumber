@@ -509,27 +509,46 @@ def semester_credits_and_prerequisites(
                 """,
                 (catalog_id, normalized_code),
             ).fetchall()
-            plan_references = _provenance_for(
-                connection,
-                "curriculum_plan_provenance",
-                "plan_id",
-                plan_id,
-            )
+            placement_rows = connection.execute(
+                """
+                SELECT DISTINCT placement_id
+                FROM v_plan_courses
+                WHERE plan_id = ?
+                  AND program = ?
+                  AND course_code = ?
+                  AND year = ?
+                  AND semester = ?
+                ORDER BY placement_id
+                """,
+                (
+                    plan_id,
+                    normalized_program,
+                    normalized_code,
+                    year_number,
+                    semester_number,
+                ),
+            ).fetchall()
+            placement_references = [
+                reference
+                for placement_row in placement_rows
+                for reference in _provenance_for(
+                    connection,
+                    "plan_placement_provenance",
+                    "placement_id",
+                    int(placement_row["placement_id"]),
+                )
+            ]
             prerequisites: list[dict[str, Any]] = []
             course_ids: list[int] = []
             for course_row in course_rows:
                 course_id = int(course_row["course_id"])
                 course_ids.append(course_id)
-                course_references = _provenance_for(
-                    connection, "course_provenance", "course_id", course_id
-                )
                 for prerequisite in _prerequisite_records(connection, course_id):
                     prerequisites.append(
                         {
                             **prerequisite,
                             "provenance": _merge_provenance(
-                                plan_references,
-                                course_references,
+                                placement_references,
                                 prerequisite["provenance"],
                             ),
                         }

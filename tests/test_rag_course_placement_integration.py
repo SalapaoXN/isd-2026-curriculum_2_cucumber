@@ -164,6 +164,31 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["status"], "no_data")
         self.assertEqual(result["plans"], [])
 
+    def test_mixed_operation_excludes_unrelated_plan_provenance(self):
+        result = semester_credits_and_prerequisites(
+            DB_PATH,
+            "IT",
+            "no_coop",
+            2,
+            2,
+            "06016420",
+        )
+
+        references = result["plans"][0]["prerequisites"][0]["provenance"]
+        filenames = {reference["source_filename"] for reference in references}
+        self.assertEqual(
+            filenames,
+            {
+                "it_page_034.png",
+                "it_page_035.png",
+                "it_page_333.png",
+                "it_page_334.png",
+                "it_page_338.png",
+            },
+        )
+        self.assertNotIn("it_page_328.png", filenames)
+        self.assertNotIn("it_page_371.png", filenames)
+
 
 if __name__ == "__main__":
     unittest.main()
