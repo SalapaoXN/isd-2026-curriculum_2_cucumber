@@ -10,6 +10,7 @@ from typing import Any
 
 from .execute import execute_readonly, validate_readonly_sql
 from .nl_to_sql import question_to_sql, repair_sql
+from .queries import course_placement
 
 
 _SQL_RESERVED_WORDS = frozenset(
@@ -70,6 +71,112 @@ _PLAN_OPERATOR = re.compile(
     re.IGNORECASE,
 )
 _STRING_LITERAL = re.compile(r"'((?:''|[^'])*)'")
+_EXPLICIT_COURSE_CODE = re.compile(r"(?<![0-9])([0-9]{8})(?![0-9])")
+_PLACEMENT_INTENT_TERMS = (
+    "เรียนช่วงไหน",
+    "อยู่ช่วงไหน",
+    "เรียนปีไหน",
+    "อยู่ปีไหน",
+    "เทอม",
+    "ภาคเรียน",
+    "ภาคการศึกษา",
+    "หน่วยกิต",
+    "ช่วงเรียน",
+    "กำหนดแน่นอน",
+    "ยืดหยุ่น",
+    "ลงทะเบียน",
+    "ลงวิชา",
+    "เรียนเมื่อไหร่",
+    "placement",
+    "semester",
+    "academic year",
+)
+_MIXED_STRUCTURED_INTENT_TERMS = (
+    "prerequisite",
+    "pre-requisite",
+    "ต้องผ่าน",
+    "วิชาที่ต้องเรียนก่อน",
+    "วิชาบังคับก่อน",
+    "บังคับก่อน",
+    "ต้องเรียนก่อน",
+    "อะไรมาก่อน",
+    "รวมกี่หน่วยกิต",
+    "หน่วยกิตรวม",
+    "ลงทะเบียนรวม",
+    "alternative group",
+    "กลุ่มทางเลือก",
+    "อย่างใดอย่างหนึ่ง",
+    "จำนวนวิชา",
+    "นับจำนวน",
+    "course count",
+    "count statistics",
+)
+_DIRECT_PLAN_KEY = re.compile(
+    r"(?<![a-z0-9_])(?P<plan>no_coop|coop|default|gened)(?![a-z0-9_])"
+)
+_PROGRAM_CODE = re.compile(
+    r"(?<![a-z0-9_])(?P<program>dsba|bit|it|gened)(?![a-z0-9_])"
+)
+_PLACEMENT_COLUMNS = (
+    "placement_id",
+    "plan_key",
+    "plan_id",
+    "catalog_id",
+    "course_id",
+    "year",
+    "semester",
+    "flexible_year_semester_raw",
+    "credits_raw",
+    "alternative_group_id",
+    "provenance",
+)
+
+
+def _course_placement_request(
+    question: str,
+) -> tuple[str, str, list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 1:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if program_match is None:
+        return None
+    if any(term in normalized for term in _MIXED_STRUCTURED_INTENT_TERMS):
+        return None
+    if not any(term in normalized for term in _PLACEMENT_INTENT_TERMS):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        return None
+    return program_match.group("program"), course_codes[0], plan_keys
+
+
+def _course_placement_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    rows = [
+        tuple(placement.get(column) for column in _PLACEMENT_COLUMNS)
+        for placement in result["placements"]
+    ]
+    return {
+        "operation": "course_placement",
+        "status": result["status"],
+        "missing_plan_keys": result["missing_plan_keys"],
+        "sql": None,
+        "columns": list(_PLACEMENT_COLUMNS),
+        "rows": rows,
+    }
 
 
 def _predicate_fragments(sql: str) -> list[str]:
@@ -270,9 +377,19 @@ def ask_structured(
     db_path: str | Path,
     question: str,
     schema_text: str,
-    model_callable: Callable[[str], str],
+    model_callable: Callable[[str], str] | None,
 ) -> dict[str, Any]:
     """Generate guarded SQL, execute it read-only, and return raw results."""
+    placement_request = _course_placement_request(question)
+    if placement_request is not None:
+        program, course_code, plan_keys = placement_request
+        return _course_placement_structured_result(
+            course_placement(db_path, program, course_code, plan_keys)
+        )
+    if not callable(model_callable):
+        raise ValueError(
+            "structured_model_callable is required for structured questions"
+        )
     generated_sql: str | None = None
 
     def capture_generated_sql(prompt: str) -> str:
