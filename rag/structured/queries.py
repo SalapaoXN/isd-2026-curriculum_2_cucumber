@@ -452,6 +452,121 @@ def semester_total_credits(
     return int(total) if total == total.to_integral_value() else float(total)
 
 
+def semester_credits_and_prerequisites(
+    db_path: Database,
+    program: str,
+    plan_key: str,
+    year_number: int,
+    semester_number: int,
+    course_code: str,
+) -> dict[str, Any]:
+    """Return one plan term's credits and a course's prerequisites."""
+    normalized_program, normalized_code, normalized_plan_keys = (
+        _normalize_course_placement_inputs(program, course_code, [plan_key])
+    )
+    if isinstance(year_number, bool) or not isinstance(year_number, int):
+        raise ValueError("year_number must be an integer")
+    if isinstance(semester_number, bool) or not isinstance(semester_number, int):
+        raise ValueError("semester_number must be an integer")
+
+    normalized_plan_key = normalized_plan_keys[0]
+    with _open_database(db_path) as connection:
+        plan_rows = connection.execute(
+            """
+            SELECT plan_id, catalog_id, program_code, plan_key
+            FROM curriculum_plans
+            WHERE program_code = ? AND plan_key = ?
+            ORDER BY plan_id
+            """,
+            (normalized_program, normalized_plan_key),
+        ).fetchall()
+        plans: list[dict[str, Any]] = []
+        has_credits = False
+        has_prerequisites = False
+
+        for plan_row in plan_rows:
+            plan_id = int(plan_row["plan_id"])
+            catalog_id = int(plan_row["catalog_id"])
+            credit_row = connection.execute(
+                """
+                SELECT total_credits
+                FROM v_semester_credits
+                WHERE plan_id = ? AND year = ? AND semester = ?
+                """,
+                (plan_id, year_number, semester_number),
+            ).fetchone()
+            total_credits = (
+                credit_row["total_credits"] if credit_row is not None else None
+            )
+            has_credits = has_credits or total_credits is not None
+
+            course_rows = connection.execute(
+                """
+                SELECT course_id
+                FROM courses
+                WHERE catalog_id = ? AND course_code = ?
+                ORDER BY course_id
+                """,
+                (catalog_id, normalized_code),
+            ).fetchall()
+            plan_references = _provenance_for(
+                connection,
+                "curriculum_plan_provenance",
+                "plan_id",
+                plan_id,
+            )
+            prerequisites: list[dict[str, Any]] = []
+            course_ids: list[int] = []
+            for course_row in course_rows:
+                course_id = int(course_row["course_id"])
+                course_ids.append(course_id)
+                course_references = _provenance_for(
+                    connection, "course_provenance", "course_id", course_id
+                )
+                for prerequisite in _prerequisite_records(connection, course_id):
+                    prerequisites.append(
+                        {
+                            **prerequisite,
+                            "provenance": _merge_provenance(
+                                plan_references,
+                                course_references,
+                                prerequisite["provenance"],
+                            ),
+                        }
+                    )
+            has_prerequisites = has_prerequisites or bool(prerequisites)
+            plans.append(
+                {
+                    "plan_id": plan_id,
+                    "catalog_id": catalog_id,
+                    "program": plan_row["program_code"],
+                    "plan_key": plan_row["plan_key"],
+                    "year": year_number,
+                    "semester": semester_number,
+                    "total_credits": total_credits,
+                    "course_code": normalized_code,
+                    "course_ids": course_ids,
+                    "prerequisites": prerequisites,
+                }
+            )
+
+    if not plans or not (has_credits or has_prerequisites):
+        status = "no_data"
+    elif has_credits and has_prerequisites:
+        status = "ok"
+    else:
+        status = "partial"
+    return {
+        "status": status,
+        "program": normalized_program,
+        "plan_key": normalized_plan_key,
+        "year": year_number,
+        "semester": semester_number,
+        "course_code": normalized_code,
+        "plans": plans,
+    }
+
+
 def courses_in_year_semester(
     db_path: Database,
     plan_id: int,
@@ -722,5 +837,6 @@ __all__ = [
     "courses_in_year_semester",
     "courses_requiring_prerequisite",
     "prerequisites_of_course",
+    "semester_credits_and_prerequisites",
     "semester_total_credits",
 ]

@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from rag.qa import ask
+from rag.structured.queries import semester_credits_and_prerequisites
 
 
 DB_PATH = (
@@ -88,23 +89,51 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["result"]["rows"], [(1,)])
         self.assertEqual(len(calls), 1)
 
-    def test_semester_credits_and_prerequisite_do_not_use_placement_operation(self):
+    def test_prerequisite_only_and_credits_only_keep_nl_to_sql_fallback(self):
         calls = []
 
         def fake_model(_prompt):
             calls.append(True)
             return "SELECT 1"
 
-        result = ask(
+        prerequisite_result = ask(
             DB_PATH,
-            "IT แบบไม่สหกิจ ในปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต "
-            "และวิชา 06016420 ต้องผ่านวิชาอะไรมาก่อน?",
+            "IT แบบไม่สหกิจ วิชา 06016420 ต้องเรียนก่อนวิชาอะไร?",
+            structured_model_callable=fake_model,
+        )
+        credits_result = ask(
+            DB_PATH,
+            "IT แบบไม่สหกิจ ในปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต",
             structured_model_callable=fake_model,
         )
 
+        self.assertNotIn("operation", prerequisite_result["result"])
+        self.assertNotIn("operation", credits_result["result"])
+        self.assertEqual(len(calls), 2)
+
+    def test_semester_credits_and_prerequisite_use_deterministic_operation(self):
+        result = ask(
+            DB_PATH,
+            "IT แบบไม่สหกิจ ในปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต "
+            "และวิชา 06016420 ต้องผ่านวิชาอะไรมาก่อน?"
+        )
+
         self.assertEqual(result["route"], "structured")
-        self.assertNotIn("operation", result["result"])
-        self.assertEqual(len(calls), 1)
+        structured = result["result"]
+        self.assertEqual(
+            structured["operation"], "semester_credits_and_prerequisites"
+        )
+        self.assertEqual(structured["status"], "ok")
+        rows = _placement_rows(result)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["total_credits"], 30)
+        self.assertEqual(rows[0]["course_code"], "06016420")
+        self.assertEqual(rows[0]["course_id"], 739)
+        self.assertEqual(rows[0]["prerequisite_course_id"], 728)
+        self.assertEqual(rows[0]["prerequisite_course_code"], "06016413")
+        self.assertEqual(rows[0]["requirement_type"], "required")
+        self.assertEqual(rows[0]["raw_text"], "06016413")
+        self.assertTrue(rows[0]["provenance"])
 
     def test_placement_semantic_hybrid_keeps_both_evidence_paths(self):
         semantic_evidence = [{"chunk_id": "it-06016481-description"}]
@@ -121,6 +150,19 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             result["result"]["structured"]["operation"], "course_placement"
         )
         self.assertEqual(result["result"]["semantic"], semantic_evidence)
+
+    def test_mixed_operation_full_miss_is_no_data(self):
+        result = semester_credits_and_prerequisites(
+            DB_PATH,
+            "PROGRAM_WITHOUT_THIS_PLAN",
+            "no_coop",
+            2,
+            2,
+            "99999999",
+        )
+
+        self.assertEqual(result["status"], "no_data")
+        self.assertEqual(result["plans"], [])
 
 
 if __name__ == "__main__":
