@@ -27,6 +27,7 @@ def make_record(course_code="06000001"):
         "program": "IT",
         "plan_key": "no_coop",
         "provenance": [{"source": "curriculum.pdf", "page": 4}],
+        "source_provenance": [{"source": "curriculum.pdf", "page": 4}],
     }
 
 
@@ -59,8 +60,25 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         path.write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
         return path, document
 
-    def response_for(self, records):
-        return json.dumps(records, ensure_ascii=False)
+    def payload_for(self, records, start_index=0):
+        return [
+            {
+                "record_index": start_index + offset,
+                **{
+                    field: record.get(field)
+                    for field in llm_spell_corrector.TEXT_FIELDS_ORDER
+                },
+            }
+            for offset, record in enumerate(records)
+        ]
+
+    def response_for(self, records, start_index=0):
+        return json.dumps(self.payload_for(records, start_index), ensure_ascii=False)
+
+    def response_with_extra_field(self, records, field, value, start_index=0):
+        payload = self.payload_for(records, start_index)
+        payload[0][field] = value
+        return json.dumps(payload, ensure_ascii=False)
 
     def run_corrector(self, path, responses, output_dir=None):
         client = FakeClient(responses)
@@ -81,8 +99,23 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         output_path, client = self.run_corrector(path, [self.response_for(corrected)])
 
         self.assertEqual(client.models.calls[0]["model"], "gemini-3.5-flash-lite")
-        self.assertEqual(json.loads(output_path.read_text(encoding="utf-8"))["courses"], corrected)
+        result = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["courses"][0]["name_en"], "Corrected name")
+        self.assertEqual(result["courses"][0]["course_code"], records[0]["course_code"])
+        self.assertEqual(result["courses"][0]["credits"], records[0]["credits"])
+        self.assertEqual(result["courses"][0]["prerequisite"], records[0]["prerequisite"])
+        self.assertEqual(result["courses"][0]["provenance"], records[0]["provenance"])
+        self.assertEqual(result["courses"][0]["source_provenance"], records[0]["source_provenance"])
         self.assertEqual(json.loads(path.read_text(encoding="utf-8")), original)
+        payload = json.loads(client.models.calls[0]["contents"][1])
+        self.assertEqual(
+            set(payload[0]),
+            {"record_index", *llm_spell_corrector.TEXT_FIELDS_ORDER},
+        )
+        self.assertNotIn("source_provenance", client.models.calls[0]["contents"][1])
+        self.assertNotIn("provenance", client.models.calls[0]["contents"][1])
+        self.assertNotIn("credits", client.models.calls[0]["contents"][1])
+        self.assertNotIn("prerequisite", client.models.calls[0]["contents"][1])
         self.assertEqual(
             json.loads((self.directory / "curriculum_corrections.json").read_text(encoding="utf-8")),
             [{"course_code": "06000001", "field": "name_en", "before": "Original name", "after": "Corrected name"}],
@@ -144,41 +177,101 @@ class LlmSpellCorrectorTests(unittest.TestCase):
     def test_course_code_mutation_is_rejected(self):
         records = [make_record()]
         path, _ = self.write_document(records)
-        changed = copy.deepcopy(records)
-        changed[0]["course_code"] = "06999999"
 
         with self.assertRaises(ValueError):
-            self.run_corrector(path, [self.response_for(changed)])
+            self.run_corrector(
+                path,
+                [self.response_with_extra_field(records, "course_code", "06999999")],
+            )
         self.assert_no_outputs()
 
     def test_credits_mutation_is_rejected(self):
         records = [make_record()]
         path, _ = self.write_document(records)
-        changed = copy.deepcopy(records)
-        changed[0]["credits"] = 4
 
         with self.assertRaises(ValueError):
-            self.run_corrector(path, [self.response_for(changed)])
+            self.run_corrector(path, [self.response_with_extra_field(records, "credits", 4)])
         self.assert_no_outputs()
 
     def test_prerequisite_mutation_is_rejected(self):
         records = [make_record()]
         path, _ = self.write_document(records)
-        changed = copy.deepcopy(records)
-        changed[0]["prerequisite"]["course_code"] = "06000002"
 
         with self.assertRaises(ValueError):
-            self.run_corrector(path, [self.response_for(changed)])
+            self.run_corrector(
+                path,
+                [
+                    self.response_with_extra_field(
+                        records,
+                        "prerequisite",
+                        {"course_code": "06000002"},
+                    )
+                ],
+            )
         self.assert_no_outputs()
 
     def test_provenance_mutation_is_rejected(self):
         records = [make_record()]
         path, _ = self.write_document(records)
-        changed = copy.deepcopy(records)
-        changed[0]["provenance"][0]["page"] = 99
 
         with self.assertRaises(ValueError):
-            self.run_corrector(path, [self.response_for(changed)])
+            self.run_corrector(
+                path,
+                [
+                    self.response_with_extra_field(
+                        records,
+                        "source_provenance",
+                        [{"source": "other.pdf", "page": 99}],
+                    )
+                ],
+            )
+        self.assert_no_outputs()
+
+    def test_missing_record_index_is_rejected(self):
+        records = [make_record()]
+        path, _ = self.write_document(records)
+        payload = self.payload_for(records)
+        del payload[0]["record_index"]
+
+        with self.assertRaises(ValueError):
+            self.run_corrector(path, [json.dumps(payload, ensure_ascii=False)])
+        self.assert_no_outputs()
+
+    def test_duplicate_record_index_is_rejected(self):
+        records = [make_record("06000001"), make_record("06000002")]
+        path, _ = self.write_document(records)
+        payload = self.payload_for(records)
+        payload[1]["record_index"] = payload[0]["record_index"]
+
+        with self.assertRaises(ValueError):
+            self.run_corrector(path, [json.dumps(payload, ensure_ascii=False)])
+        self.assert_no_outputs()
+
+    def test_unknown_record_index_is_rejected(self):
+        records = [make_record()]
+        path, _ = self.write_document(records)
+        payload = self.payload_for(records)
+        payload[0]["record_index"] = 99
+
+        with self.assertRaises(ValueError):
+            self.run_corrector(path, [json.dumps(payload, ensure_ascii=False)])
+        self.assert_no_outputs()
+
+    def test_extra_non_editable_response_field_is_rejected(self):
+        records = [make_record()]
+        path, _ = self.write_document(records)
+
+        with self.assertRaises(ValueError):
+            self.run_corrector(
+                path,
+                [
+                    self.response_with_extra_field(
+                        records,
+                        "source_provenance",
+                        records[0]["source_provenance"],
+                    )
+                ],
+            )
         self.assert_no_outputs()
 
     def test_dropped_record_is_rejected(self):
@@ -224,7 +317,10 @@ class LlmSpellCorrectorTests(unittest.TestCase):
 
         _, client = self.run_corrector(
             path,
-            [self.response_for(records[:10]), self.response_for(records[10:])],
+            [
+                self.response_for(records[:10], start_index=0),
+                self.response_for(records[10:], start_index=10),
+            ],
         )
 
         self.assertEqual(len(client.models.calls), 2)

@@ -19,7 +19,7 @@ MODEL = "gemini-3.5-flash-lite"
 BATCH_SIZE = 10
 TEXT_FIELDS_ORDER = ("name_th", "name_en", "desc_th", "desc_en", "note")
 TEXT_FIELDS = frozenset(TEXT_FIELDS_ORDER)
-IDENTITY_FIELDS = ("course_code", "code", "course_id", "id")
+RESPONSE_FIELDS = frozenset(("record_index",) + TEXT_FIELDS_ORDER)
 
 CORRECTION_PROMPT = (
     "You are a proofreader for university curriculum JSON course records. "
@@ -27,10 +27,10 @@ CORRECTION_PROMPT = (
     "name_th, name_en, desc_th, desc_en, and note. "
     "Only the values of those five fields may change. Everything else is immutable, "
     "including course identity and code, credits, year, semester, flexible timing, "
-    "category, type, prerequisites, program and plan metadata, provenance, all keys, "
-    "record count, and record order. Do not add, remove, or reorder records or fields. "
-    "Return ONLY a valid JSON array containing exactly the same records in the same order; "
-    "do not use markdown code fences or add commentary."
+    "category, type, prerequisites, program and plan metadata, provenance, and record order. "
+    "For each input record, return only record_index plus those five text fields. "
+    "Return every record_index exactly once, with no missing or added indices, and do not add "
+    "any other fields. Return ONLY a valid JSON array; do not use markdown code fences or add commentary."
 )
 
 
@@ -49,31 +49,23 @@ def _records_from_document(document: Any) -> list[dict[str, Any]]:
     return records
 
 
-def _record_identity(record: dict[str, Any], index: int) -> tuple[str, Any]:
-    for field in IDENTITY_FIELDS:
-        if field in record:
-            return field, record[field]
-    return "index", index
-
-
 def _record_course_code(record: dict[str, Any]) -> Any:
     if "course_code" in record:
         return record["course_code"]
     return record.get("code")
 
 
-def _same_json(left: Any, right: Any) -> bool:
-    if type(left) is not type(right):
-        return False
-    if isinstance(left, dict):
-        return left.keys() == right.keys() and all(
-            _same_json(left[key], right[key]) for key in left
-        )
-    if isinstance(left, list):
-        return len(left) == len(right) and all(
-            _same_json(before, after) for before, after in zip(left, right)
-        )
-    return left == right
+def _batch_payload(
+    records: list[dict[str, Any]],
+    start_index: int,
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "record_index": start_index + offset,
+            **{field: record.get(field) for field in TEXT_FIELDS_ORDER},
+        }
+        for offset, record in enumerate(records)
+    ]
 
 
 def _decode_response(response: Any, batch_number: int) -> list[Any]:
@@ -105,34 +97,48 @@ def _validate_batch(
     after_batch: list[Any],
     batch_number: int,
     start_index: int,
-) -> list[dict[str, Any]]:
+) -> dict[int, dict[str, Any]]:
     if len(after_batch) != len(before_batch):
         raise ValueError(
             f"Gemini batch {batch_number} changed record count: "
             f"expected {len(before_batch)}, got {len(after_batch)}"
         )
 
-    validated: list[dict[str, Any]] = []
-    for offset, (before, after) in enumerate(zip(before_batch, after_batch)):
-        index = start_index + offset
+    expected_indices = set(range(start_index, start_index + len(before_batch)))
+    validated: dict[int, dict[str, Any]] = {}
+    for after in after_batch:
         if not isinstance(after, dict):
-            raise ValueError(f"Gemini batch {batch_number} record {index} is not a JSON object")
-        if before.keys() != after.keys():
-            raise ValueError(f"Gemini batch {batch_number} record {index} changed JSON structure")
-        if _record_identity(before, index) != _record_identity(after, index):
-            raise ValueError(f"Gemini batch {batch_number} record {index} changed record identity")
+            raise ValueError(f"Gemini batch {batch_number} item is not a JSON object")
 
-        for field in before:
-            if field in TEXT_FIELDS:
-                if after[field] is not None and not isinstance(after[field], str):
-                    raise ValueError(
-                        f"Gemini batch {batch_number} record {index} changed text field {field} to a non-text value"
-                    )
-            elif not _same_json(before[field], after[field]):
+        if after.keys() != RESPONSE_FIELDS:
+            missing_fields = sorted(RESPONSE_FIELDS.difference(after.keys()))
+            extra_fields = sorted(set(after.keys()).difference(RESPONSE_FIELDS))
+            raise ValueError(
+                f"Gemini batch {batch_number} response fields are invalid; "
+                f"missing={missing_fields}, extra={extra_fields}"
+            )
+
+        index = after["record_index"]
+        if type(index) is not int:
+            raise ValueError(f"Gemini batch {batch_number} record_index must be an integer")
+        if index in validated:
+            raise ValueError(f"Gemini batch {batch_number} has duplicate record_index {index}")
+        if index not in expected_indices:
+            raise ValueError(f"Gemini batch {batch_number} has unknown record_index {index}")
+
+        for field in TEXT_FIELDS_ORDER:
+            if after[field] is not None and not isinstance(after[field], str):
                 raise ValueError(
-                    f"Gemini batch {batch_number} record {index} changed immutable field {field}"
+                    f"Gemini batch {batch_number} record_index {index} has non-text field {field}"
                 )
-        validated.append(after)
+
+        validated[index] = after
+
+    missing_indices = sorted(expected_indices.difference(validated))
+    if missing_indices:
+        raise ValueError(
+            f"Gemini batch {batch_number} is missing record_index values {missing_indices}"
+        )
     return validated
 
 
@@ -192,7 +198,11 @@ def correct_json_file(file_path: str | Path, output_dir: str | Path | None = Non
         batch_number = (start_index // BATCH_SIZE) + 1
         contents = [
             CORRECTION_PROMPT,
-            json.dumps(before_batch, ensure_ascii=False, indent=2),
+            json.dumps(
+                _batch_payload(before_batch, start_index),
+                ensure_ascii=False,
+                indent=2,
+            ),
         ]
         try:
             response = client.models.generate_content(model=MODEL, contents=contents)
@@ -207,7 +217,8 @@ def correct_json_file(file_path: str | Path, output_dir: str | Path | None = Non
             start_index,
         )
 
-        for offset, (before, after) in enumerate(zip(before_batch, validated_batch)):
+        for offset, before in enumerate(before_batch):
+            after = validated_batch[start_index + offset]
             corrected_record = corrected_records[start_index + offset]
             for field in TEXT_FIELDS_ORDER:
                 if field not in before or before[field] == after[field]:
