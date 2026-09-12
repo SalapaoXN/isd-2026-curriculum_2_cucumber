@@ -2,6 +2,8 @@
 .env
 .venv/
 __pycache__/
+*.py[cod]
+.pytest_cache/
 
 # Local tooling
 .opencode/
@@ -15,6 +17,10 @@ outputs/*
 prototype_outputs/*
 example/*
 work/*
+/work/
+/curriculum.db
+*.tmp
+*.log
 demo.db
 
 # Keep tracked placeholder folders
