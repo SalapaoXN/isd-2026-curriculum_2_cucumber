@@ -2,8 +2,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from rag.answer import EMPTY_ANSWER, answer_question
 from rag.qa import ask
-from rag.structured.queries import semester_credits_and_prerequisites
+from rag.structured.queries import (
+    course_placement,
+    earliest_year_semester,
+    parse_flexible_year_semester,
+    placement_year_semester_choices,
+    semester_credits_and_prerequisites,
+)
 
 
 DB_PATH = (
@@ -23,6 +30,47 @@ def _placement_rows(result):
 
 
 class CoursePlacementIntegrationTest(unittest.TestCase):
+    def test_flexible_parser_handles_single_and_multiple_choices(self):
+        self.assertEqual(parse_flexible_year_semester("4/1"), [(4, 1)])
+        self.assertEqual(
+            parse_flexible_year_semester("3/1, 3/2, 4/1"),
+            [(3, 1), (3, 2), (4, 1)],
+        )
+
+    def test_earliest_comparison_uses_fixed_and_flexible_choices(self):
+        self.assertEqual(
+            earliest_year_semester(None, None, "3/1, 3/2, 4/1"),
+            (3, 1),
+        )
+        self.assertEqual(
+            placement_year_semester_choices(3, 1, "4/1"),
+            [(3, 1)],
+        )
+        self.assertEqual(
+            earliest_year_semester(3, 2, None),
+            (3, 2),
+        )
+
+    def test_malformed_flexible_value_fails_safely(self):
+        self.assertEqual(parse_flexible_year_semester("3/1, unknown"), [])
+        self.assertEqual(parse_flexible_year_semester("5/1"), [])
+        self.assertEqual(placement_year_semester_choices(None, None, None), [])
+
+    def test_course_placement_preserves_raw_and_exposes_choices(self):
+        result = course_placement(DB_PATH, "IT", "06016481", ["coop", "no_coop"])
+        by_plan = {placement["plan_key"]: placement for placement in result["placements"]}
+
+        self.assertEqual(by_plan["coop"]["flexible_year_semester_raw"], None)
+        self.assertEqual(by_plan["coop"]["year_semester_choices"], [(3, 2)])
+        self.assertEqual(
+            by_plan["no_coop"]["flexible_year_semester_raw"],
+            "3/1, 3/2, 4/1",
+        )
+        self.assertEqual(
+            by_plan["no_coop"]["year_semester_choices"],
+            [(3, 1), (3, 2), (4, 1)],
+        )
+
     def test_it_placement_uses_deterministic_operation(self):
         result = ask(
             DB_PATH,
@@ -53,6 +101,39 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             ),
             (815, None, None, "3/1, 3/2, 4/1"),
         )
+        self.assertTrue(by_plan["coop"]["name_en"])
+        self.assertTrue(by_plan["no_coop"]["name_en"])
+
+    def test_course_name_from_placement_reaches_grounded_answer(self):
+        question = (
+            "วิชา 06016414 ของ IT แบบไม่สหกิจชื่อภาษาอังกฤษว่าอะไร "
+            "และมีหน่วยกิตเท่าไร?"
+        )
+        result = ask(DB_PATH, question)
+        structured = result["result"]
+        rows = _placement_rows(result)
+        self.assertEqual(structured["operation"], "course_placement")
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(rows[0]["name_en"])
+
+        prompts = []
+        answers = iter([EMPTY_ANSWER, "คำตอบจากข้อมูลวิชา"])
+
+        def answer_model(prompt):
+            prompts.append(prompt)
+            return next(answers)
+
+        answer = answer_question(
+            question,
+            "structured",
+            structured_result=structured,
+            answer_model_callable=answer_model,
+        )
+
+        self.assertEqual(answer, "คำตอบจากข้อมูลวิชา")
+        self.assertEqual(len(prompts), 2)
+        self.assertIn("name_en", prompts[0])
+        self.assertIn(rows[0]["name_en"], prompts[0])
 
     def test_bit_placement_preserves_both_independent_plan_rows(self):
         result = ask(

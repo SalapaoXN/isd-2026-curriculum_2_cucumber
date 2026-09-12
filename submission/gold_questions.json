@@ -1,0 +1,1196 @@
+[
+  {
+    "id": "easy_it_06016401_name_credits",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "easy",
+    "question": "วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไร และมีหน่วยกิตเท่าไร?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016401",
+      "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
+      "credits_raw": "3(3-0-6)"
+    },
+    "required_evidence": [
+      "ชื่อวิชา 06016401 คือ MATHEMATICS FOR INFORMATION TECHNOLOGY",
+      "วิชา 06016401 มี 3(3-0-6) หน่วยกิต"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_032.png",
+        "source_page": 32
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_328.png",
+        "source_page": 328
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016414_name_credits",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "easy",
+    "question": "NOSQL DATABASE SYSTEMS (06016414) มีหน่วยกิตเท่าไรในหลักสูตร IT?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016414",
+      "name_en": "NOSQL DATABASE SYSTEMS",
+      "credits_raw": "3(2-2-5)"
+    },
+    "required_evidence": [
+      "ชื่อภาษาอังกฤษของวิชา 06016414 คือ NOSQL DATABASE SYSTEMS",
+      "วิชา 06016414 มี 3(2-2-5) หน่วยกิต"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_035.png",
+        "source_page": 35
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_334.png",
+        "source_page": 334
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016402_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "INFORMATION TECHNOLOGY FUNDAMENTALS เรียนเกี่ยวกับอะไรบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016402",
+      "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+      "description_evidence": [
+        "DATA PROCESSING SYSTEMS",
+        "DATA MANAGEMENT",
+        "DATABASE TECHNOLOGY",
+        "DATA COMMUNICATION",
+        "COMPUTER NETWORK SYSTEMS AND THE INTERNET"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_032.png",
+          "source_page": 32
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_328.png",
+          "source_page": 328
+        }
+      ]
+    },
+    "required_evidence": [
+      "DATA PROCESSING SYSTEMS",
+      "DATA MANAGEMENT",
+      "DATABASE TECHNOLOGY",
+      "DATA COMMUNICATION",
+      "COMPUTER NETWORK SYSTEMS AND THE INTERNET"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_328.png",
+        "source_page": 328
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016405_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "CYBERSECURITY FUNDAMENTALS ปูพื้นฐานเรื่องความปลอดภัยไซเบอร์ด้านใดบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016405",
+      "name_en": "CYBERSECURITY FUNDAMENTALS",
+      "description_evidence": [
+        "CYBER THREATS AND CYBER ATTACKS",
+        "VULNERABILITIES AND RISK",
+        "ACCESS CONTROL",
+        "DATA PRIVACY",
+        "CYBER LAWS AND ETHICS"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_035.png",
+          "source_page": 35
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_330.png",
+          "source_page": 330
+        }
+      ]
+    },
+    "required_evidence": [
+      "CYBER THREATS AND CYBER ATTACKS",
+      "VULNERABILITIES AND RISK",
+      "ACCESS CONTROL",
+      "DATA PRIVACY",
+      "CYBER LAWS AND ETHICS"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_330.png",
+        "source_page": 330
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016406_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "PROJECT 1 (06016406) ให้นักศึกษาทำงานและศึกษาประเด็นลักษณะใดบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016406",
+      "name_en": "PROJECT 1",
+      "description_evidence": [
+        "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY",
+        "WORK PROJECT",
+        "THEORETICAL ASPECTS OF THE INFORMATION TECHNOLOGY STUDIES",
+        "PROJECT PROPOSAL",
+        "PRACTICAL SOLVING OR ACADEMIC ANALYSIS"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_044.png",
+          "source_page": 44
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_330.png",
+          "source_page": 330
+        }
+      ]
+    },
+    "required_evidence": [
+      "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY",
+      "WORK PROJECT",
+      "THEORETICAL ASPECTS OF THE INFORMATION TECHNOLOGY STUDIES",
+      "PROJECT PROPOSAL",
+      "PRACTICAL SOLVING OR ACADEMIC ANALYSIS"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_330.png",
+        "source_page": 330
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016414_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "NOSQL DATABASE SYSTEMS สอนเกี่ยวกับฐานข้อมูลแบบใดและครอบคลุมเรื่องอะไรบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016414",
+      "name_en": "NOSQL DATABASE SYSTEMS",
+      "description_evidence": [
+        "INTRODUCTION TO NOSOL DATABASE SYSTEM",
+        "RELATIONAL DATABASE SYSTEM",
+        "COLUMN ORIENTED",
+        "DOCUMENT",
+        "JSON DATA TYPES"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_035.png",
+          "source_page": 35
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_334.png",
+          "source_page": 334
+        }
+      ]
+    },
+    "required_evidence": [
+      "INTRODUCTION TO NOSOL DATABASE SYSTEM",
+      "RELATIONAL DATABASE SYSTEM",
+      "COLUMN ORIENTED",
+      "DOCUMENT",
+      "JSON DATA TYPES"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_334.png",
+        "source_page": 334
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016419_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "COMMUNICATION NETWORK INFRASTRUCTURE เรียนพื้นฐานโครงสร้างเครือข่ายเรื่องใดบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016419",
+      "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE",
+      "description_evidence": [
+        "COMMUNICATION STANDARDS AND MODELS",
+        "OSI",
+        "TCP/P MODEL",
+        "WIRED AND WIRELESS",
+        "NETWORK SECURITY"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_035.png",
+          "source_page": 35
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_337.png",
+          "source_page": 337
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_338.png",
+          "source_page": 338
+        }
+      ]
+    },
+    "required_evidence": [
+      "COMMUNICATION STANDARDS AND MODELS",
+      "OSI",
+      "TCP/P MODEL",
+      "WIRED AND WIRELESS",
+      "NETWORK SECURITY"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_337.png",
+        "source_page": 337
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016425_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA เรียนเรื่องการออกแบบภาพและสื่อโต้ตอบด้านใดบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016425",
+      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
+      "description_evidence": [
+        "VISUAL HIERARCHY",
+        "LAYOUT COMPOSITION",
+        "TYPEFACES AND USAGES",
+        "COLOR USAGE GUIDELINES",
+        "DATA VISUALIZATION BASICS",
+        "INTERACTIVE MEDIA"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_035.png",
+          "source_page": 35
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_341.png",
+          "source_page": 341
+        }
+      ]
+    },
+    "required_evidence": [
+      "VISUAL HIERARCHY",
+      "LAYOUT COMPOSITION",
+      "TYPEFACES AND USAGES",
+      "COLOR USAGE GUIDELINES",
+      "DATA VISUALIZATION BASICS",
+      "INTERACTIVE MEDIA"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_341.png",
+        "source_page": 341
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016465_topics",
+    "type": "semantic",
+    "route": "semantic",
+    "difficulty": "easy",
+    "question": "DATA CENTER DESIGN เรียนเกี่ยวกับการออกแบบศูนย์ข้อมูลด้านใดบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016465",
+      "name_en": "DATA CENTER DESIGN",
+      "description_evidence": [
+        "DATA CENTER DESIGN",
+        "COOLING DESIGN",
+        "ELECTRICITY DESIGN",
+        "DATA CENTER NETWORKING",
+        "GREEN DATA CENTER",
+        "OPERATING DATA CENTER"
+      ],
+      "provenance": [
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_360.png",
+          "source_page": 360
+        }
+      ]
+    },
+    "required_evidence": [
+      "DATA CENTER DESIGN",
+      "COOLING DESIGN",
+      "ELECTRICITY DESIGN",
+      "DATA CENTER NETWORKING",
+      "GREEN DATA CENTER",
+      "OPERATING DATA CENTER"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_360.png",
+        "source_page": 360
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016420_name_credits",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "easy",
+    "question": "วิชา 06016420 ชื่ออะไรและมีกี่หน่วยกิต?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016420",
+      "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+      "credits_raw": "3(2-2-5)"
+    },
+    "required_evidence": [
+      "ชื่อวิชา 06016420 คือ INFRASTRUCTURE SYSTEMS AND SERVICES",
+      "วิชา 06016420 มี 3(2-2-5) หน่วยกิต"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_035.png",
+        "source_page": 35
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016414_coop_placement",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "easy",
+    "question": "NOSQL DATABASE SYSTEMS (06016414) ใน IT แผนสหกิจอยู่ปีไหน เทอมไหน?",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016414",
+      "placement": {
+        "year": 2,
+        "semester": 2
+      }
+    },
+    "required_evidence": [
+      "วิชา 06016414 ในแผน coop อยู่ปี 2 เทอม 2"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_042.png",
+        "source_page": 42
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016418_no_coop_placement",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "easy",
+    "question": "SERVER SIDE WEB DEVELOPMENT (06016418) ใน IT แผนไม่สหกิจอยู่ปีไหน เทอมไหน?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016418",
+      "placement": {
+        "year": 3,
+        "semester": 1
+      }
+    },
+    "required_evidence": [
+      "วิชา 06016418 ในแผน no_coop อยู่ปี 3 เทอม 1"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_036.png",
+        "source_page": 36
+      }
+    ]
+  },
+  {
+    "id": "easy_it_06016406_coop_placement_credits",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "easy",
+    "question": "ใน IT แบบสหกิจ PROJECT 1 (06016406) เรียนช่วงไหนและกี่หน่วยกิต?",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016406",
+      "placement": {
+        "year": 4,
+        "semester": 1,
+        "credits_raw": "3(0-9-0)"
+      }
+    },
+    "required_evidence": [
+      "วิชา 06016406 อยู่ปี 4 เทอม 1 ในแผน coop",
+      "วิชา 06016406 มี 3(0-9-0) หน่วยกิต"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_044.png",
+        "source_page": 44
+      }
+    ]
+  },
+  {
+    "id": "easy_it_missing_06019999",
+    "type": "unknown",
+    "route": "unknown",
+    "difficulty": "easy",
+    "question": "ในหลักสูตร IT มีวิชา 06019999 อยู่หรือไม่?",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "required_evidence": [
+      "ไม่พบรหัส 06019999 ในข้อมูลหลักสูตร IT ทั้งแผน coop และ no_coop"
+    ],
+    "required_provenance": []
+  },
+  {
+    "id": "easy_it_missing_06018888",
+    "type": "unknown",
+    "route": "unknown",
+    "difficulty": "easy",
+    "question": "ถ้าเรียน IT แบบสหกิจ วิชา 06018888 อยู่ปีไหนเทอมไหน?",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "required_evidence": [
+      "ไม่พบรหัส 06018888 ในข้อมูลหลักสูตร IT ทั้งแผน coop และ no_coop"
+    ],
+    "required_provenance": []
+  },
+  {
+    "id": "medium_it_no_coop_y1s1_courses",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "IT แบบไม่สหกิจ ปี 1 เทอม 1 ต้องเรียนวิชาอะไรบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "year": 1,
+      "semester": 1,
+      "course_codes": [
+        "06016401",
+        "06016402",
+        "06016411",
+        "06066303",
+        "90641001",
+        "90641003",
+        "90644007"
+      ]
+    },
+    "required_evidence": [
+      "รายวิชาของ IT แบบ no_coop ในปี 1 เทอม 1 คือ 06016401, 06016402, 06016411, 06066303, 90641001, 90641003 และ 90644007"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_032.png",
+        "source_page": 32
+      }
+    ]
+  },
+  {
+    "id": "medium_it_coop_y2s2_credits",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "ถ้าเลือกแผน IT แบบสหกิจ ปี 2 เทอม 2 ต้องลงทะเบียนรวมกี่หน่วยกิต?",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "year": 2,
+      "semester": 2,
+      "total_credits": 30
+    },
+    "required_evidence": [
+      "ยอดรวมหน่วยกิตของ IT แบบ coop ในปี 2 เทอม 2 คือ 30"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_042.png",
+        "source_page": 42
+      }
+    ]
+  },
+  {
+    "id": "medium_it_no_coop_y3s1_courses",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "ในแผน IT แบบไม่สหกิจ ปี 3 เทอม 1 ต้องเรียนวิชาอะไรบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "year": 3,
+      "semester": 1,
+      "course_codes": [
+        "06016404",
+        "06066102",
+        "90644xxx",
+        "06016416",
+        "06016417",
+        "06016418",
+        "06016421",
+        "06016422",
+        "06016423",
+        "06016426",
+        "06016427"
+      ]
+    },
+    "required_evidence": [
+      "รายวิชาของ IT แบบ no_coop ในปี 3 เทอม 1 ตรงกับรหัสทั้ง 11 รายการใน expected.course_codes"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_036.png",
+        "source_page": 36
+      }
+    ]
+  },
+  {
+    "id": "medium_it_no_coop_y4s2_credits",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "แผน IT แบบไม่สหกิจ ปี 4 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "year": 4,
+      "semester": 2,
+      "total_credits": 9
+    },
+    "required_evidence": [
+      "ยอดรวมหน่วยกิตของ IT แบบ no_coop ในปี 4 เทอม 2 คือ 9"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_039.png",
+        "source_page": 39
+      }
+    ]
+  },
+  {
+    "id": "medium_it_06016420_prerequisite",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "ก่อนลง INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) ใน IT แบบไม่สหกิจ ต้องผ่านวิชาอะไรมาก่อน?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016420",
+      "prerequisites": [
+        {
+          "course_code": "06016413"
+        }
+      ]
+    },
+    "required_evidence": [
+      "วิชา 06016420 มีวิชาที่ต้องผ่านก่อนคือ 06016413"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_035.png",
+        "source_page": 35
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      }
+    ]
+  },
+  {
+    "id": "medium_it_coop_alt_06016481_82",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "ใน IT แบบสหกิจ กลุ่ม 06016481 กับ 06016482 ต้องเลือกกี่วิชา และเรียนช่วงไหน?",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "course_codes": [
+        "06016481",
+        "06016482"
+      ],
+      "placement": {
+        "year": 3,
+        "semester": 2
+      },
+      "alternative": {
+        "minimum_choices": 1,
+        "maximum_choices": 1
+      }
+    },
+    "required_evidence": [
+      "กลุ่ม 06016481 และ 06016482 เป็นทางเลือกที่เลือก 1 วิชา",
+      "กลุ่มทางเลือกอยู่ปี 3 เทอม 2 ในแผน coop"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_044.png",
+        "source_page": 44
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_366.png",
+        "source_page": 366
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_367.png",
+        "source_page": 367
+      }
+    ]
+  },
+  {
+    "id": "medium_it_no_coop_06016465_flexible",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "medium",
+    "question": "แผน IT แบบไม่สหกิจเปิดให้ลง DATA CENTER DESIGN (06016465) ช่วงไหนได้บ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016465",
+      "placement": {
+        "year": null,
+        "semester": null,
+        "flexible_year_semester_raw": "3/1, 3/2, 4/1"
+      }
+    },
+    "required_evidence": [
+      "วิชา 06016465 ในแผน no_coop เปิดให้ลงใน 3/1, 3/2 หรือ 4/1"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_360.png",
+        "source_page": 360
+      }
+    ]
+  },
+  {
+    "id": "medium_it_no_coop_06016404_cloud",
+    "type": "hybrid",
+    "route": "hybrid",
+    "difficulty": "medium",
+    "question": "แผน IT แบบไม่สหกิจ CLOUD COMPUTING (06016404) อยู่ช่วงไหน และเรียนเรื่อง cloud อะไรบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016404",
+      "placement": {
+        "year": 3,
+        "semester": 1
+      },
+      "name_en": "CLOUD COMPUTING",
+      "description_evidence": [
+        "CLOUD COMPUTING CONCEPT",
+        "COMPUTE, STORAGE., NETWORK AND DATABASE",
+        "CLOUD SECURITY CONCEPTS",
+        "BILLING AND PRICING IN CLOUD SERICES"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_036.png",
+          "source_page": 36
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_329.png",
+          "source_page": 329
+        }
+      ]
+    },
+    "required_evidence": [
+      "วิชา 06016404 อยู่ปี 3 เทอม 1",
+      "CLOUD COMPUTING CONCEPT",
+      "COMPUTE, STORAGE., NETWORK AND DATABASE",
+      "CLOUD SECURITY CONCEPTS",
+      "BILLING AND PRICING IN CLOUD SERICES"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_036.png",
+        "source_page": 36
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_329.png",
+        "source_page": 329
+      }
+    ]
+  },
+  {
+    "id": "medium_it_coop_06016421_security",
+    "type": "hybrid",
+    "route": "hybrid",
+    "difficulty": "medium",
+    "question": "ใน IT แบบสหกิจ INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY (06016421) อยู่ปีไหนเทอมไหน และเนื้อหาเกี่ยวกับความปลอดภัยโครงสร้างพื้นฐานด้านใด?",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016421",
+      "placement": {
+        "year": 3,
+        "semester": 1
+      },
+      "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
+      "description_evidence": [
+        "RESOURCE VIRTUALIZATION",
+        "SOFTWARE DEFINED INFRASTRUCTURE",
+        "PUBLIC AND PRIVATE CLOUD",
+        "IDENTITY AND ACCESS MANAGEMENT",
+        "INFRASTRUCTURE SECURITY",
+        "DATA CENTER SERVICES AND MANAGEMENT"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_043.png",
+          "source_page": 43
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_338.png",
+          "source_page": 338
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_339.png",
+          "source_page": 339
+        }
+      ]
+    },
+    "required_evidence": [
+      "วิชา 06016421 อยู่ปี 3 เทอม 1 ในแผน coop",
+      "RESOURCE VIRTUALIZATION",
+      "SOFTWARE DEFINED INFRASTRUCTURE",
+      "PUBLIC AND PRIVATE CLOUD",
+      "IDENTITY AND ACCESS MANAGEMENT",
+      "INFRASTRUCTURE SECURITY",
+      "DATA CENTER SERVICES AND MANAGEMENT"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_339.png",
+        "source_page": 339
+      }
+    ]
+  },
+  {
+    "id": "medium_it_no_coop_06016420_infrastructure",
+    "type": "hybrid",
+    "route": "hybrid",
+    "difficulty": "medium",
+    "question": "แผน IT แบบไม่สหกิจ INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) อยู่ช่วงไหน และเกี่ยวกับทรัพยากรโครงสร้างพื้นฐานอะไรบ้าง?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016420",
+      "placement": {
+        "year": 2,
+        "semester": 2
+      },
+      "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+      "description_evidence": [
+        "COMPUTING RESOURCES",
+        "STORAGE RESOURCES",
+        "RESOURCE VIRTUALIZATION",
+        "PUBLIC AND PRIVATE CLOUD",
+        "IDENTITY AND ACCESS MANAGEMENT",
+        "DATA CENTER SERVICES AND MANAGEMENT"
+      ],
+      "provenance": [
+        {
+          "document_category": "plan",
+          "source_document_key": "it_page_035.png",
+          "source_page": 35
+        },
+        {
+          "document_category": "description",
+          "source_document_key": "it_page_338.png",
+          "source_page": 338
+        }
+      ]
+    },
+    "required_evidence": [
+      "วิชา 06016420 อยู่ปี 2 เทอม 2",
+      "COMPUTING RESOURCES",
+      "STORAGE RESOURCES",
+      "RESOURCE VIRTUALIZATION",
+      "PUBLIC AND PRIVATE CLOUD",
+      "IDENTITY AND ACCESS MANAGEMENT",
+      "DATA CENTER SERVICES AND MANAGEMENT"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      }
+    ]
+  },
+  {
+    "id": "hard_it_06016420_planning",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "hard",
+    "question": "ถ้าจะลง INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) ใน IT แบบไม่สหกิจปี 2 เทอม 2 ต้องเตรียมผ่านวิชาอะไรในเทอมก่อนหน้า และเทอมนี้มีหน่วยกิตรวมเท่าไร?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016420",
+      "course_codes": [
+        "06016413",
+        "06016420"
+      ],
+      "placement": {
+        "plan": "no_coop",
+        "year": 2,
+        "semester": 2
+      },
+      "prerequisites": [
+        {
+          "course_code": "06016413"
+        }
+      ],
+      "total_credits": 30
+    },
+    "required_evidence": [
+      "06016413 อยู่ปี 2 เทอม 1 และเป็นวิชาที่ต้องผ่านก่อน 06016420",
+      "06016420 อยู่ปี 2 เทอม 2",
+      "ยอดรวมหน่วยกิตของปี 2 เทอม 2 คือ 30"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_034.png",
+        "source_page": 34
+      },
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_035.png",
+        "source_page": 35
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      }
+    ]
+  },
+  {
+    "id": "hard_it_06016465_earliest_plan",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "hard",
+    "question": "ถ้าอยากลง DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT ควรเลือกแผนไหน และแต่ละแผนเปิดให้ลงช่วงใดบ้าง?",
+    "expected": {
+      "program": "IT",
+      "course_code": "06016465",
+      "earliest_plan": "no_coop",
+      "placements": [
+        {
+          "plan": "coop",
+          "year": null,
+          "semester": null,
+          "flexible_year_semester_raw": "4/1"
+        },
+        {
+          "plan": "no_coop",
+          "year": null,
+          "semester": null,
+          "flexible_year_semester_raw": "3/1, 3/2, 4/1"
+        }
+      ]
+    },
+    "required_evidence": [
+      "แผน coop เปิดให้ลง 06016465 ใน 4/1",
+      "แผน no_coop เปิดให้ลง 06016465 ใน 3/1, 3/2 หรือ 4/1",
+      "เมื่อเทียบช่วงที่เปิด แผน no_coop เปิดได้เร็วกว่า"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_360.png",
+        "source_page": 360
+      }
+    ]
+  },
+  {
+    "id": "hard_it_alt_plan_comparison",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "hard",
+    "question": "ถ้าต้องเลือกระหว่างกลุ่มวิชา 06016481 กับ 06016482 ใน IT แผนสหกิจกับไม่สหกิจต่างกันอย่างไร ทั้งจำนวนวิชาที่เลือกและช่วงเรียน?",
+    "expected": {
+      "program": "IT",
+      "course_codes": [
+        "06016481",
+        "06016482"
+      ],
+      "placements": [
+        {
+          "plan": "coop",
+          "year": 3,
+          "semester": 2,
+          "flexible_year_semester_raw": null
+        },
+        {
+          "plan": "no_coop",
+          "year": null,
+          "semester": null,
+          "flexible_year_semester_raw": "3/1, 3/2, 4/1"
+        }
+      ],
+      "alternative": {
+        "minimum_choices": 1,
+        "maximum_choices": 1
+      }
+    },
+    "required_evidence": [
+      "ทั้ง 06016481 และ 06016482 อยู่ในกลุ่มทางเลือกที่เลือก 1 วิชา",
+      "แผน coop กำหนดกลุ่มไว้ปี 3 เทอม 2",
+      "แผน no_coop เปิดกลุ่มไว้ 3/1, 3/2 หรือ 4/1"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_044.png",
+        "source_page": 44
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_366.png",
+        "source_page": 366
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_367.png",
+        "source_page": 367
+      }
+    ]
+  },
+  {
+    "id": "hard_it_06016418_06016465_plan_compare",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "hard",
+    "question": "ถ้าต้องวางแผนเรียน SERVER SIDE WEB DEVELOPMENT (06016418) และ DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT ควรเลือกแผนไหน และแต่ละวิชาเรียนได้ช่วงใด?",
+    "expected": {
+      "program": "IT",
+      "course_codes": [
+        "06016418",
+        "06016465"
+      ],
+      "placements": [
+        {
+          "plan": "coop",
+          "year": 3,
+          "semester": 1
+        },
+        {
+          "plan": "coop",
+          "year": null,
+          "semester": null,
+          "flexible_year_semester_raw": "4/1"
+        },
+        {
+          "plan": "no_coop",
+          "year": 3,
+          "semester": 1
+        },
+        {
+          "plan": "no_coop",
+          "year": null,
+          "semester": null,
+          "flexible_year_semester_raw": "3/1, 3/2, 4/1"
+        }
+      ]
+    },
+    "required_evidence": [
+      "06016418 อยู่ปี 3 เทอม 1 ทั้งในแผน coop และ no_coop",
+      "06016465 เปิดใน 4/1 สำหรับ coop",
+      "06016465 เปิดใน 3/1, 3/2 หรือ 4/1 สำหรับ no_coop",
+      "การเลือก no_coop ทำให้ 06016465 เริ่มได้เร็วกว่า ขณะที่ 06016418 อยู่ปี 3 เทอม 1 เหมือนกัน"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_036.png",
+        "source_page": 36
+      },
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_043.png",
+        "source_page": 43
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_336.png",
+        "source_page": 336
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_360.png",
+        "source_page": 360
+      }
+    ]
+  },
+  {
+    "id": "hard_it_infrastructure_sequence",
+    "type": "structured",
+    "route": "structured",
+    "difficulty": "hard",
+    "question": "ถ้าจะวางแผนเรียนสาย infrastructure ใน IT แบบไม่สหกิจ ควรเรียง INTRODUCTION TO NETWORK SYSTEMS (06016413), INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) และ INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY (06016421) ตามปี/เทอมอย่างไร และแต่ละวิชาต้องผ่านวิชาอะไรมาก่อน?",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_codes": [
+        "06016413",
+        "06016420",
+        "06016421"
+      ],
+      "placements": [
+        {
+          "plan": "no_coop",
+          "year": 2,
+          "semester": 1
+        },
+        {
+          "plan": "no_coop",
+          "year": 2,
+          "semester": 2
+        },
+        {
+          "plan": "no_coop",
+          "year": 3,
+          "semester": 1
+        }
+      ],
+      "prerequisites": [
+        {
+          "course_code": "06016413"
+        },
+        {
+          "course_code": "06016413"
+        }
+      ]
+    },
+    "required_evidence": [
+      "06016413 อยู่ปี 2 เทอม 1 และไม่มีวิชาที่ต้องผ่านก่อน",
+      "06016420 อยู่ปี 2 เทอม 2 และต้องผ่าน 06016413 ก่อน",
+      "06016421 อยู่ปี 3 เทอม 1 และต้องผ่าน 06016413 ก่อน"
+    ],
+    "required_provenance": [
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_034.png",
+        "source_page": 34
+      },
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_035.png",
+        "source_page": 35
+      },
+      {
+        "document_category": "plan",
+        "source_document_key": "it_page_036.png",
+        "source_page": 36
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_338.png",
+        "source_page": 338
+      },
+      {
+        "document_category": "description",
+        "source_document_key": "it_page_339.png",
+        "source_page": 339
+      }
+    ]
+  }
+]

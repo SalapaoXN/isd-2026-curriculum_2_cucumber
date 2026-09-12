@@ -14,6 +14,7 @@ from typing import Any, Iterator
 Database = str | Path | sqlite3.Connection
 _CREDIT_RE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)")
 _COURSE_CODE_RE = re.compile(r"[0-9]{8}")
+_FLEXIBLE_YEAR_SEMESTER_PART = re.compile(r"\s*([1-4])\s*/\s*([1-2])\s*")
 _CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
 
 
@@ -249,6 +250,56 @@ def _credits_for_placement(
     return total
 
 
+def parse_flexible_year_semester(value: Any) -> list[tuple[int, int]]:
+    """Parse a complete comma-separated list of valid year/semester choices."""
+    if not isinstance(value, str) or not value.strip():
+        return []
+
+    choices: list[tuple[int, int]] = []
+    for part in value.split(","):
+        match = _FLEXIBLE_YEAR_SEMESTER_PART.fullmatch(part)
+        if match is None:
+            return []
+        choice = (int(match.group(1)), int(match.group(2)))
+        if choice not in choices:
+            choices.append(choice)
+    return choices
+
+
+def placement_year_semester_choices(
+    year: Any,
+    semester: Any,
+    flexible_year_semester_raw: Any,
+) -> list[tuple[int, int]]:
+    """Return comparable fixed or flexible placement choices without guessing."""
+    if year is not None or semester is not None:
+        if (
+            isinstance(year, int)
+            and not isinstance(year, bool)
+            and isinstance(semester, int)
+            and not isinstance(semester, bool)
+            and 1 <= year <= 4
+            and 1 <= semester <= 2
+        ):
+            return [(year, semester)]
+        return []
+    return parse_flexible_year_semester(flexible_year_semester_raw)
+
+
+def earliest_year_semester(
+    year: Any,
+    semester: Any,
+    flexible_year_semester_raw: Any,
+) -> tuple[int, int] | None:
+    """Return the earliest valid fixed/flexible placement chronologically."""
+    choices = placement_year_semester_choices(
+        year,
+        semester,
+        flexible_year_semester_raw,
+    )
+    return min(choices) if choices else None
+
+
 def _normalize_course_placement_inputs(
     program: str,
     course_code: str,
@@ -343,6 +394,9 @@ def course_placement(
             plan_courses.plan_id,
             plans.catalog_id,
             plan_courses.course_id,
+            plan_courses.course_code,
+            courses.name_th,
+            courses.name_en,
             plan_courses.year,
             plan_courses.semester,
             plan_courses.flexible_year_semester_raw,
@@ -351,6 +405,8 @@ def course_placement(
         FROM v_plan_courses AS plan_courses
         JOIN curriculum_plans AS plans
           ON plans.plan_id = plan_courses.plan_id
+        JOIN courses
+          ON courses.course_id = plan_courses.course_id
         WHERE plan_courses.program = ?
           AND plan_courses.course_code = ?
           AND plan_courses.plan_key IN ({placeholders})
@@ -383,11 +439,19 @@ def course_placement(
                     "plan_id": int(row["plan_id"]),
                     "catalog_id": int(row["catalog_id"]),
                     "course_id": course_id,
+                    "course_code": row["course_code"],
+                    "name_th": row["name_th"],
+                    "name_en": row["name_en"],
                     "year": row["year"],
                     "semester": row["semester"],
                     "flexible_year_semester_raw": row[
                         "flexible_year_semester_raw"
                     ],
+                    "year_semester_choices": placement_year_semester_choices(
+                        row["year"],
+                        row["semester"],
+                        row["flexible_year_semester_raw"],
+                    ),
                     "credits_raw": row["credits_raw"],
                     "alternative_group_id": alternative_group_id,
                     "provenance": _course_placement_provenance(
@@ -855,6 +919,9 @@ __all__ = [
     "course_placement",
     "courses_in_year_semester",
     "courses_requiring_prerequisite",
+    "earliest_year_semester",
+    "parse_flexible_year_semester",
+    "placement_year_semester_choices",
     "prerequisites_of_course",
     "semester_credits_and_prerequisites",
     "semester_total_credits",
