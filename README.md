@@ -20,6 +20,7 @@ python -m pip install -r requirements.txt -r requirements-rag.txt
 
 ```bash
 python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
+python prepare_data.py
 python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 26-32 --program DSBA --plan no_coop
 ```
 
@@ -91,6 +92,24 @@ Image
 ```
 
 The OCR stage is standalone and persistent. LLM spell correction is the only post-extraction text-correction stage.
+
+## Part 2 preparation
+
+Run the preparation stage from the repository root after OCR artifacts already
+exist:
+
+```bash
+python prepare_data.py
+```
+
+`prepare_data.py` discovers only supported, non-empty program directories under
+`outputs/ocr/`, then runs the existing extraction and merge commands using the
+fixed program/plan/page configuration. Missing programs are skipped, unknown
+directories are reported, and incomplete configured scopes are omitted. The
+stage writes only the existing persistent boundaries under `outputs/extracted/`
+and `outputs/consolidated/`; it never runs OCR, LLM correction, evaluation, or
+RAG. The individual `extract.py` and `merge_consecutive.py` commands remain
+available for debugging and replay.
 
 ## Setup
 
