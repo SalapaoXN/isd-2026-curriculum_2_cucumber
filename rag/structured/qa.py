@@ -12,6 +12,7 @@ from .execute import execute_readonly, validate_readonly_sql
 from .nl_to_sql import question_to_sql, repair_sql
 from .queries import (
     course_placement,
+    courses_in_year_semester,
     earliest_year_semester_from_choices,
     get_semester_credits,
     prerequisites_of_course,
@@ -241,6 +242,36 @@ _PREREQUISITE_COLUMNS = (
     "raw_text",
     "provenance",
 )
+_SEMESTER_COURSE_COLUMNS = (
+    "placement_id",
+    "plan_id",
+    "program_code",
+    "plan_code",
+    "year_number",
+    "semester_number",
+    "category",
+    "requirement_type",
+    "placement_order",
+    "credits_override",
+    "raw_text",
+    "notes",
+    "course_id",
+    "alternative_group_id",
+    "is_alternative",
+    "course_code",
+    "name_th",
+    "name_en",
+    "credits",
+    "placement_credits",
+    "group_key",
+    "label",
+    "minimum_choices",
+    "maximum_choices",
+    "group_notes",
+    "alternative_courses",
+    "provenance",
+    "source_pages",
+)
 
 
 def _course_placement_request(
@@ -362,6 +393,49 @@ def _prerequisite_request(
     if not plan_keys:
         plan_keys = ["coop", "no_coop"]
     return program_match.group("program"), course_codes[0], plan_keys
+
+
+def _semester_courses_request(
+    question: str,
+) -> tuple[str, list[str], int, int] | None:
+    normalized = question.casefold()
+    if not any(
+        term in normalized
+        for term in (
+            "มีวิชาอะไรบ้าง",
+            "เรียนวิชาอะไรบ้าง",
+            "ต้องเรียนวิชาอะไรบ้าง",
+            "ลงทะเบียนวิชาอะไร",
+            "รายวิชา",
+            "course list",
+            "which courses",
+            "what courses",
+        )
+    ):
+        return None
+    if _EXPLICIT_COURSE_CODE.search(normalized) is not None:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    term_match = _TERM_PAIR.search(normalized)
+    if program_match is None or term_match is None:
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+
+    year = term_match.group("th_year") or term_match.group("en_year")
+    semester = term_match.group("th_semester") or term_match.group("en_semester")
+    return program_match.group("program"), plan_keys, int(year), int(semester)
 
 
 def _collect_row_provenance(
@@ -542,6 +616,50 @@ def _prerequisite_structured_result(
         "columns": list(_PREREQUISITE_COLUMNS),
         "rows": rows,
         "provenance": _collect_row_provenance(rows, _PREREQUISITE_COLUMNS),
+    }
+
+
+def _semester_courses_structured_result(
+    db_path: str | Path,
+    program: str,
+    plan_keys: list[str],
+    year: int,
+    semester: int,
+) -> dict[str, Any]:
+    rows: list[tuple[Any, ...]] = []
+    missing_plan_keys: list[str] = []
+    for plan_key in plan_keys:
+        credit_result = get_semester_credits(
+            db_path, program, plan_key, year, semester
+        )
+        if not credit_result["plans"]:
+            missing_plan_keys.append(plan_key)
+            continue
+        for plan in credit_result["plans"]:
+            courses = courses_in_year_semester(
+                db_path, plan["plan_id"], year, semester
+            )
+            if not courses:
+                missing_plan_keys.append(plan_key)
+                continue
+            rows.extend(
+                tuple(course.get(column) for column in _SEMESTER_COURSE_COLUMNS)
+                for course in courses
+            )
+
+    status = "no_data" if not rows else "partial" if missing_plan_keys else "ok"
+    return {
+        "operation": "semester_courses",
+        "status": status,
+        "program": program.upper(),
+        "plan_keys": plan_keys,
+        "year": year,
+        "semester": semester,
+        "missing_plan_keys": missing_plan_keys,
+        "sql": None,
+        "columns": list(_SEMESTER_COURSE_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _SEMESTER_COURSE_COLUMNS),
     }
 
 
@@ -771,6 +889,12 @@ def ask_structured(
         return _prerequisite_structured_result(
             db_path,
             course_placement(db_path, program, course_code, plan_keys),
+        )
+    semester_courses_request = _semester_courses_request(question)
+    if semester_courses_request is not None:
+        program, plan_keys, year, semester = semester_courses_request
+        return _semester_courses_structured_result(
+            db_path, program, plan_keys, year, semester
         )
     placement_request = _course_placement_request(question)
     if placement_request is not None:

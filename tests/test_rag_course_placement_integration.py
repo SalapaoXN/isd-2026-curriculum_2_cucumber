@@ -332,6 +332,91 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["result"]["rows"], [])
         self.assertEqual(calls, [])
 
+    def test_semester_course_list_is_deterministic_and_preserves_order(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "IT แบบไม่สหกิจ ปี 1 เทอม 1 ต้องเรียนวิชาอะไรบ้าง?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "semester_courses")
+        self.assertEqual(structured["status"], "ok")
+        self.assertEqual(structured["plan_keys"], ["no_coop"])
+        rows = [
+            dict(zip(structured["columns"], row))
+            for row in structured["rows"]
+        ]
+        self.assertEqual(
+            [row["course_code"] for row in rows],
+            [
+                "06016401",
+                "06016402",
+                "06016411",
+                "06066303",
+                "90641001",
+                "90641003",
+                "90644007",
+            ],
+        )
+        self.assertTrue(structured["provenance"])
+        self.assertEqual(calls, [])
+
+    def test_semester_course_list_without_plan_returns_both_plans(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "IT ปี 1 เทอม 1 ต้องเรียนวิชาอะไรบ้าง?",
+            structured_model_callable=forbidden_model,
+        )
+
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "semester_courses")
+        self.assertEqual(
+            {row[3] for row in structured["rows"]},
+            {"coop", "no_coop"},
+        )
+        self.assertEqual(calls, [])
+
+    def test_semester_course_list_preserves_alternative_group(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "IT แบบสหกิจ ปี 3 เทอม 2 ต้องเรียนวิชาอะไรบ้าง?",
+            structured_model_callable=forbidden_model,
+        )
+
+        structured = result["result"]
+        rows = [
+            dict(zip(structured["columns"], row))
+            for row in structured["rows"]
+        ]
+        groups = [row for row in rows if row["is_alternative"]]
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(
+            [member["course_code"] for member in groups[0]["alternative_courses"]],
+            ["06016481", "06016482"],
+        )
+        self.assertTrue(groups[0]["provenance"])
+        self.assertEqual(calls, [])
+
     def test_semester_credits_operation_resolves_plan_and_components(self):
         result = get_semester_credits(DB_PATH, "IT", "coop", 2, 2)
 
