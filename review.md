@@ -103,7 +103,6 @@ Images
   -> CurriculumExtractor.process_file()
        -> detect plan versus description page
        -> plan block extraction OR description extraction
-  -> optional English-only second pass for name_en
   -> per-page *_ocr_extracted.json
   -> merge_consecutive.py
        -> ordered description re-extraction where raw OCR exists
@@ -164,8 +163,6 @@ year, semester, category header, course type
 | `credits` | `CREDITS_RE` หา `X(X-X-X)` รวม alternative credit row ได้ | ถ้าไม่พบ จะ default เป็น `3(3-0-6)` ซึ่งควรถือเป็น heuristic ไม่ใช่ source-confirmed value |
 | `prerequisite` ใน plan | default `ไม่มี`; หา keyword เช่น `PREREQUISITE` | แผนบางหน้าไม่มี prerequisite detail |
 | `prerequisite` ใน description | parse marker Thai/English, รวบรวม exact code หากพบ | OCR damage ใน marker/value ยังทำให้ missing หรือ contaminated ได้ |
-
-`--english-second-pass` เป็น optional path ใน `src/english_name_enricher.py`. มันใช้ English-only OCR แบบ `detail=1`, ต้องมี exact 8-digit code occurrence, credit anchor, title band เดียว และ confidence อย่างน้อย `0.5`; ถ้า unsafe จะเก็บ canonical `name_en` เดิมและบันทึก `english_second_pass` เฉพาะตอน helper ถูกเรียก. มันเปลี่ยนแค่ `name_en`, ไม่แตะ Thai name, code, credits หรือ prerequisite
 
 ### Year, semester, category, type, program และ plan
 
@@ -639,9 +636,8 @@ Provenance ทำให้ answer ในอนาคตสามารถส่�
 | Decision | เหตุผล/ข้อดี | Tradeoff ที่ต้องยอมรับ |
 |---|---|---|
 | EasyOCR local processing | privacy/control, repeatable environment, ไม่พึ่ง OpenAI/Ollama production path | model install/cache, OCR quality และ GPU setup ยังเป็น operational concern |
-| GPU optional, CPU baseline | GPU เร็วขึ้น; `--no-gpu` ให้ baseline ที่ระบุชัดใน README | default runner พยายามใช้ GPU; English second pass ถูก skip บน CPU/CUDA unavailable |
+| GPU optional, CPU baseline | GPU เร็วขึ้น; `--no-gpu` ให้ baseline ที่ระบุชัดใน README | default runner พยายามใช้ GPU |
 | Deterministic extraction แทน production LLM | inspectable, unit-testable, predictable, ไม่ hallucinate course code | ต้อง maintain regex/state exceptions และไม่แก้ OCR language ได้กว้างเท่า LLM |
-| English second pass เป็น opt-in | จำกัด impact ให้เฉพาะ `name_en`, ใช้ exact code/credit/confidence guards | ยัง GPU-only, benchmark unseen production evidence ยังไม่พร้อม |
 | Conservative ambiguity handling | repeated code ไม่ถูก pair ตามลำดับ, เก็บ `unresolved_descriptions` เป็น evidence | coverage/body enrichment ต่ำกว่าการเดา และผู้ใช้ downstream ต้อง handle unresolved records |
 | Avoid destructive deduplication | course occurrence/placement/provenance ไม่หาย | consumer ต้องใช้ compound identity ไม่ใช่ `code` อย่างเดียว |
 | Separation of course, Rules, evaluation, RAG, LLM | ลด coupling: Rules ไม่ถูกบังคับให้มี schema เหมือน course; GT ไม่กลายเป็น runtime data | ต้องมี integration contract เพิ่มใน phase RAG |
@@ -698,7 +694,6 @@ Provenance ทำให้ answer ในอนาคตสามารถส่�
 
 | Finding | เหตุผลที่เป็น LATER |
 |---|---|
-| English second-pass unseen validation | useful ก่อนเปิดเป็น default แต่ canonical path ทำงานได้และ second pass ปัจจุบัน opt-in |
 | Revival ของ LLM cleaner | ไม่มี downstream requirement; ปัจจุบันเสี่ยงแก้ immutable facts หากเปิดโดยไม่มี guard |
 | Deep structured extraction จาก course description | TODO ระบุให้ทำเมื่อพิสูจน์ว่าช่วย retrieval/Q&A มากกว่า raw body + metadata |
 | Corpus-level/page-level evaluation ที่ละเอียดขึ้น | สำคัญต่อ quality claim แต่ไม่ใช่ prerequisite ของ proof-of-concept retrieval หาก citation provenance ของ prediction corpus ถูก preserve |
@@ -743,7 +738,7 @@ course code ไม่ควรเป็น primary key เดี่ยว เพ
 |---|---|
 | Actual blockers ก่อน trusted RAG corpus | freeze/reconcile source-derived artifacts; resolve no_coop merge reproducibility; define canonical document/record/citation identity; implement retrieval and citation-serving flow |
 | Conditional blockers | integrate BIT หาก scope อ้างว่ารองรับ BIT; generate/freeze Rules corpus หาก Q&A จะตอบ Academic Rules |
-| Quality work ที่ทำคู่ขนานได้ | authoritative GT page annotations, description-body GT, richer category/placement evaluation, OCR wording improvement, English second-pass validation |
+| Quality work ที่ทำคู่ขนานได้ | authoritative GT page annotations, description-body GT, richer category/placement evaluation, OCR wording improvement |
 
 **ข้อสรุป:** โครงการพร้อมเริ่ม **controlled RAG preparation** สำหรับ data ที่ freeze แล้ว แต่ยังไม่พร้อมเรียกตัวเองว่า “production-ready RAG” หรือ “all-program cited Q&A”
 
@@ -842,9 +837,9 @@ CUCUMBER เป็น **strong curriculum extraction and preparation prototype**
 |---|---|
 | Program/plan semantics | `src/pipeline_config.py` |
 | OCR and automated flow | `src/ocr_engine.py`, `src/run_pipeline.py`, `src/file_handler.py`, `cli.py` |
-| Course extraction | `src/pre_clean.py`, `src/extractor.py`, `src/english_name_enricher.py`, `extract.py` |
+| Course extraction | `src/pre_clean.py`, `src/extractor.py`, `extract.py` |
 | Merge and ambiguity | `merge_consecutive.py` |
 | Rules | `src/rule_extractor.py`, `extract_rules.py`, `src/rules_policy_mapper.py`, `map_rules_policy.py` |
 | Course evaluation | `evaluate.py`, `reports/evaluation/evaluation.json`, `evaluation_summary.csv`, `field_metrics.csv`, `evaluation_errors.csv` |
 | Ground Truth distinction | `ground_truth/`, `ground_truth/rules_ground_truth.json`, `ground_truth/rules_extraction_eval.json` |
-| Roadmap/history | `README.md`, `TODO_PIPELINE.md` |
+| Roadmap/history | `README.md` |
