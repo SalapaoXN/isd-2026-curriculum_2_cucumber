@@ -364,10 +364,14 @@ Provenance is derived from source/input context, not ground truth, and is preser
 ## LLM Spell Corrector
 
 ```bash
-python llm_spell_corrector.py ./outputs/consolidated/dsba/coop/full/merged_dsba_coop_full.json
+python llm_spell_corrector.py
 ```
 
-LLM correction is the only post-extraction text-correction stage and writes reviewed artifacts under `outputs/llm/`.
+The command discovers `outputs/consolidated/**/full/merged_*_full.json` in
+deterministic order, ignores page-range and correction-log artifacts, and
+writes both reviewed artifacts under `outputs/llm/`. Partial corpora are
+supported. Explicit input paths and `--output-dir PATH` remain available for
+debugging and replay.
 
 ## Testing
 

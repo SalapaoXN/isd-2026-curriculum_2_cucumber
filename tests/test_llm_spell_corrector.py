@@ -125,6 +125,73 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         self.assertFalse(list(directory.glob("*_corrected.json")))
         self.assertFalse(list(directory.glob("*_corrections.json")))
 
+    def test_discovery_finds_only_full_consolidated_files_in_deterministic_order(self):
+        consolidated = self.directory / "outputs" / "consolidated"
+        first = consolidated / "it" / "coop" / "full" / "merged_it_coop_full.json"
+        second = consolidated / "ait" / "full" / "merged_ait_no_plan_full.json"
+        page_range = consolidated / "it" / "coop" / "page_ranges" / "merged_it_coop_full.json"
+        correction_log = consolidated / "it" / "coop" / "full" / "merged_it_coop_corrections.json"
+        for path in (first, second, page_range, correction_log):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('{"courses": []}', encoding="utf-8")
+
+        self.assertEqual(
+            llm_spell_corrector.discover_consolidated_inputs(consolidated),
+            [second, first],
+        )
+
+    def test_discovery_supports_partial_corpora(self):
+        consolidated = self.directory / "outputs" / "consolidated"
+        path = consolidated / "it" / "coop" / "full" / "merged_it_coop_full.json"
+        path.parent.mkdir(parents=True)
+        path.write_text('{"courses": []}', encoding="utf-8")
+
+        self.assertEqual(llm_spell_corrector.discover_consolidated_inputs(consolidated), [path])
+
+    def test_discovery_fails_clearly_when_no_full_files_exist(self):
+        with self.assertRaisesRegex(
+            FileNotFoundError, "No full consolidated curriculum files"
+        ):
+            llm_spell_corrector.discover_consolidated_inputs(self.directory / "missing")
+
+    def test_discovery_rejects_invalid_full_json(self):
+        path = self.directory / "outputs" / "consolidated" / "it" / "full" / "merged_it_full.json"
+        path.parent.mkdir(parents=True)
+        path.write_text("not json", encoding="utf-8")
+
+        with self.assertRaisesRegex(ValueError, "not valid JSON"):
+            llm_spell_corrector.discover_consolidated_inputs(path.parents[3])
+
+    def test_zero_argument_cli_discovers_and_defaults_to_llm_output(self):
+        discovered = [Path("outputs/consolidated/it/coop/full/merged_it_coop_full.json")]
+        with patch.object(llm_spell_corrector, "discover_consolidated_inputs", return_value=discovered) as discover, patch.object(
+            llm_spell_corrector, "correct_json_files", return_value=[]
+        ) as correct:
+            self.assertEqual(llm_spell_corrector.main([]), 0)
+
+        discover.assert_called_once_with()
+        correct.assert_called_once_with(discovered, output_dir=llm_spell_corrector.LLM_OUTPUT_DIR)
+
+    def test_zero_argument_cli_fails_nonzero_when_discovery_fails(self):
+        with patch.object(
+            llm_spell_corrector,
+            "discover_consolidated_inputs",
+            side_effect=FileNotFoundError("No full consolidated curriculum files"),
+        ):
+            self.assertEqual(llm_spell_corrector.main([]), 1)
+
+    def test_explicit_inputs_and_output_override_remain_supported(self):
+        explicit = [self.directory / "input.json"]
+        override = self.directory / "custom-output"
+        with patch.object(
+            llm_spell_corrector, "correct_json_files", return_value=[]
+        ) as correct:
+            llm_spell_corrector.main([str(explicit[0]), "--output-dir", str(override)])
+
+        correct.assert_called_once_with(
+            [str(explicit[0])], output_dir=override
+        )
+
     def test_reviewed_corrections_apply_all_supported_text_fields_and_are_idempotent(self):
         original = {"metadata": {"program": "IT", "plan": "coop"}, "courses": [make_record()]}
         corrections = [

@@ -6,6 +6,7 @@ import argparse
 import copy
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ TEXT_FIELDS_ORDER = ("name_th", "name_en")
 TEXT_FIELDS = frozenset(TEXT_FIELDS_ORDER)
 CORRECTION_FIELDS = frozenset(("name_th", "name_en", "desc_th", "desc_en"))
 UNIT_RESPONSE_FIELDS = frozenset(("unit_index", "field", "text"))
+CONSOLIDATED_DIR = Path("outputs/consolidated")
+LLM_OUTPUT_DIR = Path("outputs/llm")
 
 CORRECTION_PROMPT = (
     "You are a careful proofreader for university curriculum text. "
@@ -450,11 +453,64 @@ def correct_json_file(
     return correct_json_files([file_path], output_dir=output_dir)[0]
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        usage="python llm_spell_corrector.py <path_to_json> [<path_to_json> ...] [--output-dir PATH]"
+def discover_consolidated_inputs(
+    consolidated_dir: str | Path = CONSOLIDATED_DIR,
+) -> list[Path]:
+    """Discover only full consolidated curriculum files in stable order."""
+    root = Path(consolidated_dir)
+    paths = sorted(
+        (
+            path
+            for path in root.glob("**/full/merged_*_full.json")
+            if path.is_file()
+        ),
+        key=lambda path: path.as_posix().casefold(),
     )
-    parser.add_argument("path_to_json", nargs="+")
-    parser.add_argument("--output-dir", type=Path)
-    args = parser.parse_args()
-    correct_json_files(args.path_to_json, output_dir=args.output_dir)
+    if not paths:
+        raise FileNotFoundError(
+            f"No full consolidated curriculum files found under {root}"
+        )
+
+    for path in paths:
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise ValueError(f"Consolidated input is not valid JSON: {path}") from error
+        _records_from_document(document)
+    return paths
+
+
+def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        usage="python llm_spell_corrector.py [<path_to_json> ...] [--output-dir PATH]"
+    )
+    parser.add_argument(
+        "path_to_json",
+        nargs="*",
+        help=(
+            "Explicit curriculum JSON path(s); when omitted, discover full "
+            "consolidated files under outputs/consolidated/"
+        ),
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=LLM_OUTPUT_DIR,
+        help="Directory for *_corrected.json and *_corrections.json (default: outputs/llm)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        args = parse_arguments(argv)
+        paths = args.path_to_json or discover_consolidated_inputs()
+        correct_json_files(paths, output_dir=args.output_dir)
+    except Exception as error:
+        print(f" Error: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
