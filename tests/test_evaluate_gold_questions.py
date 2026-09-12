@@ -1,12 +1,14 @@
 import unittest
 from pathlib import Path
 import tempfile
+from decimal import Decimal
 from unittest.mock import patch
 
 from rag.answer import EMPTY_ANSWER
 from scripts.evaluate_gold_questions import (
     _evaluate_question,
     _merge_gold_with_runtime_results,
+    _json_safe,
     _write_output_atomically,
     grade_results,
 )
@@ -138,6 +140,41 @@ class GoldEvaluationTest(unittest.TestCase):
                 '{\n  "version": 2\n}\n',
             )
             self.assertEqual(list(output_path.parent.glob("*.tmp")), [])
+
+    def test_json_safe_converts_integral_and_fractional_decimals(self):
+        self.assertEqual(_json_safe(Decimal("3")), 3)
+        self.assertIs(type(_json_safe(Decimal("3"))), int)
+        self.assertEqual(_json_safe(Decimal("3.5")), 3.5)
+        self.assertIs(type(_json_safe(Decimal("3.5"))), float)
+
+    def test_json_safe_recurses_through_result_containers_with_decimals(self):
+        value = {
+            "structured_result": {
+                "columns": ["credit_units"],
+                "rows": [(Decimal("3"),)],
+                "components": [{"credit_units": Decimal("3.5")}],
+            }
+        }
+
+        self.assertEqual(
+            _json_safe(value),
+            {
+                "structured_result": {
+                    "columns": ["credit_units"],
+                    "rows": [[3]],
+                    "components": [{"credit_units": 3.5}],
+                }
+            },
+        )
+
+    def test_atomic_writer_succeeds_with_decimal_result(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output_path = Path(directory) / "eval_result.json"
+            payload = {"structured_result": {"credit_units": Decimal("3.5")}}
+
+            _write_output_atomically(output_path, payload)
+
+            self.assertIn('"credit_units": 3.5', output_path.read_text(encoding="utf-8"))
 
     def test_unknown_requires_exact_fallback_and_non_unknown_fallback_fails(self):
         gold = [

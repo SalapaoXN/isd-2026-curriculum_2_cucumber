@@ -12,6 +12,7 @@ import tempfile
 import time
 from collections import Counter
 from collections.abc import Mapping, Sequence
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +61,7 @@ def _write_output_atomically(output_path: Path, payload: Mapping[str, Any]) -> N
     """Write an evaluation JSON file without truncating the existing output first."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    serialized = json.dumps(_json_safe(payload), ensure_ascii=False, indent=2) + "\n"
     temporary_path: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
@@ -174,6 +175,8 @@ def _json_safe(value: Any) -> Any:
         return {str(key): _json_safe(item) for key, item in value.items()}
     if isinstance(value, (list, tuple, set)):
         return [_json_safe(item) for item in value]
+    if isinstance(value, Decimal):
+        return int(value) if value == value.to_integral_value() else float(value)
     if isinstance(value, Path):
         return str(value)
     return value
