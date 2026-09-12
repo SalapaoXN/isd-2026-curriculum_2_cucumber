@@ -14,6 +14,7 @@ from .queries import (
     course_placement,
     earliest_year_semester_from_choices,
     get_semester_credits,
+    prerequisites_of_course,
     semester_credits_and_prerequisites,
 )
 
@@ -226,6 +227,20 @@ _SEMESTER_CREDITS_COLUMNS = (
     "alternative_courses",
     "provenance",
 )
+_PREREQUISITE_COLUMNS = (
+    "placement_id",
+    "plan_key",
+    "course_id",
+    "course_code",
+    "prerequisite_id",
+    "prerequisite_course_id",
+    "prerequisite_course_code",
+    "prerequisite_name_th",
+    "prerequisite_name_en",
+    "requirement_type",
+    "raw_text",
+    "provenance",
+)
 
 
 def _course_placement_request(
@@ -315,6 +330,38 @@ def _semester_credits_request(
     year = term_match.group("th_year") or term_match.group("en_year")
     semester = term_match.group("th_semester") or term_match.group("en_semester")
     return program_match.group("program"), plan_keys[0], int(year), int(semester)
+
+
+def _prerequisite_request(
+    question: str,
+) -> tuple[str, str, list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 1:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if program_match is None:
+        return None
+    if not any(term in normalized for term in _PREREQUISITE_INTENT_TERMS):
+        return None
+    if any(term in normalized for term in _PLACEMENT_INTENT_TERMS):
+        return None
+    if any(term in normalized for term in _SEMESTER_CREDITS_INTENT_TERMS):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes[0], plan_keys
 
 
 def _collect_row_provenance(
@@ -460,6 +507,41 @@ def _semester_credits_structured_result(
         "rows": rows,
         "total_credits": result["total_credits"],
         "provenance": _collect_row_provenance(rows, _SEMESTER_CREDITS_COLUMNS),
+    }
+
+
+def _prerequisite_structured_result(
+    db_path: str | Path,
+    placement_result: dict[str, Any],
+) -> dict[str, Any]:
+    rows: list[tuple[Any, ...]] = []
+    for placement in placement_result["placements"]:
+        prerequisites = prerequisites_of_course(db_path, placement["course_id"])
+        for prerequisite in prerequisites:
+            rows.append(
+                (
+                    placement["placement_id"],
+                    placement["plan_key"],
+                    placement["course_id"],
+                    placement["course_code"],
+                    prerequisite["prerequisite_id"],
+                    prerequisite["prerequisite_course_id"],
+                    prerequisite["prerequisite_code"],
+                    prerequisite["prerequisite_name_th"],
+                    prerequisite["prerequisite_name_en"],
+                    prerequisite["requirement_type"],
+                    prerequisite["raw_text"],
+                    prerequisite["provenance"],
+                )
+            )
+    return {
+        "operation": "prerequisites",
+        "status": "ok" if rows else "no_data",
+        "missing_plan_keys": placement_result["missing_plan_keys"],
+        "sql": None,
+        "columns": list(_PREREQUISITE_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _PREREQUISITE_COLUMNS),
     }
 
 
@@ -682,6 +764,13 @@ def ask_structured(
         program, plan_key, year, semester = semester_credits_request
         return _semester_credits_structured_result(
             get_semester_credits(db_path, program, plan_key, year, semester)
+        )
+    prerequisite_request = _prerequisite_request(question)
+    if prerequisite_request is not None:
+        program, course_code, plan_keys = prerequisite_request
+        return _prerequisite_structured_result(
+            db_path,
+            course_placement(db_path, program, course_code, plan_keys),
         )
     placement_request = _course_placement_request(question)
     if placement_request is not None:

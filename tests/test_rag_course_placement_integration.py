@@ -271,7 +271,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["result"]["rows"], [(1,)])
         self.assertEqual(len(calls), 1)
 
-    def test_prerequisite_only_falls_back_but_credits_only_is_deterministic(self):
+    def test_prerequisite_only_is_deterministic_but_credits_only_is_unchanged(self):
         calls = []
 
         def fake_model(_prompt):
@@ -289,10 +289,48 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             structured_model_callable=fake_model,
         )
 
-        self.assertNotIn("operation", prerequisite_result["result"])
+        prerequisite_structured = prerequisite_result["result"]
+        self.assertEqual(prerequisite_structured["operation"], "prerequisites")
+        prerequisite_rows = [
+            dict(zip(prerequisite_structured["columns"], row))
+            for row in prerequisite_structured["rows"]
+        ]
+        self.assertEqual(
+            {
+                (
+                    row["plan_key"],
+                    row["course_code"],
+                    row["prerequisite_course_code"],
+                    row["requirement_type"],
+                    row["raw_text"],
+                )
+                for row in prerequisite_rows
+            },
+            {("no_coop", "06016420", "06016413", "required", "06016413")},
+        )
+        self.assertTrue(prerequisite_structured["provenance"])
         self.assertEqual(credits_result["result"]["operation"], "semester_credits")
         self.assertEqual(credits_result["result"]["total_credits"], 30)
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(len(calls), 0)
+
+    def test_course_without_prerequisite_returns_no_data_without_model(self):
+        calls = []
+
+        def fake_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "IT แบบไม่สหกิจ วิชา 06016465 ต้องเรียนก่อนวิชาอะไร?",
+            structured_model_callable=fake_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        self.assertEqual(result["result"]["operation"], "prerequisites")
+        self.assertEqual(result["result"]["status"], "no_data")
+        self.assertEqual(result["result"]["rows"], [])
+        self.assertEqual(calls, [])
 
     def test_semester_credits_operation_resolves_plan_and_components(self):
         result = get_semester_credits(DB_PATH, "IT", "coop", 2, 2)
