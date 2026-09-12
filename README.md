@@ -11,7 +11,7 @@ stages can restart from an existing boundary; OCR is never rerun implicitly.
 ```text
 Part 1 — OCR
 inputs/
-  -> python -m src.run_pipeline
+  -> python ocr.py --prefix <program>
   -> outputs/ocr/
 
 Part 2 — Data preparation
@@ -61,14 +61,24 @@ OCR is intentionally standalone because it is the expensive stage. It reads
 images from `inputs/<program>/` and writes only persistent OCR artifacts under
 `outputs/ocr/<program>/`.
 
-Example:
+Normal command:
 
 ```powershell
-python -m src.run_pipeline -i inputs/it -p 32-38 --program IT --plan no_coop
+python ocr.py --prefix it
 ```
 
-Use `--no-gpu` for CPU execution. The command also supports the existing
-`--pages`, `--input-dir`, `--output-dir`, `--program`, and `--plan` options.
+Optionally select pages:
+
+```powershell
+python ocr.py --prefix it --pages 32-38
+```
+
+The command reads `inputs/<prefix>/` and writes `outputs/ocr/<prefix>/`.
+Supported prefixes are `ait`, `bit`, `dsba`, `gened`, and `it`. Use `--no-gpu`
+for CPU execution. The compatibility command
+`python -m src.run_pipeline ...` remains available for explicit replay/debug
+work; plan semantics belong to the preparation stage, not the normal OCR
+command.
 
 ## Part 2: Data Preparation
 

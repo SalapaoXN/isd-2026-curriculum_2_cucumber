@@ -91,25 +91,25 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def main():
-    args = parse_arguments()
+def run_ocr(
+    input_dir: Path,
+    output_dir: Path,
+    program: str,
+    pages: List[int] | None = None,
+    no_gpu: bool = False,
+    plan: str | None = None,
+) -> Path:
+    """Run only OCR and pre-cleaning, returning the OCR output directory."""
+    if pages is None:
+        pages = discover_pages(input_dir)
+    if not pages:
+        raise ValueError(
+            "No valid pages were requested. Use a page number or range such as -p 32-36."
+        )
 
-    input_dir = Path(args.input_dir)
-    output_dir = Path(args.output_dir)
-
-    try:
-        program = resolve_program(args.program, input_dir)
-        plan = resolve_plan(args.plan, program)
-        pages = parse_pages(args.pages) if args.pages is not None else discover_pages(input_dir)
-        if not pages:
-            raise ValueError(
-                "No valid pages were requested. Use a page number or range such as -p 32-36."
-            )
-        page_files = discover_page_files(input_dir)
-        if not any(page in page_files for page in pages):
-            raise ValueError(f"None of the requested pages were found in '{input_dir}'.")
-    except ValueError as exc:
-        raise SystemExit(f"Error: {exc}") from exc
+    page_files = discover_page_files(input_dir)
+    if not any(page in page_files for page in pages):
+        raise ValueError(f"None of the requested pages were found in '{input_dir}'.")
 
     ocr_output_dir = output_dir / "ocr" / program.casefold()
     ocr_output_dir.mkdir(parents=True, exist_ok=True)
@@ -118,7 +118,7 @@ def main():
     print(f" Pages to process: {pages}")
     print(f" Program: {program}; plan: {plan_label(plan)}")
 
-    use_gpu = not args.no_gpu
+    use_gpu = not no_gpu
     engine = OCREngine(languages=["th", "en"], gpu=use_gpu)
 
     for page_num in pages:
@@ -162,6 +162,29 @@ def main():
         )
 
     print(f"\n Finished OCR stage! Files saved at: {ocr_output_dir.resolve()}")
+    return ocr_output_dir
+
+
+def main():
+    args = parse_arguments()
+
+    input_dir = Path(args.input_dir)
+    output_dir = Path(args.output_dir)
+
+    try:
+        program = resolve_program(args.program, input_dir)
+        plan = resolve_plan(args.plan, program)
+        pages = parse_pages(args.pages) if args.pages is not None else discover_pages(input_dir)
+        run_ocr(
+            input_dir=input_dir,
+            output_dir=output_dir,
+            program=program,
+            pages=pages,
+            no_gpu=args.no_gpu,
+            plan=plan,
+        )
+    except ValueError as exc:
+        raise SystemExit(f"Error: {exc}") from exc
 
 
 if __name__ == "__main__":
