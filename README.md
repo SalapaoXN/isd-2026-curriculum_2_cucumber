@@ -1,4 +1,15 @@
-# CUCUMBER
+# isd-2026-curriculum_2_cucumber
+
+We do OCR curriculum and some LLM with model name CUCUMBER
+
+Project : P2 LLM ถาม-ตอบหลักสูตร
+
+Member:
+1. 67070049 Nattachai Kaewchum >> Discord: GoodDee
+2. 67070063 Thanachin Chukiatchai >> Discord: วันลพ มีงบมาก
+3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
+
+## CUCUMBER
 
 CUCUMBER converts curriculum documents into structured data and provides
 grounded Thai curriculum question answering with source provenance.
@@ -74,11 +85,12 @@ python ocr.py --prefix it --pages 32-38
 ```
 
 The command reads `inputs/<prefix>/` and writes `outputs/ocr/<prefix>/`.
-Supported prefixes are `ait`, `bit`, `dsba`, `gened`, and `it`. Use `--no-gpu`
-for CPU execution. The compatibility command
-`python -m src.run_pipeline ...` remains available for explicit replay/debug
-work; plan semantics belong to the preparation stage, not the normal OCR
-command.
+For example, `--prefix it` maps `inputs/it/` to `outputs/ocr/it/`. Supported
+prefixes are `ait`, `bit`, `dsba`, `gened`, and `it`. If `--pages` is omitted,
+all available images for that prefix are OCRed. Use `--no-gpu` for CPU
+execution. Program and plan selection belong to `prepare_data.py`, not the
+normal OCR command. The compatibility command `python -m src.run_pipeline ...`
+remains available for explicit replay/debug work.
 
 ## Part 2: Data Preparation
 
@@ -230,10 +242,3 @@ Current preparation scopes are:
 - DSBA: `coop`, `no_coop`
 - GENED
 - IT: `coop`, `no_coop`
-
-## Team Members
-
-Member:
-1. 67070049 Nattachai Kaewchum >> Discord: GoodDee
-2. 67070063 Thanachin Chukiatchai >> Discord: วันลพ มีงบมาก
-3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
