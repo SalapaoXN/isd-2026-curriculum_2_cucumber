@@ -15,7 +15,7 @@
             "artifacts": [
                 {
                     "path": "outputs/consolidated/it/coop/full/merged_it_coop_full.json",
-                    "sha256": "75e94fa5847c5dbc0f767b1d18db34e8e45fb4d65a327cdf0ddaf63c135d2ad6",
+                    "sha256": "ac933ad56ffc08ba9cf2e9fb626e40ea0d88fd156c7ffd6b2ff1cc145392072e",
                     "source": "OCR extraction / Academic Plan - IT coop",
                     "description": "OCR-extracted curriculum records for IT (plan coop)",
                     "program": "IT",
@@ -28,7 +28,7 @@
                 },
                 {
                     "path": "outputs/consolidated/it/no_coop/full/merged_it_no_coop_full.json",
-                    "sha256": "25e9e8148a2c4495053c8c3fb24d2484648d138772a3a4b6f241646d8562fd77",
+                    "sha256": "7e9d9778755cbea2e694c36576b24c5189f5c8507cfbc543d19f77dfdec416af",
                     "source": "OCR extraction / Academic Plan - IT no_coop",
                     "description": "OCR-extracted curriculum records for IT (plan no_coop)",
                     "program": "IT",
@@ -165,7 +165,7 @@
             "event_type": "validation",
             "status": "supported",
             "source_file": "submission/verify.json",
-            "source_sha256": "b19fe3ccf627a67e9c51d7b5f9394c0584edcc8ee5555ed6b666e42624e4d257",
+            "source_sha256": "2499273b2e398f662eb05178b895f0f6bc5d9fbee29d6bdafa0ca7ef2f9686b9",
             "summary_status": "EXCEPTION",
             "status_counts": {
                 "PASS": 0,
@@ -256,7 +256,7 @@
     ],
     "final_artifact": {
         "path": "submission/curriculum.json",
-        "sha256": "311d7f193c76701dcd47f0a91b4dea0803c342aab8b0c1335ef4254a5d837358",
+        "sha256": "eadd71834d526562e92fd6c90d20f3bf68432db25f8a980af775ed73acd20753",
         "program": "IT",
         "plan_counts": {
             "coop": {
