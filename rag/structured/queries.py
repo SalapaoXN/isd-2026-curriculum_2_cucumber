@@ -95,6 +95,7 @@ def _course_fields(row: Mapping[str, Any]) -> dict[str, Any]:
         "name_th": row["name_th"],
         "name_en": row["name_en"],
         "credits": row["credits"],
+        "credits_raw": row["credits_raw"],
         "description_th": row["description_th"],
         "description_en": row["description_en"],
         "category": row["category"],
@@ -112,6 +113,7 @@ def _course_select(prefix: str = "courses") -> str:
         {prefix}.name_th,
         {prefix}.name_en,
         {prefix}.credits,
+        {prefix}.credits_raw,
         {prefix}.description_th,
         {prefix}.description_en,
         {prefix}.category,
@@ -541,6 +543,190 @@ def semester_total_credits(
     return int(total) if total == total.to_integral_value() else float(total)
 
 
+def _normalize_semester_credit_inputs(
+    program: str,
+    plan_key: str,
+    year_number: int,
+    semester_number: int,
+) -> tuple[str, str, int, int]:
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError("program must be a non-empty string")
+    if not isinstance(plan_key, str):
+        raise ValueError("plan_key must be a string")
+    normalized_plan_key = plan_key.strip().lower()
+    if normalized_plan_key not in _CANONICAL_PLAN_KEYS:
+        raise ValueError(f"unsupported canonical plan_key: {plan_key!r}")
+    if isinstance(year_number, bool) or not isinstance(year_number, int):
+        raise ValueError("year_number must be an integer")
+    if isinstance(semester_number, bool) or not isinstance(semester_number, int):
+        raise ValueError("semester_number must be an integer")
+    if not 1 <= year_number <= 4:
+        raise ValueError("year_number must be between 1 and 4")
+    if not 1 <= semester_number <= 2:
+        raise ValueError("semester_number must be between 1 and 2")
+    return program.strip().upper(), normalized_plan_key, year_number, semester_number
+
+
+def get_semester_credits(
+    db_path: Database,
+    program: str,
+    plan_key: str,
+    year_number: int,
+    semester_number: int,
+) -> dict[str, Any]:
+    """Return one plan term's deterministic credit total and components."""
+    (
+        normalized_program,
+        normalized_plan_key,
+        normalized_year,
+        normalized_semester,
+    ) = _normalize_semester_credit_inputs(
+        program, plan_key, year_number, semester_number
+    )
+    with _open_database(db_path) as connection:
+        plan_rows = connection.execute(
+            """
+            SELECT plan_id, catalog_id, program_code, plan_key
+            FROM curriculum_plans
+            WHERE program_code = ? AND plan_key = ?
+            ORDER BY plan_id
+            """,
+            (normalized_program, normalized_plan_key),
+        ).fetchall()
+        plans: list[dict[str, Any]] = []
+        flat_components: list[dict[str, Any]] = []
+
+        for plan_row in plan_rows:
+            plan_id = int(plan_row["plan_id"])
+            catalog_id = int(plan_row["catalog_id"])
+            placements = _placement_rows(
+                connection, plan_id, normalized_year, normalized_semester
+            )
+            if not placements:
+                continue
+
+            components: list[dict[str, Any]] = []
+            total = Decimal(0)
+            for raw_placement in placements:
+                placement = dict(raw_placement)
+                group_id = placement.get("alternative_group_id")
+                counted_credits = _credits_for_placement(connection, placement)
+                total += counted_credits
+                placement_id = int(placement["placement_id"])
+                placement_references = _provenance_for(
+                    connection,
+                    "plan_placement_provenance",
+                    "placement_id",
+                    placement_id,
+                )
+
+                alternative_courses: list[dict[str, Any]] = []
+                if group_id is None:
+                    course_id = (
+                        int(placement["course_id"])
+                        if placement["course_id"] is not None
+                        else None
+                    )
+                    references = _merge_provenance(
+                        placement_references,
+                        _provenance_for(
+                            connection,
+                            "course_provenance",
+                            "course_id",
+                            course_id,
+                        )
+                        if course_id is not None
+                        else [],
+                    )
+                else:
+                    alternative_courses = _alternative_members(
+                        connection, int(group_id)
+                    )
+                    references = _merge_provenance(
+                        placement_references,
+                        _provenance_for(
+                            connection,
+                            "alternative_group_provenance",
+                            "alternative_group_id",
+                            int(group_id),
+                        ),
+                        *(member["provenance"] for member in alternative_courses),
+                    )
+
+                component = {
+                    "placement_id": placement_id,
+                    "course_id": (
+                        int(placement["course_id"])
+                        if placement["course_id"] is not None
+                        else None
+                    ),
+                    "course_code": placement["course_code"],
+                    "name_th": placement["name_th"],
+                    "name_en": placement["name_en"],
+                    "credits_raw": placement["credits_raw"],
+                    "credit_units": (
+                        _decimal_credits(placement["credits"])
+                        if group_id is None
+                        else None
+                    ),
+                    "counted_credit_units": (
+                        int(counted_credits)
+                        if counted_credits == counted_credits.to_integral_value()
+                        else float(counted_credits)
+                    ),
+                    "alternative_group_id": (
+                        int(group_id) if group_id is not None else None
+                    ),
+                    "alternative_courses": alternative_courses,
+                    "year": placement["year_number"],
+                    "semester": placement["semester_number"],
+                    "provenance": references,
+                }
+                components.append(component)
+                flat_components.append(
+                    {
+                        **component,
+                        "plan_id": plan_id,
+                        "catalog_id": catalog_id,
+                        "program": plan_row["program_code"],
+                        "plan_key": plan_row["plan_key"],
+                        "total_credits": None,
+                    }
+                )
+
+            numeric_total = (
+                int(total) if total == total.to_integral_value() else float(total)
+            )
+            for component in components:
+                component["total_credits"] = numeric_total
+            for component in flat_components:
+                if component["plan_id"] == plan_id:
+                    component["total_credits"] = numeric_total
+            plans.append(
+                {
+                    "plan_id": plan_id,
+                    "catalog_id": catalog_id,
+                    "program": plan_row["program_code"],
+                    "plan_key": plan_row["plan_key"],
+                    "year": normalized_year,
+                    "semester": normalized_semester,
+                    "total_credits": numeric_total,
+                    "components": components,
+                }
+            )
+
+    return {
+        "status": "ok" if plans else "no_data",
+        "program": normalized_program,
+        "plan_key": normalized_plan_key,
+        "year": normalized_year,
+        "semester": normalized_semester,
+        "total_credits": plans[0]["total_credits"] if len(plans) == 1 else None,
+        "plans": plans,
+        "components": flat_components,
+    }
+
+
 def semester_credits_and_prerequisites(
     db_path: Database,
     program: str,
@@ -946,6 +1132,7 @@ __all__ = [
     "courses_requiring_prerequisite",
     "earliest_year_semester",
     "earliest_year_semester_from_choices",
+    "get_semester_credits",
     "parse_flexible_year_semester",
     "placement_year_semester_choices",
     "prerequisites_of_course",

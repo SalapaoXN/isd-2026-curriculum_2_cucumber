@@ -13,6 +13,7 @@ from .nl_to_sql import question_to_sql, repair_sql
 from .queries import (
     course_placement,
     earliest_year_semester_from_choices,
+    get_semester_credits,
     semester_credits_and_prerequisites,
 )
 
@@ -130,6 +131,9 @@ _TERM_PAIR = re.compile(
 _SEMESTER_CREDITS_INTENT_TERMS = (
     "รวมกี่หน่วยกิต",
     "ลงทะเบียนรวม",
+    "หน่วยกิตทั้งหมด",
+    "หน่วยกิตรวม",
+    "มีกี่หน่วยกิต",
     "total credits",
     "semester credits",
 )
@@ -175,6 +179,26 @@ _SEMESTER_PREREQUISITE_COLUMNS = (
     "prerequisite_course_code",
     "requirement_type",
     "raw_text",
+    "provenance",
+)
+_SEMESTER_CREDITS_COLUMNS = (
+    "plan_id",
+    "catalog_id",
+    "program",
+    "plan_key",
+    "year",
+    "semester",
+    "total_credits",
+    "placement_id",
+    "course_id",
+    "course_code",
+    "name_th",
+    "name_en",
+    "credits_raw",
+    "credit_units",
+    "counted_credit_units",
+    "alternative_group_id",
+    "alternative_courses",
     "provenance",
 )
 
@@ -232,6 +256,35 @@ def _semester_credits_prerequisite_request(
     year = term_match.group("th_year") or term_match.group("en_year")
     semester = term_match.group("th_semester") or term_match.group("en_semester")
     return request[0], request[2][0], request[1], int(year), int(semester)
+
+
+def _semester_credits_request(
+    question: str,
+) -> tuple[str, str, int, int] | None:
+    normalized = question.casefold()
+    if not any(term in normalized for term in _SEMESTER_CREDITS_INTENT_TERMS):
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    term_match = _TERM_PAIR.search(normalized)
+    if program_match is None or term_match is None:
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if len(plan_keys) != 1:
+        return None
+
+    year = term_match.group("th_year") or term_match.group("en_year")
+    semester = term_match.group("th_semester") or term_match.group("en_semester")
+    return program_match.group("program"), plan_keys[0], int(year), int(semester)
 
 
 def _course_placement_structured_result(
@@ -309,6 +362,23 @@ def _semester_credits_prerequisite_structured_result(
         "sql": None,
         "columns": list(_SEMESTER_PREREQUISITE_COLUMNS),
         "rows": rows,
+    }
+
+
+def _semester_credits_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    rows = [
+        tuple(component.get(column) for column in _SEMESTER_CREDITS_COLUMNS)
+        for component in result["components"]
+    ]
+    return {
+        "operation": "semester_credits",
+        "status": result["status"],
+        "sql": None,
+        "columns": list(_SEMESTER_CREDITS_COLUMNS),
+        "rows": rows,
+        "total_credits": result["total_credits"],
     }
 
 
@@ -525,6 +595,12 @@ def ask_structured(
                 semester,
                 course_code,
             )
+        )
+    semester_credits_request = _semester_credits_request(question)
+    if semester_credits_request is not None:
+        program, plan_key, year, semester = semester_credits_request
+        return _semester_credits_structured_result(
+            get_semester_credits(db_path, program, plan_key, year, semester)
         )
     placement_request = _course_placement_request(question)
     if placement_request is not None:

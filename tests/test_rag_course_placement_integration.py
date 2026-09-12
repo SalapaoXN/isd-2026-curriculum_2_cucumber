@@ -8,6 +8,7 @@ from rag.structured.queries import (
     course_placement,
     earliest_year_semester,
     earliest_year_semester_from_choices,
+    get_semester_credits,
     parse_flexible_year_semester,
     placement_year_semester_choices,
     semester_credits_and_prerequisites,
@@ -213,7 +214,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["result"]["rows"], [(1,)])
         self.assertEqual(len(calls), 1)
 
-    def test_prerequisite_only_and_credits_only_keep_nl_to_sql_fallback(self):
+    def test_prerequisite_only_falls_back_but_credits_only_is_deterministic(self):
         calls = []
 
         def fake_model(_prompt):
@@ -232,8 +233,45 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         )
 
         self.assertNotIn("operation", prerequisite_result["result"])
-        self.assertNotIn("operation", credits_result["result"])
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(credits_result["result"]["operation"], "semester_credits")
+        self.assertEqual(credits_result["result"]["total_credits"], 30)
+        self.assertEqual(len(calls), 1)
+
+    def test_semester_credits_operation_resolves_plan_and_components(self):
+        result = get_semester_credits(DB_PATH, "IT", "coop", 2, 2)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["total_credits"], 30)
+        self.assertTrue(result["components"])
+        self.assertTrue(
+            all(component["plan_key"] == "coop" for component in result["components"])
+        )
+        self.assertTrue(
+            all(component["year"] == 2 for component in result["components"])
+        )
+        self.assertTrue(
+            all(component["semester"] == 2 for component in result["components"])
+        )
+
+    def test_semester_credits_alternative_group_counts_once(self):
+        result = get_semester_credits(DB_PATH, "IT", "coop", 3, 2)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["total_credits"], 6)
+        alternatives = [
+            component
+            for component in result["components"]
+            if component["alternative_group_id"] is not None
+        ]
+        self.assertEqual(len(alternatives), 1)
+        self.assertEqual(alternatives[0]["counted_credit_units"], 6)
+
+    def test_semester_credits_missing_term_is_no_data(self):
+        result = get_semester_credits(DB_PATH, "IT", "default", 1, 1)
+
+        self.assertEqual(result["status"], "no_data")
+        self.assertIsNone(result["total_credits"])
+        self.assertEqual(result["components"], [])
 
     def test_semester_credits_and_prerequisite_use_deterministic_operation(self):
         result = ask(
