@@ -186,6 +186,37 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(structured["provenance"])
         self.assertEqual(calls, [])
 
+    def test_explicit_plan_flexible_placement_wording_is_deterministic(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "แผน IT แบบไม่สหกิจเปิดให้ลง DATA CENTER DESIGN "
+            "(06016465) ช่วงไหนได้บ้าง?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "course_placement")
+        self.assertEqual(structured["status"], "ok")
+        rows = _placement_rows(result)
+        self.assertEqual([row["plan_key"] for row in rows], ["no_coop"])
+        self.assertEqual(
+            rows[0]["flexible_year_semester_raw"],
+            "3/1, 3/2, 4/1",
+        )
+        self.assertEqual(
+            rows[0]["year_semester_choices"],
+            [(3, 1), (3, 2), (4, 1)],
+        )
+        self.assertTrue(rows[0]["provenance"])
+        self.assertEqual(calls, [])
+
     def test_two_course_cross_plan_comparison_is_deterministic(self):
         calls = []
 

@@ -56,6 +56,15 @@ class RagRouterTest(unittest.TestCase):
             "structured",
         )
 
+    def test_explicit_plan_flexible_placement_wording_is_structured(self):
+        self.assertEqual(
+            route_question(
+                "แผน IT แบบไม่สหกิจเปิดให้ลง DATA CENTER DESIGN "
+                "(06016465) ช่วงไหนได้บ้าง?"
+            ),
+            "structured",
+        )
+
     def test_two_course_cross_plan_earliest_placement_is_structured(self):
         self.assertEqual(
             route_question(
