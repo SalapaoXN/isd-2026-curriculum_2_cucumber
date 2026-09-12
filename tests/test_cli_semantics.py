@@ -37,7 +37,6 @@ class CliSemanticsTests(unittest.TestCase):
                 program="IT",
                 plan="coop",
                 no_gpu=True,
-                english_second_pass=False,
             )
 
             class FakeOCREngine:
@@ -50,11 +49,7 @@ class CliSemanticsTests(unittest.TestCase):
 
             with patch("src.run_pipeline.parse_arguments", return_value=args), patch(
                 "src.run_pipeline.OCREngine", FakeOCREngine
-            ), patch(
-                "src.run_pipeline.CurriculumExtractor", create=True
-            ) as extractor, patch(
-                "src.run_pipeline.enrich_courses", create=True
-            ) as enricher:
+            ):
                 with redirect_stdout(io.StringIO()):
                     run_pipeline_main()
 
@@ -64,14 +59,6 @@ class CliSemanticsTests(unittest.TestCase):
             self.assertTrue(ocr_txt.is_file())
             self.assertEqual(json.loads(ocr_json.read_text(encoding="utf-8"))["text_lines"], ["OCR LINE"])
             self.assertFalse((output_dir / "extracted").exists())
-            extractor.assert_not_called()
-            enricher.assert_not_called()
-
-    def test_run_pipeline_rejects_downstream_english_second_pass(self):
-        args = SimpleNamespace(english_second_pass=True)
-        with patch("src.run_pipeline.parse_arguments", return_value=args):
-            with self.assertRaisesRegex(SystemExit, "downstream extraction/enrichment"):
-                run_pipeline_main()
 
     def test_page_parser_supports_ranges_and_rejects_invalid_values(self):
         self.assertEqual(parse_pages("10-12,12,14..15"), [10, 11, 12, 14, 15])

@@ -88,26 +88,11 @@ def parse_arguments():
         action="store_true",
         help="Force CPU mode"
     )
-    parser.add_argument(
-        "--english-second-pass",
-        action="store_true",
-        help=(
-            "Deprecated downstream extraction/enrichment option; rejected by "
-            "the standalone OCR stage"
-        ),
-    )
-    
     return parser.parse_args()
 
 
 def main():
     args = parse_arguments()
-
-    if args.english_second_pass:
-        raise SystemExit(
-            "Error: --english-second-pass is downstream extraction/enrichment "
-            "behavior and is not supported by the standalone OCR stage."
-        )
 
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)

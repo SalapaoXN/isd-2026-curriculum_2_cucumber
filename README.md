@@ -80,13 +80,17 @@ CUCUMBER extracts structured curriculum data from Thai/English curriculum images
 ```text
 Image
   -> EasyOCR (Thai + English)
-  -> structured course extraction
-  -> optional English name enrichment
+  -> persistent outputs/ocr/
+  -> extract.py
+  -> outputs/extracted/
   -> merge/consolidation
+  -> outputs/consolidated/
+  -> LLM spell correction
+  -> outputs/llm/
   -> evaluation
 ```
 
-The canonical OCR/extraction output is authoritative by default. The optional English second pass may improve only `name_en` when a safe candidate is accepted.
+The OCR stage is standalone and persistent. LLM spell correction is the only post-extraction text-correction stage.
 
 ## Setup
 
@@ -166,7 +170,7 @@ Extraction is an explicit replayable next stage:
 python extract.py outputs/ocr/dsba --output-dir outputs/extracted --program DSBA --plan no_coop
 ```
 
-`src.run_pipeline` supports `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, and `--no-gpu`. The `--english-second-pass` option is rejected because it belongs to downstream extraction/enrichment, not the standalone OCR stage.
+`src.run_pipeline` supports `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, and `--no-gpu`.
 
 ## Extraction
 
@@ -323,16 +327,6 @@ Evaluation reports are written to `reports/evaluation/`:
 
 Page-level evaluation is reported only when GT contains authoritative source/page provenance. It is not inferred from project-created mappings.
 
-## Optional English Name Enrichment
-
-Enable the auxiliary English-only OCR pass with:
-
-```bash
-python -m src.run_pipeline -p 26 -i inputs/dsba --program DSBA --plan coop --english-second-pass
-```
-
-The pass is opt-in. It may update only `name_en`; Thai names, credits, prerequisites, categories, and other canonical fields are not replaced. Unsafe or ambiguous candidates fall back to canonical OCR.
-
 ## Source Provenance
 
 Extracted records include `source_provenance`, for example:
@@ -353,6 +347,8 @@ Provenance is derived from source/input context, not ground truth, and is preser
 ```bash
 python llm_spell_corrector.py ./outputs/consolidated/dsba/coop/full/merged_dsba_coop_full.json
 ```
+
+LLM correction is the only post-extraction text-correction stage and writes reviewed artifacts under `outputs/llm/`.
 
 ## Testing
 
