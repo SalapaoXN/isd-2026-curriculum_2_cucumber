@@ -4,7 +4,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from rag.structured.execute import execute_readonly
+from rag.structured.execute import execute_readonly, validate_readonly_sql
 
 
 class RagExecuteTest(unittest.TestCase):
@@ -41,6 +41,36 @@ class RagExecuteTest(unittest.TestCase):
     def test_guard_rejects_write_queries(self):
         with self.assertRaises(ValueError):
             execute_readonly(self.database_path, "DELETE FROM courses")
+
+    def test_valid_select_and_with_queries_validate(self):
+        validate_readonly_sql(
+            self.database_path,
+            "SELECT course_id, code FROM courses",
+        )
+        validate_readonly_sql(
+            self.database_path,
+            "WITH selected AS (SELECT code FROM courses) "
+            "SELECT code FROM selected",
+        )
+
+    def test_missing_table_or_column_fails_validation(self):
+        for sql in (
+            "SELECT code FROM missing_courses",
+            "SELECT missing_code FROM courses",
+        ):
+            with self.subTest(sql=sql), self.assertRaises(sqlite3.OperationalError):
+                validate_readonly_sql(self.database_path, sql)
+
+    def test_validation_rejects_write_queries(self):
+        with self.assertRaises(ValueError):
+            validate_readonly_sql(self.database_path, "DELETE FROM courses")
+
+    def test_validation_reports_missing_database(self):
+        with self.assertRaises(FileNotFoundError):
+            validate_readonly_sql(
+                self.database_path.with_name("missing.db"),
+                "SELECT 1",
+            )
 
 
 if __name__ == "__main__":

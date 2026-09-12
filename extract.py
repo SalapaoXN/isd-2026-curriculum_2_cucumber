@@ -115,8 +115,8 @@ def parse_arguments():
     parser.add_argument(
         "-o", "--output-dir",
         type=str,
-        default="outputs",
-        help="Directory to save extracted JSON output (default: 'outputs')"
+        default="outputs/extracted",
+        help="Root directory to save extracted JSON output (default: 'outputs/extracted')"
     )
     parser.add_argument(
         "--program",
@@ -157,8 +157,7 @@ def main():
     args = parse_arguments()
 
     input_path = Path(args.input_path)
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_root = Path(args.output_dir)
 
     program_input = input_path if input_path.is_dir() else input_path.parent
     try:
@@ -166,6 +165,9 @@ def main():
         plan = resolve_plan(args.plan, program)
     except ValueError as exc:
         raise SystemExit(f"Error: {exc}") from exc
+
+    output_dir = output_root / program.casefold()
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     extractor = CurriculumExtractor(
         program=program,
@@ -241,7 +243,9 @@ def main():
         group_id = _input_group_identifier(input_path)
         program_id = _safe_identifier(program)
         plan_id = _safe_identifier(plan_label(plan))
-        consolidated_file = output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
+        legacy_output_dir = output_dir / "legacy" / "consolidated_summaries"
+        legacy_output_dir.mkdir(parents=True, exist_ok=True)
+        consolidated_file = legacy_output_dir / f"consolidated_curriculum_{group_id}_{program_id}_{plan_id}.json"
         with open(consolidated_file, "w", encoding="utf-8") as f:
             json.dump(merged_result, f, ensure_ascii=False, indent=4)
         print(f"\n Saved consolidated result ({len(all_courses)} courses total): {consolidated_file}")

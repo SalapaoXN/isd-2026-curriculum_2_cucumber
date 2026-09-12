@@ -20,7 +20,7 @@ python -m pip install -r requirements.txt -r requirements-rag.txt
 
 ```bash
 python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
-python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 26-32 --program DSBA --plan no_coop
 ```
 
 ### Merge / Consolidation
@@ -131,12 +131,12 @@ Supported image extensions: `.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`.
 Typical per-page outputs:
 
 ```text
-outputs/dsba_page_026_ocr.txt
-outputs/dsba_page_026_ocr.json
-outputs/dsba_page_026_ocr_extracted.json
+outputs/ocr/dsba/dsba_page_026_ocr.txt
+outputs/ocr/dsba/dsba_page_026_ocr.json
+outputs/extracted/dsba/dsba_page_026_ocr_extracted.json
 ```
 
-Consolidated curriculum files are written to `consolidated_outputs/`.
+Consolidated curriculum files are written under `outputs/consolidated/`.
 
 ## OCR
 
@@ -147,10 +147,10 @@ Run EasyOCR directly with `cli.py`:
 python cli.py inputs/dsba/dsba_page_026.jpg
 
 # Directory batch
-python cli.py inputs/dsba/ -o outputs
+python cli.py inputs/dsba/ -o outputs/ocr
 
 # CPU mode
-python cli.py inputs/dsba/ -o outputs --no-gpu
+python cli.py inputs/dsba/ -o outputs/ocr --no-gpu
 ```
 
 For the automated page runner:
@@ -169,26 +169,26 @@ python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
 
 ```bash
 # No co-op plan
-python extract.py outputs --prefix dsba -p 26-32 --program DSBA --plan no_coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 26-32 --program DSBA --plan no_coop
 
 # Co-op plan
-python extract.py outputs --prefix dsba -p 33-39 --program DSBA --plan coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 33-39 --program DSBA --plan coop
 
 # Course descriptions
-python extract.py outputs --prefix dsba -p 317-344 --program DSBA --plan coop
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --prefix dsba -p 317-344 --program DSBA --plan coop
 ```
 
 ### IT
 
 ```bash
 # No co-op plan
-python extract.py outputs --prefix it -p 32-38 --program IT --plan no_coop
+python extract.py outputs/ocr/it --output-dir outputs/extracted --prefix it -p 32-38 --program IT --plan no_coop
 
 # Co-op plan
-python extract.py outputs --prefix it -p 39-45 --program IT --plan coop
+python extract.py outputs/ocr/it --output-dir outputs/extracted --prefix it -p 39-45 --program IT --plan coop
 
 # Course descriptions
-python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
+python extract.py outputs/ocr/it --output-dir outputs/extracted --prefix it -p 328-371 --program IT --plan coop
 ```
 
 ### AIT
@@ -196,26 +196,26 @@ python extract.py outputs --prefix it -p 328-371 --program IT --plan coop
 AIT has no `coop` / `no_coop` plan variant.
 
 ```bash
-python extract.py outputs --prefix ait --program AIT
+python extract.py outputs/ocr/ait --output-dir outputs/extracted --prefix ait --program AIT
 ```
 
 ### GENED
 
 ```bash
-python extract.py outputs --prefix gened -p 16-30,44-117 --program GENED --plan gened
+python extract.py outputs/ocr/gened --output-dir outputs/extracted --prefix gened -p 16-30,44-117 --program GENED --plan gened
 ```
 
 ### BIT
 
 ```bash
 # No co-op plan
-python extract.py outputs --prefix bit -p 26-30 --program BIT --plan no_coop
+python extract.py outputs/ocr/bit --output-dir outputs/extracted --prefix bit -p 26-30 --program BIT --plan no_coop
 
 # Co-op plan
-python extract.py outputs --prefix bit -p 31-35 --program BIT --plan coop
+python extract.py outputs/ocr/bit --output-dir outputs/extracted --prefix bit -p 31-35 --program BIT --plan coop
 
 # Course descriptions
-python extract.py outputs --prefix bit -p 238-257 --program BIT --plan coop
+python extract.py outputs/ocr/bit --output-dir outputs/extracted --prefix bit -p 238-257 --program BIT --plan coop
 ```
 
 ## Merge / Consolidation
@@ -266,27 +266,27 @@ Equivalent repeated prediction placements may be collapsed only in the canonical
 ### DSBA
 
 ```bash
-python evaluate.py consolidated_outputs/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
-python evaluate.py consolidated_outputs/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
+python evaluate.py outputs/consolidated/dsba/coop/full/merged_dsba_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_coop.json
+python evaluate.py outputs/consolidated/dsba/no_coop/full/merged_dsba_no_coop_full.json --gt ground_truth/DSBA/DSBA_academic_plan_no_coop.json
 ```
 
 ### IT
 
 ```bash
-python evaluate.py consolidated_outputs/merged_it_coop_full.json --gt ground_truth/IT/IT_academic_plan_coop.json
-python evaluate.py consolidated_outputs/merged_it_no_coop_full.json --gt ground_truth/IT/IT_academic_plan_no_coop.json
+python evaluate.py outputs/consolidated/it/coop/full/merged_it_coop_full.json --gt ground_truth/IT/IT_academic_plan_coop.json
+python evaluate.py outputs/consolidated/it/no_coop/full/merged_it_no_coop_full.json --gt ground_truth/IT/IT_academic_plan_no_coop.json
 ```
 
 ### AIT
 
 ```bash
-python evaluate.py consolidated_outputs/merged_ait_no_plan_full.json --gt ground_truth/AIT/AIT_academic_plan.json
+python evaluate.py outputs/consolidated/ait/full/merged_ait_no_plan_full.json --gt ground_truth/AIT/AIT_academic_plan.json
 ```
 
 ### GENED
 
 ```bash
-python evaluate.py consolidated_outputs/merged_gened_gened_full.json --gt ground_truth/general_education_ground_truth.json
+python evaluate.py outputs/consolidated/gened/full/merged_gened_gened_full.json --gt ground_truth/general_education_ground_truth.json
 ```
 
 ### BIT
@@ -297,14 +297,14 @@ Add BIT evaluation commands after the accepted BIT ground-truth paths are finali
 
 ```bash
 python evaluate.py `
-  --pair consolidated_outputs/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
-  --pair consolidated_outputs/merged_dsba_no_coop_full.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
-  --pair consolidated_outputs/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json `
-  --pair consolidated_outputs/merged_it_no_coop_full.json ground_truth/IT/IT_academic_plan_no_coop.json `
-  --pair consolidated_outputs/merged_ait_no_plan_full.json ground_truth/AIT/AIT_academic_plan.json `
-  --pair consolidated_outputs/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json `
-  --pair consolidated_outputs/merged_bit_coop_full.json ground_truth/BIT/BIT_academic_plan_coop.json `
-  --pair consolidated_outputs/merged_bit_no_coop_full.json ground_truth/BIT/BIT_academic_plan_no_coop.json
+  --pair outputs/consolidated/dsba/coop/full/merged_dsba_coop_full.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
+  --pair outputs/consolidated/dsba/no_coop/full/merged_dsba_no_coop_full.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
+  --pair outputs/consolidated/it/coop/full/merged_it_coop_full.json ground_truth/IT/IT_academic_plan_coop.json `
+  --pair outputs/consolidated/it/no_coop/full/merged_it_no_coop_full.json ground_truth/IT/IT_academic_plan_no_coop.json `
+  --pair outputs/consolidated/ait/full/merged_ait_no_plan_full.json ground_truth/AIT/AIT_academic_plan.json `
+  --pair outputs/consolidated/gened/full/merged_gened_gened_full.json ground_truth/general_education_ground_truth.json `
+  --pair outputs/consolidated/bit/coop/full/merged_bit_coop_full.json ground_truth/BIT/BIT_academic_plan_coop.json `
+  --pair outputs/consolidated/bit/no_coop/full/merged_bit_no_coop_full.json ground_truth/BIT/BIT_academic_plan_no_coop.json
 ```
 
 Evaluation reports are written to `reports/evaluation/`:
@@ -344,7 +344,7 @@ Provenance is derived from source/input context, not ground truth, and is preser
 ## LLM Spell Corrector
 
 ```bash
-python llm_spell_corrector.py ./consolidated_outputs/merged_dsba_coop_full.json
+python llm_spell_corrector.py ./outputs/consolidated/dsba/coop/full/merged_dsba_coop_full.json
 ```
 
 ## Testing

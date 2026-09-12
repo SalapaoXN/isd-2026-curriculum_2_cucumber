@@ -8,7 +8,7 @@ from src.extractor import CurriculumExtractor
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS = ROOT / "outputs"
+OCR_OUTPUTS = ROOT / "outputs" / "ocr"
 
 
 def source_context(program, page):
@@ -31,7 +31,7 @@ class DescriptionExtractionTests(unittest.TestCase):
         for program, plan, filename, code in cases:
             with self.subTest(program=program):
                 result = CurriculumExtractor(program=program, plan=plan).process_file(
-                    OUTPUTS / filename
+                    OCR_OUTPUTS / program.casefold() / filename
                 )
                 course = next(item for item in result["courses"] if item["code"] == code)
                 self.assertTrue(course.get("desc_th"))
@@ -124,7 +124,9 @@ class DescriptionExtractionTests(unittest.TestCase):
         extractor = CurriculumExtractor(program="IT", plan="coop")
         description = next(
             item
-            for item in extractor.process_file(OUTPUTS / "it_page_336_ocr.json")["courses"]
+            for item in extractor.process_file(
+                OCR_OUTPUTS / "it" / "it_page_336_ocr.json"
+            )["courses"]
             if item["code"] == "06016418"
         )
         plans = [
@@ -163,7 +165,9 @@ class DescriptionExtractionTests(unittest.TestCase):
         extractor = CurriculumExtractor(program="DSBA", plan="coop")
         description = next(
             item
-            for item in extractor.process_file(OUTPUTS / "dsba_page_317_ocr.json")["courses"]
+            for item in extractor.process_file(
+                OCR_OUTPUTS / "dsba" / "dsba_page_317_ocr.json"
+            )["courses"]
             if item["code"] == "06026200"
         )
         plan = {

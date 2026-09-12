@@ -25,10 +25,6 @@ def ask(
     structured_result: dict[str, Any] | None = None
     semantic_result: list[dict[str, Any]] | None = None
     if route in {"structured", "hybrid"}:
-        if not callable(structured_model_callable):
-            raise ValueError(
-                "structured_model_callable is required for structured questions"
-            )
         structured_result = ask_structured(
             db_path,
             question,

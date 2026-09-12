@@ -2,11 +2,95 @@
 
 from __future__ import annotations
 
+import json
+import re
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any
 
 from .embedder import embed_texts
 from .search import search
+
+
+_SEMANTIC_CHUNKS_TABLE = "semantic_chunks"
+_EXPLICIT_COURSE_CODE = re.compile(r"(?<![0-9])([0-9]{8})(?![0-9])")
+
+
+def _explicit_course_codes(query_text: str) -> tuple[str, ...]:
+    return tuple(
+        dict.fromkeys(match.group(1) for match in _EXPLICIT_COURSE_CODE.finditer(query_text))
+    )
+
+
+def _normalize_course_name(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    return re.sub(r"\s+", " ", value).strip().casefold()
+
+
+def _exact_course_name_codes(
+    db_path: str | Path,
+    query_text: str,
+) -> tuple[str, ...]:
+    normalized_query = _normalize_course_name(query_text)
+    if not normalized_query:
+        return ()
+    try:
+        with closing(sqlite3.connect(str(db_path))) as connection:
+            rows = connection.execute(
+                """
+                SELECT course_code_normalized, name_th, name_en
+                FROM courses
+                WHERE name_th IS NOT NULL OR name_en IS NOT NULL
+                """
+            ).fetchall()
+    except sqlite3.Error:
+        return ()
+
+    matched_codes: set[str] = set()
+    for course_code, name_th, name_en in rows:
+        if any(
+            normalized_name and normalized_name in normalized_query
+            for normalized_name in (
+                _normalize_course_name(name_th),
+                _normalize_course_name(name_en),
+            )
+        ):
+            matched_codes.add(str(course_code))
+    if len(matched_codes) != 1:
+        return ()
+    return tuple(matched_codes)
+
+
+def _chunk_course_codes(chunk: dict[str, Any]) -> list[str]:
+    values = chunk.get("course_code")
+    if isinstance(values, (list, tuple, set)):
+        return [str(value) for value in values]
+    if values is None:
+        return []
+    return [str(values)]
+
+
+def _course_code_candidates(
+    db_path: str | Path,
+    course_codes: tuple[str, ...],
+) -> tuple[set[str], int]:
+    try:
+        with closing(sqlite3.connect(str(db_path))) as connection:
+            rows = connection.execute(
+                f"SELECT chunk_id, chunk_json FROM {_SEMANTIC_CHUNKS_TABLE}"
+            ).fetchall()
+    except sqlite3.Error:
+        return set(), 0
+
+    candidate_ids: set[str] = set()
+    requested_codes = set(course_codes)
+    for chunk_id, chunk_json in rows:
+        chunk = json.loads(chunk_json)
+        if requested_codes.intersection(_chunk_course_codes(chunk)):
+            candidate_ids.add(chunk_id)
+    return candidate_ids, len(rows)
 
 
 def retrieve(
@@ -15,11 +99,26 @@ def retrieve(
     k: int = 5,
 ) -> list[dict[str, Any]]:
     """Embed one query and return ranked evidence with source references."""
+    course_codes = _explicit_course_codes(query_text)
+    if not course_codes:
+        course_codes = _exact_course_name_codes(db_path, query_text)
+    candidate_ids: set[str] | None = None
+    search_k = k
+    if course_codes:
+        candidate_ids, semantic_chunk_count = _course_code_candidates(
+            db_path, course_codes
+        )
+        if not candidate_ids:
+            return []
+        search_k = max(k, semantic_chunk_count)
+
     query_embeddings = embed_texts([query_text])
     if len(query_embeddings) != 1:
         raise ValueError("the query embedder must return one embedding")
 
-    hits = search(db_path, query_embeddings[0], k=k)
+    hits = search(db_path, query_embeddings[0], k=search_k)
+    if candidate_ids is not None:
+        hits = [hit for hit in hits if hit["chunk_id"] in candidate_ids]
     evidence: list[dict[str, Any]] = []
     for hit in hits:
         provenance = [dict(reference) for reference in hit.get("provenance", [])]
@@ -38,7 +137,7 @@ def retrieve(
         )
 
     evidence.sort(key=lambda item: (item["distance"], item["chunk_id"]))
-    return evidence
+    return evidence[:k]
 
 
 __all__ = ["retrieve"]

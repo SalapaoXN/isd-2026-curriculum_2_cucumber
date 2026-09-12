@@ -36,7 +36,12 @@ class CourseCodeValidationTests(unittest.TestCase):
         self.assertEqual(extract_codes(course_lines("06046407")), ["06046407"])
 
     def test_stored_ait_ocr_keeps_valid_codes_without_repair_mapping(self):
-        outputs = Path(__file__).resolve().parents[1] / "outputs"
+        outputs = (
+            Path(__file__).resolve().parents[1]
+            / "outputs"
+            / "ocr"
+            / "ait"
+        )
         page_24 = CurriculumExtractor(program="AIT").process_file(
             outputs / "ait_page_024_ocr.json"
         )

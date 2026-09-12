@@ -72,7 +72,7 @@ def parse_arguments():
         "-o", "--output-dir",
         type=str,
         default=str(BASE_DIR / "outputs"),
-        help="Directory to save outputs (default: 'outputs')"
+        help="Root directory to save OCR and extracted outputs (default: 'outputs')"
     )
     parser.add_argument(
         "--program",
@@ -120,7 +120,10 @@ def main():
     except ValueError as exc:
         raise SystemExit(f"Error: {exc}") from exc
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    ocr_output_dir = output_dir / "ocr" / program.casefold()
+    extracted_output_dir = output_dir / "extracted" / program.casefold()
+    ocr_output_dir.mkdir(parents=True, exist_ok=True)
+    extracted_output_dir.mkdir(parents=True, exist_ok=True)
 
     print(" Starting the Auto OCR -> Extract Pipeline")
     print(f" Pages to process: {pages}")
@@ -178,7 +181,7 @@ def main():
 
         save_ocr_results(
             lines,
-            output_dir,
+            ocr_output_dir,
             base_name,
             source_filename=img_file.name,
             source_page=page_num,
@@ -186,7 +189,7 @@ def main():
         )
 
         # Step 2: Extract
-        ocr_json_file = output_dir / f"{base_name}_ocr.json"
+        ocr_json_file = ocr_output_dir / f"{base_name}_ocr.json"
         extracted_data = extractor.process_file(ocr_json_file)
 
         # Step 2.5: Post-extraction cleaning is handled by the deterministic
@@ -195,7 +198,7 @@ def main():
             enrich_courses(extracted_data, img_file, english_engine)
 
         # Step 3: Save Output
-        output_filename = output_dir / f"{base_name}_ocr_extracted.json"
+        output_filename = extracted_output_dir / f"{base_name}_ocr_extracted.json"
         with open(output_filename, "w", encoding="utf-8") as f:
             json.dump(extracted_data, f, ensure_ascii=False, indent=4)
 

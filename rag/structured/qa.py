@@ -2,22 +2,1463 @@
 
 from __future__ import annotations
 
+import sqlite3
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from .execute import execute_readonly
-from .nl_to_sql import question_to_sql
+from .execute import execute_readonly, validate_readonly_sql
+from .nl_to_sql import question_to_sql, repair_sql
+from .queries import (
+    alternative_group_placements,
+    course_facts,
+    course_placement,
+    courses_in_year_semester,
+    earliest_year_semester_from_choices,
+    get_semester_credits,
+    prerequisites_of_course,
+    semester_credits_and_prerequisites,
+)
+
+
+_SQL_RESERVED_WORDS = frozenset(
+    {
+        "as",
+        "cross",
+        "full",
+        "group",
+        "having",
+        "inner",
+        "join",
+        "left",
+        "limit",
+        "on",
+        "order",
+        "outer",
+        "right",
+        "union",
+        "where",
+    }
+)
+_RELATION_REFERENCE = re.compile(
+    r"\b(?:FROM|JOIN)\s+(?P<table>v_plan_courses|courses)\b"
+    r"(?:\s+(?:AS\s+)?(?P<alias>[A-Za-z_]\w*))?",
+    re.IGNORECASE,
+)
+_ON_CLAUSE = re.compile(
+    r"\bON\b(?P<condition>.*?)(?=\b(?:JOIN|LEFT|RIGHT|INNER|OUTER|CROSS|FULL|WHERE|GROUP|ORDER|HAVING|LIMIT|UNION)\b|$)",
+    re.IGNORECASE | re.DOTALL,
+)
+_COURSE_CODE_EQUALITY = re.compile(
+    r"\b(?P<left>[A-Za-z_]\w*)\.course_code\s*=\s*"
+    r"(?P<right>[A-Za-z_]\w*)\.course_code\b",
+    re.IGNORECASE,
+)
+_COURSE_ID_EQUALITY = re.compile(
+    r"\b(?P<left>[A-Za-z_]\w*)\.course_id\s*=\s*"
+    r"(?P<right>[A-Za-z_]\w*)\.course_id\b",
+    re.IGNORECASE,
+)
+_PLAN_KEY_LITERAL = re.compile(
+    r"\b(?:[A-Za-z_]\w*\.)?plan_key\s*=\s*'(?P<value>(?:''|[^'])*)'",
+    re.IGNORECASE,
+)
+_CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
+_PREDICATE_START = re.compile(r"\b(?:WHERE|HAVING|ON)\b", re.IGNORECASE)
+_PREDICATE_END = re.compile(
+    r"\b(?:WHERE|HAVING|GROUP\s+BY|ORDER\s+BY|LIMIT|UNION|JOIN|"
+    r"LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN|CROSS\s+JOIN)\b",
+    re.IGNORECASE,
+)
+_PLAN_REFERENCE = re.compile(
+    r"\b(?:[A-Za-z_]\w*\.)?(?P<column>plan_key|plan_name|plan_code|plan)\b",
+    re.IGNORECASE,
+)
+_PLAN_OPERATOR = re.compile(
+    r"\s*(?P<operator>NOT\s+LIKE|LIKE|NOT\s+IN|IN|!=|<>|=)",
+    re.IGNORECASE,
+)
+_STRING_LITERAL = re.compile(r"'((?:''|[^'])*)'")
+_EXPLICIT_COURSE_CODE = re.compile(r"(?<![0-9])([0-9]{8})(?![0-9])")
+_PLACEMENT_INTENT_TERMS = (
+    "เรียนช่วงไหน",
+    "อยู่ช่วงไหน",
+    "เปิดให้ลง",
+    "ช่วงไหนได้บ้าง",
+    "เรียนปีไหน",
+    "อยู่ปีไหน",
+    "เทอม",
+    "ภาคเรียน",
+    "ภาคการศึกษา",
+    "หน่วยกิต",
+    "ช่วงเรียน",
+    "กำหนดแน่นอน",
+    "ยืดหยุ่น",
+    "ลงทะเบียน",
+    "ลงวิชา",
+    "เรียนเมื่อไหร่",
+    "placement",
+    "semester",
+    "academic year",
+    "เร็วที่สุด",
+    "ควรเลือกแผนไหน",
+    "แต่ละแผน",
+    "ทั้งสองแผน",
+    "สองแผน",
+)
+_PLAN_SENSITIVE_PLACEMENT_INTENT_TERMS = (
+    "เรียนช่วงไหน",
+    "อยู่ช่วงไหน",
+    "เปิดให้ลง",
+    "ช่วงไหนได้บ้าง",
+    "เรียนปีไหน",
+    "อยู่ปีไหน",
+    "เทอม",
+    "ภาคเรียน",
+    "ภาคการศึกษา",
+    "ช่วงเรียน",
+    "กำหนดแน่นอน",
+    "ยืดหยุ่น",
+    "placement",
+    "semester",
+    "academic year",
+    "เร็วที่สุด",
+    "ควรเลือกแผนไหน",
+    "แต่ละแผน",
+    "ทั้งสองแผน",
+    "สองแผน",
+)
+_MIXED_STRUCTURED_INTENT_TERMS = (
+    "prerequisite",
+    "pre-requisite",
+    "ต้องผ่าน",
+    "เตรียมผ่านวิชา",
+    "วิชาที่ต้องเรียนก่อน",
+    "วิชาบังคับก่อน",
+    "บังคับก่อน",
+    "ต้องเรียนก่อน",
+    "อะไรมาก่อน",
+    "รวมกี่หน่วยกิต",
+    "หน่วยกิตรวม",
+    "ลงทะเบียนรวม",
+    "alternative group",
+    "กลุ่มทางเลือก",
+    "อย่างใดอย่างหนึ่ง",
+    "จำนวนวิชา",
+    "นับจำนวน",
+    "course count",
+    "count statistics",
+)
+_ALTERNATIVE_GROUP_INTENT_TERMS = (
+    "กลุ่มทางเลือก",
+    "กลุ่มวิชา",
+    "ต้องเลือกกี่วิชา",
+    "จำนวนวิชาที่เลือก",
+    "อย่างใดอย่างหนึ่ง",
+    "alternative group",
+)
+_TWO_COURSE_CROSS_PLAN_INTENT_TERMS = (
+    "เร็วที่สุด",
+    "ควรเลือกแผนไหน",
+    "แต่ละแผน",
+    "แต่ละวิชา",
+    "ทั้งสองแผน",
+    "สองแผน",
+)
+_THREE_COURSE_SEQUENCE_INTENT_TERMS = (
+    "วางแผน",
+    "เรียง",
+    "ตามปี/เทอม",
+    "ตามปีและเทอม",
+    "ลำดับ",
+    "sequence",
+)
+_DIRECT_PLAN_KEY = re.compile(
+    r"(?<![a-z0-9_])(?P<plan>no_coop|coop|default|gened)(?![a-z0-9_])"
+)
+_PROGRAM_CODE = re.compile(
+    r"(?<![a-z0-9_])(?P<program>dsba|bit|it|gened)(?![a-z0-9_])"
+)
+_TERM_PAIR = re.compile(
+    r"(?:ปี\s*(?:ที่\s*)?(?P<th_year>[1-4])\s*"
+    r"(?:เทอม|ภาคเรียน|ภาคการศึกษา)\s*(?P<th_semester>[1-2])|"
+    r"year\s*(?P<en_year>[1-4])\s*"
+    r"(?:semester|term)\s*(?P<en_semester>[1-2]))"
+)
+_SEMESTER_CREDITS_INTENT_TERMS = (
+    "รวมกี่หน่วยกิต",
+    "ลงทะเบียนรวม",
+    "หน่วยกิตทั้งหมด",
+    "หน่วยกิตรวม",
+    "มีกี่หน่วยกิต",
+    "total credits",
+    "semester credits",
+)
+_PREREQUISITE_INTENT_TERMS = (
+    "prerequisite",
+    "pre-requisite",
+    "ต้องผ่าน",
+    "เตรียมผ่านวิชา",
+    "วิชาที่ต้องเรียนก่อน",
+    "วิชาบังคับก่อน",
+    "บังคับก่อน",
+    "ต้องเรียนก่อน",
+    "อะไรมาก่อน",
+)
+_PLACEMENT_COLUMNS = (
+    "placement_id",
+    "plan_key",
+    "plan_id",
+    "catalog_id",
+    "course_id",
+    "course_code",
+    "name_th",
+    "name_en",
+    "year",
+    "semester",
+    "year_semester_choices",
+    "earliest_year_semester",
+    "flexible_year_semester_raw",
+    "credits_raw",
+    "alternative_group_id",
+    "provenance",
+)
+_SEQUENCE_COLUMNS = ("sequence_order",) + _PLACEMENT_COLUMNS + ("prerequisites",)
+_SEMESTER_PREREQUISITE_COLUMNS = (
+    "plan_id",
+    "catalog_id",
+    "program",
+    "plan_key",
+    "year",
+    "semester",
+    "total_credits",
+    "course_code",
+    "course_id",
+    "prerequisite_course_id",
+    "prerequisite_course_code",
+    "requirement_type",
+    "raw_text",
+    "provenance",
+)
+_SEMESTER_CREDITS_COLUMNS = (
+    "plan_id",
+    "catalog_id",
+    "program",
+    "plan_key",
+    "year",
+    "semester",
+    "total_credits",
+    "placement_id",
+    "course_id",
+    "course_code",
+    "name_th",
+    "name_en",
+    "credits_raw",
+    "credit_units",
+    "counted_credit_units",
+    "alternative_group_id",
+    "alternative_courses",
+    "provenance",
+)
+_PREREQUISITE_COLUMNS = (
+    "placement_id",
+    "plan_key",
+    "course_id",
+    "course_code",
+    "prerequisite_id",
+    "prerequisite_course_id",
+    "prerequisite_course_code",
+    "prerequisite_name_th",
+    "prerequisite_name_en",
+    "requirement_type",
+    "raw_text",
+    "provenance",
+)
+_SEMESTER_COURSE_COLUMNS = (
+    "placement_id",
+    "plan_id",
+    "program_code",
+    "plan_code",
+    "year_number",
+    "semester_number",
+    "category",
+    "requirement_type",
+    "placement_order",
+    "credits_override",
+    "raw_text",
+    "notes",
+    "course_id",
+    "alternative_group_id",
+    "is_alternative",
+    "course_code",
+    "name_th",
+    "name_en",
+    "credits",
+    "placement_credits",
+    "group_key",
+    "label",
+    "minimum_choices",
+    "maximum_choices",
+    "group_notes",
+    "alternative_courses",
+    "provenance",
+    "source_pages",
+)
+_COURSE_FACT_COLUMNS = (
+    "course_id",
+    "catalog_id",
+    "course_code",
+    "name_th",
+    "name_en",
+    "credits",
+    "credit_units",
+    "credits_raw",
+    "programs",
+    "placements",
+    "provenance",
+)
+_COURSE_FACT_INTENT_TERMS = (
+    "ชื่อ",
+    "name",
+    "หน่วยกิต",
+    "credit",
+)
+
+
+def _course_placement_request(
+    question: str,
+    *,
+    reject_mixed: bool = True,
+) -> tuple[str, str, list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 1:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if program_match is None:
+        return None
+    if reject_mixed and any(
+        term in normalized for term in _MIXED_STRUCTURED_INTENT_TERMS
+    ):
+        return None
+    if not any(term in normalized for term in _PLACEMENT_INTENT_TERMS):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        if not any(
+            term in normalized
+            for term in _PLAN_SENSITIVE_PLACEMENT_INTENT_TERMS
+        ):
+            return None
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes[0], plan_keys
+
+
+def _course_facts_request(
+    question: str,
+) -> tuple[str | None, str] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 1:
+        return None
+    if not any(term in normalized for term in _COURSE_FACT_INTENT_TERMS):
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    return (
+        program_match.group("program") if program_match is not None else None,
+        course_codes[0],
+    )
+
+
+def _semester_credits_prerequisite_request(
+    question: str,
+) -> tuple[str, str, str, int, int] | None:
+    normalized = question.casefold()
+    request = _course_placement_request(question, reject_mixed=False)
+    if request is None:
+        return None
+    if len(request[2]) != 1:
+        return None
+    if not any(term in normalized for term in _SEMESTER_CREDITS_INTENT_TERMS):
+        return None
+    if not any(term in normalized for term in _PREREQUISITE_INTENT_TERMS):
+        return None
+    term_match = _TERM_PAIR.search(normalized)
+    if term_match is None:
+        return None
+    year = term_match.group("th_year") or term_match.group("en_year")
+    semester = term_match.group("th_semester") or term_match.group("en_semester")
+    return request[0], request[2][0], request[1], int(year), int(semester)
+
+
+def _semester_credits_request(
+    question: str,
+) -> tuple[str, str, int, int] | None:
+    normalized = question.casefold()
+    if not any(term in normalized for term in _SEMESTER_CREDITS_INTENT_TERMS):
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    term_match = _TERM_PAIR.search(normalized)
+    if program_match is None or term_match is None:
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if len(plan_keys) != 1:
+        return None
+
+    year = term_match.group("th_year") or term_match.group("en_year")
+    semester = term_match.group("th_semester") or term_match.group("en_semester")
+    return program_match.group("program"), plan_keys[0], int(year), int(semester)
+
+
+def _prerequisite_request(
+    question: str,
+) -> tuple[str, str, list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 1:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if program_match is None:
+        return None
+    if not any(term in normalized for term in _PREREQUISITE_INTENT_TERMS):
+        return None
+    if any(term in normalized for term in _PLACEMENT_INTENT_TERMS):
+        return None
+    if any(term in normalized for term in _SEMESTER_CREDITS_INTENT_TERMS):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes[0], plan_keys
+
+
+def _semester_courses_request(
+    question: str,
+) -> tuple[str, list[str], int, int] | None:
+    normalized = question.casefold()
+    if not any(
+        term in normalized
+        for term in (
+            "มีวิชาอะไรบ้าง",
+            "เรียนวิชาอะไรบ้าง",
+            "ต้องเรียนวิชาอะไรบ้าง",
+            "ลงทะเบียนวิชาอะไร",
+            "รายวิชา",
+            "course list",
+            "which courses",
+            "what courses",
+        )
+    ):
+        return None
+    if _EXPLICIT_COURSE_CODE.search(normalized) is not None:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    term_match = _TERM_PAIR.search(normalized)
+    if program_match is None or term_match is None:
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+
+    year = term_match.group("th_year") or term_match.group("en_year")
+    semester = term_match.group("th_semester") or term_match.group("en_semester")
+    return program_match.group("program"), plan_keys, int(year), int(semester)
+
+
+def _alternative_group_request(
+    question: str,
+) -> tuple[str, list[str], list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) < 2:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if program_match is None or not any(
+        term in normalized for term in _ALTERNATIVE_GROUP_INTENT_TERMS
+    ):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes, plan_keys
+
+
+def _two_course_placement_request(
+    question: str,
+) -> tuple[str, list[str], list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 2:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if (
+        program_match is None
+        or program_match.group("program") != "it"
+        or not any(
+            term in normalized for term in _TWO_COURSE_CROSS_PLAN_INTENT_TERMS
+        )
+    ):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes, plan_keys
+
+
+def _three_course_sequence_request(
+    question: str,
+) -> tuple[str, list[str], list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 3:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if (
+        program_match is None
+        or program_match.group("program") != "it"
+        or not any(term in normalized for term in _THREE_COURSE_SEQUENCE_INTENT_TERMS)
+    ):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes, plan_keys
+
+
+def _collect_row_provenance(
+    rows: list[tuple[Any, ...]],
+    columns: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    provenance_index = columns.index("provenance")
+    collected: list[dict[str, Any]] = []
+    seen_ids: set[Any] = set()
+    for row in rows:
+        references = row[provenance_index]
+        if not isinstance(references, list):
+            continue
+        for reference in references:
+            if not isinstance(reference, dict):
+                continue
+            provenance_id = reference.get("provenance_id")
+            if provenance_id is not None:
+                if provenance_id in seen_ids:
+                    continue
+                seen_ids.add(provenance_id)
+            collected.append(dict(reference))
+    return collected
+
+
+def _course_placement_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    rows = []
+    for placement in result["placements"]:
+        composed_placement = dict(placement)
+        composed_placement["earliest_year_semester"] = (
+            earliest_year_semester_from_choices(
+                composed_placement.get("year_semester_choices", [])
+            )
+        )
+        rows.append(
+            tuple(composed_placement.get(column) for column in _PLACEMENT_COLUMNS)
+        )
+    structured = {
+        "operation": "course_placement",
+        "status": result["status"],
+        "missing_plan_keys": result["missing_plan_keys"],
+        "sql": None,
+        "columns": list(_PLACEMENT_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _PLACEMENT_COLUMNS),
+    }
+    earliest_by_plan: dict[str, tuple[int, int]] = {}
+    for placement, row in zip(result["placements"], rows):
+        earliest = row[_PLACEMENT_COLUMNS.index("earliest_year_semester")]
+        plan_key = placement["plan_key"]
+        if earliest is not None and (
+            plan_key not in earliest_by_plan or earliest < earliest_by_plan[plan_key]
+        ):
+            earliest_by_plan[plan_key] = earliest
+    placement_plan_keys = {placement["plan_key"] for placement in result["placements"]}
+    if (
+        earliest_by_plan
+        and not result["missing_plan_keys"]
+        and set(earliest_by_plan) == placement_plan_keys
+    ):
+        earliest = min(earliest_by_plan.values())
+        earliest_plans = [
+            plan_key
+            for plan_key, plan_earliest in earliest_by_plan.items()
+            if plan_earliest == earliest
+        ]
+        if len(earliest_plans) == 1:
+            structured["earliest_plan"] = earliest_plans[0]
+    return structured
+
+
+def _two_course_placement_structured_result(
+    results: list[dict[str, Any]],
+    program: str,
+    course_codes: list[str],
+    plan_keys: list[str],
+) -> dict[str, Any]:
+    placements = [
+        placement
+        for result in results
+        for placement in result["placements"]
+    ]
+    missing_plan_keys: list[str] = []
+    for result in results:
+        for plan_key in result["missing_plan_keys"]:
+            if plan_key not in missing_plan_keys:
+                missing_plan_keys.append(plan_key)
+
+    rows: list[tuple[Any, ...]] = []
+    for placement in placements:
+        composed_placement = dict(placement)
+        composed_placement["earliest_year_semester"] = (
+            earliest_year_semester_from_choices(
+                composed_placement.get("year_semester_choices", [])
+            )
+        )
+        rows.append(
+            tuple(composed_placement.get(column) for column in _PLACEMENT_COLUMNS)
+        )
+
+    earliest_by_course_plan: dict[tuple[str, str], tuple[int, int]] = {}
+    earliest_index = _PLACEMENT_COLUMNS.index("earliest_year_semester")
+    for placement, row in zip(placements, rows):
+        earliest = row[earliest_index]
+        if earliest is None:
+            continue
+        key = (placement["course_code"], placement["plan_key"])
+        if key not in earliest_by_course_plan or earliest < earliest_by_course_plan[key]:
+            earliest_by_course_plan[key] = earliest
+
+    course_earliest: list[dict[str, Any]] = []
+    for course_code in course_codes:
+        for plan_key in plan_keys:
+            course_earliest.append(
+                {
+                    "course_code": course_code,
+                    "plan_key": plan_key,
+                    "earliest_year_semester": earliest_by_course_plan.get(
+                        (course_code, plan_key)
+                    ),
+                }
+            )
+
+    plan_completion: list[dict[str, Any]] = []
+    for plan_key in plan_keys:
+        timings = [
+            item["earliest_year_semester"]
+            for item in course_earliest
+            if item["plan_key"] == plan_key
+        ]
+        completion = (
+            max(timings)
+            if len(timings) == len(course_codes)
+            and all(timing is not None for timing in timings)
+            else None
+        )
+        plan_completion.append(
+            {
+                "plan_key": plan_key,
+                "completion_year_semester": completion,
+            }
+        )
+
+    status = (
+        "no_data"
+        if not placements
+        else "partial"
+        if missing_plan_keys
+        else "ok"
+    )
+    structured: dict[str, Any] = {
+        "operation": "course_placement_comparison",
+        "status": status,
+        "missing_plan_keys": missing_plan_keys,
+        "sql": None,
+        "columns": list(_PLACEMENT_COLUMNS),
+        "rows": rows,
+        "course_codes": course_codes,
+        "program": program,
+        "requested_plan_keys": plan_keys,
+        "derived_facts": {
+            "course_earliest": course_earliest,
+            "plan_completion_earliest": plan_completion,
+        },
+        "provenance": _collect_row_provenance(rows, _PLACEMENT_COLUMNS),
+    }
+
+    completion_timings = [
+        item["completion_year_semester"] for item in plan_completion
+    ]
+    if (
+        len(plan_keys) > 1
+        and status == "ok"
+        and all(timing is not None for timing in completion_timings)
+    ):
+        earliest = min(completion_timings)
+        earliest_plans = [
+            item["plan_key"]
+            for item in plan_completion
+            if item["completion_year_semester"] == earliest
+        ]
+        if len(earliest_plans) == 1:
+            structured["earliest_plan"] = earliest_plans[0]
+    return structured
+
+
+def _three_course_sequence_structured_result(
+    db_path: str | Path,
+    placement_results: list[dict[str, Any]],
+    program: str,
+    course_codes: list[str],
+    plan_keys: list[str],
+) -> dict[str, Any]:
+    entries: list[dict[str, Any]] = []
+    for result in placement_results:
+        for placement in result["placements"]:
+            composed = dict(placement)
+            composed["earliest_year_semester"] = (
+                earliest_year_semester_from_choices(
+                    composed.get("year_semester_choices", [])
+                )
+            )
+            prerequisites = prerequisites_of_course(
+                db_path, composed["course_id"]
+            )
+            references = list(composed.get("provenance") or [])
+            for prerequisite in prerequisites:
+                references.extend(prerequisite.get("provenance") or [])
+            entries.append(
+                {
+                    "placement": composed,
+                    "prerequisites": prerequisites,
+                    "provenance": references,
+                }
+            )
+
+    missing_plan_keys: list[str] = []
+    missing_course_codes: list[str] = []
+    for result in placement_results:
+        for plan_key in result["missing_plan_keys"]:
+            if plan_key not in missing_plan_keys:
+                missing_plan_keys.append(plan_key)
+        if not result["placements"]:
+            missing_course_codes.append(result["course_code"])
+
+    entries_by_plan_course: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for entry in entries:
+        placement = entry["placement"]
+        entries_by_plan_course.setdefault(
+            (placement["plan_key"], placement["course_code"]), []
+        ).append(entry)
+
+    sequence_by_plan: list[dict[str, Any]] = []
+    sequence_order_by_plan_course: dict[tuple[str, str], int] = {}
+    for plan_key in plan_keys:
+        sequence: list[dict[str, Any]] = []
+        for course_code in course_codes:
+            matching = entries_by_plan_course.get((plan_key, course_code), [])
+            timings = [
+                entry["placement"]["earliest_year_semester"]
+                for entry in matching
+                if entry["placement"]["earliest_year_semester"] is not None
+            ]
+            earliest = min(timings) if timings else None
+            prerequisite_by_id: dict[Any, dict[str, Any]] = {}
+            placement_ids: list[int] = []
+            for entry in matching:
+                placement_id = entry["placement"]["placement_id"]
+                if placement_id not in placement_ids:
+                    placement_ids.append(placement_id)
+                for prerequisite in entry["prerequisites"]:
+                    prerequisite_by_id.setdefault(
+                        prerequisite["prerequisite_id"], prerequisite
+                    )
+            sequence.append(
+                {
+                    "course_code": course_code,
+                    "earliest_year_semester": earliest,
+                    "placement_ids": placement_ids,
+                    "prerequisites": list(prerequisite_by_id.values()),
+                }
+            )
+        sequence.sort(
+            key=lambda item: (
+                item["earliest_year_semester"] is None,
+                item["earliest_year_semester"] or (5, 3),
+                item["course_code"],
+            )
+        )
+        for order, item in enumerate(sequence, start=1):
+            sequence_order_by_plan_course[(plan_key, item["course_code"])] = order
+            item["sequence_order"] = order
+        sequence_by_plan.append({"plan_key": plan_key, "courses": sequence})
+
+    rows: list[tuple[Any, ...]] = []
+    for entry in entries:
+        placement = entry["placement"]
+        row_values = {
+            **placement,
+            "sequence_order": sequence_order_by_plan_course[
+                (placement["plan_key"], placement["course_code"])
+            ],
+            "prerequisites": entry["prerequisites"],
+            "provenance": entry["provenance"],
+        }
+        rows.append(tuple(row_values.get(column) for column in _SEQUENCE_COLUMNS))
+    rows.sort(
+        key=lambda row: (
+            plan_keys.index(row[_SEQUENCE_COLUMNS.index("plan_key")]),
+            row[_SEQUENCE_COLUMNS.index("sequence_order")],
+            row[_SEQUENCE_COLUMNS.index("placement_id")],
+        )
+    )
+
+    status = (
+        "no_data"
+        if not entries
+        else "partial"
+        if missing_plan_keys or missing_course_codes
+        else "ok"
+    )
+    return {
+        "operation": "course_sequence",
+        "status": status,
+        "missing_plan_keys": missing_plan_keys,
+        "missing_course_codes": missing_course_codes,
+        "sql": None,
+        "columns": list(_SEQUENCE_COLUMNS),
+        "rows": rows,
+        "program": program,
+        "course_codes": course_codes,
+        "requested_plan_keys": plan_keys,
+        "derived_facts": {"sequence_by_plan": sequence_by_plan},
+        "provenance": _collect_row_provenance(rows, _SEQUENCE_COLUMNS),
+    }
+
+
+def _alternative_group_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    columns = _PLACEMENT_COLUMNS + (
+        "group_key",
+        "label",
+        "minimum_choices",
+        "maximum_choices",
+        "group_notes",
+        "alternative_courses",
+    )
+    rows: list[tuple[Any, ...]] = []
+    for placement in result["placements"]:
+        composed_placement = dict(placement)
+        composed_placement["earliest_year_semester"] = (
+            earliest_year_semester_from_choices(
+                composed_placement.get("year_semester_choices", [])
+            )
+        )
+        rows.append(
+            tuple(composed_placement.get(column) for column in columns)
+        )
+
+    structured = {
+        "operation": "course_placement",
+        "status": result["status"],
+        "missing_plan_keys": result["missing_plan_keys"],
+        "sql": None,
+        "columns": list(columns),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, columns),
+        "course_codes": result["course_codes"],
+    }
+    earliest_by_plan: dict[str, tuple[int, int]] = {}
+    for placement, row in zip(result["placements"], rows):
+        earliest = row[columns.index("earliest_year_semester")]
+        plan_key = placement["plan_key"]
+        if earliest is not None and (
+            plan_key not in earliest_by_plan or earliest < earliest_by_plan[plan_key]
+        ):
+            earliest_by_plan[plan_key] = earliest
+    placement_plan_keys = {placement["plan_key"] for placement in result["placements"]}
+    if (
+        earliest_by_plan
+        and not result["missing_plan_keys"]
+        and set(earliest_by_plan) == placement_plan_keys
+    ):
+        earliest = min(earliest_by_plan.values())
+        earliest_plans = [
+            plan_key
+            for plan_key, plan_earliest in earliest_by_plan.items()
+            if plan_earliest == earliest
+        ]
+        if len(earliest_plans) == 1:
+            structured["earliest_plan"] = earliest_plans[0]
+    return structured
+
+
+def _semester_credits_prerequisite_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    rows: list[tuple[Any, ...]] = []
+    for plan in result["plans"] if result["status"] != "no_data" else []:
+        prerequisites = plan["prerequisites"]
+        if not prerequisites:
+            rows.append(
+                (
+                    plan["plan_id"],
+                    plan["catalog_id"],
+                    plan["program"],
+                    plan["plan_key"],
+                    plan["year"],
+                    plan["semester"],
+                    plan["total_credits"],
+                    plan["course_code"],
+                    plan["course_ids"][0] if plan["course_ids"] else None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    [],
+                )
+            )
+            continue
+        for prerequisite in prerequisites:
+            rows.append(
+                (
+                    plan["plan_id"],
+                    plan["catalog_id"],
+                    plan["program"],
+                    plan["plan_key"],
+                    plan["year"],
+                    plan["semester"],
+                    plan["total_credits"],
+                    plan["course_code"],
+                    prerequisite["course_id"],
+                    prerequisite["prerequisite_course_id"],
+                    prerequisite["prerequisite_code"],
+                    prerequisite["requirement_type"],
+                    prerequisite["raw_text"],
+                    prerequisite["provenance"],
+                )
+            )
+    return {
+        "operation": "semester_credits_and_prerequisites",
+        "status": result["status"],
+        "sql": None,
+        "columns": list(_SEMESTER_PREREQUISITE_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(
+            rows, _SEMESTER_PREREQUISITE_COLUMNS
+        ),
+    }
+
+
+def _semester_credits_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    rows = [
+        tuple(component.get(column) for column in _SEMESTER_CREDITS_COLUMNS)
+        for component in result["components"]
+    ]
+    return {
+        "operation": "semester_credits",
+        "status": result["status"],
+        "sql": None,
+        "columns": list(_SEMESTER_CREDITS_COLUMNS),
+        "rows": rows,
+        "total_credits": result["total_credits"],
+        "provenance": _collect_row_provenance(rows, _SEMESTER_CREDITS_COLUMNS),
+    }
+
+
+def _prerequisite_structured_result(
+    db_path: str | Path,
+    placement_result: dict[str, Any],
+) -> dict[str, Any]:
+    rows: list[tuple[Any, ...]] = []
+    for placement in placement_result["placements"]:
+        prerequisites = prerequisites_of_course(db_path, placement["course_id"])
+        for prerequisite in prerequisites:
+            rows.append(
+                (
+                    placement["placement_id"],
+                    placement["plan_key"],
+                    placement["course_id"],
+                    placement["course_code"],
+                    prerequisite["prerequisite_id"],
+                    prerequisite["prerequisite_course_id"],
+                    prerequisite["prerequisite_code"],
+                    prerequisite["prerequisite_name_th"],
+                    prerequisite["prerequisite_name_en"],
+                    prerequisite["requirement_type"],
+                    prerequisite["raw_text"],
+                    prerequisite["provenance"],
+                )
+            )
+    return {
+        "operation": "prerequisites",
+        "status": "ok" if rows else "no_data",
+        "missing_plan_keys": placement_result["missing_plan_keys"],
+        "sql": None,
+        "columns": list(_PREREQUISITE_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _PREREQUISITE_COLUMNS),
+    }
+
+
+def _semester_courses_structured_result(
+    db_path: str | Path,
+    program: str,
+    plan_keys: list[str],
+    year: int,
+    semester: int,
+) -> dict[str, Any]:
+    rows: list[tuple[Any, ...]] = []
+    missing_plan_keys: list[str] = []
+    for plan_key in plan_keys:
+        credit_result = get_semester_credits(
+            db_path, program, plan_key, year, semester
+        )
+        if not credit_result["plans"]:
+            missing_plan_keys.append(plan_key)
+            continue
+        for plan in credit_result["plans"]:
+            courses = courses_in_year_semester(
+                db_path, plan["plan_id"], year, semester
+            )
+            if not courses:
+                missing_plan_keys.append(plan_key)
+                continue
+            rows.extend(
+                tuple(course.get(column) for column in _SEMESTER_COURSE_COLUMNS)
+                for course in courses
+            )
+
+    status = "no_data" if not rows else "partial" if missing_plan_keys else "ok"
+    return {
+        "operation": "semester_courses",
+        "status": status,
+        "program": program.upper(),
+        "plan_keys": plan_keys,
+        "year": year,
+        "semester": semester,
+        "missing_plan_keys": missing_plan_keys,
+        "sql": None,
+        "columns": list(_SEMESTER_COURSE_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _SEMESTER_COURSE_COLUMNS),
+    }
+
+
+def _course_facts_structured_result(result: dict[str, Any]) -> dict[str, Any]:
+    rows = [
+        tuple(course.get(column) for column in _COURSE_FACT_COLUMNS)
+        for course in result["courses"]
+    ]
+    return {
+        "operation": "course_facts",
+        "status": result["status"],
+        "program": result["program"],
+        "course_code": result["course_code"],
+        "sql": None,
+        "columns": list(_COURSE_FACT_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _COURSE_FACT_COLUMNS),
+    }
+
+
+def _predicate_fragments(sql: str) -> list[str]:
+    normalized_sql = re.sub(r"\s+", " ", sql)
+    fragments: list[str] = []
+    for start_match in _PREDICATE_START.finditer(normalized_sql):
+        condition_start = start_match.end()
+        end_match = _PREDICATE_END.search(normalized_sql, condition_start)
+        condition_end = end_match.start() if end_match else len(normalized_sql)
+        fragments.append(normalized_sql[condition_start:condition_end])
+    return fragments
+
+
+def _reject_unsafe_plan_filters(sql: str) -> None:
+    """Require curriculum plan predicates to use canonical plan_key values."""
+    for fragment in _predicate_fragments(sql):
+        references = list(_PLAN_REFERENCE.finditer(fragment))
+        for reference in references:
+            column = reference.group("column").casefold()
+            operator_match = _PLAN_OPERATOR.match(fragment, reference.end())
+            if column != "plan_key":
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+            if operator_match is None:
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+
+            operator = re.sub(r"\s+", " ", operator_match.group("operator")).upper()
+            value_start = operator_match.end()
+            if operator == "=":
+                value_text = fragment[value_start:].lstrip()
+                value_match = _STRING_LITERAL.match(value_text)
+                if value_match is None:
+                    tokens = value_text.split()
+                    if not tokens:
+                        raise ValueError(
+                            "unsafe plan filter: use exact canonical plan_key values"
+                        )
+                    value = tokens[0]
+                    if value.casefold().endswith(".plan_key"):
+                        continue
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+                values = [value_match.group(1).replace("''", "'").casefold()]
+            elif operator == "IN":
+                value_text = fragment[value_start:].lstrip()
+                if not value_text.startswith("("):
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+                close = value_text.find(")", 1)
+                if close < 0:
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+                values = [
+                    match.group(1).replace("''", "'").casefold()
+                    for match in _STRING_LITERAL.finditer(
+                        value_text[1:close]
+                    )
+                ]
+                if not values:
+                    raise ValueError(
+                        "unsafe plan filter: use exact canonical plan_key values"
+                    )
+            else:
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+
+            if any(value not in _CANONICAL_PLAN_KEYS for value in values):
+                raise ValueError(
+                    "unsafe plan filter: use exact canonical plan_key values"
+                )
+
+
+def _reject_cross_catalog_course_code_join(sql: str) -> None:
+    normalized_sql = re.sub(r"\s+", " ", sql)
+    aliases: dict[str, str] = {}
+    for match in _RELATION_REFERENCE.finditer(normalized_sql):
+        table = match.group("table").casefold()
+        aliases[table] = table
+        alias = match.group("alias")
+        if alias is not None and alias.casefold() not in _SQL_RESERVED_WORDS:
+            aliases[alias.casefold()] = table
+
+    for match in _ON_CLAUSE.finditer(normalized_sql):
+        for equality in _COURSE_CODE_EQUALITY.finditer(match.group("condition")):
+            joined_tables = {
+                aliases.get(equality.group("left").casefold()),
+                aliases.get(equality.group("right").casefold()),
+            }
+            if joined_tables == {"courses", "v_plan_courses"}:
+                raise ValueError(
+                    "join courses to v_plan_courses using course_id, not course_code"
+                )
+
+
+def _reject_shared_course_id_cross_plan_join(sql: str) -> None:
+    normalized_sql = re.sub(r"\s+", " ", sql)
+    aliases: dict[str, str] = {}
+    for match in _RELATION_REFERENCE.finditer(normalized_sql):
+        table = match.group("table").casefold()
+        aliases[table] = table
+        alias = match.group("alias")
+        if alias is not None and alias.casefold() not in _SQL_RESERVED_WORDS:
+            aliases[alias.casefold()] = table
+
+    course_aliases = {
+        alias for alias, table in aliases.items() if table == "courses"
+    }
+    plan_aliases = {
+        alias for alias, table in aliases.items() if table == "v_plan_courses"
+    }
+    plans_by_course_alias: dict[str, set[str]] = {}
+    for match in _ON_CLAUSE.finditer(normalized_sql):
+        for equality in _COURSE_ID_EQUALITY.finditer(match.group("condition")):
+            left = equality.group("left").casefold()
+            right = equality.group("right").casefold()
+            if left in plan_aliases and right in course_aliases:
+                plans_by_course_alias.setdefault(right, set()).add(left)
+            elif right in plan_aliases and left in course_aliases:
+                plans_by_course_alias.setdefault(left, set()).add(right)
+
+    plan_values = {
+        match.group("value").replace("''", "'").casefold()
+        for match in _PLAN_KEY_LITERAL.finditer(normalized_sql)
+    }
+    shared_anchor = any(
+        len(plan_aliases_for_anchor) >= 2
+        for plan_aliases_for_anchor in plans_by_course_alias.values()
+    )
+    if shared_anchor and {"coop", "no_coop"}.issubset(plan_values):
+        raise ValueError(
+            "cross-plan query must not join plan rows through one shared "
+            "courses.course_id"
+        )
+
+
+def _validate_structured_sql(db_path: str | Path, sql: str) -> None:
+    _reject_unsafe_plan_filters(sql)
+    _reject_cross_catalog_course_code_join(sql)
+    _reject_shared_course_id_cross_plan_join(sql)
+    validate_readonly_sql(db_path, sql)
+
+
+def _is_repairable_validation_error(error: Exception) -> bool:
+    if isinstance(error, ValueError):
+        return True
+    if not isinstance(error, sqlite3.OperationalError):
+        return False
+    infrastructure_markers = (
+        "unable to open database file",
+        "database is locked",
+        "database table is locked",
+        "database or disk is full",
+        "disk i/o error",
+        "not a database",
+    )
+    message = str(error).casefold()
+    return not any(marker in message for marker in infrastructure_markers)
+
+
+def _repair_once(
+    db_path: str | Path,
+    question: str,
+    schema_text: str,
+    failed_sql: str,
+    validation_error: Exception,
+    model_callable: Callable[[str], str],
+) -> str:
+    try:
+        repaired_sql = repair_sql(
+            question,
+            schema_text,
+            failed_sql,
+            str(validation_error),
+            model_callable,
+        )
+    except ValueError:
+        raise ValueError("SQL repair failed validation") from None
+
+    try:
+        _validate_structured_sql(db_path, repaired_sql)
+    except FileNotFoundError:
+        raise
+    except (ValueError, sqlite3.OperationalError) as error:
+        if not _is_repairable_validation_error(error):
+            raise
+        raise ValueError("SQL repair failed validation") from None
+    return repaired_sql
 
 
 def ask_structured(
     db_path: str | Path,
     question: str,
     schema_text: str,
-    model_callable: Callable[[str], str],
+    model_callable: Callable[[str], str] | None,
 ) -> dict[str, Any]:
     """Generate guarded SQL, execute it read-only, and return raw results."""
-    sql = question_to_sql(question, schema_text, model_callable)
+    mixed_request = _semester_credits_prerequisite_request(question)
+    if mixed_request is not None:
+        program, plan_key, course_code, year, semester = mixed_request
+        return _semester_credits_prerequisite_structured_result(
+            semester_credits_and_prerequisites(
+                db_path,
+                program,
+                plan_key,
+                year,
+                semester,
+                course_code,
+            )
+        )
+    semester_credits_request = _semester_credits_request(question)
+    if semester_credits_request is not None:
+        program, plan_key, year, semester = semester_credits_request
+        return _semester_credits_structured_result(
+            get_semester_credits(db_path, program, plan_key, year, semester)
+        )
+    prerequisite_request = _prerequisite_request(question)
+    if prerequisite_request is not None:
+        program, course_code, plan_keys = prerequisite_request
+        return _prerequisite_structured_result(
+            db_path,
+            course_placement(db_path, program, course_code, plan_keys),
+        )
+    three_course_sequence_request = _three_course_sequence_request(question)
+    if three_course_sequence_request is not None:
+        program, course_codes, plan_keys = three_course_sequence_request
+        return _three_course_sequence_structured_result(
+            db_path,
+            [
+                course_placement(db_path, program, course_code, plan_keys)
+                for course_code in course_codes
+            ],
+            program,
+            course_codes,
+            plan_keys,
+        )
+    two_course_placement_request = _two_course_placement_request(question)
+    if two_course_placement_request is not None:
+        program, course_codes, plan_keys = two_course_placement_request
+        return _two_course_placement_structured_result(
+            [
+                course_placement(db_path, program, course_code, plan_keys)
+                for course_code in course_codes
+            ],
+            program,
+            course_codes,
+            plan_keys,
+        )
+    alternative_group_request = _alternative_group_request(question)
+    if alternative_group_request is not None:
+        program, course_codes, plan_keys = alternative_group_request
+        return _alternative_group_structured_result(
+            alternative_group_placements(db_path, program, course_codes, plan_keys)
+        )
+    semester_courses_request = _semester_courses_request(question)
+    if semester_courses_request is not None:
+        program, plan_keys, year, semester = semester_courses_request
+        return _semester_courses_structured_result(
+            db_path, program, plan_keys, year, semester
+        )
+    placement_request = _course_placement_request(question)
+    if placement_request is not None:
+        program, course_code, plan_keys = placement_request
+        return _course_placement_structured_result(
+            course_placement(db_path, program, course_code, plan_keys)
+        )
+    course_facts_request = _course_facts_request(question)
+    if course_facts_request is not None:
+        program, course_code = course_facts_request
+        return _course_facts_structured_result(
+            course_facts(db_path, course_code, program)
+        )
+    if not callable(model_callable):
+        raise ValueError(
+            "structured_model_callable is required for structured questions"
+        )
+    generated_sql: str | None = None
+
+    def capture_generated_sql(prompt: str) -> str:
+        nonlocal generated_sql
+        generated_sql = model_callable(prompt)
+        return generated_sql
+
+    try:
+        sql = question_to_sql(question, schema_text, capture_generated_sql)
+    except ValueError as error:
+        if generated_sql is None:
+            raise
+        sql = _repair_once(
+            db_path,
+            question,
+            schema_text,
+            generated_sql,
+            error,
+            model_callable,
+        )
+    else:
+        try:
+            _validate_structured_sql(db_path, sql)
+        except FileNotFoundError:
+            raise
+        except (ValueError, sqlite3.OperationalError) as error:
+            if not _is_repairable_validation_error(error):
+                raise
+            sql = _repair_once(
+                db_path,
+                question,
+                schema_text,
+                sql,
+                error,
+                model_callable,
+            )
+
     columns, rows = execute_readonly(db_path, sql)
     return {
         "sql": sql,

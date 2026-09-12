@@ -1,9 +1,44 @@
 import unittest
 
-from rag.structured.nl_to_sql import question_to_sql
+from rag.structured.nl_to_sql import question_to_sql, repair_sql
 
 
 class RagNlToSqlTest(unittest.TestCase):
+    def _assert_canonical_plan_guidance(self, prompt):
+        for text in (
+            "สหกิจ or coop -> curriculum_plans.plan_key = 'coop'",
+            "ไม่สหกิจ or no_coop -> curriculum_plans.plan_key = 'no_coop'",
+            "AIT/default -> curriculum_plans.plan_key = 'default'",
+            "GENED -> curriculum_plans.plan_key = 'gened'",
+            "Program codes belong in program or program_code, never plan_key",
+            "exact plan_key equality or IN",
+            "Never filter plan identity with plan_name, plan, plan_code, LIKE, NOT LIKE, or NOT IN",
+        ):
+            self.assertIn(text, prompt)
+        for text in (
+            "same course_code may have different course_id values across catalogs or plans",
+            "Never join coop and no_coop rows by assuming a shared courses.course_id",
+            "query v_plan_courses rows independently and filter by course_code, program, and plan_key",
+            "plan_key IN ('coop', 'no_coop')",
+            "courses.course_id = v_plan_courses.course_id",
+            "year plus semester for fixed placement",
+            "flexible_year_semester_raw when placement is not fixed",
+            "Do not discard rows with NULL year or semester",
+        ):
+            self.assertIn(text, prompt)
+
+    def test_generation_prompt_includes_canonical_plan_guidance(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return "SELECT 1"
+
+        question_to_sql("แผนสหกิจ", "curriculum_plans(plan_key)", fake_model)
+
+        self.assertEqual(len(prompts), 1)
+        self._assert_canonical_plan_guidance(prompts[0])
+
     def test_fake_model_output_is_fenced_and_guarded(self):
         prompts = []
 
@@ -59,6 +94,84 @@ class RagNlToSqlTest(unittest.TestCase):
             prompts[0],
         )
         self.assertIn("courses.name_th or courses.name_en", prompts[0])
+
+    def test_repair_returns_a_guarded_select(self):
+        def fake_model(_prompt):
+            return "SELECT course_code FROM courses"
+
+        sql = repair_sql(
+            "แสดงรหัสวิชา",
+            "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+            "SELECT missing_code FROM courses",
+            "no such column: missing_code",
+            fake_model,
+        )
+
+        self.assertEqual(sql, "SELECT course_code FROM courses LIMIT 100")
+
+    def test_repair_removes_sql_fence(self):
+        def fake_model(_prompt):
+            return "```sql\nSELECT course_id FROM courses\n```"
+
+        sql = repair_sql(
+            "แสดงรหัสวิชา",
+            "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+            "SELECT missing_code FROM courses",
+            "no such column: missing_code",
+            fake_model,
+        )
+
+        self.assertEqual(sql, "SELECT course_id FROM courses LIMIT 100")
+
+    def test_repair_rejects_a_write_query(self):
+        def fake_model(_prompt):
+            return "DELETE FROM courses"
+
+        with self.assertRaises(ValueError):
+            repair_sql(
+                "แสดงรหัสวิชา",
+                "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+                "SELECT missing_code FROM courses",
+                "no such column: missing_code",
+                fake_model,
+            )
+
+    def test_repair_prompt_contains_failed_sql_and_error(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return "SELECT course_code FROM courses"
+
+        repair_sql(
+            "แสดงรหัสวิชา",
+            "CREATE TABLE courses(course_id INTEGER, course_code TEXT);",
+            "SELECT missing_code FROM courses",
+            "no such column: missing_code",
+            fake_model,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        self.assertIn("SELECT missing_code FROM courses", prompts[0])
+        self.assertIn("no such column: missing_code", prompts[0])
+
+    def test_repair_prompt_includes_canonical_plan_guidance(self):
+        prompts = []
+
+        def fake_model(prompt):
+            prompts.append(prompt)
+            return "SELECT 1"
+
+        repair_sql(
+            "แผนไม่สหกิจ",
+            "curriculum_plans(plan_key, plan_name, plan, plan_code)",
+            "SELECT * FROM curriculum_plans WHERE plan_name LIKE '%ไม่สหกิจ%'",
+            "unsafe plan filter",
+            fake_model,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        self._assert_canonical_plan_guidance(prompts[0])
 
 
 if __name__ == "__main__":

@@ -13,6 +13,8 @@ class RagRouterTest(unittest.TestCase):
             "Compare the credits of C101 and C102.",
             "มีวิชาทั้งหมดกี่วิชาในภาคเรียนที่ 1",
             "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+            "วิชานี้เรียนช่วงไหนของหลักสูตร",
+            "หลักสูตรนี้กำหนดแน่นอนหรือยืดหยุ่น",
         )
         for question in questions:
             with self.subTest(question=question):
@@ -26,6 +28,7 @@ class RagRouterTest(unittest.TestCase):
             "เนื้อหาของวิชานี้เกี่ยวกับอะไร",
             "Tell me about this course.",
             "ช่วยแนะนำวิชา",
+            "วิชานี้เรียนเกี่ยวกับอะไร",
         )
         for question in questions:
             with self.subTest(question=question):
@@ -36,6 +39,50 @@ class RagRouterTest(unittest.TestCase):
             route_question("What database topics are offered in year 1 semester 1?"),
             "hybrid",
         )
+        self.assertEqual(
+            route_question(
+                "สำหรับ IT แบบสหกิจ วิชา 06016418 เรียนช่วงไหนของหลักสูตร "
+                "และเนื้อหาครอบคลุมเรื่องใดเกี่ยวกับฐานข้อมูลบ้าง?"
+            ),
+            "hybrid",
+        )
+
+    def test_cross_plan_earliest_placement_is_structured(self):
+        self.assertEqual(
+            route_question(
+                "ถ้าอยากลง DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT "
+                "ควรเลือกแผนไหน และแต่ละแผนเปิดให้ลงช่วงใดบ้าง?"
+            ),
+            "structured",
+        )
+
+    def test_explicit_plan_flexible_placement_wording_is_structured(self):
+        self.assertEqual(
+            route_question(
+                "แผน IT แบบไม่สหกิจเปิดให้ลง DATA CENTER DESIGN "
+                "(06016465) ช่วงไหนได้บ้าง?"
+            ),
+            "structured",
+        )
+
+    def test_two_course_cross_plan_earliest_placement_is_structured(self):
+        self.assertEqual(
+            route_question(
+                "ถ้าต้องวางแผนเรียน SERVER SIDE WEB DEVELOPMENT (06016418) "
+                "และ DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT "
+                "ควรเลือกแผนไหน และแต่ละวิชาเรียนได้ช่วงใด?"
+            ),
+            "structured",
+        )
+
+    def test_semantic_course_content_question_stays_semantic(self):
+        self.assertEqual(
+            route_question("IT วิชา 06016465 เรียนเกี่ยวกับอะไร?"),
+            "semantic",
+        )
+
+    def test_unmatched_question_keeps_semantic_default(self):
+        self.assertEqual(route_question("ข้อมูลนี้มีรายละเอียดอย่างไร"), "semantic")
 
 
 if __name__ == "__main__":

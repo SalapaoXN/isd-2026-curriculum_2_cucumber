@@ -9,7 +9,7 @@ from rag.demo import run_demo
 
 class RagDemoTest(unittest.TestCase):
     def test_uses_the_canonical_unified_database(self):
-        sources = [Path("consolidated_outputs/merged_it_coop_full.json")]
+        sources = [Path("outputs/consolidated/it/coop/full/merged_it_coop_full.json")]
         evidence = [
             {
                 "chunk_id": "chunk-1",

@@ -2,6 +2,8 @@
 .env
 .venv/
 __pycache__/
+*.py[cod]
+.pytest_cache/
 
 # Local tooling
 .opencode/
@@ -12,15 +14,18 @@ project_snapshot.zip
 # Generated project data
 inputs/*
 outputs/*
-consolidated_outputs/*
 prototype_outputs/*
 example/*
+work/*
+/work/
+/curriculum.db
+*.tmp
+*.log
 demo.db
 
 # Keep tracked placeholder folders
 !inputs/.gitkeep
 !outputs/.gitkeep
-!consolidated_outputs/.gitkeep
 
 # CUCUMBER generated outputs
 /cucumber_outputs/*

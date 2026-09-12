@@ -1,0 +1,772 @@
+[
+  {
+    "id": "structured_dsba_no_coop_counts",
+    "question": "ถ้าเรียน DSBA แบบไม่สหกิจ ในหลักสูตรมีรายวิชาที่ระบุไว้ทั้งหมดกี่รายการ และเมื่อไม่นับรหัสซ้ำเหลือกี่รหัส?",
+    "type": "structured",
+    "expected": {
+      "program": "DSBA",
+      "plan": "no_coop",
+      "placement_count": 90,
+      "distinct_course_count": 83
+    }
+  },
+  {
+    "id": "structured_dsba_no_coop_year1_sem1",
+    "question": "ถ้าเรียน DSBA แบบไม่สหกิจ ปี 1 เทอม 1 ต้องลงวิชาอะไรบ้าง?",
+    "type": "structured",
+    "expected": {
+      "program": "DSBA",
+      "plan": "no_coop",
+      "year": 1,
+      "semester": 1,
+      "course_codes": [
+        "06026200",
+        "06026202",
+        "06066101",
+        "06066303",
+        "90641001",
+        "90641003",
+        "90644007"
+      ]
+    }
+  },
+  {
+    "id": "semantic_it_no_coop_course_06016406",
+    "question": "วิชา 06016406 ของ IT แบบไม่สหกิจเป็นโครงงานลักษณะไหน และผู้เรียนต้องทำหรือแสดงผลลัพธ์อะไรบ้าง?",
+    "type": "semantic",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016406",
+      "name_en": "PROJECT 1",
+      "description_evidence": [
+        "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY",
+        "WORK PROJECT",
+        "THEORETICAL ASPECTS OF THE INFORMATION TECHNOLOGY STUDIES",
+        "FACULTY MEMBER",
+        "PROJECT PROPOSAL",
+        "PRACTICAL SOLVING OR ACADEMIC ANALYSIS"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "it_page_038.png",
+          "source_page": 38,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "it_page_330.png",
+          "source_page": 330,
+          "document_category": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "hybrid_it_coop_course_06016418",
+    "question": "สำหรับ IT แบบสหกิจ วิชา 06016418 เรียนช่วงไหนของหลักสูตร และเนื้อหาครอบคลุมเรื่องใดเกี่ยวกับฐานข้อมูลบ้าง?",
+    "type": "hybrid",
+    "expected": {
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016418",
+      "placement": {
+        "year": 3,
+        "semester": 1
+      },
+      "description_evidence": [
+        "DATABASE CONNECTIONS",
+        "DATABASE TRANSACTIONS"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "it_page_043.png",
+          "source_page": 43,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "it_page_336.png",
+          "source_page": 336,
+          "document_category": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "unknown_course_99999999",
+    "question": "อยากลงทะเบียนวิชา 99999999 ไม่ทราบว่ามีอยู่ในหลักสูตรหรือเปล่า?",
+    "type": "unknown",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+  },
+  {
+    "id": "structured_ait_no_plan_counts",
+    "question": "หลักสูตร AIT โดยรวมมีรายวิชาที่ระบุไว้ทั้งหมดกี่รายการ และมีรหัสวิชาไม่ซ้ำกันกี่รหัส?",
+    "type": "structured",
+    "expected": {
+      "program": "AIT",
+      "plan": "default",
+      "placement_count": 57,
+      "distinct_course_count": 54
+    },
+    "notes": "The database represents the AIT no-plan curriculum with plan=default."
+  },
+  {
+    "id": "structured_bit_coop_year1_sem1",
+    "question": "ถ้าเรียน BIT แบบสหกิจ ปี 1 เทอม 1 ต้องลงวิชาอะไรบ้าง?",
+    "type": "structured",
+    "expected": {
+      "program": "BIT",
+      "plan": "coop",
+      "year": 1,
+      "semester": 1,
+      "course_codes": [
+        "06036100",
+        "06036101",
+        "06036118",
+        "96641001",
+        "96641003",
+        "96644007",
+        "96644042"
+      ]
+    }
+  },
+  {
+    "id": "semantic_gened_course_90641001",
+    "question": "วิชา GENED 90641001 มีชื่อภาษาอังกฤษว่าอะไร และเรียนเกี่ยวกับเรื่องอะไรบ้าง?",
+    "type": "semantic",
+    "expected": {
+      "program": "GENED",
+      "plan": "gened",
+      "course_code": "90641001",
+      "name_en": "CHARM SCHOOL",
+      "description_evidence": [
+        "MAKE YOURSELF CHARMING",
+        "APPROPRIATE MANNERS",
+        "COMMUNICATION AND INTERPERSONAL SKILLS",
+        "KMITL CHARACTERISTICS AND IDENTITIES"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "gened_page_016.png",
+          "source_page": 16,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "gened_page_044.png",
+          "source_page": 44,
+          "document_category": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "hybrid_it_no_coop_course_06016419",
+    "question": "วิชา 06016419 ของ IT แบบไม่สหกิจอยู่ปีไหน เทอมไหน กี่หน่วยกิต และเนื้อหาเกี่ยวกับเครือข่ายกับความปลอดภัยอย่างไร?",
+    "type": "hybrid",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016419",
+      "placement": {
+        "year": 2,
+        "semester": 2
+      },
+      "credits_raw": "3(2-2-5)",
+      "description_evidence": [
+        "COMMUNICATION STANDARDS AND MODELS",
+        "OSI",
+        "TCP/P MODEL",
+        "WIRED AND WIRELESS",
+        "NETWORK SECURITY"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "it_page_035.png",
+          "source_page": 35,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "it_page_337.png",
+          "source_page": 337,
+          "document_category": "description"
+        },
+        {
+          "source_document_key": "it_page_338.png",
+          "source_page": 338,
+          "document_category": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "unknown_bit_no_coop_course_99999998",
+    "question": "ในแผน BIT แบบไม่สหกิจ มีวิชา 99999998 เปิดสอนไหม?",
+    "type": "unknown",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+  },
+  {
+    "id": "structured_dsba_coop_year2_sem2_credits",
+    "question": "DSBA แบบสหกิจ ในปี 2 เทอม 2 ต้องลงทะเบียนรวมกี่หน่วยกิต?",
+    "type": "structured",
+    "expected": {
+      "program": "DSBA",
+      "plan": "coop",
+      "year": 2,
+      "semester": 2,
+      "total_credits": 21
+    }
+  },
+  {
+    "id": "semantic_ait_course_06046413",
+    "question": "วิชา 06046413 ในหลักสูตร AIT นำเทคโนโลยีไปใช้กับงานด้านไหน และใช้เครื่องมืออะไรบ้าง?",
+    "type": "semantic",
+    "expected": {
+      "program": "AIT",
+      "plan": "default",
+      "course_code": "06046413",
+      "description_evidence": [
+        "ARTIFICIAL INTELLIGENCE",
+        "APPLICATION OF ARTIFICIAL INTELLIGENCE FROM",
+        "TOOLS FOR INTEGRATING AND DEPLOYING",
+        "DOCKER."
+      ],
+      "provenance": [
+        {
+          "source_document_key": "ait_page_024.png",
+          "source_page": 24,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "ait_page_295.png",
+          "source_page": 295,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "hybrid_dsba_coop_course_06026259",
+    "question": "วิชา 06026259 ของ DSBA แบบสหกิจเรียนปีไหน เทอมไหน กี่หน่วยกิต และมีเนื้อหาที่ทำงานร่วมกับสถานประกอบการอย่างไร?",
+    "type": "hybrid",
+    "expected": {
+      "program": "DSBA",
+      "plan": "coop",
+      "course_code": "06026259",
+      "placement": {
+        "placement_id": 226,
+        "year": 4,
+        "semester": 2
+      },
+      "credits_raw": "6(0-35-0)",
+      "description_evidence": [
+        "COOPERATIVE EDUCATION IS",
+        "COLLABORATED EDUCATION PROGRAM BETWEEN",
+        "PRACTICAL WORK EXPERIENCE",
+        "PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE."
+      ],
+      "provenance": [
+        {
+          "source_document_key": "dsba_page_039.png",
+          "source_page": 39,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "dsba_page_344.png",
+          "source_page": 344,
+          "document_category": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "hybrid_bit_no_coop_course_06036122",
+    "question": "ถ้าเรียน BIT แบบไม่สหกิจ วิชา 06036122 อยู่ปีไหน เทอมไหน กี่หน่วยกิต และเรียนเรื่องใดเกี่ยวกับมัลติมีเดียบ้าง?",
+    "type": "hybrid",
+    "expected": {
+      "program": "BIT",
+      "plan": "no_coop",
+      "course_code": "06036122",
+      "placement": {
+        "year": 2,
+        "semester": 1
+      },
+      "credits_raw": "3(2-2-5)",
+      "name_en": "VISUAL COMMUNICATION FOR BUSINESS",
+      "description_evidence": [
+        "INTRODUCTION TO MULTIMEDIA SYSTEMS",
+        "MULTIMEDIA FILE FORMAT",
+        "MULTIMEDIA DATA STORAGE DEVICES",
+        "APPLICATIONS OF MULTIMEDIA."
+      ],
+      "provenance": [
+        {
+          "source_document_key": "bit_page_027_ocr.json",
+          "source_page": 27,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "bit_page_247_ocr.json",
+          "source_page": 247,
+          "document_category": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "unknown_course_88888888",
+    "question": "ช่วยเช็กหน่อยว่าในหลักสูตรมีวิชา 88888888 หรือไม่?",
+    "type": "unknown",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+  },
+  {
+    "id": "structured_bit_coop_course_06036107",
+    "question": "วิชา 06036107 ในแผน BIT แบบสหกิจจัดให้อยู่ปีไหน เทอมไหน และกี่หน่วยกิต?",
+    "type": "structured",
+    "expected": {
+      "program": "BIT",
+      "plan": "coop",
+      "course_code": "06036107",
+      "placement": {
+        "placement_id": 82,
+        "year": 3,
+        "semester": 1
+      },
+      "credits_raw": "3(3-0-6)"
+    }
+  },
+  {
+    "id": "semantic_bit_coop_course_06036111",
+    "question": "วิชา 06036111 ของ BIT แบบสหกิจพูดถึงเทคโนโลยีอะไร และส่งผลต่อการทำธุรกิจในด้านใดบ้าง?",
+    "type": "semantic",
+    "expected": {
+      "program": "BIT",
+      "plan": "coop",
+      "course_code": "06036111",
+      "description_evidence": [
+        "CLOUD COMPUTING",
+        "BIG DATA",
+        "ARTIFICIAL INTELLIGENCE",
+        "INFORMATION RETRIEVAL",
+        "RECOMMENDATION SYSTEM",
+        "DIGITAL TRANSFORMATION",
+        "BUSINESS IMPACT"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "bit_page_033_ocr.json",
+          "source_page": 33,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "bit_page_243_ocr.json",
+          "source_page": 243,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "semantic_gened_course_90641002",
+    "question": "GENED 90641002 ช่วยเตรียมทักษะอะไรบ้าง และควรระวังความเสี่ยงด้านใดเมื่อใช้เทคโนโลยีดิจิทัล?",
+    "type": "semantic",
+    "expected": {
+      "program": "GENED",
+      "plan": "gened",
+      "course_code": "90641002",
+      "description_evidence": [
+        "DIGITAL CITIZEN IDENTITY",
+        "CRITICAL THINKING",
+        "CYBERSECURITY MANAGEMENT",
+        "PRIVACY MANAGEMENT",
+        "DIGITAL FOOTPRINTS",
+        "CYBERBULLYING MANAGEMENT",
+        "DIGITAL EMPATHY"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "gened_page_016.png",
+          "source_page": 16,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "gened_page_044.png",
+          "source_page": 44,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "hybrid_it_no_coop_course_06016404",
+    "question": "วิชา 06016404 ของ IT แบบไม่สหกิจอยู่ปีไหน เทอมไหน กี่หน่วยกิต และเนื้อหาเกี่ยวกับบริการคลาวด์ด้านใดบ้าง?",
+    "type": "hybrid",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016404",
+      "placement": {
+        "year": 3,
+        "semester": 1
+      },
+      "credits_raw": "3(2-2-5)",
+      "name_en": "CLOUD COMPUTING",
+      "description_evidence": [
+        "CLOUD COMPUTING CONCEPT",
+        "COMPUTE, STORAGE., NETWORK AND DATABASE",
+        "CLOUD SECURITY CONCEPTS",
+        "BILLING AND PRICING IN CLOUD SERICES"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "it_page_036.png",
+          "source_page": 36,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "it_page_329.png",
+          "source_page": 329,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "unknown_gened_course_77777777",
+    "question": "ในแผน GENED มีวิชา 77777777 ให้ลงทะเบียนหรือไม่?",
+    "type": "unknown",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+  },
+  {
+    "id": "structured_bit_same_code_06036103",
+    "question": "วิชา 06036103 ใน BIT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน และรายละเอียดการจัดวางต่างกันอย่างไร?",
+    "type": "structured",
+    "expected": {
+      "program": "BIT",
+      "course_code": "06036103",
+      "placements": [
+        {
+          "plan": "coop",
+          "placement_id": 70,
+          "year": 2,
+          "semester": 1,
+          "credits_raw": "3(3-0-6)"
+        },
+        {
+          "plan": "no_coop",
+          "placement_id": 133,
+          "year": 2,
+          "semester": 1,
+          "credits_raw": "3(3-0-6)"
+        }
+      ]
+    },
+    "notes": "The same course code is checked separately across BIT coop and BIT no_coop catalogs."
+  },
+  {
+    "id": "structured_it_no_coop_year2_sem2_prerequisite",
+    "question": "IT แบบไม่สหกิจ ในปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต และวิชา 06016420 ต้องผ่านวิชาอะไรมาก่อน?",
+    "type": "structured",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "year": 2,
+      "semester": 2,
+      "total_credits": 30,
+      "course_code": "06016420",
+      "prerequisites": [
+        {
+          "course_code": "06016413",
+          "requirement_type": "required",
+          "raw_text": "06016413"
+        }
+      ]
+    }
+  },
+  {
+    "id": "semantic_it_no_coop_course_06016405",
+    "question": "วิชา 06016405 ของ IT แบบไม่สหกิจเรียนเกี่ยวกับความมั่นคงปลอดภัยไซเบอร์และการปกป้องข้อมูลในด้านใดบ้าง?",
+    "type": "semantic",
+    "expected": {
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016405",
+      "name_en": "CYBERSECURITV FUNDAMENTALS",
+      "description_evidence": [
+        "CYBER THREATS AND CYBER ATTACKS",
+        "VULNERABILITIES AND RISK",
+        "ACCESS CONTROL",
+        "DATA PRIVACY",
+        "CYBER LAWS AND ETHICS"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "it_page_035.png",
+          "source_page": 35,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "it_page_330.png",
+          "source_page": 330,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "hybrid_bit_coop_course_06036115",
+    "question": "วิชา 06036115 ใน BIT แบบสหกิจเรียนปีไหน เทอมไหน และเนื้อหาช่วยจัดการความปลอดภัยของระบบสารสนเทศเรื่องใดบ้าง?",
+    "type": "hybrid",
+    "expected": {
+      "program": "BIT",
+      "plan": "coop",
+      "course_code": "06036115",
+      "placement": {
+        "placement_id": 93,
+        "year": 4,
+        "semester": 1
+      },
+      "credits_raw": "3(3-0-6)",
+      "name_en": "INFORMATION SYSTEM SECURIT",
+      "description_evidence": [
+        "INFORMATION SYSTEM SECURITY",
+          "VULNERABILTIES, THREATS, AND RISK",
+        "CRYPTOGRAPHY",
+        "IDENTITY MANAGEMENT",
+        "AUTHENTICATION AND AUTHORIZATION",
+        "ACCESS CONTROL",
+        "FIREWALLS",
+        "INFORMATION SECURITY MANAGEMENT SYSTEM"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "bit_page_035_ocr.json",
+          "source_page": 35,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "bit_page_245_ocr.json",
+          "source_page": 245,
+          "document_page": 240,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "This replacement uses a placement with both plan and description provenance. Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "unknown_bit_no_coop_year5_sem1",
+    "question": "ถ้าเรียน BIT แบบไม่สหกิจ ปี 5 เทอม 1 มีวิชาและหน่วยกิตที่ต้องลงหรือไม่?",
+    "type": "unknown",
+    "expected": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "notes": "This checks an absent year/semester placement rather than a missing course-code lookup."
+  },
+  {
+    "id": "structured_bit_coop_alternative_group_3",
+    "question": "สำหรับกลุ่มวิชาทางเลือกใน BIT แบบสหกิจ ปี 4 เทอม 2 มีวิชาอะไรให้เลือกบ้าง และต้องเลือกอย่างน้อยหรือมากที่สุดกี่วิชา?",
+    "type": "structured",
+    "expected": {
+      "program": "BIT",
+      "plan": "coop",
+      "placement_id": 98,
+      "alternative_group_id": 3,
+      "year": 4,
+      "semester": 2,
+      "minimum_choices": 1,
+      "maximum_choices": 1,
+      "course_codes": [
+        "06036147",
+        "06036148"
+      ],
+      "credits_raw": "6(0-35-0)"
+    },
+    "notes": "This tests an alternative requirement without collapsing its member courses into one ordinary placement."
+  },
+  {
+    "id": "semantic_cross_program_database_topics_06016402_06026207",
+    "question": "วิชา 06016402 ของ IT แบบไม่สหกิจ กับ 06026207 ของ DSBA แบบไม่สหกิจต่างก็เกี่ยวข้องกับข้อมูล แต่แต่ละวิชาเน้นเรื่องใดบ้าง?",
+    "type": "semantic",
+    "expected": {
+      "courses": [
+        {
+          "program": "IT",
+          "plan": "no_coop",
+          "course_code": "06016402",
+          "name_en": "IFORMATION TECHNOLOGY FUNDAMENTALS",
+          "description_evidence": [
+            "DATA PROCESSING SYSTEMS",
+            "DATA MANAGEMENT",
+            "DATABASE TECHNOLOGY",
+            "DATA COMMUNICATION",
+            "COMPUTER NETWORK SYSTEMS AND THE INTERNET"
+          ],
+          "provenance": [
+            {
+              "source_document_key": "it_page_032.png",
+              "source_page": 32,
+              "document_category": "plan"
+            },
+            {
+              "source_document_key": "it_page_328.png",
+              "source_page": 328,
+              "document_category": "description"
+            }
+          ]
+        },
+        {
+          "program": "DSBA",
+          "plan": "no_coop",
+          "course_code": "06026207",
+          "name_en": "NOSOL DATABASE SVSTEMS",
+          "description_evidence": [
+            "NOSOL DATABASE SYSTEM",
+            "RELATIONAL DATABASE SYSTEM",
+            "COLUMN ORIENTED",
+            "DOCUMENT AND GRAPH",
+            "JSON DATA TYPES"
+          ],
+          "provenance": [
+            {
+              "source_document_key": "dsba_page_029.png",
+              "source_page": 29,
+              "document_category": "plan"
+            },
+            {
+              "source_document_key": "dsba_page_324.png",
+              "source_page": 324,
+              "document_category": "description"
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "This tests similar database-related topics across different programs. Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "semantic_gened_course_90642011",
+    "question": "GENED 90642011 ช่วยฝึกการคิดวิเคราะห์อย่างไร และนำไปใช้กับการเรียนหรือการทำงานได้แบบไหน?",
+    "type": "semantic",
+    "expected": {
+      "program": "GENED",
+      "plan": "gened",
+      "course_code": "90642011",
+      "name_en": "CRITICAL THINKNG",
+      "description_evidence": [
+        "NATURE AND TECHNIQUES OF CRITICAL THOUGHT",
+        "RELIABLE BASIS FOR OUR CLAIMS, BELIEFS, AND ATTITUDES ABOUT THE WORLD",
+        "MULTIPLE PERSPECTIVES",
+        "REASONING AND INFERENCE",
+        "VALUING AND JUDGING",
+        "STUDENTS' OWN EDUCATIONAL AND PROFESSIONAL SETTINGS"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "gened_page_016.png",
+          "source_page": 16,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "gened_page_047.png",
+          "source_page": 47,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "hybrid_it_fixed_vs_flexible_06016481",
+    "question": "วิชา 06016481 ใน IT แบบสหกิจมีช่วงเรียนที่กำหนดแน่นอนหรือไม่ แล้วแบบไม่สหกิจเปิดให้ลงช่วงใดได้บ้าง และเนื้อหาเกี่ยวข้องกับการทำงานร่วมกับสถานประกอบการอย่างไร?",
+    "type": "hybrid",
+    "expected": {
+      "program": "IT",
+      "course_code": "06016481",
+      "placements": [
+        {
+          "plan": "coop",
+          "placement_id": 669,
+          "alternative_group_id": 8,
+          "year": 3,
+          "semester": 2,
+          "flexible_year_semester_raw": null,
+          "credits_raw": "6(0-36-0)"
+        },
+        {
+          "plan": "no_coop",
+          "placement_id": 841,
+          "alternative_group_id": 9,
+          "year": null,
+          "semester": null,
+          "flexible_year_semester_raw": "3/1, 3/2, 4/1",
+          "credits_raw": "6(0-36-0)"
+        }
+      ],
+      "name_en": "COOPERATIVE EDUCATION",
+      "description_evidence": [
+        "COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL INSTITUTES AND ENTERPRISES",
+        "PRACTICAL WORK EXPERIENCE",
+        "PROJECT WORK",
+        "EXAMINATION COMMITTEE"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "it_page_044.png",
+          "source_page": 44,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "it_page_366.png",
+          "source_page": 366,
+          "document_category": "description"
+        },
+        {
+          "source_document_key": "it_page_367.png",
+          "source_page": 367,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "This checks fixed versus flexible placement without fabricating a fixed year or semester for IT no_coop. Evidence strings preserve the database's OCR text."
+  },
+  {
+    "id": "hybrid_bit_no_coop_course_06036114",
+    "question": "วิชา 06036114 ของ BIT แบบไม่สหกิจอยู่ปีไหน เทอมไหน และเนื้อหาเกี่ยวกับการทำเว็บกับฐานข้อมูลอย่างไร?",
+    "type": "hybrid",
+    "expected": {
+      "program": "BIT",
+      "plan": "no_coop",
+      "course_code": "06036114",
+      "placement": {
+        "placement_id": 147,
+        "year": 3,
+        "semester": 1
+      },
+      "credits_raw": "3(2-2-5)",
+      "name_en": "WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS",
+      "description_evidence": [
+        "WEB APPLICATION DEVELPMENT WITH FRAMEWORK TECHNOLOGY",
+        "DATABASE CONNECTION",
+        "OBJECT RELATIONAL MAPPING",
+        "APPLICATION PROGRAMMING INTERFACE (API) DEVELOPMENT",
+        "FRONT-END DEVELOPMENT"
+      ],
+      "provenance": [
+        {
+          "source_document_key": "bit_page_028_ocr.json",
+          "source_page": 28,
+          "document_category": "plan"
+        },
+        {
+          "source_document_key": "bit_page_244_ocr.json",
+          "source_page": 244,
+          "document_page": 239,
+          "document_category": "description"
+        }
+      ]
+    },
+    "notes": "Evidence strings preserve the database's OCR text."
+  }
+]
