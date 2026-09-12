@@ -181,6 +181,101 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(structured["provenance"])
         self.assertEqual(calls, [])
 
+    def test_two_course_cross_plan_comparison_is_deterministic(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "ถ้าต้องวางแผนเรียน SERVER SIDE WEB DEVELOPMENT (06016418) "
+            "และ DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT "
+            "ควรเลือกแผนไหน และแต่ละวิชาเรียนได้ช่วงใด?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "course_placement_comparison")
+        self.assertEqual(structured["status"], "ok")
+        rows = _placement_rows(result)
+        self.assertEqual(
+            {row["course_code"] for row in rows},
+            {"06016418", "06016465"},
+        )
+        self.assertEqual(
+            {
+                (row["course_code"], row["plan_key"]): row["year_semester_choices"]
+                for row in rows
+            },
+            {
+                ("06016418", "coop"): [(3, 1)],
+                ("06016418", "no_coop"): [(3, 1)],
+                ("06016465", "coop"): [(4, 1)],
+                ("06016465", "no_coop"): [(3, 1), (3, 2), (4, 1)],
+            },
+        )
+        self.assertEqual(structured["earliest_plan"], "no_coop")
+        self.assertEqual(
+            structured["derived_facts"]["plan_completion_earliest"],
+            [
+                {"plan_key": "coop", "completion_year_semester": (4, 1)},
+                {"plan_key": "no_coop", "completion_year_semester": (3, 1)},
+            ],
+        )
+        self.assertTrue(structured["provenance"])
+        self.assertTrue(all(row["provenance"] for row in rows))
+        self.assertEqual(calls, [])
+
+    def test_two_course_comparison_does_not_guess_ties_or_missing_timing(self):
+        def placement_result(course_code, choices):
+            placements = []
+            for plan_key in ("coop", "no_coop"):
+                placements.append(
+                    {
+                        "placement_id": len(placements) + 1,
+                        "plan_key": plan_key,
+                        "course_id": len(placements) + 1,
+                        "course_code": course_code,
+                        "year_semester_choices": choices,
+                        "provenance": [{"provenance_id": len(placements) + 1}],
+                    }
+                )
+            return {
+                "status": "ok",
+                "missing_plan_keys": [],
+                "placements": placements,
+            }
+
+        with patch(
+            "rag.structured.qa.course_placement",
+            side_effect=lambda _db, _program, course_code, _plans: placement_result(
+                course_code, [(3, 1)]
+            ),
+        ):
+            tied = ask(
+                DB_PATH,
+                "สองวิชา 00000001 และ 00000002 ใน IT ให้เร็วที่สุด "
+                "ควรเลือกแผนไหน?",
+            )
+        self.assertNotIn("earliest_plan", tied["result"])
+
+        with patch(
+            "rag.structured.qa.course_placement",
+            side_effect=[
+                placement_result("00000001", [(3, 1)]),
+                placement_result("00000002", []),
+            ],
+        ):
+            missing_timing = ask(
+                DB_PATH,
+                "สองวิชา 00000001 และ 00000002 ใน IT ให้เร็วที่สุด "
+                "ควรเลือกแผนไหน?",
+            )
+        self.assertNotIn("earliest_plan", missing_timing["result"])
+
     def test_course_name_from_placement_reaches_grounded_answer(self):
         question = (
             "วิชา 06016414 ของ IT แบบไม่สหกิจชื่อภาษาอังกฤษว่าอะไร "

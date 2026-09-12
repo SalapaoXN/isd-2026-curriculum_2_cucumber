@@ -56,6 +56,16 @@ class RagRouterTest(unittest.TestCase):
             "structured",
         )
 
+    def test_two_course_cross_plan_earliest_placement_is_structured(self):
+        self.assertEqual(
+            route_question(
+                "ถ้าต้องวางแผนเรียน SERVER SIDE WEB DEVELOPMENT (06016418) "
+                "และ DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT "
+                "ควรเลือกแผนไหน และแต่ละวิชาเรียนได้ช่วงใด?"
+            ),
+            "structured",
+        )
+
     def test_semantic_course_content_question_stays_semantic(self):
         self.assertEqual(
             route_question("IT วิชา 06016465 เรียนเกี่ยวกับอะไร?"),

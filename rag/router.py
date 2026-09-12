@@ -81,6 +81,9 @@ _CROSS_PLAN_PLACEMENT_TERMS = (
     "ทั้งสองแผน",
     "สองแผน",
 )
+_TWO_COURSE_CROSS_PLAN_PLACEMENT_TERMS = _CROSS_PLAN_PLACEMENT_TERMS + (
+    "แต่ละวิชา",
+)
 
 
 def _is_cross_plan_placement_question(question: str) -> bool:
@@ -88,6 +91,18 @@ def _is_cross_plan_placement_question(question: str) -> bool:
         len(set(_EXPLICIT_COURSE_CODE.findall(question.casefold()))) == 1
         and _IT_PROGRAM.search(question.casefold()) is not None
         and any(term in question.casefold() for term in _CROSS_PLAN_PLACEMENT_TERMS)
+    )
+
+
+def _is_two_course_cross_plan_placement_question(question: str) -> bool:
+    normalized = question.casefold()
+    return (
+        len(set(_EXPLICIT_COURSE_CODE.findall(normalized))) == 2
+        and _IT_PROGRAM.search(normalized) is not None
+        and any(
+            term in normalized
+            for term in _TWO_COURSE_CROSS_PLAN_PLACEMENT_TERMS
+        )
     )
 
 
@@ -100,6 +115,7 @@ def route_question(question: str) -> Route:
     structured = any(term in normalized for term in _STRUCTURED_TERMS if term != "กี่")
     structured = structured or _THAI_COUNT_RE.search(normalized) is not None
     structured = structured or _is_cross_plan_placement_question(normalized)
+    structured = structured or _is_two_course_cross_plan_placement_question(normalized)
     semantic = any(term in normalized for term in _SEMANTIC_TERMS)
     if structured and semantic:
         return "hybrid"
