@@ -3,7 +3,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from evaluate import evaluate_json_structure
+from evaluate import (
+    discover_llm_corrected_sources,
+    discover_llm_evaluation_pairs,
+    evaluate_json_structure,
+)
 
 
 def course(code: str, marker: str) -> dict:
@@ -508,6 +512,55 @@ class EvaluateCoverageTests(unittest.TestCase):
             ],
             0,
         )
+
+class EvaluateDiscoveryTests(unittest.TestCase):
+    @staticmethod
+    def _write_curriculum(path: Path, program: str, plan: str | None) -> None:
+        path.write_text(
+            json.dumps({"program": program, "plan": plan, "courses": []}),
+            encoding="utf-8",
+        )
+
+    def test_discovery_uses_corrected_files_and_ignores_correction_logs(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_dir = Path(temp_dir)
+            corrected = source_dir / "merged_bit_coop_full_corrected.json"
+            self._write_curriculum(corrected, "BIT", "coop")
+            (source_dir / "merged_bit_coop_full_corrections.json").write_text(
+                "[]", encoding="utf-8"
+            )
+
+            self.assertEqual(discover_llm_corrected_sources(source_dir), [corrected])
+
+    def test_partial_corpus_matches_only_existing_corrected_sources(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_dir = Path(temp_dir) / "llm"
+            ground_truth_dir = Path(temp_dir) / "ground_truth"
+            source_dir.mkdir()
+            (ground_truth_dir / "BIT").mkdir(parents=True)
+            prediction = source_dir / "bit_coop_corrected.json"
+            ground_truth = ground_truth_dir / "BIT" / "BIT_academic_plan_coop.json"
+            self._write_curriculum(prediction, "BIT", "coop")
+            self._write_curriculum(ground_truth, "BIT", "coop")
+
+            self.assertEqual(
+                discover_llm_evaluation_pairs(source_dir, ground_truth_dir),
+                [(prediction, ground_truth)],
+            )
+
+    def test_zero_corrected_files_fails_without_consolidated_fallback(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_dir = Path(temp_dir) / "llm"
+            consolidated_dir = Path(temp_dir) / "consolidated"
+            source_dir.mkdir()
+            consolidated_dir.mkdir()
+            self._write_curriculum(
+                consolidated_dir / "merged_bit_coop_full_corrected.json", "BIT", "coop"
+            )
+
+            with self.assertRaisesRegex(FileNotFoundError, r"llm"):
+                discover_llm_corrected_sources(source_dir)
+
 
 if __name__ == "__main__":
     unittest.main()

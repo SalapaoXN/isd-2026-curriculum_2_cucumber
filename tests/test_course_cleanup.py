@@ -175,7 +175,7 @@ class CourseCleanupTests(unittest.TestCase):
                 )
 
                 result = json.loads(
-                    (output_dir / f"merged_bit_{plan}_full.json").read_text(
+                    (output_dir / "bit" / plan / "full" / f"merged_bit_{plan}_full.json").read_text(
                         encoding="utf-8"
                     )
                 )
@@ -347,7 +347,13 @@ class CourseCleanupTests(unittest.TestCase):
             )
 
             result = json.loads(
-                (output_dir / "merged_it_no_coop_full.json").read_text(encoding="utf-8")
+                (
+                    output_dir
+                    / "it"
+                    / "no_coop"
+                    / "full"
+                    / "merged_it_no_coop_full.json"
+                ).read_text(encoding="utf-8")
             )
 
         self.assertEqual(result["plan"], "no_coop")

@@ -16,6 +16,7 @@ from rag.retrieval.index import (
     DEFAULT_INDEX_NAME,
     ensure_index,
     index_path_for_source,
+    llm_source_paths,
     query_index,
 )
 
@@ -54,6 +55,28 @@ class RagIndexTest(unittest.TestCase):
             expected_directory / DEFAULT_INDEX_NAME,
         )
         self.assertNotIn("rag_artifacts", str(ARTIFACTS_DIR))
+
+    def test_llm_source_discovery_ignores_logs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source_dir = Path(directory)
+            corrected = source_dir / "one_corrected.json"
+            corrected.write_text("{}", encoding="utf-8")
+            (source_dir / "one_corrections.json").write_text("[]", encoding="utf-8")
+
+            with patch.object(index_module, "_LLM_DIR", source_dir):
+                self.assertEqual(llm_source_paths(), [corrected])
+
+    def test_llm_source_discovery_rejects_zero_files_without_consolidated_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source_dir = Path(directory) / "llm"
+            consolidated_dir = Path(directory) / "consolidated"
+            source_dir.mkdir()
+            consolidated_dir.mkdir()
+            (consolidated_dir / "one_corrected.json").write_text("{}", encoding="utf-8")
+
+            with patch.object(index_module, "_LLM_DIR", source_dir):
+                with self.assertRaisesRegex(FileNotFoundError, r"LLM-corrected"):
+                    llm_source_paths()
 
     def test_combines_sources_and_persists_chunk_metadata_and_fingerprints(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -350,6 +373,19 @@ class RagIndexTest(unittest.TestCase):
                 [source_a, source_b],
                 index_path=default_index_path,
             )
+
+    def test_build_index_cli_defaults_to_llm_corrected_sources(self):
+        sources = [Path("outputs/llm/one_corrected.json")]
+        default_index_path = ARTIFACTS_DIR / DEFAULT_INDEX_NAME
+        with patch(
+            "rag.build_index.llm_source_paths", return_value=sources
+        ), patch(
+            "rag.build_index.ensure_index", return_value=default_index_path
+        ) as ensure:
+            with redirect_stdout(io.StringIO()):
+                build_index_main([])
+
+        ensure.assert_called_once_with(sources, index_path=default_index_path)
 
     def test_cli_loads_dotenv_before_embedding_index_starts(self):
         events = []

@@ -1,0 +1,1742 @@
+{
+    "source": "OCR extraction / Academic Plan - BIT coop",
+    "description": "OCR-extracted curriculum records for BIT (plan coop)",
+    "program": "BIT",
+    "plan": "coop",
+    "total_courses": 63,
+    "courses": [
+        {
+            "code": "06036100",
+            "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
+            "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_238_ocr.json",
+                    "source_page": 238,
+                    "document_category": "description",
+                    "document_page": 233
+                }
+            ],
+            "desc_th": "แนะ\nนำเทคโนโลยีสารสนเทศ องค์ประกอบของระบบคอมพิวเตอร์ โปรแกรมและแอปพลิเคชัน\nภาพรวมการทำงานของระบบปฏิบัติการ การแทนและจัดการข้อมูลฺฐานข้อมูล ฺการพัฒนาระบบ เครื่องมือใน\nการพัฒนาแอปพลิเคชัน การสื่อสารดิจิทัล ความปลอดภัย ฺจริยธรรม และความเป็นส่วนตัวทางดิจิทัล",
+            "desc_en": "INTRODUCTION TO INFORMATION TECHNOLOGY., COMPONENTS OF COMPUTER SYSTEM, PROGRAMS\nAND  APPLICATIONS,\nOVERVIEW  OF OPERATING SYSTEMS, DATA  REPRESENTATION\nAND  MANAGEMENT,\nDATABASE, SYSTEM  DEVELOPMENT, APPLICATION  DEVELOPMENT TOOLS, DIGITAL  COMMUNICATIONS,\nDIGITAL SECURITY., ETHICS, AND PRIVACY."
+        },
+        {
+            "code": "06036101",
+            "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
+            "name_en": "MATHEMATICS FOR BUSINESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_238_ocr.json",
+                    "source_page": 238,
+                    "document_category": "description",
+                    "document_page": 233
+                }
+            ],
+            "desc_th": "ฟังก์ชันเชิงเส้นและไม่เชิงเส้น ซึ่งรวมถึงฟังก์ชันต้นทุน ฺฟังก์ชันรายรับ ฟังก์ชันอุปสงค์และอถปทาน\nการแก้ระบบสมการเชิงเส้น คณิตศาสตร์ที่เกี่ยวข้องกับการเงิน เช่น ดอกเบี้ยเชิงเดี่ยวดอกเบี้ยทบต้น มูลค่า\nของเงินตามเวลา อนุพันธ์เละอนุพันธ์ย่อยของฟังก์ชัน และบทประยุกต์ทางธุรกิจ กำหนดการเชิงเส้น และ\nพืชคณิตเมทริกซ์ ซึ่งประกอบด้วย การดำเนินการเกี่ยวกับเลขคณิตฺการคูณ ตัวผกผัน และการหาผลเฉลยของ\nระบบสมการโดยใช้ ตัวผกผัน การดำเนินการตามแถว และกฎคาร์เมอร์\nโดยหัวข้อทั้งหมดอาจถูกเสริมด้วย\nโปรแกรมคำนวณทางคณิตศาสตร์",
+            "desc_en": "THE\nLINEAR\nAND\nNON-LINEAR FUNCTIONS INCLUDING\nCOST, REVENUE, PROFIT,  DEMAND  AND\nSUPPLY., SOLVING LINEAR SYSTEMS OF EQUATIONS, MATHEMATICS OF FINANCE INCLUDING SIMPLE AND\nCOMPOUND INTEREST, TIME VALUE OF MONEY., DERIVATIVES AND PARTIAL DIFERENTIATION, INTEGRATION\nAND\nAPPLICATIONS IN  BUSINESS, LINEAR  PROGRAMMING AND\nMATRIX ALGEBRA  INCLUDING  ARITHMETIC\nOPERATIONS,\nMATRIX  MULTIPLICATION, INVERSE\nMATRICES,\nSOLVE  SYSTEMS  OF EQUATIONS\nBY\nUSING\nINVERSE,\nROW\nOPERATION  AND  CRAMER'S\nRULE\nTOPICS  MAY\nBE  SUPPLEMENTED\nWITH  SOFTWARE\nAPPLICATIONS."
+        },
+        {
+            "code": "06036118",
+            "name_th": "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
+            "name_en": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_246_ocr.json",
+                    "source_page": 246,
+                    "document_category": "description",
+                    "document_page": 241
+                }
+            ],
+            "desc_th": "และหลักการแก้ปัญหา การคิดเชิงคำนวณ การคิดแบบขั้นตอนวิธี ผังงาน แนวคิดและ\nหลักการสร้างโปรแกรมคอมพิวเตอร์เบื้องต้น",
+            "desc_en": "PROBLEM\nSOLVING\nSTRATEGIES\nAND\nCONCEPTS,  COMPUTATIONAL  THINKING,  ALGORITHMIC\nTHINKING, FLOWCHART, CONCEPTS AND INTRODUCTION TO COMPUTER PROGRAMMING."
+        },
+        {
+            "code": "96641001",
+            "name_th": "โรงเรียนสร้างเสน่ห์",
+            "name_en": "CHARM SCHOOL",
+            "credits": "2(1-2-3)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "96641003",
+            "name_th": "กีฬาและนันทนาการ",
+            "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
+            "credits": "1(0-3-2)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "96644007",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+            "name_en": "FOUNDATION ENGLISH 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "96644042",
+            "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
+            "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_031_ocr.json",
+                    "source_page": 31,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036102",
+            "name_th": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ",
+            "name_en": "STATISTICAL ANALYSIS FOR BUSINESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_239_ocr.json",
+                    "source_page": 239,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "สถิติในงานธุรกิจ\nแนวคิดพื้นฐานทางสถิติ วิธีการวัดข้อมูล แผนภูมิและกราฟ การกระจายความถี่\nกราฟข้อมูลเชิงปริมาณและเชิงคุณภาพ เกราฟข้อมูลสองตัวแปร แผนภาพกระจาย สถิติพรรณนา การวัด\nแนวโน้มสู่ศูนย์กลาง การวัดความแปรปรวน การวัดรูปทรง การแจกแจงและการสุ่มตัวอย่างการแจกแจงแบบ\nไม่ต่อเนื่องและต่อเนื่อง การแจกแจงทวินาม การกระจายปัวชอง การแจกแจงยูนิฟอร์ม ฺการแจกแจงแบ\nแนวคิดพื้นฐานของการทดสอบสมมติ\nติ\n`ฐานทางสถิติสำหรับธุรกิจ ฺสถิติ Z สถิติ T สถิติ F\nแนวคิดพื้นฐานของการ\nประมาณแบบช่วงและความเชื่อมั่น ในประชากรหนึ่งและสองประชากร การออกแบบการทดลองสำหรับการ\nทดสอบสมมติฐานทางธุรกิจ ฺการถดถอยเชิงเส้นแบบง่ายและพหุคูณฺการฝึกปฏิบัติกับซอฟต์แวร์ทางสถิติ\nสำหรับสถิติเชิงพรรณนาและเชิงอนุมาน",
+            "desc_en": "STATISTICS IN BUSINESS, BASIC STATISTICAL CONCEPTS, DATA MEASUREMENT, CHARTS AND GRAPHS,\nFREQUENCY DISTRIBUTIONS, QUANTITATIVE AND  QUALITATIVE DATA\nTWO VARIABLE DATA  GRAPHS,\nSCATTER  PLOTS, DESCRIPTIVE\nSTATISTICS,\nMEASURES  OF CENTRAL  TENDENCY,\nMEASURES  OF VARIABILITY,\nMEASURES OF SHAPE, DISTRIBUTIONS AND SAMPLING, DISCRETE AND CONTINUOUS DISTRIBUTIONS, BINOMIAL\nDISTRIBUTION., POISSON DISTRIBUTION, UNIFORM DISTRIBUTION, NORMAL DISTRIBUTION., BASIC CONCEPTS OF\nSTATISTICAL HYPOTHESIS TESTING FOR BUSINESS, Z STATISTICS, T-STATISTICS,  F STATISTICS, BASIC CONCEPTS OF\nINTERVAL ESTIMATION AND CONFIDENCE INTERVALS IN ONE AND TWO POPULATIONS, EXPERIMENTAL DESIGN\nFOR BUSINESS HYPOTHESIS TESTING, SIMPLE AND MULTIPLE LINEAR REGRESSION., STATISTICAL SOFTWARE TOOL\nPRACTICES FOR DESCRIPTIVE AND INFERENTIAL STATISTICS."
+        },
+        {
+            "code": "06036109",
+            "name_th": "กระบวนการและโมเดลทางธุรกิจ",
+            "name_en": "BUSINESS PROCESSES AND BUSINESS MODELS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_242_ocr.json",
+                    "source_page": 242,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "พื้นฐานของกระบวนการทางธุรกิจ องค์ประกอบพื้นฐานของวัฏจักรธุรกิจ ฺรูปแบบต่างๆของโมเดล\nธุรกิจ เทคนิคช่วยออกแบบโมเดลธุรกิจ กระบวนการออกแบบโมเดลธุรกิจเพื่อช่วยในการออกแบบโมเดล\nธุรกิจ!เพื่อช่วยในการออกแบบโมเดลธุรกิจที่เป็นนวัตกรรมใหม่ โดยเชื่อมโยงแนวคิด เทคนิค และเครื่องมือ\nทั้งหมดในการสร้างโมเดลธุรกิจ ฺกรณีศึกษาโมเดลธุรกิจต่างๆ ตัวอย่างโมเดลธุรกิจสตาร์ทอัพที่ประสบ\nความสำเร็จ",
+            "desc_en": "THE THE FUNDAMENTALS OF BUSINESS PROCESSES, THE BASIC ELEMENTS OF THE BUSINESS\nCYCLES, BUSINESS\nMODEL PATTERNS, TECHNIQUES TO HELP DESIGN  BUSINESS MODELS, BUSINESS\nMODEL DESIGN PROCESS TO HELP DESIGN INNOVATIVE BUSINESS MODELS, TYING TOGETHER ALL THE\nCONCEPTS, TECHNIQUES,\nAND\nTOOLS\nIN  BUILDING\nBUSINESS\nMODEL,\nCASE\nSTUDIES  OF\nSEVERAL\nBUSINESS MODELS, EXAMPLES OF SUCCESSFUL STARTUP BUSINESS MODELS."
+        },
+        {
+            "code": "06036119",
+            "name_th": "พื้นฐานการเขียนโปรแกรม",
+            "name_en": "PROGRAMMING FUNDAMENTALS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_246_ocr.json",
+                    "source_page": 246,
+                    "document_category": "description",
+                    "document_page": 241
+                }
+            ],
+            "desc_th": "แนวคิดพื้นฐานของการเขียนโปรแกรม\nตัวแปร นิพจน์ และคำสั่ง เงื่อนไขและการเรียกซ้ำฟังก์ชัน\nและค่าที่ส่งกลับ ฺการวนซ้ำและสตริง, การเก็บรวบรวมข้อมูล, การจัดการไฟล์., กรณีศึกษา",
+            "desc_en": "FUNDAMENTAL  CONCEPTS\nOR\nPROGRAMMING, VARIABLES, EXPRESSIONS, AND  STATEMENTS,\nCONDITIONALS\nAND\nRECURSION,\nFUNCTIONS\nAND\nRETURN  VALUES,\nITERATION\nAND\nSTRINGS,\nDATA\nCOLLECTIONS, FILES, CASE STUDIES."
+        },
+        {
+            "code": "06036125",
+            "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
+            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEMS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_248_ocr.json",
+                    "source_page": 248,
+                    "document_category": "description",
+                    "document_page": 243
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_249_ocr.json",
+                    "source_page": 249,
+                    "document_category": "description",
+                    "document_page": 244
+                }
+            ],
+            "desc_th": "วิวัฒนาการของคอมพิวเตอร์,\nพื้นฐานความรู้เกี่ยวกับคอมพิวเตอร์, การคำนวณทางคณิตศาสตร์ ใน\nคอมพิวเตอร์, ข้อมูลและการส่งข้อมูล, ฺสถาปัตยกรรมของหน่วยความจำบัสและหน่วยความจำเคช, การ\nเชื่อมต่อและการสื่อสาร, โครงสร้างของหน่วยประมวลผล, การคำนวณแบบขนานและไปทไลน์, เทคโนโลยี\nของไมโครโพรเซสเ\nอินเตอร์รัพท์, การทำดีเอ็มเอ, โปรแกรมอินพทเอาต์พุต, ระบบปฏิบัติการ, โปรเซส\nและ เทรด, การจัดการหน่วยความจำของระบบปฏิบัติการ, การจัดการไฟล์",
+            "desc_en": "COMPUTER  EVOLUTION,\nBASIC  COMPUTER  KNOWLEDGE,\nMATHEMATICAL\nCALCULATION\nIN\nCOMPUTER., DATA PRESENTATION AND TRANSFERENCE, ARCHITECTURE OF MEMORY UNIT, BUS AND CACHE,\nCONNECTION AND COMMUNICATION., STRUCTURE OF CENTRAL  PROCESSING UNIT, PARALLEL COMPUTING\nAND  PIPELINE,  MICROPROCESSOR  TECHNOLOGY,  INTERRUPT,\nDMA,\nTHE  PROGRAM\nVO, OPERATING\nSYSTEM., PROCESS AND THREAD., MEMORY MANAGEMENT AND FILE SYSTEM."
+        },
+        {
+            "code": "96644008",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+            "name_en": "FOUNDATION ENGLISH 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "96641002",
+            "name_th": "ความฉลาดทางดิจิทัล",
+            "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036103",
+            "name_th": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ",
+            "name_en": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_239_ocr.json",
+                    "source_page": 239,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_240_ocr.json",
+                    "source_page": 240,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ข้อมูลและสถิติ ฺการประยุกต์ใช้สถิติในธุรกิจและเศรษฐศาสตร์ สถิติสำหรับข้อมูลขนาดใหญ่และการ\nทำเหมืองข้อมูล ฺการคลีนข้อมูล แผนภาพตารางและกราฟ การสร้างแดชบอร์ด แนวทางปฏิบัติในการสร้าง\nภาพข้อมูล ฺมาตรวัดเชิงตัวเลข ฺการแจกแจงตัวแปรสุ่ม การแจกแจงแบบสองตัวแปร ความแปรปรวนร่วม และ\nสหสัมพันธ์แบบเพียร์สัน การวิเคราะห์และตีความการถดถอยพหุคณฺการพยากรณ์ การวิเคราะห์แนวโน้ม การ\nแตกตัวแปรฤดูกาล อัตถดถอย และอัตสหสัมพันธ์ การวิเคราะห์ข้อมูลทหมวดหมู่ สถิติไร้พารามิเตอร์ การ\nทดสอบอันดับวิลค็อกซัน สหสัมพันธ์แบบสเปียร์แเมน ฺการวิเคราะห์การตัดสินใจทางธุรกิจ ฺการตัดสินใจภายใต้\nความไม่แน่นอนและความเสี่ยง การประยุกต์ใช้เทคนิคทางสถิติกับกรณีศึกษาทางธุรกิจและการเงิน แนวปฏิบัติ\nชิงสถิติในการตัดสินใจทางธุรกิจ",
+            "desc_en": "DATA AND STATISTICS, APPLICATIONS IN BUSINESS AND ECONOMICS, STATISTICS IN BIG DATA AND\nDATA MINING, DATA CLEANING, TUBULAR AND GRAPHICAL DISPLAYS, DATA DASHBOARDS, DATA VISUALIZATION\nBEST  PRACTICES,\nNUMERICAL  MEASURES,\nRANDOM\nVARIABLE  DISTRIBUTIONS,\nBIVARIATE  DISTRIBUTIONS,\nCOVARIANCE\nAND\nPEARSON\nCORRELATION,\nMULTIPLE\nREGRESSION\nANALYSIS\nAND\nINTERPRETATION,\nFORECASTING,\nTREND\nANALYSIS,\nSEASONAL  DECOMPOSITION,\nAUTOREGRESSION\nAND\nAUTOCORRELATION,\nANALYSIS OF CATEGORICAL DATA, NON PARAMETRIC STATISTICS, WILCOXON SIGNED RANK TEST, SPEARMAN'S\nRANK CORRELATION., BUSINESS DECISION ANALYSIS, DECISION UNDER UNCERTAINTY AND RISK, APPLICATIONS\nOF  STATISTICAL  TECHNIQUES\nTO  BUSINESS\nAND  FINANCIAL\nCASES, ETHICAL  GUIDELINES\nFOR  STATISTICAL\nPRACTICE IN BUSINESS DECISION MAKING."
+        },
+        {
+            "code": "06036104",
+            "name_th": "องค์กรและการจัดการ",
+            "name_en": "MANAGEMENT AND ORGANIZATIONS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_240_ocr.json",
+                    "source_page": 240,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ภาคทฤษฎีและภาคปฏิบัติสำหรับการบริหารจัดการองค์กร ความเป็นผู้นำการพัฒนากลยุทธ์ทาง\nพฤติกรรมองค์กร โครงสร้างองค์กร การจัดการทรัพยากรมนุษย์ การเปลียนแปลงในองค์กร องค์กร\nสมัยใหม่\nในยุคดิจิทัล",
+            "desc_en": "THEORY AND PRACTICE OF ORGANIZATIONAL MANAGEMENT, LEADERSHIP, BUSINESS\nSTRATEGY  DEVELOPMENT,  ORGANIZATIONAL\nBEHAVIOR,  ORGANIZATIONAL  STRUCTURE,\nHUMAN\nRESOURCE\nMANAGEMENT, ORGANIZATIONAL CHANGE, ORGANIZATION IN DIGITAL AGE.\nภาคทฤษฎีและภาคปฏิบัติสำหรับการบริหารจัดการองค์กร ความเป็นผู้นำการพัฒนากลยุทธ์ทาง\nพฤติกรรมองค์กร โครงสร้างองค์กร การจัดการทรัพยากรมนุษย์ การเปลียนแปลงในองค์กร องค์กร\nสมัยใหม่ในยุคดิจิทัล\nTHEORY AND PRACTICE OF ORGANIZATIONAL MANAGEMENT, LEADERSHIP, BUSINESS\nSTRATEGY  DEVELOPMENT,  ORGANIZATIONAL  BEHAVIOR,  ORGANIZATIONAL  STRUCTURE,\nHUMAN\nRESOURCE\nMANAGEMENT, ORGANIZATIONAL CHANGE, ORGANIZATION IN DIGITAL AGE."
+        },
+        {
+            "code": "06036105",
+            "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
+            "name_en": "FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_240_ocr.json",
+                    "source_page": 240,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความ รู้เบื้องต้นในการทำบัญชีในธุรกิจ โดยเน้นที่หลักการพื้นฐานและการปฏิบัติของบัญชีการเงิน\nการแยกแยะ\nวิเคราะห์ บันทึก และผ่านรายการ ธุรกรรมทางธุรกิจ รวมถึงกระบวนการปรับปรุง การจัดทำ\nงบการเงิน และกระบวนการปิด\nเพื่อทำให้วงจรการบัญชีสมบูรณ์ การบันทึกและวิเคราะห์การบัญชีสำหรับ\nกิจการที่ขายสินค้า สินค้าคงคลัง ทรัพย์สิน ฺหนี้สิน ทุน ฺและกระแสเงินสดฺการวิเคราะห์งบการเงินเบื้องต้น",
+            "desc_en": "INTRODUCTION TO ACCOUNTING IN BUSINESS, SPECIFICALLY, THE BASIC PRINCIPLES AND PRACTICE\nOF FINANCIAL  ACCOUNTING. LDENTIFYING, ANALYZING,  RECORDING AND POSTING BUSINESS TRANSCTION\nINCLUDING ADJUSTING PROCESS, PREPARING FINANCIAL STATEMENTS AND CLOSING PROCESS TO COMPLET\nACCOUTING CYLCE. ACCOUNTING SYSTEM.  REPORTING AND\nANALYZING  MERCHANDISING OPERATIONS,\nINVENTORIES, ASSETS, LIABILITIES, EQUITY AND CASH FLOWS. BASIC FINANCIAL STATEMENT ANALYSIS."
+        },
+        {
+            "code": "06036117",
+            "name_th": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่",
+            "name_en": "BUSINESS INTELLIGENCE AND BIG DATA",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_245_ocr.json",
+                    "source_page": 245,
+                    "document_category": "description",
+                    "document_page": 240
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_246_ocr.json",
+                    "source_page": 246,
+                    "document_category": "description",
+                    "document_page": 241
+                }
+            ],
+            "desc_th": "ธุรกิจอัจฉริยะ (BUSINESS INTELLIGENCE) และส่วนประกอบของมัน ข้อมูลขนาดใหญ่ (BIG DATA)\nและการวิเคราะห์ข้อมูลขนาดใหญ่ (BIG DATA ANALYTICS) ลักษณะเฉพาะ 5",
+            "desc_en": "VOLUME\nลมหาศาล ฺขนาดใหญ่) VARIETY (\nรูปแบบที่ไม่แน่นอน) VELOCITY (เข้อมูลที่จะต้องวิเคราะห์เข้าสู่ระบบฐานข้อมูลอย่างรวดเร็ว\nความสำคัญกับข้อมูลที่เป็น\nREAL\nTIME) VERACITY (ความถูกต้อง ครบถ้วนของข้อมูล) และ VALUE\nที่สามารถนำมาใช้งานได้จริง) การทำคลังข้อมูล (DATA WAREHOUSING) การทำเหมืองข้อมูล (DATA MINING)\nการวิเคราะห์ ข้อมูลขนาดใหญ่ (BIG DATA ANALYTICS) การทำรายงานเชิงวิเคราะห์ (ANALYTICAL REPORTING)\nการแสดงผลข้อมูล (DATA VISUALIZATION)\nBUSINESS INTELLIGENCE  (BI) AND\nITS  COMPONENTS, BIG\nDATA\nAND  BIG\nDATA ANALYTICS,\nFOCUSING ON TECHNOLOGIES, WHICH ALLOW BUSINESS USERS TO GATHER., STORE, ACCESS AND ANALYZE\nBIG DATA TO IMPROVE THE BUSINESS DECISION MAKING CAPABILITIES, CHARACTERISTICS OF\nDATA:\nVOLUME, VARIETY., VELOCITY, VERACITY AND VALUE, DATA  WAREHOUSING, DATA  MINING  (BIG  DATA\nANALYTICS), ANALYTICAL REPORTING, DATA VISUALIZATION."
+        },
+        {
+            "code": "06036120",
+            "name_th": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
+            "name_en": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_246_ocr.json",
+                    "source_page": 246,
+                    "document_category": "description",
+                    "document_page": 241
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_247_ocr.json",
+                    "source_page": 247,
+                    "document_category": "description",
+                    "document_page": 242
+                }
+            ],
+            "desc_th": "ชนิดของข้อมูล โครงสร้างข้อมูลและชนิดข้อมูลแบบนามธรรม ฺโครงสร้างข้อมูลพื้นฐาน เช่น ลิสต์\nสแต็ก และคิว\nโครงสร้างข้อมูลแบบพลวัต คำศัพท์[เฉพาะเกี่ยวกับทรี ไขนารีทรี ไบนารีเสิร์ชทรี เอวีแอลท\nรี กราฟ การวิเคราะห์โปรแกรมเชิงเวลาและพื้นที่ อัลกอริทึมการเรียงลำดับและค้นหาข้อมูล อัลกอริทึม\nแบบละโมภ อัลกอริทึมแบบแบ่งเพื่อเอาชนะ อัลกอริทึมเกี่ยวกับกราฟ และการเขียนโปรแกรมพลวัต",
+            "desc_en": "DATA TYPES, DATA STRUCTURES AND ABSTRACT DATA TYPES, BASIC DATA STRUCTURES, (E.G. LIST,\nSTACK AND QUEUE) DYNAMIC DATA STRUCTURES, TERMINOLOGY OFTREES, BINARY TREES, BINARY SEARCH\nTREES, AVL TREES,  GRAPH, TIME\nAND\nSPACE  ANALYSIS  OF  PROGRAMS, SORTING\nAND  SEARCHING\nALGORITHMS,  GREEDY  ALGORITHM,  DIVIDE-AND CONQUER  ALGORITHMS,  GRAPH  ALGORITHMS,\nAND\nDYNAMIC PROGRAMMING."
+        },
+        {
+            "code": "06036122",
+            "name_th": "การสื่อสารด้วยภาพสำหรับธุรกิจ",
+            "name_en": "VISUAL COMMUNICATION FOR BUSINESS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_032_ocr.json",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_247_ocr.json",
+                    "source_page": 247,
+                    "document_category": "description",
+                    "document_page": 242
+                }
+            ],
+            "desc_th": "แนะนำระบบ.สื่อประสม ประเภทของข้อมูลสื่อประสม ฺอาทิชเช่น ภาพถ่าย ภาพกราฟิกแบบสเกลาร์\nและแบบเวกเตอร์ ภาพแบบจำลอง\n3 มิติ เสียง และวีดีโอ การสร้างสื่อประสม  อุปกรณ์.เก็บข้อมูลสื่อ\nประสม\nการนำเสนอข้อมูลสื่อประสมฺการประยุกต์ใช้งานสื่อประสม",
+            "desc_en": "INTRODUCTION TO MULTIMEDIA SYSTEMS, TYPES FOR MULTIMEDIA DATA SUCH\nAS\nPHOTOS,\nSCALAR AND VECTOR\nSRAPHICS,\n3D\nMODELS,\nAUDIO\nAND\nVIDEO,\nCREATION\nOF\nMULTIMEDIA,\nMULTIMEDIA FILE FORMAT, MULTIMEDIA DATA STORAGE DEVICES, MULTIMEDIA DATA PRESENTATION,\nAPPLICATIONS OF MULTIMEDIA."
+        },
+        {
+            "code": "06036108",
+            "name_th": "เศรษฐศาสตร์เทคโนโลยีสารสนเทศ",
+            "name_en": "ECONOMICS OF INFORMATION TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_242_ocr.json",
+                    "source_page": 242,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "หลักการเศรษฐศาสตร์ เบืองต้น แนวคิดและทฤษฎีเกียวกับกระบวนน\nตกรรมและการ\nเปลียนแปลงเทคโนโลยี ตลาดเทคโนโลยีสารสนเทศ การประเมินการลงทุนทางด้านเทคโนโลยีสารสนเทศ\nผลกระทบของการพัฒนาและการเปลี่ยนแปลงเทคโนโลยีต่อการพัฒนาเศรษฐกิจและอุตสาหกรรม ฺการจ้าง\nงาน\nการเจริญเติบโตของธุรกิจ ผลิตภาพ การถ่ายทอดเทคโนโลยี การวิจัยและพัฒนาการปรับตัวเข้าสู่\nเงคมสารสนเทศ",
+            "desc_en": "FUNDAMENTAL  ECONOMIC  PRINCIPLES, ECONOMIC THEORIES\nAND  CONCEPTS  RELATING TO\nINNOVATION  PROCESS AND TECHNICAL CHANGE., INFORMATION TECHNOLOGY MARKET, EVALUATION OF\nINFORMATION TECHNOLOGY INVESTMENT, IMPLICATIONS OF INFORMATION TECHNOLOGY ON ECONOMIC\nAND\nINDUSTRIAL  DEVELOPMENT,  EMPLOYMENT,  BUSINESS  GROWTH,  PRODUCTIVITY.,  TECHNOLOGY\nTRANSFER., RESEARCH AND DEVELOPMENT, SOCIAL TRANSFORMATION OF INFORMATION AGE."
+        },
+        {
+            "code": "06036111",
+            "name_th": "เทคโนโลยีดิจิทัลสำหรับธุรกิจ",
+            "name_en": "DIGITAL TECHNOLOGY FOR BUSINESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_243_ocr.json",
+                    "source_page": 243,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความรู้|พื้นฐานในเทคโนโลยีบัจจุบันที่กำลังถูกใช้ในภาคธุรกิจ, ความรู้เบื้องต้นเกี่ยวกับการ\nประมวลผลบนระบบคลาวด์ ข้อมูลขนาดใหญ่ ปัญญาประดิษฐ์การค้นคืนข้อมูลสารสนเทศ เว็บ และ\nสื่อสั่งคม ฺซึ่งนำไปส่ การทำการเปลี่ยนแปลงทางดิจิทัล วิธีปฏิบัติที่นิยมในปัจจุบัน แนวโน้มในอนาคต\nและ.\nผลกระทบต่อธุรกิจ",
+            "desc_en": "FOUNDATIONAL KNOWLEDGE IN RECENT TECHNOLOGIES USED IN BUSINESS, INTRODUCTION\nTO\nCLOUD\nCOMPUTING,\nBIG\nDATA,\nARTIFICIAL\nINTELLIGENCE,\nINFORMATION\nRETRIEVAL,\nRECOMMENDATION SYSTEM, WEB AND SOCIAL MEDIA, LEADING TO DIGITAL TRANSFORMATION.\nCURRENT PRACTICES, FUTURE TRENDS AND BUSINESS IMPACT."
+        },
+        {
+            "code": "06036112",
+            "name_th": "แนวคิดระบบฐานข้อมูล",
+            "name_en": "DATABASE SYSTEM CONCEPTS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_243_ocr.json",
+                    "source_page": 243,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_244_ocr.json",
+                    "source_page": 244,
+                    "document_category": "description",
+                    "document_page": 239
+                }
+            ],
+            "desc_th": "แนะ\nนำฐานข้อมูลและระบบ จัดการฐานข้อมู=\nล\nแบบจำลองสำหรับฐานข้อมูลและ\nสถาปัตยกรรมฐานข้อมูล แบบจำลองฐานข้อมูลเชิงสัมพันธ์ ความซ้ำซ้อนของข้อมูลและปัญหาที่เกิด\nจากความข้ำซ้อนของฐานข้อมูลการทำฐานข้อมูลให้อยู่ในรูปแบบที่พร้อมใช้งานในระดับต่างๆ ตั้งแต่",
+            "desc_en": "1NF 5NF\nและการแปลงรูปเป็นฐานข้อมูลเชิงสัมพันธ์\nกรณีศึกษาการออกแบบฐานข้อมูล การเขียนโปรแกรมด้วยภาษาฐานข้อมูล เอสคิวแอลขันต้นจนถึงขัน\nINTRODUCTION\nTO\nDATABASE\nAND\nDBMS,\nDATABASE\nMODELS,\nDATABASE\nSYSTEM\nARCHITECTURE,\nRELATIONAL  DATABASE\nMODEL,\nDATA  REDUNDANCY\nAND\nRELATED  PROBLEMS,\nNORMALIZATION STEPS AND NORMALIZATION LEVELS FROM INF-5NF, ENTITY RELATIONSHIP MODEL.,\nTHE  ENTITY  RELATIONSHIP\nMODEL\nAND  TRANSFORMATION\nFROM\nER  DIAGRAMS\nTO  RELATIONAL\nDATABASE STRUCTURE,\nDATABASE DESIGN\nCASE\nSTUDIES, STRUCTURED QUERY LANGUAGE (SOL)\nPROGRAMMING FROM BASIC TO ADVANCED LEVEL."
+        },
+        {
+            "code": "06036113",
+            "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
+            "name_en": "HUMAN INTERFACE DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_244_ocr.json",
+                    "source_page": 244,
+                    "document_category": "description",
+                    "document_page": 239
+                }
+            ],
+            "desc_th": "หลักการออกแบบโดยมี ผู้\nเช้เป็นศูนย์กลาง\nกระบวนการออกแร\nบบส่วนต่อประสานกับผู้ใช้และ\nประสบการณ์ สำหรับผู้ ใช้ การวิเคราะห์ผู้ ใช้และการวิเคราะห์งาน ความต้องการด้านการใช้ประโยชน์ได้\nปัจจัยที่เกี่ยวกับมนุษย์และหลักการทางจิตวิทยาสำหรับการออกแบบส่วนต่อประสานกับผู้ ใช้ แบบจำลอง\nการปฏิสัมพันธ์ รูปแบบของการปฏิสัมพันธ์ หลักการและข้อแนะนำในการออกแบบ เทคนิคการประเมินผล\nข้อแนะนำพื้นฐานในการออกแบบสำหรับเว็บและแอพลิเคชันบนอุปกรณ์แบบพกพาได้ เครื่องมือในการ\nสร้างต้นแบบ เทคโนโลยีอินพุทและเอาท์พุทสำหรับการปฏิสัมพันธ์กับมนุษย์",
+            "desc_en": "PRINCIPLES\nOF  USER-CENTERED  DESIGN,\nUSER\nINTERFACE\nAND\nUSER\nEXPERIENCE  DESIGN\nPROCESS,\nUSER AND TASK ANALYSIS, USABILITY REQUIREMENTS, HUMAN FACTORS AND PSYCHOLOGICAL\nPRINCIPLES FOR USER INTERFACE DESIGN., INTERACTION MODELS, INTERACTION STYLES, DESIGN PRINCIPLES\nAND\nSUIDELINES,\nEVALUATION\nTECHNIQUES,\nBASIC\nDESIGN  GUIDELINES\nFOR\nAND\nMOBILE\nAPPLICATIONS, PROTOTYPING TOOLS, I/O TECHNOLOGIES FOR HUMAN COMPUTER INTERACTION."
+        },
+        {
+            "code": "06036124",
+            "name_th": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น",
+            "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_248_ocr.json",
+                    "source_page": 248,
+                    "document_category": "description",
+                    "document_page": 243
+                }
+            ],
+            "desc_th": "แนวคิดเกี่ยวกับเครือข่ายคอมพิวเตอร์และความมั่นคงปลอดภัยไชเบอร์พื้นฐาน, การเชื่อมโยง\nเครือข่ายและอินเทอร์เน็ต, หลักการสื่อสาร, สถาปัตยกรรมเครือข่ายและแอพลิเคชัน, แอพลิเคชันและ\nบริการบนเครือข่าย, ภัยและการโจมตีทางไซเบอร์, เช่องโหว่และความเสี่ยง, เพื้นฐานมัลแวร์, เครื่องมือ\nรักษาความปลอดภัย, การเข้ารหัสลับ, การพิสูจน์ตัวตน, การลงลายเซ็นดิจิทัล, การควบคุมการเข้าถึง,\nความปลอดภัยข้อมูลส่วนบุคคล, กฎหมายและจริยธรรมที่เกี่ยวกับไซเบอร์",
+            "desc_en": "BASIC  COMPUTER\nNETWORKS\nAND\nCYBERSECURITY  CONCEPTS,\nNETWORK\nAND\nINTERNET\nCONNECTIONS, COMMUNICATION  PRINCIPLES, NETWORK AND APPLICATION  ARCHITECTURES, NETWORK\nAPPLICATIONS AND SERVICES,\nTHREATS AND\nATTACKS, VULNERABILITIES AND RISKS, MALWARE\nFUNDAMENTALS,  SECURITY  SAFEGUARDS\nAND  COUNTERMEASURES,  CRYPTOGRAPHY,\nAUTHENTICATION,\nDIGITAL SIGNATURE, ACCESS CONTROL, DATA PRIVACY,\nLAWS AND ETHICS."
+        },
+        {
+            "code": "9664xxxx",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ",
+            "name_en": "GE ELECTIVE COURSE REQUIREMENT 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036107",
+            "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
+            "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_241_ocr.json",
+                    "source_page": 241,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ธรรมชาติและวงจรชีวิตของโครงการ การศึกษาความเป็นไปได้ของโครงการ เทคนิคการเลือก\nโครงการ องค์ความรู้สำหรับการบริหารโครงการ กลุ่มกระบวนการบริหารโครงการ การจัดการขอบเขตของ\nโครงการ การจัดการตารางเวลา การจัดการค่าใช้จ่ายโครงการ การจัดการคุณภาพ การจัดทึมงานและ\nทรพยากร\nการจัดการงานสื่อสาร การจัดการความเสี่ยงการควบคุม โครงการ และประเมินผลโครงการ",
+            "desc_en": "NATURE AND LIFE\nOFINFORMATION TECHNOLOGY (IT) PROJECTS, PROJECT FEASIBILITY, PROJECT\nSELECTION TECHNIQUES, PROJECT MANAGEMENT BODY OF KNOWLEDGE, PM PROCESS GROUPS, PROJECT\nSCOPE\nMANAGEMENT,  PROJECT\nCOST,  PROJECT  SCHEDULING,  QUALITY  MANAGEMENT,\nTEAM\nAND\nRESOURCES MANAGEMENT, COMMUNICATION MANAGEMENT, RISK MANAGEMENT, PROJECT CONTROLLING,\nPROJECT EVALUATION."
+        },
+        {
+            "code": "06036110",
+            "name_th": "การวางแผนทรัพยากรองค์กร",
+            "name_en": "ENTERPRISE RESOURCE PLANNING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_243_ocr.json",
+                    "source_page": 243,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "กระบวนการพื้นฐานที่เกี่ยวข้องกับการวางแผนทรัพยากรองค์กรในธุรกิจ กระบวนการทาง\nกระบวนการได้มาซึ่งทรัพยากร กระบวนการจัดการสินค้าและคลังสินค้า กระบวนการการผลิต และ\nกระบวนการการขายสินค้าหรือบริการ การบูรณาการกระบวนการธุรกิจด้วยระบบวางแผนทรัพยากร\nองค์กร แนวคิดการวางแผนทรัพยากรองค์กร เรียนรู้ทักษะเชิงปฏิบัติในการวางแผนทรัพยากรบนแอพ\nพลิเคชันมาตรฐานของระบบวางแผนทรัพยากรองค์กร",
+            "desc_en": "RELATED BUSINESS PROCESSES IN ERP, ACCOUNTING PROCESS, PROCUREMENT PROCESS,\nINVENTORY AND WAREHOUSE MANAGEMENT PROCESS, PRODUCTION PROCESS, AND ORDER FULFILMENT\nPROCESS, INTEGRATE BUSINESS PROCESSES WITH ENTERPRISE RESOURCE PLANNING (ERP), CONCEPTS OF\nERP, LEARNING PRACTICAL SKILLS ON PLANNING RESOURCES WITH\nA\nSTANDARD APPLICATION OF ERP."
+        },
+        {
+            "code": "06036114",
+            "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
+            "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06036119, 06036122",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_244_ocr.json",
+                    "source_page": 244,
+                    "document_category": "description",
+                    "document_page": 239
+                }
+            ],
+            "desc_th": "การพัฒนาเว็บแอพพลิเคชันด้วยเทคโนโลยีเฟรมเวิร์ก การเชือมต่อฐานข้อมูลด้วยเทคโนโลยี\nOBJECT RELATIONAL MAPPING การสร้าง APL",
+            "desc_en": "WEB APPLICATION DEVELPMENT WITH FRAMEWORK TECHNOLOGY.\nDATABASE CONNECTION\nWITH OBJECT RELATIONAL MAPPING. APPLICATION PROGRAMMING INTERFACE (API) DEVELOPMENT, AND\nFRONT-END DEVELOPMENT."
+        },
+        {
+            "code": "06036121",
+            "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ",
+            "name_en": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_247_ocr.json",
+                    "source_page": 247,
+                    "document_category": "description",
+                    "document_page": 242
+                }
+            ],
+            "desc_th": "เครืองมือและวิธีการสำหรับการพัฒนาระบบสารสนเทศทางธุรกิจ แนวคิดการวิเคราะห์และ\nออกแบบระบบสารสนเบ\nเทศทางธุรกิจในปัจจุบัน แบบจำลองการวิเคราะห์ระบบ แบบจำลองการออกแบบ\nระบบ\nความสำคัญของกระบวนการควบคุมในขั้นตอนการวางแผน วิเคราะห์ จัดสร้าง และทดสอบระบบ\nสารสนเทศทางธุรกิจเพื่อแก้บัญหาการจัดการด้านธุรกิจ กรณีศึกษา",
+            "desc_en": "TOOLS AND METHODOLOGIES FOR BUSINESS INFORMATION SYSTEMS DEVELOPMENT, CURRENT\nCONCEPTS  OF BUSINESS INFORMATION  SYSTEM  ANALYSIS  AND  DESIGN, SYSTEM  ANALYSIS\nMODEL,\nSYSTEM DESIGN MODELS, THE IMPORTANCE OF CONTROL PROCESS DURING THE PLANNING, ANALYSIS,\nDESIGN., IMPLEMENTATION, AND  TESTING  PHASES  OF BUSINESS INFORMATION  SYSTEMS TO  SOLVE\nBUSINESS MANAGEMENT PROBLEMS, CASE STUDIES."
+        },
+        {
+            "code": "06036123",
+            "name_th": "เทคโนโลยีกลุ่มเมฆ",
+            "name_en": "CLOUD TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_248_ocr.json",
+                    "source_page": 248,
+                    "document_category": "description",
+                    "document_page": 243
+                }
+            ],
+            "desc_th": "การแนะนำโครงสร้างของระบบคลาวด์ รูปแบบการให้บริการของระบบคลาวด์ รูปแบบการติด\nระบบคลาวด์ เทคโนโลยีที่ใช้ในการสร้างระบบคลาวด์ การบริหารจัดการระบบคลาวด์. ความปลอดภัย\nสำหรับระบบคลาวด์ และ\nค่าชี้วัดในทางธุรกิจและรูปแบบการคิดค่าบริการของบริการของระบบคลาวด์",
+            "desc_en": "INTRODUCTION\nTO  CLOUD  ARCHITECTURE,\nCLOUD  DELIVERY  MODELS, CLOUD  DEPLOYMENT\nMODELS, CLOUD ENABLING TECHNOLOGY., CLOUD MANAGEMENT, CLOUD SECURITY., AND BUSINESS COST\nMETRICS AND PRICING MODELS FOR CLOUD SERVICES"
+        },
+        {
+            "code": "96644xxx",
+            "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+            "name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION",
+            "credits": "หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_033_ocr.json",
+                    "source_page": 33,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036106",
+            "name_th": "การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่",
+            "name_en": "MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_034_ocr.json",
+                    "source_page": 34,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_241_ocr.json",
+                    "source_page": 241,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ระบบสารสนเทศจากมุมมองทางธุรกิจ ฺความเข้าใจในกิจกรรมทางธุรกิจและความต้องการข้อมูล\nเทคโนโลยีเกิดใหม่ ระบบแอปพลิเคชันเพื่อรองรับความต้องการของผู้มีส่วนได้ส่วนเสียและเพิ่มมูลค่าทาง\nการพัฒนาระบบสารสนเทศ การประเมินและการคัดเลือกระบบสารสนเทศ  INFORMATION SYSTEMS",
+            "desc_en": "FROM\nTHE\nBUSINESS\nVIEW\nUNDERSTANDING  OF ITS\nBUSINESS\nACTIVITIES\nAND\nINFORMATION\nREQUIREMENT, EMERGING TECHNOLOGY., APPLICATION SYSTEMS TO SUPPORT STAKEHOLDERS NEEDS AND\nENHANCE BUSINESS VALUE, INFORMATION SYSTEMS DEVELOPMENT, EVALUATION AND SELECTION.\nระบบสารสนเทศจากมุมมองทางธุรกิจ ความเข้าใจในกิจกรรมทางธุรกิจและความต้องการข้อมูล\nเทคโนโลยีเกิดใหม่ ระบบแอปพลิเคชันเพื่อรองรับความต้องการของผู้มีส่วนได้ส่วนเสียและเพิ่มมูลค่าทาง\nการพัฒนาระบบสารสนเทศ การประเมินและการคัดเลือกระบบสารสนเทศ\nINFORMATION SYSTEMS FROM\nTHE  BUSINESS\nVIEW  POINT  UNDERSTANDING OF ITS  BUSINESS\nACTIVITIES AND INFORMATION REQUIREMENT, EMERGING TECHNOLOGY., APPLICATION SYSTEMS TO SUPPORT\nSTAKEHOLDERS\nNEEDS\nAND\nENHANCE\nBUSINESS\nVALUE,\nINFORMATION  SYSTEMS\nDEVELOPMENT,\nEVALUATION AND SELECTION."
+        },
+        {
+            "code": "06036116",
+            "name_th": "การตลาดเชิงดิจิทัล",
+            "name_en": "DIGITAL MARKETING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_034_ocr.json",
+                    "source_page": 34,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_245_ocr.json",
+                    "source_page": 245,
+                    "document_category": "description",
+                    "document_page": 240
+                }
+            ],
+            "desc_th": "ธุรกิจและการตลาดร่วมสมัย ฺโฆษณา Yออนไลน์และออฟไลน์ในโลกดิจิทัล เช่น โทรทัศน์\nการค้นหา วิดีโอ และโฆษณาบนมือถือ ฯลฯ การโฆษณาดิจิทัลและการจัดการสื่อ\nแคมเปญการสื่อสาร\nการตลาดและการวางแผนการประเมินผล\nเกลยุทธ์แบรนด์ โซเซียลมีเดียสำหรับการจัดการแบรนด์และการ\nโฆษณา",
+            "desc_en": "CONTEMPORARY BUSINESS AND MARKETING, ONLINE AND OFFLINE ADVERTISING IN DIGITAL WORLD.,\nE.G., TELEVISION, DISPLAY., SEARCH., VIDEO, AND MOBILE ADVERTISING, ETC., DIGITAL ADVERTISING AND\nMEDIA MANAGEMENT, MARKETING COMMUNICATIONS CAMPAIGN AND EVALUATION PLANNING,  BRAND\nSTRATEGY., SOCIAL MEDIA FOR BRAND MANAGEMENT AND ADVERTISING."
+        },
+        {
+            "code": "96643021",
+            "name_th": "ผู้ประกอบการสมัยใหม่",
+            "name_en": "MODERN ENTREPRENEURS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_034_ocr.json",
+                    "source_page": 34,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036xxx",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
+            "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4",
+            "credits": "หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_034_ocr.json",
+                    "source_page": 34,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 1",
+            "name_en": "FREE ELECTIVE COURSE 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_034_ocr.json",
+                    "source_page": 34,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036115",
+            "name_th": "ความมั่นคงของระบบสารสนเทศ",
+            "name_en": "INFORMATION SYSTEM SECURITY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_035_ocr.json",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_245_ocr.json",
+                    "source_page": 245,
+                    "document_category": "description",
+                    "document_page": 240
+                }
+            ],
+            "desc_th": "แนวคิดเกียวกับความมันคงปลอดภัยของระบบสารสนเทศ, ช่องโหว ภัย และความเสี่ยง, มัลแวร์,\nความม\nขJันคงปลอดภัยของข้อมูล ฺซอฟต์แวร์ และเครือข่ายเบื้องต้น,\nปลอดภัย, การเข้ารหัสลับ, การจัดการการระบุตัวตน,\nการพิสูจน์ตัวตนและการกำหนดสิทธิ์ , การควบคุม\nการเข้าถึง, ไฟร์วอล์., ระบบจัดการความมันคงปลอดภัยข้อมูลสารสนเทศ",
+            "desc_en": "BASIC\nINFORMATION\nSYSTEM  SECURITY,\nVULNERABILTIES,\nTHREATS,\nAND\nRISK,\nMALWARE,\nINTRODUCTION\nTO  INFORMATION  SECURITY., SOFTWARE  SECURITY,\nAND\nNETWORK  SECURITY., SECURITY\nIMPLEMENTATION, CRYPTOGRAPHY., IDENTITY MANAGEMENT, AUTHENTICATION\nAND  AUTHORIZATION,\nACCESS CONTROL, FIREWALLS, INFORMATION SECURITY MANAGEMENT SYSTEM."
+        },
+        {
+            "code": "96642033",
+            "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
+            "name_en": "LAW FOR NEW GENERATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_035_ocr.json",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036xxx",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่ม วิชาที่ 1-4",
+            "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4",
+            "credits": "หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_035_ocr.json",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 2",
+            "name_en": "FREE ELECTIVE COURSE 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_035_ocr.json",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "9664xxxx",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 2",
+            "name_en": "GE ELECTIVE COURSE REQUIREMENT 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_035_ocr.json",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036147 หรือ 06036148",
+            "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
+            "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+            "credits": "6(0-35-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_035_ocr.json",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_257_ocr.json",
+                    "source_page": 257,
+                    "document_category": "description",
+                    "document_page": 252
+                }
+            ],
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้า\n|นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นตโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่าง\nคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE  ENTERPRISES.\nAFTER\nCOMPLETION.,  STUDENTS\nNEED\nTO  PRESENT  THEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nA COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL INSTITUTES\nAND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. ATER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE."
+        },
+        {
+            "code": "06036126",
+            "name_th": "วิศวกรรมความต้องการ",
+            "name_en": "REQUIREMENT ENGINEERING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การประยุกต์เทคนิคการจัดการความต้องการ การวิเคราะห์ปัญหา การเข้าถึงและเก็บเกี่ยวความ\nJองการจากผู้ทีมีส่วนเกี่ยวข้องการจัดทำเอกสารความต้องการโดยใช้ยูสเคสโมเดล\nนตอนของเอกสารและมาตรฐานการกำหนดระดับของความต้องการ การนิยามระบบ การจัดการ\nขอบเ\n.ขตระบบและความคาดหวัง การกลันกรองความชัดเจนของระบบ การใช้งานคุณลักษณะของความ\nต้องการและติดตามย้อนรอยความต้องการ การบริหารจัดการการเปลี่ยนแปลงความต้องการที่เกิดขึน\nการนำความต้องการมาใช้ดำเนินการต่อในส่วนของการออกแบบ การทดสอบ และการจัดทำเอกสาร\nสำหรับผู้ ใช้งาน",
+            "desc_en": "APPLY REQUIREMENTS MANAGEMENT TECHNIQUES, ANALYZE THE PROBLEM, UNDERSTAND\nSTAKEHOLDER NEEDS, CAPTURE AND DOCUMENT REQUIREMENTS WITH USE-CASE MODELING, DESCRIBE\nA DOCUMENTATION HIERARCHY AND STANDARDS FOR DEFINING LEVELS OF REQUIREMENTS, DEFINE THE\nSYSTEM, MANAGE  SCOPE,\nREFINE THE SYSTEM  DEFINITION,\nUSE\nREQUIREMENT  ATTRIBUTES AND\nTRACEABILITY, MANAGE CHANGING REQUIREMENTS,\nUSE REQUIREMENTS TO DRIVE ONGOING DESIGN,\nTEST, AND USER DOCUMENTATION ACTIVITIES.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_249_ocr.json",
+                    "source_page": 249,
+                    "document_page": 244,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036127",
+            "name_th": "ระบบฐานข้อมูลขั้นสูง",
+            "name_en": "ADVANCED DATABASE SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06036112",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การประมวลผลธุรกรรม\nการกู้คืนธุรกรรมจากความผิดพลาดต่างๆ การจัดลำดับการปฏิบัติงาน\nในธุรกรรม ฺการรักษาความถูกต้องสอดคล้องในระดับต่าง\nการปฏิบัติกิจกรรมฐานข้อมูลในช่วงเวลา\nเดียวกันให้ได้ผลลัพธ์ถูกต้อง ฐานข้อมูลระดับกายภาพและกลไกการเข้าถึงการประมวลคำถามและการ\nเข้าถึงคำตอบอย่างเล็งเลิศ ฺฐานข้อมูลแบบกระจาย ฐานข้อมูลเชิงเวลา การบูรณาการฐานข้อมูลและ\nคลังข้อมูล ฺหัวข้อชั้นสูงในสาขาฐานข้อมูลที่คัดสรรแล้ว",
+            "desc_en": "TRANSACTION  PROCESSING CONCEPTS, TRANSACTION RECOVERY FROM FAILURES, TRANSACTION\nSCHEDULING\nAND\nWEAK  LEVELS  OF CONSISTENCY, CONCURRENCY  CONTROL.,  PHYSICAL.  DATABASES,\nACCESS MECHANISMS, QUERY  PROCESSING AND OPTIMIZATION, DISTRIBUTED\nDATABASE SYSTEMS,\nTEMPORAL  DATABASES,\nDATABASE  INTEGRATION\nAND\nDATA\nWARENOUSES, SELECTED\nADVANCED\nDATABASE TOPICS.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_249_ocr.json",
+                    "source_page": 249,
+                    "document_category": "description",
+                    "document_page": 244
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_250_ocr.json",
+                    "source_page": 250,
+                    "document_category": "description",
+                    "document_page": 245
+                }
+            ]
+        },
+        {
+            "code": "06036128",
+            "name_th": "การเรียนรู้ของเครื่องจักร",
+            "name_en": "MACHINE LEARNING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความ\nรู้พืนฐานของการเรียนรู้ของเครืองจักร การเรียนรู้แบบมีผู้สอน การถดถอยเชิงเส้น วิธีกำลัง\nสองน้อยที่สุด การถดถอยโลจิสติก โครงข่ายประสาทเทียม ฺอัลกอริทึม เพื่อนบ้านที่ใกล้ที่สุดฺซัพพอร์ท\nเวกเตอร์แมชชีน การเรียนรู้แบบไม่มีผู้สอน การจัดกลุ่มแบบเคมีน อัลกอริทึมการหาค่าความคาดหวัง\nสูงสุด การลดมิติข้อมูล การวิเคราะห์องค์ประกอบหลักการตรวจสอบไขว้ การประเมินผลของการทำนาย\nการประยุกต์ใช้ของการเรียนรู้ของเครื่อง",
+            "desc_en": "BASIC OF MACHINE LEARNING, SUPERVISED LEARNING, LINEAR REGRESSION., LEAST SQUARES,\nLOGISTIC\nREGRESSION,\nNEURAL\nNETWORK,\nK-NEAREST\nNEIGHBOUR,\nSUPPORT\nVECTOR\nMACHINE,\nUNSUPERVISED\nLEARNING,\nK-MEAN\nCLUSTERING,\nEXPECTATION MAXIMIZATION\nALGORITHM,\nDIMENSIONALITY\nREDUCTION,\nPRINCIPAL  COMPONENT\nANALYSIS,\nCROSS VALIDATION,\nEVALUATING\nESTIMATOR PERFORMANCE, MACHINE LEARNING APPLICATIONS.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_250_ocr.json",
+                    "source_page": 250,
+                    "document_page": 245,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036129",
+            "name_th": "การกำกับดูแลด้านเทคโนโลยีสารสนเทศ",
+            "name_en": "INFORMATION TECHNOLOGY GOVERNANCE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความสำคัญของการบริหารจัดการองค์กรด้านเทคโนโลยีสารสนเทศ องค์กรด้านเทคโนโลยี\nสารสนเทศและผู้บริหารเทคโนโลยีสารสนเทศระดับสูง เกรอบความคิดเพื่อสนับสนุนการกำกับดูแลเทคโนโลยี\nสารสนเทศให้มีประสิทธิภาพ\nมาตร\nฐานการกำกับดูแลเทคโนโลยีสารสนเทศ\nการวัดและการประเมิน\nประสิทธิภาพการกำกับดูแลเทคโนโลยีสารสนเทศ การบริหารจัดการการปฏิบัติการ\nและโครงสร้างพื้นฐาน\nการบริหารจัดการปัญหาด้านเทคโนโลยีสารสนเทศ การบริหารจัดการแอพพลิเคชั่น ทรัพยากรบุคคลด้าน\nเทคโนโลยีสารสนเทศ การเลือกและการจัดการผู้ขาย การงบประมาณและการบริหารจัดการค่าใช้จ่าย การ\nตัดสินใจอย่างมีประสิทธิผลและการบริหารความเสี่ยง การบริหารจัดการความต้องการและการจัดลำดับ\nความสำคัญของโครงการ",
+            "desc_en": "THE IMPORTANCE OF EFFECTIVE IT ORGANIZATION MANAGEMENT, IT ORGANIZATION AND CHIEF\nINFORMATION\nOFFICER (CIO), FRAMEWORKS TO  SUPPORT  EFFECTIVE\nIT\nGOVERNANCE,\nIT GOVERNANCE\nSTANDARDS, IT/BUSINESS ALIGNMENT, IT GOVERNANCE MEASUREMENT AND EVALUATION, IT OPERATIONS\nAND  INFRASTRUCTURE  MANAGEMENT,\nIT\nPROBLEM\nMANAGEMENT,  APPLICATION\nMANAGEMENT,\nIT\nHUMAN RESOURCES, VENDOR SELECTION AND MANAGEMENT, IT BUDGETING AND COST MANAGEMENT,\nEFFECTIVE\nDECISION\nMAKING\nAND\nRISK\nMANAGEMENT,\nDEMAND\nMANAGEMENT\nAND\nPROJECT\nPRIORITIZATION.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_250_ocr.json",
+                    "source_page": 250,
+                    "document_page": 245,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036130",
+            "name_th": "เทคโนโลยีเชิงอ็อบเจกต์",
+            "name_en": "OBJECT ORIENTED TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการเขียนโปรแกรมเชิงอ็อบเจกต์ หลักการห่อหุ้ม คลาสและอ็อบเจกต์ เมธอดและการส่งสาร\nการสืบทอดคุณลักษณะ ภาวะพหุสัณฐาน โครงสร้างข้อมูลแบบแถวลำดับและคอลเลคชัน การจัดการกับ\nสิงผิดปรกติ การประยุกต์ใช้งานเพื่อสร้างและออกแบบซอพแวร์ด้วยโปรแกรมเชิงอ็อบเจกต์",
+            "desc_en": "OBJECT ORIENTED  PROGRAM\nDESIGN\nAND  DEVELOPMENT,  ENCAPSULATION., CLASSES\nAND\nOBJECTS, METHODS AND MESSAGE PASSING, INHERITANCE AND POLYMORPHISM, DATA STRUCTURES:\nARRAYS\nAND COLLECTIONS, EXCEPTION  HANDLING, INPUT OUTPUT CLASSES, SOFTWARE  DESIGN  AND\nDEVELOPMENT USING OBJECT ORIENTED TEACHNOLOGY.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_251_ocr.json",
+                    "source_page": 251,
+                    "document_page": 246,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036131",
+            "name_th": "การพัฒนาโปรแกรมประยุกต์บนอุปกรณ์เคลื่อนที่",
+            "name_en": "MOBILE APPLICATION DEVELOPMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การแนะนำเทคโนโลยีและการเขียนโปรแกรมที่เกี่ยวข้องกับอุปกรณ์เคลื่อนที่ ได้แก่ มือถือแบบ\nสมาร์ทโฟน แพด และแทบเลต การพัฒนาและบ\nทดสอบโปรแกรมประยุกต์ สำหรับอุปกรณ์เคลื่อนที่โดยการ\nทำงานจริงบนเครื่องจำลอง",
+            "desc_en": "INTRODUCTION\nTO\nTECHNOLOGY\nAND\nTHE  PROGRAMMING\nOF  APPLICATIONS\nFOR\nMOBILE\nCOMPUTING INCLUDING DEVICES SUCH AS SMART PHONES,\nAND TABLETS, DEVELOPING MOBILE\nAPPLICATIONS AND USING DEVICE EMULATORS FOR CODING AND TESTING.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_251_ocr.json",
+                    "source_page": 251,
+                    "document_page": 246,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036132",
+            "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 1",
+            "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานีจะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดยอาจารย์ผู้สอนทางด้าน\nเทคโนโลยีสารสนเทศทางธุรกิจเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY\nTHE INSTRUCTORS IN THE FIELD OF BUSINESS INFORMATION TECHNOLOGY.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_251_ocr.json",
+                    "source_page": 251,
+                    "document_page": 246,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036133",
+            "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
+            "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอนทางด้าน\nเทคโนโลยีสารสนเทศทางธุรกิจเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY THE\nINSTRUCTORS IN THE FIELD OF BUSINESS INFORMATION TECHNOLOGY.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_252_ocr.json",
+                    "source_page": 252,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036134",
+            "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 1",
+            "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 1",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจทางด้านเทคโนโลยี\nสารสนเทศทางธุรกิจโดยอาจารย์ผู้สอนเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nFOCUSES\nON\nSELECTED\nTOPICS\nAND  PRACTICAL  WORKSHOP\nIN\nBUSINESS\nINFORMATION TECHNOLOGY., WHICH SELECTED BY A LECTURER",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_252_ocr.json",
+                    "source_page": 252,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036135",
+            "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ",
+            "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจทางด้านเทคโนโ\nสารสนเทศทางธุรกิจโดยอาจารย์ผู้สอนเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN BUSINESS INFORMAT\nTECHNOLOGY., WHICH SELECTED BY A LECTURER",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_252_ocr.json",
+                    "source_page": 252,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036136",
+            "name_th": "กระบวนการอัตโนมัติด้วยโรบอตสำหรับธุรกิจ",
+            "name_en": "ROBOTIC PROCESS AUTOMATION FOR BUSINESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การแนะนำกระบวนการอัตโนมัติด้วยโรบอต, ประโยชน์ของอาร์พีเอในสภาพแวดล้อมทางธุรกิจ,\nแนวคิดกระบวนการอัตโนมัติด้วยโรบอต, โมเดลธุรกิจสำหรับการดำเนินการอาร์พีเอ, บทบาทของผู้จัดการ\nธรกิจในการริเริมและดำเนินการอาร์พีเอ,กิจกรรมในการดำเนินการอาร์พีเอ,การสร้างแผนผัง\nกระบวนการ, ขันตอนการดำเนินการอาร์พีเอ,การติดตามความสำเร็จของการดำเนินการอาร์พีเอ,\nเครื่องมือสำหรับการดำเนินการอาร์พีเอในธุรกิจ",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_252_ocr.json",
+                    "source_page": 252,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_253_ocr.json",
+                    "source_page": 253,
+                    "document_category": "description",
+                    "document_page": 248
+                }
+            ],
+            "desc_en": "INTRODUCTION TO RPA, BENEFITS OF RPA IN\nA\nBUSINESS ENVIRONMENT,\nRPA CONCEPTS,\nBUSINESS MODELS FOR RPA IMPLEMENTATION., ROLE OFA BUSINESS MANAGER IN RPA INITIATIVES AND\nIMPLEMENTATION.,\nACTIVITIES\nIN\nRPA\nIMPLEMENTATION,\nPROCESS\nMAPPING,  STAGES\nOF\nRPA\nIMPLEMENTATION.,\nTRACKING\nTHE\nSUCCESS\nOF\nRPA\nIMPLEMENTATION,\nTOOLS\nFOR\nRPA\nIMPLEMENTATION IN BUSINESS."
+        },
+        {
+            "code": "06036137",
+            "name_th": "การวิเคราะห์ธุรกิจและการพัฒนาข้อกำหนด",
+            "name_en": "BUSINESS ANALYSIS AND DEVELOPING REQUIREMENTS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การวิเคราะห์ความต้องการ วงจรชีวิตการวิเคราะห์ธุรกิจ แบบจำลองในการวิเคราะห์ธุรกิจ\nแบบจำลองขอบเขต การใช้แบบจำลองกระบวนการ กฎ\n& โมเดลอินเทอร์เฟซ เอกสารข้อกำหนด\nชัน การตรวจสอบ การตรวจสอบ\nและการอนุมัติข้อกำหนด",
+            "desc_en": "ANALYZING\nREQUIREMENTS,\nTHE\nBUSINESS\nANALYSIS  LIFECYCLE,\nMODELS\nIN\nBUSINESS\nANALYSIS,  SCOPE\nMODELS,\nUTILIZING\nPROCESS\nMODELS,\nRULES,\nDATA\n&\nINTERFACE\nMODELS,\nDOCUMENTING SOLUTION REQUIREMENTS VALIDATING, VERIFYING AND APPROVING REQUIREMENTS.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_253_ocr.json",
+                    "source_page": 253,
+                    "document_page": 248,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036138",
+            "name_th": "การจัดการความรู้ระดับองค์กร",
+            "name_en": "ORGANIZATIONAL KNOWLEDGE MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "กำดับชั้นของข้อมูล ฺข่าวสารและความรู้การแทนความรู้ โครงข่ายเชิงความหมาย เฟรมและวัตถุ\nออนโทโลยีและเว็บเชิงความหมาย หัวข้อวิจัยด้านวิศวกรรมข้อมูลและวิศวกรรมความรู้",
+            "desc_en": "HIERARCHY OF DATA, INFORMATION., AND KNOWLEDGE, KNOWLEDGE REPRESENTATION., FRAMES\nAND\nOBJECTS, ONTOLOGIES\nAND\nSEMANTIC\nWEB,  RESEARCH  TOPICS\nIN\nDATA\nAND\nKNOWLEDGE\nENGINEERING.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_253_ocr.json",
+                    "source_page": 253,
+                    "document_page": 248,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036139",
+            "name_th": "การบริหารระบบลูกค้าสัมพันธ์",
+            "name_en": "CUSTOMER RELATIONSHIP MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความ รู้เบื้องต้นเกี่ยวกับการจัดการลูกค้าสัมพันธ์  กระบวนการการจัดการลูกค้าสัมพันธ์ กลยุทธ์\nในการจัดการลูกค้าสัมพันธ์ การระบุ การหามาได้ การเก็บรักษาและการขยายของฐานลูกค้า ซึ่งมุ่งเน้นการ\nเพิ่มผลกำไรในระยะยาวของลูกค้าในองค์กรการบริหารลูกค้าอย่างมีประสิทธิภาพและมีประสิทธิผลโดย\nการนำอรรถประโยชน์ของระบบสารสนเทศเข้ามาประยุกต์ใช้ กรณีศึกษาและซอฟต์แวร์ที่ใช้ในการจัดการ\nลูกค้าสัมพันธ์",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_253_ocr.json",
+                    "source_page": 253,
+                    "document_category": "description",
+                    "document_page": 248
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_254_ocr.json",
+                    "source_page": 254,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "INTRODUCTION\nTO\nCUSTOMER  RELATIONSHIP\nMANAGEMENT,\nCUSTOMER\nRELATIONSHIP\nMANAGEMENT\nPROCESS,\nCUSTOMER\nRELATIONSHIP\nMANAGEMENT\nSTRATEGY.,\nLDENTIFICATION\n(TARGETING), ACQUISITION., RETENTION., AND DEVELOPMENT (EXPANSION), AIMING TO INCREASE THE\nLONG-TERM  PROFITABILITY\nOF THE FIRM'S\nCUSTOMERS, EFFECTIVE AND EFFICIENT MANAGEMENT  OF\nCUSTOMERS WITH UTILIZATION OF INFORMATION TECHNOLOGY., CUSTOMER RELATIONSHIP MANAGEMENT\nCASE STUDY AND SOFTWARE."
+        },
+        {
+            "code": "06036140",
+            "name_th": "การจัดการโซ่อุปทานและโลจิสติกส์",
+            "name_en": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความรู้\nรู้เบื้องต้นเกี่ยวกับการจัดการห่วงโช่อุปทานและโลจิสติกส์  กระบวนการจัดการห่วงโซ่อุปทาน\nกลยุทธ์ในการจัดการห่วงโซ่อุปทานและโลจิสติกส์ ความจำเป็นในด้านการบูรณาการของห่วงโซ่อุปทานและ\nในด้านการบริหารจัดการความซับซ้อนในส่วนต่อประสานของระบบ หลักการของการวางแผน การวิเคราะห์\nการออกแบบ การพัฒนาและการประเมินของการบริหารโซ่อุปทาน ธกรณีศึกษาและซอฟต์แวร์ที่ใช้ในการ\nจัดการห่วงโซ่อุปทานและโลจิสติกส์  การบริหารห่วงโซ่อุปทานและโลจิสติกส์ระดับโลกและการจัดการความ\nเสียง",
+            "desc_en": "INTRODUCTION TO SUPPLY CHAIN MANAGEMENT AND LOGISTICS, SUPPLY CHAIN MANAGEMENT\nPROCESS, SUPPLY  CHAIN  MANAGEMENT AND LOGISTICS  STRATEGIC,\nTHE\nNEED FOR  SUPPLY  CHAIN\nINTEGRATION AND THE CHALLENGES OF MANAGING COMPLEX INTERFACES, THE SYSTEMS APPROACH TO\nTHE  PLANNING, ANALYSIS, DESIGN., DEVELOPMENT,\nAND EVALUATION  OF SCM, SUPPLY CHAIN\nAND\nLOGISTICS CASE STUDY AND SOFTWARE, GLOBAL SUPPLY CHAIN MANAGEMENT AND LOGISTICS AND RISK\nMANAGEMENT.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_254_ocr.json",
+                    "source_page": 254,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036141",
+            "name_th": "เครื่องมือและเทคนิคสำหรับการตลาดเชิงดิจิทัล",
+            "name_en": "DIGITAL MARKETING TOOLS AND TECHNIQUES",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "กระบวนการการตลาดดิจิทัล, การเพิมการมองเห็น, การมีส่วนร่วมของผู้เข้าชม, การนำการเข้าชม\nที่เป็นเป้าหมาย: เครื่องมือปรับปรุงความเร็วเว็บไซต์,การเพิ่มประสิทธิภาพกลไกค้นหา (SEO),\nผ่านเครืองมือค้นหา (SEM), การตลาดบนโซเชียลมีเดีย/ การเพิมประสิทธิภาพ,\nการวิเคราะห์ ข้อมูล\nเว็บไซต์, การตลาดการค้นหาที่เสียค่าใช้จ่าย",
+            "desc_en": "DIGITAL MARKETING PROCESS, INCREASING VISIBILITY, VISITORS ENGAGEMENT, BRINGING TARGETED\nTRAFFIC:\nWEBSITE  SPEED  IMPROVEMENT TOOLS, SEARCH\nENGINE  OPTIMIZATION  (SE0),\nSEARCH\nENGINE MARKETING (SEM), SOCIAL MEDIA MARKETING/ OPTIMIZATION., WEBSITE DATA ANALYTICS, PAID\nSEARCH MARKETING.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_254_ocr.json",
+                    "source_page": 254,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036142",
+            "name_th": "การตลาดเชิงดิจิทัลขั้นสูง",
+            "name_en": "ADVANCED DIGITAL MARKETING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การผสมผสานช่องทางการตลาดดิจิทัล การนำดิจิทัลมิกซ์ไปใช้, ความสำคัญของการวิเคราะห์เชิง\nคาดการณ์สำหรับการตลาดดิจิทัล ข้อมูลเชิงลึกของลูกค้าด้วยการวิเคราะห์การตลาดดิจิทัล เทคนิคการ\nวิเคราะห์ เชิงคาดการณ์ การนำการตลาดเชิงคาดการณ์ไปใช้ในช่องทางต่างๆ การเพิ่มประสิทธิภาพ\nผลตอบแทนจากการลงทุน (R0L),",
+            "desc_en": "DIGITAL MARKETING CHANNEL MIX, IMPLEMENTING INTEGRATED DIGITAL MIX, IMPORTANCE OF\nPREDICTIVE ANALYTICS FOR DIGITAL MARKETING, CUSTOMER INSIGHTS WITH DIGITAL MARKETING ANALYTICS,\nPREDICTIVE\nANALYTICS  TECHNIQUES,  IMPLEMENTING  PREDICTIVE\nMARKETING\nACROSS\nCHANNEL,\nOPTIMIZING RETURN ON INVESTMENT (ROL), THE FUTURE OF INTEGRATED DIGITAL MARKETING.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_255_ocr.json",
+                    "source_page": 255,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036143",
+            "name_th": "การเก็บความต้องการและสร้างต้นแบบในด้านยูเอ็กซ์ยูไอ",
+            "name_en": "UX / UI REQUIREMENT AND PROTOTYPING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลัการการเก็บความต้องการจากประสบการณ์ผู้\nช้ กระบวนการเก็บความต้องการ เครืองมือ\nการเก็บความต้องการ ความสำคัญของต้นแบบ ประเภทของการสร้างต้นแบบ การออกแบบ และ\nเครื่องมือการสร้างต้นแบบ",
+            "desc_en": "PRINCIPLES OF USER EXPERIENCE (UX) /USER INTERFACE (UL) REQUIREMENT, REQUIREMENT\nMETHODS, TOOLS FOR UX/ UL REQUIREMENT, PROTOTYPE PRINCIPLES, TYPES AND DESIGN PROTOTYPES,\nTOOLS FOR CREATING PROTOTYPES.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_255_ocr.json",
+                    "source_page": 255,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036144",
+            "name_th": "การประเมินส่วนต่อประสานผู้ใช้",
+            "name_en": "EVALUATING USER INTERFACE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการการประเมินส่วนต่อประสานม=\nชนิดการประเมิน ขันตอนการประเมิน องค์ประกอบที่\nสำคัญเพื่อใช้ประเมินการออกแบบส่วนต่อประสานมนุษย์ เครื่องมือที่ใช้ประเมินส่วนต่อประสานมนุษย์\nเทคโนโลยีการประเมินในปัจจุบันที่เป็นที่นิยมในองค์กร",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_255_ocr.json",
+                    "source_page": 255,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_256_ocr.json",
+                    "source_page": 256,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "USER INTERFACE (UL) EVALUATING PRINCIPLES,\nUL EVAUATING TYPE, UL EVALUATING PROCESS,\nFUNDAMENTAL COMPONENTS TO EVALUATE UL DESIGN, UL EVALUATING TOOLS, CURRENT TECHNOLOGY\nOF UL EVALUATING IN ORGANIZATION."
+        },
+        {
+            "code": "06036145",
+            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1",
+            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการ ที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำ\nของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอ หัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการแก้บัญหาเชิง\nปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK\nPROJECT BASED BY APPLYING THE THEORETICAL  ASPECTS OF THE INFORMATION TECHNOLOGY\nSTUDIES UNDER THE SUPERVISION OFA FACULTY MEMBER TO BE ABLE TO PRESENT A PROJECT PROPOSAL\nAND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_256_ocr.json",
+                    "source_page": 256,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036146",
+            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
+            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06036145",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ฺในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำ\nของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอและศึกษาต่อ\nเนื่องมาจากวิชาโครงงาน",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit_page_256_ocr.json",
+                    "source_page": 256,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        }
+    ]
+}

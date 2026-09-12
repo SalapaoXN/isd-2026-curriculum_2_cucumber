@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 from rag.retrieval.index import (
     ARTIFACTS_DIR,
     DEFAULT_INDEX_NAME,
-    canonical_source_paths,
     ensure_index,
+    llm_source_paths,
 )
 
 
@@ -31,7 +31,7 @@ def build_index(
     index_path: str | Path | None = None,
 ) -> Path:
     """Build or reuse the shared curriculum database for the supplied JSON files."""
-    sources = canonical_source_paths() if input_json_paths is None else input_json_paths
+    sources = llm_source_paths() if input_json_paths is None else input_json_paths
     artifact_index = index_path or ARTIFACTS_DIR / DEFAULT_INDEX_NAME
     return ensure_index(sources, index_path=artifact_index)
 
@@ -42,7 +42,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "input_json_paths",
         nargs="*",
-        help="consolidated curriculum JSON files (defaults to the canonical corpus)",
+        help="curriculum JSON files (defaults to reviewed outputs/llm corrected files)",
     )
     args = parser.parse_args(argv)
     input_paths = _expand_input_paths(args.input_json_paths)

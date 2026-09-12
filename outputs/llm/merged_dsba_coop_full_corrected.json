@@ -1,0 +1,2381 @@
+{
+    "source": "OCR extraction / Academic Plan - DSBA coop",
+    "description": "OCR-extracted curriculum records for DSBA (plan coop)",
+    "program": "DSBA",
+    "plan": "coop",
+    "total_courses": 89,
+    "courses": [
+        {
+            "code": "06026200",
+            "name_th": "ไม่ระบุ",
+            "name_en": "CALCULUS 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": 28
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_317.png",
+                    "source_page": 317,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ฟังก์ชัน, ลิมิต, ความต่อเนือง และการประยุกต์ใช้อุปนัยเชิงคณิตศาสตร์ แนะนำ\nอนุพันธ์การหาอนุพันธ์การประยุกต์ ใช้อนุพันธ์ ปริพันธ์จำกัดเขตฺการปริพันธ์ด้วยปฏิยานุพันธ์การ\nประยุกต์ใช้ปริพันธ์จำกัดเขตฺรูปแบบของการปริพันธ์ที่หาค่าไมได้ ปริพันธ์ไม่ตรงแบบ ฺการหาปริพันธ์\nด้วยวิธีเชิงตัวเลข อันดับและอนุกรมของจำนวน การกระจายอนุกรมเทเลอร์ของฟังก\nวิเคราะห์เวกเตอร์",
+            "desc_en": "FUNCTION,\nLIMIT,\nCONTINUITY\nAND\nTHEIR  APPLICATIONS,\nMATHEMATICAL\nINDUCTION., INTRODUCTION TO DERIVATIVE, DIFFERENTIATION., APPLICATIONS OF DERIVATIVE, DEFINITE\nINTEGRALS,\nANTIDERIVATIVE  INTEGRATION.,\nAPPLICATION  OF DEFINITE  INTEGRAL,\nINDETERMINATE\nFORMS, IMPROPER INTEGRALS,\nNUMERICAL INTEGRATION., SEQUENCES AND SERIES OF NUMBERS,\nTAYLOR SERIES EXPANSIONS OF ELEMENTARY FUNCTIONS VECTOR ANALYSIS."
+        },
+        {
+            "code": "06026202",
+            "name_th": "พีชคณิตเชิงเส้น",
+            "name_en": "LINEAR ALGEBRA",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": 28
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_318.png",
+                    "source_page": 318,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ระบบสมการเชิงเส่น การดำเนินการมูลฐาน การกำจัดเกาส์เซียน การกำจัดเกาส์-\nจอร์แดน ค่าลำดับชับ\nการดำเนินการของเมทริกซ์ ผกผันของเมทริกซ์ เมทริกซ์มูลฐาน เมทริกซ์ย่อย\nและผลแบ่งส่วน เมทริกซ์ การแยกแบบแอลยู ดีเทอร์มิเนนต์ ตัวประกอบร่วมเกียว เมทริกซ์ผูกพัน\nกฎคราเมอร์ ปริภูมิ เวกเตอร์ ปริภูมิย่อย ค่าลักษณะเฉพาะ เวกเตอร์ลักษณะเฉพาะ การทำให้เป็นเม\nริกซ์ทแยงมุม การแปลงเชิง เส้น เคอร์เนล เรนจ์",
+            "desc_en": "SYSTEM  OF LINEAR EQUATIONS,\nMATRIX OPERATIONS,\nGAUSSIAN ELIMINATION,\nGAUSS- JORDAN ELIMINATION., RANK, ELEMENTAR/ OPERATIONS, INVERSE OF MATRIX, ELEMENTARY\nMATRIX, SUBMATRICES AND PARTITION MATRIX,\nLU DECOMPOSITION., DETERMINANT,\nCOFACTOR,\nADJOINT  MATRIX,\nCRAMER'S\nRULE,\nVECTOR  SPACE,\nSUBSPACE,\nEIGENVALUE,\nEIGENVECTOR,\nDIAGONALIZATION, LINEAR TRANSFORMATION., KERNEL., RANGE."
+        },
+        {
+            "code": "06066101",
+            "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
+            "name_en": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": 28
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_320.png",
+                    "source_page": 320,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "สภาพแวดล้อมทางธุรกิจและระบบเศรษฐกิจ พืนฐานของการบริหารการเงิน มูลค่า\nของเงินและต้นทุนของเงินทุน งบการเงิน การบริหารการผลิต\nการควบคุมสินค้าคงคลัง การตลาด\nพื้นฐานการจัดการ การจัดองค์กรการบริหารงานบุคคล จริยธรรมทางธุรกิจและความรับผิดชอบต่อ",
+            "desc_en": "BUSINESS ENVIRONMENT AND ECONOMIC SYSTEM, FOUNDATIONS OF FINANCIAL\nMANAGEMENT,\nVALUATION\nAND\nCOST\nOF\nCAPITAL,\nFINANCIAL\nSTATEMENT,\nPRODUCTION\nMANAGEMENT, INVENTORY CONTROL, MARKETING CONCEPT AND MANAGEMENT, MANAGEMENT\nPERSPECTIVES AND PROCESSES, ORGANIZATION MANAGEMENT., HUMAN RESOURCE MANAGEMENT,\nBUSINESS ETHICS AND SOCIAL RESPONSIBILITY."
+        },
+        {
+            "code": "06066303",
+            "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
+            "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": 28
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_322.png",
+                    "source_page": 322,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_323.png",
+                    "source_page": 323,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "กลยุทธ์และหลักการแก้บัญหา การคิดแบบขันตอนวิธี ผังงาน แนวคิดและเกรินนำ\nการเขียน โปรแกรมคอมพิวเตอร์",
+            "desc_en": "PROBLEM SOLVING STRATEGIES AND CONCEPTS, ALGORITHMIC THINKING, FOWCHART,\nCONCEPTS AND INTRODUCTION TO COMPUTER PROGRAMMING."
+        },
+        {
+            "code": "90641001",
+            "name_th": "โรงเรียนสร้างเสน่ห์",
+            "name_en": "CHARM SCHOOL",
+            "credits": "2(1-2-3)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_page": 28,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90641003",
+            "name_th": "กีฬาและนันทนาการ",
+            "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
+            "credits": "1(0-3-2)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_page": 28,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90644007",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+            "name_en": "FOUNDATION ENGLISH",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_033.png",
+                    "source_page": 33,
+                    "document_page": 28,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026201",
+            "name_th": "แคลคูลัส 2",
+            "name_en": "CALCULUS 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06026200",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_category": "plan",
+                    "document_page": 29
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_317.png",
+                    "source_page": 317,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_318.png",
+                    "source_page": 318,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ฟังก์ชันหลายตัวแปรและการประยุกต์ใช้ พีชคณิตของเวกเตอร์ในสามมิติ พิกัดเชิงขัว\nแคลคูลัสของ\nฟังก์ชันจำนวนจริงสองตัวแปร  การหาอนุพันธ์และปริพันธ์ของฟังก์ชันจำนวนจริงและ\nฟังก์ชันเวกเตอร์จำนวนจริงหลายตัวแปร แนะนำปริพันธ์เส้น เส้น ระนาบ และพื้นผิว ในปริภูมิสามมิติ\nแคลคูลัสของฟังก์ชันจำนวนจริงในปริภูมิสามมิติ ฺทฤษฎีบทหลักที่เกี่ยวกับการประยุกต์ เช่น ทฤษฎีบท\nของกรีน ทฤษฎีไดเวอร์เจนซ์ ทฎษฎีบทของเกาส์ ทฤษฎีบทของสโตกส์ เป็นต้น",
+            "desc_en": "FUNCTIONS OF SEVERAL VARIABLES AND THEIRS\nAPPLICATIONS, VECTOR ALGEBRA IN\nTHREE  DIMENSIONS,\nPOLAR  COORDINATES,  CALCULUS\nOF\nREAL\nVALUED FUNCTIONS\nOF\nTWO\nVARIABLES, DIFFERENTIATION AND INTEGRATION OF REAL\nVALUED AND VECTOR\nVALUED FUNCTIONS\nOF MULTIPLE REAL VARIABLES, INTRODUCTION TO LINE INTEGRALS, LINES, PLANES AND SURFACES IN\nTHREE DIMENSIONAL  SPACE,\nCALCULUS\nOF REAL\nVALUED FUNCTIONS IN  THREE DIMENSIONAL\nSPACE, PRINCIPAL THEORY FOR APPLICATIONS SUCH AS GREEN'S THEOREM., DIVERGENCE THEOREM,\nGAUSS THEOREM, STOKES THEOREM, ETC."
+        },
+        {
+            "code": "06026203",
+            "name_th": "การโปรแกรมคอมพิวเตอร์",
+            "name_en": "COMPUTER PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_category": "plan",
+                    "document_page": 29
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_319.png",
+                    "source_page": 319,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนะนำภาษาการสร้างโปรแกรมเชิงโครงสร้างและเชิงวัตถฺการเขียนผังงาน แนวคิด\nของโปรแกรมฟังก์ชันเบื้องต้นและข้อความสั่งกำหนดค่า โครงสร้างการวนซ้ำและเงื่อนไข อาร์เรย์\nการประมวลผลสตริง ฺการเขียนการเขียนฟังก์ชัน การเขียนข้อมูลชนิดโครงสร้าง การเขียนข้อมูลเช\nนิดอ็อบเจกต์ หลักการห่อหุ้ม คลาสและอ็อบเจกต์ เมธอดและการส่งสาร การสืบทอดคุณลักษณะ\nภาวะพหุสัณฐาน",
+            "desc_en": "INTRODUCTION TO PROGRAMMING LANGUAGES, STRUCTURED PROGRAMMING, OBJECT\nORIENTED  PROGRAMMING, ASSIGNMENT STATEMENT AND\nBASIC FUNCTIONS, CONDITIONAL  AND\nLOOP STRUCTURES, ARRAY., STRING, FUNCTION, POINTER, STRUCTURE, CLASS, OBJECT, OBJECT ORIENTED\nDESIGN., ENCAPSULATION, CLASSES AND OBJECTS, METHODS AND MESSAGE PASSING., INHERITANCE\nAND POLYMORPHISM"
+        },
+        {
+            "code": "06026205",
+            "name_th": "การตลาดเบื้องต้น",
+            "name_en": "INTRODUCTION TO MARKETING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_category": "plan",
+                    "document_page": 29
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_323.png",
+                    "source_page": 323,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "วิชานี้ศึกษาเกี่ยวกับพฤติกรรมของผู้บริโภคการกำหนดกลยุทธ์ส่วนแบ่งตลาด การ\nกำหนดกลุ่มเป้าหมาย และการกำหนดตำแหน่งทางการตลาด รวมถึงการดำเนินการสร้างผลิตภัณฑ์\nการกำหนดราคา การเลือกใช้ช่องทางจัดจำหน่ายตลอดจนการใช้การส่งเสริมการตลาดโดยคำนึง\nความรับผิดชอบสังคมเป็นหลัก แนวคิดและกลยุทธ์การตลาดดิจิทัล การตลาดผ่านสื่อดิจิทัล",
+            "desc_en": "STUDY OF CONSUMER BEHAVIORS, THE DEFINITION OF SPECIFIC STRATEGY IN\nSEGMENTATION, TARGET GROUP AND POSITIONING, PRODUCT IMPLEMENTATION PRICING PRODUCT\nDISTRIBUTION AND PROMOTION REGARDING SOCIAL RESPONSIBILITY., DIGITAL MARKETING CONCEPTS\nAND STRATEGIES, MARKETING THROUGH DIGITAL MEDIA."
+        },
+        {
+            "code": "06066001",
+            "name_th": "ความน่าจะเป็นและสถิติ",
+            "name_en": "PROBABILITY AND STATISTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_category": "plan",
+                    "document_page": 29
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_318.png",
+                    "source_page": 318,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_319.png",
+                    "source_page": 319,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความน่าจะเป็นและตัวแปรสุ่ม การแจกแจงความน่าจะเป็นแบบไม่ต่อเนืองและ\nแบบต่อเนื่อง ฟังก์ชันของตัวแปรสุ่ม การแจกแจงของตัวอย่าง ช่วงความเชื่อมั่น การทดสอบ\nการถดถอยอย่างง่ายและการถดถอยเชิงซ้อนในตัวแบบเชิงเส้น การวิเคราะห์สหสัมพันธ์",
+            "desc_en": "PROBABILITY AND RANDOM VARIABLES, DISCRETE AND CONTINUOUS PROBABILITY\nDISTRIBUTIONS,\nFUNCTIONS\nOF\nRANDOM\nVARIABLES,\nSAMPLING\nDISTRIBUTION,\nCONFIDENCE\nINTERVALS, HYPOTHESIS TESTING, SIMPLE AND MULTIPLE LINEAR REGRESSION., CORRELATION ANALYSIS."
+        },
+        {
+            "code": "90641002",
+            "name_th": "ความฉลาดทางดิจิทัล",
+            "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_page": 29,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90642033",
+            "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
+            "name_en": "LAW FOR NEW GENERATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_page": 29,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90644008",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+            "name_en": "FOUNDATION ENGLISH 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_034.png",
+                    "source_page": 34,
+                    "document_page": 29,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026206",
+            "name_th": "การวิเคราะห์ข้อมูลและการโปรแกรม",
+            "name_en": "DATA ANALYTICS AND PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_035.png",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_324.png",
+                    "source_page": 324,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ในภาคทฤษฎี แนะนำการวิเคราะห์ข้อมูลเชิงธุรกิจและการตัดสินใจ  สถิติเชิง\nพรรณนาการวิเคราะห์ความแปรปรวนหลายตัวแปร การวิเคราะห์ความถดถอยเชิงเส้นอย่างง่าย การ\nวิเคราะห์ความถดถอยเชิง ซ้อน การวิเคราะห์ จำแนกกลุ่ม( DISCRIMINANT ANALYSIS)\nความถดถอยโลจิสติก การพยากรณ์และอนุกรมเวลา\nการหาค่าที่เหมาะสมที่สุดฺ ฺในภาคปฏิบัติ\nแนะนำการเขียนโปรแกรมทางสถิติ เช่น ภาษา อาร์\nประเภทข้อมูล เข้อมูลตัวแปรเดี่ยว ข้อมูลตัวแปรคู่\nข้อมูลหลายตัวแปร สถิติเชิงพรรณา ตัวแปรอาร์เรย์ เมตริกซ์\nลรายการ\nและเฟรมข้อมูล\nโครงสร้างการควบคุม ฺการวนลูปฺการพลือตกราฟและกราฟฟิค การจัดการข้อมูล การสร้างฟังก์ชัน\nและแพคเกจ\nรวมทั้งการใช้โปรแกรมสำเร็จรูปทางสถิติในการวิเคราะห์ข้อมูล",
+            "desc_en": "INTRODUCTION TO BUSINESS DATA ANALYTICS AND DECISION MAKING, DESCRIPTIVE\nSTATISTICS,\nMULTIVARIATE\nANALYSIS\nOF\nVARIANCE,\nSIMPLE  REGRESSION\nANALYSIS,\nMULTIPLE\nREGRESSION ANALYSIS, DISCRIMINANT ANALYSIS\nLOGISTIC REGRESSION ANALYSIS, FORECASTING AND\nTIME SERIES, OPTIMIZATION, OVERVIEW OF STATISTICAL  PROGRAMMING,  E.G.,\nR PROGRAMMING,\nNUMERICAL  ARITHMETIC, DATA  TYPE, UNIVARIATE  DATA,  BIVARIATE  DATA,\nMULTIVARIATE  DATA,\nDESCRIPTIVE STATISTICS, ARRAYS AND MATRICES, LISTS AND DATAFRAMES, CONTROL STRUCTURES,\nFUNCTIONS,\nPLOTTING\nAND\nGRAPHICS,\nDATA\nMANAGEMENT,\nFUNCTION\nAND\nPACKAGE\nDEVELOPMENT, STATISTICAL PACKAGE SOFTWARE FOR DATA ANALYSIS."
+        },
+        {
+            "code": "06066000",
+            "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
+            "name_en": "DISCRETE MATHEMATICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_035.png",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_318.png",
+                    "source_page": 318,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ระบบ ตัวเลข ฺตรรกะและเซต ความสัมพันธ์และฟังก์ชัน ลำดับและอนุกรม อุปนัย\nเชิง คณิตศาสตร์ คอมบินาทอรีส์ กราฟ ระบบพืชคณิต ฺทฤษฎีสารสนเทศและการเข้ารหัสและระบบ\nสถานะจำกัด",
+            "desc_en": "NUMBER SYSTEMS, LOGIC AND SETS, RELATIONS AND FUNCTIONS, SEQUENCES AND\nSERIES, MATHEMATICAL INDUCTION, COMBINATORIES, GRAPHS, ALGEBRAIC SYSTEMS, CODING AND\nINFORMATION THEORIES, AND FINITE STATE AUTOMATA."
+        },
+        {
+            "code": "06066300",
+            "name_th": "แนวคิดระบบฐานข้อมูล",
+            "name_en": "DATABASE SYSTEM CONCEPTS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_035.png",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_321.png",
+                    "source_page": 321,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนะ\nนำฐานข้อมูลและระบบจัดการฐานข้อมูล\nระบบฐานข้อมูลและสภาพแวดล้อม\nระบบ จัดการฐานข้อมูล ฺชนิดของฐานข้อมูล แบบจำลองข้อมูล แบบจำลองฐานข้อมูลเชิงสัมพันธ์ สกี\nมา\nอินแสตน รีเลชันชิป ฺกฎบูรณภาพ พจนานุกรมข้อมูล  แบบจำลองความสัมพันธ์ระหว่างเอนทิตี\nฟังก์ชันดีเพนเดนซี นอร์มัลไลซ์เซชัน พืชคณิตเชิงสัมพันธ์ เอสคิวแอล การประมวลผลทรานแซคชัน\nแนวคิดคลังข้อมูลและการออกแบบ ปฏิบัติการด้านการจำลองข้อมูลและภาษาฐานข้อมูล",
+            "desc_en": "INTRODUCTION TO THE DATABASE SYSTEM AND DBMS, DATABASE SYSTEMS AND\nENVIRONMENT,\nDATABASE  MANAGEMENT  SYSTEMS,  TYPES\nOF  DATABASES,\nDATA\nMODELS,\nRELATIONAL\nMODEL, SCHEMAS, INSTANCES, RELATIONSHIPS, INTEGRITY RULES,\nDATA  DICTIONARY,\nRELATIONAL  DATABASE MODELING, ENTITY RELATIONSHIP  MODEL., LOGICAL  DESIGN., FUNCTIONAL\nDEPENDENCIES, NORMALIZATION,\nRELATIONAL  ALGEBRA, SOL, TRANSACTION\nPROCESSING,\nDATA\nWARENOUSE CONCEPTS AND DESIGN., DATA MODELING AND DATABASE LANGUAGE LABORATORY."
+        },
+        {
+            "code": "06066302",
+            "name_th": "การเขียนโปรแกรมเว็บพื้นฐาน",
+            "name_en": "FUNDAMENTAL WEB PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_035.png",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_322.png",
+                    "source_page": 322,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนวคิดพื้นฐานและหลักการทำงานของระบบเว็บ เครื่องมือสำหรับการออกแบบ\nและพัฒนาเว็บ การเขียนโปรแกรมเว็บฝังไคลแอนท์ HTML CSS JAVASCRIPT\nส่วนต่อประสานกับผู้ใช้ การจัดการกับ EVENTS การจัดการโครงสร้างเอกสารและ DOM\nโปรแกรมเว็บฝังเซิร์ฟเวอร์ PHP\nการจัดการและการใช้งานฐานข้อมูล การใช้งานเฟรมเวิร์ค",
+            "desc_en": "CONCEPTS OF WEB SYSTEM AND WEB DEVELOPMENT, WEB DEVELOPMENT\nAND DESIGN TOOLS, CLIENT-SIDE SCRIPTING: HTML, CSS, JAVASCRIPT, USER INTERFACE DESIGN\nPROCESS, EVENT DRIVEN PROGRAMMING, WEB DOCUMENT STRUCTURE AND SITE MANAGEMENT,\nUNDERSTANDING THE DOCUMENT OBJECT MODEL., SERVER-SIDE SCRIPTING, PHP PROGRAMMING,\nINTRODUCTION\nTO\nDATABASE  MANAGEMENT  IN\nWEB  DEVELOPMENT, IMPLEMENTING\nWEB\nDEVELOPMENT FRAMEWORKS."
+        },
+        {
+            "code": "06066304",
+            "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ",
+            "name_en": "INFORMATION SYSTEM ANALYSIS AND DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_035.png",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_323.png",
+                    "source_page": 323,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การพัฒนาโดยใช้แนวคิดเชิงวัตถฺการวิเคราะห์และออกแบบ การเลือกโครงการและ\nการจัดการ โครงการสารสนเทศ กำหนดความต้องการระบบการวิเคราะห์ด้วยยูสเคส แบบจำลอง\nกระบวนการ\nแบบจำลองข้อมูล การออกแบบสถาปัตยกรรมและกลยุทธการออก การออกแบบส่วน\nติดต่อกับผู้ใช้ การออกแบบส่วนจัดเก็บข้อมูล ฺการออกแบบโปรแกรม คลาสและเมธอด การสร้างและ\nการติดตังระบบ",
+            "desc_en": "OBJECT ORIENTED APPROACHES TO SYSTEM DEVELOPMENT, SYSTEM ANALYSIS\nAND DESIGN., PROJECT SELECTION AND MANAGEMENT, SYSTEM REQUIREMENT DETERMINATION.,\nUSE CASE ANALYSIS, PROCESS MODEL., DATA MODEL, DESIGN STRATEGY AND ARCHITECTURE DESIGN,\nUSER INTERFACE DESIGN, DATA STORAGE DESIGN., PROGRAM., CLASS, AND METHOD DESIGN, SYSTEM\nIMPLEMENTATION AND INSTALLATION."
+        },
+        {
+            "code": "90644xxx",
+            "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+            "name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_035.png",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026204",
+            "name_th": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น",
+            "name_en": "INTRODUCTION TO NETWORKS AND CYBERSECURITY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_319.png",
+                    "source_page": 319,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนวคิดพื้นฐานเกี่ยวกับเครือข่ายคอมพิวเตอร์และความมั่นคงทางไชเบอร์\nการสื่อสารข้อมูลและการเชื่อมโยงเครือข่าย สถาปัตยกรรมเครือข่ายและอินเทอร์เน็ต แอปพลิเคชัน\nและบริการบนเครือข่าย ภัยคุกคามและการโจมตีทางไชเบอร์ ช่องโหว่และความเสี่ยง พื้นฐานมัลแวร์\nการป้องกันความปลอดภัย การเข้ารหัสลับและการพิสูจน์ ตัวตน ฺการควบคุมการเข้าถึง กฎหมายและ\nจริยธรรมทางไซเบอร์",
+            "desc_en": "BASIC\nCOMPUTER\nNETWORK\nAND\nCYBERSECURITY\nCONCEPTS,\nDATA\nCOMMUNICATIONS\nAND\nINTERNETWORKING\nFUNDAMENTALS,\nNETWORK\nARCHITECTURES\nAND\nINTERNET, NETWORK\nAPPLICATIONS AND SERVICES, CYBER THREATS AND ATTACKS, VULNERABILITIES\nAND\nRISKS,\nMALWARE\nFUNDAMENTALS,\nSECURITY\nSAFEGUARDS,\nCRYPTOGRAPHY\nAND\nAUTHENTICATIONS, ACCESS CONTROL,\nLAWS AND ETHICS."
+        },
+        {
+            "code": "06026207",
+            "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
+            "name_en": "NOSQL DATABASE SYSTEMS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_324.png",
+                    "source_page": 324,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนะนำระบบฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ ความแตกต่างจากระบบฐานข้อมูลเชิง\nสัมพันธ์ ข้อดีและข้อเสียของฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ ชนิดและโครงสร้างฐานข้อมูลแบบไมใช่\nเชิงสัมพันธ์ แบบคอลัมน์ แบบคีย์แวลยฺู แบบเอกสาร และแบบกราฟ เตัวอย่างการออกแบบฐานข้อมูล\nแบบไมใช่เชิงสัมพันธ์ การใช้ภาษาเจสันกับฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ แนะนำภาษาเจสัน\nไวยากรณ์ของเจสัน ฺชนิดข้อมูลของเจสัน",
+            "desc_en": "INTRODUCTION TO NOSOL DATABASE SYSTEM, DIFERENCES BETWEEN NOSOL\nDATABASE SYSTEM AND RELATIONAL DATABASE SYSTEM, ADVANTAGES AND DISADVANTAGES OF\nNOSOL DATABASE SYSTEM., TYPES OF NOSOL DATABASE SYSTEM: COLUMN ORIENTED\nVALUE, DOCUMENT  AND  GRAPH, EXAMPLE\nOF\nNOSOL DATABASE  DESIGN, JSON\nNOSOL\nDATABASE, INTRODUCTION TO JAVASCRIPT OBJECT NOTATION (JSON), JSON SYNTAX, JSON DATA\nTYPES."
+        },
+        {
+            "code": "06026208",
+            "name_th": "พื้นฐานวิทยาการข้อมูล",
+            "name_en": "FUNDAMENTALS OF DATA SCIENCE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_325.png",
+                    "source_page": 325,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "วิทยาการข้อมูลกับแรงจูงใจเชิงธุรกิจ นิยามของวิทยาการข้อมูล กระบวนการทำ\nวิทยาการข้อมูล เช่น ปกระบวนการ เคิรสดีเอ็มการทำความเข้าใจข้อมูล การเตรียมข้อมูล ฺดึงข้อมูล\nจากเว็บไซต์ การดึงข้อมูลจากเอฟีไอ นิยามของปัญญาประดิษฐ์ การแทนความรู้ การใช้เหตุผลแบบ\nตรรกศาสตร์และความน่าจะเป็น คอมพิวเตอร์วิทัศน์ การประมวลผลภาษาธรรมชาติ การเรียนรู้ของ\nเครื่องจักร ภาษาไพธอนสำหรับวิทยาการข้อมูล",
+            "desc_en": "DATA SCIENCE MOTIVATION FOR BUSINESS, DEFINITION OF DATA SCIENCE, DATA\nSCIENCE LIFECYCLE: CRISDM, DATA UNDERSTANDING, DATA PREPARATION., WEB SCAPING, API\nREQUEST\nDEFINITION\nOF\nARTIFICIAL\nINTELLIGENCE,\nMAJOR\nSUBFIELDS\nOF\nAL:\nKNOWLEDGE\nREPRESENTATION., LOGICAL AND PROBABILISTIC REASONING, COMPUTER VISION., NATURAL LANGUAGE\nPROCESSING, MACHINE LEARNING, PYTHON PROGRAMING FOR DATA SCIENCE."
+        },
+        {
+            "code": "06026209",
+            "name_th": "การแสดงข้อมูลด้วยแผนภาพ",
+            "name_en": "DATA VISUALIZATION",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_325.png",
+                    "source_page": 325,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "หลักการการแสดงข้อมูลด้วยแผนภาพ การออกแบบการแสดงข้อมูลด้วยแผนภาพ\nเครื่องมือที่ใช้ การแสดงข้อมูลด้วยแผนภาพ การได้มาซี\nการจัดระเบียบข้อมูล การเลือก\nแผนภูมิต่าง\nที่เหมาะสม ฺเช่น ฮึทโตรแกรม\nแผนภูมิการกระจาย แผนภูมิเส้น แผนภูมิแท่ง แผนภูมิ\nวงกลม\nแผนภูมิแบบเครือข่าย กราพสตรีม แผนภูมิตัวชี้วัดผลงาน แผนที่ แผนภูมิแบบ\nปฏิสัมพันธ์ การอธิบายแผนภูมิ หลักการเล่าเรื่องด้วยภาพ",
+            "desc_en": "PRINCIPLES\nOF\nDATA\nVISUALIZATION,\nDATA\nVISUALIZATION\nDESIGN.,\nDATA\nVISUALIZATION TOOLS, DATA ACQUISITION., DATA ORGANIZATION, CHOOSING THE APPROPRIATE CHART\nTYPE, E.G., HISTOGRAM., SCATTER PLOT, LINE CHART., BAR CHART., PIE CHART., TREE DIAGRAM, NETWORK\nCHART, STREAM\nKP| CHART, MAP, INTERACTION CHART, CHART DESCRIPTION, STOR TELLING\nWITH DATA."
+        },
+        {
+            "code": "06026210",
+            "name_th": "การหาค่าที่เหมาะที่สุด",
+            "name_en": "OPTIMIZATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_325.png",
+                    "source_page": 325,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_326.png",
+                    "source_page": 326,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การสร้างตัวแบบกำหนดการเชิงเส้น วิธีแก้ปัญหากำหนดการเชิงเส้น ปัญหาควบคู่\nในกำหนดการเชิงเส้น กำหนดการเชิงเส้นและตัวแบบถดถอยควอนไทล์ การหาค่าเหมาะที่สุดกับ\nปัญหากำลังสอง การหาค่าเจ\nเหมาะสมที่สุดกับปัญหาคอน วิธีเกรเดียนต์เพื่อแก้ปัญหาการหาค่าเหมาะ\nที่สุดกับปัญหาคอนเวกซ์ การหาค่าเหมาะที่สุดกับปัญหาสโทแคสติก วิธีสโทแคสติกเกรเดียนต์วิธีการ\nเมตาฮิวริสติก",
+            "desc_en": "LINEAR\nPROGRAMMING\nFORMULATION,\nSOLUTION\nMETHODS\nFOR\nLINEAR\nPROGRAMMING, DUALITY IN LINEAR PROGRAMS, LINEAR PROGRAMMING AND QUANTILE REGRESSION\nMODELS, QUADRATIC OPTIMIZATION., GRADIENT METHODS FOR SOLVING CONVEX OPTIMIZATION\nPROBLEMS,\nSTOCHASTIC\nOPTIMIZATION.,\nSTOCHASTIC\nGRADIENT\nMETHODS,\nMETANEURISTIC\nALGORITHM."
+        },
+        {
+            "code": "06066102",
+            "name_th": "ระบบสารสนเทศเพื่อการจัดการ",
+            "name_en": "MANAGEMENT INFORMATION SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06066101",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_321.png",
+                    "source_page": 321,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "บทบาทของเทคโนโลยีสารสนเทศในธุรกิจ แนวคิดระบบสารสนเทศและการจัดการ\nการวางแผนเทคโนโลยีสารสนเทศเชิงกลยุทธ์ ความสอดคล้องของเทคโนโลยีสารสนเทศกับกลยุทธ์\nทางธุรกิจ ฺการได้มาซึ่งระบบสารสนเทศ ระบบสารสนเทศตามลักษณะที่สนับสนุนการทำงาน ระบบ\nสารสนเทศระดับองค์กร แนวโน้มการประยุกต์ ใช้เทคโนโลยีสารสนเทศ จริยธรรมและประเด็นทาง\nสังคม",
+            "desc_en": "ROLES\nOF\nINFORMATION  TECHNOLOGY\nIN\nBUSINESS,\nINFORMATION\nSYSTEM\nCONCEPTS AND MANAGEMENT, STRATEGIC INFORMATION TECHNOLOGY PLANNING, ALIGNING IT WITH\nBUSINESS  STRATEGY., INFORMATION  SYSTEM  ACQUISITION, FUNCTIONAL  INFORMATION  SYSTEMS,\nENTERPRISE SYSTEMS, TRENDS IN APPLICATIONS OF INFORMATION TECHNOLOGY., ETHICAL AND SOCIAL\nISSUES."
+        },
+        {
+            "code": "06066301",
+            "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
+            "name_en": "DATA STRUCTURES AND ALGORITHMS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_036.png",
+                    "source_page": 36,
+                    "document_category": "plan",
+                    "document_page": 31
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_322.png",
+                    "source_page": 322,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ชนิดของข้อมูล โครงสร้างข้อมูลและชนิดข้อมูลแบบนามธรรม ฺโครงสร้างข้อมูล\nเช่น ลิสท์ สแต็ก และคิว โครงสร้างข้อมูลแบบพลวัต คำศัพท์1เฉพาะเกี่ยวกับทรี ไบนารีทรี ไบ\nนารีเสิร์ชทรี เอวีแอลทรี กราฟ การวิเคราะห์โปรแกรมเชิงเวลาและพื้นที่ อัลกอริทึมการเรียงลำดับ\nและการค้นหาข้อมูล อัลกอริทึมแบบละโมบ อัลกอริทึมแบบแบ่งเพื่อเอาชนะ อัลกอริทึมเกี่ยวกับ\nกราฟ และการเขียนโปรแกรมพลวัต",
+            "desc_en": "DATA  TYPES,\nDATA\nSTRUCTURES\nAND\nABSTRACT\nDATA\nTYPES,\nBASIC\nDATA\nSTRUCTURES E.G. LIST, STACK, AND QUEUE, DYNAMIC DATA STRUCTURES, TERMINOLOGY OF TREES,\nBINARY TREES, BINARY SEARCH TREES, AVL TREES, GRAPH., TIME AND SPACE ANALYSIS OF PROGRAMS,\nSORTING AND SEARCHING ALGORITHMS, GREEDY  ALGORITHM,\nDIVIDE AND CONQUER ALGORITHM,\nGRAPH ALGORITHMS, AND DYNAMIC PROGRAMMING."
+        },
+        {
+            "code": "06026211",
+            "name_th": "การเรียนรู้ของเครื่องเชิงประยุกต์",
+            "name_en": "APPLIED MACHINE LEARNING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_037.png",
+                    "source_page": 37,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_326.png",
+                    "source_page": 326,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "กร\nระบวนการทำเหมืองข้อมูล ฺการแบ่งกลุ่มข้อมูล การแบ่งกลุ่มแบบเคมีน\nการ\nแบ่งกลุ่มแบบเด็นซิตี้ การตรวจสอบความเหมาะสมของการแบ่งกลุ่ม\nการจัดกลุ่มข้อมูล ฺต้นไม้\nตัดสินใจ โโครงข่ายประสาทเทียม เคเนียร์เรสเ\nเทคนิคที่ใช้แบบจำลองการจัดกลุ่มข้อมูล\nหลาย\nแบบจำลอง การตรวจสอบความถู\nต้องและการประเมินแบบจำลอง การค้นหากฎ\nความสัมพันธ์ของข้อมูล ฺอพริโอริอัลกอริทึม เอฟพีทีอัลกอริทึม  การสืบค้นรูปแบบลำดับเหตุการณ์\nการวิเคราะห์แบบให้คำแนะนำ เครื่องมือการทำเหมืองข้อมูลต่างๆ\nกระบวนการทำเอ็มแอลอือพ\nการประยุกติ๋ใช้งานเหมืองข้อมูล",
+            "desc_en": "DATA MINING PROCESS, DATABASE SEGMENTATION: K-MEANS, DENSITY BASED\nCLUSTERING, CLUSTER VALIDATION., CLASSIFICATION: DECISION TREES, NEURAL NETWORKS, IK NEAREST\nNEIGHBOR,\nENSEMBLE\nCLASSIFIER,\nMODEL  VALIDATION\nAND  EVALUATION,\nASSOCIATION\nRULE\nDISCOVERY: ARIORI ALGORITHM, FPT ALGORITHM, SEQUENTIAL PATTERN DISCOVENY., PRESCRIPTIVE\nANALYTICS, DATA MINING TOOLS, MLOPS LIFECYCLE, DATA MINING APPLICATIONS."
+        },
+        {
+            "code": "06026212",
+            "name_th": "การสร้างคลังข้อมูล",
+            "name_en": "DATA WAREHOUSING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06066300",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_037.png",
+                    "source_page": 37,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_326.png",
+                    "source_page": 326,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_327.png",
+                    "source_page": 327,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ลักษณะของคลังข้อมู\nล กระบวนการส\nเร้างคลังข้อมูล ฺสถาปัตยกรรมของคลังข้อมูล\nการค้นหาความต้องการคลังข้อมู\nล.\nการออกแบบแบบจำลอง\nเลสตาร์และแบบสโนเฟค การ\nออกแบบแบบจำลองข้อมูลเพื่อติดตามการเปลี่ยนแปลงของมิติข้อมูล ฺการสกัดข้อมูล การแปลงข้อมูล\nและการนำข้อมูลเข้าระบบคลังข้อมูล แนวคิดการสร้างคลังข้อมูลบคลาวด์แพลตฟอร์ม ฺสถาปัตยกรรม\nของคลังข้อมูลบนคลาวด์แพลตฟอร์ม",
+            "desc_en": "CHARACTERISTICS OF DATA WAREHOUSE (DW), DW LIFECYCLE, DW ARCHITECTURE,\nGATHERING REQUIREMENTS, DESIGNING STAR  SCHEMA  AND\nSNOWFLAKE SCHEMA,\nDESIGNING\nSLOWLY  CHANGING DIMENSIONS,\nEXTRACTION\nTRANSFORMATION  AND  LOADING (ETL),\nCLOUD-\nBASED DATA WARENOUSES CONCEPTS, CLOUD BASED DATA WAREHOUSE ARCHITECTURE."
+        },
+        {
+            "code": "06026xxx",
+            "name_th": "วิชาเลือกกลุ่ม วิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
+            "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYTICS 1 ELECTIVE IN DATA ENGINEERING 1",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_037.png",
+                    "source_page": 37,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026xxx",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 2",
+            "name_en": "ELECTIVE IN DATA SCIENCE 2 ELECTIVE IN STATISTICAL ANALYTICS 2 ELECTIVE IN DATA ENGINEERING 2",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_037.png",
+                    "source_page": 37,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "9064xxxx",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป",
+            "name_en": "ELECTIVE IN GENERAL EDUCATION",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_037.png",
+                    "source_page": 37,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90644042",
+            "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
+            "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_037.png",
+                    "source_page": 37,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026213",
+            "name_th": "ระบบข้อมูลมหัต",
+            "name_en": "BIG DATA SYSTEMS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06066300",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_038.png",
+                    "source_page": 38,
+                    "document_category": "plan",
+                    "document_page": 33
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_327.png",
+                    "source_page": 327,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การติดตั้ง การพัฒนาการซ่อมบำรุง และการจัดการข้อมูลขนาดใหญ่ พื้นฐานการ\nเขียนโปรแกรมเพื่อวิเคราะห์ข้อมูลด้วยภาษา SOL\nข้อมูลบนหน่วยความจำบนคลัสเตอร์ การวิเคราะห์ข้อมูลจากระบบฐานข้อมูลแบบมีโครงสร้าง และ\nฐานข้อมูลแบบไม่มีโครงสร้าง และการใช้งานระบบฐานข้อมูลขนาดใหญ่บน CLOUD",
+            "desc_en": "INSTALLATION., DEVELOPMENT, MAINTENANCE AND MANAGEMENT OF BIG DATA.\nBASIC DATA ANALYSIS USING SOL, MAPREDUCE, AND IN-MEMORY PROCESSING ON CLUSTER. DATA\nANALYSIS ON STRUCTUED DATA AND UNSTRUCUTURED DATA. BIG DATA ON CLOUD COMPUTING."
+        },
+        {
+            "code": "06026214",
+            "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
+            "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_038.png",
+                    "source_page": 38,
+                    "document_category": "plan",
+                    "document_page": 33
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_327.png",
+                    "source_page": 327,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อบัจจุบันที่น่าสนใจทางวิทยาการข้อมูลในรูปแบบ\nโครงการ\nที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การ\nดูแลและแนะนำของอาจารย์ที่ปรึกษา สามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จาก\nการแก้ปัญหาเชิงปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
+            "desc_en": "STUDY\nOR  RESEARCH\nOF INTERESTING  CURRENT TOPICS  IN\nDATA\nSCIENCE\nAND\nBUSINESS  ANALYTICS  UNDERTAKING\nA\nWORK  PROJECT  BASED  BY  APPLYING\nTHE  THEORETICAL\nASPECTS OF THE INFORMATION TECHNOLOGY UNDER THE SUPERVISION OF A FACULTY MEMBER., BE\nABLE TO PRESENT\nA\nPROJECT PROPOSAL AND PRELIMINAR/ RESULT FROM  PRACTICAL SOLVING OR\nACADEMIC ANALYSIS."
+        },
+        {
+            "code": "06026xxx",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 3 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 3 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 3",
+            "name_en": "ELECTIVE IN DATA SCIENCE 3 ELECTIVE IN STATISTICAL ANALYTICS 3 ELECTIVE IN DATA ENGINEERING 3",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_038.png",
+                    "source_page": 38,
+                    "document_page": 33,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026xxx",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
+            "name_en": "AN ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS 4 ELECTIVE IN DATA ENGINEERING 4",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_038.png",
+                    "source_page": 38,
+                    "document_page": 33,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06066100",
+            "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
+            "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_038.png",
+                    "source_page": 38,
+                    "document_category": "plan",
+                    "document_page": 33
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_320.png",
+                    "source_page": 320,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ธรรมชาติและวงจรชีวิตของโครงการ การศึกษาความเป็นไปได้ของโครงการ เทคนิค\nการเลือกโครงการ องค์ความรู้สำหรับการบริหารโครงการ กลุ่มกระบวนการบริหารโครงการ การ\nจัดการขอบเขตของโครงการ การจัดการตารางเวลา การจัดการค่าใช้จ่ายโครงการ การจัดการ\nณภาพ การจัดทึมงานและทรัพยากร การจัดการงานสือสาร การจัดการความเสียง การควบคุม\nโครงการ และประเมินผลโครงการ",
+            "desc_en": "NATURE AND LIFE CYCLE OF INFORMATION TECHNOLOGY (IT) PROJECTS, PROJECT\nFEASIBILITY, PROJECT SELECTION TECHNIQUES, PROJECT MANAGEMENT BODY OF KNOWLEDGE, PM\nPROCESS GROUPS, PROJECT SCOPE MANAGEMENT, PROJECT COST, PROJECT SCHEDULING, QUALITY\nMANAGEMENT, TEAM AND RESOURCES MANAGEMENT, COMMUNICATION MANAGEMENT, RISK\nMANAGEMENT., PROJECT CONTROLLING, PROJECT EVALUATION."
+        },
+        {
+            "code": "90643021",
+            "name_th": "ผู้ประกอบการสมัยใหม่",
+            "name_en": "MODERN ENTREPRENEURS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": "กลุ่มวิชาทีกำหนดโดยคณะ",
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_038.png",
+                    "source_page": 38,
+                    "document_page": 33,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026215",
+            "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2",
+            "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06026214",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_039.png",
+                    "source_page": 39,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_328.png",
+                    "source_page": 328,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางวิทยาการข้อมูลในรูปแบบ\nโครงการ ที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การ\nดูแลและแนะนำของอาจารย์ที่ปรึกษา สามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอ\nและศึกษาต่อเนื่องมาจากวิชาโครงงานวิทยาการข้อมูล"
+        },
+        {
+            "code": "9064xxxx",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป",
+            "name_en": "ELECTIVE IN GENERAL EDUCATION",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_039.png",
+                    "source_page": 39,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 1",
+            "name_en": "FREE ELECTIVE COURSE 1",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_039.png",
+                    "source_page": 39,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 2",
+            "name_en": "FREE ELECTIVE COURSE 2",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_039.png",
+                    "source_page": 39,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06026259 หรือ 06026260",
+            "name_th": "สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ\nสหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+            "name_en": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            "credits": "6(0-35-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_039.png",
+                    "source_page": 39,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_344.png",
+                    "source_page": 344,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงาน ต่างๆ\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์?ใช้ในการ\nปฏิบัติงานจริงที่หน่วยงานนั้นต โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่\nได้กำหนดไว้ร่วมกัน ระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้ว\nนักศึกษาจำเป็นทีจะต้องนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงานต่างๆ ในต่างประเทศที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้\nในการปฏิบัติงานจริงทีหน่วยงานนัน\nโดยโครงการของใ\nหนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้อง",
+            "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN\nEDUCATIONAL INSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE\nIN THE CLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE\nAPPROVED  BY THE FACULTY AND THE ENTERPRISES.\nAFTER  COMPLETION., STUDENTS NEED TO\nPRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE."
+        },
+        {
+            "code": "06026216",
+            "name_th": "ปัญญาประดิษฐ์",
+            "name_en": "ARTIFICIAL INTELLIGENCE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "นิยามของปัญญาประดิษฐ์และศาสตร์ที่ เกี่ยวข้อง\nการแก้ปัญหาโดยใช้\nปัญญา ประดิษฐ์ การค้นหาและเกม ปริภูมิปัญหาและปริภูมิคาตอบ การแทนความรู้ กลไกการอนุมาน\nโอกาสและความน่าจะเป็น กฎของเบสการแบ่งกลุ่มด้วยนาอีฟเบส์ การเรียนรู้ด้วยเครื่องจักร ตัว\nแบ่งกลุ่มแบบเคเพื่อนบ้านใกล้สุด โครงข่ายประสาทเทียม อัลกอริทึมการเคลื่อนลงตามความชัน\nตรรกศาสตร์คลุมเครือ ต้นไม้ตัดสินใจ",
+            "desc_en": "AL DEFINITION AND RELATED FIELDS, PROBLEM SOLVING WITH AL, SEARCH\nAND\nGAME, PROBLEM SPACE AND SOLUTION SPACE, KNOWLEDGE REPRESENTATION., INFERENCE ENGINE,\nODD AND PROBABILITY, BAYES RULE,\nNAIVE BAYES CLASSIFICATION., MACHINE LEARNING., NEAREST\nNEIGHBOR CLASSIFIER, ARTIFICIAL NEURAL NETWORKS, GRADIENT DESCENT ALGORITHM, FUZZY LOGIC,\nDECISION TREE",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_328.png",
+                    "source_page": 328,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026217",
+            "name_th": "การเรียนรู้ของเครื่อง",
+            "name_en": "MACHINE LEARNING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความูรู้พื้นฐานของการเรียนรู้ของเครื่อง การเรียนรู้แเบบมีผู้สอน การถดถอยเชิงเส้น\nวิธีกำลังสองน้อยที่สุด การถดถอยโลจิสติก อัลกอริทึมเพื่อนบ้านที่ใกล้ที่สุด โครงข่ายประสาทเทียม\nซัพพอร์ทเวกเตอร์แมชชีน ธการเรียนรู้แบบไม่มีผู้สอน การจัดกลุ่มแบบเคมีน อัลกอริทึมการหาค่า\nความคาดหวังสูงสุด การลดมิติข้อมูล การวิเคราะห์องค์ประกอบหลักการตรวจสอบไขว้ การประเมิน\nประสิทธิภาพของแบบจำลอง การประยุกต์ใช้ของการเรียนรู้ของเครื่อง",
+            "desc_en": "BASIC OF MACHINE LEARNING, SUPERVISED LEARNING, LINEAR REGRESSION., LEAST\nSQUARES,\nLOGISTIC  REGRESSION,\nK-NEAREST  NEIGHBOUR,\nNEURAL\nNETWORK.,  SUPPORT\nVECTOR\nMACHINE,\nUNSUPERVISED\nLEARNING,\nK-MEAN\nCLUSTERING,\nEXPECTATION MAXIMIZATION\nALGORITHM, DIMENSIONALITY REDUCTION., PRINCIPAL  COMPONENT ANALYSIS, CROSS VALIDATION,\nEVALUATING MODEL PERFORMANCE, MACHINE LEARNING APPLICATIONS.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_329.png",
+                    "source_page": 329,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026218",
+            "name_th": "การเรียนรู้เชิงลึก",
+            "name_en": "DEEP LEARNING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "คณิตศาสตร์ที่จำเป็นสำหรับการเรียนรู้เชิงลึก, การคำนวเวกเตอร์,การสลายตัวของ\nเมทริกซ์, เข้าใจแนวคิดเกี่ยวกับความน่าจะเป็น, โครงข่ายประสาทเทียม, โครงข่ายประสาทเทียม\nแบบป้อนไปข้างหน้า, โครงข่ายประสาทเทียมที่มีโครงสร้างหลายขชั้น, ฟังก์ชันคำนวณค่าผิดพลาด,\nโครงข่ายประสาทเทียมแบบคอนโวลูชัน, โครงข่ายประสาทเทียมแบบวนซ้ำ",
+            "desc_en": "ESSENTIAL\nMATHEMATICS\nFOR\nLEARNING,\nVECTOR\nCALCULUS,\nMATRIX\nDECOMPOSITION, UNDERSTANDING THE CONCEPTS\nIN  PROBABILITY,\nNEURAL\nNETWORK,\nFEED-\nFORWARD\nNEURAL\nNETWORK.,\nMULTIPLAYER PERCEPTRON\nNEURAL\nNETWORK,\nLOSS\nFUNCTION,\nCONVOLUTION NEURAL NETWORK., RECURRENT NEURAL NETWORK",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_329.png",
+                    "source_page": 329,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026219",
+            "name_th": "การประมวลผลภาษาธรรมชาติ",
+            "name_en": "NATURAL LANGUAGE PROCESSING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ภาพรวมโมดูลการประมวลผลภาษาธรรมชาติ งานด้านการแบ่งกลุ่มข้อความ เช่น\nการจัดกลุ่มข่าว การจำแนกอารมณ์ การกรองสแปม\nตัวแบ่งกลุ่มแบบดั้งเดิม ฺเทคนิคการเรียนรู้เชิงลึก\nแบบจำลองภาษาและการกำกับข้อความที่มีลำดับ การแทนข้อความในแบบจำลองเวคเตอร์ งานด้าน\nการสร้างแบ\nเบบรูปของงานที่มีลำดับ เช่น การแปลภาษาด้วยเครื่องการย่อความ ฺการตอบคำถาม",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_329.png",
+                    "source_page": 329,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_330.png",
+                    "source_page": 330,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "OVERVIEW  OF NATURAL  LANGUAGE  PROCESSING\nMODULE,\nTEXT  CLASSIFICATION\nTASKS\nSUCH\nAS\nNEWS\nCLASSIFICATION,\nSENTIMENT\nANALYSIS,\nSPAM\nFILTERING,\nTRADITIONAL\nCLASSIFIERS, DEEP LEARNING TECHNIQUES, LANGUAGE MODELING AND SEQUENCE TAGGING, TEXT\nREPRESENTATION IN VECTOR SPACE MODELS, FORMULATE SEQUENCE TO SEQUENCE TASKS SUCH\nAS MACHINE TRANSLATION., SUMMARIZATION., QUESTION ANSWERING."
+        },
+        {
+            "code": "06026220",
+            "name_th": "การทำเหมืองข้อมูลกระบวนการ",
+            "name_en": "PROCESS MINING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แบบจำลองกระบวนการ เพ็ททริเน็ต เวอกร์โฟลว์เน็ต อัลกอริทึมในการค้นหา\nกระบวนการ อัลฟาอัลกอริทึม ดีเพนเด็นซีกราฟอัลกอริทึม แคชชวลเน็ตอัลกอริทึม การตรวจสอบ\nความสอดคล้องของกระบวนการ การค้นหาจุดบกพร่องของกระบวนการ โปรแกรมในการทำเหมือง\nกระบวนการ",
+            "desc_en": "PROCESS MODEL: PETRI NETS, WORKFLOW NETS, PROCESS DISCOVERY ALGORITHM:\nALPHA ALGORITHM, DEPENDENCY GRAPHS, CAUSAL NETS, CONFORMANCE CHECKING CONCEPTS,\nMINING BOTTLENECKS, PROCESS MINING SOFTWARE.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_330.png",
+                    "source_page": 330,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026221",
+            "name_th": "การค้นคืนสารสนเทศ",
+            "name_en": "INFORMATION RETRIEVAL",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความ รู้ เบื้องต้นเกี่ยวกับการค้นคืนสารสนเทศ สถาปัตยกรรมของระบบค้นคืน\nสารสนเทศ\nเครื่องมือและการประเมินผลการค้นคืนสารสนเทศ แบบจำลองการจัดลำดับแบบพื้นฐาน\nของการค้นคืนสารสนเทศ คำศัพท์และรายการของการจัดตำแหน่ง การสร้างดัชนีค้นหา การถ่วงค่า\nน้ำหนักของคำการปฏิสัมพันธ์ระหว่างระบบค้นคืนสารสนเทศกับผู้ใช้ การค้นคืนสารสนเทศซึ่งเน้น\nความหลากหลายของข้อมูลและการประเมินผลฺการตอบสนองที่เกียวข้องความต้องการสารสนเทศ\nแบบจำลองการจัดลำดับขับ\nนสูงของการค้นคืนสารสนเทศ การจัดกลุ่มและการจำแนกข้อความ ฺการ\nกรองข้อมูลสารสนเทศ การแนะ\nนำและกรองข้อมูลสารสนเทศแบบความร่วมมือ การรวบรวมข้อมูล\nบนเว็บ การวิเคราะห์ข้อมูลบนเว็บและการสืบค้นข้อมูลบนเว็บ",
+            "desc_en": "INTRODUCTION TO INFORMATION RETRIEVAL (IR), ARCHITECTURE OF IR SYSTEMS, IR\nEVALUATION AND TOOLS,\nBASIC IR RANKING MODELS,\nTERM VOCABULARY AND POSTINGS LIST,\nSEARCH INDEX CONSTRUCTION., TERM WEIGHTING, INTERACTIVE IR, DIVERSITY IR AND EVALUATION.,\nRELEVANCE FEEDBACK, AAVANCED IR RANKING MODELS, TEXT CLUSTERING AND CATEGORIZATION.,\nINFORMATION  FILTERING, COLLABORATIVE RECOMMENDATIONS/ FILTERING,\nWEB CRAWLING, WEB\nANALYSIS AND WEB RETRIEVAL.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_330.png",
+                    "source_page": 330,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026222",
+            "name_th": "คอมพิวเตอร์วิชัน",
+            "name_en": "COMPUTER VISION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "เทคนิคพื้นฐานในการป=\nระมวลผลภาพและวีดิทัศน์ ความเข้มแสงและสี การแปลง\nภาพ\nการคอนโวลูชันภาพ รูปทรงและเส้นแสดงรูปร่าง ฮิสโตแกรม การแบ่งส่วนภาพ การสกัดวัตถุ\nการตรวจจับและจับคู่คุณลักษณะเด่น การลบฉากหลังการเผ้าติดตามฺการรู้\nวิชัน\n3 มิติ การ\nเรียนรู้ของเครื่องในคอมพิวเตอร์วิชัน การประยุกต์ใช้ เช่น ระบบตรวจสอบสินค้า การวิเคราะห์ภาพ\nทางการแพทย์ การยืนยันตัวตนโดยใช้ชีวมิติ พาหนะอัจฉริยะ และระบบรักษาความปลอดภัย",
+            "desc_en": "BASIC\nIMAGE\nAND\nVIDEO\nPROCESSING,\nINTENSITY\nAND\nCOLOR,\nIMAGE\nTRANSFORMATION,\nIMAGE\nCONVOLUTION,\nSHAPE\nAND\nCONTOUR,\nHISTOGRAM,\nIMAGE\nSEGMENTATION., FOREGROUND  EXTRACTION., FEATURE  DETECTION\nAND  MATCHING,  BACKGROUND\nSUBTRACTION., TRACKING,  OBJECT RECOGNITION,\n3D VISION., MACHINE LEARNING IN  COMPUTER\nVISION,\nSOME\nAPPLICATIONS  SUCH\nAS\nPRODUCT  INSPECTION\nSYSTEM,\nBIOMEDICAL  IMAGE\nANALYSIS, BIOMETRIC AUTHENTICATION., INTELLIGENT VEHICLE, AND SECURITY SYSTEM.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_331.png",
+                    "source_page": 331,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026223",
+            "name_th": "การประมวลผลภาพ",
+            "name_en": "IMAGE PROCESSING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "พืนฐานของการประมวลผลภาพการแปลงความเข็มแสงและการกรองในขอบเขต\nสเปเชียล ฺการประมวลผลในขอบเขตความถี\nการพื้นฟูภาพ การประมวลผลภาพแบบมอร์โฟโลยี การ\nแบ่งส่วนภาพ",
+            "desc_en": "FUNDAMENTALS\nOF  IMAGE\nPROCESSING,  INTENSITY\nTRANSFORMATIONS\nAND\nSPATIAL FILTERING, FREQUENCY DOMAIN PROCESSING, IMAGE RESTORATION, MORPHOLOGICAL IMAGE\nPROCESSING, IMAGE SEGMENTATION.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_331.png",
+                    "source_page": 331,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026224",
+            "name_th": "การแปลงข้อมูลและการรู้จำรูปภาพ",
+            "name_en": "IMAGE TRANSFORMATION AND RECOGNITION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะ\nนำการประมวลผลภาพดิจิตอลสองระดับ ภาพสีเทา และภาพสี การประมวลผล\nด้วยตัวกรองเฉพาะถิน\nการลดมิติของข้อมูลภาพ การแปลงรูปแบบของข้อมูล ฺอาทิชเช่น การแปลงฟูรี\nเยแบบไม่ต่อเนื่อง การวิเคราะห์องค์ประกอบหลักการวิเคราะห์การจำแนกประเภทเชิงเส้น การ\nแปลงข้อมูลสองมิติแบบเวฟเล็ตเชิงประจักษ์ การแยกองค์ประกอบข้อมูลสองมิติแบบเชิงประจักษ์\nและการแยกองค์ประกอบเดียวของภาพเชิงประจักษ์ แนะ\nนำการรู้จำภาพเบื้องต้นด้วยวิธีการแบบ\nกำหนดเองและการเรียนรู้ของเครื่องจักร",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_331.png",
+                    "source_page": 331,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_332.png",
+                    "source_page": 332,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "INTRODUCTION\nTO\nDIGITAL  IMAGE  PROCESSING FOR  BINARY,\nGRAY\nAND\nCOLOR\nIMAGES, LOCAL IMAGE FILTERING, DIMENSIONALITY REDUCTION., TRANSFORMATION: DISCRETE FOURIER\nTRANSFORM.,  PRINCIPAL  COMPONENTS  ANALYSIS,\nLINEAR  DISCRIMINANT  ANALYSIS,\n2D\nWAVELET\nTRANSFORM,\nBI DIMENSIONAL\nEMPIRICAL\nMODE  DECOMPOSITION,\n2D\nEMPIRICAL\nWAVELET\nTRANSFORM\nAND\nEMPIRICAL  MONOCOMPONENT  IMAGE  DECOMPOSITION.,  INTRODUCTION\nTO\nIMAGE RECOGNITION: HANDCRAFT BASED AND LEARNING BASED APPROACHES."
+        },
+        {
+            "code": "06026225",
+            "name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์",
+            "name_en": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะนำหลักการและแนวทางการทำงานของโครงข่ายประสาทเทียมและเทคนิคการ\nเรียนรู้เชิงลึกการประยุกต์ใช้งานการเรียนรู้เชิงลึกสำหรับการวิเคราะห์ปัญหาภาพและวิดีโอทางการ\nแพทย์ อาทิชเช่น การตรวจจับวัตถฺการแบ่งส่วน การรู้จำเละการวิเคราะห์ ลักษณะและชนิดของ\nข้อมูลภาพและวิดีโอทางการแพทย์ และความท้าทายของการประมวลผลภาพและวิดีโอทางการ\nแพทย์",
+            "desc_en": "INTRODUCTION TO CONCEPTS AND PRINCIPLES OF ARTIFICIAL NEURAL NETWORK AND\nDEEP LEARNING TECHNIQUES, APPLYING DEEP LEARNING FOR MEDICAL IMAGE AND VIDEO ANALYSIS\nPROBLEMS SUCH AS DETECTION., SEGMENTATION., RECOGNITION, AND ANALYSIS, CHARACTERISTICS\nAND  TYPES\nOF\nMEDICAL  IMAGE\nAND  VIDEO, CHALLENGES IN\nMEDICAL  IMAGE\nAND  VIDEO\nCOMPUTING.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_332.png",
+                    "source_page": 332,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026226",
+            "name_th": "หัวข้อพิเศษทางด้านวิทยาการข้อมูล 1",
+            "name_en": "SPECIAL TOPICS IN DATA SCIENCE 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอน\nทางด้านวิทยาการข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE\nWILL  COVER\nRECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF DATA SCIENCE.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_332.png",
+                    "source_page": 332,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026227",
+            "name_th": "หัวข้อพิเศษทางด้านวิทยาการข้อมูล 2",
+            "name_en": "SPECIAL TOPICS IN DATA SCIENCE 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ ผู้สอน\nทางด้านวิทยาการข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nWILL  COVER\nRECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF DATA SCIENCE.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_333.png",
+                    "source_page": 333,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026228",
+            "name_th": "ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 1",
+            "name_en": "SPECIAL WORKSHOP IN DATA SCIENCE 1",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย\nอาจารย์ผู้สอนทางด้านวิทยาการข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN DATA\nSCIENCE., WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_333.png",
+                    "source_page": 333,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026229",
+            "name_th": "ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2",
+            "name_en": "SPECIAL WORKSHOP IN DATA SCIENCE 2",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย\nอาจารย์ผู้สอนทางด้านวิทยาการข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN DATA\nSCIENCE, WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_333.png",
+                    "source_page": 333,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026230",
+            "name_th": "อนุกรมเวลาและการพยากรณ์เบื้องต้น",
+            "name_en": "INTRODUCTION TO TIME SERIES AND FORECASTING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "บทนำการพยากรณ์ ข้อมูลอนุกรมเวลา การได้มาซึงข้อมูลและการจัดการข้อมูลใน\nการพยากรณ์ การพยากรณ์ด้วยเทคนิคการ ปรับให้เรียบ การพยากรณ์ด้วยเทคนิคการถดถอย การ\nพยากรณ์เอนุกรมเวลาด้วยวิธีการแยกองค์ประกอบ วิธีการพยากรณ์แบบบอกซ์-เจนกินส์ การประเมิน\nเทคนิคการพยากรณ์",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_333.png",
+                    "source_page": 333,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_334.png",
+                    "source_page": 334,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "AN\nOVERVIEW  OF FORECASTING, TIME\nSERIES\nDATA,\nDATA  ACQUISITION\nAND\nHANDLING\nIN  FORECASTING,  FORECASTING\nWITH\nSMOOTHING  TECHNIQUES,  FORECASTING\nBY\nREGRESSION TECHNIQUES, THE DECOMPOSITION METHOD OF TIME SERIES FORECASTING, THE BOX-\nJENKINS METHOD OF FORECASTING, THE EVALUATION OF FORECASTING TECHNIQUES."
+        },
+        {
+            "code": "06026231",
+            "name_th": "สถิติเชิงเบย์",
+            "name_en": "BAYESIAN STATISTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "บทนำการวิเคราะห์ ข้อมูลแบบเบส การแจกแจงความน่าจะเป็นก่อน การแจกแจง\nความน่าจะเป็นภายหลัง การแจกแจงความน่าจะเป็นแบบสังยุค ฺตัวแบบการอนุมานแบบเบส์ที่มี\nพารามิเตอร์เดียวและแบบหลายพารามิเตอร์",
+            "desc_en": "INTRODUCTION TO  BAYESIAN\nDATA  ANALYSIS, PRIOR  PROBABILITY  DISTRIBUTION,\nPOSTERIOR PROBABILITY DISTRIBUTION, CONJUGATE PROBABILITY DISTRIBUTION., BAYESIAN INFERENCE\nSINGLE AND MULTIPLE PARAMETER MODELS.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_334.png",
+                    "source_page": 334,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026232",
+            "name_th": "กระบวนการสโตแคสติกเบื้องต้น",
+            "name_en": "INTRODUCTION TO STOCHASTIC PROCESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "กระบวนการสุ่ม\nลูกโซ่มาร์คอฟแบบเวลาไม่ต่อเนื่อง ลูกโซ่มาร์คอฟแบบเวลา\nต่อเนือง ระบบแถวคอย กระบวนการปัวซง กระบวนการเกิดและตาย กระบวนการเวียนบังเกิด และ\nกระบวนการแตกกิง และการประยุกต์ กระบวนการสโตแคสติก",
+            "desc_en": "RANDOM\nPROCESSES,  DISCRETE\nTIME\nMARKOV\nCHAINS,  CONTINUOUS\nTIME\nMARKOV\nCHAINS\nQUEUING\nSYSTEMS\nPOISSON\nPROCESSES,\nBIRTH AND DEATH\nPROCESSES,\nRENEWAL PROCESSES AND BRANCHING PROCESSES, APPLICATIONS OF STOCHASTIC PROCESSES.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_334.png",
+                    "source_page": 334,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026233",
+            "name_th": "การวิเคราะห์ข้อมูลหลายตัวแปร",
+            "name_en": "MULTIVARIATE DATA ANALYSIS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "บทนำการวิเคราะห์ ข้อมูลหลายตัวแปร การแจกแจงแบบปกติหลายตัวแปร การ\nวิเคราะห์ความแปรปรวนหลายตัวแปร การวิเคราะห์ ตัวประกอบหลักการวิเคราะห์ปัจจัย การ\nวิเคราะห์กลุ่ม ฺการวิเคราะห์สหสัมพันธ์แคนนอนนิคัล การวิเคราะห์จำแนกประเภท การวิเคราะห์\nความถดถอยโลจิสติค",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_334.png",
+                    "source_page": 334,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_335.png",
+                    "source_page": 335,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "INTRODUCTION\nTO\nMULTIVARIATE\nANALYSIS,\nTHE\nMULTIVARIATE\nNORMAL\nDISTRIBUTION, MULTIVARIATE ANALYSIS OF VARIANCE, PRINCIPAL COMPONENT ANALYSIS, FACTOR\nANALYSIS, CLUSTER ANALYSIS, CANONICAL CORRELATION ANALYSIS, DISCRIMINANT ANALYSIS, LOGISTIC\nREGRESSION ANALYSIS."
+        },
+        {
+            "code": "06026234",
+            "name_th": "การออกแบบการทดลอง",
+            "name_en": "EXPERIMENTAL DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการของการวางแผนการทดลอง การตรวจสอบความเหมาะสมของตัวแบบ การ\nแปลงข้อมูล การทดลองปัจจัยเดียว แผนการทดลองแบบสมสมบูรณ์ การเปรียบเทียบเชิงพหุ\nแผนการทดลองแบบสุ่มในบล็อคสมบูรณ์ แผนการทดลองแบบลาตินสแควร์ การทดลองแบบ\nแฟคทอเรียลและแบบสปลิทพลอทฺ การวิเคราะห์ความแปรปรวนร่วม",
+            "desc_en": "PRINCIPLE\nOF\nEXPERIMENTAL  DESIGN,\nMODEL  ADEQUACY  CHECKING,\nDATA\nTRANSFORMATION, SINGLE-FACTOR EXPERIMENTS, COMPLETELY RANDOMIZED DESIGN., MULTIPLE\nCOMPARISON TESTS, RANDOMIZED COMPLETE BLOCK DESIGN, LATIN SQUARE DESIGN, FACTORIAL\nAND SPLIT PLOT EXPERIMENTS, AND ANALYSIS OF COVARIANCE.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_335.png",
+                    "source_page": 335,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026235",
+            "name_th": "หัวข้อพิเศษทางการวิเคราะห์เชิงสถิติ 1",
+            "name_en": "SPECIAL TOPICS IN STATISTICAL ANALYTICS 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอน\nทางด้านการวิเคราะห์เชิงสถิติเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nWILL  COVER\nRECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF STATISTICAL DATA ANALYSIS.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_335.png",
+                    "source_page": 335,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026236",
+            "name_th": "หัวข้อพิเศษทางการวิเคราะห์เชิงสถิติ 2",
+            "name_en": "SPECIAL TOPICS IN STATISTICAL ANALYTICS 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอน\nทางด้านการวิเคราะห์เชิงสถิติเป็นผู้คัดเลือก",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_335.png",
+                    "source_page": 335,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_336.png",
+                    "source_page": 336,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "THIS\nCOURSE\nWILL  COVER  RECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF STATISTICAL DATA ANALYSIS."
+        },
+        {
+            "code": "06026237",
+            "name_th": "ปฏิบัติการพิเศษทางการวิเคราะห์เชิงสถิติ 1",
+            "name_en": "SPECIAL WORKSHOP IN STATISTICAL ANALYTICS 1",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย\nอาจารย์ ผู้สอนทางด้านการวิเคราะห์เชิงสถิติเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nFOCUSES\nON\nSELECTED  TOPICS\nAND  PRACTICAL.  WORKSHOP\nIN\nSTATISTICAL DATA ANALYSIS, WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_336.png",
+                    "source_page": 336,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026238",
+            "name_th": "ปฏิบัติการพิเศษทางการวิเคราะห์เชิงสถิติ 2",
+            "name_en": "SPECIAL WORKSHOP IN STATISTICAL ANALYTICS 2",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย\nอาจารย์ผู้สอนทางด้านการวิเคราะห์เชิงสถิติเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE  FOCUSES\nON  SELECTED  TOPICS\nAND  PRACTICAL.  WORKSHOP\nIN\nSTATISTICAL DATA ANALYSIS, WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_336.png",
+                    "source_page": 336,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026239",
+            "name_th": "สถาปัตยกรรมข้อมูลแบบไปป์ไลน์",
+            "name_en": "DATA PIPELINE ARCHITECTURE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "สถาปัตยกรรมข้อมูลแบบไปป์ไลน์คือการออกแบบขันตอนในการ ย้ายข้อมูลจากต้น\nทาง\nไปยังปลายทางที่อยู่ในรูปแบบที่พร้อมใช้งาน โดยมี",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_336.png",
+                    "source_page": 336,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026240",
+            "name_th": "การพัฒนาระบบอัจฉริยะ",
+            "name_en": "INTELLIGENT SYSTEM DEVELOPMENT",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การพัฒนาระบบสารสนเทศที่มีการทำงานร่วมกับระบบปัญญาประดิษฐ์ในรูปแบบ\nต่างๆ การประยุกต์ใช้งานการเรียนรู้ของเครื่องในแอปพลิเคชัน การสร้างและออกแบบ",
+            "desc_en": "APL\nการเรียนรู้ของเครื่อง\nIINTELLIGENT  SYSTEM\nDEVELOPMENT,\nAPPLY\nARTIFICIAL  INTELLIGENCE\nAND\nMACHINE LEARNING MODEL TO APPLICATION. DESIGN., CREATE AND DEPLOY MACHINE LEARNING\nMODEL TO\nAPPLICATION PROGRAMMING INTERFACE (API)",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_337.png",
+                    "source_page": 337,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026241",
+            "name_th": "การดำเนินงานการเรียนรู้ของเครื่อง",
+            "name_en": "MACHINE LEARNING OPERATIONS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "กระบวนการทำเอ็มแอลอือพ กระบวนการสร้างแบบจำลอง เช่น\nการนำเข้าข้อมูล\nการสอนแบบจำลอง การเตรียมแบบจำลองเพือสำหรับนำไปใช้งาน กระบวนการสำหรับการนำ\nแบบจำลองไปใช้งาน เช่น การทดสอบโปรแกรม กระบวนการตรวจสอบแบบจำลอง เช่น การ\nตรวจสอบแบบจำลอง การวิเคราะห์ประสิทภาพของแบบจำลอง การกำกับควบคุมการใช้แบบจำลอง",
+            "desc_en": "MLOPS LIFECYCLE, BUILD PIPELINE: DATA INGESTION, MODEL TRAINING, MODEL\nTESTING,\nMODEL\nPACKAGING\nAND\nREGISTERING,\nDEPLOY\nPIPELINE:\nAPPLICATION\nTESTING,\nMONITORING PIPELINE: MONITORING, ANALYSIS, GOVERNANCE.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_337.png",
+                    "source_page": 337,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026242",
+            "name_th": "โครงสร้างพื้นฐานด้านเทคโนโลยีกลุ่มเมฆ",
+            "name_en": "CLOUD TECHNOLOGY INFRASTRUCTURE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ณลักษณะที่สำคัญของระบบคลาวด์., ภรูปแบบการให้บริการของระบบคลาวด์,\nรูปแบบการประมวลผลบนระบบคลาวด์, รูปแบบการจัดเก็บข้อมูลบนระบบคลาวด์., รูปแบบของ\nฐานข้อมูลบนระบบคลาวด์., การจัดการระบบเครือข่ายบนระบบคลาวด์., ความปลอดภัยสำหรับระบบ\nคลาวด์,\nการติดตั้งระบบการทำงานในขั้นพื้นฐานบนระบบคลาวด์,การบริหารจัดการการทำงานและ\nการจัดการเกี่ยวกับค่าใช้จ่ายบนระบบคลาวด์",
+            "desc_en": "KEY\nCHARACTERISTICS\nOF\nCLOUD\nCOMPUTING,\nCLOUD\nDELIVER\nMODELS,\nCOMPUTE SERVICES IN THE CLOUD., STORAGE SERICES IN THE CLOUD, DATABASE SERVICES IN THE\nCLOUD., NETWORKING SERVICES IN THE CLOUD, SECURITY SERVICES IN THE CLOUD., IMPLEMENTING\nBASIC SYSTEM ON PUBLIC CLOUD ENVIRONMENT, OPERATION AND COST MANAGEMENT IN THE\nCLOUD",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_337.png",
+                    "source_page": 337,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026243",
+            "name_th": "ระบบฐานข้อมูลขั้นสูง",
+            "name_en": "ADVANCED DATABASE SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การจัดการรายการเปลี่ยนแปลง การกู้คืนโดยใช้เทคนิคลงบันทึกเละการใช้แชโดว์\nเพจจิง การจัดการบัฟเฟอร์ เทคนิคการควบคุมภาวะพร้อมกันแบบต่างๆ การกู้คืนจากความขัดข้อง\nของรายการ เปลี่ยนแปลง การแก้ปัญหาภาวะติดตาย ฺการประมวลผลข้อคำถาม ฺการปรับข้อคำถาม\nให้เหมาะที่สุดฺ ฺฐานข้อมูลแบบกระจาย คลังข้อมูล ฺหรือหัวข้ออื่นที่ผู้สอนเลือกตามความเหมาะสมกับ\nเทคโนโลยีในปัจจุบัน",
+            "desc_en": "TRANSACTION\nMANAGEMENT,\nCRASH  RECOVER\nUSING\nVARIOUS\nLOG-BASED\nTECHNIQUES\nAND\nSHADOW  PAGING,  BUFFER  MANAGEMENT,\nVARIOUS  CONCURRENCY\nCONTROL\nTECHNIQUES, TRANSACTION FAILURE RECOVERY., DEADLOCK HANDLING, QUERY PROCESSING, QUERY\nOPTIMIZATION., DISTRIBUTED DATABASE, DATA WAREHOUSES, TOPICS SELECTED BY INSTRUCTORS\nBASED ON CURRENT\nTECHNOLOGY.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_338.png",
+                    "source_page": 338,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026244",
+            "name_th": "การดูแลและบำรุงรักษาระบบฐานข้อมูล",
+            "name_en": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การสร้างวิวและลำดับ ตัวดำเนินการของเซ็ต การสร้างพีแอล/เอสคิวแอล การ\nจัดการกับสิ่ง ผิดปรกติ กระบวนงานและฟังก์ชัน การจัดการกับโปรแกรมย่อย แพ็คเก็จ การจัดการ\nกับอ็อบเจกต์ขนาดใหญ่ ทริกเกอร์ สถาปัตยกรรมตัวบริการฐานข้อมูล การจัดการฐานข้อมูล ฺที่\nเครื่องรับบริการ การสร้างฐานข้อมูล ฺพจนานุกรมข้อมูลและวิวแสดงการปฏิบัติการแบบพลวัต แฟ้ม\nควบคุม แ\nเฟ้มรายการทำซ้ำการบำรุงรักษาเทเบิลสเปซและแฟ้มข้อมูล โครงสร้างหน่วยเก็บ ข้อมูลทำ\nกลบ\nการบำรุงรักษาตารางการบำรุงรักษาดรรชนี บูรณภาพของข้อมูล ฺการจัดการผู้ใช้งาน สิทธิ์การ\nใช้งานและบทบาท การ\nล\nเข้าฐานข้อมูล ฺการสำรองและการกู้ฐานข้อมูล\nอรรถประโยชน์สำหรับการนำเข้า และส่งออกข้อมูล",
+            "desc_en": "CREATING VIEWS AND SEQUENCE, SET OPERATORS, CREATING PLSOL, HANALING\nEXCEPTIONS, PROCEDURES AND FUNCTIONS, MANAGING SUBPROGRAMS, PACKAGES, MANIPULATING\nLARGE  OBJECTS, TRIGGERS,\nDATABASE\nSERER\nARCHITECTURE,\nCLIENT  DATABASE  MANAGEMENT,\nCREATING DATABASES, DATA DICTIONARY AND DYNAMIC PERFORMANCE VIEWS, CONTROL FILES, REDO\nFILES,  MAINTAINING  TABLESPACES\nAND\nDATA\nFILES,  STORAGE  STRUCTURES,\nUNDO\nDATA,\nMAINTAINING TABLES, MAINTAINING INDEXES, MANAGING USERS, PRIVILEGES AND ROLES, LOADING\nDATA INTO A DATABASE, DATABASE BACKUP AND RECOVERY., IMPORT AND EXPORT UTILITY.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_338.png",
+                    "source_page": 338,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026245",
+            "name_th": "ระบบฐานข้อมูลแบบกระจาย",
+            "name_en": "DISTRIBUTED DATABASE SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จัดการเกี่ยวกับการเพิ่มความสามารถของฐานข้อมูลที่มีความสัมพันธ์เชิง\nตรรกะ\nโดยกระจายฐานข้อมูลผ่านเครือข่ายคอมพิวเตอร์เพื่อให้สามารถประมวลผลข้อมูลที่ปรับ\nขนาดได้\nไตรนี้จะกล่าวถึงส่วนประกอบของระบบครอบคลุม หัวข้อหลักต่อไปนี้: สถาปัตยกรรม\nฐานข้อมูลแบบกระจาย\nการจัดเก็บและการจัดทำดัชนีข้อมูลแบบกระจาย การประมวลผล/การเพิ่ม\nประสิทธิภาพการสืบค้นแบบกระจายและแบบคู่ขนาน และการควบคุมการทำงานพร้อมกันในระบบ\nฐานข้อมูลแบบคู่ขนานแบบกระจาย และการออกแบบและอิมพลีเม้นท์ ระบบต้นแบบ",
+            "desc_en": "THIS COURSE WILL DEAL WITH THE INCREASED\nCAPABILITIES OF A COLLECTION OF\nLOGICALLY\nINTERRELATED\nDATABASES\nDISTRIBUTED\nOVER\nA\nCOMPUTER\nNETWORK\nTO\nENABLE\nSCALABLE DATA PROCESSING.\nTHIS COURSE ADDRESSES THE COMPONENTS OF THESE SYSTEMS,\nCOVERING THE FOLLOWING MAIN TOPICS: DISTRIBUTED DATABASE ARCHITECTURES, DISTRIBUTED DATA\nSTORAGE,\nAND\nINDEXING,\nDISTRIBUTED\nAND\nPARALLEL\nQUERY\nPROCESSING OPTIMIZATION,\nCONCURRENCY\nCONTROL\nIN\nDISTRIBUTED\nPARALLEL\nDATABASE\nSYSTEMS,\nAND\nDESIGN\nAND\nIMPLEMENTATION OF PROTOTYPE SYSTEMS.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_339.png",
+                    "source_page": 339,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026246",
+            "name_th": "หัวข้อพิเศษทางวิศวกรรมข้อมูล 1",
+            "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ ผู้สอน\nทางด้านวิศวกรรมข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nWILL  COVER\nRECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF DATA ENGINEERING.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_339.png",
+                    "source_page": 339,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026247",
+            "name_th": "หัวข้อพิเศษทางวิศวกรรมข้อมูล 2",
+            "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอน\nทางด้านวิศวกรรมข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nWILL  COVER\nRECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF DATA ENGINEERING.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_339.png",
+                    "source_page": 339,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026248",
+            "name_th": "ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1",
+            "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 1",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย\nอาจารย์ผู้สอนทางด้านวิศวกรรมข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN DATA\nENGINEERING, WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_340.png",
+                    "source_page": 340,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026249",
+            "name_th": "ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2",
+            "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 2",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย\nอาจารย์ผู้สอนทางด้านวิศวกรรมข้อมูลเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN DATA\nENGINEERING, WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_340.png",
+                    "source_page": 340,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026250",
+            "name_th": "วิทยาการข้อมูลสำหรับธุรกิจ",
+            "name_en": "DATA SCIENCE FOR BUSINESS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ภาพรวมของวิทยาการข้อมูล การสร้างโมเดลการทำนาย การแบ่งส่วนแบบมีผู้สอน\nฟังก์ชันดิสคริมิเนนต์ การวิเคราะห์การปฏิบัติงานของโมเดล การทำเหมืองและแทนข้อความอักษร\nการจัดกลุ่มและทำเหมืองข้อมูลแบบไม่มีผู้สอน เทคนิคและงานต่าง\nในวิทยาการข้อมูล ปกลยุทธ์เชิง\nธุรกิจและวิทยาการข้อมูล แอพลิเคชันที่ใช้วิทยาการข้อมูลในการวิเคราะห์สื่อสังคมออนไลน์\nวิทยาการข้อมูลในการจัดการการปฏิบัติงาน",
+            "desc_en": "OVERVIEW\nOF\nTHE\nDATA\nSCIENCE:\nPREDICTIVE  MODELING,\nDISCRIMINANT\nFUNCTIONS, MODEL PERFORMANCE ANALYTICS, TEXT REPRESENTATION AND MINING, CLUSTERING,\nAPPLICATIONS OF DATA SCIENCE TO MARKETING ANALYTICS, APPLICATIONS OF DATA SCIENCE TO\nFINANCIAL ANALYTICS, APPLICATIONS OF DATA SCIENCE TO\nSOCIAL\nNETWORK ANALYTICS, DATA\nSCIENCE IN OPERATIONS MANAGEMENT.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_340.png",
+                    "source_page": 340,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026251",
+            "name_th": "บัญชีการเงิน",
+            "name_en": "FINANCIAL ACCOUNTING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะนำการบัญชี วิธีการทางบัญชีและธุรกรรมฺภาพรวมวงจรบัญชี (บันทึกรายวัน\nบัญชีแเยกประเภท ปรับปรุงรายการบัญชี และปิดบัญชี) ต้นทุนสินค้า การบัญชีสำหรับธุรกิจซื้อขาย\nสินค้า การบัญชีสินทรัพย์ การบัญชีหนี้สิน การบัญชีส่วนของเจ้าของ การจัดทำงบการเงิน งบกำไร\nขาดทุนและงบดุล การวิเคราะห์ทางการเงิน การวิเคราะห์แนวตัง การวิเคราะห์แนวนอน และการ\nวิเคราะห์ อัตราส่วน",
+            "desc_en": "AN INTRODUCTION TO ACCOUNTING, ACCOUNTING METHODS AND TRANSACTIONS,\nACCOUNTING CYCLE OVERVIEW: JOURNALS, LEDGERS, ADJUSTING, AND CLOSING ENTRIES, INVENTORY\nCOST, MERCHANDISING BUSINESSES, ASSET, LIABILITY., SHAREHOLDER EQUITY., FINANCIAL STATEMENT:\nINCOME STATEMENT, BALANCE SHEET, AND CASH FLOW, FINANCIAL ANALYSIS, VERTICAL ANALYSIS,\nHORIZONTAL ANALYSIS, AND RATIO ANALYSIS.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_341.png",
+                    "source_page": 341,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026252",
+            "name_th": "การวิเคราะห์ด้านการเงิน",
+            "name_en": "FINANCIAL ANALYTICS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะนำเละภาพรวมของการวิเคราะห์ทางการเงิน การประยุกต์การวิเคราะห์ทาง\nการเงินในสถานการจริง\nเทคนิควิเคราะห์ข้อมูลอนุกรมเวลา การวัดประสิทธิภาพการพยากรณ์ การ\nพัฒนาโมเดลพยากรณ์ ARIMA\nประเมินความสมดุลของเสี่ยงและผลตอบแทนในทฤษฎีพอร์ตโฟลิโอ\nสมัยใหม่ ราคา ผลตอบแทน\nและความเสี่ยงของหุ้น เทคนิคการวิเคราะห์ในบริบทอื่นท แนะนำ\nอัลกอริทึมการเทรดหลักทรัพย์",
+            "desc_en": "INTRODUCTION\nAND\nOVERVIEW\nOF\nFINANCIAL\nANALYTICS,\nAPPLY\nFINANCIAL\nANALYTICS IN REAL WORLD SITUATIONS, TECHNIQUES TO ANALYZE TIME SERIES DATA, FORECASTING\nPERFORMANCE MEASURES, BUILDING AN ARLMA FORECASTING MODEL USING R., EVALUATE THE RISK-\nREWARD TRADE OFF IN\nMODERN  PORTFOLIO THEORY., PRICES, RETURNS, AND  RISK OF CORPORATE\nSTOCKS, ANALYTICAL TECHNIQUES IN OTHER DOMAINS, INTRODUCTION TO ALGORITHMIC TRADING",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_341.png",
+                    "source_page": 341,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026253",
+            "name_th": "การวิเคราะห์ด้านการตลาด",
+            "name_en": "MARKETING ANALYTICS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การวิเคราะห์การตลาด, ขนาดตลาดและการวิเคราะห์แนวโน้ม, การแบ่งส่วนตลาด,\nการวิเคราะห์การแข่งขัน, เกลยุทธ์ทางธุรกิจและการปฏิบัติการทางธุรกิจ- การพยากรณ์ การวิเคราะห์\nชิงคาดการณ์\nและการทำเหมืองข้อมูล, การวิเคราะห์ผลิตภัณฑ์และบริการ, การวิเคราะห์ราคา, การ\nวิเคราะห์ ช่องทางการจัดจำหน่าย, การวิเคราะห์การส่งเสริมการขาย, การวิเคราะห์การขาย,\nการลง\nมือวิเคราะห์และการนำเสนอที่ขับเคลื่อนด้วยข้อมูล",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_341.png",
+                    "source_page": 341,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_342.png",
+                    "source_page": 342,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "MARKETING\nANALYTICS,\nMARKET\nSIZING\nAND\nTREND\nANALYSIS,\nMARKET\nSEGMENTATION., COMPETITIVE ANALYSIS,\nBUSINESS STRATEGY AND OPERATIONS- FORECASTING,\nPREDICTIVE ANALYTICS, AND DATA MINING, PRODUCT AND SERVICE ANALYTICS, PRICE ANALYTICS,\nDISTRIBUTION ANALYTICS, PROMOTION\nANALYTICS, SALES ANALYTICS, ANALYTICS IN\nACTION AND\nDATA DRIVEN PRESENTATIONS."
+        },
+        {
+            "code": "06026254",
+            "name_th": "เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น",
+            "name_en": "INTRODUCTION TO HEALTH ANALYTICS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความ รู้เบื้องต้นการวิเคราะห์ ข้อมูลด้านสุขภาพ เทคโนโลยีและเครื่องมือทั่วไป\nแหล่งข้อมูลด้านการดูแลสุขภาพ มาตรฐานด้านข้อมูลการดูแลสุขภาพ โครงสร้างข้อมูลทางคลินิก\nการทำเหมืองข้อมูลด้านสุขภาพ การจำแนกประเภทและการ\nณสมบัติ เทคนิค SUPERVISED\nและ\nUNSUPERVISED แบบจำลองการคาดการณ์การวิเคราะห์ข้อมูลสุขภาพเชิงสำรวจ (EDA)\nเทคนิคการสร้าง VISUALIZATION\nข้อมูลด้านสุขภาพจากแฟ้มบันทึกการดูแลสุขภาพอิเล็กท รอนิกส์และการแลกเปลี่ยนข้อมูลด้าน\nสุขภาพ\nการวิเคราะห์ข้อมูลอนุกรมเวลา",
+            "desc_en": "INTRODUCTION TO HEALTH DATA ANALYSIS, COMMON TECHNOLOGIES AND TOOLS,\nHEALTHCARE DATA SOURCES, STANDARDS IN HEALTHCARE DATA, CLINICAL DATA STRUCTURE, HEALTH\nDATA\nMINING,\nCLASSIFICATION\nAND\nFEATURE\nSELECTION.,  SUPERISED\nAND\nUNSUPERISED\nTECHNIQUES,\nPREDICTION\nMODEL\nEXPLORATORY\nDATA\nANALYSIS\n(EDA)\nAND\nCOMMON\nVISUALIZATION TECHNIQUES IN HEALTH\nCARE SCIENCE, CLINICAL DATA TYPE OF HEALTH DATA IN\nELECTRONIC HEALTHCARE RECORD AND HEALTHCARE INFORMATION EXCHANGE, TIME SERIES DATA\nANALYSIS.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_342.png",
+                    "source_page": 342,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026255",
+            "name_th": "การได้มาและการจัดการข้อมูลทางด้านคลินิก",
+            "name_en": "CLINICAL DATA ACQUISITION AND MANAGEMENT",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "มาตรฐานข้อมูลสุขภาพและโครงสร้างการวิเคราะห์ข้อมูลวิทยาศาสตร์สุขภาพ การ\nเชือมต่อของระบบสุขภาพในแง่มุมของผู้ ใช้\nประเภทข้อมูลสุขภาพของแฟ้มการดู\nขภาพ\nอิเล็กทรอนิกส์และการแลกเปลี่ยนข้อมลการดูแลสุขภาพ เที่มาของแหล่งข้อมูลและการเตรียมข้อมูล\nทางคลินิก เทคนิคการแบ่งส่วนของฟลิ่มเอ็กซ์เรย์ การเตรียมข้อมูลและแก้ไขข้อมูลภาพทางการ\nแพทย์\nการเตรียมข้อมูลรูปแบบ คลื่นและอื่นต การใข้เทคนิคประมวลภาษาธรรมชาติเชิงการแพทย์\nการวิเคราะห์จากโซเชียลมีเดีย การใช้\n`ไแเทคนิคเรียนรู้เชิงลึกสำหรับการสร้างแบบจำลองการทำนาย\nทางคลินิก ระบบสนับสนุนการตัดสินใจทางคลินิก",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_342.png",
+                    "source_page": 342,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_343.png",
+                    "source_page": 343,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_en": "STANDARD OF HEALTH DATA AND STRUCTURE, HEALTH SCIENCE DATA ANALYTICS,\nHUMAN ASPECT OFTHE SYSTEM, DATA TYPE OF HEALTH DATA IN ELECTRONIC HEALTHCARE RECORD\nAND HEALTHCARE INFORMATION EXCHANGE, CLINICAL DATA ACQUISITION AND PREPARATION., X-RAY\nSEGMENTATION TECHNIQUE, MEDICAL IMAGE PREPARATION AND CORRECTION., WAVE FORM DATA\nPREPARATION\nAND\nOTHERS\nMEDICAL\nDATA\nEXAMPLE,\nNATURAL  LANGUAGE  PROCESSING\nIN\nMEDICINE, SOCIAL MEDIA ANALYTICS, DEEP LEARNING IN CLINICAL PREDICTION MODELS, CLINICAL\nDECISION SUPPORT SYSTEM"
+        },
+        {
+            "code": "06026256",
+            "name_th": "การจัดการการปฏิบัติการ",
+            "name_en": "OPERATIONS MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ภาพรวมของการจัดการการปฏิบัติการ โปรแกรมเชิงเส้น โปรแกรมเชิงจำนวนเต็ม\nการเลือกทำเลที่ตั้ง การวางแผนผังสถานที่ประกอบการ การจัดการสินค้าคงคลัง การควบคุมคุณภาพ\nการจัดการโครงการ การพยากรณ์",
+            "desc_en": "OVERVIEW\nOF\nOPERATIONS\nMANAGEMENT,  LINEAR\nPROGRAMMING,  INTEGER\nPROGRAMMING,\nLOCATION  PLANNING,  FACILITY  LAYOUT,  INVENTOR\nMANAGEMENT,\nQUALITY\nMANAGEMENT, PROJECT MANAGEMENT, FORECASTING.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_343.png",
+                    "source_page": 343,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026257",
+            "name_th": "การบริหารเชิงกลยุทธ์และสมรรถะของธุรกิจ",
+            "name_en": "BUSINESS STRATEGIC AND PERFORMANCE MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะนำการวางแผนเชิงกลยุทธ์ของธุรกิจ การกำหนดสมรรถนะของธุรกิจและการ\nเลือกหลักการวัดสมรรถนะ กระบวนการบริหารสมรรถนะของธุรกิจ ฺการวางแผนสมรรถนะ การนำ\nแผนไปสู่การปฏิบัติการประเมินสมรรถนะ และการพิจารณาทบทวนสมรรถนะ การแนะนำระบบการ\nบริหารสมรรถนะของธุรกิจ และแนวทางปฏิบัติทีดีของการบริหารสมรรถนะของธุรกิจ",
+            "desc_en": "STRATEGIC  PLANNING,  DEFINING\nBUSINESS  PERFORMANCE\nAND  CHOOSING\nA\nMEASUREMENT APPROACH., PERFORMANCE MANAGEMENT PROCESS, PERFORMANCE PLANNING,\nPERFORMANCE EXECUTION., PERFORMANCE ASSESSMENT, PERFORMANCE REVIEW, INTRODUCTION\nOF PERFORMANCE MANAGEMENT SYSTEM, PERFORMANCE MANAGEMENT BEST PRACTICES.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_343.png",
+                    "source_page": 343,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026258",
+            "name_th": "การวิเคราะห์เครือข่ายสังคม",
+            "name_en": "SOCIAL NETWORK ANALYTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "เพื่อเรียนรู้ สภาพแวดล้อม ฺผู้บริโภค และ โครงสร้างเครือข่าย ของสื่อสังคม เรียนรู้\nทฤษฎีกราฟ การวัดเครือข่าย และแบบจำลองเครือข่าย ในเครือข่ายสังคม พืนฐานจิตวิทยาของ\nเครือข่ายสังคมฺการวิเคราะห์ เครือข่ายสังคมฺการทำเหมืองสื่อสังคมเพื่อการทำการตลาดทางสื่อสังคม",
+            "desc_en": "ENVIRONMENT, CONSUMERS AND NETWORK STRUCTURE OF SOCIAL MEDIA. GRAPH\nTHEOR,\nNETWORK\nMEASURES\nAND\nNETWORK\nMODELS\nIN\nSOCIAL\nNETWORK.\nPSYCHOLOGICAL\nFOUNDATIONS OF SOCIAL NETWORK AND SOCIAL NETWORK ANALYSIS. SOCIAL\nMEDIA\nMINING FOR\nSOCIAL MEDIA MARKETING.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_344.png",
+                    "source_page": 344,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026259",
+            "name_th": "สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+            "name_en": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            "credits": "6(0-35-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงาน ต่างๆ\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์?ใช้ในการ\nปฏิบัติงานจริงที่หน่วยงานนั้นต โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่\nได้กำหนดไว้ร่วมกัน ระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้ว\nนักศึกษาจำเป็นทีจะต้องนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN\nEDUCATIONAL INSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE\nIN THE CLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE\nAPPROVED  BY THE FACULTY AND THE ENTERPRISES.\nAFTER  COMPLETION., STUDENTS NEED TO\nPRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_344.png",
+                    "source_page": 344,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06026260",
+            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+            "name_en": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            "credits": "6(0-35-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "NONE",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงานต่างๆ ในต่างประเทศที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้\nในการปฏิบัติงานจริงทีหน่วยงานนัน\nโดยโครงการของใ\nหนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้อง",
+            "source_provenance": [
+                {
+                    "program": "DSBA",
+                    "source_filename": "dsba_page_344.png",
+                    "source_page": 344,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        }
+    ]
+}

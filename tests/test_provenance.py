@@ -354,7 +354,7 @@ class ProvenanceTests(unittest.TestCase):
             )
 
             result = json.loads(
-                (output_dir / "merged_it_coop_full.json").read_text(encoding="utf-8")
+                (output_dir / "it" / "coop" / "full" / "merged_it_coop_full.json").read_text(encoding="utf-8")
             )
 
         self.assertEqual(

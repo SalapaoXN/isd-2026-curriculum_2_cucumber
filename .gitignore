@@ -28,6 +28,7 @@ demo.db
 !outputs/.gitkeep
 
 # CUCUMBER generated outputs
+!/outputs/llm
 /cucumber_outputs/*
 !/cucumber_outputs/.gitkeep
 !/cucumber_outputs/runtime/

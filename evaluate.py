@@ -67,6 +67,18 @@ THAI_WER_FIELDS = {"name_th", "desc_th"}
 WHITESPACE_WER_FIELDS = {"name_en", "desc_en", "prerequisite"}
 WER_NOT_APPLICABLE_FIELDS = {"code", "credits", "year", "semester"}
 REPORT_DIR = Path("reports/evaluation")
+LLM_DIR = Path("outputs/llm")
+GROUND_TRUTH_DIR = Path("ground_truth")
+ACCEPTED_GROUND_TRUTH = {
+    ("AIT", None): Path("AIT/AIT_academic_plan.json"),
+    ("BIT", "coop"): Path("BIT/BIT_academic_plan_coop.json"),
+    ("BIT", "no_coop"): Path("BIT/BIT_academic_plan_no_coop.json"),
+    ("DSBA", "coop"): Path("DSBA/DSBA_academic_plan_coop.json"),
+    ("DSBA", "no_coop"): Path("DSBA/DSBA_academic_plan_no_coop.json"),
+    ("GENED", "gened"): Path("general_education_ground_truth.json"),
+    ("IT", "coop"): Path("IT/IT_academic_plan_coop.json"),
+    ("IT", "no_coop"): Path("IT/IT_academic_plan_no_coop.json"),
+}
 SUMMARY_COLUMNS = (
     "program",
     "plan",
@@ -976,6 +988,62 @@ def write_evaluation_reports(
     return payload
 
 
+def _curriculum_metadata(path: Path) -> tuple[str, str | None]:
+    with path.open("r", encoding="utf-8") as handle:
+        document = json.load(handle)
+    if not isinstance(document, dict):
+        raise ValueError(f"curriculum JSON must contain an object: {path}")
+
+    program = document.get("program")
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError(f"curriculum JSON has no program: {path}")
+
+    plan = document.get("plan")
+    if plan is not None and not isinstance(plan, str):
+        raise ValueError(f"curriculum JSON has an invalid plan: {path}")
+    return program.strip(), plan.strip() if plan else None
+
+
+def discover_llm_corrected_sources(
+    llm_dir: str | Path | None = None,
+) -> list[Path]:
+    """Discover only reviewed corrected artifacts in outputs/llm."""
+    source_dir = Path(LLM_DIR if llm_dir is None else llm_dir)
+    paths = sorted(source_dir.glob("*_corrected.json"))
+    if not paths:
+        raise FileNotFoundError(
+            f"no *_corrected.json files found in {source_dir}"
+        )
+    return paths
+
+
+def discover_llm_evaluation_pairs(
+    llm_dir: str | Path | None = None,
+    ground_truth_dir: str | Path | None = None,
+) -> list[tuple[Path, Path]]:
+    """Match each discovered corrected source to its accepted ground truth."""
+    gt_root = Path(
+        GROUND_TRUTH_DIR if ground_truth_dir is None else ground_truth_dir
+    )
+    pairs = []
+    for prediction_path in discover_llm_corrected_sources(llm_dir):
+        program, plan = _curriculum_metadata(prediction_path)
+        try:
+            gt_relative_path = ACCEPTED_GROUND_TRUTH[(program, plan)]
+        except KeyError as error:
+            raise ValueError(
+                f"no accepted ground-truth mapping for {program}/{plan}: "
+                f"{prediction_path}"
+            ) from error
+        ground_truth_path = gt_root / gt_relative_path
+        if not ground_truth_path.is_file():
+            raise FileNotFoundError(
+                f"accepted ground-truth file not found: {ground_truth_path}"
+            )
+        pairs.append((prediction_path, ground_truth_path))
+    return pairs
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="CLI evaluator for CER/WER between Prediction and Ground Truth JSON"
@@ -1022,11 +1090,12 @@ def main():
                 for prediction, ground_truth in args.pair
             ]
         else:
-            if not args.prediction_json or not args.ground_truth_json:
-                parser.error(
-                    "A prediction JSON and --gt are required unless --pair is used."
-                )
-            pairs = [(args.prediction_json, args.ground_truth_json)]
+            if args.prediction_json or args.ground_truth_json:
+                if not args.prediction_json or not args.ground_truth_json:
+                    parser.error("prediction_json and --gt must be provided together.")
+                pairs = [(args.prediction_json, args.ground_truth_json)]
+            else:
+                pairs = discover_llm_evaluation_pairs()
 
         cases = [
             evaluate_pair(ground_truth, prediction)

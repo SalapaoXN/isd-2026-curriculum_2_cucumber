@@ -280,7 +280,7 @@ class DescriptionExtractionTests(unittest.TestCase):
                 desc_pages="317-318",
             )
             result = json.loads(
-                (output_dir / "merged_dsba_coop_full.json").read_text(encoding="utf-8")
+                (output_dir / "dsba" / "coop" / "full" / "merged_dsba_coop_full.json").read_text(encoding="utf-8")
             )
 
         merged = result["courses"][0]
