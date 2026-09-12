@@ -5,7 +5,12 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from rag.hybrid_demo import DEFAULT_CURRICULUM_DB_PATH, main, run_hybrid_demo
+from rag.hybrid_demo import (
+    DEFAULT_CURRICULUM_DB_PATH,
+    answer_question_once,
+    main,
+    run_hybrid_demo,
+)
 
 
 class RagHybridDemoTest(unittest.TestCase):
@@ -102,22 +107,12 @@ class RagHybridDemoTest(unittest.TestCase):
         question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
 
         sources = [Path("outputs/consolidated/it/coop/full/curriculum.json")]
-        with patch(
-            "rag.hybrid_demo.canonical_source_paths", return_value=sources
-        ), patch(
-            "rag.hybrid_demo.ensure_index",
-            return_value=DEFAULT_CURRICULUM_DB_PATH,
-        ) as ensure, patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
+        with patch("rag.hybrid_demo.run_hybrid_demo") as run_demo:
             main(
                 [question],
                 structured_model_callable=structured_model_callable,
                 answer_model_callable=answer_model_callable,
             )
-
-        ensure.assert_called_once_with(
-            sources,
-            index_path=DEFAULT_CURRICULUM_DB_PATH,
-        )
 
         run_demo.assert_called_once_with(
             DEFAULT_CURRICULUM_DB_PATH,
@@ -126,6 +121,29 @@ class RagHybridDemoTest(unittest.TestCase):
             top_k=10,
             answer_model_callable=answer_model_callable,
         )
+
+    def test_answer_question_once_is_non_printing_and_returns_final_answer(self):
+        response = {"route": "semantic", "result": [{"text": "evidence"}]}
+        answer = "คำตอบ"
+        with patch("rag.hybrid_demo.ask", return_value=response) as ask_mock, patch(
+            "rag.hybrid_demo.answer_question", return_value=answer
+        ) as answer_mock:
+            with patch("builtins.print") as print_mock:
+                result = answer_question_once(
+                    "curriculum.db",
+                    "คำถาม",
+                    top_k=3,
+                )
+
+        self.assertEqual(result["final_answer"], answer)
+        ask_mock.assert_called_once_with(
+            "curriculum.db",
+            "คำถาม",
+            structured_model_callable=None,
+            top_k=3,
+        )
+        answer_mock.assert_called_once()
+        print_mock.assert_not_called()
 
     def test_cli_default_passes_nonempty_semantic_evidence_to_answer_model(self):
         question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
@@ -146,11 +164,8 @@ class RagHybridDemoTest(unittest.TestCase):
             return "พบวิชา ADVANCED DATABASE SYSTEMS"
 
         with patch("rag.hybrid_demo.load_dotenv"), patch(
-            "rag.hybrid_demo.canonical_source_paths",
-            return_value=[Path("outputs/consolidated/it/coop/full/curriculum.json")],
-        ), patch(
             "rag.hybrid_demo.ensure_index", return_value=database_path
-        ), patch(
+        ) as ensure, patch(
             "rag.hybrid_demo.ask",
             return_value={"route": "semantic", "result": semantic_result},
         ) as ask_mock:
@@ -167,6 +182,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=structured_model_callable,
             top_k=10,
         )
+        ensure.assert_not_called()
         self.assertEqual(len(prompts), 1)
         self.assertIn("ADVANCED DATABASE SYSTEMS", prompts[0])
 

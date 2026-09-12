@@ -14,7 +14,6 @@ from rag.providers.gemini import make_gemini_callable
 from rag.retrieval.index import (
     ARTIFACTS_DIR,
     DEFAULT_INDEX_NAME,
-    canonical_source_paths,
     ensure_index,
 )
 from rag.qa import ask
@@ -66,6 +65,28 @@ def run_hybrid_demo(
     source_json_path: str | Path | Iterable[str | Path] | None = None,
 ) -> dict[str, Any]:
     """Run unified curriculum QA and print its grounded final answer."""
+    response = answer_question_once(
+        db_path,
+        question,
+        structured_model_callable=structured_model_callable,
+        top_k=top_k,
+        answer_model_callable=answer_model_callable,
+        source_json_path=source_json_path,
+    )
+    print(f"Question: {question}")
+    print(f"Final Answer: {response['final_answer']}")
+    return response
+
+
+def answer_question_once(
+    db_path: str | Path,
+    question: str,
+    structured_model_callable: Callable[[str], str] | None = None,
+    top_k: int = 5,
+    answer_model_callable: Callable[[str], str] | None = None,
+    source_json_path: str | Path | Iterable[str | Path] | None = None,
+) -> dict[str, Any]:
+    """Run one QA request without printing or selecting a retrieval route."""
     if source_json_path is not None:
         db_path = ensure_index(source_json_path, index_path=db_path)
 
@@ -92,8 +113,6 @@ def run_hybrid_demo(
         answer_model_callable=answer_model_callable,
     )
     response["final_answer"] = final_answer
-    print(f"Question: {question}")
-    print(f"Final Answer: {final_answer}")
     return response
 
 
@@ -135,8 +154,6 @@ def main(
     args = _parse_args(argv)
     if args.source_json_paths:
         args.db_path = ensure_index(args.source_json_paths, index_path=args.db_path)
-    elif args.uses_default_database:
-        args.db_path = ensure_index(canonical_source_paths(), index_path=args.db_path)
     if structured_model_callable is None or answer_model_callable is None:
         gemini_callable = make_gemini_callable()
         if structured_model_callable is None:
