@@ -161,6 +161,14 @@ _TWO_COURSE_CROSS_PLAN_INTENT_TERMS = (
     "ทั้งสองแผน",
     "สองแผน",
 )
+_THREE_COURSE_SEQUENCE_INTENT_TERMS = (
+    "วางแผน",
+    "เรียง",
+    "ตามปี/เทอม",
+    "ตามปีและเทอม",
+    "ลำดับ",
+    "sequence",
+)
 _DIRECT_PLAN_KEY = re.compile(
     r"(?<![a-z0-9_])(?P<plan>no_coop|coop|default|gened)(?![a-z0-9_])"
 )
@@ -211,6 +219,7 @@ _PLACEMENT_COLUMNS = (
     "alternative_group_id",
     "provenance",
 )
+_SEQUENCE_COLUMNS = ("sequence_order",) + _PLACEMENT_COLUMNS + ("prerequisites",)
 _SEMESTER_PREREQUISITE_COLUMNS = (
     "plan_id",
     "catalog_id",
@@ -517,6 +526,36 @@ def _two_course_placement_request(
     return program_match.group("program"), course_codes, plan_keys
 
 
+def _three_course_sequence_request(
+    question: str,
+) -> tuple[str, list[str], list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 3:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if (
+        program_match is None
+        or program_match.group("program") != "it"
+        or not any(term in normalized for term in _THREE_COURSE_SEQUENCE_INTENT_TERMS)
+    ):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes, plan_keys
+
+
 def _collect_row_provenance(
     rows: list[tuple[Any, ...]],
     columns: tuple[str, ...],
@@ -701,6 +740,137 @@ def _two_course_placement_structured_result(
         if len(earliest_plans) == 1:
             structured["earliest_plan"] = earliest_plans[0]
     return structured
+
+
+def _three_course_sequence_structured_result(
+    db_path: str | Path,
+    placement_results: list[dict[str, Any]],
+    program: str,
+    course_codes: list[str],
+    plan_keys: list[str],
+) -> dict[str, Any]:
+    entries: list[dict[str, Any]] = []
+    for result in placement_results:
+        for placement in result["placements"]:
+            composed = dict(placement)
+            composed["earliest_year_semester"] = (
+                earliest_year_semester_from_choices(
+                    composed.get("year_semester_choices", [])
+                )
+            )
+            prerequisites = prerequisites_of_course(
+                db_path, composed["course_id"]
+            )
+            references = list(composed.get("provenance") or [])
+            for prerequisite in prerequisites:
+                references.extend(prerequisite.get("provenance") or [])
+            entries.append(
+                {
+                    "placement": composed,
+                    "prerequisites": prerequisites,
+                    "provenance": references,
+                }
+            )
+
+    missing_plan_keys: list[str] = []
+    missing_course_codes: list[str] = []
+    for result in placement_results:
+        for plan_key in result["missing_plan_keys"]:
+            if plan_key not in missing_plan_keys:
+                missing_plan_keys.append(plan_key)
+        if not result["placements"]:
+            missing_course_codes.append(result["course_code"])
+
+    entries_by_plan_course: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for entry in entries:
+        placement = entry["placement"]
+        entries_by_plan_course.setdefault(
+            (placement["plan_key"], placement["course_code"]), []
+        ).append(entry)
+
+    sequence_by_plan: list[dict[str, Any]] = []
+    sequence_order_by_plan_course: dict[tuple[str, str], int] = {}
+    for plan_key in plan_keys:
+        sequence: list[dict[str, Any]] = []
+        for course_code in course_codes:
+            matching = entries_by_plan_course.get((plan_key, course_code), [])
+            timings = [
+                entry["placement"]["earliest_year_semester"]
+                for entry in matching
+                if entry["placement"]["earliest_year_semester"] is not None
+            ]
+            earliest = min(timings) if timings else None
+            prerequisite_by_id: dict[Any, dict[str, Any]] = {}
+            placement_ids: list[int] = []
+            for entry in matching:
+                placement_id = entry["placement"]["placement_id"]
+                if placement_id not in placement_ids:
+                    placement_ids.append(placement_id)
+                for prerequisite in entry["prerequisites"]:
+                    prerequisite_by_id.setdefault(
+                        prerequisite["prerequisite_id"], prerequisite
+                    )
+            sequence.append(
+                {
+                    "course_code": course_code,
+                    "earliest_year_semester": earliest,
+                    "placement_ids": placement_ids,
+                    "prerequisites": list(prerequisite_by_id.values()),
+                }
+            )
+        sequence.sort(
+            key=lambda item: (
+                item["earliest_year_semester"] is None,
+                item["earliest_year_semester"] or (5, 3),
+                item["course_code"],
+            )
+        )
+        for order, item in enumerate(sequence, start=1):
+            sequence_order_by_plan_course[(plan_key, item["course_code"])] = order
+            item["sequence_order"] = order
+        sequence_by_plan.append({"plan_key": plan_key, "courses": sequence})
+
+    rows: list[tuple[Any, ...]] = []
+    for entry in entries:
+        placement = entry["placement"]
+        row_values = {
+            **placement,
+            "sequence_order": sequence_order_by_plan_course[
+                (placement["plan_key"], placement["course_code"])
+            ],
+            "prerequisites": entry["prerequisites"],
+            "provenance": entry["provenance"],
+        }
+        rows.append(tuple(row_values.get(column) for column in _SEQUENCE_COLUMNS))
+    rows.sort(
+        key=lambda row: (
+            plan_keys.index(row[_SEQUENCE_COLUMNS.index("plan_key")]),
+            row[_SEQUENCE_COLUMNS.index("sequence_order")],
+            row[_SEQUENCE_COLUMNS.index("placement_id")],
+        )
+    )
+
+    status = (
+        "no_data"
+        if not entries
+        else "partial"
+        if missing_plan_keys or missing_course_codes
+        else "ok"
+    )
+    return {
+        "operation": "course_sequence",
+        "status": status,
+        "missing_plan_keys": missing_plan_keys,
+        "missing_course_codes": missing_course_codes,
+        "sql": None,
+        "columns": list(_SEQUENCE_COLUMNS),
+        "rows": rows,
+        "program": program,
+        "course_codes": course_codes,
+        "requested_plan_keys": plan_keys,
+        "derived_facts": {"sequence_by_plan": sequence_by_plan},
+        "provenance": _collect_row_provenance(rows, _SEQUENCE_COLUMNS),
+    }
 
 
 def _alternative_group_structured_result(
@@ -1141,6 +1311,19 @@ def ask_structured(
         return _prerequisite_structured_result(
             db_path,
             course_placement(db_path, program, course_code, plan_keys),
+        )
+    three_course_sequence_request = _three_course_sequence_request(question)
+    if three_course_sequence_request is not None:
+        program, course_codes, plan_keys = three_course_sequence_request
+        return _three_course_sequence_structured_result(
+            db_path,
+            [
+                course_placement(db_path, program, course_code, plan_keys)
+                for course_code in course_codes
+            ],
+            program,
+            course_codes,
+            plan_keys,
         )
     two_course_placement_request = _two_course_placement_request(question)
     if two_course_placement_request is not None:

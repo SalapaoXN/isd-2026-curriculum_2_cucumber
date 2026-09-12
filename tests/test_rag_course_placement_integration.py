@@ -276,6 +276,107 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             )
         self.assertNotIn("earliest_plan", missing_timing["result"])
 
+    def test_three_course_infrastructure_sequence_is_deterministic(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "ถ้าจะวางแผนเรียนสาย infrastructure ใน IT แบบไม่สหกิจ "
+            "ควรเรียง INTRODUCTION TO NETWORK SYSTEMS (06016413), "
+            "INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) และ "
+            "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY (06016421) "
+            "ตามปี/เทอมอย่างไร และแต่ละวิชาต้องผ่านวิชาอะไรมาก่อน?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "course_sequence")
+        self.assertEqual(structured["status"], "ok")
+        self.assertEqual(structured["course_codes"], [
+            "06016413", "06016420", "06016421"
+        ])
+        self.assertEqual(structured["requested_plan_keys"], ["no_coop"])
+        rows = _placement_rows(result)
+        self.assertEqual(
+            [row["course_code"] for row in rows],
+            ["06016413", "06016420", "06016421"],
+        )
+        self.assertEqual(
+            [
+                (row["year"], row["semester"])
+                for row in rows
+            ],
+            [(2, 1), (2, 2), (3, 1)],
+        )
+        self.assertEqual(
+            [
+                [item["prerequisite_code"] for item in row["prerequisites"]]
+                for row in rows
+            ],
+            [[], ["06016413"], ["06016413"]],
+        )
+        self.assertEqual(
+            structured["derived_facts"]["sequence_by_plan"][0]["plan_key"],
+            "no_coop",
+        )
+        self.assertEqual(
+            [
+                item["course_code"]
+                for item in structured["derived_facts"]["sequence_by_plan"][0]["courses"]
+            ],
+            ["06016413", "06016420", "06016421"],
+        )
+        self.assertTrue(structured["provenance"])
+        self.assertTrue(all(row["provenance"] for row in rows))
+        self.assertEqual(calls, [])
+
+    def test_three_course_sequence_sorts_ties_and_leaves_missing_timing_unknown(self):
+        def placement_result(course_code, choices):
+            return {
+                "status": "ok",
+                "course_code": course_code,
+                "missing_plan_keys": [],
+                "placements": [
+                    {
+                        "placement_id": int(course_code[-1]),
+                        "plan_key": "no_coop",
+                        "course_id": int(course_code[-1]),
+                        "course_code": course_code,
+                        "year_semester_choices": choices,
+                        "provenance": [{"provenance_id": int(course_code[-1])}],
+                    }
+                ],
+            }
+
+        choices = {
+            "00000001": [(3, 1)],
+            "00000002": [(3, 1)],
+            "00000003": [],
+        }
+        with patch(
+            "rag.structured.qa.course_placement",
+            side_effect=lambda _db, _program, course_code, _plans: placement_result(
+                course_code, choices[course_code]
+            ),
+        ), patch("rag.structured.qa.prerequisites_of_course", return_value=[]):
+            result = ask(
+                DB_PATH,
+                "IT แบบไม่สหกิจ เรียงวิชา 00000001, 00000002 และ 00000003 "
+                "ตามปี/เทอมเพื่อวางแผนเรียน",
+            )
+
+        sequence = result["result"]["derived_facts"]["sequence_by_plan"][0]["courses"]
+        self.assertEqual(
+            [item["course_code"] for item in sequence],
+            ["00000001", "00000002", "00000003"],
+        )
+        self.assertEqual(sequence[-1]["earliest_year_semester"], None)
+
     def test_course_name_from_placement_reaches_grounded_answer(self):
         question = (
             "วิชา 06016414 ของ IT แบบไม่สหกิจชื่อภาษาอังกฤษว่าอะไร "
