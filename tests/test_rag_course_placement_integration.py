@@ -417,6 +417,77 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(groups[0]["provenance"])
         self.assertEqual(calls, [])
 
+    def test_gold_alternative_group_question_is_deterministic(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "ใน IT แบบสหกิจ กลุ่ม 06016481 กับ 06016482 ต้องเลือกกี่วิชา "
+            "และเรียนช่วงไหน?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "course_placement")
+        self.assertEqual(structured["status"], "ok")
+        self.assertEqual(len(structured["rows"]), 1)
+        row = dict(zip(structured["columns"], structured["rows"][0]))
+        self.assertEqual(row["plan_key"], "coop")
+        self.assertEqual(row["year_semester_choices"], [(3, 2)])
+        self.assertEqual(row["minimum_choices"], 1)
+        self.assertEqual(row["maximum_choices"], 1)
+        self.assertEqual(
+            {member["course_code"] for member in row["alternative_courses"]},
+            {"06016481", "06016482"},
+        )
+        self.assertTrue(row["provenance"])
+        self.assertEqual(calls, [])
+
+    def test_gold_cross_plan_alternative_group_question_is_deterministic(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "ถ้าต้องเลือกระหว่างกลุ่มวิชา 06016481 กับ 06016482 ใน IT "
+            "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร ทั้งจำนวนวิชาที่เลือก "
+            "และช่วงเรียน?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "course_placement")
+        self.assertEqual(structured["status"], "ok")
+        rows = [
+            dict(zip(structured["columns"], row))
+            for row in structured["rows"]
+        ]
+        self.assertEqual({row["plan_key"] for row in rows}, {"coop", "no_coop"})
+        for row in rows:
+            self.assertEqual(row["minimum_choices"], 1)
+            self.assertEqual(row["maximum_choices"], 1)
+            self.assertEqual(
+                {member["course_code"] for member in row["alternative_courses"]},
+                {"06016481", "06016482"},
+            )
+            self.assertTrue(row["provenance"])
+        by_plan = {row["plan_key"]: row for row in rows}
+        self.assertEqual(by_plan["coop"]["year_semester_choices"], [(3, 2)])
+        self.assertEqual(
+            by_plan["no_coop"]["year_semester_choices"],
+            [(3, 1), (3, 2), (4, 1)],
+        )
+        self.assertEqual(calls, [])
+
     def test_semester_credits_operation_resolves_plan_and_components(self):
         result = get_semester_credits(DB_PATH, "IT", "coop", 2, 2)
 

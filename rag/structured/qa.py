@@ -11,6 +11,7 @@ from typing import Any
 from .execute import execute_readonly, validate_readonly_sql
 from .nl_to_sql import question_to_sql, repair_sql
 from .queries import (
+    alternative_group_placements,
     course_placement,
     courses_in_year_semester,
     earliest_year_semester_from_choices,
@@ -142,6 +143,14 @@ _MIXED_STRUCTURED_INTENT_TERMS = (
     "นับจำนวน",
     "course count",
     "count statistics",
+)
+_ALTERNATIVE_GROUP_INTENT_TERMS = (
+    "กลุ่มทางเลือก",
+    "กลุ่มวิชา",
+    "ต้องเลือกกี่วิชา",
+    "จำนวนวิชาที่เลือก",
+    "อย่างใดอย่างหนึ่ง",
+    "alternative group",
 )
 _DIRECT_PLAN_KEY = re.compile(
     r"(?<![a-z0-9_])(?P<plan>no_coop|coop|default|gened)(?![a-z0-9_])"
@@ -438,6 +447,34 @@ def _semester_courses_request(
     return program_match.group("program"), plan_keys, int(year), int(semester)
 
 
+def _alternative_group_request(
+    question: str,
+) -> tuple[str, list[str], list[str]] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) < 2:
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    if program_match is None or not any(
+        term in normalized for term in _ALTERNATIVE_GROUP_INTENT_TERMS
+    ):
+        return None
+
+    plan_keys: list[str] = []
+    for match in _DIRECT_PLAN_KEY.finditer(normalized):
+        plan_key = match.group("plan")
+        if plan_key not in plan_keys:
+            plan_keys.append(plan_key)
+    if "ไม่สหกิจ" in normalized and "no_coop" not in plan_keys:
+        plan_keys.append("no_coop")
+    thai_without_no_coop = normalized.replace("ไม่สหกิจ", "")
+    if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
+        plan_keys.append("coop")
+    if not plan_keys:
+        plan_keys = ["coop", "no_coop"]
+    return program_match.group("program"), course_codes, plan_keys
+
+
 def _collect_row_provenance(
     rows: list[tuple[Any, ...]],
     columns: tuple[str, ...],
@@ -487,6 +524,64 @@ def _course_placement_structured_result(
     earliest_by_plan: dict[str, tuple[int, int]] = {}
     for placement, row in zip(result["placements"], rows):
         earliest = row[_PLACEMENT_COLUMNS.index("earliest_year_semester")]
+        plan_key = placement["plan_key"]
+        if earliest is not None and (
+            plan_key not in earliest_by_plan or earliest < earliest_by_plan[plan_key]
+        ):
+            earliest_by_plan[plan_key] = earliest
+    placement_plan_keys = {placement["plan_key"] for placement in result["placements"]}
+    if (
+        earliest_by_plan
+        and not result["missing_plan_keys"]
+        and set(earliest_by_plan) == placement_plan_keys
+    ):
+        earliest = min(earliest_by_plan.values())
+        earliest_plans = [
+            plan_key
+            for plan_key, plan_earliest in earliest_by_plan.items()
+            if plan_earliest == earliest
+        ]
+        if len(earliest_plans) == 1:
+            structured["earliest_plan"] = earliest_plans[0]
+    return structured
+
+
+def _alternative_group_structured_result(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    columns = _PLACEMENT_COLUMNS + (
+        "group_key",
+        "label",
+        "minimum_choices",
+        "maximum_choices",
+        "group_notes",
+        "alternative_courses",
+    )
+    rows: list[tuple[Any, ...]] = []
+    for placement in result["placements"]:
+        composed_placement = dict(placement)
+        composed_placement["earliest_year_semester"] = (
+            earliest_year_semester_from_choices(
+                composed_placement.get("year_semester_choices", [])
+            )
+        )
+        rows.append(
+            tuple(composed_placement.get(column) for column in columns)
+        )
+
+    structured = {
+        "operation": "course_placement",
+        "status": result["status"],
+        "missing_plan_keys": result["missing_plan_keys"],
+        "sql": None,
+        "columns": list(columns),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, columns),
+        "course_codes": result["course_codes"],
+    }
+    earliest_by_plan: dict[str, tuple[int, int]] = {}
+    for placement, row in zip(result["placements"], rows):
+        earliest = row[columns.index("earliest_year_semester")]
         plan_key = placement["plan_key"]
         if earliest is not None and (
             plan_key not in earliest_by_plan or earliest < earliest_by_plan[plan_key]
@@ -889,6 +984,12 @@ def ask_structured(
         return _prerequisite_structured_result(
             db_path,
             course_placement(db_path, program, course_code, plan_keys),
+        )
+    alternative_group_request = _alternative_group_request(question)
+    if alternative_group_request is not None:
+        program, course_codes, plan_keys = alternative_group_request
+        return _alternative_group_structured_result(
+            alternative_group_placements(db_path, program, course_codes, plan_keys)
         )
     semester_courses_request = _semester_courses_request(question)
     if semester_courses_request is not None:

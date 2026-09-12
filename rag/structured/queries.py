@@ -523,6 +523,176 @@ def course_placement(
     }
 
 
+def alternative_group_placements(
+    db_path: Database,
+    program: str,
+    course_codes: Iterable[str],
+    plan_keys: str | Iterable[str],
+) -> dict[str, Any]:
+    """Return grouped placements matching multiple alternative members."""
+    raw_course_codes = list(course_codes)
+    if isinstance(course_codes, str) or not raw_course_codes:
+        raise ValueError("course_codes must contain at least two codes")
+    normalized_program, _, normalized_plan_keys = (
+        _normalize_course_placement_inputs(program, raw_course_codes[0], plan_keys)
+    )
+    normalized_codes: list[str] = []
+    for course_code in raw_course_codes:
+        if not isinstance(course_code, str) or _COURSE_CODE_RE.fullmatch(course_code) is None:
+            raise ValueError("course_codes must contain exactly 8 ASCII digits")
+        if course_code not in normalized_codes:
+            normalized_codes.append(course_code)
+    if len(normalized_codes) < 2:
+        raise ValueError("course_codes must contain at least two distinct codes")
+
+    code_placeholders = ", ".join("?" for _ in normalized_codes)
+    plan_placeholders = ", ".join("?" for _ in normalized_plan_keys)
+    query = f"""
+        SELECT
+            plan_courses.placement_id,
+            plan_courses.plan_key,
+            plan_courses.plan_id,
+            plans.catalog_id,
+            plan_courses.course_id,
+            plan_courses.course_code,
+            courses.name_th,
+            courses.name_en,
+            plan_courses.year,
+            plan_courses.semester,
+            plan_courses.flexible_year_semester_raw,
+            plan_courses.credits_raw,
+            plan_courses.alternative_group_id,
+            groups.group_key,
+            groups.label,
+            groups.minimum_choices,
+            groups.maximum_choices,
+            groups.notes AS group_notes
+        FROM v_plan_courses AS plan_courses
+        JOIN curriculum_plans AS plans
+          ON plans.plan_id = plan_courses.plan_id
+        JOIN courses
+          ON courses.course_id = plan_courses.course_id
+        LEFT JOIN alternative_course_groups AS groups
+          ON groups.alternative_group_id = plan_courses.alternative_group_id
+        WHERE plan_courses.program = ?
+          AND plan_courses.course_code IN ({code_placeholders})
+          AND plan_courses.plan_key IN ({plan_placeholders})
+        ORDER BY
+            plan_courses.plan_key,
+            plans.catalog_id,
+            plan_courses.plan_id,
+            plan_courses.placement_id,
+            plan_courses.course_id
+    """
+
+    with _open_database(db_path) as connection:
+        rows = connection.execute(
+            query,
+            (
+                normalized_program,
+                *normalized_codes,
+                *normalized_plan_keys,
+            ),
+        ).fetchall()
+        placements: list[dict[str, Any]] = []
+        seen_placements: set[tuple[str, int, int]] = set()
+        for row in rows:
+            group_id = row["alternative_group_id"]
+            if group_id is None:
+                continue
+            group_id = int(group_id)
+            members = _alternative_members(connection, group_id)
+            member_codes = {member["course_code"] for member in members}
+            if not set(normalized_codes).issubset(member_codes):
+                continue
+
+            placement_key = (
+                row["plan_key"],
+                int(row["plan_id"]),
+                int(row["placement_id"]),
+            )
+            if placement_key in seen_placements:
+                continue
+            seen_placements.add(placement_key)
+            references = _merge_provenance(
+                _provenance_for(
+                    connection,
+                    "plan_placement_provenance",
+                    "placement_id",
+                    int(row["placement_id"]),
+                ),
+                _provenance_for(
+                    connection,
+                    "alternative_group_provenance",
+                    "alternative_group_id",
+                    group_id,
+                ),
+                *(member["provenance"] for member in members),
+            )
+            placements.append(
+                {
+                    "placement_id": int(row["placement_id"]),
+                    "plan_key": row["plan_key"],
+                    "plan_id": int(row["plan_id"]),
+                    "catalog_id": int(row["catalog_id"]),
+                    "course_id": int(row["course_id"]),
+                    "course_code": row["course_code"],
+                    "name_th": row["name_th"],
+                    "name_en": row["name_en"],
+                    "year": row["year"],
+                    "semester": row["semester"],
+                    "flexible_year_semester_raw": row[
+                        "flexible_year_semester_raw"
+                    ],
+                    "year_semester_choices": placement_year_semester_choices(
+                        row["year"],
+                        row["semester"],
+                        row["flexible_year_semester_raw"],
+                    ),
+                    "credits_raw": row["credits_raw"],
+                    "alternative_group_id": group_id,
+                    "group_key": row["group_key"],
+                    "label": row["label"],
+                    "minimum_choices": row["minimum_choices"],
+                    "maximum_choices": row["maximum_choices"],
+                    "group_notes": row["group_notes"],
+                    "alternative_courses": members,
+                    "provenance": references,
+                }
+            )
+
+    plan_order = {key: index for index, key in enumerate(normalized_plan_keys)}
+    placements.sort(
+        key=lambda placement: (
+            plan_order[placement["plan_key"]],
+            placement["catalog_id"],
+            placement["plan_id"],
+            placement["placement_id"],
+            placement["course_id"],
+        )
+    )
+    found_plan_keys = {placement["plan_key"] for placement in placements}
+    missing_plan_keys = [
+        plan_key
+        for plan_key in normalized_plan_keys
+        if plan_key not in found_plan_keys
+    ]
+    return {
+        "status": (
+            "no_data"
+            if not placements
+            else "partial"
+            if missing_plan_keys
+            else "ok"
+        ),
+        "program": normalized_program,
+        "course_codes": normalized_codes,
+        "requested_plan_keys": normalized_plan_keys,
+        "missing_plan_keys": missing_plan_keys,
+        "placements": placements,
+    }
+
+
 def semester_total_credits(
     db_path: Database,
     plan_id: int,
@@ -1127,6 +1297,7 @@ def courses_requiring_prerequisite(
 
 
 __all__ = [
+    "alternative_group_placements",
     "course_placement",
     "courses_in_year_semester",
     "courses_requiring_prerequisite",
