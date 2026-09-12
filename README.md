@@ -153,13 +153,20 @@ python cli.py inputs/dsba/ -o outputs/ocr
 python cli.py inputs/dsba/ -o outputs/ocr --no-gpu
 ```
 
-For the automated page runner:
+For the standalone OCR stage:
 
 ```bash
 python -m src.run_pipeline -p 26-32 -i inputs/dsba --program DSBA --plan no_coop
 ```
 
-`src.run_pipeline` supports `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, `--no-gpu`, and the opt-in `--english-second-pass`.
+This writes only persistent OCR TXT/JSON artifacts under `outputs/ocr/<program>/`.
+Extraction is an explicit replayable next stage:
+
+```bash
+python extract.py outputs/ocr/dsba --output-dir outputs/extracted --program DSBA --plan no_coop
+```
+
+`src.run_pipeline` supports `-p/--pages`, `-i/--input-dir`, `-o/--output-dir`, `--program`, `--plan`, and `--no-gpu`. The `--english-second-pass` option is rejected because it belongs to downstream extraction/enrichment, not the standalone OCR stage.
 
 ## Extraction
 

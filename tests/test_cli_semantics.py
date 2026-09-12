@@ -1,6 +1,8 @@
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -12,7 +14,7 @@ from extract import (
     main as extract_main,
 )
 from merge_consecutive import merge_consecutive_files
-from src.run_pipeline import parse_pages
+from src.run_pipeline import main as run_pipeline_main, parse_pages
 from src.pipeline_config import (
     discover_page_files,
     discover_pages,
@@ -21,6 +23,56 @@ from src.pipeline_config import (
 )
 
 class CliSemanticsTests(unittest.TestCase):
+    def test_run_pipeline_writes_ocr_only(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_dir = root / "it"
+            output_dir = root / "outputs"
+            input_dir.mkdir()
+            (input_dir / "it_page_001.jpg").write_bytes(b"fixture")
+            args = SimpleNamespace(
+                pages="1",
+                input_dir=str(input_dir),
+                output_dir=str(output_dir),
+                program="IT",
+                plan="coop",
+                no_gpu=True,
+                english_second_pass=False,
+            )
+
+            class FakeOCREngine:
+                def __init__(self, **_kwargs):
+                    pass
+
+                def extract_text(self, _image, detail=0):
+                    self.detail = detail
+                    return ["  OCR LINE  "]
+
+            with patch("src.run_pipeline.parse_arguments", return_value=args), patch(
+                "src.run_pipeline.OCREngine", FakeOCREngine
+            ), patch(
+                "src.run_pipeline.CurriculumExtractor", create=True
+            ) as extractor, patch(
+                "src.run_pipeline.enrich_courses", create=True
+            ) as enricher:
+                with redirect_stdout(io.StringIO()):
+                    run_pipeline_main()
+
+            ocr_json = output_dir / "ocr" / "it" / "it_page_001_ocr.json"
+            ocr_txt = output_dir / "ocr" / "it" / "it_page_001_ocr.txt"
+            self.assertTrue(ocr_json.is_file())
+            self.assertTrue(ocr_txt.is_file())
+            self.assertEqual(json.loads(ocr_json.read_text(encoding="utf-8"))["text_lines"], ["OCR LINE"])
+            self.assertFalse((output_dir / "extracted").exists())
+            extractor.assert_not_called()
+            enricher.assert_not_called()
+
+    def test_run_pipeline_rejects_downstream_english_second_pass(self):
+        args = SimpleNamespace(english_second_pass=True)
+        with patch("src.run_pipeline.parse_arguments", return_value=args):
+            with self.assertRaisesRegex(SystemExit, "downstream extraction/enrichment"):
+                run_pipeline_main()
+
     def test_page_parser_supports_ranges_and_rejects_invalid_values(self):
         self.assertEqual(parse_pages("10-12,12,14..15"), [10, 11, 12, 14, 15])
 

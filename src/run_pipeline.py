@@ -1,10 +1,7 @@
 import argparse
-import json
 from pathlib import Path
 from typing import List
 
-from .english_name_enricher import enrich_courses
-from .extractor import CurriculumExtractor
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
 from .pre_clean import pre_clean_with_regex
@@ -51,7 +48,7 @@ def parse_pages(pages_str: str) -> List[int]:
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="Run Auto OCR -> Extraction Pipeline for specific pages."
+        description="Run the standalone OCR stage for specific pages."
     )
     parser.add_argument(
         "-p", "--pages",
@@ -94,7 +91,10 @@ def parse_arguments():
     parser.add_argument(
         "--english-second-pass",
         action="store_true",
-        help="Enable opt-in English-only course-name enrichment",
+        help=(
+            "Deprecated downstream extraction/enrichment option; rejected by "
+            "the standalone OCR stage"
+        ),
     )
     
     return parser.parse_args()
@@ -102,6 +102,12 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
+
+    if args.english_second_pass:
+        raise SystemExit(
+            "Error: --english-second-pass is downstream extraction/enrichment "
+            "behavior and is not supported by the standalone OCR stage."
+        )
 
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)
@@ -121,32 +127,14 @@ def main():
         raise SystemExit(f"Error: {exc}") from exc
 
     ocr_output_dir = output_dir / "ocr" / program.casefold()
-    extracted_output_dir = output_dir / "extracted" / program.casefold()
     ocr_output_dir.mkdir(parents=True, exist_ok=True)
-    extracted_output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(" Starting the Auto OCR -> Extract Pipeline")
+    print(" Starting the standalone OCR stage")
     print(f" Pages to process: {pages}")
     print(f" Program: {program}; plan: {plan_label(plan)}")
 
     use_gpu = not args.no_gpu
     engine = OCREngine(languages=["th", "en"], gpu=use_gpu)
-    english_engine = None
-    if args.english_second_pass:
-        if not use_gpu:
-            print(" English second pass skipped because --no-gpu was requested.")
-        else:
-            try:
-                import torch
-
-                if not torch.cuda.is_available():
-                    print(" English second pass skipped because CUDA is unavailable.")
-                else:
-                    english_engine = OCREngine(languages=["en"], gpu=True)
-            except Exception as exc:
-                print(f" English second pass skipped: {type(exc).__name__}")
-    # spell_checker = OCRSpellChecker()
-    extractor = CurriculumExtractor(program=program, plan=plan)
 
     for page_num in pages:
         base_name = f"{input_dir.name}_page_{page_num:03d}"
@@ -188,24 +176,7 @@ def main():
             program=program,
         )
 
-        # Step 2: Extract
-        ocr_json_file = ocr_output_dir / f"{base_name}_ocr.json"
-        extracted_data = extractor.process_file(ocr_json_file)
-
-        # Step 2.5: Post-extraction cleaning is handled by the deterministic
-        # extractor itself (pre_clean + universal anchors).  No LLM needed.
-        if english_engine is not None:
-            enrich_courses(extracted_data, img_file, english_engine)
-
-        # Step 3: Save Output
-        output_filename = extracted_output_dir / f"{base_name}_ocr_extracted.json"
-        with open(output_filename, "w", encoding="utf-8") as f:
-            json.dump(extracted_data, f, ensure_ascii=False, indent=4)
-
-        courses_count = len(extracted_data.get("courses", []))
-        print(f"   └─  Extracted successfully ({courses_count} courses) -> saved at '{output_filename.name}'")
-
-    print(f"\n Finished processing all pages! Files saved at: {output_dir.resolve()}")
+    print(f"\n Finished OCR stage! Files saved at: {ocr_output_dir.resolve()}")
 
 
 if __name__ == "__main__":
