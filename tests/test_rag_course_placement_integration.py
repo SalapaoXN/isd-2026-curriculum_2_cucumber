@@ -159,6 +159,12 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(structured["operation"], "course_placement")
         self.assertEqual(len(rows), 1)
         self.assertTrue(rows[0]["name_en"])
+        self.assertTrue(rows[0]["provenance"])
+        self.assertTrue(structured["provenance"])
+        self.assertEqual(
+            {item["provenance_id"] for item in structured["provenance"]},
+            {item["provenance_id"] for item in rows[0]["provenance"]},
+        )
 
         prompts = []
         answers = iter([EMPTY_ANSWER, "คำตอบจากข้อมูลวิชา"])
@@ -253,6 +259,13 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             all(component["semester"] == 2 for component in result["components"])
         )
 
+        structured = ask(
+            DB_PATH,
+            "IT แบบสหกิจ ปี 2 เทอม 2 รวมกี่หน่วยกิต",
+        )["result"]
+        self.assertTrue(structured["provenance"])
+        self.assertTrue(all(row[-1] for row in structured["rows"]))
+
     def test_semester_credits_alternative_group_counts_once(self):
         result = get_semester_credits(DB_PATH, "IT", "coop", 3, 2)
 
@@ -265,6 +278,19 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         ]
         self.assertEqual(len(alternatives), 1)
         self.assertEqual(alternatives[0]["counted_credit_units"], 6)
+
+        structured = ask(
+            DB_PATH,
+            "IT แบบสหกิจ ปี 3 เทอม 2 รวมกี่หน่วยกิต",
+        )["result"]
+        group_rows = [
+            row
+            for row in structured["rows"]
+            if row[structured["columns"].index("alternative_group_id")] is not None
+        ]
+        self.assertEqual(len(group_rows), 1)
+        self.assertTrue(group_rows[0][-1])
+        self.assertTrue(structured["provenance"])
 
     def test_semester_credits_missing_term_is_no_data(self):
         result = get_semester_credits(DB_PATH, "IT", "default", 1, 1)

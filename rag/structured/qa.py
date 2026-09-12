@@ -287,6 +287,29 @@ def _semester_credits_request(
     return program_match.group("program"), plan_keys[0], int(year), int(semester)
 
 
+def _collect_row_provenance(
+    rows: list[tuple[Any, ...]],
+    columns: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    provenance_index = columns.index("provenance")
+    collected: list[dict[str, Any]] = []
+    seen_ids: set[Any] = set()
+    for row in rows:
+        references = row[provenance_index]
+        if not isinstance(references, list):
+            continue
+        for reference in references:
+            if not isinstance(reference, dict):
+                continue
+            provenance_id = reference.get("provenance_id")
+            if provenance_id is not None:
+                if provenance_id in seen_ids:
+                    continue
+                seen_ids.add(provenance_id)
+            collected.append(dict(reference))
+    return collected
+
+
 def _course_placement_structured_result(
     result: dict[str, Any],
 ) -> dict[str, Any]:
@@ -308,6 +331,7 @@ def _course_placement_structured_result(
         "sql": None,
         "columns": list(_PLACEMENT_COLUMNS),
         "rows": rows,
+        "provenance": _collect_row_provenance(rows, _PLACEMENT_COLUMNS),
     }
 
 
@@ -362,6 +386,9 @@ def _semester_credits_prerequisite_structured_result(
         "sql": None,
         "columns": list(_SEMESTER_PREREQUISITE_COLUMNS),
         "rows": rows,
+        "provenance": _collect_row_provenance(
+            rows, _SEMESTER_PREREQUISITE_COLUMNS
+        ),
     }
 
 
@@ -379,6 +406,7 @@ def _semester_credits_structured_result(
         "columns": list(_SEMESTER_CREDITS_COLUMNS),
         "rows": rows,
         "total_credits": result["total_credits"],
+        "provenance": _collect_row_provenance(rows, _SEMESTER_CREDITS_COLUMNS),
     }
 
 
