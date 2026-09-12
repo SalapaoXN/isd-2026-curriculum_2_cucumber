@@ -148,6 +148,39 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(by_plan["coop"]["name_en"])
         self.assertTrue(by_plan["no_coop"]["name_en"])
 
+    def test_cross_plan_earliest_placement_uses_deterministic_operation(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "ถ้าอยากลง DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT "
+            "ควรเลือกแผนไหน และแต่ละแผนเปิดให้ลงช่วงใดบ้าง?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(structured["operation"], "course_placement")
+        self.assertEqual(structured["earliest_plan"], "no_coop")
+        rows = _placement_rows(result)
+        self.assertEqual({row["plan_key"] for row in rows}, {"coop", "no_coop"})
+        self.assertEqual(
+            {
+                row["plan_key"]: row["year_semester_choices"]
+                for row in rows
+            },
+            {
+                "coop": [(4, 1)],
+                "no_coop": [(3, 1), (3, 2), (4, 1)],
+            },
+        )
+        self.assertTrue(structured["provenance"])
+        self.assertEqual(calls, [])
+
     def test_course_name_from_placement_reaches_grounded_answer(self):
         question = (
             "วิชา 06016414 ของ IT แบบไม่สหกิจชื่อภาษาอังกฤษว่าอะไร "
@@ -217,6 +250,24 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["route"], "structured")
         self.assertNotIn("operation", result["result"])
         self.assertEqual(result["result"]["sql"], "SELECT 1 LIMIT 100")
+        self.assertEqual(result["result"]["rows"], [(1,)])
+        self.assertEqual(len(calls), 1)
+
+    def test_non_plan_sensitive_course_credit_question_keeps_fallback(self):
+        calls = []
+
+        def fake_model(_prompt):
+            calls.append(True)
+            return "SELECT 1"
+
+        result = ask(
+            DB_PATH,
+            "IT วิชา 06016465 มีกี่หน่วยกิต?",
+            structured_model_callable=fake_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        self.assertNotIn("operation", result["result"])
         self.assertEqual(result["result"]["rows"], [(1,)])
         self.assertEqual(len(calls), 1)
 

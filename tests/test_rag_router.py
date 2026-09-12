@@ -47,6 +47,21 @@ class RagRouterTest(unittest.TestCase):
             "hybrid",
         )
 
+    def test_cross_plan_earliest_placement_is_structured(self):
+        self.assertEqual(
+            route_question(
+                "ถ้าอยากลง DATA CENTER DESIGN (06016465) ให้เร็วที่สุดใน IT "
+                "ควรเลือกแผนไหน และแต่ละแผนเปิดให้ลงช่วงใดบ้าง?"
+            ),
+            "structured",
+        )
+
+    def test_semantic_course_content_question_stays_semantic(self):
+        self.assertEqual(
+            route_question("IT วิชา 06016465 เรียนเกี่ยวกับอะไร?"),
+            "semantic",
+        )
+
     def test_unmatched_question_keeps_semantic_default(self):
         self.assertEqual(route_question("ข้อมูลนี้มีรายละเอียดอย่างไร"), "semantic")
 

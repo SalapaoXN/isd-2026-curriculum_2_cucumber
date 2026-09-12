@@ -95,6 +95,31 @@ _PLACEMENT_INTENT_TERMS = (
     "placement",
     "semester",
     "academic year",
+    "เร็วที่สุด",
+    "ควรเลือกแผนไหน",
+    "แต่ละแผน",
+    "ทั้งสองแผน",
+    "สองแผน",
+)
+_PLAN_SENSITIVE_PLACEMENT_INTENT_TERMS = (
+    "เรียนช่วงไหน",
+    "อยู่ช่วงไหน",
+    "เรียนปีไหน",
+    "อยู่ปีไหน",
+    "เทอม",
+    "ภาคเรียน",
+    "ภาคการศึกษา",
+    "ช่วงเรียน",
+    "กำหนดแน่นอน",
+    "ยืดหยุ่น",
+    "placement",
+    "semester",
+    "academic year",
+    "เร็วที่สุด",
+    "ควรเลือกแผนไหน",
+    "แต่ละแผน",
+    "ทั้งสองแผน",
+    "สองแผน",
 )
 _MIXED_STRUCTURED_INTENT_TERMS = (
     "prerequisite",
@@ -233,7 +258,12 @@ def _course_placement_request(
     if "สหกิจ" in thai_without_no_coop and "coop" not in plan_keys:
         plan_keys.append("coop")
     if not plan_keys:
-        return None
+        if not any(
+            term in normalized
+            for term in _PLAN_SENSITIVE_PLACEMENT_INTENT_TERMS
+        ):
+            return None
+        plan_keys = ["coop", "no_coop"]
     return program_match.group("program"), course_codes[0], plan_keys
 
 
@@ -324,7 +354,7 @@ def _course_placement_structured_result(
         rows.append(
             tuple(composed_placement.get(column) for column in _PLACEMENT_COLUMNS)
         )
-    return {
+    structured = {
         "operation": "course_placement",
         "status": result["status"],
         "missing_plan_keys": result["missing_plan_keys"],
@@ -333,6 +363,29 @@ def _course_placement_structured_result(
         "rows": rows,
         "provenance": _collect_row_provenance(rows, _PLACEMENT_COLUMNS),
     }
+    earliest_by_plan: dict[str, tuple[int, int]] = {}
+    for placement, row in zip(result["placements"], rows):
+        earliest = row[_PLACEMENT_COLUMNS.index("earliest_year_semester")]
+        plan_key = placement["plan_key"]
+        if earliest is not None and (
+            plan_key not in earliest_by_plan or earliest < earliest_by_plan[plan_key]
+        ):
+            earliest_by_plan[plan_key] = earliest
+    placement_plan_keys = {placement["plan_key"] for placement in result["placements"]}
+    if (
+        earliest_by_plan
+        and not result["missing_plan_keys"]
+        and set(earliest_by_plan) == placement_plan_keys
+    ):
+        earliest = min(earliest_by_plan.values())
+        earliest_plans = [
+            plan_key
+            for plan_key, plan_earliest in earliest_by_plan.items()
+            if plan_earliest == earliest
+        ]
+        if len(earliest_plans) == 1:
+            structured["earliest_plan"] = earliest_plans[0]
+    return structured
 
 
 def _semester_credits_prerequisite_structured_result(
