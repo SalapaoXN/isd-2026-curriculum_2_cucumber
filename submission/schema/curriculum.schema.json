@@ -55,6 +55,7 @@
             "required": [
                 "source",
                 "description",
+                "program",
                 "plan",
                 "total_courses",
                 "courses"
@@ -65,6 +66,9 @@
                 },
                 "description": {
                     "type": "string"
+                },
+                "program": {
+                    "const": "IT"
                 },
                 "plan": {
                     "enum": [

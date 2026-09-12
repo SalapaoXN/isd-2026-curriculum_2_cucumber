@@ -293,7 +293,7 @@
                         "06016482"
                     ],
                     "credits": "6(0-36-0)",
-                    "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+                    "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
                     "reason": "The literal Thai OR label denotes one alternative-course group record; it is not treated as an ordinary malformed code.",
                     "provenance": [
                         {
@@ -402,7 +402,7 @@
                         "06016482"
                     ],
                     "credits": "6(0-36-0)",
-                    "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+                    "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
                     "reason": "The literal Thai OR label denotes one alternative-course group record; it is not treated as an ordinary malformed code.",
                     "provenance": [
                         {
@@ -1413,7 +1413,7 @@
                         {
                             "record_index": 32,
                             "course_code": "06016416",
-                            "name_en": "REQUIREMENT ENGINEERING",
+                            "name_en": "REQUIREMENTS ENGINEERING",
                             "credits": "3(3-0-6)",
                             "year": 3,
                             "semester": 1,
@@ -2379,7 +2379,7 @@
                         {
                             "record_index": 32,
                             "course_code": "06016416",
-                            "name_en": "REQUIREMENT ENGINEERING",
+                            "name_en": "REQUIREMENTS ENGINEERING",
                             "credits": "3(3-0-6)",
                             "year": 3,
                             "semester": 1,
