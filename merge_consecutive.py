@@ -183,6 +183,18 @@ def _prediction_metadata(data: dict, plan) -> dict:
     }
 
 
+def _merge_output_directory(output_folder: Path, program: str, plan, kind: str) -> Path:
+    """Return the structured destination for a merged page range or full file."""
+    program_label = _safe_identifier(str(program).strip().lower(), fallback="program")
+    if program_label in {"ait", "gened"}:
+        program_folder = output_folder / program_label
+    else:
+        program_folder = output_folder / program_label / _safe_identifier(
+            plan_label(plan)
+        )
+    return program_folder / ("page_ranges" if kind == "page_range" else "full")
+
+
 def parse_page_range(page_input: str) -> set:
     pages = set()
     parts = page_input.split(",")
@@ -690,9 +702,12 @@ def merge_consecutive_files(
             page_nums = [r[1] for r in group]
             safe_plan = _safe_identifier(plan_label(plan))
             output_filename = f"merged_{group_id}_{safe_plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
-            output_file_path = output_folder / output_filename
+            page_output_folder = _merge_output_directory(
+                output_folder, first.get("program", ""), plan, "page_range"
+            )
+            output_file_path = page_output_folder / output_filename
 
-            output_folder.mkdir(parents=True, exist_ok=True)
+            page_output_folder.mkdir(parents=True, exist_ok=True)
             with open(output_file_path, "w", encoding="utf-8") as f:
                 json.dump(base_metadata, f, ensure_ascii=False, indent=4)
 
@@ -741,8 +756,11 @@ def merge_consecutive_files(
 
             safe_plan = _safe_identifier(plan_label(plan))
             output_filename = f"merged_{group_id}_{safe_plan}_full.json"
-            output_file_path = output_folder / output_filename
-            output_folder.mkdir(parents=True, exist_ok=True)
+            full_output_folder = _merge_output_directory(
+                output_folder, first.get("program", ""), plan, "full"
+            )
+            output_file_path = full_output_folder / output_filename
+            full_output_folder.mkdir(parents=True, exist_ok=True)
             with open(output_file_path, "w", encoding="utf-8") as f:
                 json.dump(final, f, ensure_ascii=False, indent=4)
 

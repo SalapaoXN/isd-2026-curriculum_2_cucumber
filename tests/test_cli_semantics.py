@@ -92,11 +92,12 @@ class CliSemanticsTests(unittest.TestCase):
                 prefix="ait",
             )
 
-            merged_files = list(output_dir.glob("*.json"))
+            merged_files = list((output_dir / "ait" / "page_ranges").glob("*.json"))
             self.assertEqual(len(merged_files), 1)
             self.assertIn("no_plan", merged_files[0].name)
             result = json.loads(merged_files[0].read_text(encoding="utf-8"))
             self.assertIsNone(result["plan"])
+            self.assertFalse(list(output_dir.glob("*.json")))
 
     def test_extract_legacy_summary_uses_legacy_destination(self):
         with tempfile.TemporaryDirectory() as temp_dir:

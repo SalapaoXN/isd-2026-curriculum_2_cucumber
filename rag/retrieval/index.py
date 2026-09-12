@@ -25,6 +25,7 @@ _METADATA_TABLE = "semantic_index_metadata"
 _SOURCES_TABLE = "semantic_index_sources"
 _CHUNKS_TABLE = "semantic_chunks"
 _CONSOLIDATED_DIR = _PROJECT_ROOT / "outputs" / "consolidated"
+_LLM_DIR = _PROJECT_ROOT / "outputs" / "llm"
 _SOURCE_IDENTITY_FIELDS = (
     "source_document_key",
     "document_key",
@@ -58,6 +59,17 @@ def canonical_source_paths() -> list[Path]:
         raise FileNotFoundError(
             "no canonical consolidated curriculum JSON files found in "
             f"{_CONSOLIDATED_DIR}"
+        )
+    return paths
+
+
+def llm_source_paths() -> list[Path]:
+    """Return reviewed LLM-corrected curriculum documents only."""
+    paths = sorted(_LLM_DIR.glob("*_corrected.json"))
+    if not paths:
+        raise FileNotFoundError(
+            "no LLM-corrected curriculum JSON files found in "
+            f"{_LLM_DIR}"
         )
     return paths
 
@@ -750,6 +762,7 @@ __all__ = [
     "ARTIFACTS_DIR",
     "DEFAULT_INDEX_NAME",
     "canonical_source_paths",
+    "llm_source_paths",
     "ensure_index",
     "index_path_for_source",
     "query_index",
