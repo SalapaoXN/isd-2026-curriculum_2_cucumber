@@ -23,6 +23,46 @@ def _explicit_course_codes(query_text: str) -> tuple[str, ...]:
     )
 
 
+def _normalize_course_name(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    return re.sub(r"\s+", " ", value).strip().casefold()
+
+
+def _exact_course_name_codes(
+    db_path: str | Path,
+    query_text: str,
+) -> tuple[str, ...]:
+    normalized_query = _normalize_course_name(query_text)
+    if not normalized_query:
+        return ()
+    try:
+        with closing(sqlite3.connect(str(db_path))) as connection:
+            rows = connection.execute(
+                """
+                SELECT course_code_normalized, name_th, name_en
+                FROM courses
+                WHERE name_th IS NOT NULL OR name_en IS NOT NULL
+                """
+            ).fetchall()
+    except sqlite3.Error:
+        return ()
+
+    matched_codes: set[str] = set()
+    for course_code, name_th, name_en in rows:
+        if any(
+            normalized_name and normalized_name in normalized_query
+            for normalized_name in (
+                _normalize_course_name(name_th),
+                _normalize_course_name(name_en),
+            )
+        ):
+            matched_codes.add(str(course_code))
+    if len(matched_codes) != 1:
+        return ()
+    return tuple(matched_codes)
+
+
 def _chunk_course_codes(chunk: dict[str, Any]) -> list[str]:
     values = chunk.get("course_code")
     if isinstance(values, (list, tuple, set)):
@@ -60,6 +100,8 @@ def retrieve(
 ) -> list[dict[str, Any]]:
     """Embed one query and return ranked evidence with source references."""
     course_codes = _explicit_course_codes(query_text)
+    if not course_codes:
+        course_codes = _exact_course_name_codes(db_path, query_text)
     candidate_ids: set[str] | None = None
     search_k = k
     if course_codes:

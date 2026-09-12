@@ -31,6 +31,35 @@ class RagRetrieveTest(unittest.TestCase):
             connection.commit()
         return directory, database_path
 
+    def _named_semantic_chunk_database(self, courses):
+        directory = tempfile.TemporaryDirectory()
+        database_path = f"{directory.name}/curriculum.db"
+        with closing(sqlite3.connect(database_path)) as connection:
+            connection.execute(
+                "CREATE TABLE courses "
+                "(course_code_normalized TEXT, name_th TEXT, name_en TEXT)"
+            )
+            connection.executemany(
+                "INSERT INTO courses VALUES (?, ?, ?)", courses
+            )
+            connection.execute(
+                "CREATE TABLE semantic_chunks (chunk_id TEXT, chunk_json TEXT)"
+            )
+            connection.executemany(
+                "INSERT INTO semantic_chunks VALUES (?, ?)",
+                [
+                    (
+                        f"chunk-{index}",
+                        json.dumps({"course_code": code, "text": f"text {index}"}),
+                    )
+                    for index, code in enumerate(
+                        [course[0] for course in courses] + ["99999999"]
+                    )
+                ],
+            )
+            connection.commit()
+        return directory, database_path
+
     def test_embeds_query_and_returns_ranked_cited_evidence(self):
         query_embedding = np.zeros(384, dtype=np.float32)
         provenance = {
@@ -152,6 +181,64 @@ class RagRetrieveTest(unittest.TestCase):
                 ["chunk-1", "chunk-2", "chunk-3"],
             )
             self.assertEqual(search_mock.call_args.kwargs, {"k": 4})
+        finally:
+            directory.cleanup()
+
+    def test_exact_course_name_restricts_results_to_its_code(self):
+        directory, database_path = self._named_semantic_chunk_database(
+            [("06016402", "พื้นฐาน", "INFORMATION TECHNOLOGY FUNDAMENTALS")]
+        )
+        query_embedding = np.zeros(384, dtype=np.float32)
+        search_results = [
+            {"chunk_id": "chunk-1", "distance": 0.1, "text": "unrelated", "provenance": []},
+            {
+                "chunk_id": "chunk-0",
+                "distance": 0.2,
+                "text": "target description",
+                "provenance": [{"source_page": 328}],
+            },
+            {"chunk_id": "chunk-2", "distance": 0.3, "text": "other", "provenance": []},
+        ]
+        try:
+            with patch(
+                "rag.retrieval.retrieve.embed_texts", return_value=np.array([query_embedding])
+            ), patch(
+                "rag.retrieval.retrieve.search", return_value=search_results
+            ) as search_mock:
+                results = retrieve(
+                    database_path,
+                    "INFORMATION TECHNOLOGY FUNDAMENTALS เรียนเกี่ยวกับอะไรบ้าง?",
+                    k=1,
+                )
+
+            self.assertEqual([result["chunk_id"] for result in results], ["chunk-0"])
+            self.assertEqual(results[0]["provenance"], [{"source_page": 328}])
+            self.assertEqual(search_mock.call_args.kwargs, {"k": 2})
+        finally:
+            directory.cleanup()
+
+    def test_ambiguous_exact_course_name_keeps_global_search(self):
+        directory, database_path = self._named_semantic_chunk_database(
+            [
+                ("06016402", "", "SHARED COURSE"),
+                ("06026207", "", "SHARED COURSE"),
+            ]
+        )
+        query_embedding = np.zeros(384, dtype=np.float32)
+        search_results = [
+            {"chunk_id": "chunk-2", "distance": 0.1, "text": "unrelated", "provenance": []},
+            {"chunk_id": "chunk-0", "distance": 0.2, "text": "first", "provenance": []},
+        ]
+        try:
+            with patch(
+                "rag.retrieval.retrieve.embed_texts", return_value=np.array([query_embedding])
+            ), patch(
+                "rag.retrieval.retrieve.search", return_value=search_results
+            ) as search_mock:
+                results = retrieve(database_path, "SHARED COURSE topics", k=1)
+
+            self.assertEqual([result["chunk_id"] for result in results], ["chunk-2"])
+            self.assertEqual(search_mock.call_args.kwargs, {"k": 1})
         finally:
             directory.cleanup()
 
