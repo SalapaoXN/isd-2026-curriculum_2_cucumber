@@ -183,6 +183,78 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("C200 ครอบคลุมระบบฐานข้อมูล", prompts[0])
         self.assertIn('"source_page":[21]', prompts[0])
 
+    def test_complete_paraphrased_topic_answer_needs_no_retry(self):
+        prompts = []
+
+        answer = answer_question(
+            "วิชานี้เรียนเกี่ยวกับอะไร",
+            "semantic",
+            semantic_chunks=[
+                {
+                    "text": (
+                        "คำอธิบายรายวิชาภาษาอังกฤษ: RESOURCE VIRTUALIZATION, "
+                        "SOFTWARE DEFINED INFRASTRUCTURE, INFRASTRUCTURE SECURITY"
+                    )
+                }
+            ],
+            answer_model_callable=lambda prompt: prompts.append(prompt)
+            or "เนื้อหาครอบคลุมการทำทรัพยากรเสมือน โครงสร้างพื้นฐานที่กำหนดด้วยซอฟต์แวร์ "
+            "และความปลอดภัยของโครงสร้างพื้นฐาน",
+        )
+
+        self.assertIn("ความปลอดภัย", answer)
+        self.assertEqual(len(prompts), 1)
+
+    def test_incomplete_topic_answer_retries_once_and_can_recover(self):
+        prompts = []
+        answers = iter(
+            [
+                "เนื้อหาเกี่ยวกับความปลอดภัยของโครงสร้างพื้นฐาน",
+                "เนื้อหาครอบคลุมการทำทรัพยากรเสมือน โครงสร้างพื้นฐานที่กำหนดด้วยซอฟต์แวร์ "
+                "และความปลอดภัยของโครงสร้างพื้นฐาน",
+            ]
+        )
+
+        answer = answer_question(
+            "วิชานี้เรียนเกี่ยวกับอะไร",
+            "semantic",
+            semantic_chunks=[
+                {
+                    "text": (
+                        "คำอธิบายรายวิชาภาษาอังกฤษ: RESOURCE VIRTUALIZATION, "
+                        "SOFTWARE DEFINED INFRASTRUCTURE, INFRASTRUCTURE SECURITY"
+                    )
+                }
+            ],
+            answer_model_callable=lambda prompt: prompts.append(prompt)
+            or next(answers),
+        )
+
+        self.assertIn("ทรัพยากรเสมือน", answer)
+        self.assertEqual(len(prompts), 2)
+        self.assertIn("สรุปหัวข้อที่รองรับคำถามอย่างครบถ้วน", prompts[1])
+
+    def test_incomplete_topic_answer_is_never_retried_more_than_once(self):
+        prompts = []
+
+        answer = answer_question(
+            "วิชานี้เรียนเกี่ยวกับอะไร",
+            "semantic",
+            semantic_chunks=[
+                {
+                    "text": (
+                        "คำอธิบายรายวิชาภาษาอังกฤษ: RESOURCE VIRTUALIZATION, "
+                        "SOFTWARE DEFINED INFRASTRUCTURE"
+                    )
+                }
+            ],
+            answer_model_callable=lambda prompt: prompts.append(prompt)
+            or "กล่าวถึงทรัพยากรเสมือน",
+        )
+
+        self.assertEqual(len(prompts), 2)
+        self.assertIn("ทรัพยากรเสมือน", answer)
+
     def test_nonempty_evidence_retries_an_unjustified_fallback_once(self):
         prompts = []
         answers = iter([EMPTY_ANSWER, "คำตอบจากหลักฐาน"])

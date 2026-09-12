@@ -122,6 +122,38 @@ _COST_QUERY_TERMS = (
     "ราคา",
 )
 _COST_EVIDENCE_TERMS = _COST_QUERY_TERMS
+_TOPIC_LIST_MARKERS = (
+    "คำอธิบายรายวิชาภาษาอังกฤษ:",
+    "english course description:",
+    "topics:",
+)
+_TOPIC_LIST_SPLIT = re.compile(r",\s*|;\s*|\n+\s*[-•]\s*|•\s*|–\s*|—\s*")
+_TOPIC_ITEM = re.compile(r"^[A-Z][A-Z0-9 /&()'\-]{3,}$")
+_TOPIC_STOPWORDS = {"A", "AN", "AND", "FOR", "IN", "OF", "ON", "THE", "TO"}
+_TOPIC_TOKEN_ALIASES = {
+    "ACCESS": ("access", "เข้าถึง"),
+    "CENTER": ("center", "ศูนย์ข้อมูล"),
+    "CLOUD": ("cloud", "คลาวด์", "เมฆ"),
+    "COMPUTING": ("computing", "ประมวลผล"),
+    "DATA": ("data", "ข้อมูล"),
+    "DEFINED": ("defined", "กำหนด"),
+    "IDENTITY": ("identity", "ข้อมูลประจำตัว", "ตัวตน"),
+    "INFRASTRUCTURE": ("infrastructure", "โครงสร้างพื้นฐาน"),
+    "MANAGEMENT": ("management", "การจัดการ", "บริหาร"),
+    "NETWORKING": ("networking", "เครือข่าย"),
+    "PRIVATE": ("private", "ส่วนตัว"),
+    "PUBLIC": ("public", "สาธารณะ"),
+    "RESOURCE": ("resource", "ทรัพยากร"),
+    "RESOURCES": ("resources", "ทรัพยากร"),
+    "SECURITY": ("security", "ความปลอดภัย", "ความมั่นคงปลอดภัย"),
+    "SERVICES": ("services", "บริการ"),
+    "SERVICE": ("service", "บริการ"),
+    "SOFTWARE": ("software", "ซอฟต์แวร์"),
+    "STORAGE": ("storage", "จัดเก็บ", "การจัดเก็บ"),
+    "SYSTEMS": ("systems", "ระบบ"),
+    "SYSTEM": ("system", "ระบบ"),
+    "VIRTUALIZATION": ("virtualization", "เสมือน", "เวอร์ชวล"),
+}
 
 
 def is_fallback_like(answer: Any) -> bool:
@@ -137,6 +169,49 @@ def is_fallback_like(answer: Any) -> bool:
     if normalized.startswith("จากหลักฐาน"):
         normalized = re.sub(r"^จากหลักฐาน(?:ที่มี)?\s*", "", normalized)
     return normalized.startswith(_FALLBACK_LIKE_PREFIXES)
+
+
+def _enumerated_topic_items(semantic_chunks: Any) -> list[str]:
+    items: list[str] = []
+    for chunk in _semantic_chunks(semantic_chunks):
+        text = str(chunk.get("text", ""))
+        for marker in _TOPIC_LIST_MARKERS:
+            marker_index = text.casefold().find(marker.casefold())
+            if marker_index < 0:
+                continue
+            topic_text = text[marker_index + len(marker) :]
+            for item in _TOPIC_LIST_SPLIT.split(topic_text):
+                candidate = re.sub(r"\s+", " ", item).strip(" .:")
+                if _TOPIC_ITEM.fullmatch(candidate) and candidate not in items:
+                    items.append(candidate)
+    return items
+
+
+def _topic_item_is_covered(topic: str, answer: Any) -> bool:
+    answer_text = str(answer).casefold()
+    tokens = [
+        token
+        for token in re.findall(r"[A-Z]+", topic.upper())
+        if token not in _TOPIC_STOPWORDS
+    ]
+    return bool(tokens) and all(
+        any(alias.casefold() in answer_text for alias in _TOPIC_TOKEN_ALIASES.get(token, (token,)))
+        for token in tokens
+    )
+
+
+def _semantic_concepts_are_incomplete(
+    route: str,
+    semantic_chunks: Any,
+    answer: Any,
+) -> bool:
+    if route not in {"semantic", "hybrid"}:
+        return False
+    topics = _enumerated_topic_items(semantic_chunks)
+    if len(topics) < 2:
+        return False
+    covered = sum(_topic_item_is_covered(topic, answer) for topic in topics)
+    return covered < 2
 
 
 def _deterministic_structured_fallback(structured_result: Any) -> str | None:
@@ -477,13 +552,23 @@ def answer_question(
         answer_text,
         comparison_plans if comparison_plans else None,
     ) if normalized_route == "hybrid" or comparison_plans else ([], [])
-    if is_fallback_like(answer_text) or missing_plans:
+    incomplete_topics = _semantic_concepts_are_incomplete(
+        normalized_route,
+        semantic_chunks,
+        answer_text,
+    )
+    if is_fallback_like(answer_text) or missing_plans or incomplete_topics:
         recovery_prompt = (
             prompt
             + "\nตรวจสอบหลักฐานอีกครั้งอย่างเคร่งครัด: "
             "ถ้าหลักฐานรองรับคำถาม ให้สรุปเฉพาะข้อเท็จจริงที่มีหลักฐานรองรับ; "
             "ถ้าหลักฐานไม่พอ ให้ตอบข้อความ fallback เดิม และห้ามเดาหรือสร้างข้อมูล"
         )
+        if incomplete_topics:
+            recovery_prompt += (
+                "\nหากหลักฐานแจกแจงหัวข้อไว้ ให้สรุปหัวข้อที่รองรับคำถามอย่างครบถ้วน "
+                "โดยใช้คำไทยหรือคำเทียบเท่าที่มีความหมายเดียวกันได้"
+            )
         if normalized_route == "hybrid" and missing_plans:
             recovery_prompt += (
                 "\nคำถามนี้ขอข้อมูลหลายแผน ต้องรายงาน placement ของทุกแผนที่มีหลักฐาน "
