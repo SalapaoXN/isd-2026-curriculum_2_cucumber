@@ -59,6 +59,104 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn('"plan_key":"no_coop"', prompts[0])
         self.assertNotIn("earliest_plan_keys", prompts[0])
 
+    def test_complete_structured_comparison_answer_needs_no_retry(self):
+        prompts = []
+        structured_result = {
+            "operation": "course_placement_comparison",
+            "status": "ok",
+            "requested_plan_keys": ["coop", "no_coop"],
+            "columns": ["plan_key", "year", "semester", "flexible_year_semester_raw"],
+            "rows": [
+                ["coop", 3, 1, None],
+                ["coop", None, None, "4/1"],
+                ["no_coop", 3, 1, None],
+                ["no_coop", None, None, "3/1, 3/2, 4/1"],
+            ],
+        }
+
+        answer = answer_question(
+            "วางแผนสองวิชาใน IT ควรเลือกแผนไหนและแต่ละแผนเรียนช่วงใด",
+            "structured",
+            structured_result=structured_result,
+            answer_model_callable=lambda prompt: prompts.append(prompt)
+            or "แผน coop: วิชาแรก 3/1 และวิชาที่สอง 4/1; "
+            "แผน no_coop: วิชาแรก 3/1 และวิชาที่สอง 3/1, 3/2, 4/1",
+        )
+
+        self.assertIn("แผน no_coop", answer)
+        self.assertEqual(len(prompts), 1)
+
+    def test_incomplete_structured_comparison_retries_once_with_all_evidence(self):
+        prompts = []
+        answers = iter(
+            [
+                "แผน no_coop: วิชาแรก 3/1 และวิชาที่สอง 3/1, 3/2, 4/1",
+                "แผน coop: วิชาแรก 3/1 และวิชาที่สอง 4/1; "
+                "แผน no_coop: วิชาแรก 3/1 และวิชาที่สอง 3/1, 3/2, 4/1",
+            ]
+        )
+        structured_result = {
+            "operation": "course_placement_comparison",
+            "status": "ok",
+            "requested_plan_keys": ["coop", "no_coop"],
+            "derived_facts": {
+                "earliest_plan": "no_coop",
+                "plan_completion_earliest": [
+                    {"plan_key": "coop", "completion_year_semester": [4, 1]},
+                    {"plan_key": "no_coop", "completion_year_semester": [3, 1]},
+                ],
+            },
+            "columns": ["plan_key", "year", "semester", "flexible_year_semester_raw"],
+            "rows": [
+                ["coop", 3, 1, None],
+                ["coop", None, None, "4/1"],
+                ["no_coop", 3, 1, None],
+                ["no_coop", None, None, "3/1, 3/2, 4/1"],
+            ],
+        }
+
+        answer = answer_question(
+            "วางแผนสองวิชาใน IT ควรเลือกแผนไหนและแต่ละแผนเรียนช่วงใด",
+            "structured",
+            structured_result=structured_result,
+            answer_model_callable=lambda prompt: prompts.append(prompt)
+            or next(answers),
+        )
+
+        self.assertIn("แผน coop", answer)
+        self.assertEqual(len(prompts), 2)
+        self.assertIn('"earliest_plan":"no_coop"', prompts[1])
+        self.assertIn('"plan_key":"coop"', prompts[1])
+        self.assertIn('"plan_key":"no_coop"', prompts[1])
+
+    def test_incomplete_structured_comparison_uses_appendix_after_one_retry(self):
+        prompts = []
+        structured_result = {
+            "operation": "course_placement_comparison",
+            "status": "ok",
+            "requested_plan_keys": ["coop", "no_coop"],
+            "columns": ["plan_key", "year", "semester", "flexible_year_semester_raw"],
+            "rows": [
+                ["coop", 3, 1, None],
+                ["coop", None, None, "4/1"],
+                ["no_coop", 3, 1, None],
+                ["no_coop", None, None, "3/1, 3/2, 4/1"],
+            ],
+        }
+
+        answer = answer_question(
+            "วางแผนสองวิชาใน IT ควรเลือกแผนไหนและแต่ละแผนเรียนช่วงใด",
+            "structured",
+            structured_result=structured_result,
+            answer_model_callable=lambda prompt: prompts.append(prompt)
+            or "แผน no_coop เรียนวิชาแรก 3/1",
+        )
+
+        self.assertEqual(len(prompts), 2)
+        self.assertIn("ข้อมูลการจัดวางที่ยืนยันได้เพิ่มเติม", answer)
+        self.assertIn('"plan":"coop"', answer)
+        self.assertIn('"plan":"no_coop"', answer)
+
     def test_semantic_prompt_is_grounded_in_retrieved_chunks(self):
         prompts = []
 

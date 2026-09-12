@@ -319,8 +319,9 @@ def _missing_hybrid_plan_evidence(
     question: str,
     structured_result: Any,
     answer: Any,
+    requested_plans: Sequence[str] | None = None,
 ) -> tuple[list[str], list[dict[str, Any]]]:
-    plans = _requested_plan_keys(question)
+    plans = list(requested_plans) if requested_plans is not None else _requested_plan_keys(question)
     if len(plans) < 2:
         return [], []
     records: list[dict[str, Any]] = []
@@ -457,11 +458,25 @@ def answer_question(
     )
     answer = answer_model_callable(prompt)
     answer_text = answer if isinstance(answer, str) else str(answer)
+    comparison_plans: Sequence[str] = ()
+    if (
+        normalized_route == "structured"
+        and isinstance(structured_result, Mapping)
+        and structured_result.get("operation") == "course_placement_comparison"
+    ):
+        upstream_plans = structured_result.get("requested_plan_keys")
+        if isinstance(upstream_plans, Sequence) and not isinstance(
+            upstream_plans, (str, bytes)
+        ):
+            comparison_plans = tuple(
+                plan for plan in upstream_plans if isinstance(plan, str)
+            )
     missing_plans, placement_records = _missing_hybrid_plan_evidence(
         question,
         structured_result,
         answer_text,
-    ) if normalized_route == "hybrid" else ([], [])
+        comparison_plans if comparison_plans else None,
+    ) if normalized_route == "hybrid" or comparison_plans else ([], [])
     if is_fallback_like(answer_text) or missing_plans:
         recovery_prompt = (
             prompt
@@ -478,15 +493,16 @@ def answer_question(
         recovered_text = recovered if isinstance(recovered, str) else str(recovered)
         if not is_fallback_like(recovered_text):
             answer_text = recovered_text
-            if normalized_route == "hybrid":
+            if normalized_route == "hybrid" or comparison_plans:
                 missing_plans, placement_records = _missing_hybrid_plan_evidence(
                     question,
                     structured_result,
                     answer_text,
+                    comparison_plans if comparison_plans else None,
                 )
                 if missing_plans and placement_records:
                     return answer_text + "\n" + _hybrid_placement_appendix(placement_records)
-            else:
+            if normalized_route != "hybrid":
                 return answer_text
         if normalized_route == "structured":
             structured_fallback = _deterministic_structured_fallback(structured_result)
