@@ -693,6 +693,129 @@ def alternative_group_placements(
     }
 
 
+def course_facts(
+    db_path: Database,
+    course_code: str,
+    program: str | None = None,
+) -> dict[str, Any]:
+    """Return exact course facts and directly linked provenance."""
+    if not isinstance(course_code, str) or _COURSE_CODE_RE.fullmatch(course_code) is None:
+        raise ValueError("course_code must contain exactly 8 ASCII digits")
+    if program is not None:
+        if not isinstance(program, str) or not program.strip():
+            raise ValueError("program must be a non-empty string when provided")
+        normalized_program = program.strip().upper()
+    else:
+        normalized_program = None
+
+    with _open_database(db_path) as connection:
+        where = ["courses.course_code_normalized = ?"]
+        parameters: list[Any] = [course_code]
+        if normalized_program is not None:
+            where.append(
+                "EXISTS ("
+                "SELECT 1 FROM programs AS scoped_programs "
+                "WHERE scoped_programs.catalog_id = courses.catalog_id "
+                "AND scoped_programs.program_code_normalized = ?"
+                ")"
+            )
+            parameters.append(normalized_program.casefold())
+        rows = connection.execute(
+            f"""
+            SELECT {_course_select('courses')}, courses.credit_units
+            FROM courses
+            WHERE {' AND '.join(where)}
+            ORDER BY courses.catalog_id, courses.course_id
+            """,
+            parameters,
+        ).fetchall()
+
+        facts: list[dict[str, Any]] = []
+        for row in rows:
+            course_id = int(row["course_id"])
+            references = _provenance_for(
+                connection, "course_provenance", "course_id", course_id
+            )
+            placement_rows = connection.execute(
+                """
+                SELECT DISTINCT
+                    plan_courses.placement_id,
+                    plan_courses.plan_key,
+                    plan_courses.plan_id,
+                    plans.catalog_id,
+                    plan_courses.year,
+                    plan_courses.semester,
+                    plan_courses.flexible_year_semester_raw,
+                    plan_courses.alternative_group_id
+                FROM v_plan_courses AS plan_courses
+                JOIN curriculum_plans AS plans
+                  ON plans.plan_id = plan_courses.plan_id
+                WHERE plan_courses.course_id = ?
+                """
+                + (
+                    " AND plan_courses.program = ?"
+                    if normalized_program is not None
+                    else ""
+                )
+                + " ORDER BY plan_courses.plan_key, plans.catalog_id, "
+                "plan_courses.plan_id, plan_courses.placement_id",
+                (course_id, normalized_program)
+                if normalized_program is not None
+                else (course_id,),
+            ).fetchall()
+            placements: list[dict[str, Any]] = []
+            for placement_row in placement_rows:
+                placement_id = int(placement_row["placement_id"])
+                placement = {
+                    "placement_id": placement_id,
+                    "plan_key": placement_row["plan_key"],
+                    "plan_id": int(placement_row["plan_id"]),
+                    "catalog_id": int(placement_row["catalog_id"]),
+                    "year": placement_row["year"],
+                    "semester": placement_row["semester"],
+                    "flexible_year_semester_raw": placement_row[
+                        "flexible_year_semester_raw"
+                    ],
+                    "alternative_group_id": placement_row["alternative_group_id"],
+                }
+                placements.append(placement)
+                references = _merge_provenance(
+                    references,
+                    _provenance_for(
+                        connection,
+                        "plan_placement_provenance",
+                        "placement_id",
+                        placement_id,
+                    ),
+                )
+
+            program_rows = connection.execute(
+                """
+                SELECT DISTINCT program_code
+                FROM programs
+                WHERE catalog_id = ?
+                ORDER BY program_code
+                """,
+                (int(row["catalog_id"]),),
+            ).fetchall()
+            facts.append(
+                {
+                    **_course_fields(row),
+                    "credit_units": row["credit_units"],
+                    "programs": [item["program_code"] for item in program_rows],
+                    "placements": placements,
+                    "provenance": references,
+                }
+            )
+
+    return {
+        "status": "ok" if facts else "no_data",
+        "program": normalized_program,
+        "course_code": course_code,
+        "courses": facts,
+    }
+
+
 def semester_total_credits(
     db_path: Database,
     plan_id: int,
@@ -1298,6 +1421,7 @@ def courses_requiring_prerequisite(
 
 __all__ = [
     "alternative_group_placements",
+    "course_facts",
     "course_placement",
     "courses_in_year_semester",
     "courses_requiring_prerequisite",

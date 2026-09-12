@@ -12,6 +12,7 @@ from .execute import execute_readonly, validate_readonly_sql
 from .nl_to_sql import question_to_sql, repair_sql
 from .queries import (
     alternative_group_placements,
+    course_facts,
     course_placement,
     courses_in_year_semester,
     earliest_year_semester_from_choices,
@@ -300,6 +301,25 @@ _SEMESTER_COURSE_COLUMNS = (
     "provenance",
     "source_pages",
 )
+_COURSE_FACT_COLUMNS = (
+    "course_id",
+    "catalog_id",
+    "course_code",
+    "name_th",
+    "name_en",
+    "credits",
+    "credit_units",
+    "credits_raw",
+    "programs",
+    "placements",
+    "provenance",
+)
+_COURSE_FACT_INTENT_TERMS = (
+    "ชื่อ",
+    "name",
+    "หน่วยกิต",
+    "credit",
+)
 
 
 def _course_placement_request(
@@ -339,6 +359,22 @@ def _course_placement_request(
             return None
         plan_keys = ["coop", "no_coop"]
     return program_match.group("program"), course_codes[0], plan_keys
+
+
+def _course_facts_request(
+    question: str,
+) -> tuple[str | None, str] | None:
+    normalized = question.casefold()
+    course_codes = list(dict.fromkeys(_EXPLICIT_COURSE_CODE.findall(normalized)))
+    if len(course_codes) != 1:
+        return None
+    if not any(term in normalized for term in _COURSE_FACT_INTENT_TERMS):
+        return None
+    program_match = _PROGRAM_CODE.search(normalized)
+    return (
+        program_match.group("program") if program_match is not None else None,
+        course_codes[0],
+    )
 
 
 def _semester_credits_prerequisite_request(
@@ -1085,6 +1121,23 @@ def _semester_courses_structured_result(
     }
 
 
+def _course_facts_structured_result(result: dict[str, Any]) -> dict[str, Any]:
+    rows = [
+        tuple(course.get(column) for column in _COURSE_FACT_COLUMNS)
+        for course in result["courses"]
+    ]
+    return {
+        "operation": "course_facts",
+        "status": result["status"],
+        "program": result["program"],
+        "course_code": result["course_code"],
+        "sql": None,
+        "columns": list(_COURSE_FACT_COLUMNS),
+        "rows": rows,
+        "provenance": _collect_row_provenance(rows, _COURSE_FACT_COLUMNS),
+    }
+
+
 def _predicate_fragments(sql: str) -> list[str]:
     normalized_sql = re.sub(r"\s+", " ", sql)
     fragments: list[str] = []
@@ -1354,6 +1407,12 @@ def ask_structured(
         program, course_code, plan_keys = placement_request
         return _course_placement_structured_result(
             course_placement(db_path, program, course_code, plan_keys)
+        )
+    course_facts_request = _course_facts_request(question)
+    if course_facts_request is not None:
+        program, course_code = course_facts_request
+        return _course_facts_structured_result(
+            course_facts(db_path, course_code, program)
         )
     if not callable(model_callable):
         raise ValueError(

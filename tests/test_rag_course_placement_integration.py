@@ -21,6 +21,11 @@ DB_PATH = (
     / "runtime"
     / "curriculum.db"
 )
+SUBMISSION_DB_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "submission"
+    / "curriculum.db"
+)
 
 
 def _placement_rows(result):
@@ -449,23 +454,72 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(result["result"]["rows"], [(1,)])
         self.assertEqual(len(calls), 1)
 
-    def test_non_plan_sensitive_course_credit_question_keeps_fallback(self):
-        calls = []
-
-        def fake_model(_prompt):
-            calls.append(True)
-            return "SELECT 1"
+    def test_non_plan_sensitive_course_credit_question_is_deterministic(self):
+        def fail_model(_prompt):
+            self.fail("explicit course credit facts must not call the model")
 
         result = ask(
             DB_PATH,
             "IT วิชา 06016465 มีกี่หน่วยกิต?",
-            structured_model_callable=fake_model,
+            structured_model_callable=fail_model,
         )
 
         self.assertEqual(result["route"], "structured")
-        self.assertNotIn("operation", result["result"])
-        self.assertEqual(result["result"]["rows"], [(1,)])
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(result["result"]["operation"], "course_facts")
+        self.assertTrue(result["result"]["rows"])
+
+    def test_exact_course_name_credit_facts_are_deterministic_and_grounded(self):
+        questions = (
+            (
+                "วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไรและมีหน่วยกิตเท่าไร?",
+                "MATHEMATICS FOR INFORMATION TECHNOLOGY",
+            ),
+            (
+                "NOSQL DATABASE SYSTEMS (06016414) มีหน่วยกิตเท่าไรในหลักสูตร IT?",
+                "NOSQL DATABASE SYSTEMS",
+            ),
+            (
+                "วิชา 06016420 ชื่ออะไรและมีกี่หน่วยกิต?",
+                "INFRASTRUCTURE SYSTEMS AND SERVICES",
+            ),
+        )
+
+        for question, expected_name in questions:
+            with self.subTest(question=question):
+                def fail_model(_prompt):
+                    self.fail("course facts must not call the structured model")
+
+                result = ask(
+                    SUBMISSION_DB_PATH,
+                    question,
+                    structured_model_callable=fail_model,
+                )
+                structured = result["result"]
+                self.assertEqual(result["route"], "structured")
+                self.assertEqual(structured["operation"], "course_facts")
+                self.assertTrue(structured["rows"])
+                self.assertTrue(structured["provenance"])
+                columns = structured["columns"]
+                rows = [dict(zip(columns, row)) for row in structured["rows"]]
+                self.assertEqual({row["name_en"] for row in rows}, {expected_name})
+                self.assertEqual({row["credit_units"] for row in rows}, {3})
+                self.assertTrue(all(row["provenance"] for row in rows))
+
+    def test_exact_unknown_course_facts_are_deterministic_no_data(self):
+        def fail_model(_prompt):
+            self.fail("unknown exact course facts must not call the structured model")
+
+        result = ask(
+            DB_PATH,
+            "วิชา 99999999 ชื่ออะไรและมีกี่หน่วยกิต?",
+            structured_model_callable=fail_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        self.assertEqual(result["result"]["operation"], "course_facts")
+        self.assertEqual(result["result"]["status"], "no_data")
+        self.assertEqual(result["result"]["rows"], [])
+        self.assertEqual(result["result"]["provenance"], [])
 
     def test_prerequisite_only_is_deterministic_but_credits_only_is_unchanged(self):
         calls = []
