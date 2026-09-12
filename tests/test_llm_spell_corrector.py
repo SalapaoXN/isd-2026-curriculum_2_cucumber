@@ -1,6 +1,8 @@
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -122,6 +124,76 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         directory = self.directory if directory is None else directory
         self.assertFalse(list(directory.glob("*_corrected.json")))
         self.assertFalse(list(directory.glob("*_corrections.json")))
+
+    def test_reviewed_corrections_apply_all_supported_text_fields_and_are_idempotent(self):
+        original = {"metadata": {"program": "IT", "plan": "coop"}, "courses": [make_record()]}
+        corrections = [
+            {
+                "course_code": "06000001",
+                "field": "name_th",
+                "before": "ชื่อวิชา",
+                "after": "ชื่อวิชาที่แก้แล้ว",
+            },
+            {
+                "course_code": "06000001",
+                "field": "name_en",
+                "before": "Original name",
+                "after": "Corrected name",
+            },
+            {
+                "course_code": "06000001",
+                "field": "desc_th",
+                "before": "คำอธิบายเดิม",
+                "after": "คำอธิบายที่แก้แล้ว",
+            },
+            {
+                "course_code": "06000001",
+                "field": "desc_en",
+                "before": "Original description",
+                "after": "Corrected description",
+            },
+        ]
+
+        corrected, applied = llm_spell_corrector.apply_corrections(
+            original,
+            corrections,
+        )
+
+        self.assertEqual(len(applied), 4)
+        self.assertEqual(corrected["courses"][0]["name_en"], "Corrected name")
+        self.assertEqual(corrected["courses"][0]["desc_th"], "คำอธิบายที่แก้แล้ว")
+        self.assertEqual(corrected["courses"][0]["desc_en"], "Corrected description")
+        for field in (
+            "course_code",
+            "credits",
+            "year",
+            "semester",
+            "prerequisite",
+            "provenance",
+            "source_provenance",
+        ):
+            self.assertEqual(corrected["courses"][0][field], original["courses"][0][field])
+
+        reapplied, second_applied = llm_spell_corrector.apply_corrections(
+            corrected,
+            corrections,
+        )
+        self.assertEqual(reapplied, corrected)
+        self.assertEqual(second_applied, [])
+
+    def test_reviewed_correction_with_unknown_field_fails_clearly(self):
+        with self.assertRaisesRegex(ValueError, "unsupported field"):
+            llm_spell_corrector.apply_corrections(
+                {"courses": [make_record()]},
+                [
+                    {
+                        "course_code": "06000001",
+                        "field": "credits",
+                        "before": "3",
+                        "after": "4",
+                    }
+                ],
+            )
 
     def test_normal_text_correction_succeeds_and_is_logged(self):
         records = [make_record()]
@@ -387,11 +459,11 @@ class LlmSpellCorrectorTests(unittest.TestCase):
     def test_multi_file_failure_writes_no_partial_artifacts(self):
         first_records = [
             make_record(f"060000{i:02d}", name_th=None, name_en=f"Text {i}", desc_th=None, desc_en=None, note=None)
-            for i in range(6)
+            for i in range(26)
         ]
         second_records = [
             make_record(f"060001{i:02d}", name_th=None, name_en=f"Other {i}", desc_th=None, desc_en=None, note=None)
-            for i in range(6)
+            for i in range(26)
         ]
         first_path, _ = self.write_document("first.json", first_records)
         second_path, _ = self.write_document("second.json", second_records)
@@ -413,17 +485,26 @@ class LlmSpellCorrectorTests(unittest.TestCase):
     def test_records_are_sent_in_bounded_unique_unit_batches(self):
         records = [
             make_record(f"060000{i:02d}", name_th=None, name_en=f"Text {i}", desc_th=None, desc_en=None, note=None)
-            for i in range(11)
+            for i in range(51)
         ]
         path, _ = self.write_document("curriculum.json", records)
 
-        _, client = self.run_corrector(path, [lambda contents: contents[1], lambda contents: contents[1]])
+        progress = StringIO()
+        with redirect_stdout(progress):
+            _, client = self.run_corrector(
+                path,
+                [lambda contents: contents[1], lambda contents: contents[1]],
+            )
 
         self.assertEqual(len(client.models.calls), 2)
         self.assertEqual(
             [len(json.loads(call["contents"][1])) for call in client.models.calls],
-            [10, 1],
+            [50, 1],
         )
+        self.assertIn("[1/2] correcting 50 unique units...", progress.getvalue())
+        self.assertIn("[1/2] done", progress.getvalue())
+        self.assertIn("[2/2] correcting 1 unique units...", progress.getvalue())
+        self.assertIn("[2/2] done", progress.getvalue())
 
 
 if __name__ == "__main__":

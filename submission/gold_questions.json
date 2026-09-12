@@ -209,7 +209,7 @@
       "course_code": "06016414",
       "name_en": "NOSQL DATABASE SYSTEMS",
       "description_evidence": [
-        "INTRODUCTION TO NOSOL DATABASE SYSTEM",
+        "INTRODUCTION TO NOSQL DATABASE SYSTEM",
         "RELATIONAL DATABASE SYSTEM",
         "COLUMN ORIENTED",
         "DOCUMENT",
@@ -229,7 +229,7 @@
       ]
     },
     "required_evidence": [
-      "INTRODUCTION TO NOSOL DATABASE SYSTEM",
+      "INTRODUCTION TO NOSQL DATABASE SYSTEM",
       "RELATIONAL DATABASE SYSTEM",
       "COLUMN ORIENTED",
       "DOCUMENT",

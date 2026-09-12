@@ -16,9 +16,10 @@ from config import API_KEY
 
 
 MODEL = "gemini-3.5-flash-lite"
-BATCH_SIZE = 10
+BATCH_SIZE = 50
 TEXT_FIELDS_ORDER = ("name_th", "name_en")
 TEXT_FIELDS = frozenset(TEXT_FIELDS_ORDER)
+CORRECTION_FIELDS = frozenset(("name_th", "name_en", "desc_th", "desc_en"))
 UNIT_RESPONSE_FIELDS = frozenset(("unit_index", "field", "text"))
 
 CORRECTION_PROMPT = (
@@ -53,6 +54,123 @@ def _record_course_code(record: dict[str, Any]) -> Any:
     if "course_code" in record:
         return record["course_code"]
     return record.get("code")
+
+
+def apply_corrections(
+    document: Any,
+    correction_records: list[dict[str, Any]],
+    *,
+    approved_document: Any | None = None,
+) -> tuple[Any, list[dict[str, Any]]]:
+    """Apply reviewed text corrections without rebuilding curriculum records."""
+    corrected_document = copy.deepcopy(document)
+    original_records = _records_from_document(document)
+    corrected_records = _records_from_document(corrected_document)
+    if len(original_records) != len(corrected_records):
+        raise ValueError("Correction reconstruction changed curriculum record count")
+    approved_records = (
+        _records_from_document(approved_document)
+        if approved_document is not None
+        else None
+    )
+
+    applied: list[dict[str, Any]] = []
+    for correction_index, correction in enumerate(correction_records):
+        if not isinstance(correction, dict):
+            raise ValueError(
+                f"Correction {correction_index} must be a JSON object"
+            )
+        required_fields = {"course_code", "field", "before", "after"}
+        missing_fields = sorted(required_fields.difference(correction))
+        if missing_fields:
+            raise ValueError(
+                f"Correction {correction_index} is missing fields: {missing_fields}"
+            )
+
+        course_code = correction["course_code"]
+        field = correction["field"]
+        before = correction["before"]
+        after = correction["after"]
+        if field not in CORRECTION_FIELDS:
+            raise ValueError(
+                f"Correction {correction_index} has unsupported field: {field!r}"
+            )
+        if not isinstance(course_code, str) or not course_code:
+            raise ValueError(
+                f"Correction {correction_index} course_code must be a non-empty string"
+            )
+        if not isinstance(before, str) or not isinstance(after, str):
+            raise ValueError(
+                f"Correction {correction_index} before/after must be strings"
+            )
+
+        matching_indexes = [
+            index
+            for index, record in enumerate(corrected_records)
+            if _record_course_code(record) == course_code
+            and record.get(field) == before
+        ]
+        if len(matching_indexes) > 1:
+            raise ValueError(
+                f"Correction {correction_index} is ambiguous for "
+                f"{course_code}/{field}: matched {len(matching_indexes)} records"
+            )
+        if matching_indexes:
+            corrected_records[matching_indexes[0]][field] = after
+            if before != after:
+                applied.append(
+                    {
+                        "course_code": _record_course_code(
+                            original_records[matching_indexes[0]]
+                        ),
+                        "field": field,
+                        "before": before,
+                        "after": after,
+                    }
+                )
+            continue
+
+        already_applied = any(
+            _record_course_code(record) == course_code
+            and record.get(field) == after
+            for record in corrected_records
+        )
+        if already_applied:
+            continue
+
+        if approved_records is not None:
+            approved_value = any(
+                _record_course_code(record) == course_code
+                and record.get(field) == after
+                for record in approved_records
+            )
+            same_code_indexes = [
+                index
+                for index, record in enumerate(corrected_records)
+                if _record_course_code(record) == course_code
+            ]
+            if approved_value and len(same_code_indexes) == 1:
+                target_index = same_code_indexes[0]
+                corrected_records[target_index][field] = after
+                if before != after:
+                    applied.append(
+                        {
+                            "course_code": _record_course_code(
+                                original_records[target_index]
+                            ),
+                            "field": field,
+                            "before": original_records[target_index].get(field),
+                            "after": after,
+                        }
+                    )
+                continue
+
+        raise ValueError(
+            f"Correction {correction_index} did not match "
+            f"{course_code}/{field} before value"
+        )
+
+    return corrected_document, applied
 
 
 def _build_correction_units(
@@ -217,9 +335,11 @@ def _correct_units(
         raise RuntimeError("Gemini client initialization failed") from error
 
     corrected_by_key: dict[tuple[str, str], str] = {}
+    total_batches = (len(units) + BATCH_SIZE - 1) // BATCH_SIZE
     for start_index in range(0, len(units), BATCH_SIZE):
         before_batch = units[start_index : start_index + BATCH_SIZE]
         batch_number = (start_index // BATCH_SIZE) + 1
+        print(f"[{batch_number}/{total_batches}] correcting {len(before_batch)} unique units...")
         contents = [
             CORRECTION_PROMPT,
             json.dumps(before_batch, ensure_ascii=False, indent=2),
@@ -240,6 +360,7 @@ def _correct_units(
             batch_number,
             start_index,
         )
+        print(f"[{batch_number}/{total_batches}] done")
         for unit_index, after in validated_batch.items():
             corrected_by_key[unit_keys[unit_index]] = after["text"]
     return corrected_by_key
