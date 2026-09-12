@@ -10,7 +10,11 @@ from typing import Any
 
 from .execute import execute_readonly, validate_readonly_sql
 from .nl_to_sql import question_to_sql, repair_sql
-from .queries import course_placement, semester_credits_and_prerequisites
+from .queries import (
+    course_placement,
+    earliest_year_semester_from_choices,
+    semester_credits_and_prerequisites,
+)
 
 
 _SQL_RESERVED_WORDS = frozenset(
@@ -151,6 +155,7 @@ _PLACEMENT_COLUMNS = (
     "year",
     "semester",
     "year_semester_choices",
+    "earliest_year_semester",
     "flexible_year_semester_raw",
     "credits_raw",
     "alternative_group_id",
@@ -232,10 +237,17 @@ def _semester_credits_prerequisite_request(
 def _course_placement_structured_result(
     result: dict[str, Any],
 ) -> dict[str, Any]:
-    rows = [
-        tuple(placement.get(column) for column in _PLACEMENT_COLUMNS)
-        for placement in result["placements"]
-    ]
+    rows = []
+    for placement in result["placements"]:
+        composed_placement = dict(placement)
+        composed_placement["earliest_year_semester"] = (
+            earliest_year_semester_from_choices(
+                composed_placement.get("year_semester_choices", [])
+            )
+        )
+        rows.append(
+            tuple(composed_placement.get(column) for column in _PLACEMENT_COLUMNS)
+        )
     return {
         "operation": "course_placement",
         "status": result["status"],

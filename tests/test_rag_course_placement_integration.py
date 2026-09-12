@@ -7,6 +7,7 @@ from rag.qa import ask
 from rag.structured.queries import (
     course_placement,
     earliest_year_semester,
+    earliest_year_semester_from_choices,
     parse_flexible_year_semester,
     placement_year_semester_choices,
     semester_credits_and_prerequisites,
@@ -56,6 +57,25 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(parse_flexible_year_semester("5/1"), [])
         self.assertEqual(placement_year_semester_choices(None, None, None), [])
 
+    def test_earliest_composition_handles_mixed_placements_without_guessing(self):
+        mixed_placements = [
+            {"year_semester_choices": [(4, 1)]},
+            {"year_semester_choices": [(3, 2), (4, 1)]},
+            {"year_semester_choices": []},
+        ]
+        self.assertEqual(
+            [
+                earliest_year_semester_from_choices(
+                    placement["year_semester_choices"]
+                )
+                for placement in mixed_placements
+            ],
+            [(4, 1), (3, 2), None],
+        )
+        self.assertIsNone(
+            earliest_year_semester_from_choices([(3, 1), ("4", 1)])
+        )
+
     def test_course_placement_preserves_raw_and_exposes_choices(self):
         result = course_placement(DB_PATH, "IT", "06016481", ["coop", "no_coop"])
         by_plan = {placement["plan_key"]: placement for placement in result["placements"]}
@@ -69,6 +89,29 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(
             by_plan["no_coop"]["year_semester_choices"],
             [(3, 1), (3, 2), (4, 1)],
+        )
+
+    def test_composed_result_uses_choices_for_earliest_timing(self):
+        result = ask(
+            DB_PATH,
+            "วิชา 06016481 ใน IT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน?",
+        )
+        structured = result["result"]
+        rows = [
+            dict(zip(structured["columns"], row))
+            for row in structured["rows"]
+        ]
+        by_plan = {row["plan_key"]: row for row in rows}
+
+        self.assertEqual(by_plan["coop"]["year_semester_choices"], [(3, 2)])
+        self.assertEqual(by_plan["coop"]["earliest_year_semester"], (3, 2))
+        self.assertEqual(
+            by_plan["no_coop"]["year_semester_choices"],
+            [(3, 1), (3, 2), (4, 1)],
+        )
+        self.assertEqual(
+            by_plan["no_coop"]["earliest_year_semester"],
+            (3, 1),
         )
 
     def test_it_placement_uses_deterministic_operation(self):

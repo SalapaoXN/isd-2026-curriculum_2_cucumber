@@ -286,6 +286,30 @@ def placement_year_semester_choices(
     return parse_flexible_year_semester(flexible_year_semester_raw)
 
 
+def earliest_year_semester_from_choices(
+    choices: Any,
+) -> tuple[int, int] | None:
+    """Return the earliest choice from an already-normalized placement."""
+    if not isinstance(choices, (list, tuple)):
+        return None
+
+    valid_choices: list[tuple[int, int]] = []
+    for choice in choices:
+        if (
+            not isinstance(choice, (list, tuple))
+            or len(choice) != 2
+            or isinstance(choice[0], bool)
+            or isinstance(choice[1], bool)
+            or not isinstance(choice[0], int)
+            or not isinstance(choice[1], int)
+            or not 1 <= choice[0] <= 4
+            or not 1 <= choice[1] <= 2
+        ):
+            return None
+        valid_choices.append((choice[0], choice[1]))
+    return min(valid_choices) if valid_choices else None
+
+
 def earliest_year_semester(
     year: Any,
     semester: Any,
@@ -297,7 +321,7 @@ def earliest_year_semester(
         semester,
         flexible_year_semester_raw,
     )
-    return min(choices) if choices else None
+    return earliest_year_semester_from_choices(choices)
 
 
 def _normalize_course_placement_inputs(
@@ -432,6 +456,11 @@ def course_placement(
             )
             placement_id = int(row["placement_id"])
             course_id = int(row["course_id"])
+            year_semester_choices = placement_year_semester_choices(
+                row["year"],
+                row["semester"],
+                row["flexible_year_semester_raw"],
+            )
             placements.append(
                 {
                     "placement_id": placement_id,
@@ -447,11 +476,7 @@ def course_placement(
                     "flexible_year_semester_raw": row[
                         "flexible_year_semester_raw"
                     ],
-                    "year_semester_choices": placement_year_semester_choices(
-                        row["year"],
-                        row["semester"],
-                        row["flexible_year_semester_raw"],
-                    ),
+                    "year_semester_choices": year_semester_choices,
                     "credits_raw": row["credits_raw"],
                     "alternative_group_id": alternative_group_id,
                     "provenance": _course_placement_provenance(
@@ -920,6 +945,7 @@ __all__ = [
     "courses_in_year_semester",
     "courses_requiring_prerequisite",
     "earliest_year_semester",
+    "earliest_year_semester_from_choices",
     "parse_flexible_year_semester",
     "placement_year_semester_choices",
     "prerequisites_of_course",
