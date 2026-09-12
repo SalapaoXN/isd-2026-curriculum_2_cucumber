@@ -568,6 +568,35 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(rows[0]["raw_text"], "06016413")
         self.assertTrue(rows[0]["provenance"])
 
+    def test_hard_planning_question_uses_mixed_deterministic_operation(self):
+        calls = []
+
+        def forbidden_model(_prompt):
+            calls.append(True)
+            raise AssertionError("structured model must not be called")
+
+        result = ask(
+            DB_PATH,
+            "ถ้าจะลง INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) ใน IT "
+            "แบบไม่สหกิจปี 2 เทอม 2 ต้องเตรียมผ่านวิชาอะไรในเทอมก่อนหน้า "
+            "และเทอมนี้มีหน่วยกิตรวมเท่าไร?",
+            structured_model_callable=forbidden_model,
+        )
+
+        self.assertEqual(result["route"], "structured")
+        structured = result["result"]
+        self.assertEqual(
+            structured["operation"], "semester_credits_and_prerequisites"
+        )
+        self.assertEqual(structured["status"], "ok")
+        rows = _placement_rows(result)
+        self.assertEqual(rows[0]["total_credits"], 30)
+        self.assertEqual(rows[0]["prerequisite_course_code"], "06016413")
+        self.assertEqual(rows[0]["requirement_type"], "required")
+        self.assertEqual(rows[0]["raw_text"], "06016413")
+        self.assertTrue(rows[0]["provenance"])
+        self.assertEqual(calls, [])
+
     def test_placement_semantic_hybrid_keeps_both_evidence_paths(self):
         semantic_evidence = [{"chunk_id": "it-06016481-description"}]
         question = (
