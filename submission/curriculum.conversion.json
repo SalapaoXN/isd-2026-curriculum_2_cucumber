@@ -1,0 +1,273 @@
+{
+    "report": "Lab 8B curriculum conversion and repair history",
+    "program": "IT",
+    "repair_round_count": 3,
+    "determinism": {
+        "serialization": "UTF-8 JSON, 4-space indentation, trailing newline, stable event/order construction",
+        "timestamps": "omitted because unavailable",
+        "unverifiable_history": "omitted or explicitly marked where no pre-change artifact exists"
+    },
+    "stages": [
+        {
+            "stage": "ocr_extraction_to_canonical_merged_data",
+            "event_type": "extraction",
+            "status": "supported_by_canonical_metadata",
+            "artifacts": [
+                {
+                    "path": "outputs/consolidated/it/coop/full/merged_it_coop_full.json",
+                    "sha256": "75e94fa5847c5dbc0f767b1d18db34e8e45fb4d65a327cdf0ddaf63c135d2ad6",
+                    "source": "OCR extraction / Academic Plan - IT coop",
+                    "description": "OCR-extracted curriculum records for IT (plan coop)",
+                    "program": "IT",
+                    "plan": "coop",
+                    "record_count": 105,
+                    "total_courses": 105,
+                    "source_provenance_record_count": 105,
+                    "06016414_final_name_en": "NOSQL DATABASE SYSTEMS",
+                    "06016418_final_record_count": 1
+                },
+                {
+                    "path": "outputs/consolidated/it/no_coop/full/merged_it_no_coop_full.json",
+                    "sha256": "25e9e8148a2c4495053c8c3fb24d2484648d138772a3a4b6f241646d8562fd77",
+                    "source": "OCR extraction / Academic Plan - IT no_coop",
+                    "description": "OCR-extracted curriculum records for IT (plan no_coop)",
+                    "program": "IT",
+                    "plan": "no_coop",
+                    "record_count": 107,
+                    "total_courses": 107,
+                    "source_provenance_record_count": 107,
+                    "06016414_final_name_en": "NOSQL DATABASE SYSTEMS",
+                    "06016418_final_record_count": 1
+                }
+            ],
+            "evidence": "Each canonical artifact identifies itself as OCR-extracted curriculum data and retains source provenance."
+        },
+        {
+            "stage": "gemini_name_only_correction",
+            "event_type": "automated_correction",
+            "status": "supported_by_corrector_source_and_logs",
+            "model": "gemini-3.5-flash-lite",
+            "temperature": 0,
+            "editable_fields": [
+                "name_th",
+                "name_en"
+            ],
+            "dedup_key": [
+                "field_name",
+                "exact_before_text"
+            ],
+            "unique_unit_batch_size": 50,
+            "multi_file": true,
+            "correction_logs": {
+                "coop": {
+                    "path": "work/spell_correction/it/names_v2/merged_it_coop_full_corrections.json",
+                    "sha256": "cc50baacf099ae4603cea24c1e6725e69b1df12bba63a77729e91358d7c6cb23",
+                    "actual_correction_count": 75,
+                    "unique_correction_units": 75,
+                    "fields": [
+                        "name_en",
+                        "name_th"
+                    ],
+                    "course_codes_with_corrections": 65
+                },
+                "no_coop": {
+                    "path": "work/spell_correction/it/names_v2/merged_it_no_coop_full_corrections.json",
+                    "sha256": "d004736e5088b628fada7aae5ec2a9a4e63af12a6f89d990f91aa180868c49b3",
+                    "actual_correction_count": 79,
+                    "unique_correction_units": 79,
+                    "fields": [
+                        "name_en",
+                        "name_th"
+                    ],
+                    "course_codes_with_corrections": 64
+                }
+            },
+            "combined_logged_unique_units": 85,
+            "shared_logged_units_across_plans": 69,
+            "evidence": {
+                "corrector_source": "llm_spell_corrector.py",
+                "contract_verified": true,
+                "counts_are_lengths_of_actual_correction_log_arrays": true
+            }
+        },
+        {
+            "stage": "manual_normalization",
+            "event_type": "manual_normalization",
+            "status": "supported_by_correction_log_to_canonical_delta",
+            "changes": [
+                {
+                    "plan": "coop",
+                    "course_code": "06016414",
+                    "field": "name_en",
+                    "intermediate_corrected_value": "NoSQL DATABASE SYSTEMS",
+                    "final_value": "NOSQL DATABASE SYSTEMS",
+                    "evidence": {
+                        "correction_log": "work/spell_correction/it/names_v2/merged_it_coop_full_corrections.json",
+                        "canonical_artifact": "outputs/consolidated/it/coop/full/merged_it_coop_full.json"
+                    },
+                    "historical_operator_or_timestamp": "not present in available artifacts"
+                },
+                {
+                    "plan": "no_coop",
+                    "course_code": "06016414",
+                    "field": "name_en",
+                    "intermediate_corrected_value": "NoSQL DATABASE SYSTEMS",
+                    "final_value": "NOSQL DATABASE SYSTEMS",
+                    "evidence": {
+                        "correction_log": "work/spell_correction/it/names_v2/merged_it_no_coop_full_corrections.json",
+                        "canonical_artifact": "outputs/consolidated/it/no_coop/full/merged_it_no_coop_full.json"
+                    },
+                    "historical_operator_or_timestamp": "not present in available artifacts"
+                }
+            ]
+        },
+        {
+            "stage": "deterministic_data_quality_repair",
+            "event_type": "deterministic_repair",
+            "status": "supported_final_state",
+            "repairs": [
+                {
+                    "plan": "coop",
+                    "course_code": "06016418",
+                    "removed_duplicate_occurrences": 1,
+                    "retained_occurrences_in_final_canonical": 1,
+                    "final_canonical_record_count": 105,
+                    "evidence": {
+                        "verification_file": "submission/verify.json",
+                        "regression_assertion": {
+                            "name": "06016418_duplicate_removed_from_canonical_source",
+                            "status": "PASS",
+                            "evidence": "no non-placeholder duplicate placement remains after retaining one canonical record per plan"
+                        }
+                    },
+                    "pre_repair_snapshot": "not independently reconstructable from available artifacts"
+                },
+                {
+                    "plan": "no_coop",
+                    "course_code": "06016418",
+                    "removed_duplicate_occurrences": 1,
+                    "retained_occurrences_in_final_canonical": 1,
+                    "final_canonical_record_count": 107,
+                    "evidence": {
+                        "verification_file": "submission/verify.json",
+                        "regression_assertion": {
+                            "name": "06016418_duplicate_removed_from_canonical_source",
+                            "status": "PASS",
+                            "evidence": "no non-placeholder duplicate placement remains after retaining one canonical record per plan"
+                        }
+                    },
+                    "pre_repair_snapshot": "not independently reconstructable from available artifacts"
+                }
+            ],
+            "provenance_preserved_in_final_canonical": true
+        },
+        {
+            "event_type": "validation",
+            "status": "supported",
+            "source_file": "submission/verify.json",
+            "source_sha256": "b19fe3ccf627a67e9c51d7b5f9394c0584edcc8ee5555ed6b666e42624e4d257",
+            "summary_status": "EXCEPTION",
+            "status_counts": {
+                "PASS": 0,
+                "FAIL": 0,
+                "EXCEPTION": 5,
+                "NOT_APPLICABLE": 2
+            },
+            "checks": {
+                "CHK1": {
+                    "status": "NOT_APPLICABLE",
+                    "finding_count": 1,
+                    "exception_count": 0
+                },
+                "CHK2": {
+                    "status": "EXCEPTION",
+                    "finding_count": 2,
+                    "exception_count": 1
+                },
+                "CHK3": {
+                    "status": "EXCEPTION",
+                    "finding_count": 0,
+                    "exception_count": 10
+                },
+                "CHK4": {
+                    "status": "NOT_APPLICABLE",
+                    "finding_count": 1,
+                    "exception_count": 0
+                },
+                "CHK5": {
+                    "status": "EXCEPTION",
+                    "finding_count": 0,
+                    "exception_count": 5
+                },
+                "CHK6": {
+                    "status": "EXCEPTION",
+                    "finding_count": 0,
+                    "exception_count": 2
+                },
+                "CHK7": {
+                    "status": "EXCEPTION",
+                    "finding_count": 0,
+                    "exception_count": 7
+                }
+            },
+            "CHK7_source_condition_human_review": {
+                "count": 4,
+                "totals": {
+                    "coop": {
+                        "1/1": 18,
+                        "1/2": 18,
+                        "2/1": 18,
+                        "2/2": 30,
+                        "3/1": 33,
+                        "3/2": 6,
+                        "4/1": 18,
+                        "4/2": 15
+                    },
+                    "no_coop": {
+                        "1/1": 18,
+                        "1/2": 18,
+                        "2/1": 18,
+                        "2/2": 30,
+                        "3/1": 33,
+                        "3/2": 15,
+                        "4/1": 15,
+                        "4/2": 9
+                    }
+                },
+                "provenance_retained": true
+            },
+            "human_review_reasons": [
+                "CHK1 has no independent declared curriculum credit total.",
+                "CHK4 has no separate placement-credit and course-description-credit fields.",
+                "CHK5 has flexible prerequisite/co-requisite cases without requirement_type.",
+                "CHK6 has no alternative-group metadata for repeated placeholder slots.",
+                "CHK7 has source-listed fixed normal semesters outside 9-22 credits; no automatic credit exception is applied and human/source review is required."
+            ]
+        },
+        {
+            "stage": "CHK7_source_condition_review",
+            "event_type": "human_review_required",
+            "status": "required",
+            "rule": "9-22 credits for a fixed normal semester",
+            "classification": "source_condition_human_review",
+            "action_taken": "none; totals remain calculated values and no credit exception was invented",
+            "evidence": "See validation stage and submission/verify.json CHK7 provenance."
+        }
+    ],
+    "final_artifact": {
+        "path": "submission/curriculum.json",
+        "sha256": "311d7f193c76701dcd47f0a91b4dea0803c342aab8b0c1335ef4254a5d837358",
+        "program": "IT",
+        "plan_counts": {
+            "coop": {
+                "course_count": 105,
+                "declared_total_courses": 105
+            },
+            "no_coop": {
+                "course_count": 107,
+                "declared_total_courses": 107
+            }
+        },
+        "total_placement_records": 212
+    }
+}

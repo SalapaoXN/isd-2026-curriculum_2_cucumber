@@ -1,0 +1,2882 @@
+{
+    "program": "IT",
+    "source_file": "submission/curriculum.json",
+    "schema_validation": {
+        "status": "PASS",
+        "schema_file": "submission/schema/curriculum.schema.json",
+        "draft": "2020-12",
+        "method": "dependency-free deterministic conformance checks for the submission schema"
+    },
+    "summary": {
+        "status": "EXCEPTION",
+        "checks_total": 7,
+        "status_counts": {
+            "PASS": 0,
+            "FAIL": 0,
+            "EXCEPTION": 5,
+            "NOT_APPLICABLE": 2
+        },
+        "human_review_required": true,
+        "human_review_reasons": [
+            "CHK1 has no independent declared curriculum credit total.",
+            "CHK4 has no separate placement-credit and course-description-credit fields.",
+            "CHK5 has flexible prerequisite/co-requisite cases without requirement_type.",
+            "CHK6 has no alternative-group metadata for repeated placeholder slots.",
+            "CHK7 has source-listed fixed normal semesters outside 9-22 credits; no automatic credit exception is applied and human/source review is required."
+        ]
+    },
+    "checks": {
+        "CHK1": {
+            "status": "NOT_APPLICABLE",
+            "description": "Plan total credits equal the declared curriculum credits.",
+            "counts": {
+                "plans_evaluated": 2,
+                "plans_with_declared_credit_total": 0,
+                "declared_credit_fields_found": 0
+            },
+            "findings": [
+                {
+                    "code": "DECLARED_CREDIT_TOTAL_UNAVAILABLE",
+                    "detail": "No independent declared curriculum or plan credit total exists in curriculum.json; total_courses is not a credit total.",
+                    "fields_checked": [
+                        "curriculum.total_credits",
+                        "curriculum.declared_total_credits",
+                        "plans[].total_credits",
+                        "plans[].declared_credits"
+                    ]
+                }
+            ],
+            "exceptions": [],
+            "evidence": {
+                "declared_fields_found": [],
+                "plan_total_courses": {
+                    "coop": 105,
+                    "no_coop": 107
+                }
+            }
+        },
+        "CHK2": {
+            "status": "EXCEPTION",
+            "description": "Every actual numeric course code has a non-empty desc_th or desc_en when a description is present in the artifact.",
+            "counts": {
+                "coop": {
+                    "numeric_code_records": 98,
+                    "records_with_description": 90,
+                    "records_without_description": 8
+                },
+                "no_coop": {
+                    "numeric_code_records": 98,
+                    "records_with_description": 90,
+                    "records_without_description": 8
+                }
+            },
+            "findings": [
+                {
+                    "code": "NUMERIC_CODE_WITHOUT_DESCRIPTION",
+                    "plan": "coop",
+                    "course_codes": [
+                        "90641001",
+                        "90641003",
+                        "90644007",
+                        "90641002",
+                        "90644008",
+                        "90643021",
+                        "90642033",
+                        "90644042"
+                    ],
+                    "record_count": 8,
+                    "provenance_by_course": {
+                        "90641001": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_039.png",
+                                "source_page": 39,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ],
+                        "90641003": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_039.png",
+                                "source_page": 39,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ],
+                        "90644007": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_039.png",
+                                "source_page": 39,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ],
+                        "90641002": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_040.png",
+                                "source_page": 40,
+                                "document_category": "plan",
+                                "document_page": 35
+                            }
+                        ],
+                        "90644008": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_040.png",
+                                "source_page": 40,
+                                "document_category": "plan",
+                                "document_page": 35
+                            }
+                        ],
+                        "90643021": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_044.png",
+                                "source_page": 44,
+                                "document_category": "plan",
+                                "document_page": 39
+                            }
+                        ],
+                        "90642033": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_045.png",
+                                "source_page": 45,
+                                "document_category": "plan",
+                                "document_page": 40
+                            }
+                        ],
+                        "90644042": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_045.png",
+                                "source_page": 45,
+                                "document_category": "plan",
+                                "document_page": 40
+                            }
+                        ]
+                    }
+                },
+                {
+                    "code": "NUMERIC_CODE_WITHOUT_DESCRIPTION",
+                    "plan": "no_coop",
+                    "course_codes": [
+                        "90641001",
+                        "90641003",
+                        "90644007",
+                        "90641002",
+                        "90644008",
+                        "90642033",
+                        "90644042",
+                        "90643021"
+                    ],
+                    "record_count": 8,
+                    "provenance_by_course": {
+                        "90641001": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_032.png",
+                                "source_page": 32,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ],
+                        "90641003": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_032.png",
+                                "source_page": 32,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ],
+                        "90644007": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_032.png",
+                                "source_page": 32,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ],
+                        "90641002": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_033.png",
+                                "source_page": 33,
+                                "document_category": "plan",
+                                "document_page": 28
+                            }
+                        ],
+                        "90644008": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_033.png",
+                                "source_page": 33,
+                                "document_category": "plan",
+                                "document_page": 28
+                            }
+                        ],
+                        "90642033": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_037.png",
+                                "source_page": 37,
+                                "document_category": "plan",
+                                "document_page": 32
+                            }
+                        ],
+                        "90644042": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_037.png",
+                                "source_page": 37,
+                                "document_category": "plan",
+                                "document_page": 32
+                            }
+                        ],
+                        "90643021": [
+                            {
+                                "program": "IT",
+                                "source_filename": "it_page_038.png",
+                                "source_page": 38,
+                                "document_category": "plan",
+                                "document_page": null
+                            }
+                        ]
+                    }
+                }
+            ],
+            "exceptions": [
+                {
+                    "code": "DESCRIPTION_NOT_AVAILABLE",
+                    "detail": "Records without both description fields are reported as exceptions because curriculum.json does not provide an independent description source for them."
+                }
+            ],
+            "evidence": {
+                "numeric_code_rule": "ASCII full match [0-9]{8}",
+                "description_present_rule": "bool(desc_th) or bool(desc_en)"
+            }
+        },
+        "CHK3": {
+            "status": "EXCEPTION",
+            "description": "Every ordinary course code is exactly 8 ASCII numeric digits; source placeholders and explicit alternative groups are reported as Lab exceptions.",
+            "counts": {
+                "coop": {
+                    "course_records": 105,
+                    "valid_numeric_records": 98,
+                    "non_numeric_records": 7,
+                    "documented_placeholder_records": 6,
+                    "alternative_group_records": 1,
+                    "other_invalid_records": 0
+                },
+                "no_coop": {
+                    "course_records": 107,
+                    "valid_numeric_records": 98,
+                    "non_numeric_records": 9,
+                    "documented_placeholder_records": 8,
+                    "alternative_group_records": 1,
+                    "other_invalid_records": 0
+                }
+            },
+            "findings": [],
+            "exceptions": [
+                {
+                    "code": "ALTERNATIVE_GROUP_COURSE_LABEL",
+                    "plan": "coop",
+                    "course_code": "06016481 หรือ 06016482",
+                    "alternative_course_codes": [
+                        "06016481",
+                        "06016482"
+                    ],
+                    "credits": "6(0-36-0)",
+                    "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+                    "reason": "The literal Thai OR label denotes one alternative-course group record; it is not treated as an ordinary malformed code.",
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_044.png",
+                            "source_page": 44,
+                            "document_category": "plan",
+                            "document_page": 39
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_366.png",
+                            "source_page": 366,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_367.png",
+                            "source_page": 367,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "coop",
+                    "course_code": "060164xx",
+                    "record_count": 1,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_044.png",
+                            "source_page": 44,
+                            "document_category": "plan",
+                            "document_page": 39
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "coop",
+                    "course_code": "90644xxx",
+                    "record_count": 1,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "coop",
+                    "course_code": "9064xxxx",
+                    "record_count": 2,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_044.png",
+                            "source_page": 44,
+                            "document_category": "plan",
+                            "document_page": 39
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_045.png",
+                            "source_page": 45,
+                            "document_category": "plan",
+                            "document_page": 40
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "coop",
+                    "course_code": "xxxxxxxx",
+                    "record_count": 2,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_044.png",
+                            "source_page": 44,
+                            "document_category": "plan",
+                            "document_page": 39
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_044.png",
+                            "source_page": 44,
+                            "document_category": "plan",
+                            "document_page": 39
+                        }
+                    ]
+                },
+                {
+                    "code": "ALTERNATIVE_GROUP_COURSE_LABEL",
+                    "plan": "no_coop",
+                    "course_code": "06016481 หรือ 06016482",
+                    "alternative_course_codes": [
+                        "06016481",
+                        "06016482"
+                    ],
+                    "credits": "6(0-36-0)",
+                    "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+                    "reason": "The literal Thai OR label denotes one alternative-course group record; it is not treated as an ordinary malformed code.",
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_366.png",
+                            "source_page": 366,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_367.png",
+                            "source_page": 367,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "no_coop",
+                    "course_code": "060164xx",
+                    "record_count": 3,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_037.png",
+                            "source_page": 37,
+                            "document_category": "plan",
+                            "document_page": 32
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_037.png",
+                            "source_page": 37,
+                            "document_category": "plan",
+                            "document_page": 32
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_038.png",
+                            "source_page": 38,
+                            "document_category": "plan",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "no_coop",
+                    "course_code": "90644xxx",
+                    "record_count": 1,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "no_coop",
+                    "course_code": "9064xxxx",
+                    "record_count": 2,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_038.png",
+                            "source_page": 38,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_038.png",
+                            "source_page": 38,
+                            "document_category": "plan",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "DOCUMENTED_SOURCE_PLACEHOLDER",
+                    "plan": "no_coop",
+                    "course_code": "xxxxxxxx",
+                    "record_count": 2,
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_038.png",
+                            "source_page": 38,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_038.png",
+                            "source_page": 38,
+                            "document_category": "plan",
+                            "document_page": null
+                        }
+                    ]
+                }
+            ],
+            "evidence": {
+                "ordinary_code_rule": "re.fullmatch([0-9]{8})",
+                "placeholder_values": [
+                    "060164xx",
+                    "90644xxx",
+                    "9064xxxx",
+                    "xxxxxxxx"
+                ],
+                "alternative_group_detection": "course code contains Thai OR (หรือ) and at least two exact 8-digit mentions"
+            }
+        },
+        "CHK4": {
+            "status": "NOT_APPLICABLE",
+            "description": "Credits in a plan placement agree with the corresponding course description record.",
+            "counts": {
+                "distinct_placement_credit_fields": 0,
+                "distinct_course_description_credit_fields": 0,
+                "plans_evaluated": 2
+            },
+            "findings": [
+                {
+                    "code": "NO_SEPARATE_CREDIT_RECORDS",
+                    "detail": "curriculum.json stores one credits field inside each course object and has no separate course-description record or placement-credit field to compare."
+                }
+            ],
+            "exceptions": [],
+            "evidence": {
+                "root_fields": [
+                    "plans",
+                    "program"
+                ],
+                "course_credit_field": "courses[].credits",
+                "comparison_possible": false
+            }
+        },
+        "CHK5": {
+            "status": "EXCEPTION",
+            "description": "An explicitly coded prerequisite is scheduled earlier than its dependent course, allowing same-semester co-requisites only when the relationship is known.",
+            "counts": {
+                "coop": {
+                    "explicit_prerequisite_relations": 17,
+                    "passed_relations": 15,
+                    "failed_relations": 0,
+                    "exception_relations": 2
+                },
+                "no_coop": {
+                    "explicit_prerequisite_relations": 17,
+                    "passed_relations": 14,
+                    "failed_relations": 0,
+                    "exception_relations": 3
+                }
+            },
+            "findings": [],
+            "exceptions": [
+                {
+                    "plan": "coop",
+                    "dependent_course_code": "06016448",
+                    "prerequisite_course_code": "06016447",
+                    "dependent_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "4/1"
+                    },
+                    "prerequisite_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "4/1"
+                    },
+                    "reason": "The prerequisite itself has flexible timing; strict ordering cannot be established.",
+                    "dependent_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_351.png",
+                            "source_page": 351,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_352.png",
+                            "source_page": 352,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "prerequisite_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_351.png",
+                            "source_page": 351,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "plan": "coop",
+                    "dependent_course_code": "06016450",
+                    "prerequisite_course_code": "06016447",
+                    "dependent_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "4/1"
+                    },
+                    "prerequisite_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "4/1"
+                    },
+                    "reason": "The prerequisite itself has flexible timing; strict ordering cannot be established.",
+                    "dependent_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_352.png",
+                            "source_page": 352,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "prerequisite_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_351.png",
+                            "source_page": 351,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "plan": "no_coop",
+                    "dependent_course_code": "06016430",
+                    "prerequisite_course_code": "06016404",
+                    "dependent_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "3/1, 3/2, 4/1"
+                    },
+                    "prerequisite_placement": {
+                        "year": 3,
+                        "semester": 1,
+                        "flexible_year_semester": null
+                    },
+                    "reason": "At least one flexible dependent term is the same semester as the prerequisite; requirement_type is absent, so co-requisite status cannot be confirmed.",
+                    "dependent_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_343.png",
+                            "source_page": 343,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "prerequisite_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_329.png",
+                            "source_page": 329,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "plan": "no_coop",
+                    "dependent_course_code": "06016448",
+                    "prerequisite_course_code": "06016447",
+                    "dependent_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "3/1, 3/2, 4/1"
+                    },
+                    "prerequisite_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "3/1, 3/2, 4/1"
+                    },
+                    "reason": "The prerequisite itself has flexible timing; strict ordering cannot be established.",
+                    "dependent_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_351.png",
+                            "source_page": 351,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_352.png",
+                            "source_page": 352,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "prerequisite_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_351.png",
+                            "source_page": 351,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "plan": "no_coop",
+                    "dependent_course_code": "06016450",
+                    "prerequisite_course_code": "06016447",
+                    "dependent_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "3/1, 3/2, 4/1"
+                    },
+                    "prerequisite_placement": {
+                        "year": 0,
+                        "semester": 0,
+                        "flexible_year_semester": "3/1, 3/2, 4/1"
+                    },
+                    "reason": "The prerequisite itself has flexible timing; strict ordering cannot be established.",
+                    "dependent_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_352.png",
+                            "source_page": 352,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "prerequisite_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_351.png",
+                            "source_page": 351,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                }
+            ],
+            "evidence": {
+                "prerequisite_extraction": "unique ASCII [0-9]{8} mentions in prerequisite text",
+                "fixed_order_rule": "(year, semester) lexicographic order",
+                "flexible_order_rule": "all listed flexible terms must be later than a fixed prerequisite to pass",
+                "co_requisite_policy": "same-semester cases remain exceptions when requirement_type is absent"
+            }
+        },
+        "CHK6": {
+            "status": "EXCEPTION",
+            "description": "No duplicate course placement occurs in the same plan and semester; alternatives count once only when alternative metadata identifies them.",
+            "counts": {
+                "coop": {
+                    "non_placeholder_duplicate_groups": 0,
+                    "placeholder_duplicate_groups": 1
+                },
+                "no_coop": {
+                    "non_placeholder_duplicate_groups": 0,
+                    "placeholder_duplicate_groups": 1
+                }
+            },
+            "findings": [],
+            "exceptions": [
+                {
+                    "code": "PLACEHOLDER_DUPLICATE_NOT_DISAMBIGUATED",
+                    "plan": "coop",
+                    "course_code": "xxxxxxxx",
+                    "year": 4,
+                    "semester": 1,
+                    "occurrence_count": 2,
+                    "reason": "The artifact has no alternative-group metadata, so repeated placeholder slots cannot be distinguished from duplicate placements deterministically.",
+                    "records": [
+                        {
+                            "record_index": 45,
+                            "course_code": "xxxxxxxx",
+                            "name_en": "FREE ELECTIVE COURSE 1",
+                            "credits": "3(x-x-x)",
+                            "year": 4,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_044.png",
+                                    "source_page": 44,
+                                    "document_category": "plan",
+                                    "document_page": 39
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 46,
+                            "course_code": "xxxxxxxx",
+                            "name_en": "FREE ELECTIVE COURSE 2",
+                            "credits": "3(x-x-x)",
+                            "year": 4,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_044.png",
+                                    "source_page": 44,
+                                    "document_category": "plan",
+                                    "document_page": 39
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "code": "PLACEHOLDER_DUPLICATE_NOT_DISAMBIGUATED",
+                    "plan": "no_coop",
+                    "course_code": "060164xx",
+                    "year": 3,
+                    "semester": 2,
+                    "occurrence_count": 2,
+                    "reason": "The artifact has no alternative-group metadata, so repeated placeholder slots cannot be distinguished from duplicate placements deterministically.",
+                    "records": [
+                        {
+                            "record_index": 40,
+                            "course_code": "060164xx",
+                            "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1",
+                            "credits": "3(3-0-6) หรือ 3(2-2-5) หรือ 3(0-6-3)",
+                            "year": 3,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_037.png",
+                                    "source_page": 37,
+                                    "document_category": "plan",
+                                    "document_page": 32
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 41,
+                            "course_code": "060164xx",
+                            "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2",
+                            "credits": "3(3-0-6) หรือ 3(2-2-5) หรือ 3(0-6-3)",
+                            "year": 3,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_037.png",
+                                    "source_page": 37,
+                                    "document_category": "plan",
+                                    "document_page": 32
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "evidence": {
+                "duplicate_key": "(plan, course_code, year, semester)",
+                "alternative_group_metadata_fields": [],
+                "alternative_group_metadata_available": false,
+                "extraction_duplicate_policy": "Exact value-identical records are diagnosed as merge duplicates but are not patched."
+            }
+        },
+        "CHK7": {
+            "status": "EXCEPTION",
+            "description": "Normal fixed semesters are checked against 9-22 credits; source-listed out-of-range totals without a deterministic exclusion are recorded as source-condition/human-review exceptions.",
+            "counts": {
+                "coop": {
+                    "normal_fixed_semesters_evaluated": 8,
+                    "normal_fixed_semesters_passed": 5,
+                    "normal_fixed_semesters_failed": 2,
+                    "approved_special_exceptions": 1,
+                    "unassigned_flexible_records_excluded": 53
+                },
+                "no_coop": {
+                    "normal_fixed_semesters_evaluated": 8,
+                    "normal_fixed_semesters_passed": 6,
+                    "normal_fixed_semesters_failed": 2,
+                    "approved_special_exceptions": 0,
+                    "unassigned_flexible_records_excluded": 54
+                }
+            },
+            "findings": [],
+            "exceptions": [
+                {
+                    "code": "NORMAL_SEMESTER_OVER_22_CREDITS",
+                    "classification": "source_condition_human_review",
+                    "plan": "coop",
+                    "year": 2,
+                    "semester": 2,
+                    "raw_total_credits": 30,
+                    "lab_rule_adjusted_total_credits": 30,
+                    "contributing_records": [
+                        {
+                            "record_index": 19,
+                            "course_code": "06016405",
+                            "name_en": "CYBERSECURITY FUNDAMENTALS",
+                            "credits": "3(3-0-6)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_330.png",
+                                    "source_page": 330,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 20,
+                            "course_code": "06016410",
+                            "name_en": "SOFTWARE ENGINEERING",
+                            "credits": "3(3-0-6)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_332.png",
+                                    "source_page": 332,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 21,
+                            "course_code": "06016412",
+                            "name_en": "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_333.png",
+                                    "source_page": 333,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 22,
+                            "course_code": "06066302",
+                            "name_en": "FUNDAMENTAL WEB PROGRAMMING",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_370.png",
+                                    "source_page": 370,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_371.png",
+                                    "source_page": 371,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 23,
+                            "course_code": "06016414",
+                            "name_en": "NOSQL DATABASE SYSTEMS",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_334.png",
+                                    "source_page": 334,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 24,
+                            "course_code": "06016415",
+                            "name_en": "FUNCTIONAL PROGRAMMING",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_335.png",
+                                    "source_page": 335,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 25,
+                            "course_code": "06016419",
+                            "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_337.png",
+                                    "source_page": 337,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_338.png",
+                                    "source_page": 338,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 26,
+                            "course_code": "06016420",
+                            "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_338.png",
+                                    "source_page": 338,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 27,
+                            "course_code": "06016424",
+                            "name_en": "HUMAN INTERFACE DESIGN",
+                            "credits": "3(3-0-6)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_340.png",
+                                    "source_page": 340,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 28,
+                            "course_code": "06016425",
+                            "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_042.png",
+                                    "source_page": 42,
+                                    "document_category": "plan",
+                                    "document_page": 37
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_341.png",
+                                    "source_page": 341,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        }
+                    ],
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_330.png",
+                            "source_page": 330,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_332.png",
+                            "source_page": 332,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_333.png",
+                            "source_page": 333,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_370.png",
+                            "source_page": 370,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_371.png",
+                            "source_page": 371,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_334.png",
+                            "source_page": 334,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_335.png",
+                            "source_page": 335,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_337.png",
+                            "source_page": 337,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_338.png",
+                            "source_page": 338,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_338.png",
+                            "source_page": 338,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_340.png",
+                            "source_page": 340,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_042.png",
+                            "source_page": 42,
+                            "document_category": "plan",
+                            "document_page": 37
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_341.png",
+                            "source_page": 341,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "reason": "The source curriculum explicitly lists these fixed placements with a total of 30 credits, violating the Lab CHK7 range of 9-22 credits. No alternative, flexible-placement, or duplicate exclusion is justified by curriculum.json; classify this as a source-condition/human-review exception rather than an extraction failure, without inventing a credit exception."
+                },
+                {
+                    "code": "NORMAL_SEMESTER_OVER_22_CREDITS",
+                    "classification": "source_condition_human_review",
+                    "plan": "coop",
+                    "year": 3,
+                    "semester": 1,
+                    "raw_total_credits": 33,
+                    "lab_rule_adjusted_total_credits": 33,
+                    "contributing_records": [
+                        {
+                            "record_index": 29,
+                            "course_code": "06016404",
+                            "name_en": "CLOUD COMPUTING",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_329.png",
+                                    "source_page": 329,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 30,
+                            "course_code": "06066102",
+                            "name_en": "MANAGEMENT INFORMATION SYSTEMS",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_369.png",
+                                    "source_page": 369,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 31,
+                            "course_code": "90644xxx",
+                            "name_en": "ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 32,
+                            "course_code": "06016416",
+                            "name_en": "REQUIREMENT ENGINEERING",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_335.png",
+                                    "source_page": 335,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 33,
+                            "course_code": "06016417",
+                            "name_en": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_335.png",
+                                    "source_page": 335,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_336.png",
+                                    "source_page": 336,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 34,
+                            "course_code": "06016418",
+                            "name_en": "SERVER SIDE WEB DEVELOPMENT",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_336.png",
+                                    "source_page": 336,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 35,
+                            "course_code": "06016421",
+                            "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_338.png",
+                                    "source_page": 338,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_339.png",
+                                    "source_page": 339,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 36,
+                            "course_code": "06016422",
+                            "name_en": "INTERNET OF THINGS",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_339.png",
+                                    "source_page": 339,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 37,
+                            "course_code": "06016423",
+                            "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_340.png",
+                                    "source_page": 340,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 38,
+                            "course_code": "06016426",
+                            "name_en": "COMPUTER GRAPHICS AND ANIMATION",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_341.png",
+                                    "source_page": 341,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 39,
+                            "course_code": "06016427",
+                            "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_043.png",
+                                    "source_page": 43,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_342.png",
+                                    "source_page": 342,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        }
+                    ],
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_329.png",
+                            "source_page": 329,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_369.png",
+                            "source_page": 369,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_335.png",
+                            "source_page": 335,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_335.png",
+                            "source_page": 335,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_336.png",
+                            "source_page": 336,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_336.png",
+                            "source_page": 336,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_338.png",
+                            "source_page": 338,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_339.png",
+                            "source_page": 339,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_339.png",
+                            "source_page": 339,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_340.png",
+                            "source_page": 340,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_341.png",
+                            "source_page": 341,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_043.png",
+                            "source_page": 43,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_342.png",
+                            "source_page": 342,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "reason": "The source curriculum explicitly lists these fixed placements with a total of 33 credits, violating the Lab CHK7 range of 9-22 credits. No alternative, flexible-placement, or duplicate exclusion is justified by curriculum.json; classify this as a source-condition/human-review exception rather than an extraction failure, without inventing a credit exception."
+                },
+                {
+                    "code": "COOPERATIVE_SINGLE_6_CREDIT_COURSE",
+                    "plan": "coop",
+                    "year": 3,
+                    "semester": 2,
+                    "total_credits": 6,
+                    "course_count": 1,
+                    "course_code": "06016481 หรือ 06016482",
+                    "credits": "6(0-36-0)",
+                    "reason": "Accepted Lab cooperative/internship exception for one 6-credit course.",
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_044.png",
+                            "source_page": 44,
+                            "document_category": "plan",
+                            "document_page": 39
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_366.png",
+                            "source_page": 366,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_367.png",
+                            "source_page": 367,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ]
+                },
+                {
+                    "code": "FLEXIBLE_OR_UNASSIGNED_PLACEMENT_NOT_AGGREGATED",
+                    "plan": "coop",
+                    "record_count": 53,
+                    "placement_marker": {
+                        "year": 0,
+                        "semester": 0
+                    },
+                    "flexible_examples": [
+                        "4/1"
+                    ],
+                    "reason": "Flexible records were not counted simultaneously in every possible semester and were excluded from fixed normal-semester totals.",
+                    "provenance": {
+                        "document_category": "description",
+                        "source_pages": [
+                            342,
+                            343,
+                            344,
+                            345,
+                            346,
+                            347,
+                            348,
+                            349,
+                            350,
+                            351,
+                            352,
+                            353,
+                            354,
+                            355,
+                            356,
+                            357,
+                            358,
+                            359,
+                            360,
+                            361,
+                            362,
+                            363,
+                            364,
+                            365,
+                            366
+                        ]
+                    }
+                },
+                {
+                    "code": "NORMAL_SEMESTER_OVER_22_CREDITS",
+                    "classification": "source_condition_human_review",
+                    "plan": "no_coop",
+                    "year": 2,
+                    "semester": 2,
+                    "raw_total_credits": 30,
+                    "lab_rule_adjusted_total_credits": 30,
+                    "contributing_records": [
+                        {
+                            "record_index": 19,
+                            "course_code": "06016405",
+                            "name_en": "CYBERSECURITY FUNDAMENTALS",
+                            "credits": "3(3-0-6)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_330.png",
+                                    "source_page": 330,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 20,
+                            "course_code": "06016410",
+                            "name_en": "SOFTWARE ENGINEERING",
+                            "credits": "3(3-0-6)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_332.png",
+                                    "source_page": 332,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 21,
+                            "course_code": "06016412",
+                            "name_en": "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_333.png",
+                                    "source_page": 333,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 22,
+                            "course_code": "06066302",
+                            "name_en": "FUNDAMENTAL WEB PROGRAMMING",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_370.png",
+                                    "source_page": 370,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_371.png",
+                                    "source_page": 371,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 23,
+                            "course_code": "06016414",
+                            "name_en": "NOSQL DATABASE SYSTEMS",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_334.png",
+                                    "source_page": 334,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 24,
+                            "course_code": "06016415",
+                            "name_en": "FUNCTIONAL PROGRAMMING",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_335.png",
+                                    "source_page": 335,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 25,
+                            "course_code": "06016419",
+                            "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_337.png",
+                                    "source_page": 337,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_338.png",
+                                    "source_page": 338,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 26,
+                            "course_code": "06016420",
+                            "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_338.png",
+                                    "source_page": 338,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 27,
+                            "course_code": "06016424",
+                            "name_en": "HUMAN INTERFACE DESIGN",
+                            "credits": "3(3-0-6)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_340.png",
+                                    "source_page": 340,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 28,
+                            "course_code": "06016425",
+                            "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
+                            "credits": "3(2-2-5)",
+                            "year": 2,
+                            "semester": 2,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_035.png",
+                                    "source_page": 35,
+                                    "document_category": "plan",
+                                    "document_page": 30
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_341.png",
+                                    "source_page": 341,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        }
+                    ],
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_330.png",
+                            "source_page": 330,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_332.png",
+                            "source_page": 332,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_333.png",
+                            "source_page": 333,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_370.png",
+                            "source_page": 370,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_371.png",
+                            "source_page": 371,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_334.png",
+                            "source_page": 334,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_335.png",
+                            "source_page": 335,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_337.png",
+                            "source_page": 337,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_338.png",
+                            "source_page": 338,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_338.png",
+                            "source_page": 338,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_340.png",
+                            "source_page": 340,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_035.png",
+                            "source_page": 35,
+                            "document_category": "plan",
+                            "document_page": 30
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_341.png",
+                            "source_page": 341,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "reason": "The source curriculum explicitly lists these fixed placements with a total of 30 credits, violating the Lab CHK7 range of 9-22 credits. No alternative, flexible-placement, or duplicate exclusion is justified by curriculum.json; classify this as a source-condition/human-review exception rather than an extraction failure, without inventing a credit exception."
+                },
+                {
+                    "code": "NORMAL_SEMESTER_OVER_22_CREDITS",
+                    "classification": "source_condition_human_review",
+                    "plan": "no_coop",
+                    "year": 3,
+                    "semester": 1,
+                    "raw_total_credits": 33,
+                    "lab_rule_adjusted_total_credits": 33,
+                    "contributing_records": [
+                        {
+                            "record_index": 29,
+                            "course_code": "06016404",
+                            "name_en": "CLOUD COMPUTING",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_329.png",
+                                    "source_page": 329,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 30,
+                            "course_code": "06066102",
+                            "name_en": "MANAGEMENT INFORMATION SYSTEMS",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_369.png",
+                                    "source_page": 369,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 31,
+                            "course_code": "90644xxx",
+                            "name_en": "ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 32,
+                            "course_code": "06016416",
+                            "name_en": "REQUIREMENT ENGINEERING",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_335.png",
+                                    "source_page": 335,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 33,
+                            "course_code": "06016417",
+                            "name_en": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_335.png",
+                                    "source_page": 335,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_336.png",
+                                    "source_page": 336,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 34,
+                            "course_code": "06016418",
+                            "name_en": "SERVER SIDE WEB DEVELOPMENT",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_336.png",
+                                    "source_page": 336,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 35,
+                            "course_code": "06016421",
+                            "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
+                            "credits": "3(3-0-6)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_338.png",
+                                    "source_page": 338,
+                                    "document_category": "description",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_339.png",
+                                    "source_page": 339,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 36,
+                            "course_code": "06016422",
+                            "name_en": "INTERNET OF THINGS",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_339.png",
+                                    "source_page": 339,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 37,
+                            "course_code": "06016423",
+                            "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_340.png",
+                                    "source_page": 340,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 38,
+                            "course_code": "06016426",
+                            "name_en": "COMPUTER GRAPHICS AND ANIMATION",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_341.png",
+                                    "source_page": 341,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        },
+                        {
+                            "record_index": 39,
+                            "course_code": "06016427",
+                            "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT",
+                            "credits": "3(2-2-5)",
+                            "year": 3,
+                            "semester": 1,
+                            "flexible_year_semester": null,
+                            "provenance": [
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_036.png",
+                                    "source_page": 36,
+                                    "document_category": "plan",
+                                    "document_page": null
+                                },
+                                {
+                                    "program": "IT",
+                                    "source_filename": "it_page_342.png",
+                                    "source_page": 342,
+                                    "document_category": "description",
+                                    "document_page": null
+                                }
+                            ]
+                        }
+                    ],
+                    "provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_329.png",
+                            "source_page": 329,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_369.png",
+                            "source_page": 369,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_335.png",
+                            "source_page": 335,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_335.png",
+                            "source_page": 335,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_336.png",
+                            "source_page": 336,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_336.png",
+                            "source_page": 336,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_338.png",
+                            "source_page": 338,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_339.png",
+                            "source_page": 339,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_339.png",
+                            "source_page": 339,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_340.png",
+                            "source_page": 340,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_341.png",
+                            "source_page": 341,
+                            "document_category": "description",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_036.png",
+                            "source_page": 36,
+                            "document_category": "plan",
+                            "document_page": null
+                        },
+                        {
+                            "program": "IT",
+                            "source_filename": "it_page_342.png",
+                            "source_page": 342,
+                            "document_category": "description",
+                            "document_page": null
+                        }
+                    ],
+                    "reason": "The source curriculum explicitly lists these fixed placements with a total of 33 credits, violating the Lab CHK7 range of 9-22 credits. No alternative, flexible-placement, or duplicate exclusion is justified by curriculum.json; classify this as a source-condition/human-review exception rather than an extraction failure, without inventing a credit exception."
+                },
+                {
+                    "code": "FLEXIBLE_OR_UNASSIGNED_PLACEMENT_NOT_AGGREGATED",
+                    "plan": "no_coop",
+                    "record_count": 54,
+                    "placement_marker": {
+                        "year": 0,
+                        "semester": 0
+                    },
+                    "flexible_examples": [
+                        "3/1, 3/2, 4/1"
+                    ],
+                    "reason": "Flexible records were not counted simultaneously in every possible semester and were excluded from fixed normal-semester totals.",
+                    "provenance": {
+                        "document_category": "description",
+                        "source_pages": [
+                            342,
+                            343,
+                            344,
+                            345,
+                            346,
+                            347,
+                            348,
+                            349,
+                            350,
+                            351,
+                            352,
+                            353,
+                            354,
+                            355,
+                            356,
+                            357,
+                            358,
+                            359,
+                            360,
+                            361,
+                            362,
+                            363,
+                            364,
+                            365,
+                            366,
+                            367
+                        ]
+                    }
+                }
+            ],
+            "evidence": {
+                "normal_term_rule": "fixed year in 1..4 and fixed semester in {1,2}",
+                "credit_parse_rule": "leading numeric value in credits before parenthesized contact-hour detail",
+                "allowed_range": {
+                    "minimum": 9,
+                    "maximum": 22
+                },
+                "alternative_group_policy": "An explicit OR group is one source record and is counted once; no synthetic alternatives are added.",
+                "flexible_policy": "year=0 and semester=0 records with flexible_year_semester are not counted in every possible term.",
+                "out_of_range_policy": "A source-listed fixed normal semester outside 9-22 remains at its calculated total and is classified as a source-condition/human-review exception when no deterministic exclusion is supported.",
+                "semester_totals_raw": {
+                    "coop": {
+                        "1/1": 18,
+                        "1/2": 18,
+                        "2/1": 18,
+                        "2/2": 30,
+                        "3/1": 33,
+                        "3/2": 6,
+                        "4/1": 18,
+                        "4/2": 15
+                    },
+                    "no_coop": {
+                        "1/1": 18,
+                        "1/2": 18,
+                        "2/1": 18,
+                        "2/2": 30,
+                        "3/1": 33,
+                        "3/2": 15,
+                        "4/1": 15,
+                        "4/2": 9
+                    }
+                },
+                "semester_totals_lab_adjusted": {
+                    "coop": {
+                        "1/1": 18,
+                        "1/2": 18,
+                        "2/1": 18,
+                        "2/2": 30,
+                        "3/1": 33,
+                        "3/2": 6,
+                        "4/1": 18,
+                        "4/2": 15
+                    },
+                    "no_coop": {
+                        "1/1": 18,
+                        "1/2": 18,
+                        "2/1": 18,
+                        "2/2": 30,
+                        "3/1": 33,
+                        "3/2": 15,
+                        "4/1": 15,
+                        "4/2": 9
+                    }
+                },
+                "duplicate_adjustments_for_diagnosis": {
+                    "coop": {},
+                    "no_coop": {}
+                }
+            }
+        }
+    },
+    "regression_assertions": [
+        {
+            "name": "combined_cooperative_label_is_alternative_group",
+            "status": "PASS",
+            "evidence": "one explicit OR group record per plan; no ordinary invalid code remains"
+        },
+        {
+            "name": "06016418_duplicate_removed_from_canonical_source",
+            "status": "PASS",
+            "evidence": "no non-placeholder duplicate placement remains after retaining one canonical record per plan"
+        },
+        {
+            "name": "remaining_credit_overages_after_lab_adjustment",
+            "status": "PASS",
+            "evidence": "2/2 remains 30 and 3/1 remains 33 after the canonical duplicate was removed; source-condition exceptions are retained for human review"
+        }
+    ]
+}
