@@ -407,8 +407,8 @@ Do separately:
 
 - [x] 4A Thai normalization
 - [x] 4B entity/operation representation
-- [ ] 4C missing-program ambiguity guard
-- [ ] 4D plan-aware behavior
+- [x] 4C missing-program ambiguity guard
+- [x] 4D plan-aware behavior
 - [ ] 4E constrained semantic retrieval
 - [ ] 4F semantic aggregation/comparison
 - [ ] 4G exact-course composition
@@ -441,7 +441,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4C — Exact Resolution and Ordered Guards**
+**Phase 4E — Constrained Semantic Retrieval**
 
-Implementation scope is limited to Phase 4C.
-Keep 4C unchecked until its focused implementation and regression tests pass.
+Implementation scope is limited to Phase 4E.
+Keep 4E unchecked until its focused implementation and regression tests pass.
