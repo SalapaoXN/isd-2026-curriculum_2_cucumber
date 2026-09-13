@@ -59,7 +59,7 @@
     {
       "id": "nq_012",
       "question": "วิชา NOSQL เรียนเรื่องอะไรบ้าง",
-      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": "NOSQL", "category": null, "topic": null}, "operations": ["describe"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_name_resolution", "semantic_retrieval"], "route_hint": null}
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": "NOSQL", "category": null, "topic": null}, "operations": ["describe"], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["exact_course_name_resolution", "ambiguity_guard"], "route_hint": null}
     },
     {
       "id": "nq_013",

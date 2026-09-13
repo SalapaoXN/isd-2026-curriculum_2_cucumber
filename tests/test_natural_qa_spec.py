@@ -89,6 +89,7 @@ ALLOWED_CAPABILITIES = {
 }
 ALLOWED_ROUTE_HINTS = {"structured", "semantic", "hybrid", None}
 CLARIFY_PROGRAM_IDS = {
+    "nq_012",
     "nq_016",
     "nq_020",
     "nq_025",
@@ -230,6 +231,12 @@ class NaturalQaSpecTests(unittest.TestCase):
         nq_012 = self.by_id["nq_012"]["expected"]["entities"]
         self.assertEqual(nq_012["course_name"], "NOSQL")
         self.assertIsNone(nq_012["topic"])
+        nq_012_expected = self.by_id["nq_012"]["expected"]
+        self.assertEqual(nq_012_expected["action"], "clarify_program")
+        self.assertEqual(
+            nq_012_expected["capabilities"],
+            ["exact_course_name_resolution", "ambiguity_guard"],
+        )
         for case_id in ("nq_023", "nq_024"):
             self.assertIn(
                 "structured_filter",

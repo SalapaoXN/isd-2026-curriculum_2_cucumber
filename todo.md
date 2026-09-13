@@ -123,6 +123,11 @@ Do not silently retrieve across multiple programs.
 Exact course code/name may work without explicit program only if it can
 be uniquely resolved.
 
+If an exact course name resolves to multiple course codes or programs in
+the canonical data, require `clarify_program` rather than silently
+selecting one. For example, `NOSQL DATABASE SYSTEMS` resolves to IT
+`06016414` and DSBA `06026207`.
+
 ### Plan
 
 Missing plan is not automatically blocking.
@@ -220,7 +225,7 @@ Do not rewrite these questions to make implementation easier.
 | nq_009 | compare | none | answer |
 | nq_010 | placement, earliest, compare | none | answer |
 | nq_011 | describe | none | answer |
-| nq_012 | describe | none | answer |
+| nq_012 | describe | none | clarify_program |
 | nq_013 | list | none | answer |
 | nq_014 | list | none | answer |
 | nq_015 | list | preference | answer |
@@ -359,8 +364,8 @@ Classify earliest failure as:
 
 Group failures by capability.
 
-- [ ] baseline audit
-- [ ] review priorities before coding
+- [x] baseline audit
+- [x] review priorities before coding
 
 ---
 
@@ -416,8 +421,6 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 2 — Baseline Audit**
+**Phase 3 — Architecture Design**
 
-Audit the current `heart` implementation against all 40 Natural QA v1 cases.
-
-No production changes.
+Design the smallest implementation needed from baseline evidence.
