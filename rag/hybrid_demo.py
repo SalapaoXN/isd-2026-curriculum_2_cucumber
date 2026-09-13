@@ -74,6 +74,9 @@ def run_hybrid_demo(
         source_json_path=source_json_path,
     )
     print(f"Question: {question}")
+    if response["route"] is None:
+        print(f"Resolution: {response['result']}")
+        return response
     print(f"Final Answer: {response['final_answer']}")
     return response
 
@@ -96,6 +99,9 @@ def answer_question_once(
         structured_model_callable=structured_model_callable,
         top_k=top_k,
     )
+    if response["route"] is None:
+        return response
+
     structured_result = None
     semantic_chunks = None
     if response["route"] == "structured":

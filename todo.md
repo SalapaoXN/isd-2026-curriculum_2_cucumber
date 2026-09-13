@@ -371,22 +371,42 @@ Group failures by capability.
 
 ## Phase 3 — Architecture Design
 
-Design the smallest implementation needed from baseline evidence.
+Goal:
+Design the smallest Natural QA v1 architecture supported by the Phase 2 baseline.
+No production implementation until the architecture is reviewed and approved.
 
-Do not assume router rewrite is required.
+- [x] 3A QuerySpec contract + Thai normalization semantics
+- [x] 3A.1 Comparison/grouping dimension (`group_by`)
+- [x] 3B Resolution / ambiguity / no-data / unsupported guards
+- [x] 3C Evidence Planner matrix
+- [x] 3D Constrained semantic retrieval strategy
+  - [x] exact-course direct description retrieval
+  - [x] candidate-only topic scoring
+  - [x] explicit cosine-distance convention
+  - [x] full-candidate scoring; no top-k membership truncation
+  - [x] fixed-threshold calibration policy
+  - [x] semantic provenance + empty/missing-evidence semantics
+- [x] 3E Aggregation / comparison / composition / plan-aware semantics
+- [x] 3F Map architecture to Phase 4 microtasks and regression tests
+- [x] Architecture reviewed
+- [x] Architecture approved before production changes
 
-Review architecture before coding.
+### Phase 3 constraints
 
-- [ ] architecture plan approved
-
----
+- Do not treat `structured` / `semantic` / `hybrid` as the primary intent taxonomy.
+- Do not rewrite the router unless Phase 3 evidence shows it is necessary.
+- Reuse the existing SQLite curriculum database and vector index where practical.
+- Prefer deterministic operations for filtering, aggregation, comparison, guards, and no-data behavior.
+- Use semantic retrieval for course-description/topic matching after structural constraints are known.
+- No conversation/session state in Natural QA v1.
+- Do not add one-off regex patches for individual questions.
 
 ## Phase 4 — Implementation Micro-tasks
 
 Do separately:
 
-- [ ] 4A Thai normalization
-- [ ] 4B entity/operation representation
+- [x] 4A Thai normalization
+- [x] 4B entity/operation representation
 - [ ] 4C missing-program ambiguity guard
 - [ ] 4D plan-aware behavior
 - [ ] 4E constrained semantic retrieval
@@ -421,6 +441,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 3 — Architecture Design**
+**Phase 4C — Exact Resolution and Ordered Guards**
 
-Design the smallest implementation needed from baseline evidence.
+Implementation scope is limited to Phase 4C.
+Keep 4C unchecked until its focused implementation and regression tests pass.

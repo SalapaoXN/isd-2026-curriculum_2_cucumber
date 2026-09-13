@@ -14,6 +14,7 @@ from typing import Any, Iterator
 Database = str | Path | sqlite3.Connection
 _CREDIT_RE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)")
 _COURSE_CODE_RE = re.compile(r"[0-9]{8}")
+_COURSE_NAME_TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 _FLEXIBLE_YEAR_SEMESTER_PART = re.compile(r"\s*([1-4])\s*/\s*([1-2])\s*")
 _CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
 
@@ -816,6 +817,121 @@ def course_facts(
     }
 
 
+def _normalize_course_name(value: str) -> str:
+    return " ".join(value.casefold().split())
+
+
+def _course_name_matches(reference: str, candidate: str | None) -> bool:
+    if not candidate:
+        return False
+    normalized_reference = _normalize_course_name(reference)
+    normalized_candidate = _normalize_course_name(candidate)
+    if not normalized_reference or not normalized_candidate:
+        return False
+    if normalized_reference == normalized_candidate:
+        return True
+
+    reference_tokens = _COURSE_NAME_TOKEN_RE.findall(normalized_reference)
+    candidate_tokens = _COURSE_NAME_TOKEN_RE.findall(normalized_candidate)
+    if not reference_tokens or len(reference_tokens) > len(candidate_tokens):
+        return False
+    width = len(reference_tokens)
+    return any(
+        candidate_tokens[index : index + width] == reference_tokens
+        for index in range(len(candidate_tokens) - width + 1)
+    )
+
+
+def exact_course_candidates(
+    db_path: Database,
+    *,
+    course_code: str | None = None,
+    course_name: str | None = None,
+    program: str | None = None,
+) -> list[dict[str, Any]]:
+    """Return exact relational course identities for one code or name reference.
+
+    Course names use deterministic lexical matching against canonical ``name_th``
+    and ``name_en`` values. Results that differ only by plan, catalog duplicate,
+    or repeated relational joins are collapsed by logical ``(program, code)``.
+    This helper only returns candidates; it does not decide ambiguity or policy.
+    """
+    if (course_code is None) == (course_name is None):
+        raise ValueError("provide exactly one of course_code or course_name")
+    if program is not None:
+        if not isinstance(program, str) or not program.strip():
+            raise ValueError("program must be a non-empty string when provided")
+        normalized_program = program.strip().casefold()
+    else:
+        normalized_program = None
+
+    if course_code is not None:
+        if not isinstance(course_code, str):
+            return []
+        normalized_code = course_code.strip()
+        if _COURSE_CODE_RE.fullmatch(normalized_code) is None:
+            return []
+    else:
+        if not isinstance(course_name, str) or not course_name.strip():
+            return []
+        normalized_code = None
+
+    with _open_database(db_path) as connection:
+        where = ["courses.course_code_normalized = ?"] if normalized_code else []
+        parameters: list[Any] = [normalized_code] if normalized_code else []
+        if normalized_program is not None:
+            where.append("programs.program_code_normalized = ?")
+            parameters.append(normalized_program)
+        rows = connection.execute(
+            f"""
+            SELECT
+                courses.course_id,
+                courses.catalog_id,
+                courses.course_code,
+                courses.course_code_normalized,
+                courses.name_th,
+                courses.name_en,
+                programs.program_code,
+                programs.program_code_normalized
+            FROM courses
+            JOIN programs ON programs.catalog_id = courses.catalog_id
+            {f"WHERE {' AND '.join(where)}" if where else ""}
+            ORDER BY programs.program_code_normalized,
+                     courses.course_code_normalized,
+                     courses.catalog_id,
+                     courses.course_id
+            """,
+            parameters,
+        ).fetchall()
+
+    candidates: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for row in rows:
+        if normalized_code is None and not (
+            _course_name_matches(course_name or "", row["name_th"])
+            or _course_name_matches(course_name or "", row["name_en"])
+        ):
+            continue
+        logical_key = (
+            str(row["program_code_normalized"]),
+            str(row["course_code_normalized"]),
+        )
+        if logical_key in seen:
+            continue
+        seen.add(logical_key)
+        candidates.append(
+            {
+                "course_id": int(row["course_id"]),
+                "catalog_id": int(row["catalog_id"]),
+                "program": row["program_code"],
+                "course_code": row["course_code"],
+                "name_th": row["name_th"],
+                "name_en": row["name_en"],
+            }
+        )
+    return candidates
+
+
 def semester_total_credits(
     db_path: Database,
     plan_id: int,
@@ -1427,6 +1543,7 @@ __all__ = [
     "courses_requiring_prerequisite",
     "earliest_year_semester",
     "earliest_year_semester_from_choices",
+    "exact_course_candidates",
     "get_semester_credits",
     "parse_flexible_year_semester",
     "placement_year_semester_choices",

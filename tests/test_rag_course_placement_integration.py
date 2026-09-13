@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from rag.answer import EMPTY_ANSWER, answer_question
 from rag.qa import ask
+from rag.resolution import CourseReferenceResolution, ResolutionOutcome
 from rag.structured.queries import (
     course_placement,
     earliest_year_semester,
@@ -394,7 +395,32 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             "00000002": [(3, 1)],
             "00000003": [],
         }
+        resolution = ResolutionOutcome(
+            action="answer",
+            blocking_ambiguity=(),
+            resolved_program="IT",
+            course_references=tuple(
+                CourseReferenceResolution(
+                    reference_type="course_code",
+                    reference=course_code,
+                    candidates=(
+                        {
+                            "course_id": int(course_code[-1]),
+                            "catalog_id": 1,
+                            "program": "IT",
+                            "course_code": course_code,
+                            "name_th": None,
+                            "name_en": None,
+                        },
+                    ),
+                )
+                for course_code in choices
+            ),
+        )
         with patch(
+            "rag.qa.resolve_query_spec",
+            return_value=resolution,
+        ), patch(
             "rag.structured.qa.course_placement",
             side_effect=lambda _db, _program, course_code, _plans: placement_result(
                 course_code, choices[course_code]
@@ -546,11 +572,11 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             structured_model_callable=fail_model,
         )
 
-        self.assertEqual(result["route"], "structured")
-        self.assertEqual(result["result"]["operation"], "course_facts")
+        self.assertIsNone(result["route"])
         self.assertEqual(result["result"]["status"], "no_data")
-        self.assertEqual(result["result"]["rows"], [])
-        self.assertEqual(result["result"]["provenance"], [])
+        self.assertEqual(result["result"]["action"], "no_data")
+        self.assertEqual(result["result"]["blocking_ambiguity"], ())
+        self.assertEqual(result["result"]["course_references"][0]["candidates"], [])
 
     def test_prerequisite_only_is_deterministic_but_credits_only_is_unchanged(self):
         calls = []

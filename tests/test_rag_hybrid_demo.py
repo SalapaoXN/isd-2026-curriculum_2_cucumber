@@ -145,6 +145,27 @@ class RagHybridDemoTest(unittest.TestCase):
         answer_mock.assert_called_once()
         print_mock.assert_not_called()
 
+    def test_answer_question_once_returns_blocked_result_without_synthesis(self):
+        response = {
+            "route": None,
+            "result": {
+                "status": "clarify_program",
+                "action": "clarify_program",
+                "blocking_ambiguity": ("program",),
+                "resolved_program": None,
+                "course_references": [],
+            },
+        }
+
+        with patch("rag.hybrid_demo.ask", return_value=response), patch(
+            "rag.hybrid_demo.answer_question"
+        ) as answer_mock:
+            result = answer_question_once("curriculum.db", "วิชา NOSQL")
+
+        self.assertIs(result, response)
+        self.assertNotIn("final_answer", result)
+        answer_mock.assert_not_called()
+
     def test_cli_default_passes_nonempty_semantic_evidence_to_answer_model(self):
         question = "มีวิชาไหนเกี่ยวกับฐานข้อมูลบ้าง"
         database_path = DEFAULT_CURRICULUM_DB_PATH

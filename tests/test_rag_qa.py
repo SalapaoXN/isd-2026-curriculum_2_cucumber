@@ -1,7 +1,16 @@
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from rag.qa import ask
+
+
+DB_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "cucumber_outputs"
+    / "runtime"
+    / "curriculum.db"
+)
 
 
 class RagQaTest(unittest.TestCase):
@@ -38,7 +47,7 @@ class RagQaTest(unittest.TestCase):
         ) as structured, patch("rag.qa.retrieve", return_value=semantic_result) as retrieve:
             result = ask(
                 "curriculum.db",
-                "What database topics are offered in year 1?",
+                "What database topics are offered in IT year 1?",
                 model_callable,
                 top_k=3,
             )
@@ -56,9 +65,41 @@ class RagQaTest(unittest.TestCase):
         structured.assert_called_once()
         retrieve.assert_called_once_with(
             "curriculum.db",
-            "What database topics are offered in year 1?",
+            "What database topics are offered in IT year 1?",
             k=3,
         )
+
+    def test_blocked_resolution_returns_without_route_or_evidence_work(self):
+        blocked_questions = {
+            "วิชาไหนยากที่สุด": "unsupported",
+            "06019999 เรียนอะไร": "no_data",
+            "วิชา NOSQL เรียนเรื่องอะไรบ้าง": "clarify_program",
+            "มีวิชาเกี่ยวกับ database อะไรบ้าง": "clarify_program",
+        }
+
+        def forbidden(_prompt):
+            self.fail("blocked requests must not call a model")
+
+        for question, action in blocked_questions.items():
+            with self.subTest(question=question):
+                with patch(
+                    "rag.qa.route_question",
+                    side_effect=AssertionError("route must not be called"),
+                ) as route, patch(
+                    "rag.qa.ask_structured",
+                    side_effect=AssertionError("structured QA must not be called"),
+                ) as structured, patch(
+                    "rag.qa.retrieve",
+                    side_effect=AssertionError("retrieval must not be called"),
+                ) as retrieve:
+                    result = ask(DB_PATH, question, forbidden)
+
+                self.assertIsNone(result["route"])
+                self.assertEqual(result["result"]["status"], action)
+                self.assertEqual(result["result"]["action"], action)
+                route.assert_not_called()
+                structured.assert_not_called()
+                retrieve.assert_not_called()
 
     def test_structured_route_without_callable_fails(self):
         with self.assertRaises(ValueError):
