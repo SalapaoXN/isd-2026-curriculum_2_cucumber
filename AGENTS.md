@@ -71,6 +71,14 @@ Allowed:
 
 The user reviews and performs commits/pushes manually.
 
+## Branch Policy
+
+- `heart` is the primary development branch.
+- `project_restart` is the submission/release branch used for instructor delivery.
+- New development, RAG changes, experiments, and fixes should be based on `heart`.
+- Do not develop directly on `project_restart` unless explicitly instructed.
+- Do not merge `heart` into `project_restart` unless explicitly instructed by the user.
+
 ---
 
 ## Project Scope
@@ -115,17 +123,31 @@ The broader repository may still contain data for other programs.
 
 ## Canonical Data and Runtime
 
-Canonical curriculum source:
+Pipeline artifacts and runtime sources:
 
-`outputs/consolidated/`
-
-Unified runtime DB:
-
-`cucumber_outputs/runtime/curriculum.db`
+- `outputs/ocr/` — persistent OCR artifacts
+- `outputs/extracted/` and `outputs/consolidated/` — intermediate preparation artifacts
+- `outputs/llm/*_corrected.json` — corrected downstream corpus and RAG source of truth
+- `cucumber_outputs/runtime/curriculum.db` — generated runtime database
+- `submission/` — separate frozen submission package, not normal runtime input
 
 Submission DB:
 
 `submission/curriculum.db`
+
+Normal pipeline:
+
+```text
+python ocr.py --prefix <program>
+python prepare_data.py
+python llm_spell_corrector.py
+python evaluate.py
+python -m rag.build_index
+python ask.py
+```
+
+OCR is standalone and does not run downstream stages automatically. Each
+artifact boundary can be replayed by starting at the corresponding stage.
 
 Core architecture:
 
