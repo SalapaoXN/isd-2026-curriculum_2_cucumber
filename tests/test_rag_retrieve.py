@@ -9,11 +9,13 @@ import numpy as np
 
 from rag.retrieval.retrieve import (
     CONSTRAINED_RETRIEVAL_STATES,
+    CONSTRAINED_TOPIC_DISTANCE_THRESHOLD,
     ConstrainedTopicRetrievalResult,
     enrich_candidate_description_scores,
     fetch_course_description_evidence,
     make_constrained_topic_retrieval_result,
     map_course_candidates_to_description_evidence,
+    lexical_topic_match,
     retrieve,
     retrieve_constrained_topic_evidence,
 )
@@ -833,6 +835,7 @@ class RagRetrieveTest(unittest.TestCase):
                 "empty_structural_candidates",
                 "description_missing",
                 "vector_missing_or_invalid",
+                "no_threshold_matches",
                 "scored",
             ),
         )
@@ -966,6 +969,184 @@ class RagRetrieveTest(unittest.TestCase):
             )
         finally:
             directory.cleanup()
+
+    def test_constrained_topic_threshold_is_inclusive(self):
+        candidate = {
+            "course_id": 1,
+            "description_evidence": (
+                {"chunk_id": "boundary", "distance": CONSTRAINED_TOPIC_DISTANCE_THRESHOLD},
+            ),
+        }
+        result = make_constrained_topic_retrieval_result(
+            [candidate],
+            {"scores": [{"chunk_id": "boundary", "distance": CONSTRAINED_TOPIC_DISTANCE_THRESHOLD}]},
+        )
+        self.assertEqual(result.status, "scored")
+        self.assertEqual(result.scored_candidates, (candidate,))
+
+    def test_constrained_topic_semantic_only_match_is_accepted(self):
+        candidate = {
+            "course_id": 1,
+            "description_evidence": (
+                {"chunk_id": "semantic", "text": "course content", "distance": 0.2},
+            ),
+        }
+        result = make_constrained_topic_retrieval_result(
+            [candidate],
+            {"scores": [{"chunk_id": "semantic", "distance": 0.2}]},
+        )
+        self.assertEqual(result.status, "scored")
+        self.assertEqual(result.scored_candidates, (candidate,))
+
+    def test_lexical_topic_match_uses_conservative_whole_phrases_and_ai_alias(self):
+        self.assertTrue(
+            lexical_topic_match(
+                "database",
+                {"name_en": "DATABASE SYSTEMS", "description_evidence": ()},
+            )
+        )
+        self.assertFalse(
+            lexical_topic_match(
+                "data",
+                {"name_en": "DATABASE SYSTEMS", "description_evidence": ()},
+            )
+        )
+        self.assertTrue(
+            lexical_topic_match(
+                "AI",
+                {"name_en": "ARTIFICIAL INTELLIGENCE", "description_evidence": ()},
+            )
+        )
+        self.assertTrue(
+            lexical_topic_match(
+                "artificial intelligence",
+                {"name_en": "AI", "description_evidence": ()},
+            )
+        )
+        self.assertFalse(
+            lexical_topic_match(
+                "programming",
+                {"name_en": "PROGRAMMERING", "description_evidence": ()},
+            )
+        )
+        self.assertFalse(
+            lexical_topic_match(
+                "database",
+                {
+                    "name_en": "DATA MINING AND ANALYTICS",
+                    "description_evidence": (),
+                },
+            )
+        )
+
+    def test_lexical_only_rescue_accepts_above_threshold_candidate(self):
+        directory, database_path = self._course_chunk_database(
+            [
+                (
+                    "description-one",
+                    {
+                        "chunk_type": "description",
+                        "course_id": 1,
+                        "text": "course content",
+                        "provenance": [{"source_page": 1}],
+                    },
+                )
+            ]
+        )
+        try:
+            with patch(
+                "rag.retrieval.retrieve.embed_texts",
+                return_value=np.ones((1, 384), dtype=np.float32),
+            ), patch(
+                "rag.retrieval.retrieve.score_candidate_vectors",
+                return_value={
+                    "scores": [{"chunk_id": "description-one", "distance": 0.9}],
+                    "missing_chunk_ids": [],
+                    "invalid_chunk_ids": [],
+                },
+            ):
+                result = retrieve_constrained_topic_evidence(
+                    database_path,
+                    "AI",
+                    [
+                        {
+                            "course_id": 1,
+                            "name_en": "ARTIFICIAL INTELLIGENCE",
+                            "partition": {"plan": "coop"},
+                        }
+                    ],
+                )
+            self.assertEqual(result.status, "scored")
+            self.assertEqual(len(result.scored_candidates), 1)
+            self.assertEqual(
+                result.scored_candidates[0]["description_evidence"][0]["distance"],
+                0.9,
+            )
+        finally:
+            directory.cleanup()
+
+    def test_constrained_topic_match_reports_no_threshold_matches(self):
+        candidate = {
+            "course_id": 1,
+            "description_evidence": (
+                {"chunk_id": "far", "text": "unrelated", "distance": 0.8},
+            ),
+        }
+        result = make_constrained_topic_retrieval_result(
+            [candidate],
+            {"scores": [{"chunk_id": "far", "distance": 0.8}]},
+            (),
+        )
+        self.assertEqual(result.status, "no_threshold_matches")
+        self.assertEqual(result.scored_candidates, ())
+        self.assertEqual(result.candidates[0]["description_evidence"][0]["distance"], 0.8)
+
+    def test_lexical_rescue_accepts_missing_or_invalid_vector(self):
+        candidate = {
+            "course_id": 1,
+            "name_en": "COMPUTER NETWORKS",
+            "description_evidence": (
+                {"chunk_id": "missing-vector", "text": "course content", "distance": None},
+            ),
+        }
+        result = make_constrained_topic_retrieval_result(
+            [candidate],
+            {
+                "scores": [],
+                "missing_chunk_ids": ["missing-vector"],
+                "invalid_chunk_ids": [],
+            },
+            (candidate,),
+        )
+        self.assertEqual(result.status, "scored")
+        self.assertEqual(result.scored_candidates, (candidate,))
+
+    def test_lexical_topic_match_preserves_partition_and_provenance_context(self):
+        provenance = {"source_page": 7}
+        candidate = {
+            "course_id": 1,
+            "name_en": "NETWORK SYSTEMS",
+            "partition": {"plan": "coop", "year": 2},
+            "description_evidence": (
+                {
+                    "chunk_id": "network-description",
+                    "text": "network content",
+                    "distance": 0.8,
+                    "provenance": [provenance],
+                },
+            ),
+        }
+        self.assertTrue(lexical_topic_match("network", candidate))
+        result = make_constrained_topic_retrieval_result(
+            [candidate],
+            {"scores": [{"chunk_id": "network-description", "distance": 0.8}]},
+            (candidate,),
+        )
+        self.assertEqual(result.scored_candidates[0]["partition"], candidate["partition"])
+        self.assertEqual(
+            result.scored_candidates[0]["description_evidence"][0]["provenance"],
+            (provenance,),
+        )
 
 
 if __name__ == "__main__":

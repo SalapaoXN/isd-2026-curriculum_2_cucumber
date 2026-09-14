@@ -409,11 +409,44 @@ Do separately:
 - [x] 4B entity/operation representation
 - [x] 4C missing-program ambiguity guard
 - [x] 4D plan-aware behavior
-- [ ] 4E constrained semantic retrieval
-- [ ] 4F semantic aggregation/comparison
-- [ ] 4G exact-course composition
-- [ ] 4H grounded judgement policy
-- [ ] 4I no-data + unsupported guards
+- [x] 4E constrained semantic retrieval
+- [x] 4F constrained semantic retrieval + threshold calibration — PASS/FROZEN
+  - [x] conservative lexical match OR cosine distance <= 0.4428954516935646
+  - [x] calibration: precision 1.0, recall 0.8666666667, F1 0.9285714286
+  - [x] accepted INFORMATION RETRIEVAL -> AI/AI-ML false negatives; do not tune specifically for them
+  - [x] `no_threshold_matches` state supported
+  - [x] one fixed global threshold and deterministic calibration policy
+  - [x] no per-topic or dynamic thresholding
+- [x] 4G aggregation/comparison/composition — PASS/FROZEN
+  - [x] partition-local logical course deduplication
+  - [x] list/count/existence
+  - [x] `option_count` vs `required_load`
+  - [x] authoritative counted-credit aggregation
+  - [x] earliest `(year, semester)`
+  - [x] deterministic compare
+  - [x] complete / valid_empty / insufficient_evidence semantics
+  - [x] component/group/member provenance preserved
+- [x] 4H grounded judgement and similarity — PASS/FROZEN
+  - [x] 4H.1 PASS: judgement/similarity audit
+  - [x] 4H.2 PASS/FROZEN: quantity uses deterministic aggregate facts only; no arbitrary many/few threshold; workload uses only course_count / required_load / credits proxies and never infers difficulty; preference preserves grounded course identity, partition, description evidence, and provenance without ranking/best claims; distance is metadata only
+  - [x] 4H.3 PASS/FROZEN: exact two-course persisted descriptions/vectors; matching partitions only; selected-plan filtering; separate per-partition results; descriptive mean/min/max distances; no binary similarity threshold/judgement
+  - [x] malformed public inputs fail closed as `insufficient_evidence`
+  - [x] aggregate semantic types, comparison operands/relations, provenance, supplied similarity evidence, chunk IDs, and selected_plan are validated
+  - [x] 4H final regression: 165 focused tests passed
+
+### Phase 4I — Pending Integration / Design
+
+- [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
+- [ ] add UI QueryContext: selected program; optional selected plan; UI context supplies authoritative scope when present
+- [ ] check explicit question entities against UI context; do not silently override conflicts
+- [ ] add deterministic exact-course identity capability: course name -> course code and course code -> canonical course name (for example, `Calculus 1 มีรหัสวิชาอะไร`); use exact-resolved identity, not semantic retrieval or LLM guessing
+- [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
+
+### Phase 5 — Pending
+
+- [ ] held-out Natural QA 40-question evaluation
+- [ ] do not tune architecture/rules from held-out failures
+- [ ] report correctness, coverage/abstain, provenance/groundedness, retrieval metrics where applicable, and failure-stage breakdown
 
 Each task must have focused regression tests.
 
@@ -441,7 +474,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4E — Constrained Semantic Retrieval**
+**Phase 4I — Integration Design**
 
-Implementation scope is limited to Phase 4E.
-Keep 4E unchecked until its focused implementation and regression tests pass.
+Implementation scope is limited to Phase 4I integration design.
+Keep Phase 4H frozen while integration is designed.
