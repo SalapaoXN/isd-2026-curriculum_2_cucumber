@@ -9,7 +9,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from rag.answer import answer_question
+from rag.grounded_answer import GroundedAnswerResult
 from rag.providers.gemini import make_gemini_callable
 from rag.retrieval.index import (
     ARTIFACTS_DIR,
@@ -74,10 +74,17 @@ def run_hybrid_demo(
         source_json_path=source_json_path,
     )
     print(f"Question: {question}")
+    result = response.get("result")
+    if isinstance(result, GroundedAnswerResult):
+        print(f"Final Answer: {result.final_answer}")
+        return response
     if response["route"] is None:
         print(f"Resolution: {response['result']}")
         return response
-    print(f"Final Answer: {response['final_answer']}")
+    if "final_answer" in response:
+        print(f"Final Answer: {response['final_answer']}")
+    else:
+        print(f"Resolution: {response['result']}")
     return response
 
 
@@ -98,27 +105,19 @@ def answer_question_once(
         question,
         structured_model_callable=structured_model_callable,
         top_k=top_k,
-    )
-    if response["route"] is None:
-        return response
-
-    structured_result = None
-    semantic_chunks = None
-    if response["route"] == "structured":
-        structured_result = response["result"]
-    elif response["route"] == "semantic":
-        semantic_chunks = response["result"]
-    else:
-        structured_result = response["result"]["structured"]
-        semantic_chunks = response["result"]["semantic"]
-    final_answer = answer_question(
-        question,
-        response["route"],
-        structured_result=structured_result,
-        semantic_chunks=semantic_chunks,
         answer_model_callable=answer_model_callable,
     )
-    response["final_answer"] = final_answer
+    result = response.get("result")
+    if response["route"] is None:
+        if isinstance(result, GroundedAnswerResult):
+            projected = dict(response)
+            projected.update(
+                final_answer=result.final_answer,
+                provenance=result.provenance,
+                status=result.status,
+            )
+            return projected
+        return response
     return response
 
 

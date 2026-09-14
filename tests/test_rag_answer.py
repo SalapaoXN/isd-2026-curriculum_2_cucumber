@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 from unittest.mock import patch
 
 from rag.answer import EMPTY_ANSWER, answer_question
+from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.hybrid_demo import run_hybrid_demo
 
 
@@ -516,15 +517,23 @@ class RagAnswerTest(unittest.TestCase):
 
     @patch("rag.hybrid_demo.ask")
     def test_hybrid_demo_prints_grounded_final_answer(self, ask_mock):
+        claim = GroundedClaim(
+            "claim_001",
+            "describe",
+            kind="grounded_summary",
+            value=({"text": "C100 เป็นวิชาพื้นฐาน"},),
+            evidence=({"text": "C100 เป็นวิชาพื้นฐาน"},),
+            provenance=({"source_page": 8},),
+        )
         ask_mock.return_value = {
-            "route": "semantic",
-            "result": [
-                {
-                    "chunk_id": "chunk-1",
-                    "text": "C100 เป็นวิชาพื้นฐาน",
-                    "source_page": [8],
-                }
-            ],
+            "route": None,
+            "result": GroundedAnswerResult(
+                "answer",
+                "grounded_synthesis",
+                "คำตอบจากหลักฐาน",
+                (claim,),
+                claim.provenance,
+            ),
         }
 
         output = io.StringIO()
@@ -535,7 +544,7 @@ class RagAnswerTest(unittest.TestCase):
                 answer_model_callable=lambda prompt: "คำตอบจากหลักฐาน",
             )
 
-        self.assertEqual(response["final_answer"], "คำตอบจากหลักฐาน")
+        self.assertEqual(response["result"].final_answer, "คำตอบจากหลักฐาน")
         self.assertIn("Question: C100 คืออะไร", output.getvalue())
         self.assertIn("Final Answer: คำตอบจากหลักฐาน", output.getvalue())
 

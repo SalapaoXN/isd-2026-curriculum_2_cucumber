@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import ask
+from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 
 
 def _response(route="structured"):
@@ -88,6 +89,28 @@ class AskCliTests(unittest.TestCase):
         self.assertIn("ตอบ: คำตอบ", text)
         self.assertIn("แหล่งข้อมูล: IT / it_page_012.png / หน้า 12", text)
         self.assertNotIn(", หน้า 12", text)
+
+    def test_typed_result_provenance_is_displayed_from_grounded_answer(self):
+        provenance = (
+            {
+                "program": "IT",
+                "source_filename": "it_page_012.png",
+                "source_page": 12,
+            },
+        )
+        claim = GroundedClaim("claim_001", "count", value=1, provenance=provenance)
+        result = GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            "คำตอบ",
+            (claim,),
+            provenance,
+        )
+
+        self.assertEqual(
+            ask._format_sources({"route": None, "result": result}),
+            "IT / it_page_012.png / หน้า 12",
+        )
 
     def test_interactive_mode_handles_multiple_questions_and_quit(self):
         responses = [_response("semantic"), _response("hybrid")]

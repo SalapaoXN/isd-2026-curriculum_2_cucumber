@@ -590,7 +590,19 @@ Do separately:
       - legacy route/retrieve/answer paths are not used
       - status, evidence, and provenance survive end-to-end
       - final audit: 105 passed; no blockers
-    - 4I.4d.3 Hybrid / CLI Compatibility Adapters
+    - 4I.4d.3 Hybrid / CLI Compatibility Adapters — PASS/FROZEN
+      - `hybrid_demo.py` calls `qa.ask()` exactly once
+      - typed `GroundedAnswerResult` remains authoritative
+      - hybrid compatibility output exposes `final_answer`, provenance, and status
+      - blocked dictionary results remain unchanged
+      - typed path never calls legacy `answer_question()` or a recovery model
+      - `answer_model_callable` is forwarded into `qa.ask()`
+      - `ask.py` remains display-only and reads provenance from `GroundedAnswerResult`
+      - normal runtime never calls `ensure_index()`
+      - explicit `source_json_path` compatibility mode may still call `ensure_index()`
+      - route labels do not control correctness
+      - final audit: 56 passed; no blockers
+    - 4I.4d.4 End-to-End Provenance / Status Regression
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -627,7 +639,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.4d.3 — Hybrid / CLI Compatibility Adapters**
+**4I.4d.4 — End-to-End Provenance / Status Regression**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

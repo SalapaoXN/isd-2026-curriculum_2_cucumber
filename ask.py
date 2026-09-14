@@ -12,6 +12,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from rag.hybrid_demo import DEFAULT_CURRICULUM_DB_PATH, answer_question_once
+from rag.grounded_answer import GroundedAnswerResult
 from rag.providers.gemini import make_gemini_callable
 
 
@@ -72,7 +73,9 @@ def _provenance_entries(value: Any) -> list[Mapping[str, Any]]:
 
 def _format_sources(response: Mapping[str, Any]) -> str:
     candidates: list[tuple[str, str, str, str]] = []
-    for entry in _provenance_entries(response.get("result")):
+    result = response.get("result")
+    source = result.provenance if isinstance(result, GroundedAnswerResult) else result
+    for entry in _provenance_entries(source):
         program = entry.get("program")
         filename = entry.get("source_filename") or entry.get("document_filename")
         if filename is None:
