@@ -5,10 +5,11 @@ from unittest.mock import call, patch
 from rag.evidence_executor import (
     EvidenceBundle,
     EvidenceExecutionResult,
+    execute_exact_similarity_from_bundle,
     execute_evidence_plan,
 )
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
-from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult
+from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult, SimilarityEvidence
 
 
 DB_PATH = (
@@ -804,6 +805,190 @@ class EvidenceExecutorTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self._plan(request)
+
+    @staticmethod
+    def _similarity_bundle(scopes):
+        left_target = {
+            "course_id": 1,
+            "program": "IT",
+            "course_code": "00000001",
+        }
+        right_target = {
+            "course_id": 2,
+            "program": "IT",
+            "course_code": "00000002",
+        }
+        left_request = EvidenceRequest(
+            "left_descriptions",
+            "description_evidence",
+            scopes[0],
+            course_targets=(left_target,),
+        )
+        right_request = EvidenceRequest(
+            "right_descriptions",
+            "description_evidence",
+            scopes[0],
+            course_targets=(right_target,),
+        )
+        results = []
+        for scope in scopes:
+            for request, target, text in (
+                (left_request, left_target, "left description"),
+                (right_request, right_target, "right description"),
+            ):
+                evidence = {
+                    "chunk_id": f"{target['course_code']}-{scope.plans[0]}",
+                    "chunk_type": "description",
+                    "course_id": target["course_id"],
+                    "course_code": target["course_code"],
+                    "program": target["program"],
+                    "text": text,
+                    "partition": {
+                        "program": scope.program,
+                        "plans": scope.plans,
+                        "years": scope.years,
+                        "semesters": scope.semesters,
+                        "category": scope.category,
+                        "group_by": scope.group_by,
+                    },
+                    "provenance": ({"source_page": 1},),
+                }
+                results.append(
+                    EvidenceExecutionResult(
+                        request_id=request.request_id,
+                        kind=request.kind,
+                        planned_request=request,
+                        effective_scope=scope,
+                        status="complete",
+                        payload=(evidence,),
+                    )
+                )
+        plan = EvidencePlan(scope=scopes[0], requests=(left_request, right_request))
+        return EvidenceBundle(plan=plan, results=tuple(results))
+
+    def test_exact_similarity_bridge_calls_aggregate_once_with_existing_payloads(self):
+        scope = self._scope()
+        bundle = self._similarity_bundle((scope,))
+        expected = SimilarityEvidence(status="valid_empty")
+
+        with patch(
+            "rag.evidence_executor.aggregate_exact_course_similarity",
+            return_value=expected,
+        ) as aggregate, patch(
+            "rag.evidence_executor.fetch_course_description_evidence"
+        ) as fetch:
+            result = execute_exact_similarity_from_bundle(
+                DB_PATH,
+                bundle,
+                "left_descriptions",
+                "right_descriptions",
+            )
+
+        self.assertIs(result, expected)
+        aggregate.assert_called_once()
+        fetch.assert_not_called()
+        left_records, right_records = aggregate.call_args.args[1:3]
+        self.assertEqual(left_records[0]["description_evidence"][0]["chunk_id"], "00000001-coop")
+        self.assertEqual(right_records[0]["course_code"], "00000002")
+        self.assertEqual(left_records[0]["partition"]["plan"], "coop")
+        self.assertEqual(left_records[0]["partition"]["plans"], ("coop",))
+
+    def test_exact_similarity_bridge_preserves_each_materialized_partition(self):
+        scopes = (self._scope(), self._scope(plans=("no_coop",)))
+        bundle = self._similarity_bundle(scopes)
+        expected = SimilarityEvidence(status="valid_empty")
+
+        with patch(
+            "rag.evidence_executor.aggregate_exact_course_similarity",
+            return_value=expected,
+        ) as aggregate:
+            result = execute_exact_similarity_from_bundle(
+                DB_PATH,
+                bundle,
+                "left_descriptions",
+                "right_descriptions",
+            )
+
+        self.assertIs(result, expected)
+        aggregate.assert_called_once()
+        left_records, right_records = aggregate.call_args.args[1:3]
+        self.assertEqual(
+            [record["partition"]["plan"] for record in left_records],
+            ["coop", "no_coop"],
+        )
+        self.assertEqual(
+            [record["partition"]["plan"] for record in right_records],
+            ["coop", "no_coop"],
+        )
+
+    def test_exact_similarity_bridge_missing_description_fails_closed(self):
+        scope = self._scope()
+        left_target = {"course_id": 1, "program": "IT", "course_code": "00000001"}
+        right_target = {"course_id": 2, "program": "IT", "course_code": "00000002"}
+        left_request = EvidenceRequest(
+            "left", "description_evidence", scope, course_targets=(left_target,)
+        )
+        right_request = EvidenceRequest(
+            "right", "description_evidence", scope, course_targets=(right_target,)
+        )
+        bundle = EvidenceBundle(
+            plan=EvidencePlan(scope=scope, requests=(left_request, right_request)),
+            results=(
+                EvidenceExecutionResult(
+                    "left", "description_evidence", left_request, scope,
+                    "insufficient_evidence", (), "description_missing"
+                ),
+                EvidenceExecutionResult(
+                    "right", "description_evidence", right_request, scope,
+                    "complete", ({
+                        "chunk_id": "right",
+                        "chunk_type": "description",
+                        "course_id": 2,
+                        "course_code": "00000002",
+                        "program": "IT",
+                        "text": "right",
+                        "provenance": ({"source_page": 2},),
+                    },),
+                ),
+            ),
+        )
+        with patch(
+            "rag.evidence_executor.aggregate_exact_course_similarity",
+            return_value=SimilarityEvidence(status="valid_empty"),
+        ) as aggregate:
+            result = execute_exact_similarity_from_bundle(
+                DB_PATH, bundle, "left", "right"
+            )
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        aggregate.assert_called_once()
+
+    def test_exact_similarity_bridge_malformed_evidence_fails_without_vector_access(self):
+        scope = self._scope()
+        bundle = self._similarity_bundle((scope,))
+        result = bundle.results[0]
+        malformed = EvidenceExecutionResult(
+            result.request_id,
+            result.kind,
+            result.planned_request,
+            result.effective_scope,
+            "complete",
+            ({"chunk_id": "", "chunk_type": "description"},),
+        )
+        malformed_bundle = EvidenceBundle(
+            bundle.plan,
+            (malformed, bundle.results[1]),
+        )
+        with patch("rag.evidence_executor.aggregate_exact_course_similarity") as aggregate:
+            result = execute_exact_similarity_from_bundle(
+                DB_PATH,
+                malformed_bundle,
+                "left_descriptions",
+                "right_descriptions",
+            )
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        aggregate.assert_not_called()
 
 
 if __name__ == "__main__":

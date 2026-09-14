@@ -565,7 +565,16 @@ Do separately:
       - malformed/mixed inputs fail closed
       - `EvidenceBundle` and identity paths remain unchanged
       - final audit: 36 passed; no blockers
-    - 4I.4d.2b Exact Similarity Execution Bridge
+    - [x] 4I.4d.2b PASS/FROZEN: Exact Similarity Execution Bridge
+      - similarity uses already-executed `description_evidence`
+      - no description refetch
+      - stored vectors are compared through existing exact similarity logic
+      - partitions and plans remain separate
+      - distances, identities, descriptions, and provenance are preserved
+      - malformed or missing evidence fails safely
+      - no ANN, topic threshold, or new planner primitive
+      - final audit: 54 passed; no blockers
+    - 4I.4d.2c qa.ask() Typed Pipeline Wiring
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -602,7 +611,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.4d.2b — Exact Similarity Execution Bridge**
+**4I.4d.2c — qa.ask() Typed Pipeline Wiring**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

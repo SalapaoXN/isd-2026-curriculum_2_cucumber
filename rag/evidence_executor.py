@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 import sqlite3
 from types import MappingProxyType
 from typing import Any
 
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.retrieval.retrieve import (
+    SimilarityEvidence,
+    aggregate_exact_course_similarity,
     fetch_course_description_evidence,
     retrieve_constrained_topic_evidence,
 )
@@ -806,10 +809,229 @@ def execute_evidence_plan(
     return EvidenceBundle(plan, tuple(results))
 
 
+def _similarity_partition(scope: StructuralScope) -> dict[str, Any] | None:
+    """Project one concrete executor scope to the retrieval partition shape."""
+    if (
+        not isinstance(scope.program, str)
+        or not scope.program.strip()
+        or len(scope.plans) != 1
+        or not isinstance(scope.plans[0], str)
+        or not scope.plans[0].strip()
+    ):
+        return None
+    return {
+        "program": scope.program,
+        "plan": scope.plans[0],
+        "plans": tuple(scope.plans),
+        "years": tuple(scope.years),
+        "semesters": tuple(scope.semesters),
+        "category": scope.category,
+        "group_by": tuple(scope.group_by),
+        "expand_applicable": tuple(scope.expand_applicable),
+        "unconstrained": tuple(scope.unconstrained),
+    }
+
+
+def _similarity_target(request: EvidenceRequest) -> Mapping[str, Any] | None:
+    if request.kind != "description_evidence" or len(request.course_targets) != 1:
+        return None
+    target = request.course_targets[0]
+    if not isinstance(target, Mapping):
+        return None
+    if (
+        not isinstance(target.get("program"), str)
+        or not target["program"].strip()
+        or not isinstance(target.get("course_code"), str)
+        or not target["course_code"].strip()
+        or isinstance(target.get("course_id"), bool)
+        or not isinstance(target.get("course_id"), int)
+    ):
+        return None
+    return target
+
+
+def _similarity_scope_key(partition: Mapping[str, Any]) -> tuple[str, str]:
+    return (str(partition.get("plan")), repr(tuple(sorted(partition.items(), key=lambda item: item[0]))))
+
+
+def _valid_description_record(
+    evidence: Mapping[str, Any],
+    target: Mapping[str, Any],
+    partition: Mapping[str, Any],
+) -> bool:
+    if (
+        not isinstance(evidence.get("chunk_id"), str)
+        or not evidence["chunk_id"].strip()
+        or evidence.get("chunk_type") != "description"
+        or evidence.get("program") != target.get("program")
+        or evidence.get("course_code") != target.get("course_code")
+    ):
+        return False
+    if "course_id" in evidence and evidence.get("course_id") != target.get("course_id"):
+        return False
+    text = evidence.get("text", evidence.get("description"))
+    if not isinstance(text, str) or not text.strip():
+        return False
+    provenance = evidence.get("provenance")
+    if (
+        not isinstance(provenance, (list, tuple))
+        or not provenance
+        or any(not isinstance(reference, Mapping) for reference in provenance)
+    ):
+        return False
+    supplied_partition = evidence.get("partition")
+    if supplied_partition is None:
+        return True
+    if not isinstance(supplied_partition, Mapping):
+        return False
+    return all(
+        key in partition and partition[key] == value
+        for key, value in supplied_partition.items()
+    )
+
+
+def _similarity_course_records(
+    results: Iterable[EvidenceExecutionResult],
+    target: Mapping[str, Any],
+) -> tuple[tuple[dict[str, Any], ...], bool] | None:
+    records: list[dict[str, Any]] = []
+    seen_scopes: set[tuple[str, str]] = set()
+    has_failed_result = False
+    for result in results:
+        if not isinstance(result, EvidenceExecutionResult):
+            return None
+        partition = _similarity_partition(result.effective_scope)
+        if partition is None:
+            return None
+        scope_key = _similarity_scope_key(partition)
+        if scope_key in seen_scopes:
+            return None
+        seen_scopes.add(scope_key)
+
+        payload = result.payload
+        if payload is None:
+            if result.status == "complete":
+                return None
+            descriptions: tuple[Mapping[str, Any], ...] = ()
+            has_failed_result = True
+        elif isinstance(payload, (list, tuple)):
+            descriptions = tuple(payload)
+            if result.status != "complete":
+                has_failed_result = True
+            if result.status == "complete" and not descriptions:
+                return None
+            if any(
+                not isinstance(evidence, Mapping)
+                or not _valid_description_record(evidence, target, partition)
+                for evidence in descriptions
+            ):
+                return None
+        else:
+            return None
+
+        records.append(
+            {
+                "program": target["program"],
+                "course_code": target["course_code"],
+                "course_id": target["course_id"],
+                "partition": partition,
+                "description_evidence": descriptions,
+            }
+        )
+    if not records:
+        return None
+    return tuple(records), has_failed_result
+
+
+def execute_exact_similarity_from_bundle(
+    db_path: str | Path,
+    bundle: EvidenceBundle,
+    left_request_id: str,
+    right_request_id: str,
+    *,
+    selected_plan: str | None = None,
+) -> SimilarityEvidence:
+    """Bridge executed description evidence to the exact similarity API.
+
+    Similarity is intentionally not an EvidencePlan primitive.  This helper
+    consumes only the two already-executed description request streams and
+    delegates persisted validation/vector access to the existing exact-course
+    similarity implementation exactly once.
+    """
+    def insufficient() -> SimilarityEvidence:
+        return SimilarityEvidence(status="insufficient_evidence")
+    if (
+        not isinstance(db_path, (str, Path))
+        or not str(db_path)
+        or not isinstance(bundle, EvidenceBundle)
+        or not isinstance(left_request_id, str)
+        or not left_request_id.strip()
+        or not isinstance(right_request_id, str)
+        or not right_request_id.strip()
+        or left_request_id == right_request_id
+    ):
+        return insufficient()
+
+    requests = {
+        request.request_id: request
+        for request in bundle.plan.requests
+        if isinstance(request, EvidenceRequest)
+    }
+    left_request = requests.get(left_request_id)
+    right_request = requests.get(right_request_id)
+    left_target = _similarity_target(left_request) if left_request is not None else None
+    right_target = _similarity_target(right_request) if right_request is not None else None
+    if left_target is None or right_target is None:
+        return insufficient()
+
+    left_results = tuple(
+        result
+        for result in bundle.results
+        if result.request_id == left_request_id
+        and result.planned_request is left_request
+        and result.kind == "description_evidence"
+    )
+    right_results = tuple(
+        result
+        for result in bundle.results
+        if result.request_id == right_request_id
+        and result.planned_request is right_request
+        and result.kind == "description_evidence"
+    )
+    left_records = _similarity_course_records(left_results, left_target)
+    right_records = _similarity_course_records(right_results, right_target)
+    if left_records is None or right_records is None:
+        return insufficient()
+
+    try:
+        result = aggregate_exact_course_similarity(
+            db_path,
+            left_records[0],
+            right_records[0],
+            selected_plan=selected_plan,
+        )
+    except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError, KeyError):
+        return insufficient()
+    if left_records[1] or right_records[1]:
+        if result.status == "valid_empty":
+            return SimilarityEvidence(
+                status="insufficient_evidence",
+                unmatched_partitions=result.unmatched_partitions,
+            )
+        if result.status == "complete":
+            return SimilarityEvidence(
+                status="insufficient_evidence",
+                pairs=result.pairs,
+                unmatched_partitions=result.unmatched_partitions,
+            )
+    return result
+
+
 __all__ = [
     "DIRECT_PRIMITIVES",
     "EXECUTION_STATES",
     "EvidenceBundle",
     "EvidenceExecutionResult",
+    "execute_exact_similarity_from_bundle",
     "execute_evidence_plan",
 ]
