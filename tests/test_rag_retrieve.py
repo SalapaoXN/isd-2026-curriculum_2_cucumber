@@ -19,7 +19,11 @@ from rag.retrieval.retrieve import (
     retrieve,
     retrieve_constrained_topic_evidence,
 )
-from rag.retrieval.vector_store import score_candidate_vectors
+from rag.retrieval.vector_store import (
+    create_vector_table,
+    insert_embeddings,
+    score_candidate_vectors,
+)
 
 
 class RagRetrieveTest(unittest.TestCase):
@@ -580,6 +584,55 @@ class RagRetrieveTest(unittest.TestCase):
             )
         finally:
             directory.cleanup()
+
+    def test_constrained_topic_retrieval_scores_real_vec0_table(self):
+        directory, database_path = self._semantic_chunk_database(("00000001",))
+        chunk = {
+            "chunk_id": "description-one",
+            "chunk_type": "description",
+            "course_id": 1,
+            "course_code": "00000001",
+            "program": "IT",
+            "text": "NETWORK SYSTEMS",
+            "provenance": [{"source_page": 1}],
+        }
+        with closing(sqlite3.connect(database_path)) as connection:
+            connection.execute("DELETE FROM semantic_chunks")
+            connection.execute(
+                "INSERT INTO semantic_chunks VALUES (?, ?)",
+                ("description-one", json.dumps(chunk)),
+            )
+            connection.commit()
+        try:
+            create_vector_table(database_path)
+            query_embedding = np.zeros(384, dtype=np.float32)
+            query_embedding[0] = 1.0
+            insert_embeddings(
+                database_path,
+                [{"chunk_id": "description-one"}],
+                [query_embedding],
+            )
+            with patch(
+                "rag.retrieval.retrieve.embed_texts",
+                return_value=np.asarray([query_embedding]),
+            ):
+                result = retrieve_constrained_topic_evidence(
+                    database_path,
+                    "network",
+                    [{
+                        "course_id": 1,
+                        "course_code": "00000001",
+                        "program": "IT",
+                    }],
+                )
+        finally:
+            directory.cleanup()
+
+        self.assertEqual(result.status, "scored")
+        self.assertEqual(len(result.scored_candidates), 1)
+        evidence = result.scored_candidates[0]["description_evidence"][0]
+        self.assertEqual(evidence["chunk_id"], "description-one")
+        self.assertEqual(evidence["distance"], 0.0)
 
     def test_candidate_scoring_empty_input_does_not_require_database(self):
         result = score_candidate_vectors(

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 import sqlite3
 from types import MappingProxyType
@@ -205,9 +205,11 @@ def _materialize_scopes(
     if not isinstance(source.program, str) or not source.program.strip():
         raise ValueError("answerable execution needs a resolved program")
 
+    request_targets = request.course_targets or source.course_targets
+    materialization_source = replace(source, course_targets=request_targets)
     plan_keys = source.plans or applicable_plan_keys(db_path, source.program)
     if not plan_keys:
-        return (source,)
+        return (materialization_source,)
 
     scopes: list[StructuralScope] = []
     for plan_key in plan_keys:
@@ -230,7 +232,7 @@ def _materialize_scopes(
             or "year" in source.group_by
             or request.kind == "credit_facts"
         ):
-            values = _axis_values(db_path, source, plan_key, axis="year")
+            values = _axis_values(db_path, materialization_source, plan_key, axis="year")
             year_options = (
                 tuple((value,) for value in values)
                 if "year" in source.group_by or request.kind == "credit_facts"
@@ -259,7 +261,7 @@ def _materialize_scopes(
             ):
                 values = _axis_values(
                     db_path,
-                    source,
+                    materialization_source,
                     plan_key,
                     axis="semester",
                     years=selected_years,
@@ -277,7 +279,7 @@ def _materialize_scopes(
                 semester_options = ((),)
 
             for selected_semesters in semester_options:
-                targets = source.course_targets
+                targets = request_targets
                 if "course" in source.group_by and len(targets) > 1:
                     target_options = tuple((target,) for target in targets)
                 else:
@@ -430,6 +432,75 @@ def _execute_prerequisites(
     return _result(request, scope, _status_for_payload(payload), payload)
 
 
+def _scoped_description_course_ids(
+    db_path: str,
+    scope: StructuralScope,
+    targets: Iterable[Mapping[str, Any]],
+) -> tuple[int, ...] | None:
+    """Resolve logical description targets to physical rows in one scope."""
+    result = scoped_course_set(
+        db_path,
+        scope.program or "",
+        scope.plans,
+        years=scope.years,
+        semesters=scope.semesters,
+        category=scope.category,
+        course_targets=targets,
+    )
+    if not isinstance(result, Mapping) or result.get("status") != "ok":
+        return None
+    courses = result.get("courses")
+    if not isinstance(courses, (list, tuple)):
+        return None
+
+    physical_ids: dict[tuple[str, str], list[int]] = {}
+    for course in courses:
+        if not isinstance(course, Mapping):
+            return None
+        members = course.get("alternative_courses", ())
+        records = members if course.get("is_alternative") else (course,)
+        if not isinstance(records, (list, tuple)):
+            return None
+        for record in records:
+            if not isinstance(record, Mapping):
+                return None
+            program = record.get("program") or course.get("program")
+            course_code = record.get("course_code")
+            course_id = record.get("course_id")
+            if (
+                not isinstance(program, str)
+                or not program.strip()
+                or not isinstance(course_code, str)
+                or not course_code.strip()
+                or isinstance(course_id, bool)
+                or not isinstance(course_id, int)
+            ):
+                continue
+            key = (program.strip().upper(), course_code.strip())
+            ids = physical_ids.setdefault(key, [])
+            if course_id not in ids:
+                ids.append(course_id)
+
+    resolved: list[int] = []
+    for target in targets:
+        if not isinstance(target, Mapping):
+            return None
+        program = target.get("program")
+        course_code = target.get("course_code")
+        if (
+            not isinstance(program, str)
+            or not program.strip()
+            or not isinstance(course_code, str)
+            or not course_code.strip()
+        ):
+            return None
+        ids = physical_ids.get((program.strip().upper(), course_code.strip()), [])
+        if len(ids) != 1:
+            return None
+        resolved.append(ids[0])
+    return tuple(resolved)
+
+
 def _execute_descriptions(
     db_path: str,
     request: EvidenceRequest,
@@ -437,11 +508,15 @@ def _execute_descriptions(
 ) -> EvidenceExecutionResult:
     if not request.course_targets:
         return _result(request, scope, "insufficient_evidence", primitive_state="missing_course_target")
+    course_ids = _scoped_description_course_ids(
+        db_path,
+        scope,
+        request.course_targets,
+    )
+    if course_ids is None:
+        return _result(request, scope, "insufficient_evidence", primitive_state="description_missing")
     evidence: list[dict[str, Any]] = []
-    for target in request.course_targets:
-        course_id = target.get("course_id") if isinstance(target, Mapping) else None
-        if isinstance(course_id, bool) or not isinstance(course_id, int):
-            return _result(request, scope, "insufficient_evidence", primitive_state="invalid_course_target")
+    for target, course_id in zip(request.course_targets, course_ids, strict=True):
         for item in fetch_course_description_evidence(db_path, course_id):
             enriched = dict(item)
             enriched.setdefault("program", target.get("program"))
@@ -920,13 +995,28 @@ def _similarity_course_records(
                 has_failed_result = True
             if result.status == "complete" and not descriptions:
                 return None
-            if any(
-                not isinstance(evidence, Mapping)
-                or not _valid_description_record(evidence, target, partition)
-                for evidence in descriptions
-            ):
+            if any(not isinstance(evidence, Mapping) for evidence in descriptions):
                 return None
         else:
+            return None
+
+        physical_course_ids = {
+            evidence.get("course_id")
+            for evidence in descriptions
+            if "course_id" in evidence
+        }
+        if any(
+            isinstance(course_id, bool) or not isinstance(course_id, int)
+            for course_id in physical_course_ids
+        ) or len(physical_course_ids) > 1:
+            return None
+        validation_target = dict(target)
+        if physical_course_ids:
+            validation_target["course_id"] = next(iter(physical_course_ids))
+        if any(
+            not _valid_description_record(evidence, validation_target, partition)
+            for evidence in descriptions
+        ):
             return None
 
         records.append(

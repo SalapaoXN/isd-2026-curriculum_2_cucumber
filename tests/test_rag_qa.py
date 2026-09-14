@@ -13,6 +13,7 @@ from rag.retrieval.retrieve import (
     ConstrainedTopicRetrievalResult,
     SimilarityEvidence,
     SimilarityPair,
+    aggregate_exact_course_similarity,
 )
 from rag.resolution import (
     CourseReferenceResolution,
@@ -303,6 +304,130 @@ class RagQaTest(unittest.TestCase):
             "similarity_description_1",
             "similarity_description_2",
             selected_plan="coop",
+        )
+
+    def test_real_similarity_query_keeps_each_course_and_aggregates_once(self):
+        def fake_aggregate(_db_path, left_courses, right_courses, *, selected_plan=None):
+            self.assertIsNone(selected_plan)
+            left_by_plan = {
+                record["partition"]["plan"]: record
+                for record in left_courses
+            }
+            right_by_plan = {
+                record["partition"]["plan"]: record
+                for record in right_courses
+            }
+            pairs = []
+            for plan in sorted(set(left_by_plan) & set(right_by_plan)):
+                left_record = left_by_plan[plan]
+                right_record = right_by_plan[plan]
+                pairs.append(SimilarityPair(
+                    status="complete",
+                    partition=left_record["partition"],
+                    left=left_record["description_evidence"][0],
+                    right=right_record["description_evidence"][0],
+                    cosine_distance=0.25,
+                    cosine_similarity=0.75,
+                ))
+            return SimilarityEvidence(
+                status="complete",
+                pairs=tuple(pairs),
+                mean_distance=0.25,
+                min_distance=0.25,
+                max_distance=0.25,
+            )
+
+        with patch(
+            "rag.evidence_executor.aggregate_exact_course_similarity",
+            side_effect=fake_aggregate,
+        ) as aggregate:
+            result = ask(
+                DB_PATH,
+                "06016414 กับ 06016419 เนื้อหาคล้ายกันไหม",
+            )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claim = result["result"].claims[0]
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(claim.operation, "similarity")
+        self.assertEqual(claim.value.status, "complete")
+        self.assertEqual(len(claim.value.pairs), 2)
+        self.assertTrue(all(pair.left["provenance"] for pair in claim.value.pairs))
+        self.assertTrue(all(pair.right["provenance"] for pair in claim.value.pairs))
+        self.assertEqual(
+            {
+                pair.left["course_code"] for pair in claim.value.pairs
+            },
+            {"06016414"},
+        )
+        self.assertEqual(
+            {
+                pair.right["course_code"] for pair in claim.value.pairs
+            },
+            {"06016419"},
+        )
+        aggregate.assert_called_once()
+
+    def test_real_similarity_query_uses_plan_specific_description_evidence(self):
+        with patch(
+            "rag.evidence_executor.aggregate_exact_course_similarity",
+            wraps=aggregate_exact_course_similarity,
+        ) as aggregate:
+            result = ask(
+                DB_PATH,
+                "06016414 กับ 06016419 เนื้อหาคล้ายกันไหม",
+            )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.value.status, "complete")
+        self.assertEqual(len(claim.value.pairs), 2)
+        chunks = {
+            pair.partition["plan"]: (
+                pair.left["chunk_id"],
+                pair.right["chunk_id"],
+            )
+            for pair in claim.value.pairs
+        }
+        self.assertEqual(
+            chunks,
+            {
+                "coop": ("course-632-description", "course-634-description"),
+                "no_coop": ("course-736-description", "course-738-description"),
+            },
+        )
+        self.assertTrue(all(pair.left["provenance"] for pair in claim.value.pairs))
+        self.assertTrue(all(pair.right["provenance"] for pair in claim.value.pairs))
+        aggregate.assert_called_once()
+
+    def test_plan_specific_single_course_describe_preserves_no_coop_evidence(self):
+        result = ask(
+            DB_PATH,
+            "06016414 เรียนเกี่ยวกับอะไร",
+            context=QueryContext(program="IT", plan="no_coop"),
+        )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claims = [
+            claim
+            for claim in result["result"].claims
+            if claim.effective_scope.plans == ("no_coop",)
+        ]
+        self.assertEqual(len(claims), 1)
+        claim = claims[0]
+        self.assertEqual(claim.operation, "describe")
+        self.assertEqual(len(claim.evidence), 1)
+        evidence = claim.evidence[0]
+        self.assertEqual(evidence["course_id"], 736)
+        self.assertEqual(evidence["plan"], "no_coop")
+        self.assertEqual(
+            evidence["source_filename"],
+            "merged_it_no_coop_full_corrected.json",
+        )
+        self.assertEqual(
+            {reference["provenance_id"] for reference in evidence["provenance"]},
+            {194, 236},
         )
 
     def test_similarity_claim_keeps_multiple_partitions_without_scope_merge(self):

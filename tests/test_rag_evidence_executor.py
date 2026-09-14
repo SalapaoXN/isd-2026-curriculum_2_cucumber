@@ -107,6 +107,113 @@ class EvidenceExecutorTests(unittest.TestCase):
         )
         self.assertEqual(len({result.effective_scope.plans for result in results}), 2)
 
+    def test_request_course_targets_narrow_materialized_scopes(self):
+        left = {
+            "course_id": 632,
+            "program": "IT",
+            "course_code": "06016414",
+        }
+        right = {
+            "course_id": 634,
+            "program": "IT",
+            "course_code": "06016419",
+        }
+        scope = self._scope(
+            plans=(),
+            years=(),
+            semesters=(),
+            expand_applicable=("plan",),
+            unconstrained=("year", "semester"),
+            course_targets=(left, right),
+        )
+        request = EvidenceRequest(
+            "left_description",
+            "description_evidence",
+            scope,
+            course_targets=(left,),
+        )
+
+        results = execute_evidence_plan(DB_PATH, self._plan(request)).results
+
+        self.assertEqual([result.effective_scope.plans for result in results], [
+            ("coop",),
+            ("no_coop",),
+        ])
+        for result in results:
+            self.assertEqual(result.effective_scope.course_targets, (left,))
+            self.assertTrue(result.payload)
+            expected_course_id = 632 if result.effective_scope.plans == ("coop",) else 736
+            self.assertEqual(
+                {evidence["course_id"] for evidence in result.payload},
+                {expected_course_id},
+            )
+            self.assertTrue(all(
+                evidence["course_code"] == left["course_code"]
+                for evidence in result.payload
+            ))
+
+    def test_each_applicable_similarity_description_side_stays_single_course(self):
+        left = {
+            "course_id": 632,
+            "program": "IT",
+            "course_code": "06016414",
+        }
+        right = {
+            "course_id": 634,
+            "program": "IT",
+            "course_code": "06016419",
+        }
+        scope = self._scope(
+            plans=(),
+            years=(),
+            semesters=(),
+            expand_applicable=("plan",),
+            unconstrained=("year", "semester"),
+            course_targets=(left, right),
+        )
+        requests = (
+            EvidenceRequest(
+                "left_description",
+                "description_evidence",
+                scope,
+                course_targets=(left,),
+            ),
+            EvidenceRequest(
+                "right_description",
+                "description_evidence",
+                scope,
+                course_targets=(right,),
+            ),
+        )
+
+        results = execute_evidence_plan(DB_PATH, self._plan(*requests)).results
+
+        for request_id, expected_code in (
+            ("left_description", left["course_code"]),
+            ("right_description", right["course_code"]),
+        ):
+            request_results = [r for r in results if r.request_id == request_id]
+            self.assertEqual(len(request_results), 2)
+            for result in request_results:
+                self.assertEqual(
+                    result.effective_scope.course_targets,
+                    (left if expected_code == left["course_code"] else right,),
+                )
+                expected_course_id = {
+                    ("06016414", "coop"): 632,
+                    ("06016414", "no_coop"): 736,
+                    ("06016419", "coop"): 634,
+                    ("06016419", "no_coop"): 738,
+                }[(expected_code, result.effective_scope.plans[0])]
+                self.assertEqual(
+                    {evidence["course_id"] for evidence in result.payload},
+                    {expected_course_id},
+                )
+                self.assertTrue(all(
+                    evidence["course_code"] == expected_code
+                    for evidence in result.payload
+                ))
+
     def test_unconstrained_year_and_semester_materialize_without_splitting(self):
         scope = self._scope(
             years=(),
@@ -442,6 +549,16 @@ class EvidenceExecutorTests(unittest.TestCase):
         with patch(
             "rag.evidence_executor.fetch_course_description_evidence",
             return_value=evidence,
+        ), patch(
+            "rag.evidence_executor.scoped_course_set",
+            return_value={
+                "status": "ok",
+                "courses": ({
+                    "course_id": 20,
+                    "program": "IT",
+                    "course_code": "06016420",
+                },),
+            },
         ):
             result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
 
@@ -459,6 +576,16 @@ class EvidenceExecutorTests(unittest.TestCase):
 
         with patch(
             "rag.evidence_executor.fetch_course_description_evidence", return_value=[]
+        ), patch(
+            "rag.evidence_executor.scoped_course_set",
+            return_value={
+                "status": "ok",
+                "courses": ({
+                    "course_id": 20,
+                    "program": "IT",
+                    "course_code": "06016420",
+                },),
+            },
         ):
             result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
 

@@ -112,6 +112,34 @@ class AskCliTests(unittest.TestCase):
             "IT / it_page_012.png / หน้า 12",
         )
 
+    def test_typed_final_answer_containing_provenance_is_not_removed(self):
+        provenance = (
+            {
+                "program": "IT",
+                "source_filename": "it_page_012.png",
+                "source_page": 12,
+            },
+        )
+        claim = GroundedClaim("claim_001", "describe", value="grounded", provenance=provenance)
+        result = GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            "คำตอบที่มี provenance: สำคัญ",
+            (claim,),
+            provenance,
+        )
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            ask._print_result(
+                "question",
+                {"route": None, "result": result, "final_answer": result.final_answer},
+                show_question=False,
+            )
+
+        self.assertIn("ตอบ: คำตอบที่มี provenance: สำคัญ", output.getvalue())
+        self.assertIn("แหล่งข้อมูล: IT / it_page_012.png / หน้า 12", output.getvalue())
+
     def test_interactive_mode_handles_multiple_questions_and_quit(self):
         responses = [_response("semantic"), _response("hybrid")]
         with self._patch_runtime(), patch.object(
@@ -161,6 +189,27 @@ class AskCliTests(unittest.TestCase):
         ), redirect_stdout(io.StringIO()) as output:
             self.assertEqual(ask.main(["question"]), 0)
         self.assertIn(response["final_answer"], output.getvalue())
+
+    def test_blocked_no_data_displays_exact_fallback(self):
+        response = {
+            "route": None,
+            "result": {
+                "status": "no_data",
+                "action": "no_data",
+                "blocking_ambiguity": (),
+                "context_conflicts": (),
+                "resolved_program": None,
+                "resolved_plans": (),
+                "course_references": [],
+            },
+        }
+        with self._patch_runtime(response), patch.object(
+            ask, "answer_question_once", return_value=response
+        ), redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(ask.main(["06019999 ชื่ออะไร"]), 0)
+
+        self.assertIn("ตอบ: ไม่พบข้อมูลนี้ในเล่มหลักสูตร", output.getvalue())
+        self.assertEqual(response["result"]["status"], "no_data")
 
     def test_internal_provenance_debug_lines_are_not_shown_in_answer_text(self):
         response = _response("semantic")

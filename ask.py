@@ -136,7 +136,16 @@ def _clean_answer_for_display(answer: Any) -> str:
 def _print_result(question: str, response: Mapping[str, Any], *, show_question: bool) -> None:
     if show_question:
         print(f"ถาม: {question}")
-    print(f"ตอบ: {_clean_answer_for_display(response.get('final_answer', ''))}")
+    result = response.get("result")
+    if isinstance(result, GroundedAnswerResult):
+        answer = result.final_answer
+    elif isinstance(result, Mapping) and (
+        result.get("status") == "no_data" or result.get("action") == "no_data"
+    ):
+        answer = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+    else:
+        answer = _clean_answer_for_display(response.get("final_answer", ""))
+    print(f"ตอบ: {answer}")
     print(f"แหล่งข้อมูล: {_format_sources(response)}")
 
 

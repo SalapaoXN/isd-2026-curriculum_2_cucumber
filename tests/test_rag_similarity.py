@@ -13,7 +13,11 @@ from rag.retrieval.retrieve import (
     aggregate_exact_course_similarity,
     compare_exact_description_vectors,
 )
-from rag.retrieval.vector_store import compare_stored_vectors
+from rag.retrieval.vector_store import (
+    compare_stored_vectors,
+    create_vector_table,
+    insert_embeddings,
+)
 
 
 class RagSimilarityTest(unittest.TestCase):
@@ -442,6 +446,49 @@ class RagSimilarityTest(unittest.TestCase):
         self.assertEqual(result["status"], "complete")
         self.assertEqual(result["cosine_distance"], 1.0)
         self.assertEqual(result["cosine_similarity"], 0.0)
+
+    def test_exact_similarity_works_with_real_vec0_virtual_table(self):
+        directory = tempfile.TemporaryDirectory()
+        path = f"{directory.name}/curriculum.db"
+        left = self._evidence("left", "00000001", "coop", "left text", 1)
+        right = self._evidence("right", "00000002", "coop", "right text", 2)
+        descriptions = [
+            self._description("left", "00000001", "coop", "left text", 1),
+            self._description("right", "00000002", "coop", "right text", 2),
+        ]
+        try:
+            with closing(sqlite3.connect(path)) as connection:
+                connection.execute(
+                    "CREATE TABLE semantic_chunks (chunk_id TEXT, chunk_json TEXT)"
+                )
+                connection.executemany(
+                    "INSERT INTO semantic_chunks VALUES (?, ?)",
+                    [(chunk_id, json.dumps(chunk)) for chunk_id, chunk in descriptions],
+                )
+                connection.commit()
+            create_vector_table(path)
+            vector = np.zeros(384, dtype=np.float32)
+            vector[0] = 1.0
+            insert_embeddings(
+                path,
+                [{"chunk_id": "left"}, {"chunk_id": "right"}],
+                [vector, vector],
+            )
+
+            result = compare_exact_description_vectors(
+                path,
+                "left",
+                "right",
+                left_evidence=left,
+                right_evidence=right,
+                partition={"plan": "coop"},
+            )
+        finally:
+            directory.cleanup()
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.cosine_distance, 0.0)
+        self.assertEqual(result.cosine_similarity, 1.0)
 
     def test_input_evidence_and_states_are_unchanged(self):
         left = self._evidence("left", "00000001", "coop", "left", 1)

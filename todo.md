@@ -531,7 +531,7 @@ Do separately:
     - the typed path does not call legacy `answer_question()` recovery logic
     - legacy `answer_question()` remains temporarily for compatibility
     - final focused regression: 109 tests passed
-  - [ ] 4I.4d QA + Hybrid Integration / Provenance Freeze
+  - [x] 4I.4d PASS/FROZEN: QA + Hybrid Integration / Provenance Freeze
     - topic_matches correctly narrows course candidates
     - dependent credit_facts currently ignores that payload
     - topic-filtered credits therefore overcount structural scope
@@ -602,7 +602,59 @@ Do separately:
       - explicit `source_json_path` compatibility mode may still call `ensure_index()`
       - route labels do not control correctness
       - final audit: 56 passed; no blockers
-    - 4I.4d.4 End-to-End Provenance / Status Regression
+    - [x] 4I.4d.4 PASS/FROZEN: End-to-End Provenance / Status Regression
+      - 10 real-runtime probes completed; 9/10 runtime-flow cases passed
+      - exact similarity failed because executor scope materialization expands each singleton description request across both course targets
+      - planner `request.course_targets` are already correct
+      - root cause: `_materialize_scopes()` uses broad `request.scope.course_targets` instead of `request.course_targets`
+      - fix belongs in `rag/evidence_executor.py`
+      - no planner, `qa.py`, similarity bridge, or frozen contract change needed
+      - normal runtime made 0 extra model calls and no index rebuild
+      - request-level course target materialization is fixed
+      - runtime similarity now reaches persisted vector access
+      - the vector table is a `vec0` virtual table
+      - `compare_stored_vectors()` opens SQLite without loading `sqlite-vec`
+      - `score_candidate_vectors()` has the same hidden issue
+      - normal ANN paths already load `sqlite-vec` correctly
+      - fix belongs in `rag/retrieval/vector_store.py`
+      - no architecture or frozen contract change required
+      - probe 1 underlying typed result, status, and provenance are correct
+      - CLI final answer becomes blank
+      - `ask.py` display cleaner removes the whole answer line when it contains the word `provenance`
+      - fix belongs to CLI display only; RAG core is unchanged
+      - [ ] 4I.4d.4d Fix typed CLI answer cleaning
+      - `qa.ask()` returns the correct blocked `no_data` dictionary
+      - `hybrid_demo` preserves it unchanged
+      - `ask.py` incorrectly expects `final_answer` and prints blank
+      - fix belongs to CLI display only
+      - required exact fallback: `ไม่พบข้อมูลนี้ในเล่มหลักสูตร`
+      - [x] 4I.4d.4e PASS/FROZEN: Fix blocked `no_data` CLI display
+        - blocked `no_data` displays the exact fallback `ไม่พบข้อมูลนี้ในเล่มหลักสูตร`
+        - other blocked and typed display behavior remains unchanged
+        - final audit: 22 passed; no blockers
+      - final real-runtime probes: 10/10 passed
+      - end-to-end status, provenance, and similarity: PASS
+      - exact similarity returns numeric `coop` + `no_coop` partitions
+      - `no_data` exact fallback works
+      - blocked metadata preserved
+      - model calls: 0
+      - index rebuild calls: 0
+      - legacy retrieval/recovery calls: 0
+      - focused regression: 267 passed
+      - no blockers
+    - [x] 4I.4d.4b PASS/FROZEN: Load sqlite-vec on direct vector read paths
+      - sqlite-vec direct-read issue is fixed
+      - persisted coop/no_coop descriptions and vectors are correct
+      - executor currently reuses the representative `course_id` across plans
+      - no_coop description evidence therefore incorrectly uses the coop chunk
+      - similarity validation correctly rejects the mismatched provenance
+      - fix belongs in `rag/evidence_executor.py`
+      - each concrete effective scope must remap logical `(program, course_code)` to its plan-specific `course_id` using the existing `scoped_course_set()` helper
+      - no planner/index/vector/similarity contract change is needed
+    - [x] 4I.4d.4c PASS/FROZEN: Fix plan-specific description course mapping
+      - plan-specific course mapping and provenance are correct
+      - no-plan similarity now has 2 aligned partitions
+      - regression: 114 tests passed; no blockers
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -639,7 +691,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.4d.4 — End-to-End Provenance / Status Regression**
+**4I.5 — Runtime Smoke / Regression Freeze**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

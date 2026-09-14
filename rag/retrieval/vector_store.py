@@ -161,6 +161,7 @@ def score_candidate_vectors(
 
     placeholders = ", ".join("?" for _ in candidate_ids)
     with closing(sqlite3.connect(str(database_path))) as connection:
+        _load_sqlite_vec(connection)
         rows = connection.execute(
             f"SELECT chunk_id, {VECTOR_COLUMN} FROM {VECTOR_TABLE} "
             f"WHERE chunk_id IN ({placeholders})",
@@ -216,6 +217,7 @@ def compare_stored_vectors(
         requested_ids.append(right_chunk_id)
     placeholders = ", ".join("?" for _ in requested_ids)
     with closing(sqlite3.connect(str(database_path))) as connection:
+        _load_sqlite_vec(connection)
         rows = connection.execute(
             f"SELECT chunk_id, {VECTOR_COLUMN} FROM {VECTOR_TABLE} "
             f"WHERE chunk_id IN ({placeholders})",
