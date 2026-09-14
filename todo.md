@@ -499,6 +499,27 @@ Do separately:
   - final regression: whole-plan execution PASS; lineage/partition preservation PASS; dependency fan-out PASS; partition-isolated failure PASS; mixed primitive bundle PASS; downstream 4I.4 readiness PASS; regression 4I.3a–3c PASS; 155 focused tests passed
   - known unrelated stale tests remain: placement expectation 669 vs runtime 668; legacy `route="structured"` expectation
 - [ ] 4I.4 typed grounded answer/provenance integration
+  - [x] 4I.4a PASS/FROZEN: typed grounded answer/provenance design
+    - runtime answer boundary: `ResolutionOutcome` + `EvidenceBundle` -> deterministic composition -> ordered `GroundedClaim` values -> deterministic rendering and/or bounded grounded synthesis -> `GroundedAnswerResult`
+    - `GroundedClaim` is immutable and contains a deterministic stable `claim_id`, operation, `effective_scope`, status, kind (`deterministic_fact` | `grounded_summary`), typed value, typed evidence, and claim-level provenance; typed evidence is never flattened to text
+    - `GroundedAnswerResult` contains status (`answer` | `no_data` | `valid_empty` | `insufficient_evidence` | `unsupported` | `clarify_program` | `context_conflict`), answer mode (`deterministic` | `grounded_synthesis` | `mixed`), `final_answer`, ordered claims, and a stable first-seen union provenance; claim provenance is authoritative and top-level provenance is UI/CLI convenience
+    - deterministic facts are never recalculated or replaced by an LLM: identity, list/count/existence, credits, placement/earliest, prerequisites, comparisons, quantity facts, and workload proxy facts/relations
+    - grounded synthesis is limited to description summaries, topic/preference wording without ranking, two-course similarity explanation without binary similarity judgement, and semantic portions of mixed answers
+    - the typed path does not use legacy recovery model calls; the answer layer does not re-query DB/vector data; route labels do not determine correctness
+    - partial answers: all complete -> `answer`; complete + `valid_empty` retains both and is `answer` when a complete claim remains; complete + `insufficient_evidence` is overall `insufficient_evidence` while verified partial claims remain; all insufficient -> `insufficient_evidence`
+    - blocked resolution statuses remain distinct and bypass normal claim composition; exact no-data fallback remains `ไม่พบข้อมูลนี้ในเล่มหลักสูตร`; valid-empty zero/existence false never becomes `no_data`
+  - [x] 4I.4b PASS/FROZEN: deterministic grounded-claim composition
+    - immutable `GroundedClaim` / `GroundedAnswerResult`
+    - typed values/evidence are preserved; no deterministic recomputation
+    - stable claim IDs/order and partition isolation are preserved
+    - claim-level provenance is authoritative; top-level provenance is a stable first-seen union
+    - partial-result semantics are frozen; zero / `exists=False` remain valid facts
+    - identity variants remain preserved
+    - similarity preserves left/right provenance, partition, distance/similarity, and descriptive mean/min/max only
+    - no binary similarity judgement or threshold; no DB/vector query, question reparsing, route dependency, model, or recovery call
+    - final regression: 139 focused tests passed
+  - [ ] 4I.4c Grounded Rendering / Synthesis
+  - [ ] 4I.4d QA + Hybrid Integration / Provenance Freeze
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -535,7 +556,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4I.4 — Typed Grounded Answer + Provenance**
+**Phase 4I.4c — Grounded Rendering / Synthesis**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.
