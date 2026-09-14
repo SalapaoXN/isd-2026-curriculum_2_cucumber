@@ -574,7 +574,23 @@ Do separately:
       - malformed or missing evidence fails safely
       - no ANN, topic threshold, or new planner primitive
       - final audit: 54 passed; no blockers
-    - 4I.4d.2c qa.ask() Typed Pipeline Wiring
+    - [x] 4I.4d.2c PASS/FROZEN: qa.ask() Typed Pipeline Wiring
+      - blocked outcomes keep the existing metadata dictionary for now
+      - normal and identity answers use `GroundedAnswerResult`
+      - similarity uses one `GroundedClaim` containing the original `SimilarityEvidence`
+      - one partition -> claim `effective_scope` is that concrete scope
+      - multiple partitions -> claim `effective_scope=None`; each `SimilarityPair.partition` is authoritative
+      - preserve original pairs, descriptions, distances, summaries, and provenance
+      - multi-partition similarity renders deterministically; no synthesis/model judgement
+      - no similarity threshold or binary similar/not-similar result
+      - `qa.ask()` uses the exact similarity bridge once after `EvidenceBundle` execution
+      - `hybrid_demo.py` and `ask.py` remain deferred
+      - `qa.ask()` uses the typed RAG pipeline; blocked outcomes stop before execution/model calls
+      - identity bypasses `EvidencePlan`; normal flow is plan -> execute -> adapters -> compose -> render
+      - legacy route/retrieve/answer paths are not used
+      - status, evidence, and provenance survive end-to-end
+      - final audit: 105 passed; no blockers
+    - 4I.4d.3 Hybrid / CLI Compatibility Adapters
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -611,7 +627,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.4d.2c — qa.ask() Typed Pipeline Wiring**
+**4I.4d.3 — Hybrid / CLI Compatibility Adapters**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

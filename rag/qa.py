@@ -15,8 +15,17 @@ from rag.aggregation import (
     aggregate_required_load,
     aggregate_sum_credits,
 )
-from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
-from rag.grounded_answer import GroundedClaim
+from rag.evidence_executor import (
+    EvidenceBundle,
+    EvidenceExecutionResult,
+    execute_evidence_plan,
+    execute_exact_similarity_from_bundle,
+)
+from rag.evidence_planner import plan_evidence
+from rag.grounded_answer import (
+    GroundedClaim,
+    compose_grounded_answer,
+)
 from rag.judgement import (
     JudgementEvidence,
     evaluate_preference,
@@ -24,13 +33,12 @@ from rag.judgement import (
     evaluate_workload,
 )
 from rag.query_spec import parse_query_spec
-from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult, retrieve
+from rag.retrieval.retrieve import (
+    ConstrainedTopicRetrievalResult,
+    SimilarityEvidence,
+)
+from rag.answer import render_grounded_answer
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
-from rag.router import route_question
-from rag.structured.qa import ask_structured
-
-
-SCHEMA_PATH = Path(__file__).with_name("structured") / "schema.sql"
 
 
 def _execution_results(
@@ -459,9 +467,164 @@ def _comparison_claims(
     )
 
 
+def _similarity_provenance(
+    evidence: SimilarityEvidence,
+) -> tuple[Any, ...] | None:
+    """Validate and retain first-seen provenance from both pair sides."""
+    references: list[Any] = []
+    for pair in evidence.pairs:
+        for side in (pair.left, pair.right):
+            provenance = side.get("provenance")
+            if not isinstance(provenance, (list, tuple)) or not provenance:
+                return None
+            for reference in provenance:
+                if not isinstance(reference, Mapping):
+                    return None
+                if reference not in references:
+                    references.append(reference)
+    return tuple(references)
+
+
+def _similarity_claim(
+    evidence: SimilarityEvidence | None,
+    bundle: EvidenceBundle,
+    request_ids: tuple[str, str] | None,
+    *,
+    selected_plan: str | None = None,
+) -> GroundedClaim:
+    """Wrap one exact similarity result without recomputing any evidence."""
+    if not isinstance(evidence, SimilarityEvidence):
+        return GroundedClaim(
+            claim_id="pending",
+            operation="similarity",
+            status="insufficient_evidence",
+        )
+
+    scopes: list[Any] = []
+    if request_ids is not None:
+        for result in bundle.results:
+            if (
+                result.request_id in request_ids
+                and result.kind == "description_evidence"
+                and (
+                    selected_plan is None
+                    or tuple(getattr(result.effective_scope, "plans", ()))
+                    == (selected_plan,)
+                )
+            ):
+                if (
+                    result.effective_scope is not None
+                    and result.effective_scope not in scopes
+                ):
+                    scopes.append(result.effective_scope)
+    pair_plans = {
+        pair.partition.get("plan")
+        for pair in evidence.pairs
+        if isinstance(pair.partition, Mapping)
+    }
+    if len(pair_plans) == 1:
+        matching_scopes = [
+            scope
+            for scope in scopes
+            if tuple(getattr(scope, "plans", ())) == (next(iter(pair_plans)),)
+        ]
+        if matching_scopes:
+            scopes = matching_scopes
+    effective_scope = scopes[0] if len(scopes) == 1 else None
+    provenance = _similarity_provenance(evidence)
+    if provenance is None:
+        return GroundedClaim(
+            claim_id="pending",
+            operation="similarity",
+            effective_scope=effective_scope,
+            status="insufficient_evidence",
+        )
+    return GroundedClaim(
+        claim_id="pending",
+        operation="similarity",
+        effective_scope=effective_scope,
+        status=evidence.status,
+        kind="deterministic_fact",
+        value=evidence,
+        evidence=evidence,
+        provenance=provenance,
+    )
+
+
+def _logical_target_key(target: Any) -> tuple[str, str] | None:
+    if not isinstance(target, Mapping):
+        return None
+    program = target.get("program")
+    course_code = target.get("course_code")
+    if (
+        not isinstance(program, str)
+        or not program.strip()
+        or not isinstance(course_code, str)
+        or not course_code.strip()
+    ):
+        return None
+    return program, course_code
+
+
+def _resolved_logical_targets(outcome: ResolutionOutcome) -> set[tuple[str, str]]:
+    targets: set[tuple[str, str]] = set()
+    for reference in outcome.course_references:
+        for candidate in reference.candidates:
+            key = _logical_target_key(candidate)
+            if key is not None:
+                targets.add(key)
+    return targets
+
+
+def _select_similarity_request_ids(
+    plan: Any,
+    outcome: ResolutionOutcome,
+) -> tuple[str, str] | None:
+    """Select exactly the planner-owned description requests for similarity."""
+    requests = tuple(
+        request
+        for request in getattr(plan, "requests", ())
+        if getattr(request, "kind", None) == "description_evidence"
+        and isinstance(getattr(request, "request_id", None), str)
+        and request.request_id.startswith("similarity_description_")
+    )
+    if len(requests) != 2:
+        return None
+    targets: list[tuple[str, str]] = []
+    for request in requests:
+        request_targets = getattr(request, "course_targets", ())
+        if len(request_targets) != 1:
+            return None
+        key = _logical_target_key(request_targets[0])
+        if key is None or key in targets:
+            return None
+        targets.append(key)
+    scope_targets = tuple(
+        key
+        for key in (
+            _logical_target_key(target)
+            for target in getattr(getattr(plan, "scope", None), "course_targets", ())
+        )
+        if key is not None
+    )
+    resolved_targets = _resolved_logical_targets(outcome)
+    if (
+        len(scope_targets) != 2
+        or len(set(scope_targets)) != 2
+        or tuple(targets) != scope_targets
+        or set(targets) != resolved_targets
+    ):
+        return None
+    return requests[0].request_id, requests[1].request_id
+
+
 def _compose_evidence_claims(
     query_spec: Any,
     bundle: EvidenceBundle,
+    *,
+    similarity_evidence: SimilarityEvidence | None = None,
+    similarity_request_ids: tuple[str, str] | None = None,
+    selected_plan: str | None = None,
 ) -> tuple[GroundedClaim, ...]:
     """Adapt an EvidenceBundle into ordered, partition-preserving typed claims.
 
@@ -531,6 +694,15 @@ def _compose_evidence_claims(
         elif operation == "compare":
             for result in comparison_results:
                 claims.extend(_comparison_claims(result))
+        elif operation == "similarity":
+            claims.append(
+                _similarity_claim(
+                    similarity_evidence,
+                    bundle,
+                    similarity_request_ids,
+                    selected_plan=selected_plan,
+                )
+            )
 
     numbered: list[GroundedClaim] = []
     for index, claim in enumerate(claims, start=1):
@@ -596,8 +768,9 @@ def ask(
     top_k: int = 5,
     *,
     context: QueryContext | None = None,
+    answer_model_callable: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
-    """Retrieve SQL evidence, semantic evidence, or both for one question."""
+    """Run the typed evidence pipeline while retaining the legacy signature."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
 
@@ -607,31 +780,60 @@ def ask(
         return {"route": None, "result": _blocked_result(resolution)}
 
     if "identity" in spec.operations:
-        return {"route": None, "result": _identity_result(resolution)}
-
-    route = route_question(question)
-    structured_result: dict[str, Any] | None = None
-    semantic_result: list[dict[str, Any]] | None = None
-    if route in {"structured", "hybrid"}:
-        structured_result = ask_structured(
-            db_path,
-            question,
-            SCHEMA_PATH.read_text(encoding="utf-8"),
-            structured_model_callable,
+        grounded = compose_grounded_answer(
+            identity_result=_identity_result(resolution),
         )
-    if route in {"semantic", "hybrid"}:
-        semantic_result = retrieve(db_path, question, k=top_k)
-
-    if route == "hybrid":
-        result: dict[str, Any] | list[dict[str, Any]] = {
-            "structured": structured_result,
-            "semantic": semantic_result,
+        return {
+            "route": None,
+            "result": render_grounded_answer(grounded),
         }
-    elif route == "structured":
-        result = structured_result
-    else:
-        result = semantic_result
-    return {"route": route, "result": result}
+
+    try:
+        plan = plan_evidence(spec, resolution)
+        bundle = execute_evidence_plan(db_path, plan)
+    except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+        grounded = compose_grounded_answer(
+            resolution_status="insufficient_evidence",
+        )
+        return {
+            "route": None,
+            "result": render_grounded_answer(grounded),
+        }
+
+    similarity_evidence: SimilarityEvidence | None = None
+    similarity_request_ids: tuple[str, str] | None = None
+    selected_plan: str | None = None
+    if "similarity" in spec.operations:
+        similarity_request_ids = _select_similarity_request_ids(plan, resolution)
+        if similarity_request_ids is not None:
+            resolved_plans = tuple(resolution.resolved_plans)
+            selected_plan = resolved_plans[0] if len(resolved_plans) == 1 else None
+            try:
+                similarity_evidence = execute_exact_similarity_from_bundle(
+                    db_path,
+                    bundle,
+                    similarity_request_ids[0],
+                    similarity_request_ids[1],
+                    selected_plan=selected_plan,
+                )
+            except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+                similarity_evidence = None
+
+    claims = _compose_evidence_claims(
+        spec,
+        bundle,
+        similarity_evidence=similarity_evidence,
+        similarity_request_ids=similarity_request_ids,
+        selected_plan=selected_plan,
+    )
+    grounded = compose_grounded_answer(composed_claims=claims)
+    return {
+        "route": None,
+        "result": render_grounded_answer(
+            grounded,
+            answer_model_callable=answer_model_callable,
+        ),
+    }
 
 
 __all__ = ["ask"]

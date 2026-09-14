@@ -6,11 +6,19 @@ from unittest.mock import patch
 from rag.aggregation import ComparisonAggregation, ComponentAggregation
 from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
-from rag.grounded_answer import GroundedClaim
+from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.qa import _compose_evidence_claims, _course_set_aggregate, ask
 from rag.query_spec import parse_query_spec
-from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult
-from rag.resolution import QueryContext
+from rag.retrieval.retrieve import (
+    ConstrainedTopicRetrievalResult,
+    SimilarityEvidence,
+    SimilarityPair,
+)
+from rag.resolution import (
+    CourseReferenceResolution,
+    QueryContext,
+    ResolutionOutcome,
+)
 
 
 DB_PATH = (
@@ -22,60 +30,40 @@ DB_PATH = (
 
 
 class RagQaTest(unittest.TestCase):
-    def test_structured_route_requires_and_uses_injected_callable(self):
-        model_callable = lambda _prompt: "SELECT 1"
-        structured_result = {"sql": "SELECT 1", "columns": ["x"], "rows": [(1,)]}
-
-        with patch("rag.qa.ask_structured", return_value=structured_result) as structured:
-            result = ask("curriculum.db", "How many credits?", model_callable)
-
-        self.assertEqual(result, {"route": "structured", "result": structured_result})
-        structured.assert_called_once()
-        self.assertEqual(structured.call_args.args[0:2], ("curriculum.db", "How many credits?"))
-        self.assertEqual(structured.call_args.args[3], model_callable)
-
-    def test_semantic_route_uses_retrieval_and_top_k(self):
-        semantic_result = [{"chunk_id": "course-1-description", "distance": 0.1}]
-
-        with patch("rag.qa.retrieve", return_value=semantic_result) as retrieve:
-            result = ask("curriculum.db", "What topics does this course cover?", top_k=3)
-
-        self.assertEqual(result, {"route": "semantic", "result": semantic_result})
-        retrieve.assert_called_once_with(
-            "curriculum.db", "What topics does this course cover?", k=3
+    def test_answerable_path_uses_typed_bundle_and_ignores_legacy_arguments(self):
+        course = {
+            "program": "IT",
+            "course_code": "06016414",
+            "name_en": "Course",
+            "name_th": "วิชา",
+            "provenance": ({"source_page": 1},),
+        }
+        scope = StructuralScope(program="IT", plans=("coop",), years=(1,), semesters=(1,))
+        request = EvidenceRequest("course_set", "course_set", scope)
+        plan = EvidencePlan(scope, (request,))
+        bundle = EvidenceBundle(
+            plan,
+            (EvidenceExecutionResult(
+                "course_set", "course_set", request, scope, "complete", {"courses": [course]}
+            ),),
         )
+        forbidden_model = lambda _prompt: self.fail("legacy model must not be called")
 
-    def test_combined_question_uses_sql_and_semantic_evidence(self):
-        model_callable = lambda _prompt: "SELECT 1"
-        structured_result = {"sql": "SELECT 1", "columns": ["x"], "rows": [(1,)]}
-        semantic_result = [{"chunk_id": "chunk-1", "distance": 0.1}]
-
-        with patch(
-            "rag.qa.ask_structured", return_value=structured_result
-        ) as structured, patch("rag.qa.retrieve", return_value=semantic_result) as retrieve:
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ) as executor:
             result = ask(
-                "curriculum.db",
-                "What database topics are offered in IT year 1?",
-                model_callable,
-                top_k=3,
+                DB_PATH,
+                "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+                forbidden_model,
+                top_k=99,
             )
 
-        self.assertEqual(
-            result,
-            {
-                "route": "hybrid",
-                "result": {
-                    "structured": structured_result,
-                    "semantic": semantic_result,
-                },
-            },
-        )
-        structured.assert_called_once()
-        retrieve.assert_called_once_with(
-            "curriculum.db",
-            "What database topics are offered in IT year 1?",
-            k=3,
-        )
+        self.assertIsNone(result["route"])
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].claims[0].operation, "list")
+        planner.assert_called_once()
+        executor.assert_called_once_with(DB_PATH, plan)
 
     def test_blocked_resolution_returns_without_route_or_evidence_work(self):
         blocked_questions = {
@@ -91,35 +79,28 @@ class RagQaTest(unittest.TestCase):
         for question, action in blocked_questions.items():
             with self.subTest(question=question):
                 with patch(
-                    "rag.qa.route_question",
-                    side_effect=AssertionError("route must not be called"),
-                ) as route, patch(
-                    "rag.qa.ask_structured",
-                    side_effect=AssertionError("structured QA must not be called"),
-                ) as structured, patch(
-                    "rag.qa.retrieve",
-                    side_effect=AssertionError("retrieval must not be called"),
-                ) as retrieve:
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError("planner must not be called"),
+                ) as planner, patch(
+                    "rag.qa.execute_evidence_plan",
+                    side_effect=AssertionError("executor must not be called"),
+                ) as executor:
                     result = ask(DB_PATH, question, forbidden)
 
                 self.assertIsNone(result["route"])
                 self.assertEqual(result["result"]["status"], action)
                 self.assertEqual(result["result"]["action"], action)
-                route.assert_not_called()
-                structured.assert_not_called()
-                retrieve.assert_not_called()
+                planner.assert_not_called()
+                executor.assert_not_called()
 
     def test_context_conflict_stops_before_qa_work(self):
         with patch(
-            "rag.qa.route_question",
-            side_effect=AssertionError("route must not be called"),
-        ) as route, patch(
-            "rag.qa.ask_structured",
-            side_effect=AssertionError("structured QA must not be called"),
-        ) as structured, patch(
-            "rag.qa.retrieve",
-            side_effect=AssertionError("retrieval must not be called"),
-        ) as retrieve:
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("planner must not be called"),
+        ) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("executor must not be called"),
+        ) as executor:
             result = ask(
                 DB_PATH,
                 "AIT ปี 2 เรียนอะไรบ้าง",
@@ -131,21 +112,17 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(result["result"]["action"], "context_conflict")
         self.assertEqual(result["result"]["context_conflicts"], ("program",))
         self.assertEqual(result["result"]["blocking_ambiguity"], ())
-        route.assert_not_called()
-        structured.assert_not_called()
-        retrieve.assert_not_called()
+        planner.assert_not_called()
+        executor.assert_not_called()
 
     def test_identity_returns_typed_exact_evidence_without_qa_paths(self):
         with patch(
-            "rag.qa.route_question",
-            side_effect=AssertionError("identity must not route"),
-        ) as route, patch(
-            "rag.qa.ask_structured",
-            side_effect=AssertionError("identity must not use structured QA"),
-        ) as structured, patch(
-            "rag.qa.retrieve",
-            side_effect=AssertionError("identity must not retrieve"),
-        ) as retrieve:
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("identity must not plan"),
+        ) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("identity must not execute"),
+        ) as executor:
             result = ask(
                 DB_PATH,
                 "วิชา Calculus 1 รหัสวิชาอะไร",
@@ -153,19 +130,19 @@ class RagQaTest(unittest.TestCase):
             )
 
         self.assertIsNone(result["route"])
-        self.assertEqual(result["result"]["operation"], "identity")
-        self.assertEqual(result["result"]["status"], "answer")
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].claims[0].operation, "identity")
+        self.assertEqual(result["result"].status, "answer")
         self.assertEqual(
             [
                 (item["program"], item["course_code"])
-                for item in result["result"]["identities"]
+                for item in result["result"].claims[0].value
             ],
             [("AIT", "06046400")],
         )
-        self.assertTrue(result["result"]["identities"][0]["provenance"])
-        route.assert_not_called()
-        structured.assert_not_called()
-        retrieve.assert_not_called()
+        self.assertTrue(result["result"].provenance)
+        planner.assert_not_called()
+        executor.assert_not_called()
 
     def test_identity_unknown_code_keeps_no_data_guard(self):
         result = ask(DB_PATH, "06019999 ชื่ออะไร")
@@ -176,26 +153,271 @@ class RagQaTest(unittest.TestCase):
 
     def test_identity_code_returns_canonical_name_without_model(self):
         with patch(
-            "rag.qa.route_question",
-            side_effect=AssertionError("identity must not route"),
-        ) as route, patch(
-            "rag.qa.retrieve",
-            side_effect=AssertionError("identity must not retrieve"),
-        ) as retrieve:
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("identity must not plan"),
+        ) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("identity must not execute"),
+        ) as executor:
             result = ask(DB_PATH, "06046400 ชื่ออะไร")
 
         self.assertIsNone(result["route"])
-        identity = result["result"]["identities"]
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        identity = result["result"].claims[0].value
         self.assertEqual(len(identity), 1)
         self.assertEqual(identity[0]["program"], "AIT")
         self.assertEqual(identity[0]["course_code"], "06046400")
         self.assertEqual(identity[0]["name_en"], "CALCULUS 1")
-        route.assert_not_called()
-        retrieve.assert_not_called()
+        planner.assert_not_called()
+        executor.assert_not_called()
 
-    def test_structured_route_without_callable_fails(self):
-        with self.assertRaises(ValueError):
-            ask("curriculum.db", "What are the prerequisites?")
+    def test_answerable_path_does_not_require_legacy_structured_callable(self):
+        result = ask(DB_PATH, "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
+        self.assertIsNone(result["route"])
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+
+    def test_similarity_path_calls_bundle_bridge_once_and_preserves_typed_claim(self):
+        left_target = {
+            "program": "AIT",
+            "course_code": "06046400",
+            "course_id": 1,
+        }
+        right_target = {
+            "program": "AIT",
+            "course_code": "06046401",
+            "course_id": 2,
+        }
+        scope = StructuralScope(
+            program="AIT",
+            plans=("coop",),
+            years=(1,),
+            semesters=(1,),
+            course_targets=(left_target, right_target),
+        )
+        left_request = EvidenceRequest(
+            "similarity_description_1",
+            "description_evidence",
+            scope,
+            course_targets=(left_target,),
+        )
+        right_request = EvidenceRequest(
+            "similarity_description_2",
+            "description_evidence",
+            scope,
+            course_targets=(right_target,),
+        )
+        plan = EvidencePlan(scope, (left_request, right_request))
+        left_description = {
+            **left_target,
+            "chunk_id": "left-description",
+            "chunk_type": "description",
+            "text": "Left description",
+            "provenance": ({"source_page": 1},),
+        }
+        right_description = {
+            **right_target,
+            "chunk_id": "right-description",
+            "chunk_type": "description",
+            "text": "Right description",
+            "provenance": ({"source_page": 2},),
+        }
+        bundle = EvidenceBundle(
+            plan,
+            (
+                EvidenceExecutionResult(
+                    left_request.request_id,
+                    left_request.kind,
+                    left_request,
+                    scope,
+                    "complete",
+                    (left_description,),
+                ),
+                EvidenceExecutionResult(
+                    right_request.request_id,
+                    right_request.kind,
+                    right_request,
+                    scope,
+                    "complete",
+                    (right_description,),
+                ),
+            ),
+        )
+        partition = {
+            "program": "AIT",
+            "plan": "coop",
+            "plans": ("coop",),
+            "years": (1,),
+            "semesters": (1,),
+            "category": None,
+            "group_by": (),
+        }
+        pair = SimilarityPair(
+            status="complete",
+            partition=partition,
+            left=left_description,
+            right=right_description,
+            cosine_distance=0.2,
+            cosine_similarity=0.8,
+        )
+        similarity = SimilarityEvidence(
+            status="complete",
+            pairs=(pair,),
+            mean_distance=0.2,
+            min_distance=0.2,
+            max_distance=0.2,
+        )
+        spec = self._spec(("similarity",))
+        outcome = ResolutionOutcome(
+            action="answer",
+            blocking_ambiguity=(),
+            resolved_program="AIT",
+            course_references=(
+                CourseReferenceResolution("course_code", "06046400", (left_target,)),
+                CourseReferenceResolution("course_code", "06046401", (right_target,)),
+            ),
+            resolved_plans=("coop",),
+        )
+        forbidden_model = lambda _prompt: self.fail("similarity must not synthesize")
+
+        with patch("rag.qa.parse_query_spec", return_value=spec), patch(
+            "rag.qa.resolve_query_spec", return_value=outcome
+        ), patch("rag.qa.plan_evidence", return_value=plan), patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ), patch(
+            "rag.qa.execute_exact_similarity_from_bundle", return_value=similarity
+        ) as bridge:
+            result = ask(DB_PATH, "ignored", answer_model_callable=forbidden_model)
+
+        self.assertIsNone(result["route"])
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.operation, "similarity")
+        self.assertIs(claim.value, similarity)
+        self.assertEqual(claim.effective_scope, scope)
+        self.assertEqual(
+            [item["source_page"] for item in claim.provenance], [1, 2]
+        )
+        bridge.assert_called_once_with(
+            DB_PATH,
+            bundle,
+            "similarity_description_1",
+            "similarity_description_2",
+            selected_plan="coop",
+        )
+
+    def test_similarity_claim_keeps_multiple_partitions_without_scope_merge(self):
+        planned_scope = StructuralScope(
+            program="AIT",
+            plans=("coop", "no_coop"),
+            years=(1,),
+            semesters=(1,),
+        )
+        coop_scope = replace(planned_scope, plans=("coop",))
+        no_coop_scope = replace(planned_scope, plans=("no_coop",))
+        left_target = {"program": "AIT", "course_code": "06046400", "course_id": 1}
+        right_target = {"program": "AIT", "course_code": "06046401", "course_id": 2}
+        left_request = EvidenceRequest(
+            "similarity_description_1",
+            "description_evidence",
+            planned_scope,
+            course_targets=(left_target,),
+        )
+        right_request = EvidenceRequest(
+            "similarity_description_2",
+            "description_evidence",
+            planned_scope,
+            course_targets=(right_target,),
+        )
+        def description(target, chunk_id, page, scope):
+            return {
+                **target,
+                "chunk_id": chunk_id,
+                "chunk_type": "description",
+                "text": chunk_id,
+                "partition": {"program": "AIT", "plan": scope.plans[0]},
+                "provenance": ({"source_page": page},),
+            }
+
+        bundle = EvidenceBundle(
+            EvidencePlan(planned_scope, (left_request, right_request)),
+            (
+                EvidenceExecutionResult(
+                    left_request.request_id,
+                    left_request.kind,
+                    left_request,
+                    coop_scope,
+                    "complete",
+                    (description(left_target, "left-coop", 1, coop_scope),),
+                ),
+                EvidenceExecutionResult(
+                    right_request.request_id,
+                    right_request.kind,
+                    right_request,
+                    coop_scope,
+                    "complete",
+                    (description(right_target, "right-coop", 2, coop_scope),),
+                ),
+                EvidenceExecutionResult(
+                    left_request.request_id,
+                    left_request.kind,
+                    left_request,
+                    no_coop_scope,
+                    "complete",
+                    (description(left_target, "left-no-coop", 3, no_coop_scope),),
+                ),
+                EvidenceExecutionResult(
+                    right_request.request_id,
+                    right_request.kind,
+                    right_request,
+                    no_coop_scope,
+                    "complete",
+                    (description(right_target, "right-no-coop", 4, no_coop_scope),),
+                ),
+            ),
+        )
+        def pair(plan, left_page, right_page):
+            partition = {
+                "program": "AIT",
+                "plan": plan,
+                "plans": (plan,),
+                "years": (1,),
+                "semesters": (1,),
+                "category": None,
+                "group_by": (),
+            }
+            return SimilarityPair(
+                status="complete",
+                partition=partition,
+                left={"provenance": ({"source_page": left_page},), "text": "left"},
+                right={"provenance": ({"source_page": right_page},), "text": "right"},
+                cosine_distance=float(left_page) / 10,
+                cosine_similarity=1 - float(left_page) / 10,
+            )
+
+        evidence = SimilarityEvidence(
+            status="complete",
+            pairs=(pair("coop", 1, 2), pair("no_coop", 3, 4)),
+            mean_distance=0.2,
+            min_distance=0.1,
+            max_distance=0.3,
+        )
+        claims = _compose_evidence_claims(
+            self._spec(("similarity",)),
+            bundle,
+            similarity_evidence=evidence,
+            similarity_request_ids=(
+                "similarity_description_1",
+                "similarity_description_2",
+            ),
+        )
+
+        self.assertEqual(len(claims), 1)
+        self.assertIsNone(claims[0].effective_scope)
+        self.assertIs(claims[0].value, evidence)
+        self.assertEqual([pair.partition["plan"] for pair in evidence.pairs], ["coop", "no_coop"])
+        self.assertEqual(
+            [item["source_page"] for item in claims[0].provenance], [1, 2, 3, 4]
+        )
 
     def _bundle(self, requests_and_payloads):
         scope = StructuralScope(program="IT", plans=("coop",), years=(1,), semesters=(1,))
