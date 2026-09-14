@@ -28,6 +28,9 @@ class ExactCourseCandidatesTest(unittest.TestCase):
                 "course_code",
                 "name_th",
                 "name_en",
+                "name_th_variants",
+                "name_en_variants",
+                "provenance",
             },
         )
 
@@ -91,6 +94,21 @@ class ExactCourseCandidatesTest(unittest.TestCase):
             exact_course_candidates(DB_PATH, course_name="SQL"),
             [],
         )
+
+    def test_collapsed_identity_preserves_name_variants_and_provenance(self):
+        candidates = exact_course_candidates(DB_PATH, course_code="06026200")
+
+        self.assertEqual(len(candidates), 1)
+        candidate = candidates[0]
+        self.assertEqual((candidate["program"], candidate["course_code"]), ("DSBA", "06026200"))
+        self.assertIsNone(candidate["name_th"])
+        self.assertEqual(
+            set(candidate["name_th_variants"]),
+            {"ไม่ระบุ", "แคลคูลัส"},
+        )
+        self.assertEqual(candidate["name_en"], "CALCULUS 1")
+        self.assertEqual(candidate["name_en_variants"], ["CALCULUS 1"])
+        self.assertTrue(candidate["provenance"])
 
 
 if __name__ == "__main__":

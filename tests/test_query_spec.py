@@ -215,6 +215,30 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertEqual(spec.group_by, group_by)
                 self.assertEqual(spec.judgement, judgement)
 
+    def test_identity_operation_uses_narrow_course_identity_cues(self):
+        name_to_code = parse_query_spec("วิชา Calculus 1 รหัสวิชาอะไร")
+        self.assertEqual(name_to_code.course_name, "Calculus 1")
+        self.assertEqual(name_to_code.operations, ("identity",))
+
+        code_to_name = parse_query_spec("06016414 ชื่อวิชาอะไร")
+        self.assertEqual(code_to_name.course_codes, ("06016414",))
+        self.assertEqual(code_to_name.operations, ("identity",))
+
+        code_to_name_short = parse_query_spec("06016414 รหัสอะไร")
+        self.assertEqual(code_to_name_short.operations, ())
+
+    def test_describe_wording_does_not_become_identity(self):
+        for wording in ("เรียนเรื่องอะไร", "เรียนเกี่ยวกับอะไร"):
+            with self.subTest(wording=wording):
+                spec = parse_query_spec(f"วิชา Calculus 1 {wording}")
+                self.assertEqual(spec.operations, ("describe",))
+
+    def test_calculus_roman_numeral_remains_unresolved_surface(self):
+        spec = parse_query_spec("วิชา Calculus I รหัสวิชาอะไร")
+
+        self.assertEqual(spec.course_name, "Calculus I")
+        self.assertEqual(spec.operations, ("identity",))
+
     def test_parser_has_no_later_stage_dependencies(self):
         spec = parse_query_spec("IT ปีสามเกี่ยวกับ database")
         self.assertEqual(spec.program, "IT")

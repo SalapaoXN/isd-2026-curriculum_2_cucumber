@@ -13,6 +13,22 @@ _PROGRAM_BLOCKING_AMBIGUITY = ("program",)
 
 
 @dataclass(frozen=True, slots=True)
+class QueryContext:
+    """Immutable UI-provided scope, separate from question-derived entities."""
+
+    program: str | None = None
+    plan: str | None = None
+
+    def __post_init__(self) -> None:
+        for field_name in ("program", "plan"):
+            value = getattr(self, field_name)
+            if value is not None and (
+                not isinstance(value, str) or not value.strip()
+            ):
+                raise ValueError(f"{field_name} must be None or a non-empty string")
+
+
+@dataclass(frozen=True, slots=True)
 class CourseReferenceResolution:
     """Candidates returned for one explicit course code or name reference."""
 
@@ -29,11 +45,13 @@ class ResolutionOutcome:
     blocking_ambiguity: tuple[str, ...]
     resolved_program: str | None
     course_references: tuple[CourseReferenceResolution, ...]
+    resolved_plans: tuple[str, ...] = ()
+    context_conflicts: tuple[str, ...] = ()
 
 
-def _requires_program_scope(spec: QuerySpec) -> bool:
+def _requires_program_scope(spec: QuerySpec, plans: tuple[str, ...]) -> bool:
     return bool(
-        spec.plans
+        plans
         or spec.years
         or spec.semesters
         or spec.category
@@ -55,14 +73,39 @@ def _outcome(
     *,
     resolved_program: str | None,
     course_references: tuple[CourseReferenceResolution, ...] = (),
+    resolved_plans: tuple[str, ...] = (),
     blocking_ambiguity: tuple[str, ...] = (),
+    context_conflicts: tuple[str, ...] = (),
 ) -> ResolutionOutcome:
     return ResolutionOutcome(
         action=action,
         blocking_ambiguity=blocking_ambiguity,
         resolved_program=resolved_program,
         course_references=course_references,
+        resolved_plans=resolved_plans,
+        context_conflicts=context_conflicts,
     )
+
+
+def _same_scope_value(left: str, right: str) -> bool:
+    return left.strip().casefold() == right.strip().casefold()
+
+
+def _context_conflicts(spec: QuerySpec, context: QueryContext) -> tuple[str, ...]:
+    conflicts: list[str] = []
+    if (
+        context.program is not None
+        and spec.program is not None
+        and not _same_scope_value(context.program, spec.program)
+    ):
+        conflicts.append("program")
+
+    if context.plan is not None:
+        if len(spec.plans) > 1:
+            conflicts.append("plan")
+        elif spec.plans and not _same_scope_value(context.plan, spec.plans[0]):
+            conflicts.append("plan")
+    return tuple(conflicts)
 
 
 def _candidate_programs(
@@ -75,14 +118,34 @@ def _candidate_programs(
     }
 
 
-def resolve_query_spec(spec: QuerySpec, db_path: Database) -> ResolutionOutcome:
+def resolve_query_spec(
+    spec: QuerySpec,
+    db_path: Database,
+    context: QueryContext | None = None,
+) -> ResolutionOutcome:
     """Resolve exact entities and apply the Phase 3B guard order.
 
     The resolver only uses the relational exact-candidate primitive. It does
     not retrieve evidence, call a model, or decide any later answer content.
     """
+    if context is None:
+        context = QueryContext()
+
     if spec.judgement == "unsupported":
         return _outcome("unsupported", resolved_program=spec.program)
+
+    conflicts = _context_conflicts(spec, context)
+    if conflicts:
+        return _outcome(
+            "context_conflict",
+            resolved_program=None,
+            context_conflicts=conflicts,
+        )
+
+    effective_program = spec.program or context.program
+    effective_plans = spec.plans or (
+        (context.plan,) if context.plan is not None else ()
+    )
 
     references: list[CourseReferenceResolution] = []
     for reference_type, reference in _explicit_references(spec):
@@ -90,7 +153,7 @@ def resolve_query_spec(spec: QuerySpec, db_path: Database) -> ResolutionOutcome:
             db_path,
             course_code=reference if reference_type == "course_code" else None,
             course_name=reference if reference_type == "course_name" else None,
-            program=spec.program,
+            program=effective_program,
         )
         references.append(
             CourseReferenceResolution(
@@ -104,12 +167,13 @@ def resolve_query_spec(spec: QuerySpec, db_path: Database) -> ResolutionOutcome:
     if any(not reference.candidates for reference in resolved_references):
         return _outcome(
             "no_data",
-            resolved_program=spec.program,
+            resolved_program=effective_program,
             course_references=resolved_references,
+            resolved_plans=effective_plans,
         )
 
-    resolved_program = spec.program
-    if spec.program is None and resolved_references:
+    resolved_program = effective_program
+    if effective_program is None and resolved_references:
         programs = set().union(
             *(_candidate_programs(reference) for reference in resolved_references)
         )
@@ -118,6 +182,7 @@ def resolve_query_spec(spec: QuerySpec, db_path: Database) -> ResolutionOutcome:
                 "clarify_program",
                 resolved_program=None,
                 course_references=resolved_references,
+                resolved_plans=effective_plans,
                 blocking_ambiguity=_PROGRAM_BLOCKING_AMBIGUITY,
             )
 
@@ -129,14 +194,15 @@ def resolve_query_spec(spec: QuerySpec, db_path: Database) -> ResolutionOutcome:
             resolved_program = next(iter(programs))
 
     if (
-        spec.program is None
+        effective_program is None
         and resolved_program is None
-        and _requires_program_scope(spec)
+        and _requires_program_scope(spec, effective_plans)
     ):
         return _outcome(
             "clarify_program",
             resolved_program=None,
             course_references=resolved_references,
+            resolved_plans=effective_plans,
             blocking_ambiguity=_PROGRAM_BLOCKING_AMBIGUITY,
         )
 
@@ -144,11 +210,13 @@ def resolve_query_spec(spec: QuerySpec, db_path: Database) -> ResolutionOutcome:
         "answer",
         resolved_program=resolved_program,
         course_references=resolved_references,
+        resolved_plans=effective_plans,
     )
 
 
 __all__ = [
     "CourseReferenceResolution",
+    "QueryContext",
     "ResolutionOutcome",
     "resolve_query_spec",
 ]

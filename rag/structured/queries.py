@@ -842,6 +842,11 @@ def _course_name_matches(reference: str, candidate: str | None) -> bool:
     )
 
 
+def _append_distinct_non_empty(values: list[str], value: Any) -> None:
+    if isinstance(value, str) and value.strip() and value not in values:
+        values.append(value)
+
+
 def exact_course_candidates(
     db_path: Database,
     *,
@@ -904,31 +909,58 @@ def exact_course_candidates(
             parameters,
         ).fetchall()
 
-    candidates: list[dict[str, Any]] = []
-    seen: set[tuple[str, str]] = set()
-    for row in rows:
-        if normalized_code is None and not (
-            _course_name_matches(course_name or "", row["name_th"])
-            or _course_name_matches(course_name or "", row["name_en"])
-        ):
-            continue
-        logical_key = (
-            str(row["program_code_normalized"]),
-            str(row["course_code_normalized"]),
-        )
-        if logical_key in seen:
-            continue
-        seen.add(logical_key)
-        candidates.append(
-            {
-                "course_id": int(row["course_id"]),
-                "catalog_id": int(row["catalog_id"]),
-                "program": row["program_code"],
-                "course_code": row["course_code"],
-                "name_th": row["name_th"],
-                "name_en": row["name_en"],
-            }
-        )
+        matched_keys: set[tuple[str, str]] = set()
+        if normalized_code is None:
+            for row in rows:
+                logical_key = (
+                    str(row["program_code_normalized"]),
+                    str(row["course_code_normalized"]),
+                )
+                if _course_name_matches(course_name or "", row["name_th"]) or _course_name_matches(
+                    course_name or "", row["name_en"]
+                ):
+                    matched_keys.add(logical_key)
+
+        candidates_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+        for row in rows:
+            logical_key = (
+                str(row["program_code_normalized"]),
+                str(row["course_code_normalized"]),
+            )
+            if normalized_code is None and logical_key not in matched_keys:
+                continue
+            candidate = candidates_by_key.get(logical_key)
+            if candidate is None:
+                candidate = {
+                    "course_id": int(row["course_id"]),
+                    "catalog_id": int(row["catalog_id"]),
+                    "program": row["program_code"],
+                    "course_code": row["course_code"],
+                    "_name_th_values": [],
+                    "_name_en_values": [],
+                    "provenance": [],
+                }
+                candidates_by_key[logical_key] = candidate
+            _append_distinct_non_empty(candidate["_name_th_values"], row["name_th"])
+            _append_distinct_non_empty(candidate["_name_en_values"], row["name_en"])
+            candidate["provenance"] = _merge_provenance(
+                candidate["provenance"],
+                _provenance_for(
+                    connection,
+                    "course_provenance",
+                    "course_id",
+                    int(row["course_id"]),
+                ),
+            )
+
+    candidates = list(candidates_by_key.values())
+    for candidate in candidates:
+        name_th_values = candidate.pop("_name_th_values")
+        name_en_values = candidate.pop("_name_en_values")
+        candidate["name_th"] = name_th_values[0] if len(name_th_values) == 1 else None
+        candidate["name_en"] = name_en_values[0] if len(name_en_values) == 1 else None
+        candidate["name_th_variants"] = name_th_values
+        candidate["name_en_variants"] = name_en_values
     return candidates
 
 

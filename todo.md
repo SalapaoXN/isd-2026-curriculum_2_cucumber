@@ -436,10 +436,34 @@ Do separately:
 
 ### Phase 4I — Pending Integration / Design
 
+- [x] 4I.1 PASS/FROZEN: integration design
+  - runtime orchestration entry point: `rag.qa.ask()`
+  - route labels remain diagnostic only; `EvidencePlan` drives execution
+  - `ask.py` remains the CLI/UI adapter
+  - `hybrid_demo.py` remains a compatibility wrapper; normal runtime must not rebuild the DB/index
+  - execution flow: QuerySpec + QueryContext -> resolution/guards -> EvidencePlan -> evidence executor -> aggregation/judgement/similarity -> grounded answer + provenance
+  - typed evidence/provenance remains separate from final answer text; an LLM may phrase grounded evidence but may not recalculate or invent deterministic facts
+- [x] 4I.2 PASS/FROZEN: QueryContext + Identity
+  - immutable `{program: optional, plan: optional}`
+  - QuerySpec remains immutable and represents question-derived entities
+  - context fills missing scope; matching explicit scope is accepted
+  - explicit program/plan conflict => action `context_conflict`
+  - add explicit `context_conflicts` metadata; do not reuse `blocking_ambiguity`
+  - no context preserves existing 4C ambiguity behavior
+  - blocked conflicts stop before routing/retrieval/model
+  - program-only context permits multi-plan questions
+  - approved controlled QuerySpec extension: operation `identity`
+  - deterministic exact resolution only: course name -> course code; exact course code -> canonical course identity/name
+  - plan/catalog copies collapse by `(program, course_code)`
+  - conflicting name values are preserved as variants and never silently selected
+  - no vector search, fuzzy matching, LLM guessing, or program inference from course-code prefix
+  - existing name normalization supports `Calculus 1`; no `Calculus I` alias behavior
+  - CALCULUS: AIT + `Calculus 1` -> `06046400`; DSBA + `Calculus 1` -> `06026200`; no program context -> `clarify_program`; `Calculus I` -> unresolved/`no_data`
+  - final regression: QueryContext PASS; Identity PASS; intent/parser regression PASS; numeric-token safety PASS; 63 focused tests passed
+- [ ] 4I.3 EvidencePlan execution adapter
+- [ ] 4I.4 typed grounded answer/provenance integration
+- [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
-- [ ] add UI QueryContext: selected program; optional selected plan; UI context supplies authoritative scope when present
-- [ ] check explicit question entities against UI context; do not silently override conflicts
-- [ ] add deterministic exact-course identity capability: course name -> course code and course code -> canonical course name (for example, `Calculus 1 มีรหัสวิชาอะไร`); use exact-resolved identity, not semantic retrieval or LLM guessing
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
 
 ### Phase 5 — Pending
@@ -474,7 +498,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4I — Integration Design**
+**Phase 4I.3 — EvidencePlan Execution Adapter**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

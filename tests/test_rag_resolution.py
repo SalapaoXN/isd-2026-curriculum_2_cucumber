@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from rag.query_spec import parse_query_spec
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 
 
 DB_PATH = (
@@ -15,6 +15,130 @@ DB_PATH = (
 
 
 class ResolutionTest(unittest.TestCase):
+    def test_missing_program_is_filled_by_context(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("ปี 2 เรียนอะไรบ้าง"),
+            DB_PATH,
+            QueryContext(program="IT"),
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, "IT")
+
+    def test_matching_program_context_is_accepted(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT ปี 2 เรียนอะไรบ้าง"),
+            DB_PATH,
+            QueryContext(program="IT"),
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, "IT")
+
+    def test_calculus_name_context_scopes_to_ait_or_dsba(self):
+        for program, code in (("AIT", "06046400"), ("DSBA", "06026200")):
+            with self.subTest(program=program):
+                outcome = resolve_query_spec(
+                    parse_query_spec("วิชา Calculus 1 รหัสวิชาอะไร"),
+                    DB_PATH,
+                    QueryContext(program=program),
+                )
+
+                self.assertEqual(outcome.action, "answer")
+                self.assertEqual(outcome.resolved_program, program)
+                self.assertEqual(
+                    outcome.course_references[0].candidates[0]["course_code"],
+                    code,
+                )
+
+    def test_unscoped_calculus_name_requires_program_clarification(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("วิชา Calculus 1 รหัสวิชาอะไร"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "clarify_program")
+        self.assertEqual(outcome.blocking_ambiguity, ("program",))
+
+    def test_calculus_roman_numeral_remains_no_data(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("วิชา Calculus I รหัสวิชาอะไร"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "no_data")
+        self.assertEqual(outcome.course_references[0].candidates, ())
+
+    def test_conflicting_program_context_is_explicit(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("AIT ปี 2 เรียนอะไรบ้าง"),
+            DB_PATH,
+            QueryContext(program="IT"),
+        )
+
+        self.assertEqual(outcome.action, "context_conflict")
+        self.assertEqual(outcome.context_conflicts, ("program",))
+        self.assertEqual(outcome.blocking_ambiguity, ())
+
+    def test_context_plan_fills_missing_plan(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT ปี 2 เรียนอะไรบ้าง"),
+            DB_PATH,
+            QueryContext(plan="coop"),
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_plans, ("coop",))
+
+    def test_matching_plan_context_is_accepted(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT coop ปี 2 เรียนอะไรบ้าง"),
+            DB_PATH,
+            QueryContext(plan="coop"),
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_plans, ("coop",))
+
+    def test_conflicting_plan_context_is_explicit(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT no_coop ปี 2 เรียนอะไรบ้าง"),
+            DB_PATH,
+            QueryContext(plan="coop"),
+        )
+
+        self.assertEqual(outcome.action, "context_conflict")
+        self.assertEqual(outcome.context_conflicts, ("plan",))
+        self.assertEqual(outcome.blocking_ambiguity, ())
+
+    def test_multiple_plans_conflict_with_restricted_context(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT coop no_coop เปรียบเทียบแผน"),
+            DB_PATH,
+            QueryContext(plan="coop"),
+        )
+
+        self.assertEqual(outcome.action, "context_conflict")
+        self.assertEqual(outcome.context_conflicts, ("plan",))
+
+    def test_program_context_does_not_restrict_plan_comparison(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT coop no_coop เปรียบเทียบแผน"),
+            DB_PATH,
+            QueryContext(program="IT"),
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, "IT")
+        self.assertEqual(outcome.resolved_plans, ("coop", "no_coop"))
+
+    def test_context_does_not_change_query_spec(self):
+        spec = parse_query_spec("ปี 2 เรียนอะไรบ้าง")
+        resolve_query_spec(spec, DB_PATH, QueryContext(program="IT", plan="coop"))
+
+        self.assertIsNone(spec.program)
+        self.assertEqual(spec.plans, ())
+
     def test_unsupported_stops_before_db_lookup(self):
         spec = parse_query_spec("วิชาไหนยากที่สุด")
 

@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = (
@@ -100,6 +101,90 @@ class RagQaTest(unittest.TestCase):
                 route.assert_not_called()
                 structured.assert_not_called()
                 retrieve.assert_not_called()
+
+    def test_context_conflict_stops_before_qa_work(self):
+        with patch(
+            "rag.qa.route_question",
+            side_effect=AssertionError("route must not be called"),
+        ) as route, patch(
+            "rag.qa.ask_structured",
+            side_effect=AssertionError("structured QA must not be called"),
+        ) as structured, patch(
+            "rag.qa.retrieve",
+            side_effect=AssertionError("retrieval must not be called"),
+        ) as retrieve:
+            result = ask(
+                DB_PATH,
+                "AIT ปี 2 เรียนอะไรบ้าง",
+                context=QueryContext(program="IT"),
+            )
+
+        self.assertIsNone(result["route"])
+        self.assertEqual(result["result"]["status"], "context_conflict")
+        self.assertEqual(result["result"]["action"], "context_conflict")
+        self.assertEqual(result["result"]["context_conflicts"], ("program",))
+        self.assertEqual(result["result"]["blocking_ambiguity"], ())
+        route.assert_not_called()
+        structured.assert_not_called()
+        retrieve.assert_not_called()
+
+    def test_identity_returns_typed_exact_evidence_without_qa_paths(self):
+        with patch(
+            "rag.qa.route_question",
+            side_effect=AssertionError("identity must not route"),
+        ) as route, patch(
+            "rag.qa.ask_structured",
+            side_effect=AssertionError("identity must not use structured QA"),
+        ) as structured, patch(
+            "rag.qa.retrieve",
+            side_effect=AssertionError("identity must not retrieve"),
+        ) as retrieve:
+            result = ask(
+                DB_PATH,
+                "วิชา Calculus 1 รหัสวิชาอะไร",
+                context=QueryContext(program="AIT"),
+            )
+
+        self.assertIsNone(result["route"])
+        self.assertEqual(result["result"]["operation"], "identity")
+        self.assertEqual(result["result"]["status"], "answer")
+        self.assertEqual(
+            [
+                (item["program"], item["course_code"])
+                for item in result["result"]["identities"]
+            ],
+            [("AIT", "06046400")],
+        )
+        self.assertTrue(result["result"]["identities"][0]["provenance"])
+        route.assert_not_called()
+        structured.assert_not_called()
+        retrieve.assert_not_called()
+
+    def test_identity_unknown_code_keeps_no_data_guard(self):
+        result = ask(DB_PATH, "06019999 ชื่ออะไร")
+
+        self.assertIsNone(result["route"])
+        self.assertEqual(result["result"]["status"], "no_data")
+        self.assertEqual(result["result"]["action"], "no_data")
+
+    def test_identity_code_returns_canonical_name_without_model(self):
+        with patch(
+            "rag.qa.route_question",
+            side_effect=AssertionError("identity must not route"),
+        ) as route, patch(
+            "rag.qa.retrieve",
+            side_effect=AssertionError("identity must not retrieve"),
+        ) as retrieve:
+            result = ask(DB_PATH, "06046400 ชื่ออะไร")
+
+        self.assertIsNone(result["route"])
+        identity = result["result"]["identities"]
+        self.assertEqual(len(identity), 1)
+        self.assertEqual(identity[0]["program"], "AIT")
+        self.assertEqual(identity[0]["course_code"], "06046400")
+        self.assertEqual(identity[0]["name_en"], "CALCULUS 1")
+        route.assert_not_called()
+        retrieve.assert_not_called()
 
     def test_structured_route_without_callable_fails(self):
         with self.assertRaises(ValueError):

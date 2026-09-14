@@ -48,8 +48,9 @@ _SEMESTER_PATTERN = re.compile(
 )
 _COURSE_CODE_PATTERN = re.compile(r"(?<!\d)(\d{8})(?!\d)")
 _COURSE_NAME_PATTERN = re.compile(
-    r"(?<!\S)วิชา\s+(?P<name>[A-Za-z][A-Za-z0-9]*(?:[ \t]+[A-Za-z][A-Za-z0-9]*)*)"
-    r"\s+(?=(?:เรียนเรื่อง|เรียนเกี่ยวกับ|คืออะไร|เกี่ยวกับอะไร|มีอะไร))",
+    r"(?<!\S)วิชา\s+(?P<name>[A-Za-z][A-Za-z0-9]*(?:[ \t]+[A-Za-z0-9]+)*)"
+    r"\s+(?=(?:เรียนเรื่อง|เรียนเกี่ยวกับ|คืออะไร|เกี่ยวกับอะไร|มีอะไร|"
+    r"รหัส(?:วิชา)?\s*อะไร))",
     re.IGNORECASE,
 )
 _CATEGORY_PATTERN = re.compile(r"วิชาเลือก")
@@ -104,6 +105,13 @@ _OPERATION_PATTERNS = (
     ("prerequisite", re.compile(r"ก่อนลง|ต้องผ่าน|เรียน.*มาก่อน|prerequisite", re.IGNORECASE)),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
 )
+_IDENTITY_NAME_TO_CODE_PATTERN = re.compile(
+    r"รหัส(?:วิชา)?\s*อะไร", re.IGNORECASE
+)
+_IDENTITY_CODE_TO_NAME_PATTERN = re.compile(
+    r"(?:ชื่อวิชา\s*อะไร|ชื่อ\s*อะไร|คือวิชา\s*อะไร)",
+    re.IGNORECASE,
+)
 _WORKLOAD_PATTERN = re.compile(r"หนัก(?:ไหม|มั้ย|หรือไม่)", re.IGNORECASE)
 _QUANTITY_PATTERN = re.compile(r"เยอะ(?:ไหม|มั้ย|หรือไม่|ปะ)", re.IGNORECASE)
 _PREFERENCE_PATTERN = re.compile(r"ชอบ|น่าสนใจ|แนะนำ|เหมาะ|\bprefer(?:ence)?\b", re.IGNORECASE)
@@ -125,6 +133,7 @@ _OPERATION_ORDER = MappingProxyType(
         "similarity": 7,
         "earliest": 8,
         "compare": 9,
+        "identity": 10,
     }
 )
 
@@ -206,11 +215,24 @@ def _extract_topic(question: str, course_name: str | None) -> str | None:
     return match.group(0)
 
 
-def _extract_operations(question: str, judgement: str, has_scope: bool) -> tuple[str, ...]:
+def _extract_operations(
+    question: str,
+    judgement: str,
+    has_scope: bool,
+    *,
+    course_codes: tuple[str, ...] = (),
+    course_name: str | None = None,
+) -> tuple[str, ...]:
     if not has_scope:
         return ()
     matches = []
+    identity_request = bool(
+        (course_name and _IDENTITY_NAME_TO_CODE_PATTERN.search(question))
+        or (course_codes and _IDENTITY_CODE_TO_NAME_PATTERN.search(question))
+    )
     for operation, pattern in _OPERATION_PATTERNS:
+        if operation == "describe" and identity_request:
+            continue
         if operation == "existence" and judgement in {"quantity", "workload"}:
             continue
         for match in pattern.finditer(question):
@@ -227,6 +249,12 @@ def _extract_operations(question: str, judgement: str, has_scope: bool) -> tuple
                     (match.start(), -1, "sum_credits"),
                 )
             )
+    if identity_request:
+        match = (
+            _IDENTITY_NAME_TO_CODE_PATTERN.search(question)
+            or _IDENTITY_CODE_TO_NAME_PATTERN.search(question)
+        )
+        matches.append((match.start() if match else 0, _OPERATION_ORDER["identity"], "identity"))
     return _ordered_unique(
         operation for _, _, operation in sorted(matches, key=lambda item: (item[0], item[1]))
     )
@@ -311,7 +339,13 @@ def parse_query_spec(question: str) -> QuerySpec:
         course_name=course_name,
         category=category,
         topic=topic,
-        operations=_extract_operations(normalized_question, judgement, has_scope),
+        operations=_extract_operations(
+            normalized_question,
+            judgement,
+            has_scope,
+            course_codes=course_codes,
+            course_name=course_name,
+        ),
         group_by=_extract_group_by(normalized_question, plans, years, course_codes, has_scope),
         judgement=judgement,
     )
