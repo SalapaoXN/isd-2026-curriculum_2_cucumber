@@ -1,8 +1,15 @@
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from rag.qa import ask
+from rag.aggregation import ComparisonAggregation, ComponentAggregation
+from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
+from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
+from rag.grounded_answer import GroundedClaim
+from rag.qa import _compose_evidence_claims, _course_set_aggregate, ask
+from rag.query_spec import parse_query_spec
+from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult
 from rag.resolution import QueryContext
 
 
@@ -189,6 +196,182 @@ class RagQaTest(unittest.TestCase):
     def test_structured_route_without_callable_fails(self):
         with self.assertRaises(ValueError):
             ask("curriculum.db", "What are the prerequisites?")
+
+    def _bundle(self, requests_and_payloads):
+        scope = StructuralScope(program="IT", plans=("coop",), years=(1,), semesters=(1,))
+        requests = tuple(
+            EvidenceRequest(request_id, kind, scope)
+            for request_id, kind, _payload, _status in requests_and_payloads
+        )
+        results = tuple(
+            EvidenceExecutionResult(
+                request_id=request_id,
+                kind=kind,
+                planned_request=request,
+                effective_scope=scope,
+                status=status,
+                payload=payload,
+            )
+            for request, (request_id, kind, payload, status) in zip(
+                requests, requests_and_payloads
+            )
+        )
+        return EvidenceBundle(EvidencePlan(scope, requests), results)
+
+    def _spec(self, operations, *, topic=None, judgement="none"):
+        spec = parse_query_spec("IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
+        return replace(spec, operations=tuple(operations), topic=topic, judgement=judgement)
+
+    def _course(self, code="06016414", page=1):
+        return {
+            "program": "IT",
+            "course_code": code,
+            "name_en": "Course",
+            "name_th": "วิชา",
+            "provenance": ({"source_page": page},),
+        }
+
+    def test_private_adapters_reuse_one_relation_for_list_count_existence(self):
+        bundle = self._bundle(
+            (("course_set", "course_set", {"courses": [self._course()]}, "complete"),)
+        )
+        with patch(
+            "rag.qa._course_set_aggregate", wraps=_course_set_aggregate
+        ) as aggregate:
+            claims = _compose_evidence_claims(
+                self._spec(("list", "count", "existence")), bundle
+            )
+
+        self.assertEqual(aggregate.call_count, 1)
+
+        self.assertEqual(
+            [claim.operation for claim in claims], ["list", "count", "existence"]
+        )
+        self.assertEqual(claims[0].value[0]["course_code"], "06016414")
+        self.assertEqual(claims[1].value, 1)
+        self.assertTrue(claims[2].value)
+        self.assertTrue(all(isinstance(claim, GroundedClaim) for claim in claims))
+        self.assertEqual([claim.claim_id for claim in claims], ["claim_001", "claim_002", "claim_003"])
+
+    def test_topic_operations_use_topic_matches_candidates_not_course_set(self):
+        topic_course = {
+            **self._course("06016414", 7),
+            "description_evidence": (
+                {
+                    "chunk_id": "06016414-description",
+                    "chunk_type": "description",
+                    "text": "Database systems",
+                    "program": "IT",
+                    "course_code": "06016414",
+                    "partition": {
+                        "program": "IT",
+                        "plans": ("coop",),
+                        "years": (1,),
+                        "semesters": (1,),
+                        "category": None,
+                        "group_by": (),
+                    },
+                    "provenance": ({"source_page": 7},),
+                },
+            ),
+        }
+        topic = ConstrainedTopicRetrievalResult(
+            "scored",
+            candidates=(topic_course,),
+            scored_candidates=(topic_course,),
+        )
+        unrelated = self._course("06019999", 8)
+        bundle = self._bundle(
+            (
+                ("course_set", "course_set", {"courses": [unrelated]}, "complete"),
+                ("topic_matches", "topic_matches", topic, "complete"),
+            )
+        )
+        claims = _compose_evidence_claims(
+            self._spec(("list", "count", "preference"), topic="database", judgement="preference"),
+            bundle,
+        )
+
+        self.assertEqual([claim.operation for claim in claims], ["list", "count", "preference"])
+        self.assertEqual(claims[0].value[0]["course_code"], "06016414")
+        self.assertEqual(claims[1].value, 1)
+        self.assertEqual(claims[2].status, "complete")
+        self.assertEqual(claims[2].value.options[0]["course_code"], "06016414")
+
+    def test_direct_adapters_preserve_partition_and_typed_provenance(self):
+        scope = StructuralScope(program="IT", plans=("coop",), years=(2,), semesters=(1,))
+        request_data = (
+            ("credit_facts", "credit_facts", {"components": [{
+                "program": "IT",
+                "course_code": "06016414",
+                "counted_credit_units": 3,
+                "provenance": ({"source_page": 12},),
+            }]}, "complete"),
+            ("placement_facts", "placement_facts", {"courses": [{
+                "program": "IT",
+                "course_code": "06016414",
+                "year": 2,
+                "semester": 1,
+                "provenance": ({"source_page": 13},),
+            }]}, "complete"),
+            ("description_evidence", "description_evidence", ({
+                "chunk_id": "06016414-description",
+                "text": "Database systems",
+                "provenance": ({"source_page": 14},),
+            },), "complete"),
+        )
+        requests = tuple(EvidenceRequest(item[0], item[1], scope) for item in request_data)
+        results = tuple(
+            EvidenceExecutionResult(item[0], item[1], request, scope, item[3], item[2])
+            for request, item in zip(requests, request_data)
+        )
+        bundle = EvidenceBundle(EvidencePlan(scope, requests), results)
+        claims = _compose_evidence_claims(
+            self._spec(("sum_credits", "placement", "earliest", "describe")), bundle
+        )
+
+        self.assertEqual(
+            [claim.operation for claim in claims],
+            ["sum_credits", "placement", "earliest", "describe"],
+        )
+        self.assertEqual(claims[0].value, 3)
+        self.assertEqual(claims[0].effective_scope, scope)
+        self.assertEqual(claims[0].provenance[0]["source_page"], 12)
+        self.assertEqual(claims[2].value.value, (2, 1))
+        self.assertEqual(claims[3].kind, "grounded_summary")
+
+    def test_judgement_adapters_preserve_valid_zero_and_workload_proxies(self):
+        empty_scope = StructuralScope(program="IT", plans=("coop",), years=(1,), semesters=(1,))
+        request = EvidenceRequest("course_set", "course_set", empty_scope)
+        result = EvidenceExecutionResult(
+            "course_set", "course_set", request, empty_scope, "valid_empty", {"courses": []}
+        )
+        bundle = EvidenceBundle(EvidencePlan(empty_scope, (request,)), (result,))
+        claims = _compose_evidence_claims(
+            self._spec(("count", "existence", "quantity"), judgement="quantity"), bundle
+        )
+
+        self.assertEqual([claims[0].value, claims[1].value], [0, False])
+        self.assertEqual(claims[2].value.status, "descriptive_only")
+        self.assertEqual(claims[2].status, "descriptive_only")
+
+    def test_compare_adaptation_uses_existing_comparison_without_recomputing(self):
+        scope = StructuralScope(program="IT", plans=("coop",), years=(1,), semesters=(1,))
+        left = ComponentAggregation("sum_credits", "complete", 3, ({"provenance": ({"source_page": 1},)},))
+        right = ComponentAggregation("sum_credits", "complete", 6, ({"provenance": ({"source_page": 2},)},))
+        comparison = ComparisonAggregation("complete", "less", left, right)
+        request = EvidenceRequest("comparison", "credit_facts", scope)
+        result = EvidenceExecutionResult(
+            "comparison", "credit_facts", request, scope, "complete", comparison
+        )
+        bundle = EvidenceBundle(EvidencePlan(scope, (request,)), (result,))
+        claims = _compose_evidence_claims(self._spec(("compare",)), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].value.relation, "less")
+        self.assertEqual(
+            [reference["source_page"] for reference in claims[0].provenance], [1, 2]
+        )
 
 
 if __name__ == "__main__":

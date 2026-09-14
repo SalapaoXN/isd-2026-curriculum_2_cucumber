@@ -545,6 +545,20 @@ Do separately:
       - authoritative counted_credit_units, alternative groups, components, and provenance remain unchanged
       - regression: 34 passed
       - no blockers
+    - [x] 4I.4d.1 PASS/FROZEN: Executor Payload Adapters + Operation Mapping
+      - private adapters live in `rag/qa.py`
+      - consume `EvidenceBundle` only; no DB/vector re-query
+      - `QuerySpec.operations` defines claim order
+      - executor order defines partition order
+      - one relation may support list/count/existence without new retrieval
+      - topic operations use `topic_matches`, never upstream `course_set`
+      - preserve `effective_scope`, status, and provenance
+      - compare may use only already-created aggregates
+      - identity remains resolution-owned
+      - similarity remains deferred because it is not in `EvidenceBundle`
+      - generic multi-partition greatest/best comparison remains unsupported until a deterministic pairing policy is frozen
+      - final cache audit: 61 passed; no blockers
+    - 4I.4d.2 QA + Hybrid Integration / Provenance Freeze: `qa.ask()` typed pipeline wiring
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -581,7 +595,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.4d.1 — Executor Payload Adapters + Operation Mapping**
+**4I.4d.2 — QA + Hybrid Integration / Provenance Freeze**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.
