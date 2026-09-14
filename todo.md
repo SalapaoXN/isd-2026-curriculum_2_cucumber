@@ -434,7 +434,7 @@ Do separately:
   - [x] aggregate semantic types, comparison operands/relations, provenance, supplied similarity evidence, chunk IDs, and selected_plan are validated
   - [x] 4H final regression: 165 focused tests passed
 
-### Phase 4I — Pending Integration / Design
+### Phase 4I — PASS/FROZEN
 
 - [x] 4I.1 PASS/FROZEN: integration design
   - runtime orchestration entry point: `rag.qa.ask()`
@@ -655,7 +655,19 @@ Do separately:
       - plan-specific course mapping and provenance are correct
       - no-plan similarity now has 2 aligned partitions
       - regression: 114 tests passed; no blockers
-- [ ] 4I.5 runtime smoke/regression
+- [x] 4I.5 PASS/FROZEN: Runtime Smoke / Regression Freeze
+  - 10/10 natural runtime probes passed
+  - all QueryContext smoke cases passed
+  - repeated-query stability passed
+  - `valid_empty` / zero / `exists=False` passed
+  - sqlite-vec and coop/no_coop isolation passed
+  - unexpected model calls: 0
+  - index rebuild calls: 0
+  - legacy route/recovery calls: 0
+  - runtime exceptions: 0
+  - focused regression: 329 passed
+  - latency baseline: p50 27.60 ms, p95 248.11 ms, max 338.06 ms
+  - no blockers
   - [x] 4I.5a PASS/FROZEN: QueryContext propagation into parsing/planning
     - missing program can be supplied by `QueryContext`
     - plan remains optional
@@ -664,9 +676,9 @@ Do separately:
     - no-context still returns `clarify_program`
     - explicit conflicts still return `context_conflict`
     - final audit: 72 passed; no blockers
-  - prerequisite blocker: QueryContext is resolved correctly but is not fully propagated into parsing/planning
-  - Case A: a year/semester-only question drops its detected `list` operation when program is absent from the text; context supplies the program later, after the operation has already been dropped; fix belongs in `rag/query_spec.py`
-  - Case B: resolution produces `resolved_plans=("coop",)`, but the planner ignores it when `QuerySpec.plans` is empty, so the executor expands both `coop` and `no_coop`; fix belongs in `rag/evidence_planner.py`
+  - resolved prerequisite blocker: QueryContext is resolved correctly but was not fully propagated into parsing/planning
+  - resolved Case A: a year/semester-only question dropped its detected `list` operation when program was absent from the text; fixed in `rag/query_spec.py`
+  - resolved Case B: the planner ignored `resolved_plans=("coop",)` when `QuerySpec.plans` was empty; fixed in `rag/evidence_planner.py`
   - frozen expectation: program context may supply a missing program; plan remains optional; no selected plan keeps applicable plans separate; `plan=coop`/`no_coop` uses only that plan; no-context ambiguity remains unchanged
   - use the existing 10 natural runtime probes
   - valid_empty remains covered by controlled regression, not a new natural or Gold question
@@ -720,7 +732,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.5 — Final Runtime Smoke / Regression Freeze**
+**Phase 5 — Whole-System Review Before Gold Evaluation**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.
