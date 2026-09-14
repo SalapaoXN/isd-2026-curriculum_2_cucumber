@@ -520,7 +520,8 @@ class EvidenceExecutorTests(unittest.TestCase):
 
     def test_prerequisite_facts_execute_without_flattening(self):
         scope = self._scope(
-            course_targets=({"course_id": 20, "program": "IT", "course_code": "06016420"},),
+            semesters=(2,),
+            course_targets=({"course_id": 635, "program": "IT", "course_code": "06016420"},),
         )
         request = EvidenceRequest(
             "prereqs", "prerequisite_facts", scope, course_targets=scope.course_targets
@@ -531,6 +532,54 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertIn(result.status, ("complete", "valid_empty"))
         if result.status == "complete":
             self.assertIsInstance(result.payload, tuple)
+
+    def test_prerequisite_facts_remap_physical_course_per_plan(self):
+        target = {
+            "course_id": 635,
+            "program": "IT",
+            "course_code": "06016420",
+        }
+        scope = self._scope(
+            plans=("coop", "no_coop"),
+            semesters=(2,),
+            course_targets=(target,),
+        )
+        request = EvidenceRequest(
+            "prerequisites",
+            "prerequisite_facts",
+            scope,
+            course_targets=(target,),
+        )
+
+        results = execute_evidence_plan(DB_PATH, self._plan(request)).results
+
+        self.assertEqual([result.effective_scope.plans for result in results], [
+            ("coop",),
+            ("no_coop",),
+        ])
+        self.assertEqual(
+            [
+                (result.payload[0]["course_id"], result.payload[0]["prerequisite_course_id"])
+                for result in results
+            ],
+            [(635, 624), (739, 728)],
+        )
+        provenance_ids = [
+            {
+                reference.get("provenance_id")
+                for record in result.payload
+                for reference in record.get("provenance", ())
+            }
+            for result in results
+        ]
+        self.assertIn(196, provenance_ids[0])
+        self.assertIn(191, provenance_ids[0])
+        self.assertNotIn(236, provenance_ids[0])
+        self.assertNotIn(235, provenance_ids[0])
+        self.assertIn(236, provenance_ids[1])
+        self.assertIn(235, provenance_ids[1])
+        self.assertNotIn(196, provenance_ids[1])
+        self.assertNotIn(191, provenance_ids[1])
 
     def test_direct_description_evidence_preserves_partition(self):
         scope = self._scope(

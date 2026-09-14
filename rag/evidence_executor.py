@@ -420,11 +420,17 @@ def _execute_prerequisites(
     request: EvidenceRequest,
     scope: StructuralScope,
 ) -> EvidenceExecutionResult:
+    targets = request.course_targets or scope.course_targets
+    course_ids = _scoped_course_ids(db_path, scope, targets)
+    if course_ids is None:
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="invalid_course_target",
+        )
     records: list[Mapping[str, Any]] = []
-    for target in request.course_targets or scope.course_targets:
-        course_id = target.get("course_id") if isinstance(target, Mapping) else None
-        if isinstance(course_id, bool) or not isinstance(course_id, int):
-            return _result(request, scope, "insufficient_evidence", primitive_state="invalid_course_target")
+    for course_id in course_ids:
         records.extend(prerequisites_of_course(db_path, course_id))
     payload = tuple(records)
     if not payload:
@@ -432,12 +438,12 @@ def _execute_prerequisites(
     return _result(request, scope, _status_for_payload(payload), payload)
 
 
-def _scoped_description_course_ids(
+def _scoped_course_ids(
     db_path: str,
     scope: StructuralScope,
     targets: Iterable[Mapping[str, Any]],
 ) -> tuple[int, ...] | None:
-    """Resolve logical description targets to physical rows in one scope."""
+    """Resolve logical targets to physical rows in one concrete scope."""
     result = scoped_course_set(
         db_path,
         scope.program or "",
@@ -508,7 +514,7 @@ def _execute_descriptions(
 ) -> EvidenceExecutionResult:
     if not request.course_targets:
         return _result(request, scope, "insufficient_evidence", primitive_state="missing_course_target")
-    course_ids = _scoped_description_course_ids(
+    course_ids = _scoped_course_ids(
         db_path,
         scope,
         request.course_targets,

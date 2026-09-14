@@ -702,6 +702,25 @@ Do separately:
 
 ### Phase 5 — Pending
 
+- [x] Phase 5A — Prerequisite Plan Isolation — PASS/FROZEN
+  - proven failure: IT `06016420`; coop is course_id `635` -> prerequisite `624`, while no_coop incorrectly uses `635` -> `624` instead of course_id `739` -> prerequisite `728`
+  - no_coop provenance must also be plan-specific
+  - root cause: `rag/evidence_executor.py::_execute_prerequisites()` uses the representative `request.course_targets` course_id directly and does not remap logical `(program, course_code)` to the physical row for each concrete effective scope
+  - `prerequisites_of_course()` is correct and requires no change
+  - fix: resolve logical targets against the concrete effective scope, use the plan-specific physical course_id, then call `prerequisites_of_course()`; follow the existing description remapping principle
+  - regression: one prerequisite request spanning coop + no_coop must assert separate scopes, plan-specific physical course/prerequisite IDs, plan-specific provenance, and no cross-plan leakage
+  - GOLD blocker: yes
+  - [x] Phase 5A.1 — Implement prerequisite per-plan physical-row remapping
+    - prerequisite execution remaps logical `(program, course_code)` to plan-specific physical course rows
+    - coop `06016420`: `635 -> 624`; no_coop `06016420`: `739 -> 728`
+    - provenance remains plan-specific; coop/no_coop scopes remain isolated
+    - shared scoped remapping does not regress description execution
+    - focused audit: 4 passed; no blockers
+- [ ] Phase 5 review findings before Gold
+  - same-plan courses placed in different terms can fail exact similarity; suspected cause is placement year/semester in the similarity partition key; requires focused diagnosis
+  - requested comparison operations can disappear before answer composition; requires focused diagnosis
+  - year-level credit questions can emit unlabeled term-level fragments instead of the requested aggregate scope; requires focused diagnosis
+
 - [ ] held-out Natural QA 40-question evaluation
 - [ ] do not tune architecture/rules from held-out failures
 - [ ] report correctness, coverage/abstain, provenance/groundedness, retrieval metrics where applicable, and failure-stage breakdown
@@ -732,7 +751,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 5 — Whole-System Review Before Gold Evaluation**
+**Phase 5B — Similarity Partition Alignment**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.
