@@ -421,6 +421,27 @@ def _build_claims(
     return _number_claims(claims)
 
 
+def _validate_composed_claims(
+    composed_claims: Sequence[GroundedClaim],
+) -> tuple[GroundedClaim, ...]:
+    if isinstance(composed_claims, (str, bytes, Mapping, set, frozenset)):
+        raise _InvalidComposition("composed_claims must be an ordered sequence")
+    try:
+        claims = tuple(composed_claims)
+    except TypeError as error:
+        raise _InvalidComposition("composed_claims must be an ordered sequence") from error
+    for claim in claims:
+        if not isinstance(claim, GroundedClaim):
+            raise _InvalidComposition("composed_claims must contain GroundedClaim values")
+        if claim.operation not in CLAIM_OPERATIONS or claim.status not in CLAIM_STATUSES:
+            raise _InvalidComposition("composed claim has an invalid semantic field")
+        if claim.kind not in CLAIM_KINDS:
+            raise _InvalidComposition("composed claim has an invalid kind")
+        if _provenance_container(claim.provenance) is None:
+            raise _InvalidComposition("composed claim has malformed provenance")
+    return claims
+
+
 def compose_grounded_claims(
     bundle: EvidenceBundle | None = None,
     *,
@@ -445,6 +466,7 @@ def compose_grounded_claims(
 def compose_grounded_answer(
     bundle: EvidenceBundle | None = None,
     *,
+    composed_claims: Sequence[GroundedClaim] | None = None,
     operation_by_request: Mapping[str, str] | None = None,
     identity_result: Mapping[str, Any] | None = None,
     judgement_evidence: Sequence[JudgementEvidence] | None = None,
@@ -463,13 +485,29 @@ def compose_grounded_answer(
         if resolution_status != "answer":
             return _blocked_result(resolution_status)
     try:
-        claims = _build_claims(
-            bundle,
-            operation_by_request=operation_by_request,
-            identity_result=identity_result,
-            judgement_evidence=judgement_evidence,
-            similarity_evidence=similarity_evidence,
-        )
+        if composed_claims is not None:
+            if any(
+                value is not None
+                for value in (
+                    bundle,
+                    operation_by_request,
+                    identity_result,
+                    judgement_evidence,
+                    similarity_evidence,
+                )
+            ):
+                raise _InvalidComposition(
+                    "composed_claims cannot be combined with raw evidence sources"
+                )
+            claims = _validate_composed_claims(composed_claims)
+        else:
+            claims = _build_claims(
+                bundle,
+                operation_by_request=operation_by_request,
+                identity_result=identity_result,
+                judgement_evidence=judgement_evidence,
+                similarity_evidence=similarity_evidence,
+            )
     except (AttributeError, KeyError, TypeError, ValueError, OverflowError):
         return _blocked_result("insufficient_evidence")
     status = _status_for_claims(claims)

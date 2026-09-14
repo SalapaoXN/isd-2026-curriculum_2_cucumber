@@ -558,7 +558,14 @@ Do separately:
       - similarity remains deferred because it is not in `EvidenceBundle`
       - generic multi-partition greatest/best comparison remains unsupported until a deterministic pairing policy is frozen
       - final cache audit: 61 passed; no blockers
-    - 4I.4d.2 QA + Hybrid Integration / Provenance Freeze: `qa.ask()` typed pipeline wiring
+    - [x] 4I.4d.2a PASS/FROZEN: `composed_claims` bridge
+      - `compose_grounded_answer()` accepts keyword-only `composed_claims`
+      - preserves claim objects/order exactly
+      - reuses frozen status, `answer_mode`, validation, and provenance-union logic
+      - malformed/mixed inputs fail closed
+      - `EvidenceBundle` and identity paths remain unchanged
+      - final audit: 36 passed; no blockers
+    - 4I.4d.2b Exact Similarity Execution Bridge
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -595,7 +602,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.4d.2 — QA + Hybrid Integration / Provenance Freeze**
+**4I.4d.2b — Exact Similarity Execution Bridge**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

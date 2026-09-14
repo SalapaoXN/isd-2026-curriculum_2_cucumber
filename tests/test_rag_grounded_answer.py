@@ -328,6 +328,88 @@ class GroundedAnswerCompositionTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             result.payload["value"] = 4
 
+    def test_composed_claims_preserve_order_and_identity(self):
+        first = GroundedClaim(
+            "source_a",
+            "count",
+            status="complete",
+            value=2,
+            provenance=({"source_page": 80},),
+        )
+        second = GroundedClaim(
+            "source_b",
+            "existence",
+            status="complete",
+            value=True,
+            provenance=({"source_page": 81},),
+        )
+
+        result = compose_grounded_answer(composed_claims=(first, second))
+
+        self.assertIs(result.claims[0], first)
+        self.assertIs(result.claims[1], second)
+        self.assertEqual(result.claims, (first, second))
+        self.assertEqual([claim.claim_id for claim in result.claims], ["source_a", "source_b"])
+
+    def test_composed_claims_reuse_stable_first_seen_provenance_union(self):
+        first = GroundedClaim(
+            "claim_a",
+            "count",
+            value=1,
+            provenance=({"source_page": 82},),
+        )
+        second = GroundedClaim(
+            "claim_b",
+            "sum_credits",
+            value=3,
+            provenance=({"source_page": 82}, {"source_page": 83}),
+        )
+
+        result = compose_grounded_answer(composed_claims=(first, second))
+
+        self.assertEqual(
+            [reference["source_page"] for reference in result.provenance], [82, 83]
+        )
+        self.assertEqual(first.provenance, ({"source_page": 82},))
+        self.assertEqual(second.provenance, ({"source_page": 82}, {"source_page": 83}))
+
+    def test_composed_claims_preserve_complete_plus_valid_empty(self):
+        complete = GroundedClaim("complete", "count", value=1, provenance=({"id": "c"},))
+        empty = GroundedClaim("empty", "count", status="valid_empty", value=0)
+
+        result = compose_grounded_answer(composed_claims=(complete, empty))
+
+        self.assertEqual(result.status, "answer")
+        self.assertIs(result.claims[0], complete)
+        self.assertIs(result.claims[1], empty)
+        self.assertEqual(result.claims[1].value, 0)
+
+    def test_composed_claims_preserve_complete_plus_insufficient(self):
+        complete = GroundedClaim("complete", "count", value=1, provenance=({"id": "c"},))
+        insufficient = GroundedClaim("failed", "placement", status="insufficient_evidence")
+
+        result = compose_grounded_answer(composed_claims=(complete, insufficient))
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.claims, (complete, insufficient))
+        self.assertIs(result.claims[0], complete)
+
+    def test_composed_claims_all_valid_empty_is_distinct(self):
+        empty = GroundedClaim("empty", "count", status="valid_empty", value=0)
+
+        result = compose_grounded_answer(composed_claims=(empty,))
+
+        self.assertEqual(result.status, "valid_empty")
+        self.assertEqual(result.claims, (empty,))
+        self.assertNotEqual(result.status, "no_data")
+
+    def test_malformed_composed_claims_fail_closed(self):
+        result = compose_grounded_answer(composed_claims=("not a claim",))
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.claims, ())
+        self.assertEqual(result.provenance, ())
+
 
 if __name__ == "__main__":
     unittest.main()
