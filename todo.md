@@ -656,6 +656,35 @@ Do separately:
       - no-plan similarity now has 2 aligned partitions
       - regression: 114 tests passed; no blockers
 - [ ] 4I.5 runtime smoke/regression
+  - [x] 4I.5a PASS/FROZEN: QueryContext propagation into parsing/planning
+    - missing program can be supplied by `QueryContext`
+    - plan remains optional
+    - `plan=None` keeps applicable plans separate
+    - `plan=coop`/`no_coop` restricts evidence to that plan only
+    - no-context still returns `clarify_program`
+    - explicit conflicts still return `context_conflict`
+    - final audit: 72 passed; no blockers
+  - prerequisite blocker: QueryContext is resolved correctly but is not fully propagated into parsing/planning
+  - Case A: a year/semester-only question drops its detected `list` operation when program is absent from the text; context supplies the program later, after the operation has already been dropped; fix belongs in `rag/query_spec.py`
+  - Case B: resolution produces `resolved_plans=("coop",)`, but the planner ignores it when `QuerySpec.plans` is empty, so the executor expands both `coop` and `no_coop`; fix belongs in `rag/evidence_planner.py`
+  - frozen expectation: program context may supply a missing program; plan remains optional; no selected plan keeps applicable plans separate; `plan=coop`/`no_coop` uses only that plan; no-context ambiguity remains unchanged
+  - use the existing 10 natural runtime probes
+  - valid_empty remains covered by controlled regression, not a new natural or Gold question
+  - verify the normal CLI path, QueryContext, provenance, and repeated-query stability
+  - deterministic queries must produce zero unexpected model calls
+  - normal runtime must produce zero `ensure_index()` or rebuild calls
+  - legacy route and recovery paths must not run
+  - sqlite-vec direct reads and coop/no_coop isolation must work
+  - runtime exceptions must be zero
+  - no Gold/final evaluation and no threshold tuning
+  - freeze criteria:
+    - all 10 runtime probes match expected statuses
+    - required answers are non-empty
+    - exact `no_data` fallback is preserved
+    - similarity has numeric coop/no_coop evidence
+    - repeated identical queries produce identical typed results
+    - focused regression suites pass
+    - `git diff --check` passes
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
 
@@ -691,7 +720,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**4I.5 — Runtime Smoke / Regression Freeze**
+**4I.5 — Final Runtime Smoke / Regression Freeze**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

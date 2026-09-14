@@ -326,7 +326,16 @@ def parse_query_spec(question: str) -> QuerySpec:
     category = _extract_category(normalized_question)
     topic = _extract_topic(normalized_question, course_name)
     judgement = _extract_judgement(normalized_question)
-    has_scope = program is not None or bool(course_codes) or course_name is not None
+    # A fully specified year/semester scope is sufficient to recognize an
+    # operation even when the program will be supplied later through
+    # QueryContext.  Keep one-axis, no-program questions on the existing
+    # clarification path.
+    has_scope = (
+        program is not None
+        or (bool(years) and bool(semesters))
+        or bool(course_codes)
+        or course_name is not None
+    )
 
     return QuerySpec(
         original_question=question,

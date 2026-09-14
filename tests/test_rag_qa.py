@@ -116,6 +116,49 @@ class RagQaTest(unittest.TestCase):
         planner.assert_not_called()
         executor.assert_not_called()
 
+    def test_context_program_executes_year_semester_list_without_question_program(self):
+        result = ask(
+            DB_PATH,
+            "ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+            context=QueryContext(program="IT"),
+        )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(
+            [claim.operation for claim in result["result"].claims],
+            ["list", "list"],
+        )
+        self.assertEqual(
+            [claim.effective_scope.plans for claim in result["result"].claims],
+            [("coop",), ("no_coop",)],
+        )
+
+    def test_contextless_year_semester_list_still_clarifies_program(self):
+        result = ask(DB_PATH, "ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
+
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+
+    def test_context_plan_restricts_each_runtime_claim_to_selected_plan(self):
+        for plan in ("coop", "no_coop"):
+            with self.subTest(plan=plan):
+                result = ask(
+                    DB_PATH,
+                    "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+                    context=QueryContext(program="IT", plan=plan),
+                )
+
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+                self.assertEqual(result["result"].status, "answer")
+                self.assertTrue(result["result"].claims)
+                self.assertTrue(
+                    all(
+                        claim.effective_scope.plans == (plan,)
+                        for claim in result["result"].claims
+                    )
+                )
+
     def test_identity_returns_typed_exact_evidence_without_qa_paths(self):
         with patch(
             "rag.qa.plan_evidence",

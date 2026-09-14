@@ -233,6 +233,14 @@ class QuerySpecEntityTests(unittest.TestCase):
                 spec = parse_query_spec(f"วิชา Calculus 1 {wording}")
                 self.assertEqual(spec.operations, ("describe",))
 
+    def test_year_semester_scope_detects_operations_without_program(self):
+        spec = parse_query_spec("ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
+
+        self.assertIsNone(spec.program)
+        self.assertEqual(spec.years, (1,))
+        self.assertEqual(spec.semesters, (1,))
+        self.assertEqual(spec.operations, ("list",))
+
     def test_calculus_roman_numeral_remains_unresolved_surface(self):
         spec = parse_query_spec("วิชา Calculus I รหัสวิชาอะไร")
 

@@ -51,7 +51,7 @@ class EvidencePlannerModelTests(unittest.TestCase):
         return QuerySpec(**values)
 
     @staticmethod
-    def _resolution(program="IT", candidates=()):
+    def _resolution(program="IT", candidates=(), resolved_plans=()):
         references = ()
         if candidates:
             references = (
@@ -61,7 +61,16 @@ class EvidencePlannerModelTests(unittest.TestCase):
                     candidates=tuple(candidates),
                 ),
             )
-        return ResolutionOutcome("answer", (), program, references)
+        return ResolutionOutcome("answer", (), program, references, resolved_plans)
+
+    def test_context_resolved_plan_is_used_when_query_has_no_explicit_plan(self):
+        scope = build_structural_scope(
+            self._spec(),
+            self._resolution(resolved_plans=("coop",)),
+        )
+
+        self.assertEqual(scope.plans, ("coop",))
+        self.assertNotIn("plan", scope.expand_applicable)
 
     def test_nq_005_expands_only_applicable_plan_and_semester(self):
         scope = build_structural_scope(

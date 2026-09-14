@@ -213,6 +213,8 @@ def build_structural_scope(
 
     if query_spec.plans:
         plans = tuple(query_spec.plans)
+    elif resolution.resolved_plans:
+        plans = tuple(resolution.resolved_plans)
     else:
         plans = ()
         expand_applicable.append("plan")
