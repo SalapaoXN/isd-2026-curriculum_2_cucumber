@@ -250,6 +250,166 @@ class EvidenceExecutorTests(unittest.TestCase):
                 any(component["provenance"] for component in result.payload["components"])
             )
 
+    def test_topic_credit_uses_only_matched_course_targets(self):
+        scope = self._scope()
+        course_a = {
+            "course_id": 20,
+            "program": "IT",
+            "course_code": "06016420",
+            "plan_key": "coop",
+            "provenance": ({"source_page": 1},),
+        }
+        course_b = {
+            "course_id": 21,
+            "program": "IT",
+            "course_code": "06016421",
+            "plan_key": "coop",
+            "provenance": ({"source_page": 2},),
+        }
+        courses = EvidenceRequest("courses", "course_set", scope)
+        topics = EvidenceRequest(
+            "topics",
+            "topic_matches",
+            scope,
+            depends_on=("courses",),
+            topic="database",
+        )
+        credits = EvidenceRequest(
+            "credits",
+            "credit_facts",
+            scope,
+            depends_on=("topics",),
+        )
+        plan = self._plan(courses, topics, credits, scope=scope)
+
+        credit_payload = {
+            "status": "ok",
+            "components": ({
+                "course_id": course_a["course_id"],
+                "counted_credit_units": 3,
+                "provenance": course_a["provenance"],
+            },),
+            "provenance": course_a["provenance"],
+        }
+
+        def credit_result(*_args, **kwargs):
+            self.assertEqual(kwargs["course_targets"], (course_a,))
+            return credit_payload
+
+        retrieval = ConstrainedTopicRetrievalResult(
+            status="scored",
+            candidates=(course_a, course_b),
+            scored_candidates=(course_a,),
+        )
+        with patch(
+            "rag.evidence_executor.scoped_course_set",
+            return_value={
+                "status": "ok",
+                "courses": (course_a, course_b),
+                "provenance": course_a["provenance"],
+            },
+        ), patch(
+            "rag.evidence_executor.retrieve_constrained_topic_evidence",
+            return_value=retrieval,
+        ), patch(
+            "rag.evidence_executor.get_semester_credits",
+            side_effect=credit_result,
+        ) as get_credits:
+            result = execute_evidence_plan(DB_PATH, plan).results[-1]
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(
+            [component["course_id"] for component in result.payload["components"]],
+            [course_a["course_id"]],
+        )
+        self.assertEqual(result.payload["components"][0]["provenance"], course_a["provenance"])
+        get_credits.assert_called_once()
+
+    def test_non_topic_credit_keeps_full_structural_scope_call(self):
+        scope = self._scope()
+        request = EvidenceRequest("credits", "credit_facts", scope)
+        payload = {
+            "status": "ok",
+            "components": ({"counted_credit_units": 3, "provenance": ({"source_page": 1},)},),
+            "provenance": ({"source_page": 1},),
+        }
+
+        with patch(
+            "rag.evidence_executor.get_semester_credits",
+            return_value=payload,
+        ) as get_credits:
+            result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "complete")
+        get_credits.assert_called_once_with(DB_PATH, "IT", "coop", 2, 1)
+
+    def test_topic_credit_fanout_keeps_plan_targets_isolated(self):
+        scope = self._scope(
+            plans=(),
+            expand_applicable=("plan",),
+        )
+        courses = EvidenceRequest("courses", "course_set", scope)
+        topics = EvidenceRequest(
+            "topics",
+            "topic_matches",
+            scope,
+            depends_on=("courses",),
+            topic="database",
+        )
+        credits = EvidenceRequest(
+            "credits",
+            "credit_facts",
+            scope,
+            depends_on=("topics",),
+        )
+        plan = self._plan(courses, topics, credits, scope=scope)
+        calls = []
+
+        def course_set(_db_path, _program, plan_keys, **_kwargs):
+            plan_key = tuple(plan_keys)[0]
+            course_id = 20 if plan_key == "coop" else 21
+            provenance = ({"source_page": course_id},)
+            candidate = {
+                "course_id": course_id,
+                "program": "IT",
+                "course_code": f"06016{course_id:03d}",
+                "plan_key": plan_key,
+                "provenance": provenance,
+            }
+            return {"status": "ok", "courses": (candidate,), "provenance": provenance}
+
+        def credit_result(_db_path, _program, plan_key, _year, _semester, *, course_targets):
+            calls.append((plan_key, tuple(target["plan_key"] for target in course_targets)))
+            provenance = ({"source_page": 20 if plan_key == "coop" else 21},)
+            return {
+                "status": "ok",
+                "components": ({"counted_credit_units": 3, "provenance": provenance},),
+                "provenance": provenance,
+            }
+
+        def topic_result(_db_path, _topic, candidates):
+            return ConstrainedTopicRetrievalResult(
+                status="scored",
+                candidates=tuple(candidates),
+                scored_candidates=tuple(candidates),
+            )
+
+        with patch(
+            "rag.evidence_executor.scoped_course_set",
+            side_effect=course_set,
+        ), patch(
+            "rag.evidence_executor.retrieve_constrained_topic_evidence",
+            side_effect=topic_result,
+        ), patch(
+            "rag.evidence_executor.get_semester_credits",
+            side_effect=credit_result,
+        ):
+            bundle = execute_evidence_plan(DB_PATH, plan)
+
+        credit_results = [result for result in bundle.results if result.kind == "credit_facts"]
+        self.assertEqual([result.effective_scope.plans for result in credit_results], [("coop",), ("no_coop",)])
+        self.assertEqual(calls, [("coop", ("coop",)), ("no_coop", ("no_coop",))])
+
     def test_prerequisite_facts_execute_without_flattening(self):
         scope = self._scope(
             course_targets=({"course_id": 20, "program": "IT", "course_code": "06016420"},),

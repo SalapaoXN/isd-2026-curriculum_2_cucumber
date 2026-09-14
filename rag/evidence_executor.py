@@ -380,6 +380,8 @@ def _execute_credit(
     db_path: str,
     request: EvidenceRequest,
     scope: StructuralScope,
+    *,
+    course_targets: Iterable[Mapping[str, Any]] | None = None,
 ) -> EvidenceExecutionResult:
     if (
         len(scope.plans) != 1
@@ -392,13 +394,17 @@ def _execute_credit(
             "insufficient_evidence",
             primitive_state="credit_scope_not_concrete",
         )
-    result = get_semester_credits(
+    credit_args = (
         db_path,
         scope.program or "",
         scope.plans[0],
         scope.years[0],
         scope.semesters[0],
     )
+    if course_targets is None:
+        result = get_semester_credits(*credit_args)
+    else:
+        result = get_semester_credits(*credit_args, course_targets=course_targets)
     if result.get("status") == "no_data":
         return _result(request, scope, "valid_empty", result, "empty_relation")
     return _result(request, scope, _status_for_payload(result), result)
@@ -527,6 +533,8 @@ def _execute_request(
     db_path: str,
     request: EvidenceRequest,
     scope: StructuralScope,
+    *,
+    credit_targets: Iterable[Mapping[str, Any]] | None = None,
 ) -> EvidenceExecutionResult:
     if request.provenance_required is not True:
         return _result(request, scope, "insufficient_evidence", primitive_state="provenance_required")
@@ -535,7 +543,14 @@ def _execute_request(
     if request.kind == "placement_facts":
         return _execute_placement(db_path, request, scope)
     if request.kind == "credit_facts":
-        return _execute_credit(db_path, request, scope)
+        if credit_targets is None:
+            return _execute_credit(db_path, request, scope)
+        return _execute_credit(
+            db_path,
+            request,
+            scope,
+            course_targets=credit_targets,
+        )
     if request.kind == "prerequisite_facts":
         return _execute_prerequisites(db_path, request, scope)
     if request.kind == "description_evidence":
@@ -547,10 +562,19 @@ def _execute_materialized_request(
     db_path: str,
     request: EvidenceRequest,
     scope: StructuralScope,
+    *,
+    credit_targets: Iterable[Mapping[str, Any]] | None = None,
 ) -> EvidenceExecutionResult:
     """Execute one concrete scope without affecting sibling partitions."""
     try:
-        return _execute_request(db_path, request, scope)
+        if credit_targets is None:
+            return _execute_request(db_path, request, scope)
+        return _execute_request(
+            db_path,
+            request,
+            scope,
+            credit_targets=credit_targets,
+        )
     except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError, KeyError):
         return _result(
             request,
@@ -558,6 +582,68 @@ def _execute_materialized_request(
             "insufficient_evidence",
             primitive_state="execution_failure",
         )
+
+
+def _topic_credit_targets(
+    payload: Any,
+) -> tuple[Mapping[str, Any], ...] | None:
+    candidates = getattr(payload, "scored_candidates", None)
+    if not isinstance(candidates, (list, tuple)):
+        return None
+    targets: list[Mapping[str, Any]] = []
+    for candidate in candidates:
+        if not isinstance(candidate, Mapping):
+            return None
+        program = candidate.get("program")
+        course_code = candidate.get("course_code")
+        course_id = candidate.get("course_id")
+        if (
+            not isinstance(program, str)
+            or not program.strip()
+            or not isinstance(course_code, str)
+            or not course_code.strip()
+            or isinstance(course_id, bool)
+            or not isinstance(course_id, int)
+        ):
+            return None
+        targets.append(candidate)
+    return tuple(targets)
+
+
+def _execute_topic_dependent_credit(
+    db_path: str,
+    request: EvidenceRequest,
+    dependency: EvidenceExecutionResult,
+) -> EvidenceExecutionResult:
+    scope = dependency.effective_scope
+    if dependency.status == "insufficient_evidence":
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state=dependency.primitive_state or "dependency_insufficient",
+        )
+    if dependency.status == "valid_empty":
+        return _execute_materialized_request(
+            db_path,
+            request,
+            scope,
+            credit_targets=(),
+        )
+    targets = _topic_credit_targets(dependency.payload)
+    if targets is None:
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="malformed_topic_dependency",
+        )
+    return _execute_materialized_request(
+        db_path,
+        request,
+        scope,
+        credit_targets=targets,
+    )
 
 
 def execute_evidence_plan(
@@ -636,6 +722,57 @@ def execute_evidence_plan(
                         else:
                             request_results.append(
                                 _execute_topic_matches(db_path, request, dependency)
+                            )
+        elif request.kind == "credit_facts" and any(
+            request_by_id.get(dependency_id, None) is not None
+            and request_by_id[dependency_id].kind == "topic_matches"
+            for dependency_id in request.depends_on
+        ):
+            topic_dependency_ids = tuple(
+                dependency_id
+                for dependency_id in request.depends_on
+                if request_by_id.get(dependency_id, None) is not None
+                and request_by_id[dependency_id].kind == "topic_matches"
+            )
+            if len(request.depends_on) != 1 or len(topic_dependency_ids) != 1:
+                request_results = [
+                    _result(
+                        request,
+                        request.scope,
+                        "insufficient_evidence",
+                        primitive_state="invalid_topic_dependency",
+                    )
+                ]
+            else:
+                dependency_results = by_request.get(topic_dependency_ids[0], ())
+                if not dependency_results:
+                    request_results = [
+                        _result(
+                            request,
+                            request.scope,
+                            "insufficient_evidence",
+                            primitive_state="missing_topic_dependency",
+                        )
+                    ]
+                else:
+                    request_results = []
+                    for dependency in dependency_results:
+                        if dependency.planned_request.scope != request.scope:
+                            request_results.append(
+                                _result(
+                                    request,
+                                    dependency.effective_scope,
+                                    "insufficient_evidence",
+                                    primitive_state="incompatible_topic_scope",
+                                )
+                            )
+                        else:
+                            request_results.append(
+                                _execute_topic_dependent_credit(
+                                    db_path,
+                                    request,
+                                    dependency,
+                                )
                             )
         elif any(result.status == "insufficient_evidence" for result in dependencies):
             request_results = [

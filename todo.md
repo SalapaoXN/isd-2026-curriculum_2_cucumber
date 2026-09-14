@@ -532,6 +532,19 @@ Do separately:
     - legacy `answer_question()` remains temporarily for compatibility
     - final focused regression: 109 tests passed
   - [ ] 4I.4d QA + Hybrid Integration / Provenance Freeze
+    - topic_matches correctly narrows course candidates
+    - dependent credit_facts currently ignores that payload
+    - topic-filtered credits therefore overcount structural scope
+    - fix belongs in the evidence executor before QA integration
+    - preserve non-topic structural credit behavior
+    - preserve counted_credit_units, alternative groups, and provenance
+    - [x] 4I.4d.0 PASS/FROZEN: Fix topic-filtered credit dependency propagation
+      - topic-dependent credit_facts consumes only matched topic candidates
+      - partition isolation preserved; no cross-partition borrowing
+      - non-topic credits keep full structural-scope behavior
+      - authoritative counted_credit_units, alternative groups, components, and provenance remain unchanged
+      - regression: 34 passed
+      - no blockers
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
 - [ ] keep guided questions for prospective/high-school users in the UI, not inferred by RAG
@@ -568,7 +581,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4I.4d — QA + Hybrid Integration / Provenance Freeze**
+**4I.4d.1 — Executor Payload Adapters + Operation Mapping**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.

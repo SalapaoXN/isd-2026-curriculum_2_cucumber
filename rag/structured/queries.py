@@ -1008,14 +1008,72 @@ def _normalize_semester_credit_inputs(
     return program.strip().upper(), normalized_plan_key, year_number, semester_number
 
 
+def _credit_target_filter(
+    program: str,
+    course_targets: Iterable[Mapping[str, Any]] | None,
+) -> tuple[set[int], set[str]] | None:
+    if course_targets is None:
+        return None
+
+    target_ids: set[int] = set()
+    target_codes: set[str] = set()
+    for target in course_targets:
+        if not isinstance(target, Mapping):
+            raise ValueError("course_targets must contain mappings")
+        target_program = target.get("program")
+        if target_program is not None:
+            if not isinstance(target_program, str):
+                raise ValueError("course target program must be a string")
+            if target_program.strip().upper() != program:
+                continue
+        course_id = target.get("course_id")
+        if isinstance(course_id, bool):
+            raise ValueError("course target course_id must be an integer")
+        if isinstance(course_id, int):
+            target_ids.add(course_id)
+        course_code = target.get("course_code")
+        if course_code is not None:
+            if not isinstance(course_code, str) or not course_code.strip():
+                raise ValueError("course target course_code must be a string")
+            target_codes.add(course_code.strip())
+    return target_ids, target_codes
+
+
+def _placement_matches_credit_targets(
+    connection: sqlite3.Connection,
+    placement: Mapping[str, Any],
+    target_filter: tuple[set[int], set[str]],
+) -> bool:
+    placement = dict(placement)
+    target_ids, target_codes = target_filter
+    group_id = placement.get("alternative_group_id")
+    if group_id is not None:
+        return any(
+            member.get("course_id") in target_ids
+            or member.get("course_code") in target_codes
+            for member in _alternative_members(connection, int(group_id))
+        )
+    return (
+        placement.get("course_id") in target_ids
+        or placement.get("course_code") in target_codes
+    )
+
+
 def get_semester_credits(
     db_path: Database,
     program: str,
     plan_key: str,
     year_number: int,
     semester_number: int,
+    *,
+    course_targets: Iterable[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Return one plan term's deterministic credit total and components."""
+    """Return one plan term's deterministic credit total and components.
+
+    When ``course_targets`` is supplied, retain only placements containing
+    one of those exact logical course identities.  Existing placement credit
+    calculation remains authoritative, including alternative groups.
+    """
     (
         normalized_program,
         normalized_plan_key,
@@ -1024,6 +1082,7 @@ def get_semester_credits(
     ) = _normalize_semester_credit_inputs(
         program, plan_key, year_number, semester_number
     )
+    target_filter = _credit_target_filter(normalized_program, course_targets)
     with _open_database(db_path) as connection:
         plan_rows = connection.execute(
             """
@@ -1043,6 +1102,14 @@ def get_semester_credits(
             placements = _placement_rows(
                 connection, plan_id, normalized_year, normalized_semester
             )
+            if target_filter is not None:
+                placements = [
+                    placement
+                    for placement in placements
+                    if _placement_matches_credit_targets(
+                        connection, placement, target_filter
+                    )
+                ]
             if not placements:
                 continue
 
