@@ -1402,6 +1402,278 @@ def courses_in_year_semester(
         return result
 
 
+def scoped_course_set(
+    db_path: Database,
+    program: str,
+    plan_keys: str | Iterable[str],
+    *,
+    years: Iterable[int] = (),
+    semesters: Iterable[int] = (),
+    category: str | None = None,
+    course_targets: Iterable[Mapping[str, Any]] = (),
+) -> dict[str, Any]:
+    """Return one deterministic, structurally scoped course-set relation.
+
+    This helper materializes only the supplied structural filters.  It does
+    not count, aggregate, compare, or perform semantic retrieval.  The
+    executor is responsible for enumerating applicable plan or term values.
+    """
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError("program must be a non-empty string")
+    normalized_program = program.strip().upper()
+    raw_plan_keys = [plan_keys] if isinstance(plan_keys, str) else list(plan_keys)
+    normalized_plan_keys: list[str] = []
+    for plan_key in raw_plan_keys:
+        if not isinstance(plan_key, str):
+            raise ValueError("plan_keys must contain strings")
+        normalized = plan_key.strip().lower()
+        if normalized not in _CANONICAL_PLAN_KEYS:
+            raise ValueError(f"unsupported canonical plan_key: {plan_key!r}")
+        if normalized not in normalized_plan_keys:
+            normalized_plan_keys.append(normalized)
+    if not normalized_plan_keys:
+        raise ValueError("at least one canonical plan_key is required")
+
+    normalized_years = tuple(years)
+    normalized_semesters = tuple(semesters)
+    if any(
+        isinstance(year, bool) or not isinstance(year, int) or not 1 <= year <= 4
+        for year in normalized_years
+    ):
+        raise ValueError("years must contain integers between 1 and 4")
+    if any(
+        isinstance(semester, bool)
+        or not isinstance(semester, int)
+        or not 1 <= semester <= 2
+        for semester in normalized_semesters
+    ):
+        raise ValueError("semesters must contain integers between 1 and 2")
+    normalized_category = (
+        category.strip().casefold()
+        if isinstance(category, str) and category.strip()
+        else None
+    )
+
+    targets = tuple(course_targets)
+    target_ids = {
+        target.get("course_id")
+        for target in targets
+        if isinstance(target, Mapping)
+        and isinstance(target.get("course_id"), int)
+        and not isinstance(target.get("course_id"), bool)
+    }
+    target_codes = {
+        str(target.get("course_code")).strip()
+        for target in targets
+        if isinstance(target, Mapping)
+        and isinstance(target.get("course_code"), str)
+        and target.get("course_code").strip()
+    }
+    plan_placeholders = ", ".join("?" for _ in normalized_plan_keys)
+    query = f"""
+        SELECT
+            placements.placement_id,
+            placements.plan_id,
+            placements.course_id,
+            placements.alternative_group_id,
+            placements.year_number,
+            placements.semester_number,
+            placements.flexible_year_number,
+            placements.flexible_semester_number,
+            placements.flexible_year_semester_raw,
+            placements.category,
+            placements.requirement_type,
+            placements.placement_order,
+            placements.credits_override,
+            placements.raw_text,
+            placements.notes,
+            plans.catalog_id,
+            plans.program_code,
+            plans.plan_key,
+            {_course_select('courses')},
+            groups.group_key,
+            groups.label,
+            groups.minimum_choices,
+            groups.maximum_choices,
+            groups.notes AS group_notes
+        FROM plan_placements AS placements
+        JOIN curriculum_plans AS plans ON plans.plan_id = placements.plan_id
+        LEFT JOIN courses ON courses.course_id = placements.course_id
+        LEFT JOIN alternative_course_groups AS groups
+          ON groups.alternative_group_id = placements.alternative_group_id
+        WHERE plans.program_code = ?
+          AND plans.plan_key IN ({plan_placeholders})
+        ORDER BY plans.plan_key, plans.catalog_id, plans.plan_id,
+                 placements.placement_order IS NULL,
+                 placements.placement_order, placements.placement_id
+    """
+
+    with _open_database(db_path) as connection:
+        rows = connection.execute(
+            query,
+            (normalized_program, *normalized_plan_keys),
+        ).fetchall()
+        courses: list[dict[str, Any]] = []
+        for raw_row in rows:
+            row = dict(raw_row)
+            choices = placement_year_semester_choices(
+                row["year_number"],
+                row["semester_number"],
+                row["flexible_year_semester_raw"],
+            )
+            if normalized_years and not any(
+                choice[0] in normalized_years for choice in choices
+            ):
+                continue
+            if normalized_semesters and not any(
+                choice[1] in normalized_semesters for choice in choices
+            ):
+                continue
+            if normalized_years and normalized_semesters and not any(
+                choice[0] in normalized_years and choice[1] in normalized_semesters
+                for choice in choices
+            ):
+                continue
+            if normalized_category is not None and (
+                not isinstance(row["category"], str)
+                or row["category"].strip().casefold() != normalized_category
+            ):
+                continue
+
+            alternative_group_id = row["alternative_group_id"]
+            members: list[dict[str, Any]] = []
+            if alternative_group_id is not None:
+                members = _alternative_members(connection, int(alternative_group_id))
+                if targets and not any(
+                    member.get("course_id") in target_ids
+                    or member.get("course_code") in target_codes
+                    for member in members
+                ):
+                    continue
+            elif targets and (
+                row["course_id"] not in target_ids
+                and row["course_code"] not in target_codes
+            ):
+                continue
+
+            placement_id = int(row["placement_id"])
+            placement_references = _provenance_for(
+                connection,
+                "plan_placement_provenance",
+                "placement_id",
+                placement_id,
+            )
+            if alternative_group_id is None:
+                course_id = int(row["course_id"])
+                references = _merge_provenance(
+                    _provenance_for(
+                        connection, "course_provenance", "course_id", course_id
+                    ),
+                    placement_references,
+                )
+                component = {
+                    "placement_id": placement_id,
+                    "plan_id": int(row["plan_id"]),
+                    "catalog_id": int(row["catalog_id"]),
+                    "program": row["program_code"],
+                    "plan_key": row["plan_key"],
+                    "year_number": row["year_number"],
+                    "semester_number": row["semester_number"],
+                    "year_semester_choices": choices,
+                    "category": row["category"],
+                    "requirement_type": row["requirement_type"],
+                    "placement_order": row["placement_order"],
+                    "credits_override": row["credits_override"],
+                    "raw_text": row["raw_text"],
+                    "notes": row["notes"],
+                    "course_id": course_id,
+                    "alternative_group_id": None,
+                    "is_alternative": False,
+                    "course_code": row["course_code"],
+                    "name_th": row["name_th"],
+                    "name_en": row["name_en"],
+                    "credits": row["credits"],
+                    "placement_credits": row["credits_override"] or row["credits"],
+                    "provenance": references,
+                    "source_pages": _source_pages(references),
+                }
+            else:
+                group_id = int(alternative_group_id)
+                references = _merge_provenance(
+                    placement_references,
+                    _provenance_for(
+                        connection,
+                        "alternative_group_provenance",
+                        "alternative_group_id",
+                        group_id,
+                    ),
+                    *(member["provenance"] for member in members),
+                )
+                component = {
+                    "placement_id": placement_id,
+                    "plan_id": int(row["plan_id"]),
+                    "catalog_id": int(row["catalog_id"]),
+                    "program": row["program_code"],
+                    "plan_key": row["plan_key"],
+                    "year_number": row["year_number"],
+                    "semester_number": row["semester_number"],
+                    "year_semester_choices": choices,
+                    "category": row["category"],
+                    "requirement_type": row["requirement_type"],
+                    "placement_order": row["placement_order"],
+                    "credits_override": row["credits_override"],
+                    "raw_text": row["raw_text"],
+                    "notes": row["notes"],
+                    "course_id": None,
+                    "alternative_group_id": group_id,
+                    "is_alternative": True,
+                    "course_code": None,
+                    "name_th": None,
+                    "name_en": None,
+                    "credits": None,
+                    "placement_credits": row["credits_override"],
+                    "group_key": row["group_key"],
+                    "label": row["label"],
+                    "minimum_choices": row["minimum_choices"],
+                    "maximum_choices": row["maximum_choices"],
+                    "group_notes": row["group_notes"],
+                    "alternative_courses": members,
+                    "provenance": references,
+                    "source_pages": _source_pages(references),
+                }
+            courses.append(component)
+
+    return {
+        "status": "ok" if courses else "no_data",
+        "program": normalized_program,
+        "plan_keys": tuple(normalized_plan_keys),
+        "years": normalized_years,
+        "semesters": normalized_semesters,
+        "category": category,
+        "courses": courses,
+    }
+
+
+def applicable_plan_keys(
+    db_path: Database,
+    program: str,
+) -> tuple[str, ...]:
+    """Return deterministic plan keys available for one program."""
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError("program must be a non-empty string")
+    with _open_database(db_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT DISTINCT plan_key
+            FROM curriculum_plans
+            WHERE program_code = ?
+            ORDER BY plan_id
+            """,
+            (program.strip().upper(),),
+        ).fetchall()
+    return tuple(str(row["plan_key"]) for row in rows)
+
+
 def _prerequisite_records(
     connection: sqlite3.Connection, course_id: int
 ) -> list[dict[str, Any]]:
@@ -1569,6 +1841,7 @@ def courses_requiring_prerequisite(
 
 __all__ = [
     "alternative_group_placements",
+    "applicable_plan_keys",
     "course_facts",
     "course_placement",
     "courses_in_year_semester",
@@ -1582,4 +1855,5 @@ __all__ = [
     "prerequisites_of_course",
     "semester_credits_and_prerequisites",
     "semester_total_credits",
+    "scoped_course_set",
 ]

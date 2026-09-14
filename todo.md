@@ -460,7 +460,44 @@ Do separately:
   - existing name normalization supports `Calculus 1`; no `Calculus I` alias behavior
   - CALCULUS: AIT + `Calculus 1` -> `06046400`; DSBA + `Calculus 1` -> `06026200`; no program context -> `clarify_program`; `Calculus I` -> unresolved/`no_data`
   - final regression: QueryContext PASS; Identity PASS; intent/parser regression PASS; numeric-token safety PASS; 63 focused tests passed
-- [ ] 4I.3 EvidencePlan execution adapter
+- [x] 4I.3a PASS/FROZEN: EvidencePlan executor design
+  - EvidencePlanner may emit symbolic scopes; the executor materializes `APPLICABLE` and `UNCONSTRAINED` axes
+  - planner does not build a Cartesian product; explicit grouped plan partitions already emitted separately remain separate
+  - different runtime partitions must never be implicitly merged
+  - `EvidenceExecutionResult`: `request_id`, `kind`, `planned_request`, `effective_scope`, `status` (`complete` | `valid_empty` | `insufficient_evidence`), typed primitive-specific `payload`, optional `primitive_state`
+  - `EvidenceBundle`: original `EvidencePlan` plus ordered tuple of `EvidenceExecutionResult`
+  - one symbolic planned request may produce multiple execution results, each with its own concrete `effective_scope`
+  - preserve typed evidence/provenance; never flatten to text; result ordering is deterministic
+  - `topic_matches` consumes its constrained `course_set` dependency; never global ANN then filter
+  - missing glue: generic deterministic scoped `course_set` helper for symbolic/applicable plans, unconstrained/grouped axes, and category constraints
+- [x] 4I.3b PASS/FROZEN: relational/direct primitive adapter
+  - immutable execution results preserve the original EvidencePlan, planned requests, typed payloads, provenance, and concrete effective scopes
+  - plan is always a partition axis; APPLICABLE / UNCONSTRAINED plans materialize as separate DB-backed plan results
+  - grouped year/semester axes materialize separately; ungrouped unconstrained year/semester become concrete DB-backed tuples within one relation result
+  - explicit multi-values remain together unless grouped; course is normally a relation axis; category is a filter only; no unintended Cartesian/course explosion
+  - deterministic parameterized SQLite `scoped_course_set` honors structural scope and exact targets while preserving placement, alternative-group, and provenance evidence
+  - direct primitives: `course_set`, `placement_facts`, `credit_facts`, `prerequisite_facts`, `description_evidence`
+  - valid_empty remains distinct from insufficient_evidence; dependencies fail closed with deterministic topological execution
+  - `topic_matches` remains intentionally pending; legacy global `retrieve()` is never a fallback
+  - known unrelated stale tests: placement expectation 669 vs runtime 668; legacy `route="structured"` expectation
+- [x] 4I.3c constrained `topic_matches` adapter — PASS/FROZEN
+  - `topic_matches` consumes only its declared `course_set` dependency; it never re-queries a broader relation, reparses the question, uses route labels, or calls legacy global `retrieve()`/ANN
+  - each materialized dependency partition produces a separate topic result with preserved `effective_scope`, provenance lineage, and deterministic ordering
+  - frozen retrieval uses `retrieve_constrained_topic_evidence()` with conservative lexical rescue and inclusive cosine threshold `<= 0.4428954516935646`
+  - no recalibration, top-k membership truncation, metadata fallback, or global fallback; lexical rescue with `distance=None` remains valid
+  - status mapping: dependency insufficient -> `insufficient_evidence`; empty structural dependency -> `valid_empty` / `empty_structural_candidates`; accepted matches -> `complete`; no accepted matches -> `valid_empty` / `no_threshold_matches`; missing descriptions -> `insufficient_evidence` / `description_missing`; invalid/missing vectors without lexical rescue -> `insufficient_evidence` / `vector_missing_or_invalid`
+  - final regression: dependency source PASS; partition preservation PASS; frozen retrieval behavior PASS; status mapping PASS; safety/immutability PASS; 152 focused tests passed
+- [x] 4I.3 PASS/FROZEN: complete EvidencePlan graph execution
+  - immutable `EvidenceExecutionResult` / `EvidenceBundle` preserve the original EvidencePlan and planned requests
+  - typed payload, `primitive_state`, concrete `effective_scope`, and provenance are retained through deterministic topological execution
+  - no question reparsing, route-driven retrieval, aggregation, judgement, answer generation, model calls, or global retrieval inside the executor
+  - symbolic APPLICABLE / UNCONSTRAINED scopes materialize deterministically; plan is always a runtime partition axis; grouped year/semester remain separate; ungrouped unconstrained year/semester become concrete tuples; course normally remains a relation axis; category remains a filter
+  - frozen primitives: `course_set`, `placement_facts`, `credit_facts`, `prerequisite_facts`, `description_evidence`, `topic_matches`
+  - `topic_matches` consumes only its declared `course_set` dependency, preserves partition lineage, and retains lexical rescue with inclusive threshold `<= 0.4428954516935646` without global fallback
+  - malformed graph/materialization failures may fail request-level; after concrete scopes exist, execution failures are isolated per partition as `insufficient_evidence` / `execution_failure`; successful siblings and independent requests survive
+  - dependent topic results inherit only their matching partition state; no cross-partition candidate borrowing
+  - final regression: whole-plan execution PASS; lineage/partition preservation PASS; dependency fan-out PASS; partition-isolated failure PASS; mixed primitive bundle PASS; downstream 4I.4 readiness PASS; regression 4I.3a–3c PASS; 155 focused tests passed
+  - known unrelated stale tests remain: placement expectation 669 vs runtime 668; legacy `route="structured"` expectation
 - [ ] 4I.4 typed grounded answer/provenance integration
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
@@ -498,7 +535,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4I.3 — EvidencePlan Execution Adapter**
+**Phase 4I.4 — Typed Grounded Answer + Provenance**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.
