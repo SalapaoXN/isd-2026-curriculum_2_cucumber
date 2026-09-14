@@ -5,7 +5,11 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import fields, is_dataclass
 from typing import Any
+
+from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
+from rag.retrieval.retrieve import SimilarityEvidence
 
 
 EMPTY_ANSWER = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
@@ -600,4 +604,251 @@ def answer_question(
     return answer_text
 
 
-__all__ = ["EMPTY_ANSWER", "answer_question", "build_grounded_prompt", "is_fallback_like"]
+def _plain_typed_value(value: Any) -> Any:
+    """Convert typed immutable evidence to deterministic renderer data."""
+    if is_dataclass(value) and not isinstance(value, type):
+        return {
+            field.name: _plain_typed_value(getattr(value, field.name))
+            for field in fields(value)
+        }
+    if isinstance(value, Mapping):
+        return {str(key): _plain_typed_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_plain_typed_value(item) for item in value]
+    if isinstance(value, (set, frozenset)):
+        values = [_plain_typed_value(item) for item in value]
+        return sorted(values, key=repr)
+    return value
+
+
+def _description_text(value: Any) -> str | None:
+    if not isinstance(value, Mapping):
+        return None
+    text = value.get("text", value.get("description"))
+    if not isinstance(text, str) or not text.strip():
+        return None
+    return text.strip()
+
+
+def _description_texts(value: Any) -> tuple[str, ...]:
+    """Read description text only from a grounded summary's typed evidence."""
+    if isinstance(value, SimilarityEvidence):
+        texts: list[str] = []
+        for pair in value.pairs:
+            for side in (pair.left, pair.right):
+                text = _description_text(side)
+                if text is not None:
+                    texts.append(text)
+        return tuple(texts)
+    if isinstance(value, Mapping):
+        direct = _description_text(value)
+        if direct is not None:
+            return (direct,)
+        texts: list[str] = []
+        for key in ("description_evidence", "options", "scored_candidates", "candidates"):
+            nested = value.get(key)
+            if nested is None or isinstance(nested, (str, bytes, Mapping)):
+                nested = (nested,) if isinstance(nested, Mapping) else ()
+            try:
+                values = tuple(nested)
+            except TypeError:
+                values = ()
+            for item in values:
+                texts.extend(_description_texts(item))
+        return tuple(texts)
+    options = getattr(value, "options", None)
+    if options is not None:
+        texts: list[str] = []
+        for option in options:
+            texts.extend(_description_texts(option))
+        return tuple(texts)
+    descriptions = getattr(value, "description_evidence", None)
+    if descriptions is not None:
+        texts = []
+        for description in descriptions:
+            text = _description_text(description)
+            if text is not None:
+                texts.append(text)
+        return tuple(texts)
+    return ()
+
+
+def _preference_synthesis_options(value: Any) -> tuple[Mapping[str, Any], ...]:
+    options = getattr(value, "options", None)
+    if options is None and isinstance(value, Mapping):
+        options = value.get("options", value.get("scored_candidates", ()))
+    if options is None or isinstance(options, (str, bytes, Mapping)):
+        return ()
+    result: list[Mapping[str, Any]] = []
+    try:
+        values = tuple(options)
+    except TypeError:
+        return ()
+    for option in values:
+        if not isinstance(option, Mapping):
+            continue
+        descriptions = tuple(
+            {"text": text}
+            for text in _description_texts(option)
+        )
+        result.append(
+            {
+                key: option[key]
+                for key in ("program", "course_code", "course_name", "name_th", "name_en")
+                if key in option
+            }
+            | {"descriptions": descriptions}
+        )
+    return tuple(result)
+
+
+def _summary_synthesis_payload(claim: GroundedClaim) -> tuple[Any, ...]:
+    if claim.operation == "preference":
+        return _preference_synthesis_options(claim.evidence)
+    return tuple({"description": text} for text in _description_texts(claim.evidence))
+
+
+def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
+    """Expose persisted similarity numbers without comparing or recalculating."""
+    return {
+        "status": value.status,
+        "pairs": tuple(
+            {
+                "status": pair.status,
+                "partition": pair.partition,
+                "cosine_distance": pair.cosine_distance,
+                "cosine_similarity": pair.cosine_similarity,
+                "reason": pair.reason,
+            }
+            for pair in value.pairs
+        ),
+        "mean_distance": value.mean_distance,
+        "min_distance": value.min_distance,
+        "max_distance": value.max_distance,
+    }
+
+
+def _deterministic_claim_text(claim: GroundedClaim) -> str:
+    if claim.status == "insufficient_evidence":
+        return "หลักฐานไม่เพียงพอ"
+    if claim.status not in {"complete", "valid_empty", "descriptive_only"}:
+        return ""
+
+    if claim.operation == "similarity" and isinstance(claim.value, SimilarityEvidence):
+        value = _plain_typed_value(_similarity_numeric_payload(claim.value))
+        return "similarity: " + json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+        )
+
+    if claim.operation in {"describe", "topic_matches", "description_evidence"}:
+        texts = _description_texts(claim.evidence)
+        if texts:
+            return "\n".join(texts)
+    if claim.operation == "preference":
+        options = _preference_synthesis_options(claim.evidence)
+        if options:
+            return "\n".join(
+                json.dumps(_plain_typed_value(option), ensure_ascii=False, sort_keys=True)
+                for option in options
+            )
+
+    value = _plain_typed_value(claim.value)
+    if value is None:
+        return f"{claim.operation}: {claim.status}"
+    serialized = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return f"{claim.operation}: {serialized}"
+
+
+def render_grounded_claim(claim: GroundedClaim) -> str:
+    """Render one typed claim without calling a model or recomputing facts."""
+    if not isinstance(claim, GroundedClaim):
+        return ""
+    return _deterministic_claim_text(claim)
+
+
+def synthesize_grounded_claim(
+    claim: GroundedClaim,
+    answer_model_callable: Callable[[str], str] | None = None,
+) -> str:
+    """Bound synthesis for one claim, falling back to deterministic evidence text."""
+    fallback = render_grounded_claim(claim)
+    if not isinstance(claim, GroundedClaim) or claim.kind != "grounded_summary":
+        return fallback
+    if claim.status == "insufficient_evidence" or not callable(answer_model_callable):
+        return fallback
+
+    payload = _summary_synthesis_payload(claim)
+    if not payload:
+        return fallback
+    prompt = "\n".join(
+        (
+            "สรุปหลักฐานที่ให้เท่านั้น โดยไม่เพิ่มข้อเท็จจริง",
+            "ห้ามจัดอันดับ แนะนำสิ่งที่ดีที่สุด หรือสร้างตัวเลข/ความสัมพันธ์ใหม่",
+            "ใช้ข้อมูลเฉพาะของ claim นี้และคงความหมายของข้อความเดิม",
+            "หลักฐาน:",
+            json.dumps(
+                _plain_typed_value(payload),
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ),
+            "สรุป:",
+        )
+    )
+    try:
+        generated = answer_model_callable(prompt)
+    except Exception:
+        return fallback
+    if not isinstance(generated, str) or not generated.strip() or is_fallback_like(generated):
+        return fallback
+    generated_text = generated.strip()
+    if claim.operation == "similarity":
+        return fallback + "\n" + generated_text
+    return generated_text
+
+
+def render_grounded_answer(
+    result: GroundedAnswerResult,
+    answer_model_callable: Callable[[str], str] | None = None,
+) -> GroundedAnswerResult:
+    """Render a typed answer claim-by-claim without mutating its evidence."""
+    if not isinstance(result, GroundedAnswerResult):
+        raise TypeError("result must be a GroundedAnswerResult")
+    if not result.claims:
+        return result
+    segments: list[str] = []
+    for claim in result.claims:
+        if claim.kind == "grounded_summary":
+            segment = synthesize_grounded_claim(claim, answer_model_callable)
+        else:
+            segment = render_grounded_claim(claim)
+        if segment:
+            segments.append(segment)
+    final_answer = "\n".join(segments) if segments else result.final_answer
+    return GroundedAnswerResult(
+        status=result.status,
+        answer_mode=result.answer_mode,
+        final_answer=final_answer,
+        claims=result.claims,
+        provenance=result.provenance,
+    )
+
+
+__all__ = [
+    "EMPTY_ANSWER",
+    "answer_question",
+    "build_grounded_prompt",
+    "is_fallback_like",
+    "render_grounded_claim",
+    "synthesize_grounded_claim",
+    "render_grounded_answer",
+]

@@ -518,7 +518,19 @@ Do separately:
     - similarity preserves left/right provenance, partition, distance/similarity, and descriptive mean/min/max only
     - no binary similarity judgement or threshold; no DB/vector query, question reparsing, route dependency, model, or recovery call
     - final regression: 139 focused tests passed
-  - [ ] 4I.4c Grounded Rendering / Synthesis
+  - [x] 4I.4c PASS/FROZEN: Grounded Rendering / Synthesis
+    - deterministic claims render with Python only
+    - `grounded_summary` uses `answer_model_callable` on that claim's grounded evidence only
+    - mixed answers render/synthesize claim-by-claim in claim order
+    - the model never recalculates or replaces locked deterministic facts
+    - describe synthesis uses description evidence only
+    - preference synthesis uses grounded options/descriptions only; no ranking/best claim
+    - similarity numeric facts render deterministically; synthesis may use only the two descriptions
+    - synthesis failure, empty output, non-string output, or exception falls back to deterministic grounded rendering
+    - rendering never changes claims, status, or provenance
+    - the typed path does not call legacy `answer_question()` recovery logic
+    - legacy `answer_question()` remains temporarily for compatibility
+    - final focused regression: 109 tests passed
   - [ ] 4I.4d QA + Hybrid Integration / Provenance Freeze
 - [ ] 4I.5 runtime smoke/regression
 - [ ] wire QuerySpec -> resolution -> planner -> retrieval -> aggregation -> judgement/similarity -> grounded answer/provenance
@@ -556,7 +568,7 @@ Internal route match is not strict correctness.
 
 Do ONLY:
 
-**Phase 4I.4c — Grounded Rendering / Synthesis**
+**Phase 4I.4d — QA + Hybrid Integration / Provenance Freeze**
 
 Implementation scope is limited to Phase 4I integration design.
 Keep Phase 4H frozen while integration is designed.
