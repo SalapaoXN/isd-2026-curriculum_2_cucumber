@@ -18,14 +18,14 @@
     },
     "name_th": {
       "denominator": 839,
-      "strict_correct": 701,
-      "strict_incorrect": 138,
-      "strict_accuracy": 0.835518,
-      "normalized_correct": 707,
-      "normalized_incorrect": 132,
-      "normalized_accuracy": 0.84267,
-      "cer": 0.024179,
-      "wer": 0.136988
+      "strict_correct": 730,
+      "strict_incorrect": 109,
+      "strict_accuracy": 0.870083,
+      "normalized_correct": 736,
+      "normalized_incorrect": 103,
+      "normalized_accuracy": 0.877235,
+      "cer": 0.022179,
+      "wer": 0.105999
     },
     "name_en": {
       "denominator": 839,
@@ -40,12 +40,12 @@
     },
     "credits": {
       "denominator": 839,
-      "strict_correct": 830,
-      "strict_incorrect": 9,
-      "strict_accuracy": 0.989273,
-      "normalized_correct": 830,
-      "normalized_incorrect": 9,
-      "normalized_accuracy": 0.989273
+      "strict_correct": 832,
+      "strict_incorrect": 7,
+      "strict_accuracy": 0.991657,
+      "normalized_correct": 832,
+      "normalized_incorrect": 7,
+      "normalized_accuracy": 0.991657
     },
     "year": {
       "denominator": 573,

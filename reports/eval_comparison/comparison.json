@@ -11,12 +11,12 @@
     },
     {
       "field": "name_th",
-      "consolidated_accuracy": 0.682956,
-      "llm_accuracy": 0.84267,
-      "delta_percentage_points": 15.9714,
-      "improvements": 135,
-      "regressions": 1,
-      "net_improvement": 134
+      "consolidated_accuracy": 0.710369,
+      "llm_accuracy": 0.877235,
+      "delta_percentage_points": 16.6865,
+      "improvements": 142,
+      "regressions": 2,
+      "net_improvement": 140
     },
     {
       "field": "name_en",
@@ -29,8 +29,8 @@
     },
     {
       "field": "credits",
-      "consolidated_accuracy": 0.989273,
-      "llm_accuracy": 0.989273,
+      "consolidated_accuracy": 0.991657,
+      "llm_accuracy": 0.991657,
       "delta_percentage_points": 0.0,
       "improvements": 0,
       "regressions": 0,
@@ -84,18 +84,18 @@
     {
       "field": "name_th",
       "comparison_mode": "normalized",
-      "correct_to_correct": 572,
-      "wrong_to_correct": 135,
-      "correct_to_wrong": 1,
-      "wrong_to_wrong": 131
+      "correct_to_correct": 594,
+      "wrong_to_correct": 142,
+      "correct_to_wrong": 2,
+      "wrong_to_wrong": 101
     },
     {
       "field": "name_th",
       "comparison_mode": "strict",
-      "correct_to_correct": 567,
-      "wrong_to_correct": 134,
-      "correct_to_wrong": 1,
-      "wrong_to_wrong": 137
+      "correct_to_correct": 589,
+      "wrong_to_correct": 141,
+      "correct_to_wrong": 2,
+      "wrong_to_wrong": 107
     },
     {
       "field": "name_en",
@@ -116,18 +116,18 @@
     {
       "field": "credits",
       "comparison_mode": "normalized",
-      "correct_to_correct": 830,
+      "correct_to_correct": 832,
       "wrong_to_correct": 0,
       "correct_to_wrong": 0,
-      "wrong_to_wrong": 9
+      "wrong_to_wrong": 7
     },
     {
       "field": "credits",
       "comparison_mode": "strict",
-      "correct_to_correct": 830,
+      "correct_to_correct": 832,
       "wrong_to_correct": 0,
       "correct_to_wrong": 0,
-      "wrong_to_wrong": 9
+      "wrong_to_wrong": 7
     },
     {
       "field": "year",

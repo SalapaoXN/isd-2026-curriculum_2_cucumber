@@ -57,14 +57,15 @@
 - Phase 6C.3c gate: final Consolidated→Corrected integrity, routing, and focused-test checks passed.
 - Phase 6A-R.2: dual Consolidated/LLM vs GT evaluator implemented and baseline reports generated.
 - Phase 6A-R.3a: prerequisite alternative normalization fixed; dual reports regenerated.
+- Phase 6A-R.4: source-backed Ground Truth correction batch applied; dual reports regenerated.
 
 ## Current Task
-Phase 6A-R.3b — Final Dual GT Report Verification
+Phase 6A-R.4 — Audit Remaining Evaluation Mismatches
 Status: AUDIT ONLY
 
 Goal:
-Confirm regenerated dual reports are internally consistent and ready for
-commit/push without modifying GT or production data.
+Audit the remaining evaluation mismatches after the source-backed Ground
+Truth correction batch.
 
 ## Next
 

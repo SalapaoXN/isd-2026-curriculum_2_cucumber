@@ -128,15 +128,10 @@ OVERSEAS COOPERATIVE EDUCATION",False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026200"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,แคลคูลัส 1,ไม่ระบุ,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06066101"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,"BUSINESS FUNDAMENTALS FOR INFORMATION
 TECHNOLOGY",BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY,False,True,FIELD_MISMATCH
-llm,DSBA,coop,1,"{""code"": ""06066303"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,การแก้ปัญหาและโปรแกรมคอมพิวเตอร์,การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06066303"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,"PROBLEM SOLVING AND COMPUTER
 PROGRAMMING",PROBLEM SOLVING AND COMPUTER PROGRAMMING,False,True,FIELD_MISMATCH
-llm,DSBA,coop,1,"{""code"": ""90641001"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,โรงเรียนสร้างเสน่าห์,โรงเรียนสร้างเสน่ห์,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""90644007"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,FOUNDATION ENGLISH 1,FOUNDATION ENGLISH,False,False,FIELD_MISMATCH
-llm,DSBA,coop,1,"{""code"": ""06026205"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,การตลาดเบื้อต้น,การตลาดเบื้องต้น,False,False,FIELD_MISMATCH
-llm,DSBA,coop,1,"{""code"": ""06066304"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,การวิเคราะห์และอออกแบบระบบสารสนเทศ,การวิเคราะห์และออกแบบระบบสารสนเทศ,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""90644xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,วิชาเลือกภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสื่อสาร,False,False,FIELD_MISMATCH
-llm,DSBA,coop,1,"{""code"": ""06026204"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,เครือข่ายและความมั่นคงทางไซเบอร์เบื่องต้น,เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026204"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,"INTRODUCTION TO NETWORKS AND
 CYBERSECURITY",INTRODUCTION TO NETWORKS AND CYBERSECURITY,False,True,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026207"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,NOSQL DATABASE SYSTEMS,NoSQL DATABASE SYSTEMS,False,True,FIELD_MISMATCH
@@ -187,7 +182,6 @@ llm,DSBA,coop,1,"{""code"": ""06026228"", ""occurrence"": 1, ""plan"": ""coop"",
 llm,DSBA,coop,1,"{""code"": ""06026229"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 2,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026230"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,อนุกรมเวลาและการพยากรณ์,อนุกรมเวลาและการพยากรณ์เบื้องต้น,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026230"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,TIME SERIES AND FORECASTING,INTRODUCTION TO TIME SERIES AND FORECASTING,False,False,FIELD_MISMATCH
-llm,DSBA,coop,1,"{""code"": ""06026239"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,สถิาปัตยกรรมข้อมูลแบบไปป์ไลน์,สถาปัตยกรรมข้อมูลแบบไปป์ไลน์,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026243"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_th,ระบบฐานข้อมูลขั้นสูง,ระบบฐานข้อมูลขันสูง,False,False,FIELD_MISMATCH
 llm,DSBA,coop,1,"{""code"": ""06026244"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""DSBA""}",name_en,"DATABASE SYSTEM MAINTENANCE AND
 ADMINISTRATION",DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION,False,True,FIELD_MISMATCH
@@ -203,14 +197,9 @@ SCIENCE AND BUSINESS ANALYTICS",OVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE A
 llm,DSBA,no_coop,1,"{""code"": ""06026200"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,แคลคูลัส 1,แคลคูลัส,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06066101"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_en,"BUSINESS FUNDAMENTALS FOR INFORMATION
 TECHNOLOGY",BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY,False,True,FIELD_MISMATCH
-llm,DSBA,no_coop,1,"{""code"": ""06066303"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,การแก้ปัญหาและโปรแกรมคอมพิวเตอร์,การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06066303"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_en,"PROBLEM SOLVING AND COMPUTER
 PROGRAMMING",PROBLEM SOLVING AND COMPUTER PROGRAMMING,False,True,FIELD_MISMATCH
-llm,DSBA,no_coop,1,"{""code"": ""90641001"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,โรงเรียนสร้างเสน่าห์,โรงเรียนสร้างเสน่ห์,False,False,FIELD_MISMATCH
-llm,DSBA,no_coop,1,"{""code"": ""06026205"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,การตลาดเบื้อต้น,การตลาดเบื้องต้น,False,False,FIELD_MISMATCH
-llm,DSBA,no_coop,1,"{""code"": ""06066304"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,การวิเคราะห์และอออกแบบระบบสารสนเทศ,การวิเคราะห์และออกแบบระบบสารสนเทศ,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""90644xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,วิชาเลือกภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสื่อสาร,False,False,FIELD_MISMATCH
-llm,DSBA,no_coop,1,"{""code"": ""06026204"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,เครือข่ายและความมั่นคงทางไซเบอร์เบื่องต้น,เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06026204"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_en,"INTRODUCTION TO NETWORKS AND
 CYBERSECURITY",INTRODUCTION TO NETWORKS AND CYBERSECURITY,False,True,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06026xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 1
@@ -261,7 +250,6 @@ llm,DSBA,no_coop,1,"{""code"": ""06026228"", ""occurrence"": 1, ""plan"": ""no_c
 llm,DSBA,no_coop,1,"{""code"": ""06026229"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 2,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06026230"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,อนุกรมเวลาและการพยากรณ์,อนุกรมเวลาและการพยากรณ์เบื้องต้น,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06026230"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_en,TIME SERIES AND FORECASTING,INTRODUCTION TO TIME SERIES AND FORECASTING,False,False,FIELD_MISMATCH
-llm,DSBA,no_coop,1,"{""code"": ""06026239"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,สถิาปัตยกรรมข้อมูลแบบไปป์ไลน์,สถาปัตยกรรมข้อมูลแบบไปป์ไลน์,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06026243"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_th,ระบบฐานข้อมูลขั้นสูง,ระบบฐานข้อมูลขันสูง,False,False,FIELD_MISMATCH
 llm,DSBA,no_coop,1,"{""code"": ""06026244"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""DSBA""}",name_en,"DATABASE SYSTEM MAINTENANCE AND
 ADMINISTRATION",DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION,False,True,FIELD_MISMATCH
@@ -289,13 +277,9 @@ llm,GENED,gened,1,"{""code"": ""90642052"", ""occurrence"": 1, ""plan"": ""gened
 llm,GENED,gened,1,"{""code"": ""90642054"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,สิ่งพิทักษ์ร่างกาย,สิงพิทักษ์ร่างกาย,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642056"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,EPIDEMICS IN THE 21st CENTURY,EPIDEMICS IN THE 21ST CENTURY,False,True,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642060"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,SELF-DISCOVERY,SELF DISCOVERY,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642062"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เรื่ื่องกินเรื่องใหญ่,เรื่องกินเรื่องใหญ่,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642065"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,รักบี้ฟุตบอล,ไม่ระบุ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642067"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ซอฟบอลและเบสบอล,ซอฟต์บอลและเบสบอล,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642074"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,E-SPORTS,ESPORTS,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642083"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ศิลปะแห่งภาพยนต์,ศิลปะแห่งภาพยนตร์,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642095"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การพัฒนาตวามมั่นคงแห่งชาติ,การพัฒนาความมั่นคงแห่งชาติ,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642111"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,สนุุกกับการเขียนโค้ด,สนุกกับการเขียนโค้ด,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642116"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,SMART CITY AND INNOVATION,SMART CITY AND CITY INNOVATION,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642117"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,INFORMATION LITERACY SKILLS FOR THE 21st CENTURY,INFORMATION LITERACY SKILLS FOR THE 21ST CENTURY,False,True,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642118"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,APPLICATION SOFTWARE FOR BUSSINESS,APPLICATION SOFTWARE FOR BUSINESS,False,False,FIELD_MISMATCH
@@ -303,43 +287,30 @@ llm,GENED,gened,1,"{""code"": ""90642122"", ""occurrence"": 1, ""plan"": ""gened
 llm,GENED,gened,1,"{""code"": ""90642123"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เทคโนโลยี คอมพิวเตอร์ดนตรี,เทคโนโลยีคอมพิวเตอร์ดนตรี,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642124"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์สำหรับ SDGs,เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGS,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642125"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การดำรงชีวิตท่ามกลางภัยพิบัติและวิกฤตในอนาคต,การดำรงชีพท่ามกลางภัยพิบัติและวิกฤติในอนาคต,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642130"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การท่องเที่ี่ยวเชิงกีฬา,การท่องเที่ยวเชิงกีฬา,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642134"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,แผ่นดินพระจอมเกล้าฯศึกษา,แผ่นดินพระจอมเกล้าฯ ศึกษา,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642137"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ดูละครแล้วย้อนตัว,ดูละครแล้วย้อนดูตัว,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642140"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ภูมิคุุ้มกันทางใจ,ภูมิคุ้มกันทางใจ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642141"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PSYCHOLOGY OF SELF-DEVELOPMENT,PSYCHOLOGY OF SELF DEVELOPMENT,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642142"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,จิตวิทยาสำหรับสื่อสาร,จิตวิทยาสำหรับการสื่อสาร,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90642149"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ศิลปะการสร้างสรรค์เพื่อพัฒนาอารมณ์และจิตวิญญาณ,ศิลปะสร้างสรรค์เพื่อพัฒนาอารมณ์และจิตวิญญาณ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642152"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปันสุข,ไม่ระบุ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642154"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,FAIL-ABLE,FALLABLE,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642155"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การสร้างมนุษย์สัมพันธ์กับการสื่อสาร,การสร้างมนุษยสัมพันธ์กับการสื่อสาร,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642158"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,มุมมองของวิทยาศาสตร์และเทคโนโลยีร่วมสมัย,มุมมองวิทยาศาสตร์และเทคโนโลยีร่วมสมัย,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90642158"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,COMTEMPORARY SCIENCE AND TECHNOLOGY,CONTEMPORARY SCIENCE AND TECHNOLOGY,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90643001"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฎิบัติงานตามทักษะด้านการจัดการ 1,ปฏิบัติงานตามทักษะด้านการจัดการ,False,False,FIELD_MISMATCH
+llm,GENED,gened,1,"{""code"": ""90643001"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฏิบัติงานตามทักษะด้านการจัดการ 1,ปฏิบัติงานตามทักษะด้านการจัดการ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643001"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PRACTICE UNDER MANAGEMENT SKILL 1,PRACTICE UNDER MANAGEMENT SKILLS 1,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90643002"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฎิบัติงานตามทักษะด้านการจัดการ 2,ปฏิบัติงานตามทักษะด้านการจัดการ 2,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643002"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PRACTICE UNDER MANAGEMENT SKILL 2,PRACTICE UNDER MANAGEMENT SKILLS 2,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90643003"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฎิบัติงานตามทักษะด้านการจัดการ 3,ปฏิบัติงานตามทักษะด้านการจัดการ 3,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643003"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PRACTICE UNDER MANAGEMENT SKILL 3,PRACTICE UNDER MANAGEMENT SKILLS 3,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643027"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,มนุษย์ เงิน และคณิตศาสตร์,เงินและคณิตศาสตร์,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643028"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,SMART TIPS FOR BEGINNING INVESTERS,SMART TIPS FOR BEGINNING INVESTORS,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90643030"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เศรษศาสตร์ทั่ไป และการศึกษาความเป็นไปได้ของโครงการ,เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643031"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,CIRCULAR ECONOMIC LIFESTYLE FOR 21st CENTURY,CIRCULAR ECONOMIC LIFESTYLE FOR 21ST CENTURY,False,True,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90643037"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การบัริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21,การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643037"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY,PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21ST CENTURY,False,True,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90644001"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฎิบัติงานตามทักษะด้านการสื่อสาร 1,ปฏิบัติงานตามทักษะด้านการสื่อสาร 1,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90644002"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฎิบัติงานตามทักษะด้านการสื่อสาร 2,ปฏิบัติงานตามทักษะด้านการสื่อสาร 2,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90644003"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฎิบัติงานตามทักษะด้านการสื่อสาร 3,ปฏิบัติงานตามทักษะด้านการสื่อสาร 3,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644008"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",prerequisite,FOUNDATION ENGLISH 1,FOUNDATION ENGLISH,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90644013"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การรเขียนภาษาอังกฤษเพื่อการสื่อสาร,การเขียนภาษาอังกฤษเพื่อการสื่อสาร,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644014"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ภาษาอังกฤษเพื่อการสื่อสารทางวิชาการ,ภาษาอังกฤษเพื่อการสื่อสารทางวิชาชีพ,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90644016"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,อังกฤษเพื่ออุสาหกรรม,ภาษาอังกฤษเพื่ออุตสาหกรรม,False,False,FIELD_MISMATCH
+llm,GENED,gened,1,"{""code"": ""90644016"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,อังกฤษเพื่ออุตสาหกรรม,ภาษาอังกฤษเพื่ออุตสาหกรรม,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644020"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FOR MADIA,ENGLISH FOR MEDIA,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644021"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FOR INTERCURAL COMMUNICATION,ENGLISH FOR INTERCULTURAL COMMUNICATION,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644023"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FOR WORK PREPATION,ENGLISH FOR WORK PREPARATION,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644025"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FOR ARCHITECTURAL ARTS & DESIGN COMMUNICATION,ENGLISH FOR ARCHITECTURAL ARTS DESIGN COMMUNICATION,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644026"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FOR ARCHITECTURAL ARTS & DESIGN PRESENTATION,ENGLISH FOR ARCHITECTURAL ARTS DESIGN PRESENTATION,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90644027"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ภาษาอังกฤษสำหระบการเขียนพรรณา,ภาษาอังกฤษสำหรับการเขียนพรรณนา,False,False,FIELD_MISMATCH
+llm,GENED,gened,1,"{""code"": ""90644027"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ภาษาอังกฤษสำหรับการเขียนพรรณา,ภาษาอังกฤษสำหรับการเขียนพรรณนา,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644035"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร์สุขภาพ,การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร์,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644036"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENLISH SKILL DEVELOPMENT FOR LIFE-LONG LEARNING,ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNING,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644044"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,พูดได้ พูดดี พูดเป็น,ไม่ระบุ,False,False,FIELD_MISMATCH
@@ -354,7 +325,6 @@ llm,IT,coop,1,"{""code"": ""06016409"", ""occurrence"": 1, ""plan"": ""coop"", "
 llm,IT,coop,1,"{""code"": ""06016412"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,โครงสร้างระบบคอมพิวเตอร์และระบบปฎิบัติการ,โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06066302"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016414"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,NOSQL DATABASE SYSTEMS,NoSQL DATABASE SYSTEMS,False,True,FIELD_MISMATCH
-llm,IT,coop,1,"{""code"": ""06016425"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",credits,3(3-0-6),3(2-2-5),False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016418"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016423"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016481 หรือ 06016482"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",code,"06016481
@@ -389,7 +359,6 @@ llm,IT,no_coop,1,"{""code"": ""06016409"", ""occurrence"": 1, ""plan"": ""no_coo
 llm,IT,no_coop,1,"{""code"": ""06016412"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,โครงสร้างระบบคอมพิวเตอร์และระบบปฎิบัติการ,โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06066302"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016414"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,NOSQL DATABASE SYSTEMS,NoSQL DATABASE SYSTEMS,False,True,FIELD_MISMATCH
-llm,IT,no_coop,1,"{""code"": ""06016425"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",credits,3(3-0-6),3(2-2-5),False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016418"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016423"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""90643021"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,ผู้ประกอบการสมัยใหม่,ผู้ ประกอบการสมัยใหม่,False,False,FIELD_MISMATCH
