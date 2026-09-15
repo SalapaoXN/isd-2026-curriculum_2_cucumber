@@ -176,7 +176,7 @@ class PageProvenanceTests(unittest.TestCase):
         self.assertEqual(result["document_page"], 70)
         self.assertEqual(result["source_page"], 74)
 
-    def test_conflicting_gened_ocr_pages_remain_unresolved(self):
+    def test_ambiguous_gened_ocr_page_matching_bounded_rule_resolves(self):
         result = self.source_context(
             "GENED",
             74,
@@ -184,7 +184,7 @@ class PageProvenanceTests(unittest.TestCase):
             ["70", "header", "content", "footer", "71"],
         )
 
-        self.assertIsNone(result["document_page"])
+        self.assertEqual(result["document_page"], 70)
         self.assertEqual(result["source_page"], 74)
 
     def test_gened_catalog_page_does_not_use_description_fallback(self):

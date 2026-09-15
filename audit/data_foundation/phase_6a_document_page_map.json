@@ -1,0 +1,1480 @@
+{
+  "map_id": "phase_6a_document_page_map",
+  "schema_version": 1,
+  "status": "source_verified",
+  "generated_from": "audit/data_foundation/phase_6a_document_page_audit.json",
+  "scope": "209 source-scoped physical OCR pages",
+  "legacy_non_source_scoped_files_excluded": 30,
+  "entry_count": 209,
+  "evidence_counts": {
+    "ocr_detected": 119,
+    "source_verified": 87,
+    "bounded_offset": 3
+  },
+  "entries": [
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_023.png",
+      "source_page": 23,
+      "document_page": 19,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_024.png",
+      "source_page": 24,
+      "document_page": 20,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_025.png",
+      "source_page": 25,
+      "document_page": 21,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_026.png",
+      "source_page": 26,
+      "document_page": 22,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_287.png",
+      "source_page": 287,
+      "document_page": 283,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_288.png",
+      "source_page": 288,
+      "document_page": 284,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_289.png",
+      "source_page": 289,
+      "document_page": 285,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_290.png",
+      "source_page": 290,
+      "document_page": 286,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_291.png",
+      "source_page": 291,
+      "document_page": 287,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_292.png",
+      "source_page": 292,
+      "document_page": 288,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_293.png",
+      "source_page": 293,
+      "document_page": 289,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_294.png",
+      "source_page": 294,
+      "document_page": 290,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_295.png",
+      "source_page": 295,
+      "document_page": 291,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_296.png",
+      "source_page": 296,
+      "document_page": 292,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_297.png",
+      "source_page": 297,
+      "document_page": 293,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_298.png",
+      "source_page": 298,
+      "document_page": 294,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_299.png",
+      "source_page": 299,
+      "document_page": 295,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_300.png",
+      "source_page": 300,
+      "document_page": 296,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_301.png",
+      "source_page": 301,
+      "document_page": 297,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "AIT",
+      "source_filename": "ait_page_302.png",
+      "source_page": 302,
+      "document_page": 298,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_026.png",
+      "source_page": 26,
+      "document_page": 21,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_027.png",
+      "source_page": 27,
+      "document_page": 22,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_028.png",
+      "source_page": 28,
+      "document_page": 23,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_029.png",
+      "source_page": 29,
+      "document_page": 24,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_030.png",
+      "source_page": 30,
+      "document_page": 25,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_031.png",
+      "source_page": 31,
+      "document_page": 26,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_032.png",
+      "source_page": 32,
+      "document_page": 27,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_033.png",
+      "source_page": 33,
+      "document_page": 28,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_034.png",
+      "source_page": 34,
+      "document_page": 29,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_035.png",
+      "source_page": 35,
+      "document_page": 30,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_036.png",
+      "source_page": 36,
+      "document_page": 31,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_037.png",
+      "source_page": 37,
+      "document_page": 32,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_038.png",
+      "source_page": 38,
+      "document_page": 33,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_039.png",
+      "source_page": 39,
+      "document_page": 34,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_317.png",
+      "source_page": 317,
+      "document_page": 312,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_318.png",
+      "source_page": 318,
+      "document_page": 313,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_319.png",
+      "source_page": 319,
+      "document_page": 314,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_320.png",
+      "source_page": 320,
+      "document_page": 315,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_321.png",
+      "source_page": 321,
+      "document_page": 316,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_322.png",
+      "source_page": 322,
+      "document_page": 317,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_323.png",
+      "source_page": 323,
+      "document_page": 318,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_324.png",
+      "source_page": 324,
+      "document_page": 319,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_325.png",
+      "source_page": 325,
+      "document_page": 320,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_326.png",
+      "source_page": 326,
+      "document_page": 321,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_327.png",
+      "source_page": 327,
+      "document_page": 322,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_328.png",
+      "source_page": 328,
+      "document_page": 323,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_329.png",
+      "source_page": 329,
+      "document_page": 324,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_330.png",
+      "source_page": 330,
+      "document_page": 325,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_331.png",
+      "source_page": 331,
+      "document_page": 326,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_332.png",
+      "source_page": 332,
+      "document_page": 327,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_333.png",
+      "source_page": 333,
+      "document_page": 328,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_334.png",
+      "source_page": 334,
+      "document_page": 329,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_335.png",
+      "source_page": 335,
+      "document_page": 330,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_336.png",
+      "source_page": 336,
+      "document_page": 331,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_337.png",
+      "source_page": 337,
+      "document_page": 332,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_338.png",
+      "source_page": 338,
+      "document_page": 333,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_339.png",
+      "source_page": 339,
+      "document_page": 334,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_340.png",
+      "source_page": 340,
+      "document_page": 335,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_341.png",
+      "source_page": 341,
+      "document_page": 336,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_342.png",
+      "source_page": 342,
+      "document_page": 337,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_343.png",
+      "source_page": 343,
+      "document_page": 338,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "DSBA",
+      "source_filename": "dsba_page_344.png",
+      "source_page": 344,
+      "document_page": 339,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_016.png",
+      "source_page": 16,
+      "document_page": 12,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_017.png",
+      "source_page": 17,
+      "document_page": 13,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_018.png",
+      "source_page": 18,
+      "document_page": 14,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_019.png",
+      "source_page": 19,
+      "document_page": 15,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_020.png",
+      "source_page": 20,
+      "document_page": 16,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_021.png",
+      "source_page": 21,
+      "document_page": 17,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_022.png",
+      "source_page": 22,
+      "document_page": 18,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_023.png",
+      "source_page": 23,
+      "document_page": 19,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_024.png",
+      "source_page": 24,
+      "document_page": 20,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_025.png",
+      "source_page": 25,
+      "document_page": 21,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_026.png",
+      "source_page": 26,
+      "document_page": 22,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_027.png",
+      "source_page": 27,
+      "document_page": 23,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_028.png",
+      "source_page": 28,
+      "document_page": 24,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_029.png",
+      "source_page": 29,
+      "document_page": 25,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_030.png",
+      "source_page": 30,
+      "document_page": 26,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_044.png",
+      "source_page": 44,
+      "document_page": 40,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_045.png",
+      "source_page": 45,
+      "document_page": 41,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_046.png",
+      "source_page": 46,
+      "document_page": 42,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_047.png",
+      "source_page": 47,
+      "document_page": 43,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_048.png",
+      "source_page": 48,
+      "document_page": 44,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_049.png",
+      "source_page": 49,
+      "document_page": 45,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_050.png",
+      "source_page": 50,
+      "document_page": 46,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_051.png",
+      "source_page": 51,
+      "document_page": 47,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_052.png",
+      "source_page": 52,
+      "document_page": 48,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_053.png",
+      "source_page": 53,
+      "document_page": 49,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_054.png",
+      "source_page": 54,
+      "document_page": 50,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_055.png",
+      "source_page": 55,
+      "document_page": 51,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_056.png",
+      "source_page": 56,
+      "document_page": 52,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_057.png",
+      "source_page": 57,
+      "document_page": 53,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_058.png",
+      "source_page": 58,
+      "document_page": 54,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_059.png",
+      "source_page": 59,
+      "document_page": 55,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_060.png",
+      "source_page": 60,
+      "document_page": 56,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_061.png",
+      "source_page": 61,
+      "document_page": 57,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_062.png",
+      "source_page": 62,
+      "document_page": 58,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_063.png",
+      "source_page": 63,
+      "document_page": 59,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_064.png",
+      "source_page": 64,
+      "document_page": 60,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_065.png",
+      "source_page": 65,
+      "document_page": 61,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_066.png",
+      "source_page": 66,
+      "document_page": 62,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_067.png",
+      "source_page": 67,
+      "document_page": 63,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_068.png",
+      "source_page": 68,
+      "document_page": 64,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_069.png",
+      "source_page": 69,
+      "document_page": 65,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_070.png",
+      "source_page": 70,
+      "document_page": 66,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_071.png",
+      "source_page": 71,
+      "document_page": 67,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_072.png",
+      "source_page": 72,
+      "document_page": 68,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_073.png",
+      "source_page": 73,
+      "document_page": 69,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_074.png",
+      "source_page": 74,
+      "document_page": 70,
+      "evidence_type": "bounded_offset"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_075.png",
+      "source_page": 75,
+      "document_page": 71,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_076.png",
+      "source_page": 76,
+      "document_page": 72,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_077.png",
+      "source_page": 77,
+      "document_page": 73,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_078.png",
+      "source_page": 78,
+      "document_page": 74,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_079.png",
+      "source_page": 79,
+      "document_page": 75,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_080.png",
+      "source_page": 80,
+      "document_page": 76,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_081.png",
+      "source_page": 81,
+      "document_page": 77,
+      "evidence_type": "bounded_offset"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_082.png",
+      "source_page": 82,
+      "document_page": 78,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_083.png",
+      "source_page": 83,
+      "document_page": 79,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_084.png",
+      "source_page": 84,
+      "document_page": 80,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_085.png",
+      "source_page": 85,
+      "document_page": 81,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_086.png",
+      "source_page": 86,
+      "document_page": 82,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_087.png",
+      "source_page": 87,
+      "document_page": 83,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_088.png",
+      "source_page": 88,
+      "document_page": 84,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_089.png",
+      "source_page": 89,
+      "document_page": 85,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_090.png",
+      "source_page": 90,
+      "document_page": 86,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_091.png",
+      "source_page": 91,
+      "document_page": 87,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_092.png",
+      "source_page": 92,
+      "document_page": 88,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_093.png",
+      "source_page": 93,
+      "document_page": 89,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_094.png",
+      "source_page": 94,
+      "document_page": 90,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_095.png",
+      "source_page": 95,
+      "document_page": 91,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_096.png",
+      "source_page": 96,
+      "document_page": 92,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_097.png",
+      "source_page": 97,
+      "document_page": 93,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_098.png",
+      "source_page": 98,
+      "document_page": 94,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_099.png",
+      "source_page": 99,
+      "document_page": 95,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_100.png",
+      "source_page": 100,
+      "document_page": 96,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_101.png",
+      "source_page": 101,
+      "document_page": 97,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_102.png",
+      "source_page": 102,
+      "document_page": 98,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_103.png",
+      "source_page": 103,
+      "document_page": 99,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_104.png",
+      "source_page": 104,
+      "document_page": 100,
+      "evidence_type": "bounded_offset"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_105.png",
+      "source_page": 105,
+      "document_page": 101,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_106.png",
+      "source_page": 106,
+      "document_page": 102,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_107.png",
+      "source_page": 107,
+      "document_page": 103,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_108.png",
+      "source_page": 108,
+      "document_page": 104,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_109.png",
+      "source_page": 109,
+      "document_page": 105,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_110.png",
+      "source_page": 110,
+      "document_page": 106,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_111.png",
+      "source_page": 111,
+      "document_page": 107,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_112.png",
+      "source_page": 112,
+      "document_page": 108,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_113.png",
+      "source_page": 113,
+      "document_page": 109,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_114.png",
+      "source_page": 114,
+      "document_page": 110,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_115.png",
+      "source_page": 115,
+      "document_page": 111,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_116.png",
+      "source_page": 116,
+      "document_page": 112,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "GENED",
+      "source_filename": "gened_page_117.png",
+      "source_page": 117,
+      "document_page": 113,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_032.png",
+      "source_page": 32,
+      "document_page": 27,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_033.png",
+      "source_page": 33,
+      "document_page": 28,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_034.png",
+      "source_page": 34,
+      "document_page": 29,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_035.png",
+      "source_page": 35,
+      "document_page": 30,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_036.png",
+      "source_page": 36,
+      "document_page": 31,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_037.png",
+      "source_page": 37,
+      "document_page": 32,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_038.png",
+      "source_page": 38,
+      "document_page": 33,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_039.png",
+      "source_page": 39,
+      "document_page": 34,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_040.png",
+      "source_page": 40,
+      "document_page": 35,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_041.png",
+      "source_page": 41,
+      "document_page": 36,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_042.png",
+      "source_page": 42,
+      "document_page": 37,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_043.png",
+      "source_page": 43,
+      "document_page": 38,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_044.png",
+      "source_page": 44,
+      "document_page": 39,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_045.png",
+      "source_page": 45,
+      "document_page": 40,
+      "evidence_type": "ocr_detected"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_328.png",
+      "source_page": 328,
+      "document_page": 323,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_329.png",
+      "source_page": 329,
+      "document_page": 324,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_330.png",
+      "source_page": 330,
+      "document_page": 325,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_331.png",
+      "source_page": 331,
+      "document_page": 326,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_332.png",
+      "source_page": 332,
+      "document_page": 327,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_333.png",
+      "source_page": 333,
+      "document_page": 328,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_334.png",
+      "source_page": 334,
+      "document_page": 329,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_335.png",
+      "source_page": 335,
+      "document_page": 330,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_336.png",
+      "source_page": 336,
+      "document_page": 331,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_337.png",
+      "source_page": 337,
+      "document_page": 332,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_338.png",
+      "source_page": 338,
+      "document_page": 333,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_339.png",
+      "source_page": 339,
+      "document_page": 334,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_340.png",
+      "source_page": 340,
+      "document_page": 335,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_341.png",
+      "source_page": 341,
+      "document_page": 336,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_342.png",
+      "source_page": 342,
+      "document_page": 337,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_343.png",
+      "source_page": 343,
+      "document_page": 338,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_344.png",
+      "source_page": 344,
+      "document_page": 339,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_345.png",
+      "source_page": 345,
+      "document_page": 340,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_346.png",
+      "source_page": 346,
+      "document_page": 341,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_347.png",
+      "source_page": 347,
+      "document_page": 342,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_348.png",
+      "source_page": 348,
+      "document_page": 343,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_349.png",
+      "source_page": 349,
+      "document_page": 344,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_350.png",
+      "source_page": 350,
+      "document_page": 345,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_351.png",
+      "source_page": 351,
+      "document_page": 346,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_352.png",
+      "source_page": 352,
+      "document_page": 347,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_353.png",
+      "source_page": 353,
+      "document_page": 348,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_354.png",
+      "source_page": 354,
+      "document_page": 349,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_355.png",
+      "source_page": 355,
+      "document_page": 350,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_356.png",
+      "source_page": 356,
+      "document_page": 351,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_357.png",
+      "source_page": 357,
+      "document_page": 352,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_358.png",
+      "source_page": 358,
+      "document_page": 353,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_359.png",
+      "source_page": 359,
+      "document_page": 354,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_360.png",
+      "source_page": 360,
+      "document_page": 355,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_361.png",
+      "source_page": 361,
+      "document_page": 356,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_362.png",
+      "source_page": 362,
+      "document_page": 357,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_363.png",
+      "source_page": 363,
+      "document_page": 358,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_364.png",
+      "source_page": 364,
+      "document_page": 359,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_365.png",
+      "source_page": 365,
+      "document_page": 360,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_366.png",
+      "source_page": 366,
+      "document_page": 361,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_367.png",
+      "source_page": 367,
+      "document_page": 362,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_368.png",
+      "source_page": 368,
+      "document_page": 363,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_369.png",
+      "source_page": 369,
+      "document_page": 364,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_370.png",
+      "source_page": 370,
+      "document_page": 365,
+      "evidence_type": "source_verified"
+    },
+    {
+      "program": "IT",
+      "source_filename": "it_page_371.png",
+      "source_page": 371,
+      "document_page": 366,
+      "evidence_type": "source_verified"
+    }
+  ],
+  "methodology": "Canonical source-page identity map derived only from the verified Phase 6A edge/source audit; no OCR text or runtime/evaluation data included."
+}

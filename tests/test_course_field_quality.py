@@ -104,6 +104,30 @@ class CourseFieldQualityTests(unittest.TestCase):
         self.assertEqual(course["name_th"], "ชื่อไทย 1")
         self.assertEqual(course["name_en"], "ENGLISH TITLE 1")
 
+    def test_split_line_credit_units_are_consumed_without_title_suffix(self):
+        cases = (
+            ("0", "(0-0-45)", "0(0-0-45)"),
+            ("1", "(0-2-1)", "1(0-2-1)"),
+            ("1", "(0-3-2)", "1(0-3-2)"),
+            ("3", "(3-0-6)", "3(3-0-6)"),
+            (None, "(0-2-1)", "(0-2-1)"),
+        )
+
+        for unit, tuple_text, expected_credits in cases:
+            with self.subTest(unit=unit, tuple_text=tuple_text):
+                lines = ["06000005", "ชื่อทดสอบ"]
+                if unit is not None:
+                    lines.append(unit)
+                lines.extend([tuple_text, "TEST COURSE"])
+
+                result = CurriculumExtractor(program="DSBA", plan="coop").extract_from_lines(
+                    lines
+                )
+
+                course = result["courses"][0]
+                self.assertEqual(course["credits"], expected_credits)
+                self.assertEqual(course["name_th"], "ชื่อทดสอบ")
+
     def test_contextual_l_i_and_ii_are_normalized(self):
         result = CurriculumExtractor(program="DSBA", plan="coop").extract_from_lines(
             [

@@ -23,6 +23,7 @@ from .page_metadata import (
     document_page_candidates_from_lines,
     document_page_from_lines,
     parse_document_page,
+    resolve_document_page,
 )
 from .pre_clean import pre_clean_with_regex
 
@@ -35,8 +36,6 @@ SOURCE_PROVENANCE_FIELDS = (
     "document_category",
 )
 PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
-GENED_DESCRIPTION_SOURCE_PAGE_MIN = 44
-GENED_DESCRIPTION_SOURCE_PAGE_MAX = 117
 DEFAULT_COOP_PAIRS = (
     ("06026259", "06026260", "6(0-35-0)"),
     ("06046443", "06046444", "6(0-45-0)"),
@@ -408,24 +407,14 @@ class CurriculumExtractor:
         if not isinstance(program, str) or not program.strip():
             program = self.program if isinstance(self.program, str) and self.program.strip() else None
 
-        document_page = parse_document_page(metadata.get("document_page"))
-        ocr_candidates = set()
-        if document_page is None:
-            document_page = document_page_from_lines(text_lines)
-            if document_page is None:
-                ocr_candidates = document_page_candidates_from_lines(text_lines)
-
-        if (
-            document_page is None
-            and not ocr_candidates
-            and isinstance(source_page, int)
-            and str(program).strip().upper() == "GENED"
-            and document_category == "description"
-            and GENED_DESCRIPTION_SOURCE_PAGE_MIN
-            <= source_page
-            <= GENED_DESCRIPTION_SOURCE_PAGE_MAX
-        ):
-            document_page = source_page - 4
+        document_page = resolve_document_page(
+            program,
+            source_page,
+            source_filename,
+            text_lines,
+            explicit_document_page=metadata.get("document_page"),
+            allow_bounded_rule=document_category == "description",
+        ).document_page
 
         return {
             "program": program,
@@ -790,6 +779,17 @@ class CurriculumExtractor:
             if self.DESCRIPTION_START_RE.search(line):
                 break
 
+            if re.fullmatch(r"\d+", line.strip()):
+                next_line = self._next_nonempty_line(block.lines, line_index)
+                if (
+                    next_line is not None
+                    and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
+                ):
+                    credit_unit = line.strip()
+                    credits = f"{credits} {credit_unit}".strip() if credits else credit_unit
+                    credits_seen = True
+                    continue
+
             suffix_value = self._standalone_course_suffix(line)
             if suffix_value is not None:
                 immediately_after_name = (
@@ -817,16 +817,6 @@ class CurriculumExtractor:
             ):
                 continue
 
-            if line.strip() == "0":
-                next_line = self._next_nonempty_line(block.lines, line_index)
-                if (
-                    not credits
-                    and next_line is not None
-                    and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
-                ):
-                    credits = "0"
-                    continue
-            
             # Credits and the "หรือ" keyword that joins alternative credit rows.
             if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
                 credit_piece = "หรือ" if "หรอ" in line else line
@@ -1120,7 +1110,7 @@ class CurriculumExtractor:
         total = len(lines)
 
         code_regex = re.compile(r"\b\d{8}\b")
-        credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
+        credit_regex = re.compile(r"(?:\d+\s*)?[({]\d+-\d+-\d+[)}]")
         any_prereq_key_regex = re.compile(
             r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|PRERE\s*[A-Z]*|"
             r"PRERECUISITE|PRERECUSITE|PREREQUISITE)",
@@ -1162,7 +1152,7 @@ class CurriculumExtractor:
             saw_course = True
             name_th = ""
             name_en = ""
-            credits = "3(3-0-6)"
+            credits = ""
             credits_seen = False
 
             th_words = []
@@ -1197,6 +1187,25 @@ class CurriculumExtractor:
                         th_words.append(before_c)
                     j += 1
                     continue
+
+                # Description OCR can preserve every numeric credit token while
+                # dropping only the closing delimiter or splitting the final
+                # token onto the immediately following line.  Normalize only
+                # these exact, unambiguous shapes; incomplete tuples remain
+                # unresolved rather than being guessed.
+                if re.fullmatch(r"\d+\(\d+-\d+-\d+", curr):
+                    credits = f"{curr})"
+                    credits_seen = True
+                    j += 1
+                    continue
+
+                if re.fullmatch(r"\d+\(\d+-\d+-", curr) and j + 1 < total:
+                    next_credit_fragment = lines[j + 1].strip()
+                    if re.fullmatch(r"\d+\)", next_credit_fragment):
+                        credits = f"{curr}{next_credit_fragment}"
+                        credits_seen = True
+                        j += 2
+                        continue
 
                 suffix_value = self._standalone_course_suffix(curr)
                 if suffix_value is not None:
