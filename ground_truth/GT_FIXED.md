@@ -29,6 +29,13 @@ Corrections made after verification against the official curriculum document.
 - Corrected prerequisite: `BASIC CREATIVE STEM DESIGN`
 - Reason: The official curriculum explicitly lists `BASIC CREATIVE STEM DESIGN` as the prerequisite.
 
+### 06016425 — Visual Design Fundamentals for Interactive Media
+- Scope corrected: IT coop Ground Truth.
+- Original credits: `3(3-0-6)`
+- Corrected credits: `3(2-2-5)`
+- Reason: Independent curriculum plan/description evidence supports `3(2-2-5)`; the prior GT value was inconsistent with the source-backed curriculum data.
+- Note: The IT no-coop GT contains the same stale `3(3-0-6)` value and still requires the same source-backed correction.
+
 ## BIT
 
 - Added missing course `06036100` to both BIT GT plans.
