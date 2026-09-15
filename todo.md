@@ -40,16 +40,18 @@
 - Phase 6A.2e-k extraction regeneration: 209/209 source-scoped pages propagated with no non-document-page semantic drift; raw OCR unchanged.
 - Phase 6A.2f extraction: source-verified IT 06016454 and BIT 06036135 credits closed; 2,065 records and document_page provenance preserved.
 - Phase 6A.3 foundation gate: OCR→Extracted inventory, credit, provenance, coverage, and determinism checks passed.
+- Phase 6B.1 merge audit: consolidation rules are ready; current outputs are stale for document_page metadata and require controlled regeneration.
+- Phase 6B.2a audit: merge-time raw description re-extraction bypasses complete Extracted credits and causes 34 serialized credit degradations.
+- Phase 6B.2b merge fix: persisted Extracted complete credits are preserved through page-range and full consolidation with focused regressions passing.
+- Phase 6B.3 foundation gate: Extracted→Consolidated traceability, factual integrity, credit, isolation, provenance, loss, and determinism checks passed.
 
 ## Current Task
-Phase 6A.4 — OCR→Extracted Checkpoint Commit
+Phase 6B.4 — Extracted→Consolidated Checkpoint Commit
 Status: CHECKPOINT
 
 Goal:
-Review the final Phase 6A diff, stage only approved foundation files, exclude
-deferred geometry work, and commit the frozen OCR→Extracted foundation.
-
-Do not push.
+Explicitly stage only approved Phase 6B work, exclude unrelated/deferred dirty
+work, commit the frozen Extracted→Consolidated foundation, and do not push.
 
 ## Next
 

@@ -3,7 +3,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from merge_consecutive import merge_consecutive_files, merge_plan_with_description
+from merge_consecutive import (
+    _preserve_authoritative_extracted_credit,
+    merge_consecutive_files,
+    merge_plan_with_description,
+)
 from src.extractor import CurriculumExtractor
 
 
@@ -38,6 +42,123 @@ def alternative_course(code, page, category, marker):
 
 
 class CourseCleanupTests(unittest.TestCase):
+    def test_complete_persisted_credit_replaces_empty_or_parenthetical_raw_credit(self):
+        persisted = alternative_course("CREDIT01", 366, "description", "PERSISTED")
+        persisted["credits"] = "3(3-0-6)"
+        for raw_credit in ("", "(3-0-6)"):
+            raw = dict(persisted, credits=raw_credit)
+            result = _preserve_authoritative_extracted_credit(raw, [persisted])
+            self.assertEqual(result["credits"], "3(3-0-6)")
+            self.assertEqual(result["name_th"], raw["name_th"])
+
+    def test_complete_credit_and_identical_credit_are_unchanged(self):
+        persisted = alternative_course("CREDIT02", 367, "description", "PERSISTED")
+        persisted["credits"] = "3(3-0-6)"
+        raw = dict(persisted, credits="3(3-0-6)")
+        result = _preserve_authoritative_extracted_credit(raw, [persisted])
+        self.assertIs(result, raw)
+
+    def test_conflicting_complete_credits_fail_closed(self):
+        persisted = alternative_course("CREDIT03", 368, "description", "PERSISTED")
+        persisted["credits"] = "3(3-0-6)"
+        raw = dict(persisted, credits="4(3-0-6)")
+        with self.assertRaises(ValueError):
+            _preserve_authoritative_extracted_credit(raw, [persisted])
+
+    def test_credit_preservation_requires_exact_source_identity(self):
+        persisted = alternative_course("CREDIT04", 369, "description", "PERSISTED")
+        persisted["credits"] = "3(3-0-6)"
+        wrong_source = dict(persisted, credits="3(3-0-6)")
+        wrong_source["source_provenance"] = provenance("IT", 370, "description")
+        raw = dict(persisted, credits="(3-0-6)")
+        result = _preserve_authoritative_extracted_credit(raw, [wrong_source])
+        self.assertIs(result, raw)
+        self.assertEqual(result["credits"], "(3-0-6)")
+
+    def test_alternative_and_wildcard_credit_forms_are_not_reordered(self):
+        for credit in ("3(3-0-6) หรือ 3(2-2-5)", "3(X-X-X)"):
+            persisted = alternative_course("CREDIT05", 371, "description", "PERSISTED")
+            persisted["credits"] = credit
+            raw = dict(persisted, credits="(3-0-6)")
+            result = _preserve_authoritative_extracted_credit(raw, [persisted])
+            self.assertIs(result, raw)
+
+    def test_page_range_and_full_outputs_preserve_persisted_description_credit(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            input_dir = Path(temp_dir) / "bit"
+            output_dir = Path(temp_dir) / "consolidated"
+            input_dir.mkdir()
+            table = alternative_course("06000001", 26, "plan", "TABLE")
+            desc = alternative_course("06036135", 366, "description", "DESC")
+            desc["source_provenance"] = provenance("BIT", 366, "description")
+            desc["credits"] = "3(3-0-6)"
+            (input_dir / "bit_page_026_ocr_extracted.json").write_text(
+                json.dumps({"program": "BIT", "plan": "no_coop", "courses": [table]}),
+                encoding="utf-8",
+            )
+            (input_dir / "bit_page_366_ocr.json").write_text(
+                json.dumps(
+                    {
+                        "text_lines": [
+                            "คำอธิบายรายวิชา",
+                            "06036135",
+                            "ชื่อวิชา",
+                            "(3-0-6)",
+                            "COURSE NAME",
+                            "PREREQUISITE",
+                            "NONE",
+                        ],
+                        "source_filename": "bit_page_366.png",
+                        "source_page": 366,
+                        "program": "BIT",
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            (input_dir / "bit_page_366_ocr_extracted.json").write_text(
+                json.dumps(
+                    {"program": "BIT", "plan": "no_coop", "courses": [desc]},
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            merge_consecutive_files(
+                input_dir=str(input_dir),
+                output_dir=str(output_dir),
+                plan_filter="no_coop",
+                prefix="bit",
+                pages="26,366",
+                desc_pages="366",
+            )
+            page = json.loads(
+                (
+                    output_dir
+                    / "bit"
+                    / "no_coop"
+                    / "page_ranges"
+                    / "merged_bit_no_coop_page_366-366.json"
+                ).read_text(encoding="utf-8")
+            )
+            full = json.loads(
+                (
+                    output_dir
+                    / "bit"
+                    / "no_coop"
+                    / "full"
+                    / "merged_bit_no_coop_full.json"
+                ).read_text(encoding="utf-8")
+            )
+            self.assertEqual(page["courses"][0]["credits"], "3(3-0-6)")
+            self.assertEqual(
+                next(
+                    course
+                    for course in full["courses"]
+                    if course["code"] == "06036135"
+                )["credits"],
+                "3(3-0-6)",
+            )
+
     def test_it_plan_pair_merges_and_preserves_fields(self):
         first = alternative_course("06016481", 44, "plan", "LOCAL")
         second = alternative_course("06016482", 44, "plan", "OVERSEAS")
