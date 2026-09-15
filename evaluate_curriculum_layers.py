@@ -161,10 +161,20 @@ def _credit_shape(value: Any) -> tuple[Any, ...] | None:
     return ("raw", _collapse_ws(text))
 
 
-def _normalize_prerequisite(value: Any) -> str:
+_PREREQUISITE_ALTERNATIVE_RE = re.compile(
+    r"^\s*(\d{8})(?:(?:\s*(?:,|หรือ|\bor\b)\s*)(\d{8}))+\s*$",
+    re.IGNORECASE,
+)
+
+
+def _normalize_prerequisite(value: Any) -> Any:
     normalized = _collapse_ws(value)
     if normalized in {"", "none", "ไม่มี"}:
         return "<no_prerequisite>"
+    alternative_match = _PREREQUISITE_ALTERNATIVE_RE.fullmatch(normalized)
+    if alternative_match:
+        codes = tuple(re.findall(r"\d{8}", alternative_match.group(0)))
+        return ("or", tuple(sorted(codes)))
     normalized = re.sub(r"\s*,\s*", ", ", normalized)
     return normalized
 

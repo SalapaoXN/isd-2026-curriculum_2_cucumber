@@ -100,7 +100,7 @@ consolidated,BIT,coop,1,"{""code"": ""9664xxxx"", ""occurrence"": 1, ""plan"": "
 consolidated,BIT,coop,1,"{""code"": ""06036107"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,INFORMATION TECHNOLOGY PROJECT MANAGEMENT,INFORMATION TECHNOLOGV PROJECT MANAGEMENT,False,False,FIELD_MISMATCH
 consolidated,BIT,coop,1,"{""code"": ""06036110"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,ENTERPRISE RESOURCE PLANNING,ENTERPRISE RESOURCE PLANNNG,False,False,FIELD_MISMATCH
 consolidated,BIT,coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,WEB APPLICATION DEVELOPMENT USING FRAMEWORKS,WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS,False,False,FIELD_MISMATCH
-consolidated,BIT,coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,False,FIELD_MISMATCH
+consolidated,BIT,coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,True,FIELD_MISMATCH
 consolidated,BIT,coop,1,"{""code"": ""06036121"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN,BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN,False,False,FIELD_MISMATCH
 consolidated,BIT,coop,1,"{""code"": ""06036123"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,CLOUD TECHNOLOGY,CLOUD TECHNOLOCY,False,False,FIELD_MISMATCH
 consolidated,BIT,coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",code,96644XXX,96644xxx,False,True,FIELD_MISMATCH
@@ -184,7 +184,7 @@ consolidated,BIT,no_coop,1,"{""code"": ""9664xxxx"", ""occurrence"": 1, ""plan""
 consolidated,BIT,no_coop,1,"{""code"": ""06036107"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,INFORMATION TECHNOLOGY PROJECT MANAGEMENT,INFORMATION TECHNOLOGV PROJECT MANAGEMENT,False,False,FIELD_MISMATCH
 consolidated,BIT,no_coop,1,"{""code"": ""06036110"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,ENTERPRISE RESOURCE PLANNING,ENTERPRISE RESOURCE PLANNNG,False,False,FIELD_MISMATCH
 consolidated,BIT,no_coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,WEB APPLICATION DEVELOPMENT USING FRAMEWORKS,WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS,False,False,FIELD_MISMATCH
-consolidated,BIT,no_coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,False,FIELD_MISMATCH
+consolidated,BIT,no_coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,True,FIELD_MISMATCH
 consolidated,BIT,no_coop,1,"{""code"": ""06036121"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN,BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN,False,False,FIELD_MISMATCH
 consolidated,BIT,no_coop,1,"{""code"": ""06036123"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,CLOUD TECHNOLOGY,CLOUD TECHNOLOCY,False,False,FIELD_MISMATCH
 consolidated,BIT,no_coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",code,96644XXX,96644xxx,False,True,FIELD_MISMATCH

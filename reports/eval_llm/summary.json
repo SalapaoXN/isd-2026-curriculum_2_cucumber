@@ -70,9 +70,9 @@
       "strict_correct": 835,
       "strict_incorrect": 4,
       "strict_accuracy": 0.995232,
-      "normalized_correct": 835,
-      "normalized_incorrect": 4,
-      "normalized_accuracy": 0.995232
+      "normalized_correct": 837,
+      "normalized_incorrect": 2,
+      "normalized_accuracy": 0.997616
     }
   }
 }

@@ -38,7 +38,7 @@ llm,BIT,coop,1,"{""code"": ""06036122"", ""occurrence"": 1, ""plan"": ""coop"", 
 llm,BIT,coop,1,"{""code"": ""06036124"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,"INTRODUCTION TO COMPUTER NETWORK AND
 CYBERSECURITY",INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY,False,True,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""9664xxxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1,วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ,False,False,FIELD_MISMATCH
-llm,BIT,coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,False,FIELD_MISMATCH
+llm,BIT,coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,True,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",code,96644XXX,96644xxx,False,True,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",credits,"3(3-0-6) 
 หรือ 
@@ -84,7 +84,7 @@ llm,BIT,no_coop,1,"{""code"": ""06036105"", ""occurrence"": 1, ""plan"": ""no_co
 llm,BIT,no_coop,1,"{""code"": ""06036124"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,"INTRODUCTION TO COMPUTER NETWORK AND
 CYBERSECURITY",INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY,False,True,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""9664xxxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1,วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ,False,False,FIELD_MISMATCH
-llm,BIT,no_coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,False,FIELD_MISMATCH
+llm,BIT,no_coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,True,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",code,96644XXX,96644xxx,False,True,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",credits,"3(3-0-6) 
 หรือ 

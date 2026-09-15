@@ -99,6 +99,28 @@ class DualEvaluatorTests(unittest.TestCase):
         _, normalized = field_matches("prerequisite", "00000001 หรือ 00000002", "00000001 และ 00000002")
         self.assertFalse(normalized)
 
+    def test_prerequisite_thai_or_matches_code_comma_alternatives(self):
+        _, normalized = field_matches("prerequisite", "06036119 หรือ 06036122", "06036119, 06036122")
+        self.assertTrue(normalized)
+
+    def test_prerequisite_code_alternatives_are_order_insensitive(self):
+        _, normalized = field_matches("prerequisite", "06036119 หรือ 06036122", "06036122, 06036119")
+        self.assertTrue(normalized)
+
+    def test_prerequisite_and_expression_remains_distinct(self):
+        _, normalized = field_matches("prerequisite", "06036119 และ 06036122", "06036119, 06036122")
+        self.assertFalse(normalized)
+
+    def test_prerequisite_arbitrary_comma_text_is_not_or(self):
+        _, normalized = field_matches("prerequisite", "COURSE A, COURSE B", "COURSE A หรือ COURSE B")
+        self.assertFalse(normalized)
+
+    def test_prerequisite_empty_and_single_values_unchanged(self):
+        _, empty_normalized = field_matches("prerequisite", "ไม่มี", "")
+        _, single_normalized = field_matches("prerequisite", "06036119", "06036119")
+        self.assertTrue(empty_normalized)
+        self.assertTrue(single_normalized)
+
     def test_wrong_to_correct_transition(self):
         gt = {Scope("IT", "coop"): [course("00000001", name_en="Correct")]}
         con = {Scope("IT", "coop"): [course("00000001", name_en="Wrong")]}

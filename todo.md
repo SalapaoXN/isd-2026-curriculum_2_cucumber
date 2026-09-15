@@ -56,14 +56,15 @@
 - Phase 6C.3b cleanup: removed offline-rebase scaffolding; canonical 841-record Corrected baseline remains intact.
 - Phase 6C.3c gate: final Consolidated→Corrected integrity, routing, and focused-test checks passed.
 - Phase 6A-R.2: dual Consolidated/LLM vs GT evaluator implemented and baseline reports generated.
+- Phase 6A-R.3a: prerequisite alternative normalization fixed; dual reports regenerated.
 
 ## Current Task
-Phase 6A-R.3 — Audit Dual GT Evaluation Results
+Phase 6A-R.3b — Final Dual GT Report Verification
 Status: AUDIT ONLY
 
 Goal:
-Interpret Consolidated vs GT, LLM vs GT, deltas, transitions, and remaining
-errors without modifying evaluator or production data.
+Confirm regenerated dual reports are internally consistent and ready for
+commit/push without modifying GT or production data.
 
 ## Next
 
