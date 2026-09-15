@@ -55,14 +55,15 @@
 - Phase 6C.3 audit: canonical Corrected foundation and downstream handoff pass; offline-rebase scaffolding requires separate cleanup.
 - Phase 6C.3b cleanup: removed offline-rebase scaffolding; canonical 841-record Corrected baseline remains intact.
 - Phase 6C.3c gate: final Consolidated→Corrected integrity, routing, and focused-test checks passed.
+- Phase 6A-R.2: dual Consolidated/LLM vs GT evaluator implemented and baseline reports generated.
 
 ## Current Task
-Phase 6C.4 — Consolidated→Corrected Checkpoint Commit
-Status: CHECKPOINT
+Phase 6A-R.3 — Audit Dual GT Evaluation Results
+Status: AUDIT ONLY
 
 Goal:
-Commit the frozen Phase 6C Consolidated→Corrected foundation after reviewing
-the scoped diff and preserving unrelated dirty work.
+Interpret Consolidated vs GT, LLM vs GT, deltas, transitions, and remaining
+errors without modifying evaluator or production data.
 
 ## Next
 

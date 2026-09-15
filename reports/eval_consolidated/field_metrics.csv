@@ -1,0 +1,8 @@
+layer,field,denominator,strict_correct,strict_incorrect,strict_accuracy,normalized_correct,normalized_incorrect,normalized_accuracy,cer,wer
+consolidated,code,839,833,6,0.992849,839,0,1.0,,
+consolidated,name_th,839,568,271,0.676996,573,266,0.682956,0.032396,0.335836
+consolidated,name_en,839,316,523,0.376639,323,516,0.384982,0.040677,0.26546
+consolidated,credits,839,830,9,0.989273,830,9,0.989273,,
+consolidated,year,573,566,7,0.987784,566,7,0.987784,,
+consolidated,semester,573,572,1,0.998255,572,1,0.998255,,
+consolidated,prerequisite,839,835,4,0.995232,835,4,0.995232,,

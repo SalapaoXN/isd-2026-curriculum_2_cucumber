@@ -1,0 +1,78 @@
+{
+  "layer": "consolidated",
+  "gt_record_count": 839,
+  "output_record_count": 841,
+  "matched_gt_rows": 839,
+  "missing_output_rows": 0,
+  "extra_output_rows": 2,
+  "ambiguous_rows": 0,
+  "field_metrics": {
+    "code": {
+      "denominator": 839,
+      "strict_correct": 833,
+      "strict_incorrect": 6,
+      "strict_accuracy": 0.992849,
+      "normalized_correct": 839,
+      "normalized_incorrect": 0,
+      "normalized_accuracy": 1.0
+    },
+    "name_th": {
+      "denominator": 839,
+      "strict_correct": 568,
+      "strict_incorrect": 271,
+      "strict_accuracy": 0.676996,
+      "normalized_correct": 573,
+      "normalized_incorrect": 266,
+      "normalized_accuracy": 0.682956,
+      "cer": 0.032396,
+      "wer": 0.335836
+    },
+    "name_en": {
+      "denominator": 839,
+      "strict_correct": 316,
+      "strict_incorrect": 523,
+      "strict_accuracy": 0.376639,
+      "normalized_correct": 323,
+      "normalized_incorrect": 516,
+      "normalized_accuracy": 0.384982,
+      "cer": 0.040677,
+      "wer": 0.26546
+    },
+    "credits": {
+      "denominator": 839,
+      "strict_correct": 830,
+      "strict_incorrect": 9,
+      "strict_accuracy": 0.989273,
+      "normalized_correct": 830,
+      "normalized_incorrect": 9,
+      "normalized_accuracy": 0.989273
+    },
+    "year": {
+      "denominator": 573,
+      "strict_correct": 566,
+      "strict_incorrect": 7,
+      "strict_accuracy": 0.987784,
+      "normalized_correct": 566,
+      "normalized_incorrect": 7,
+      "normalized_accuracy": 0.987784
+    },
+    "semester": {
+      "denominator": 573,
+      "strict_correct": 572,
+      "strict_incorrect": 1,
+      "strict_accuracy": 0.998255,
+      "normalized_correct": 572,
+      "normalized_incorrect": 1,
+      "normalized_accuracy": 0.998255
+    },
+    "prerequisite": {
+      "denominator": 839,
+      "strict_correct": 835,
+      "strict_incorrect": 4,
+      "strict_accuracy": 0.995232,
+      "normalized_correct": 835,
+      "normalized_incorrect": 4,
+      "normalized_accuracy": 0.995232
+    }
+  }
+}
