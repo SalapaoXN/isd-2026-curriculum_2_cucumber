@@ -44,14 +44,25 @@
 - Phase 6B.2a audit: merge-time raw description re-extraction bypasses complete Extracted credits and causes 34 serialized credit degradations.
 - Phase 6B.2b merge fix: persisted Extracted complete credits are preserved through page-range and full consolidation with focused regressions passing.
 - Phase 6B.3 foundation gate: Extracted→Consolidated traceability, factual integrity, credit, isolation, provenance, loss, and determinism checks passed.
+- Phase 6C.1 audit: Consolidated→Corrected differences are stale/manual state; correction output lacks a non-empty text guard.
+- Phase 6C.2 regeneration: blocked before AIT output by unavailable Gemini network access; 16-file OS-temp snapshot preserved.
+- Phase 6C.2a audit: offline Corrected rebase is safe; 839 source-aware matches plus deterministic IT duplicate recovery cover all 841 records.
+- Phase 6C.2b rebase: all eight Corrected scopes deterministically rebased from current Consolidated data; 841/841 records preserved.
+- Phase 6C.2c audit: real-Gemini Corrected artifacts pass 841/841 identity, factual, multiplicity, name-safety, and log checks.
+- Phase 6C.2d routing: restored default LLM output destination to `outputs/llm/`; verified with focused tests.
+- Phase 6C.2e promotion: Real-Gemini Corrected artifacts promoted byte-for-byte to canonical `outputs/llm/`; 841/841 verified.
+- Phase 6C.3a cleanup: removed 16 verified misrouted temporary Corrected/log artifacts; canonical `outputs/llm/` unchanged.
+- Phase 6C.3 audit: canonical Corrected foundation and downstream handoff pass; offline-rebase scaffolding requires separate cleanup.
+- Phase 6C.3b cleanup: removed offline-rebase scaffolding; canonical 841-record Corrected baseline remains intact.
+- Phase 6C.3c gate: final Consolidated→Corrected integrity, routing, and focused-test checks passed.
 
 ## Current Task
-Phase 6B.4 — Extracted→Consolidated Checkpoint Commit
+Phase 6C.4 — Consolidated→Corrected Checkpoint Commit
 Status: CHECKPOINT
 
 Goal:
-Explicitly stage only approved Phase 6B work, exclude unrelated/deferred dirty
-work, commit the frozen Extracted→Consolidated foundation, and do not push.
+Commit the frozen Phase 6C Consolidated→Corrected foundation after reviewing
+the scoped diff and preserving unrelated dirty work.
 
 ## Next
 

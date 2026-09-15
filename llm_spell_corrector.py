@@ -59,6 +59,15 @@ def _record_course_code(record: dict[str, Any]) -> Any:
     return record.get("code")
 
 
+def _reject_empty_text_replacement(
+    original: Any,
+    corrected: str,
+    context: str,
+) -> None:
+    if isinstance(original, str) and original.strip() and not corrected.strip():
+        raise ValueError(f"{context} cannot replace non-empty text with empty text")
+
+
 def apply_corrections(
     document: Any,
     correction_records: list[dict[str, Any]],
@@ -119,7 +128,13 @@ def apply_corrections(
                 f"{course_code}/{field}: matched {len(matching_indexes)} records"
             )
         if matching_indexes:
-            corrected_records[matching_indexes[0]][field] = after
+            target_record = corrected_records[matching_indexes[0]]
+            _reject_empty_text_replacement(
+                target_record.get(field),
+                after,
+                f"Correction {correction_index}",
+            )
+            target_record[field] = after
             if before != after:
                 applied.append(
                     {
@@ -154,6 +169,11 @@ def apply_corrections(
             ]
             if approved_value and len(same_code_indexes) == 1:
                 target_index = same_code_indexes[0]
+                _reject_empty_text_replacement(
+                    original_records[target_index].get(field),
+                    after,
+                    f"Correction {correction_index}",
+                )
                 corrected_records[target_index][field] = after
                 if before != after:
                     applied.append(
@@ -275,6 +295,11 @@ def _validate_batch(
             raise ValueError(
                 f"Gemini batch {batch_number} text for unit_index {unit_index} is not a string"
             )
+        _reject_empty_text_replacement(
+            expected_unit["text"],
+            after["text"],
+            f"Gemini batch {batch_number} unit_index {unit_index}",
+        )
         validated[unit_index] = after
 
     missing_indices = sorted(expected_indices.difference(validated))
@@ -318,7 +343,7 @@ def _write_json_pair(
 
 
 def _output_paths(path: Path, output_dir: str | Path | None) -> tuple[Path, Path]:
-    directory = path.parent if output_dir is None else Path(output_dir)
+    directory = LLM_OUTPUT_DIR if output_dir is None else Path(output_dir)
     return (
         directory / f"{path.stem}_corrected.json",
         directory / f"{path.stem}_corrections.json",

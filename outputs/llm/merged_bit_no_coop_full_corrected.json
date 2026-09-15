@@ -38,7 +38,7 @@
         },
         {
             "code": "06036101",
-            "name_th": "ตรรกศาสตร์สำหรับธุรกิจ",
+            "name_th": "ตรรกศาสตร์ สำหรับธุรกิจ",
             "name_en": "MATHEMATICS FOR BUSINESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -144,7 +144,7 @@
         },
         {
             "code": "96644007",
-            "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+            "name_th": "ภาษาอังกฤษพื้นฐาน",
             "name_en": "FOUNDATION ENGLISH 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -220,7 +220,7 @@
         {
             "code": "06036109",
             "name_th": "กระบวนการและโมเดลทางธุรกิจ",
-            "name_en": "BUSINESS PROCESSES AND BUSINESS MODELS",
+            "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -282,7 +282,7 @@
         {
             "code": "06036125",
             "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
-            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEMS",
+            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",

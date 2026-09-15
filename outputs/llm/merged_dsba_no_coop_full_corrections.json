@@ -1,14 +1,440 @@
 [
-  {
-    "course_code": "06026243",
-    "field": "name_th",
-    "before": "ระบบฐานข้อมูลขันสูง",
-    "after": "ระบบฐานข้อมูลขั้นสูง"
-  },
-  {
-    "course_code": "06026260",
-    "field": "name_th",
-    "before": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
-    "after": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
-  }
+    {
+        "course_code": "06026202",
+        "field": "name_en",
+        "before": "LIEAR ALGEBRA",
+        "after": "LINEAR ALGEBRA"
+    },
+    {
+        "course_code": "06066101",
+        "field": "name_th",
+        "before": "พืนฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
+        "after": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06066101",
+        "field": "name_en",
+        "before": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOCV",
+        "after": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
+    },
+    {
+        "course_code": "06066303",
+        "field": "name_en",
+        "before": "PROBLEM SOLVNG AND COMPUTER PROCRAMMNG",
+        "after": "PROBLEM SOLVING AND COMPUTER PROGRAMMING"
+    },
+    {
+        "course_code": "90641003",
+        "field": "name_en",
+        "before": "SPORTS AND RECREATIONAL ACTMTIES",
+        "after": "SPORTS AND RECREATIONAL ACTIVITIES"
+    },
+    {
+        "course_code": "06026203",
+        "field": "name_en",
+        "before": "COMPUTER PROCRAMMNG",
+        "after": "COMPUTER PROGRAMMING"
+    },
+    {
+        "course_code": "06026205",
+        "field": "name_en",
+        "before": "INTRODUCTION TO MARKETNG",
+        "after": "INTRODUCTION TO MARKETING"
+    },
+    {
+        "course_code": "06066001",
+        "field": "name_en",
+        "before": "PROBABILITV AND STATISTICS",
+        "after": "PROBABILITY AND STATISTICS"
+    },
+    {
+        "course_code": "90642033",
+        "field": "name_en",
+        "before": "LAW FOR NEW GENERATLON",
+        "after": "LAW FOR NEW GENERATION"
+    },
+    {
+        "course_code": "06026206",
+        "field": "name_th",
+        "before": "การวิเคราะห์ ข้อมูลและการโปรแกรม",
+        "after": "การวิเคราะห์ข้อมูลและการโปรแกรม"
+    },
+    {
+        "course_code": "06026206",
+        "field": "name_en",
+        "before": "DATA ANAL TICS AND PROCRAMMNG",
+        "after": "DATA ANALYTICS AND PROGRAMMING"
+    },
+    {
+        "course_code": "06066300",
+        "field": "name_th",
+        "before": "แ เนวคิดระบบฐานข้อมูล",
+        "after": "แนวคิดระบบฐานข้อมูล"
+    },
+    {
+        "course_code": "06066300",
+        "field": "name_en",
+        "before": "DATABASE SVSTEM CONCEPTS",
+        "after": "DATABASE SYSTEM CONCEPTS"
+    },
+    {
+        "course_code": "06066302",
+        "field": "name_en",
+        "before": "FUNDAMENTAL WEB PROCRAMMNG",
+        "after": "FUNDAMENTAL WEB PROGRAMMING"
+    },
+    {
+        "course_code": "06066304",
+        "field": "name_en",
+        "before": "INFORMATION SVSTEM ANALYSIS AND DESIGN",
+        "after": "INFORMATION SYSTEM ANALYSIS AND DESIGN"
+    },
+    {
+        "course_code": "90644xxx",
+        "field": "name_th",
+        "before": "วิชาเลือกด้านภาษาและการสือสาร",
+        "after": "วิชาเลือกด้านภาษาและการสื่อสาร"
+    },
+    {
+        "course_code": "90644xxx",
+        "field": "name_en",
+        "before": "ELECIVE IN LANGUAGE AND COMMUNICATLON",
+        "after": "ELECTIVE IN LANGUAGE AND COMMUNICATION"
+    },
+    {
+        "course_code": "06026204",
+        "field": "name_en",
+        "before": "ITRODUCTION TO NETWORKS AND CYBERSECURITV",
+        "after": "INTRODUCTION TO NETWORKS AND CYBERSECURITY"
+    },
+    {
+        "course_code": "06026207",
+        "field": "name_en",
+        "before": "NOSOL DATABASE SVSTEMS",
+        "after": "NOSQL DATABASE SYSTEMS"
+    },
+    {
+        "course_code": "06026209",
+        "field": "name_en",
+        "before": "DATA VISUALLZATON",
+        "after": "DATA VISUALIZATION"
+    },
+    {
+        "course_code": "06026210",
+        "field": "name_en",
+        "before": "OPTIMLZATION",
+        "after": "OPTIMIZATION"
+    },
+    {
+        "course_code": "06066102",
+        "field": "name_th",
+        "before": "ระบบสารสนเทศเพือการจัดการ",
+        "after": "ระบบสารสนเทศเพื่อการจัดการ"
+    },
+    {
+        "course_code": "06066102",
+        "field": "name_en",
+        "before": "MANAGEMENT INFORMATION SVSTEMS",
+        "after": "MANAGEMENT INFORMATION SYSTEMS"
+    },
+    {
+        "course_code": "06026211",
+        "field": "name_en",
+        "before": "APPLIED MACHINE LEARNNG",
+        "after": "APPLIED MACHINE LEARNING"
+    },
+    {
+        "course_code": "06026xxx",
+        "field": "name_en",
+        "before": "ELECTIE IN DATA SCIENCE ELECTIE IN STATISTICAL ANAL YSIS 1 ELECTIE IN DATA ENGINEERNNG 1",
+        "after": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYTICS 1 ELECTIVE IN DATA ENGINEERING 1"
+    },
+    {
+        "course_code": "06026xxx",
+        "field": "name_en",
+        "before": "ELECTIE IN DATA SCIENCE 2 ELECTIE IN STATISTICAL ANALYTICS 2 ELECTIE IN DATA ENGINEERINC 2",
+        "after": "ELECTIVE IN DATA SCIENCE 2 ELECTIVE IN STATISTICAL ANALYTICS 2 ELECTIVE IN DATA ENGINEERING 2"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_th",
+        "before": "วิชาเลือกหมวดวิชาศึกษาทัวไป",
+        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_en",
+        "before": "ELECTIE IN GENERAL EDUCATION",
+        "after": "ELECTIVE IN GENERAL EDUCATION"
+    },
+    {
+        "course_code": "90644042",
+        "field": "name_th",
+        "before": "การสือสารและการนำเสนออย่างมืออาชีพ",
+        "after": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
+    },
+    {
+        "course_code": "06026213",
+        "field": "name_th",
+        "before": "ระบบ ข้อมูลมหัต",
+        "after": "ระบบข้อมูลขนาดใหญ่"
+    },
+    {
+        "course_code": "06026214",
+        "field": "name_en",
+        "before": "PROJECT IN DATA SCIENCE AND BUSINESS ANAL WTICS 1",
+        "after": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1"
+    },
+    {
+        "course_code": "06026xxx",
+        "field": "name_en",
+        "before": "ELECTIE IN DATA SCIENCE 3 ELECTIE IN STATISTICAL ANALYTICS 3 ELECTIE IN DATA ENGINEERING 3",
+        "after": "ELECTIVE IN DATA SCIENCE 3 ELECTIVE IN STATISTICAL ANALYTICS 3 ELECTIVE IN DATA ENGINEERING 3"
+    },
+    {
+        "course_code": "06026xxx",
+        "field": "name_en",
+        "before": "ELECTIE IN DATA SCIENCE 4 ELECTIE IN STATISTICAL ANALWTICS ELECTIVE IN DATA ENGINEER NG 1",
+        "after": "ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS ELECTIVE IN DATA ENGINEERING 1"
+    },
+    {
+        "course_code": "06066100",
+        "field": "name_en",
+        "before": "INFORMATION TECHNOLOGV PROJECT MANAGEMENT",
+        "after": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
+    },
+    {
+        "course_code": "06026215",
+        "field": "name_en",
+        "before": "PROECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
+        "after": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
+    },
+    {
+        "course_code": "06026xxx",
+        "field": "name_en",
+        "before": "ELECTIE IN ELECTIVE OR SPECIIC PROFESSIONAL COURSES 1",
+        "after": "ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL COURSES 1"
+    },
+    {
+        "course_code": "06026xxx",
+        "field": "name_en",
+        "before": "ELECTIE IN ELECTIE OR SPECIFIC PROFESSIONAL COURSES 2",
+        "after": "ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL COURSES 2"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_th",
+        "before": "วิชาเลือกหมวดวิชาศึกษาทัวไป",
+        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_en",
+        "before": "ELECIME IN GENERAL EDUCATLON",
+        "after": "ELECTIVE IN GENERAL EDUCATION"
+    },
+    {
+        "course_code": "xxxxxxxx",
+        "field": "name_en",
+        "before": "FREE ELECIIE COURSE 1",
+        "after": "FREE ELECTIVE COURSE 1"
+    },
+    {
+        "course_code": "xxxxxxxx",
+        "field": "name_en",
+        "before": "FREE ELECIIE COURSE 2",
+        "after": "FREE ELECTIVE COURSE 2"
+    },
+    {
+        "course_code": "06026217",
+        "field": "name_en",
+        "before": "MACHINE LEARNNG",
+        "after": "MACHINE LEARNING"
+    },
+    {
+        "course_code": "06026218",
+        "field": "name_en",
+        "before": "DEEP LEARNNG",
+        "after": "DEEP LEARNING"
+    },
+    {
+        "course_code": "06026219",
+        "field": "name_en",
+        "before": "NATURAL LANGUAGE PROCESSIG",
+        "after": "NATURAL LANGUAGE PROCESSING"
+    },
+    {
+        "course_code": "06026223",
+        "field": "name_en",
+        "before": "IMAGE PROCESSWG",
+        "after": "IMAGE PROCESSING"
+    },
+    {
+        "course_code": "06026224",
+        "field": "name_en",
+        "before": "IMAGE TRANSFORMATION AND RECOGTION",
+        "after": "IMAGE TRANSFORMATION AND RECOGNITION"
+    },
+    {
+        "course_code": "06026225",
+        "field": "name_th",
+        "before": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการ",
+        "after": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์"
+    },
+    {
+        "course_code": "06026225",
+        "field": "name_en",
+        "before": "DEEP LEARNNG II MEDICAL IMAGE AND VIDEO ANALYSIS",
+        "after": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS"
+    },
+    {
+        "course_code": "06026226",
+        "field": "name_en",
+        "before": "SPECIAL TOPICS IN DATA SCIENCE1",
+        "after": "SPECIAL TOPICS IN DATA SCIENCE 1"
+    },
+    {
+        "course_code": "06026227",
+        "field": "name_en",
+        "before": "SPECIAL TOPICS IN DATA SCIENCE2",
+        "after": "SPECIAL TOPICS IN DATA SCIENCE 2"
+    },
+    {
+        "course_code": "06026230",
+        "field": "name_en",
+        "before": "ITRODUCTION TO TLME SERIES AND FORECASTING",
+        "after": "INTRODUCTION TO TIME SERIES AND FORECASTING"
+    },
+    {
+        "course_code": "06026231",
+        "field": "name_en",
+        "before": "BAYESAN STATISTICS",
+        "after": "BAYESIAN STATISTICS"
+    },
+    {
+        "course_code": "06026232",
+        "field": "name_en",
+        "before": "INTRODUCTIOM TO STOCHASTIC PROCESS",
+        "after": "INTRODUCTION TO STOCHASTIC PROCESS"
+    },
+    {
+        "course_code": "06026233",
+        "field": "name_en",
+        "before": "MULTWARATE DATA ANALSIS",
+        "after": "MULTIVARIATE DATA ANALYSIS"
+    },
+    {
+        "course_code": "06026234",
+        "field": "name_en",
+        "before": "EXPERMMENTAL DESIGI",
+        "after": "EXPERIMENTAL DESIGN"
+    },
+    {
+        "course_code": "06026235",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN STATISTICAL ANALYTICS 1",
+        "after": "SPECIAL TOPICS IN STATISTICAL ANALYTICS 1"
+    },
+    {
+        "course_code": "06026238",
+        "field": "name_en",
+        "before": "SPECIAL WORKSHOP IN STATISTICAL ANALTICS 2",
+        "after": "SPECIAL WORKSHOP IN STATISTICAL ANALYTICS 2"
+    },
+    {
+        "course_code": "06026239",
+        "field": "name_en",
+        "before": "DATA PLPELINE ARCHITECTURE",
+        "after": "DATA PIPELINE ARCHITECTURE"
+    },
+    {
+        "course_code": "06026240",
+        "field": "name_en",
+        "before": "INTELLIGENT SVSTEM DEVELOPMENT",
+        "after": "INTELLIGENT SYSTEM DEVELOPMENT"
+    },
+    {
+        "course_code": "06026241",
+        "field": "name_en",
+        "before": "MACHINE LEARNNG OPERATIONS",
+        "after": "MACHINE LEARNING OPERATIONS"
+    },
+    {
+        "course_code": "06026242",
+        "field": "name_en",
+        "before": "CLOUD TECHNOLOGV INFRASTRUCTURE",
+        "after": "CLOUD TECHNOLOGY INFRASTRUCTURE"
+    },
+    {
+        "course_code": "06026244",
+        "field": "name_en",
+        "before": "DATABASE SYSTEM MANTENANCE AND ADMNISTRATION",
+        "after": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
+    },
+    {
+        "course_code": "06026245",
+        "field": "name_en",
+        "before": "DISTRIBUTED DATABASE SVSTEMS",
+        "after": "DISTRIBUTED DATABASE SYSTEMS"
+    },
+    {
+        "course_code": "06026246",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN DATA ENGINEERING 1",
+        "after": "SPECIAL TOPICS IN DATA ENGINEERING 1"
+    },
+    {
+        "course_code": "06026247",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN DATA ENGINEERIN6 2",
+        "after": "SPECIAL TOPICS IN DATA ENGINEERING 2"
+    },
+    {
+        "course_code": "06026249",
+        "field": "name_en",
+        "before": "SPECIAL WORKSHOP II DATA ENGIIEERIN6 2",
+        "after": "SPECIAL WORKSHOP IN DATA ENGINEERING 2"
+    },
+    {
+        "course_code": "06026251",
+        "field": "name_en",
+        "before": "FINANCAL ACCOUNTIG",
+        "after": "FINANCIAL ACCOUNTING"
+    },
+    {
+        "course_code": "06026252",
+        "field": "name_en",
+        "before": "FLANCAL ANALTICS",
+        "after": "FINANCIAL ANALYTICS"
+    },
+    {
+        "course_code": "06026253",
+        "field": "name_en",
+        "before": "MARKETING ANALTICS",
+        "after": "MARKETING ANALYTICS"
+    },
+    {
+        "course_code": "06026254",
+        "field": "name_en",
+        "before": "ITRODUCTLON TO HEALTH ANALYTICS",
+        "after": "INTRODUCTION TO HEALTH ANALYTICS"
+    },
+    {
+        "course_code": "06026255",
+        "field": "name_en",
+        "before": "CLIICAL DATA ACOUSITION AND MANAGEMENT",
+        "after": "CLINICAL DATA ACQUISITION AND MANAGEMENT"
+    },
+    {
+        "course_code": "06026259",
+        "field": "name_en",
+        "before": "COOPERATIE EDUCATION IN DATA SCIENCE AND BUSIESS ANALTICS",
+        "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    },
+    {
+        "course_code": "06026260",
+        "field": "name_en",
+        "before": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
+        "after": "OVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    }
 ]

@@ -1,1 +1,332 @@
-[]
+[
+    {
+        "course_code": "06046400",
+        "field": "name_th",
+        "before": "แคลคลัส 1",
+        "after": "แคลคูลัส 1"
+    },
+    {
+        "course_code": "06046402",
+        "field": "name_th",
+        "before": "พืชคณิตเชิงเส้น",
+        "after": "พีชคณิตเชิงเส้น"
+    },
+    {
+        "course_code": "06046402",
+        "field": "name_en",
+        "before": "LIEAR ALGEBRA",
+        "after": "LINEAR ALGEBRA"
+    },
+    {
+        "course_code": "06066000",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ไม่ต่อเนือง",
+        "after": "คณิตศาสตร์ไม่ต่อเนื่อง"
+    },
+    {
+        "course_code": "06066001",
+        "field": "name_en",
+        "before": "PROBABILITX AND STATISTICS",
+        "after": "PROBABILITY AND STATISTICS"
+    },
+    {
+        "course_code": "06066303",
+        "field": "name_th",
+        "before": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอ",
+        "after": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"
+    },
+    {
+        "course_code": "06066303",
+        "field": "name_en",
+        "before": "PROBLEM SOLVING AND COMPUTER PROGRAMMNG",
+        "after": "PROBLEM SOLVING AND COMPUTER PROGRAMMING"
+    },
+    {
+        "course_code": "90641008",
+        "field": "name_th",
+        "before": "พืนฐานทักษะการสือสารภาษาอังกฤษ",
+        "after": "พื้นฐานทักษะการสื่อสารภาษาอังกฤษ"
+    },
+    {
+        "course_code": "06066301",
+        "field": "name_en",
+        "before": "DATA STRUCTURES AND ALGORTHMS",
+        "after": "DATA STRUCTURES AND ALGORITHMS"
+    },
+    {
+        "course_code": "06046404",
+        "field": "name_th",
+        "before": "พืนฐานของระบบสมองกลฝังตัว",
+        "after": "พื้นฐานของระบบสมองกลฝังตัว"
+    },
+    {
+        "course_code": "06046404",
+        "field": "name_en",
+        "before": "FUNDAMENTAL OF EMBEDDED SYSTEM",
+        "after": "FUNDAMENTALS OF EMBEDDED SYSTEMS"
+    },
+    {
+        "course_code": "90641004",
+        "field": "name_en",
+        "before": "TEAM PR0ECT",
+        "after": "TEAM PROJECT 1"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_th",
+        "before": "วิชาเลือกหมวดวิชาศึกษาทัวไป",
+        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป"
+    },
+    {
+        "course_code": "06066300",
+        "field": "name_en",
+        "before": "DATABASE SVSTEM CONCEPTS",
+        "after": "DATABASE SYSTEM CONCEPTS"
+    },
+    {
+        "course_code": "06046405",
+        "field": "name_th",
+        "before": "การเรียนรู้ของเครืองเชิงความน่าจะเป็น",
+        "after": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น"
+    },
+    {
+        "course_code": "06046405",
+        "field": "name_en",
+        "before": "PROBABILISTIC MACHINE LEARNNG",
+        "after": "PROBABILISTIC MACHINE LEARNING"
+    },
+    {
+        "course_code": "06046406",
+        "field": "name_th",
+        "before": "พืนฐานการเรียนรู้เชิงลึก",
+        "after": "พื้นฐานการเรียนรู้เชิงลึก"
+    },
+    {
+        "course_code": "06046406",
+        "field": "name_en",
+        "before": "FUNDAMENTALS OF DEEP LEARNNG",
+        "after": "FUNDAMENTALS OF DEEP LEARNING"
+    },
+    {
+        "course_code": "06046409",
+        "field": "name_th",
+        "before": "คอมพิวเตอร์วิทัศน์เบืองต้น",
+        "after": "คอมพิวเตอร์วิทัศน์เบื้องต้น"
+    },
+    {
+        "course_code": "06046413",
+        "field": "name_th",
+        "before": "ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง",
+        "after": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง"
+    },
+    {
+        "course_code": "06046413",
+        "field": "name_en",
+        "before": "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
+        "after": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THINGS"
+    },
+    {
+        "course_code": "90641009",
+        "field": "name_th",
+        "before": "ทักษะการสือสารภาษา อังกฤษระหว่างวัฒนธรรม",
+        "after": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1"
+    },
+    {
+        "course_code": "90641009",
+        "field": "name_en",
+        "before": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH",
+        "after": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+    },
+    {
+        "course_code": "06046408",
+        "field": "name_th",
+        "before": "การแสดง เข้อมูลด้วยแผนภาพ",
+        "after": "การแสดงข้อมูลด้วยแผนภาพ"
+    },
+    {
+        "course_code": "06046408",
+        "field": "name_en",
+        "before": "DATA VISUALLZATION",
+        "after": "DATA VISUALIZATION"
+    },
+    {
+        "course_code": "06046410",
+        "field": "name_th",
+        "before": "การประมวลผลภาษาธรรมชาติเบือง",
+        "after": "การประมวลผลภาษาธรรมชาติเบื้องต้น"
+    },
+    {
+        "course_code": "06046412",
+        "field": "name_th",
+        "before": "การเพิมประสิทธิภาพโครงข่ายประสาทเทียม ก",
+        "after": "การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม"
+    },
+    {
+        "course_code": "06046412",
+        "field": "name_en",
+        "before": "NEURAL NETWORK OPTMMLZATION",
+        "after": "NEURAL NETWORK OPTIMIZATION"
+    },
+    {
+        "course_code": "06046411",
+        "field": "name_th",
+        "before": "การวิเคราะห์และเพิมประสิทธิภาพเครือข่าย",
+        "after": "การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย"
+    },
+    {
+        "course_code": "06046411",
+        "field": "name_en",
+        "before": "NETWORK ANALSIS AND OPTMMLZATON",
+        "after": "NETWORK ANALYSIS AND OPTIMIZATION"
+    },
+    {
+        "course_code": "90641010",
+        "field": "name_th",
+        "before": "ทักษะการสือสารภาษาอังกฤษระหว่างวัฒนธรรม 2",
+        "after": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+    },
+    {
+        "course_code": "90641005",
+        "field": "name_en",
+        "before": "TEAM PR0JECT 2",
+        "after": "TEAM PROJECT 2"
+    },
+    {
+        "course_code": "06046414",
+        "field": "name_en",
+        "before": "NATURAL LANCUAGE PROCESSING WITH DEEP LEARNNG",
+        "after": "NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING"
+    },
+    {
+        "course_code": "90642012",
+        "field": "name_en",
+        "before": "DESIGN THINKNG",
+        "after": "DESIGN THINKING"
+    },
+    {
+        "course_code": "060464xx",
+        "field": "name_en",
+        "before": "ELECTIE IN ARTIFICIAL INTELLIGENCE SPECIALLZATION",
+        "after": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION"
+    },
+    {
+        "course_code": "06046440",
+        "field": "name_th",
+        "before": "วิชาสัมมนาปัญญาประะ",
+        "after": "วิชาสัมมนาปัญญาประดิษฐ์"
+    },
+    {
+        "course_code": "060464xx",
+        "field": "name_th",
+        "before": "วิชาเลือกเทคโนโลยีปัญญาป ร ดิษฐ์ เฉพาะทาง",
+        "after": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง"
+    },
+    {
+        "course_code": "060464xx",
+        "field": "name_en",
+        "before": "ELECTIE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
+        "after": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION"
+    },
+    {
+        "course_code": "90641006",
+        "field": "name_th",
+        "before": "โครงงานกลุ่ม  3",
+        "after": "โครงงานกลุ่ม 3"
+    },
+    {
+        "course_code": "90641006",
+        "field": "name_en",
+        "before": "TEAM PROECT 3",
+        "after": "TEAM PROJECT 3"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_th",
+        "before": "วิชาเลือกหมวดวิชาศึกษาทัวไป",
+        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป"
+    },
+    {
+        "course_code": "90644xxx",
+        "field": "name_th",
+        "before": "วิชาเลือกด้านภาษาและการสือสาร",
+        "after": "วิชาเลือกด้านภาษาและการสื่อสาร"
+    },
+    {
+        "course_code": "06046443 หรือ 06046444",
+        "field": "name_th",
+        "before": "สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์\nสหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์ ู",
+        "after": "สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์\nสหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์"
+    },
+    {
+        "course_code": "06046443 หรือ 06046444",
+        "field": "name_en",
+        "before": "COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY\nOVERSEA COOPERATIE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOC",
+        "after": "COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY\nOVERSEAS COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY"
+    },
+    {
+        "course_code": "06046418",
+        "field": "name_th",
+        "before": "การระบุตำแหน่งและการสร้างแผนทีของหุ่นยนต์",
+        "after": "การระบุตำแหน่งและการสร้างแผนที่ของหุ่นยนต์"
+    },
+    {
+        "course_code": "06046418",
+        "field": "name_en",
+        "before": "ROBOT LOCALZATION AND MAPPING",
+        "after": "ROBOT LOCALIZATION AND MAPPING"
+    },
+    {
+        "course_code": "06046419",
+        "field": "name_th",
+        "before": "การเรียนร้แบบเสริมกำลัง",
+        "after": "การเรียนรู้แบบเสริมกำลัง"
+    },
+    {
+        "course_code": "06046420",
+        "field": "name_en",
+        "before": "INTELLIGET RECOMMENDATION SVSTEMS",
+        "after": "INTELLIGENT RECOMMENDATION SYSTEMS"
+    },
+    {
+        "course_code": "06046422",
+        "field": "name_th",
+        "before": "จริยธรรมด้านปัญญาประดษ",
+        "after": "จริยธรรมด้านปัญญาประดิษฐ์"
+    },
+    {
+        "course_code": "06046422",
+        "field": "name_en",
+        "before": "ARTIFICIAL INTELLIGIENCE ETHICS",
+        "after": "ARTIFICIAL INTELLIGENCE ETHICS"
+    },
+    {
+        "course_code": "06046423",
+        "field": "name_en",
+        "before": "ARTIFICAL INTELLIGIENCE SERVICE DESIGI",
+        "after": "ARTIFICIAL INTELLIGENCE SERVICE DESIGN"
+    },
+    {
+        "course_code": "06046430",
+        "field": "name_en",
+        "before": "SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 1",
+        "after": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 1"
+    },
+    {
+        "course_code": "06046431",
+        "field": "name_en",
+        "before": "SELECTED TOPICS IN ARTIFICIAL INTEL LIGENCE 2",
+        "after": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 2"
+    },
+    {
+        "course_code": "06046433",
+        "field": "name_en",
+        "before": "SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 4",
+        "after": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 4"
+    },
+    {
+        "course_code": "06046434",
+        "field": "name_en",
+        "before": "SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 5",
+        "after": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 5"
+    }
+]

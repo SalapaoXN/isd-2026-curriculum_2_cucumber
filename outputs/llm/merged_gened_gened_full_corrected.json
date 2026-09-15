@@ -65,7 +65,7 @@
         },
         {
             "code": "90641003",
-            "name_th": "กีฬาและนันทนาการ 1",
+            "name_th": "กีฬาและนันทนาการ",
             "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
             "credits": "1(0-3-2)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1124,7 +1124,7 @@
         {
             "code": "90642036",
             "name_th": "เตรียมความพร้อมสำหรับวิศวกร",
-            "name_en": "PREPARATION ACTIVITIES FOR ENGINEERS",
+            "name_en": "PRE-ACTIVITIES FOR ENGINEERS",
             "credits": "1(0-3-0)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -1385,7 +1385,7 @@
         {
             "code": "90642045",
             "name_th": "เรื่องเหล้า",
-            "name_en": "BE MY BEV.",
+            "name_en": "BEER MY BEV.",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -2762,7 +2762,7 @@
         {
             "code": "90642092",
             "name_th": "การศึกษาเพื่อสร้างพลเมือง",
-            "name_en": "CMIC EDUCATION",
+            "name_en": "CIVIC EDUCATION",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -3710,7 +3710,7 @@
         },
         {
             "code": "90642124",
-            "name_th": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDCS",
+            "name_th": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGS",
             "name_en": "SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4616,7 +4616,7 @@
         {
             "code": "90642154",
             "name_th": "ล้มให้เป็น",
-            "name_en": "FALL ABLE",
+            "name_en": "FALLABLE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -5042,7 +5042,7 @@
         },
         {
             "code": "90643009",
-            "name_th": "การตลาดยุคคอนเทนต์",
+            "name_th": "การตลาดยุคคอนเทนท์",
             "name_en": "CONTENT MARKETING",
             "credits": "1(1-0-2)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5672,7 +5672,7 @@
         },
         {
             "code": "90643030",
-            "name_th": "เศรษฐศาสตร์ทั่วไปและการศึกษาความเป็นไปได้ของโครงการ",
+            "name_th": "เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ",
             "name_en": "GENERAL ECONOMICS AND PROJECT FEASIBILITY STUDY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5882,8 +5882,8 @@
         },
         {
             "code": "90643037",
-            "name_th": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่",
-            "name_en": "N/A",
+            "name_th": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21",
+            "name_en": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21ST CENTURY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -6375,7 +6375,7 @@
         },
         {
             "code": "90644016",
-            "name_th": "อังกฤษเพื่ออุตสาหกรรม",
+            "name_th": "ภาษาอังกฤษเพื่ออุตสาหกรรม",
             "name_en": "ENGLISH FOR INDUSTRY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",

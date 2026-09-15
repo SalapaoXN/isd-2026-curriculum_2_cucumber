@@ -108,6 +108,8 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         return responder
 
     def run_files(self, paths, responses, output_dir=None):
+        if output_dir is None:
+            output_dir = self.directory
         client = FakeClient(responses)
         with patch("llm_spell_corrector.genai.Client", return_value=client):
             output_paths = llm_spell_corrector.correct_json_files(
@@ -124,6 +126,39 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         directory = self.directory if directory is None else directory
         self.assertFalse(list(directory.glob("*_corrected.json")))
         self.assertFalse(list(directory.glob("*_corrections.json")))
+
+    def test_default_output_paths_use_canonical_llm_layer_for_all_nested_scopes(self):
+        cases = (
+            "outputs/consolidated/ait/full/merged_ait_no_plan_full.json",
+            "outputs/consolidated/bit/coop/full/merged_bit_coop_full.json",
+            "outputs/consolidated/dsba/no_coop/full/merged_dsba_no_coop_full.json",
+        )
+        for source in cases:
+            with self.subTest(source=source):
+                corrected, corrections = llm_spell_corrector._output_paths(Path(source), None)
+                self.assertEqual(corrected.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+                self.assertEqual(corrections.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+                self.assertEqual(corrected.name, f"{Path(source).stem}_corrected.json")
+                self.assertEqual(corrections.name, f"{Path(source).stem}_corrections.json")
+                self.assertNotEqual(corrected.parent, Path(source).parent)
+
+    def test_explicit_output_directory_still_overrides_canonical_default(self):
+        source = Path("outputs/consolidated/bit/coop/full/merged_bit_coop_full.json")
+        corrected, corrections = llm_spell_corrector._output_paths(source, self.directory)
+        self.assertEqual(corrected.parent, self.directory)
+        self.assertEqual(corrections.parent, self.directory)
+
+    def test_default_routing_does_not_write_beside_nested_input(self):
+        source = self.directory / "outputs" / "consolidated" / "ait" / "full" / "merged_ait_no_plan_full.json"
+        source.parent.mkdir(parents=True)
+        source.write_text(json.dumps({"courses": [make_record()]}), encoding="utf-8")
+
+        corrected, corrections = llm_spell_corrector._output_paths(source, None)
+
+        self.assertEqual(corrected.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+        self.assertEqual(corrections.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+        self.assertFalse((source.parent / corrected.name).exists())
+        self.assertFalse((source.parent / corrections.name).exists())
 
     def test_discovery_finds_only_full_consolidated_files_in_deterministic_order(self):
         consolidated = self.directory / "outputs" / "consolidated"
@@ -288,6 +323,70 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         )
         self.assertEqual(client.models.calls[0]["model"], "gemini-3.5-flash-lite")
         self.assertEqual(client.models.calls[0]["config"], {"temperature": 0})
+
+    def test_empty_corrected_name_th_is_rejected_before_output(self):
+        path, _ = self.write_document("curriculum.json", [make_record()])
+
+        def empty_name_th(contents):
+            payload = json.loads(contents[1])
+            payload[0]["text"] = ""
+            return self.response_for_payload(payload)
+
+        with self.assertRaisesRegex(ValueError, "empty text"):
+            self.run_corrector(path, [empty_name_th])
+        self.assert_no_outputs()
+
+    def test_whitespace_corrected_name_en_is_rejected_before_output(self):
+        path, _ = self.write_document("curriculum.json", [make_record()])
+
+        def whitespace_name_en(contents):
+            payload = json.loads(contents[1])
+            for unit in payload:
+                if unit["field"] == "name_en":
+                    unit["text"] = " \t\n"
+            return self.response_for_payload(payload)
+
+        with self.assertRaisesRegex(ValueError, "empty text"):
+            self.run_corrector(path, [whitespace_name_en])
+        self.assert_no_outputs()
+
+    def test_empty_original_text_does_not_require_a_replacement(self):
+        path, _ = self.write_document(
+            "curriculum.json",
+            [make_record(name_th="", name_en="", desc_th="", desc_en="")],
+        )
+
+        output_path, client = self.run_corrector(path, [])
+
+        result = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["courses"][0]["name_th"], "")
+        self.assertEqual(result["courses"][0]["name_en"], "")
+        self.assertEqual(client.models.calls, [])
+
+    def test_whitespace_only_original_text_does_not_require_a_replacement(self):
+        before = [{"unit_index": 0, "field": "name_en", "text": "   "}]
+        after = [{"unit_index": 0, "field": "name_en", "text": ""}]
+
+        validated = llm_spell_corrector._validate_batch(before, after, 1, 0)
+
+        self.assertEqual(validated[0]["text"], "")
+
+    def test_reviewed_corrections_reject_empty_text_for_all_supported_text_fields(self):
+        for field in ("name_th", "name_en", "desc_th", "desc_en"):
+            record = make_record()
+            before = record[field]
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "empty text"):
+                llm_spell_corrector.apply_corrections(
+                    {"courses": [record]},
+                    [
+                        {
+                            "course_code": record["course_code"],
+                            "field": field,
+                            "before": before,
+                            "after": "",
+                        }
+                    ],
+                )
 
     def test_identical_text_across_files_uses_one_unit_and_same_output(self):
         first_records = [make_record("06000001", name_th=None, name_en="Shared text", desc_th=None, desc_en=None, note=None)]

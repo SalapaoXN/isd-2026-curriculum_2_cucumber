@@ -1,1 +1,1226 @@
-[]
+[
+    {
+        "course_code": "90641002",
+        "field": "name_en",
+        "before": "DIGITAL INTELLIGENCE QUOTLENT",
+        "after": "DIGITAL INTELLIGENCE QUOTIENT"
+    },
+    {
+        "course_code": "90641003",
+        "field": "name_en",
+        "before": "SPORTS AND RECREATIONAL ACTMITIES",
+        "after": "SPORTS AND RECREATIONAL ACTIVITIES"
+    },
+    {
+        "course_code": "90642004",
+        "field": "name_en",
+        "before": "ANALTICAL THINKNG",
+        "after": "ANALYTICAL THINKING"
+    },
+    {
+        "course_code": "90642005",
+        "field": "name_en",
+        "before": "CREATIE THINKNG",
+        "after": "CREATIVE THINKING"
+    },
+    {
+        "course_code": "90642006",
+        "field": "name_en",
+        "before": "INNOVATIE THIKNNG",
+        "after": "INNOVATIVE THINKING"
+    },
+    {
+        "course_code": "90642007",
+        "field": "name_en",
+        "before": "POSITIE THINKNG",
+        "after": "POSITIVE THINKING"
+    },
+    {
+        "course_code": "90642008",
+        "field": "name_en",
+        "before": "PROBLEM SOLNG",
+        "after": "PROBLEM SOLVING"
+    },
+    {
+        "course_code": "90642009",
+        "field": "name_en",
+        "before": "STRATEGIC THIKNG",
+        "after": "STRATEGIC THINKING"
+    },
+    {
+        "course_code": "90642010",
+        "field": "name_en",
+        "before": "SVSTEM THINKNG",
+        "after": "SYSTEM THINKING"
+    },
+    {
+        "course_code": "90642011",
+        "field": "name_en",
+        "before": "CRITICAL THINKNG",
+        "after": "CRITICAL THINKING"
+    },
+    {
+        "course_code": "90642012",
+        "field": "name_en",
+        "before": "DESIGN THINKNG",
+        "after": "DESIGN THINKING"
+    },
+    {
+        "course_code": "90642013",
+        "field": "name_en",
+        "before": "ITECRATED THINKNG",
+        "after": "INTEGRATED THINKING"
+    },
+    {
+        "course_code": "90642014",
+        "field": "name_en",
+        "before": "INNOVATIE AND SSTEM THINKNG",
+        "after": "INNOVATIVE AND SYSTEM THINKING"
+    },
+    {
+        "course_code": "90642015",
+        "field": "name_en",
+        "before": "CREATIVE THINKNG AND INNOVATION",
+        "after": "CREATIVE THINKING AND INNOVATION"
+    },
+    {
+        "course_code": "90642018",
+        "field": "name_en",
+        "before": "CREATIE PRODUCTION TECHNOLOCV",
+        "after": "CREATIVE PRODUCTION TECHNOLOGY"
+    },
+    {
+        "course_code": "90642019",
+        "field": "name_th",
+        "before": "การออกแจ .เบบสะเต็มอย่างสร้างสรรค์ขั้นพื้นฐาน",
+        "after": "การออกแบบสะเต็มอย่างสร้างสรรค์ขั้นพื้นฐาน"
+    },
+    {
+        "course_code": "90642019",
+        "field": "name_en",
+        "before": "BASIC CREATIE STEM DESIGN",
+        "after": "BASIC CREATIVE STEM DESIGN"
+    },
+    {
+        "course_code": "90642020",
+        "field": "name_en",
+        "before": "ADVANCE CREATIE STEM DESIGN",
+        "after": "ADVANCED CREATIVE STEM DESIGN"
+    },
+    {
+        "course_code": "90642023",
+        "field": "name_en",
+        "before": "EMERGING TRENDS IN ENGINEERNG",
+        "after": "EMERGING TRENDS IN ENGINEERING"
+    },
+    {
+        "course_code": "90642027",
+        "field": "name_en",
+        "before": "ITERPRETATION AND ARCUMENT",
+        "after": "INTERPRETATION AND ARGUMENT"
+    },
+    {
+        "course_code": "90642028",
+        "field": "name_th",
+        "before": "รู้ เท่าทันการพนัน",
+        "after": "รู้เท่าทันการพนัน"
+    },
+    {
+        "course_code": "90642028",
+        "field": "name_en",
+        "before": "GAMBLNG LITERACY",
+        "after": "GAMBLING LITERACY"
+    },
+    {
+        "course_code": "90642030",
+        "field": "name_en",
+        "before": "ENGINEERNNG ETHICS AND LAW",
+        "after": "ENGINEERING ETHICS AND LAW"
+    },
+    {
+        "course_code": "90642034",
+        "field": "name_en",
+        "before": "LAW AND REGULATLON IN AVIATION INDUSTRY",
+        "after": "LAW AND REGULATION IN AVIATION INDUSTRY"
+    },
+    {
+        "course_code": "90642036",
+        "field": "name_en",
+        "before": "PRE ACTMITIES FOR ENGINEERS",
+        "after": "PRE-ACTIVITIES FOR ENGINEERS"
+    },
+    {
+        "course_code": "90642038",
+        "field": "name_th",
+        "before": "ความปลอดภัยในทีทำงาน",
+        "after": "ความปลอดภัยในที่ทำงาน"
+    },
+    {
+        "course_code": "90642038",
+        "field": "name_en",
+        "before": "OCCUPATIONAL SAFETV AND HEALTH",
+        "after": "OCCUPATIONAL SAFETY AND HEALTH"
+    },
+    {
+        "course_code": "90642040",
+        "field": "name_en",
+        "before": "COFFEE MANA",
+        "after": "COFFEE MANIA"
+    },
+    {
+        "course_code": "90642045",
+        "field": "name_en",
+        "before": "BE MV BEV.",
+        "after": "BEER MY BEV."
+    },
+    {
+        "course_code": "90642049",
+        "field": "name_en",
+        "before": "MICROBIAL UTILLZATION FOR DAILV LIFE",
+        "after": "MICROBIAL UTILIZATION FOR DAILY LIFE"
+    },
+    {
+        "course_code": "90642050",
+        "field": "name_th",
+        "before": "พืชพรรณทีเป็นยา",
+        "after": "พืชพรรณที่เป็นยา"
+    },
+    {
+        "course_code": "90642051",
+        "field": "name_en",
+        "before": "BLOTECHNOLOCY FOR BETTER LIING",
+        "after": "BIOTECHNOLOGY FOR BETTER LIVING"
+    },
+    {
+        "course_code": "90642053",
+        "field": "name_th",
+        "before": "สาระน่ารู้อญูพันธุศาสตร์",
+        "after": "สาระน่ารู้อณูพันธุศาสตร์"
+    },
+    {
+        "course_code": "90642053",
+        "field": "name_en",
+        "before": "ITERESTNG MOLECULAR GENETICS",
+        "after": "INTERESTING MOLECULAR GENETICS"
+    },
+    {
+        "course_code": "90642054",
+        "field": "name_en",
+        "before": "GUARDANS OF OUR BODIES",
+        "after": "GUARDIANS OF OUR BODIES"
+    },
+    {
+        "course_code": "90642055",
+        "field": "name_en",
+        "before": "LIING WTH MICROBES",
+        "after": "LIVING WITH MICROBES"
+    },
+    {
+        "course_code": "90642056",
+        "field": "name_th",
+        "before": "โรคระบาดในศตวรรษที 21",
+        "after": "โรคระบาดในศตวรรษที่ 21"
+    },
+    {
+        "course_code": "90642056",
+        "field": "name_en",
+        "before": "ST EPLDEMICS IN THE 21 CENTURV",
+        "after": "EPIDEMICS IN THE 21ST CENTURY"
+    },
+    {
+        "course_code": "90642057",
+        "field": "name_en",
+        "before": "IMMUNT THROUCH MEDIA",
+        "after": "IMMUNITY THROUGH MEDIA"
+    },
+    {
+        "course_code": "90642058",
+        "field": "name_en",
+        "before": "UNDERSTANDIG HEALTH POLICV AND PUBLIC WELFARE",
+        "after": "UNDERSTANDING HEALTH POLICY AND PUBLIC WELFARE"
+    },
+    {
+        "course_code": "90642062",
+        "field": "name_en",
+        "before": "ALL ABOUT FOQD",
+        "after": "ALL ABOUT FOOD"
+    },
+    {
+        "course_code": "90642063",
+        "field": "name_en",
+        "before": "HOLSTIC HEALTH DEVELOPMENT",
+        "after": "HOLISTIC HEALTH DEVELOPMENT"
+    },
+    {
+        "course_code": "90642065",
+        "field": "name_en",
+        "before": "RUGBV FOOTBALL",
+        "after": "RUGBY FOOTBALL"
+    },
+    {
+        "course_code": "90642067",
+        "field": "name_th",
+        "before": "ซอฟบอลและเบสบอล",
+        "after": "ซอฟต์บอลและเบสบอล"
+    },
+    {
+        "course_code": "90642071",
+        "field": "name_en",
+        "before": "BADMNTON",
+        "after": "BADMINTON"
+    },
+    {
+        "course_code": "90642074",
+        "field": "name_en",
+        "before": "E SPORTS",
+        "after": "ESPORTS"
+    },
+    {
+        "course_code": "90642080",
+        "field": "name_en",
+        "before": "NTRODUCTION TO MUSIC COMPOSITION",
+        "after": "INTRODUCTION TO MUSIC COMPOSITION"
+    },
+    {
+        "course_code": "90642081",
+        "field": "name_en",
+        "before": "RAP APPRECATION",
+        "after": "RAP APPRECIATION"
+    },
+    {
+        "course_code": "90642082",
+        "field": "name_en",
+        "before": "MUSIC APPRECATION",
+        "after": "MUSIC APPRECIATION"
+    },
+    {
+        "course_code": "90642083",
+        "field": "name_en",
+        "before": "FLLM APPRECATION",
+        "after": "FILM APPRECIATION"
+    },
+    {
+        "course_code": "90642084",
+        "field": "name_en",
+        "before": "PHOTOCRAPHY APPRECATION",
+        "after": "PHOTOGRAPHY APPRECIATION"
+    },
+    {
+        "course_code": "90642085",
+        "field": "name_th",
+        "before": "วัฒนธรรมรวมสมัย",
+        "after": "วัฒนธรรมร่วมสมัย"
+    },
+    {
+        "course_code": "90642086",
+        "field": "name_en",
+        "before": "ITRODUCTION TO DESIGN CULTURE",
+        "after": "INTRODUCTION TO DESIGN CULTURE"
+    },
+    {
+        "course_code": "90642088",
+        "field": "name_th",
+        "before": "วัฒนธรรมจีนดังเดิม",
+        "after": "วัฒนธรรมจีนดั้งเดิม"
+    },
+    {
+        "course_code": "90642089",
+        "field": "name_th",
+        "before": "สังคม ฺเศรษฐกิจ และการเมืองจีน",
+        "after": "สังคม เศรษฐกิจ และการเมืองจีน"
+    },
+    {
+        "course_code": "90642089",
+        "field": "name_en",
+        "before": "CHINESE SOCIETV, ECONOMV AND POLITICS",
+        "after": "CHINESE SOCIETY, ECONOMY AND POLITICS"
+    },
+    {
+        "course_code": "90642091",
+        "field": "name_en",
+        "before": "ASAN STUDV",
+        "after": "ASIAN STUDY"
+    },
+    {
+        "course_code": "90642092",
+        "field": "name_en",
+        "before": "CMIC EDUCATION",
+        "after": "CIVIC EDUCATION"
+    },
+    {
+        "course_code": "90642093",
+        "field": "name_en",
+        "before": "COMMUNTV ENGAGEMENT",
+        "after": "COMMUNITY ENGAGEMENT"
+    },
+    {
+        "course_code": "90642094",
+        "field": "name_en",
+        "before": "PRINCPLES OF COMMUMTV DEVELOPMENT",
+        "after": "PRINCIPLES OF COMMUNITY DEVELOPMENT"
+    },
+    {
+        "course_code": "90642095",
+        "field": "name_th",
+        "before": "การพัฒนาความมันคงแห่งชาติ",
+        "after": "การพัฒนาความมั่นคงแห่งชาติ"
+    },
+    {
+        "course_code": "90642095",
+        "field": "name_en",
+        "before": "NATIONAL SECURITV DEVELOPMENT",
+        "after": "NATIONAL SECURITY DEVELOPMENT"
+    },
+    {
+        "course_code": "90642097",
+        "field": "name_en",
+        "before": "APPLIED THA/ WISDOMS",
+        "after": "APPLIED THAI WISDOMS"
+    },
+    {
+        "course_code": "90642098",
+        "field": "name_en",
+        "before": "DVNAMICS OF THAL SOCIET",
+        "after": "DYNAMICS OF THAI SOCIETY"
+    },
+    {
+        "course_code": "90642099",
+        "field": "name_en",
+        "before": "ACTIVE AGING SOCIET",
+        "after": "ACTIVE AGING SOCIETY"
+    },
+    {
+        "course_code": "90642103",
+        "field": "name_en",
+        "before": "LNG IN DIGITAL SOCIET",
+        "after": "LIVING IN DIGITAL SOCIETY"
+    },
+    {
+        "course_code": "90642105",
+        "field": "name_th",
+        "before": "อินเทอร์ รเน็ตพื้นฐานของสรรพสิ่ง",
+        "after": "อินเทอร์เน็ตพื้นฐานของสรรพสิ่ง"
+    },
+    {
+        "course_code": "90642105",
+        "field": "name_en",
+        "before": "BASIC INTERNET OF THINGS (LOT)",
+        "after": "BASIC INTERNET OF THINGS (IOT)"
+    },
+    {
+        "course_code": "90642106",
+        "field": "name_th",
+        "before": "เล่าเรืองการเดินทางแบบดิจิทัล",
+        "after": "เล่าเรื่องการเดินทางแบบดิจิทัล"
+    },
+    {
+        "course_code": "90642106",
+        "field": "name_en",
+        "before": "DIGITAL STORWTELLNG IN JOURNEV",
+        "after": "DIGITAL STORYTELLING IN JOURNEY"
+    },
+    {
+        "course_code": "90642108",
+        "field": "name_en",
+        "before": "DIGITAL PHOTOCRAPHY TECHNOLOCY",
+        "after": "DIGITAL PHOTOGRAPHY TECHNOLOGY"
+    },
+    {
+        "course_code": "90642110",
+        "field": "name_th",
+        "before": "สนุกกับวิทยาศาสตร์ ข้อมูล",
+        "after": "สนุกกับวิทยาศาสตร์ข้อมูล"
+    },
+    {
+        "course_code": "90642111",
+        "field": "name_en",
+        "before": "FUN WITH CODG",
+        "after": "FUN WITH CODING"
+    },
+    {
+        "course_code": "90642112",
+        "field": "name_en",
+        "before": "FUN WTH AL",
+        "after": "FUN WITH AI"
+    },
+    {
+        "course_code": "90642113",
+        "field": "name_th",
+        "before": "หุ่นยนต์และปัญญา ประดิษฐ์",
+        "after": "หุ่นยนต์และปัญญาประดิษฐ์"
+    },
+    {
+        "course_code": "90642113",
+        "field": "name_en",
+        "before": "ROBOTICS AND AL",
+        "after": "ROBOTICS AND AI"
+    },
+    {
+        "course_code": "90642115",
+        "field": "name_en",
+        "before": "GREEN TECHNOLOGV AND ALTERNATIE ENERGV",
+        "after": "GREEN TECHNOLOGY AND ALTERNATIVE ENERGY"
+    },
+    {
+        "course_code": "90642116",
+        "field": "name_en",
+        "before": "SMART CIT AND CITV INNOVATION",
+        "after": "SMART CITY AND CITY INNOVATION"
+    },
+    {
+        "course_code": "90642117",
+        "field": "name_th",
+        "before": "ทักษะการรู้สารสนเทศแห่งศตวรรษที 21",
+        "after": "ทักษะการรู้สารสนเทศแห่งศตวรรษที่ 21"
+    },
+    {
+        "course_code": "90642117",
+        "field": "name_en",
+        "before": "INFORMATION LITERACY SKILLS FOR THE 2IST CENTURY",
+        "after": "INFORMATION LITERACY SKILLS FOR THE 21ST CENTURY"
+    },
+    {
+        "course_code": "90642118",
+        "field": "name_en",
+        "before": "APPLICATION SOFTWARE FOR BUSSINESS",
+        "after": "APPLICATION SOFTWARE FOR BUSINESS"
+    },
+    {
+        "course_code": "90642119",
+        "field": "name_en",
+        "before": "COMPUTER FOR DEVELOPMENT OF ANAL ITICAL THINKING PROCESS",
+        "after": "COMPUTER FOR DEVELOPMENT OF ANALYTICAL THINKING PROCESS"
+    },
+    {
+        "course_code": "90642120",
+        "field": "name_th",
+        "before": "เอ็กเซลเพือความเป็นมืออาชีพ",
+        "after": "เอ็กเซลเพื่อความเป็นมืออาชีพ"
+    },
+    {
+        "course_code": "90642121",
+        "field": "name_en",
+        "before": "DATA ANALYSIS AND MANACEMENT WITH COMPUTATIONAL PROCRAM",
+        "after": "DATA ANALYSIS AND MANAGEMENT WITH COMPUTATIONAL PROGRAM"
+    },
+    {
+        "course_code": "90642122",
+        "field": "name_th",
+        "before": "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์",
+        "after": "การใช้แอปพลิเคชันไมโครคอมพิวเตอร์"
+    },
+    {
+        "course_code": "90642122",
+        "field": "name_en",
+        "before": "ITRODUCTION TO MICR0COMPUTER APPLICATION",
+        "after": "INTRODUCTION TO MICROCOMPUTER APPLICATION"
+    },
+    {
+        "course_code": "90642123",
+        "field": "name_en",
+        "before": "TECHNOLOGV IN MUSICAL SEOUENCING",
+        "after": "TECHNOLOGY IN MUSICAL SEQUENCING"
+    },
+    {
+        "course_code": "90642124",
+        "field": "name_th",
+        "before": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDCS",
+        "after": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGS"
+    },
+    {
+        "course_code": "90642124",
+        "field": "name_en",
+        "before": "SCIENCE TECHNOLOGV AND SCIENCE INNOVATION FOR SDGS",
+        "after": "SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS"
+    },
+    {
+        "course_code": "90642125",
+        "field": "name_en",
+        "before": "LING IN FUTURE DISASTER AND CRISIS",
+        "after": "LIVING IN FUTURE DISASTER AND CRISIS"
+    },
+    {
+        "course_code": "90642128",
+        "field": "name_th",
+        "before": "นิเวศวิทยาและการรักษาสิงแวดล้อม",
+        "after": "นิเวศวิทยาและการรักษาสิ่งแวดล้อม"
+    },
+    {
+        "course_code": "90642131",
+        "field": "name_th",
+        "before": "วัฒนธรรมไทยกับการท่องเทียว",
+        "after": "วัฒนธรรมไทยกับการท่องเที่ยว"
+    },
+    {
+        "course_code": "90642131",
+        "field": "name_en",
+        "before": "THA/ CULTURE AND TOURISM",
+        "after": "THAI CULTURE AND TOURISM"
+    },
+    {
+        "course_code": "90642132",
+        "field": "name_en",
+        "before": "CHUMPHON STUDV FOR TOURISM",
+        "after": "CHUMPHON STUDY FOR TOURISM"
+    },
+    {
+        "course_code": "90642133",
+        "field": "name_th",
+        "before": "รอบรัวชุมพรศึกษา",
+        "after": "รอบรั้วชุมพรศึกษา"
+    },
+    {
+        "course_code": "90642133",
+        "field": "name_en",
+        "before": "CHUMPHON AREA STUDV",
+        "after": "CHUMPHON AREA STUDY"
+    },
+    {
+        "course_code": "90642134",
+        "field": "name_th",
+        "before": "แผ่นดินพระจอมเกล้าๆ ศึกษา",
+        "after": "แผ่นดินพระจอมเกล้าฯ ศึกษา"
+    },
+    {
+        "course_code": "90642134",
+        "field": "name_en",
+        "before": "KING MONGKUTS REIGN STUDV",
+        "after": "KING MONGKUT'S REIGN STUDY"
+    },
+    {
+        "course_code": "90642135",
+        "field": "name_en",
+        "before": "PHILOSOPHY OF SUFFICIENCY ECONOM",
+        "after": "PHILOSOPHY OF SUFFICIENCY ECONOMY"
+    },
+    {
+        "course_code": "90642137",
+        "field": "name_th",
+        "before": "ดูละครแล้วย้อนดู",
+        "after": "ดูละครแล้วย้อนดูตัว"
+    },
+    {
+        "course_code": "90642137",
+        "field": "name_en",
+        "before": "SERIES IN DAILV LIFE",
+        "after": "SERIES IN DAILY LIFE"
+    },
+    {
+        "course_code": "90642138",
+        "field": "name_th",
+        "before": "สมาธิเพือพัฒนาชีวิต",
+        "after": "สมาธิเพื่อพัฒนาชีวิต"
+    },
+    {
+        "course_code": "90642140",
+        "field": "name_en",
+        "before": "IMMUNTV OF MIND",
+        "after": "IMMUNITY OF MIND"
+    },
+    {
+        "course_code": "90642141",
+        "field": "name_th",
+        "before": "จิตวิทยาเพือการพัฒนาตนเอง",
+        "after": "จิตวิทยาเพื่อการพัฒนาตนเอง"
+    },
+    {
+        "course_code": "90642141",
+        "field": "name_en",
+        "before": "PSICHOLOCY OF SELF DEVELOPMENT",
+        "after": "PSYCHOLOGY OF SELF DEVELOPMENT"
+    },
+    {
+        "course_code": "90642142",
+        "field": "name_th",
+        "before": "จิตวิทยาสำหรับการสือสาร",
+        "after": "จิตวิทยาสำหรับการสื่อสาร"
+    },
+    {
+        "course_code": "90642142",
+        "field": "name_en",
+        "before": "PSXCHOLOGV IN COMMUNICATION",
+        "after": "PSYCHOLOGY IN COMMUNICATION"
+    },
+    {
+        "course_code": "90642143",
+        "field": "name_en",
+        "before": "DESIGNNG YOUR LIFE",
+        "after": "DESIGNING YOUR LIFE"
+    },
+    {
+        "course_code": "90642145",
+        "field": "name_en",
+        "before": "POWER OF PERSONALIT",
+        "after": "POWER OF PERSONALITY"
+    },
+    {
+        "course_code": "90642148",
+        "field": "name_en",
+        "before": "ARTS OF EMOTLON DEVELOPMENT",
+        "after": "ARTS OF EMOTION DEVELOPMENT"
+    },
+    {
+        "course_code": "90642149",
+        "field": "name_en",
+        "before": "IMAGINATIE ART",
+        "after": "IMAGINATIVE ART"
+    },
+    {
+        "course_code": "90642152",
+        "field": "name_en",
+        "before": "JOV OF SHARNG",
+        "after": "JOY OF SHARING"
+    },
+    {
+        "course_code": "90642153",
+        "field": "name_en",
+        "before": "UNDERSTANDING HUMAN BEHAVOR",
+        "after": "UNDERSTANDING HUMAN BEHAVIOR"
+    },
+    {
+        "course_code": "90642154",
+        "field": "name_en",
+        "before": "FALL ABLE",
+        "after": "FALLABLE"
+    },
+    {
+        "course_code": "90642156",
+        "field": "name_en",
+        "before": "FENG SHUL",
+        "after": "FENG SHUI"
+    },
+    {
+        "course_code": "90642157",
+        "field": "name_en",
+        "before": "THAL ASTROLOGV",
+        "after": "THAI ASTROLOGY"
+    },
+    {
+        "course_code": "90642158",
+        "field": "name_en",
+        "before": "CONTEMPORARY SCIENCE AND TECHNOLOCY",
+        "after": "CONTEMPORARY SCIENCE AND TECHNOLOGY"
+    },
+    {
+        "course_code": "90642159",
+        "field": "name_en",
+        "before": "ITRODUCTION TO PSXCHOLOCY",
+        "after": "INTRODUCTION TO PSYCHOLOGY"
+    },
+    {
+        "course_code": "90643004",
+        "field": "name_en",
+        "before": "POSITIE POWER LEADER",
+        "after": "POSITIVE POWER LEADER"
+    },
+    {
+        "course_code": "90643008",
+        "field": "name_en",
+        "before": "SCIENCE OF NEGOTATION",
+        "after": "SCIENCE OF NEGOTIATION"
+    },
+    {
+        "course_code": "90643010",
+        "field": "name_en",
+        "before": "CONTEMPORAR MARKETING",
+        "after": "CONTEMPORARY MARKETING"
+    },
+    {
+        "course_code": "90643011",
+        "field": "name_th",
+        "before": "ศิลปะแห่งการบริหารการสือสาร",
+        "after": "ศิลปะแห่งการบริหารการสื่อสาร"
+    },
+    {
+        "course_code": "90643013",
+        "field": "name_en",
+        "before": "INDUSTRLAL MANAGEMENT",
+        "after": "INDUSTRIAL MANAGEMENT"
+    },
+    {
+        "course_code": "90643014",
+        "field": "name_th",
+        "before": "ความรู้ ทั่วไปเกี่ยวกับธุรกิจ",
+        "after": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ"
+    },
+    {
+        "course_code": "90643015",
+        "field": "name_th",
+        "before": "การบัญชีทางธุรกิจฺสำหรับคนรุ่นใหม่",
+        "after": "การบัญชีทางธุรกิจสำหรับคนรุ่นใหม่"
+    },
+    {
+        "course_code": "90643018",
+        "field": "name_en",
+        "before": "ITERNATLONAL BUSINESS",
+        "after": "INTERNATIONAL BUSINESS"
+    },
+    {
+        "course_code": "90643019",
+        "field": "name_th",
+        "before": "เศร ษฐศาสตร์กับการเป็นผู้ประกอบการ",
+        "after": "เศรษฐศาสตร์กับการเป็นผู้ประกอบการ"
+    },
+    {
+        "course_code": "90643020",
+        "field": "name_en",
+        "before": "INNOVATIE ENTREPRENEURS",
+        "after": "INNOVATIVE ENTREPRENEURS"
+    },
+    {
+        "course_code": "90643024",
+        "field": "name_en",
+        "before": "HAPPNNESS FARMS",
+        "after": "HAPPINESS FARMS"
+    },
+    {
+        "course_code": "90643025",
+        "field": "name_th",
+        "before": "เส้นทางสู่ LIPO",
+        "after": "เส้นทางสู่ IPO"
+    },
+    {
+        "course_code": "90643026",
+        "field": "name_th",
+        "before": "การวางแผนเพือการลงทุน",
+        "after": "การวางแผนเพื่อการลงทุน"
+    },
+    {
+        "course_code": "90643026",
+        "field": "name_en",
+        "before": "INVESTMENT PLANNNG",
+        "after": "INVESTMENT PLANNING"
+    },
+    {
+        "course_code": "90643027",
+        "field": "name_th",
+        "before": "เงิน และคณิตศาสตร์",
+        "after": "เงินและคณิตศาสตร์"
+    },
+    {
+        "course_code": "90643027",
+        "field": "name_en",
+        "before": "MAN, MONEV AND MATH",
+        "after": "MAN, MONEY AND MATH"
+    },
+    {
+        "course_code": "90643028",
+        "field": "name_en",
+        "before": "SMART TIPS FOR BEGINMNG INVESTERS",
+        "after": "SMART TIPS FOR BEGINNING INVESTORS"
+    },
+    {
+        "course_code": "90643029",
+        "field": "name_en",
+        "before": "DIGITAL ECONOMV",
+        "after": "DIGITAL ECONOMY"
+    },
+    {
+        "course_code": "90643030",
+        "field": "name_th",
+        "before": "เศร ริษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ",
+        "after": "เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ"
+    },
+    {
+        "course_code": "90643030",
+        "field": "name_en",
+        "before": "GENERAL ECONOMICS AND PROJECT FEASIBILITV STUDV",
+        "after": "GENERAL ECONOMICS AND PROJECT FEASIBILITY STUDY"
+    },
+    {
+        "course_code": "90643031",
+        "field": "name_en",
+        "before": "CIRCULAR ECONOMIC LIFESTLE FOR 21ST CENTURV",
+        "after": "CIRCULAR ECONOMIC LIFESTYLE FOR 21ST CENTURY"
+    },
+    {
+        "course_code": "90643032",
+        "field": "name_en",
+        "before": "BCG ECONOMV IN ACTION",
+        "after": "BCG ECONOMY IN ACTION"
+    },
+    {
+        "course_code": "90643034",
+        "field": "name_en",
+        "before": "MANAGEMENT AND CREATMITV",
+        "after": "MANAGEMENT AND CREATIVITY"
+    },
+    {
+        "course_code": "90643035",
+        "field": "name_th",
+        "before": "การจัดการความรู้เพือการพัฒนานวัตกรรม",
+        "after": "การจัดการความรู้เพื่อการพัฒนานวัตกรรม"
+    },
+    {
+        "course_code": "90643035",
+        "field": "name_en",
+        "before": "KNOWLEDGE MANAGEMENT FOR INOVATION DEVELOPMENT",
+        "after": "KNOWLEDGE MANAGEMENT FOR INNOVATION DEVELOPMENT"
+    },
+    {
+        "course_code": "90643036",
+        "field": "name_th",
+        "before": "การจัดการความรู้เพือการบริหารโครงการ",
+        "after": "การจัดการความรู้เพื่อการบริหารโครงการ"
+    },
+    {
+        "course_code": "90643037",
+        "field": "name_th",
+        "before": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่",
+        "after": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21"
+    },
+    {
+        "course_code": "90643037",
+        "field": "name_en",
+        "before": "N/A",
+        "after": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21ST CENTURY"
+    },
+    {
+        "course_code": "90643038",
+        "field": "name_en",
+        "before": "REBRANDNG",
+        "after": "REBRANDING"
+    },
+    {
+        "course_code": "90644002",
+        "field": "name_th",
+        "before": "ปฏิบัติงานตามทักษะด้านการสือสาร 2",
+        "after": "ปฏิบัติงานตามทักษะด้านการสื่อสาร 2"
+    },
+    {
+        "course_code": "90644003",
+        "field": "name_th",
+        "before": "ปฏิบัติงานตามทักษะด้านการสือสาร 3",
+        "after": "ปฏิบัติงานตามทักษะด้านการสื่อสาร 3"
+    },
+    {
+        "course_code": "90644004",
+        "field": "name_en",
+        "before": "ACADEMIC LISTENNG AND SPEAKNG",
+        "after": "ACADEMIC LISTENING AND SPEAKING"
+    },
+    {
+        "course_code": "90644010",
+        "field": "name_en",
+        "before": "DEVELOPMENT OF READNG AND WRTING SKILLS IN ENGLISH",
+        "after": "DEVELOPMENT OF READING AND WRITING SKILLS IN ENGLISH"
+    },
+    {
+        "course_code": "90644011",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเชิงวิชาการ",
+        "after": "ภาษาอังกฤษเชิงวิชาการ"
+    },
+    {
+        "course_code": "90644012",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพือการสื่อสาร",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "90644013",
+        "field": "name_en",
+        "before": "ENGLISH FOR COMMUNICATIE WRITING",
+        "after": "ENGLISH FOR COMMUNICATIVE WRITING"
+    },
+    {
+        "course_code": "90644014",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการสือสารทางวิชาชีพ",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสารทางวิชาชีพ"
+    },
+    {
+        "course_code": "90644015",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพื่อการศึกษาต่อ",
+        "after": "ภาษาอังกฤษเพื่อการศึกษาต่อ"
+    },
+    {
+        "course_code": "90644016",
+        "field": "name_th",
+        "before": "อังกฤษเพื่ออุตสาหกรรม",
+        "after": "ภาษาอังกฤษเพื่ออุตสาหกรรม"
+    },
+    {
+        "course_code": "90644016",
+        "field": "name_en",
+        "before": "ENGLISH FOR NDUSTRY",
+        "after": "ENGLISH FOR INDUSTRY"
+    },
+    {
+        "course_code": "90644017",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษสำหรับธุรกิจ",
+        "after": "ภาษาอังกฤษสำหรับธุรกิจ"
+    },
+    {
+        "course_code": "90644018",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการตลาด",
+        "after": "ภาษาอังกฤษเพื่อการตลาด"
+    },
+    {
+        "course_code": "90644019",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพือการจัดการ",
+        "after": "ภาษาอังกฤษเพื่อการจัดการ"
+    },
+    {
+        "course_code": "90644021",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพือการสือสารระหว่างวัฒนธรรม",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสารระหว่างวัฒนธรรม"
+    },
+    {
+        "course_code": "90644023",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือเตรียมตัวทำงาน",
+        "after": "ภาษาอังกฤษเพื่อเตรียมตัวทำงาน"
+    },
+    {
+        "course_code": "90644024",
+        "field": "name_en",
+        "before": "ENGLISH FOR TOURISM AND TRAVELLNNG",
+        "after": "ENGLISH FOR TOURISM AND TRAVELLING"
+    },
+    {
+        "course_code": "90644025",
+        "field": "name_en",
+        "before": "ENGLISH FOR ARCHTECTURAL ARTS DESIGN COMMUNICATION",
+        "after": "ENGLISH FOR ARCHITECTURAL ARTS DESIGN COMMUNICATION"
+    },
+    {
+        "course_code": "90644026",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพือการนำเสนอในงานสถาปัตยกรรม",
+        "after": "ภาษาอังกฤษเพื่อการนำเสนอในงานสถาปัตยกรรม"
+    },
+    {
+        "course_code": "90644027",
+        "field": "name_en",
+        "before": "ENGLISH FOR NARRATIE WRITNG",
+        "after": "ENGLISH FOR NARRATIVE WRITING"
+    },
+    {
+        "course_code": "90644029",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษสำหรับวิชาชีพสุขภาพ",
+        "after": "ภาษาอังกฤษสำหรับวิชาชีพสุขภาพ"
+    },
+    {
+        "course_code": "90644030",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพื่อการประชาสัมพันธ์",
+        "after": "ภาษาอังกฤษเพื่อการประชาสัมพันธ์"
+    },
+    {
+        "course_code": "90644031",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษสำหรับวิทยาศาสตร์และเทคโนโลยี",
+        "after": "ภาษาอังกฤษสำหรับวิทยาศาสตร์และเทคโนโลยี"
+    },
+    {
+        "course_code": "90644032",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษสำหรับการบิน",
+        "after": "ภาษาอังกฤษสำหรับการบิน"
+    },
+    {
+        "course_code": "90644033",
+        "field": "name_en",
+        "before": "WRITING AND SPEAKNNG IN THE PROFESSIONS",
+        "after": "WRITING AND SPEAKING IN THE PROFESSIONS"
+    },
+    {
+        "course_code": "90644035",
+        "field": "name_th",
+        "before": "การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร",
+        "after": "การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร์"
+    },
+    {
+        "course_code": "90644035",
+        "field": "name_en",
+        "before": "ACAPEMIC READING AND WRITING FOR HEALTH SCIENCES",
+        "after": "ACADEMIC READING AND WRITING FOR HEALTH SCIENCES"
+    },
+    {
+        "course_code": "90644036",
+        "field": "name_th",
+        "before": "การพัฒนาทักษะทางภาษาอังกฤษเบ เพื่อการเรียนรู้ตลอดชีี",
+        "after": "การพัฒนาทักษะทางภาษาอังกฤษเพื่อการเรียนรู้ตลอดชีวิต"
+    },
+    {
+        "course_code": "90644036",
+        "field": "name_en",
+        "before": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNNG",
+        "after": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNING"
+    },
+    {
+        "course_code": "90644037",
+        "field": "name_th",
+        "before": "การสือสารข้ามวัฒนธรรม",
+        "after": "การสื่อสารข้ามวัฒนธรรม"
+    },
+    {
+        "course_code": "90644038",
+        "field": "name_th",
+        "before": "การสือสารนวัตกรรม",
+        "after": "การสื่อสารนวัตกรรม"
+    },
+    {
+        "course_code": "90644038",
+        "field": "name_en",
+        "before": "INNOVATIE COMMUNICATION",
+        "after": "INNOVATIVE COMMUNICATION"
+    },
+    {
+        "course_code": "90644039",
+        "field": "name_th",
+        "before": "ทักษะการสือสารผ่านการอภิปราย",
+        "after": "ทักษะการสื่อสารผ่านการอภิปราย"
+    },
+    {
+        "course_code": "90644040",
+        "field": "name_th",
+        "before": "ทักษะการสือสารผ่านละคร",
+        "after": "ทักษะการสื่อสารผ่านละคร"
+    },
+    {
+        "course_code": "90644040",
+        "field": "name_en",
+        "before": "COMMUNICATION SKILLS THROUCH DRAMA",
+        "after": "COMMUNICATION SKILLS THROUGH DRAMA"
+    },
+    {
+        "course_code": "90644041",
+        "field": "name_en",
+        "before": "ENGLISH FROM ENTERTA NMENT MEDIA",
+        "after": "ENGLISH FROM ENTERTAINMENT MEDIA"
+    },
+    {
+        "course_code": "90644043",
+        "field": "name_en",
+        "before": "PUBLIC SPEAKNNG",
+        "after": "PUBLIC SPEAKING"
+    },
+    {
+        "course_code": "90644046",
+        "field": "name_th",
+        "before": "การฟังและการอ่านเพือพัฒนาคุณภาพชีวิต",
+        "after": "การฟังและการอ่านเพื่อพัฒนาคุณภาพชีวิต"
+    },
+    {
+        "course_code": "90644046",
+        "field": "name_en",
+        "before": "LISTENING AND READING FOR IMPROVNG LIFE QUALTV",
+        "after": "LISTENING AND READING FOR IMPROVING LIFE QUALITY"
+    },
+    {
+        "course_code": "90644047",
+        "field": "name_en",
+        "before": "DEVELOPMENT OF THAL CREATIVE WRTNG SKILLS",
+        "after": "DEVELOPMENT OF THAI CREATIVE WRITING SKILLS"
+    },
+    {
+        "course_code": "90644048",
+        "field": "name_en",
+        "before": "LANGUAGE IN THAL SOCIET",
+        "after": "LANGUAGE IN THAI SOCIETY"
+    },
+    {
+        "course_code": "90644049",
+        "field": "name_en",
+        "before": "THA LANGUAGE FOR CREATMITV",
+        "after": "THAI LANGUAGE FOR CREATIVITY"
+    },
+    {
+        "course_code": "90644050",
+        "field": "name_th",
+        "before": "การเขียนภาษาไทยในทีทำงาน",
+        "after": "การเขียนภาษาไทยในที่ทำงาน"
+    },
+    {
+        "course_code": "90644050",
+        "field": "name_en",
+        "before": "THAR WRITING IN WORKPLACE",
+        "after": "THAI WRITING IN WORKPLACE"
+    },
+    {
+        "course_code": "90644051",
+        "field": "name_en",
+        "before": "THA FOR DENTAL PROFESSIONS",
+        "after": "THAI FOR DENTAL PROFESSIONS"
+    },
+    {
+        "course_code": "90644052",
+        "field": "name_en",
+        "before": "COMMUNICATION IN THAL FOR CULINARY PROFESSIONALS",
+        "after": "COMMUNICATION IN THAI FOR CULINARY PROFESSIONALS"
+    },
+    {
+        "course_code": "90644053",
+        "field": "name_en",
+        "before": "FUNDAMENTAL CHINESE FOR LISTENNG AND SPEAK NG",
+        "after": "FUNDAMENTAL CHINESE FOR LISTENING AND SPEAKING"
+    },
+    {
+        "course_code": "90644056",
+        "field": "name_th",
+        "before": "วัฒนธรรม ฺสำนวนและสุภาษิตจีน",
+        "after": "วัฒนธรรม สำนวนและสุภาษิตจีน"
+    },
+    {
+        "course_code": "90644056",
+        "field": "name_en",
+        "before": "CHIESE CULTURE IDIOMS AND PROVERBS",
+        "after": "CHINESE CULTURE IDIOMS AND PROVERBS"
+    },
+    {
+        "course_code": "90644057",
+        "field": "name_th",
+        "before": "ภาษาจีนเพือการสื่อสาร",
+        "after": "ภาษาจีนเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "90644057",
+        "field": "name_en",
+        "before": "CHIESE FOR COMMUNICATION",
+        "after": "CHINESE FOR COMMUNICATION"
+    },
+    {
+        "course_code": "90644058",
+        "field": "name_th",
+        "before": "ภาษาจินฉบับแฟนด้อม",
+        "after": "ภาษาจีนฉบับแฟนด้อม"
+    },
+    {
+        "course_code": "90644059",
+        "field": "name_th",
+        "before": "ภาษาจีนเพือการท่องเทียว",
+        "after": "ภาษาจีนเพื่อการท่องเที่ยว"
+    },
+    {
+        "course_code": "90644059",
+        "field": "name_en",
+        "before": "CHIESE FOR TRAVEL",
+        "after": "CHINESE FOR TRAVEL"
+    },
+    {
+        "course_code": "90644060",
+        "field": "name_th",
+        "before": "ภาษาเยอรมันเพือการสือสาร",
+        "after": "ภาษาเยอรมันเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "90644064",
+        "field": "name_th",
+        "before": "ภาษา[เกาหลีเพื่อการท่องเที่ยว",
+        "after": "ภาษาเกาหลีเพื่อการท่องเที่ยว"
+    },
+    {
+        "course_code": "90644065",
+        "field": "name_th",
+        "before": "ภาษาเวียดนามเพือการท่องเทียว",
+        "after": "ภาษาเวียดนามเพื่อการท่องเที่ยว"
+    }
+]
