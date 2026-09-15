@@ -4,11 +4,17 @@ import tempfile
 from decimal import Decimal
 from unittest.mock import patch
 
+from rag.aggregation import ComponentAggregation
 from rag.answer import EMPTY_ANSWER
+from rag.evidence_planner import StructuralScope
+from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from scripts.evaluate_gold_questions import (
     _evaluate_question,
     _merge_gold_with_runtime_results,
     _json_safe,
+    _project_typed_result,
+    _semantic_checks,
+    _structured_checks,
     _write_output_atomically,
     grade_results,
 )
@@ -22,6 +28,7 @@ def _result(
     structured_result=None,
     semantic_results=None,
     route=None,
+    runtime_status=None,
 ):
     return {
         "id": question_id,
@@ -34,6 +41,7 @@ def _result(
         "semantic_results": semantic_results,
         "final_answer": final_answer,
         "execution_success": True,
+        "runtime_status": runtime_status,
         "error": None,
         "top_k": 10,
         "model_retry_count": 0,
@@ -41,6 +49,321 @@ def _result(
 
 
 class GoldEvaluationTest(unittest.TestCase):
+    def _typed_result(self, operation, value, evidence, *, kind="deterministic_fact"):
+        provenance = ({"program": "IT", "source_page": 7},)
+        claim = GroundedClaim(
+            "typed-claim",
+            operation,
+            effective_scope=StructuralScope(
+                program="IT",
+                plans=("no_coop",),
+                years=(2,),
+                semesters=(2,),
+            ),
+            kind=kind,
+            value=value,
+            evidence=evidence,
+            provenance=provenance,
+        )
+        return GroundedAnswerResult(
+            "answer",
+            "deterministic" if kind == "deterministic_fact" else "grounded_synthesis",
+            "typed rendered answer",
+            (claim,),
+            provenance,
+        )
+
+    def test_typed_success_uses_rendered_answer_and_claim_projection(self):
+        evidence = ComponentAggregation(
+            "sum_credits",
+            "complete",
+            30,
+            ({"course_code": "06016420", "credits_raw": "3(3-0-6)"},),
+        )
+        typed = self._typed_result("sum_credits", 30, evidence)
+        gold = {
+            "id": "typed-structured",
+            "type": "structured",
+            "question": "IT แบบไม่สหกิจ ปี 2 เทอม 2 รวม 30 หน่วยกิต",
+            "expected": {
+                "total_credits": 30,
+                "provenance": [{"program": "IT", "source_page": 7}],
+            },
+        }
+
+        with patch("scripts.evaluate_gold_questions.route_question", return_value="structured"), patch(
+            "scripts.evaluate_gold_questions.ask",
+            return_value={"route": None, "result": typed},
+        ), patch(
+            "scripts.evaluate_gold_questions.answer_question",
+            side_effect=AssertionError("typed results must not use legacy answer generation"),
+        ):
+            result = _evaluate_question(gold, type("NoCallGemini", (), {"retry_count": 0, "begin_question": lambda self: None})(), Path("unused.db"))
+
+        self.assertTrue(result["execution_success"])
+        self.assertIsNone(result["error"])
+        self.assertEqual(result["runtime_status"], "answer")
+        self.assertEqual(result["final_answer"], "typed rendered answer")
+        self.assertEqual(result["actual_route"], "structured")
+        self.assertTrue(result["route_match"])
+        self.assertEqual(result["structured_result"]["rows"][0]["total_credits"], 30)
+        self.assertEqual(result["structured_result"]["rows"][0]["plan"], "no_coop")
+        self.assertTrue(result["provenance_correct"])
+
+    def test_typed_semantic_and_hybrid_views_use_the_same_claim_evidence(self):
+        cases = (
+            ("semantic", "grounded_summary", "semantic-typed"),
+            ("hybrid", "deterministic_fact", "hybrid-typed"),
+        )
+        for route, kind, question_id in cases:
+            with self.subTest(route=route):
+                if route == "hybrid":
+                    evidence = ComponentAggregation(
+                        "sum_credits",
+                        "complete",
+                        7,
+                        ({"course_code": "CLOUD", "name_en": "CLOUD TOPIC"},),
+                    )
+                    typed = self._typed_result("sum_credits", 7, evidence)
+                else:
+                    typed = self._typed_result(
+                        "describe",
+                        "PROJECT 1 description",
+                        {"text": "PROJECT 1 description"},
+                        kind=kind,
+                    )
+                gold = {
+                    "id": question_id,
+                    "type": route,
+                    "question": "typed evidence question",
+                    "expected": {},
+                }
+                with patch("scripts.evaluate_gold_questions.route_question", return_value=route), patch(
+                    "scripts.evaluate_gold_questions.ask",
+                    return_value={"route": None, "result": typed},
+                ), patch(
+                    "scripts.evaluate_gold_questions.answer_question",
+                    side_effect=AssertionError("typed results must not use legacy answer generation"),
+                ):
+                    result = _evaluate_question(
+                        gold,
+                        type("NoCallGemini", (), {"retry_count": 0, "begin_question": lambda self: None})(),
+                        Path("unused.db"),
+                    )
+
+                self.assertTrue(result["execution_success"])
+                self.assertEqual(result["actual_route"], route)
+                self.assertEqual(result["final_answer"], "typed rendered answer")
+                self.assertTrue(result["semantic_results"])
+                if route == "hybrid":
+                    self.assertTrue(result["structured_result"]["rows"])
+                    self.assertIn("CLOUD", result["semantic_results"][0]["text"])
+
+    def test_typed_description_claim_is_one_logical_evidence_unit(self):
+        typed = self._typed_result(
+            "describe",
+            "DATA MANAGEMENT DATABASE TECHNOLOGY",
+            {"text": "DATA MANAGEMENT DATABASE TECHNOLOGY"},
+            kind="grounded_summary",
+        )
+        _, semantic_results = _project_typed_result(typed)
+        details = _semantic_checks(
+            "วิชา 06016402 เรียนเกี่ยวกับอะไรบ้าง",
+            {
+                "description_evidence": ["DATA MANAGEMENT", "DATABASE TECHNOLOGY"],
+            },
+            semantic_results,
+            "DATA MANAGEMENT DATABASE TECHNOLOGY",
+        )
+
+        description_checks = [
+            check for check in details["checks"] if check["label"].startswith("description_evidence")
+        ]
+        self.assertEqual([check["label"] for check in description_checks], ["description_evidence"])
+        self.assertEqual(details["evidence_count"], 1)
+        self.assertEqual(details["evidence_total"], 1)
+        self.assertEqual(details["description_found"], ["DATA MANAGEMENT", "DATABASE TECHNOLOGY"])
+
+    def test_typed_placement_fields_are_verified_without_rendered_text(self):
+        gold = [
+            {
+                "id": "typed-placement-fields",
+                "type": "structured",
+                "question": "วิชาอยู่ปีไหน เทอมไหน",
+                "expected": {
+                    "placements": [{"plan": "coop", "year": 4, "semester": 2}],
+                },
+            }
+        ]
+        result = _result(
+            "typed-placement-fields",
+            "structured",
+            "พบข้อมูลการจัดวางรายวิชา",
+            structured_result={
+                "rows": [
+                    {
+                        "operation": "placement",
+                        "status": "complete",
+                        "effective_scope": {"plans": ["coop"]},
+                        "value": [{"plan_key": "coop", "year_number": 4, "semester_number": 2}],
+                    }
+                ]
+            },
+        )
+
+        graded, _ = grade_results(gold, [result])
+
+        self.assertEqual(graded[0]["answer_correctness"], "REVIEW")
+        self.assertTrue(graded[0]["evidence_correct"])
+        self.assertTrue(graded[0]["structured_checks"][0]["evidence"])
+
+    def test_typed_flexible_placement_uses_year_semester_choices(self):
+        gold = [
+            {
+                "id": "typed-flexible-placement",
+                "type": "structured",
+                "question": "วิชา 06016481 ของ IT ในแต่ละแผนเรียนช่วงไหนบ้าง",
+                "expected": {
+                    "placements": [
+                        {
+                            "plan": "no_coop",
+                            "year": None,
+                            "semester": None,
+                            "flexible_year_semester_raw": "3/1, 3/2, 4/1",
+                        }
+                    ]
+                },
+            }
+        ]
+        result = _result(
+            "typed-flexible-placement",
+            "structured",
+            "ไม่สหกิจเปิด 3/1, 3/2, 4/1",
+            structured_result={
+                "rows": [
+                    {
+                        "operation": "placement",
+                        "status": "complete",
+                        "value": [
+                            {
+                                "plan_key": "no_coop",
+                                "year_number": None,
+                                "semester_number": None,
+                                "year_semester_choices": [[3, 1], [3, 2], [4, 1]],
+                            }
+                        ],
+                    }
+                ]
+            },
+        )
+
+        graded, _ = grade_results(gold, [result])
+
+        self.assertEqual(graded[0]["answer_correctness"], "PASS")
+        self.assertTrue(graded[0]["evidence_correct"])
+
+    def test_missing_typed_placement_values_fail_closed(self):
+        details = _structured_checks(
+            "วิชาอยู่ปีไหน เทอมไหน",
+            {"placements": [{"plan": "coop", "year": 3, "semester": 1}]},
+            {"rows": [{"value": [{"plan_key": "coop"}]}]},
+            "ปี 3 เทอม 1",
+        )
+
+        self.assertFalse(details[0]["evidence"])
+
+    def test_excluded_unknown_fallback_behavior_remains_unchanged(self):
+        gold = [
+            {
+                "id": "excluded-year5",
+                "type": "unknown",
+                "question": "BIT ปี 5 เทอม 1 มีข้อมูลไหม",
+                "expected": EMPTY_ANSWER,
+            }
+        ]
+        result = _result(
+            "excluded-year5",
+            "unknown",
+            "existence: false\nsum_credits: 0",
+        )
+
+        graded, _ = grade_results(gold, [result])
+
+        self.assertEqual(graded[0]["answer_correctness"], "FAIL")
+
+    def test_excluded_structured_review_remains_non_pass(self):
+        gold = [
+            {
+                "id": "excluded-review",
+                "type": "structured",
+                "question": "วิชา 06036107 อยู่ปีไหน เทอมไหน",
+                "expected": {"placement": {"year": 3, "semester": 1}},
+            }
+        ]
+        result = _result(
+            "excluded-review",
+            "structured",
+            "ข้อมูลรายวิชา 06036107",
+            structured_result={
+                "rows": [
+                    {
+                        "value": [{"year_number": 3, "semester_number": 1}],
+                    }
+                ]
+            },
+        )
+
+        graded, _ = grade_results(gold, [result])
+
+        self.assertEqual(graded[0]["answer_correctness"], "REVIEW")
+
+    def test_blocked_statuses_normalize_without_legacy_result_keys(self):
+        for status in ("clarify_program", "insufficient_evidence"):
+            with self.subTest(status=status):
+                gold = {
+                    "id": f"blocked-{status}",
+                    "type": "structured",
+                    "question": "blocked question",
+                    "expected": {},
+                }
+                blocked = {"status": status, "action": status}
+                with patch("scripts.evaluate_gold_questions.route_question", return_value="structured"), patch(
+                    "scripts.evaluate_gold_questions.ask",
+                    return_value={"route": None, "result": blocked},
+                ):
+                    result = _evaluate_question(
+                        gold,
+                        type("NoCallGemini", (), {"retry_count": 0, "begin_question": lambda self: None})(),
+                        Path("unused.db"),
+                    )
+
+                self.assertTrue(result["execution_success"])
+                self.assertEqual(result["runtime_status"], status)
+                self.assertEqual(result["final_answer"], "")
+                self.assertIsNone(result["error"])
+
+    def test_no_data_blocked_result_preserves_exact_not_found_scoring(self):
+        gold = {
+            "id": "blocked-no-data",
+            "type": "unknown",
+            "question": "missing course",
+            "expected": {},
+        }
+        with patch("scripts.evaluate_gold_questions.route_question", return_value="structured"), patch(
+            "scripts.evaluate_gold_questions.ask",
+            return_value={"route": None, "result": {"status": "no_data", "action": "no_data"}},
+        ):
+            result = _evaluate_question(
+                gold,
+                type("NoCallGemini", (), {"retry_count": 0, "begin_question": lambda self: None})(),
+                Path("unused.db"),
+            )
+
+        self.assertTrue(result["execution_success"])
+        self.assertEqual(result["runtime_status"], "no_data")
+        self.assertEqual(result["final_answer"], EMPTY_ANSWER)
+        self.assertEqual(result["answer_correctness"], "PASS")
+
     def test_grade_existing_uses_current_gold_and_preserves_runtime_observations(self):
         gold = [
             {
@@ -206,6 +529,118 @@ class GoldEvaluationTest(unittest.TestCase):
         self.assertEqual(graded[0]["answer_correctness"], "PASS")
         self.assertEqual(graded[1]["answer_correctness"], "FAIL")
         self.assertEqual(summary["unknown_exact_fallback"], {"count": 1, "total": 1})
+
+    def test_typed_valid_empty_supported_year5_scope_does_not_require_fallback(self):
+        gold = [
+            {
+                "id": "typed-year5-empty",
+                "type": "unknown",
+                "question": "BIT แบบไม่สหกิจ ปี 5 เทอม 1 มีข้อมูลไหม",
+                "expected": EMPTY_ANSWER,
+            }
+        ]
+        result = _result(
+            "typed-year5-empty",
+            "unknown",
+            "existence: false\nsum_credits: 0",
+            runtime_status="valid_empty",
+            structured_result={
+                "rows": [
+                    {
+                        "operation": "existence",
+                        "status": "valid_empty",
+                        "effective_scope": {
+                            "program": "BIT",
+                            "plans": ["no_coop"],
+                            "years": [5],
+                            "semesters": [1],
+                        },
+                        "value": False,
+                        "evidence": [],
+                    },
+                    {
+                        "operation": "sum_credits",
+                        "status": "valid_empty",
+                        "effective_scope": {
+                            "program": "BIT",
+                            "plans": ["no_coop"],
+                            "years": [5],
+                            "semesters": [1],
+                        },
+                        "value": 0,
+                        "evidence": [],
+                    },
+                ]
+            },
+        )
+
+        graded, summary = grade_results(gold, [result])
+
+        self.assertEqual(graded[0]["answer_correctness"], "PASS")
+        self.assertTrue(graded[0]["typed_valid_empty"])
+        self.assertIsNone(graded[0]["not_found_correct"])
+        self.assertEqual(summary["unknown_exact_fallback"], {"count": 0, "total": 1})
+
+    def test_typed_valid_empty_rejects_unsupported_or_incomplete_scopes(self):
+        cases = (
+            ("unsupported-year", 6, 1, "valid_empty"),
+            ("missing-semester", 5, None, "valid_empty"),
+            ("insufficient", 5, 1, "insufficient_evidence"),
+        )
+        for case_id, year, semester, status in cases:
+            with self.subTest(case_id=case_id):
+                gold = [
+                    {
+                        "id": case_id,
+                        "type": "unknown",
+                        "question": "scoped empty question",
+                        "expected": EMPTY_ANSWER,
+                    }
+                ]
+                result = _result(
+                    case_id,
+                    "unknown",
+                    "structured result without fallback",
+                    runtime_status=status,
+                    structured_result={
+                        "rows": [
+                            {
+                                "status": status,
+                                "effective_scope": {
+                                    "program": "BIT",
+                                    "plans": ["no_coop"],
+                                    "years": [year],
+                                    "semesters": [] if semester is None else [semester],
+                                },
+                            }
+                        ]
+                    },
+                )
+
+                graded, _ = grade_results(gold, [result])
+
+                self.assertEqual(graded[0]["answer_correctness"], "FAIL")
+                self.assertFalse(graded[0].get("typed_valid_empty", False))
+
+    def test_true_unknown_still_requires_exact_not_found_fallback(self):
+        gold = [
+            {
+                "id": "unknown-course",
+                "type": "unknown",
+                "question": "unknown course",
+                "expected": EMPTY_ANSWER,
+            }
+        ]
+        result = _result(
+            "unknown-course",
+            "unknown",
+            EMPTY_ANSWER,
+        )
+
+        graded, _ = grade_results(gold, [result])
+
+        self.assertEqual(graded[0]["answer_correctness"], "PASS")
+        self.assertTrue(graded[0]["not_found_correct"])
 
     def test_fallback_like_denial_fails_for_non_unknown(self):
         gold = [

@@ -3,7 +3,13 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from rag.aggregation import ComparisonAggregation, ComponentAggregation
+from rag.aggregation import (
+    ComparisonAggregation,
+    ComponentAggregation,
+    EarliestAggregation,
+    aggregate_sum_credits,
+    compare_aggregates,
+)
 from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
@@ -72,6 +78,7 @@ class RagQaTest(unittest.TestCase):
             "06019999 เรียนอะไร": "no_data",
             "วิชา NOSQL เรียนเรื่องอะไรบ้าง": "clarify_program",
             "มีวิชาเกี่ยวกับ database อะไรบ้าง": "clarify_program",
+            "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง": "clarify_program",
         }
 
         def forbidden(_prompt):
@@ -132,6 +139,30 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(
             [claim.effective_scope.plans for claim in result["result"].claims],
             [("coop",), ("no_coop",)],
+        )
+
+    def test_context_program_topic_query_uses_existing_topic_matches_path(self):
+        explicit = ask(DB_PATH, "IT มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง")
+        contextual = ask(
+            DB_PATH,
+            "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง",
+            context=QueryContext(program="IT"),
+        )
+
+        for result in (explicit, contextual):
+            self.assertIsInstance(result["result"], GroundedAnswerResult)
+            self.assertEqual(result["result"].status, "answer")
+            self.assertTrue(result["result"].claims)
+            self.assertTrue(
+                all(claim.operation == "list" for claim in result["result"].claims)
+            )
+            self.assertTrue(
+                all(claim.effective_scope.program == "IT" for claim in result["result"].claims)
+            )
+
+        self.assertEqual(
+            [claim.value for claim in explicit["result"].claims],
+            [claim.value for claim in contextual["result"].claims],
         )
 
     def test_contextless_year_semester_list_still_clarifies_program(self):
@@ -473,6 +504,85 @@ class RagQaTest(unittest.TestCase):
             {194, 236},
         )
 
+    def test_course_targeted_semantic_detail_reaches_typed_description_evidence(self):
+        result = ask(
+            DB_PATH,
+            "วิชา 06016406 ของ IT แบบไม่สหกิจเป็นโครงงานลักษณะไหน และผู้เรียนต้องทำหรือแสดงผลลัพธ์อะไรบ้าง?",
+        )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        claims = [claim for claim in result["result"].claims if claim.operation == "describe"]
+        self.assertEqual(len(claims), 1)
+        self.assertTrue(claims[0].evidence)
+        self.assertTrue(claims[0].provenance)
+
+    def test_multi_operation_placement_wording_produces_supported_claims(self):
+        result = ask(
+            DB_PATH,
+            "วิชา 06016419 ของ IT แบบไม่สหกิจอยู่ปีไหน เทอมไหน กี่หน่วยกิต และเนื้อหาเกี่ยวกับเครือข่ายกับความปลอดภัยอย่างไร?",
+        )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claims = result["result"].claims
+        self.assertEqual(
+            {claim.operation for claim in claims},
+            {"placement", "sum_credits", "describe"},
+        )
+        self.assertTrue(all(claim.status == "complete" for claim in claims))
+        self.assertTrue(all(claim.provenance for claim in claims))
+
+    def test_residual_course_targeted_wording_produces_complete_claims(self):
+        cases = (
+            "สำหรับ IT แบบสหกิจ วิชา 06016418 เรียนช่วงไหนของหลักสูตร และเนื้อหาครอบคลุมเรื่องใดเกี่ยวกับฐานข้อมูลบ้าง?",
+            "วิชา 06036115 ใน BIT แบบสหกิจเรียนปีไหน เทอมไหน และเนื้อหาช่วยจัดการความปลอดภัยของระบบสารสนเทศเรื่องใดบ้าง?",
+        )
+        for question in cases:
+            with self.subTest(question=question):
+                result = ask(DB_PATH, question)
+
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+                self.assertEqual(result["result"].status, "answer")
+                claims = result["result"].claims
+                self.assertEqual(
+                    {claim.operation for claim in claims},
+                    {"placement", "describe"},
+                )
+                self.assertTrue(all(claim.status == "complete" for claim in claims))
+                self.assertTrue(all(claim.evidence for claim in claims))
+                self.assertTrue(all(claim.provenance for claim in claims))
+
+    def test_existing_dsba_multi_operation_remains_complete(self):
+        result = ask(
+            DB_PATH,
+            "วิชา 06026259 ของ DSBA แบบสหกิจเรียนปีไหน เทอมไหน กี่หน่วยกิต และมีเนื้อหาที่ทำงานร่วมกับสถานประกอบการอย่างไร?",
+        )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claims = result["result"].claims
+        self.assertEqual(
+            {claim.operation for claim in claims},
+            {"placement", "sum_credits", "describe"},
+        )
+        self.assertTrue(all(claim.status == "complete" for claim in claims))
+        self.assertTrue(all(claim.provenance for claim in claims))
+
+    def test_generic_plan_comparison_stays_fail_closed_after_placement_parse(self):
+        result = ask(
+            DB_PATH,
+            "วิชา 06036103 ใน BIT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน และรายละเอียดการจัดวางต่างกันอย่างไร?",
+        )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claims = result["result"].claims
+        placement = [claim for claim in claims if claim.operation == "placement"]
+        comparison = [claim for claim in claims if claim.operation == "compare"]
+        self.assertTrue(placement)
+        self.assertTrue(all(claim.status == "complete" for claim in placement))
+        self.assertEqual(len(comparison), 1)
+        self.assertEqual(comparison[0].status, "insufficient_evidence")
+        self.assertIsNone(comparison[0].value)
+
     def test_similarity_claim_keeps_multiple_partitions_without_scope_merge(self):
         planned_scope = StructuralScope(
             program="AIT",
@@ -612,6 +722,245 @@ class RagQaTest(unittest.TestCase):
         spec = parse_query_spec("IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
         return replace(spec, operations=tuple(operations), topic=topic, judgement=judgement)
 
+    def _earliest_spec(self, course_code="06016465"):
+        return replace(
+            self._spec(("placement", "earliest", "compare")),
+            course_codes=(course_code,),
+            group_by=("plan",),
+        )
+
+    def _earliest_bundle(
+        self,
+        placements_by_plan,
+        *,
+        course_code="06016465",
+        statuses=None,
+        target_codes=None,
+    ):
+        target = {"program": "IT", "course_code": course_code, "course_id": 65}
+        plan_keys = tuple(placements_by_plan)
+        bundle_scope = StructuralScope(
+            program="IT",
+            plans=plan_keys,
+            course_targets=(target,),
+            group_by=("plan",),
+        )
+        requests = []
+        results = []
+        statuses = statuses or {}
+        target_codes = target_codes or {}
+        for plan in plan_keys:
+            effective_target = {
+                **target,
+                "course_code": target_codes.get(plan, course_code),
+            }
+            scope = StructuralScope(
+                program="IT",
+                plans=(plan,),
+                course_targets=(effective_target,),
+                group_by=("plan",),
+            )
+            request = EvidenceRequest(
+                f"placement_{plan}",
+                "placement_facts",
+                scope,
+                course_targets=(effective_target,),
+            )
+            requests.append(request)
+            results.append(
+                EvidenceExecutionResult(
+                    request_id=request.request_id,
+                    kind=request.kind,
+                    planned_request=request,
+                    effective_scope=scope,
+                    status=statuses.get(plan, "complete"),
+                    payload={"courses": placements_by_plan[plan]},
+                )
+            )
+        return EvidenceBundle(
+            EvidencePlan(bundle_scope, tuple(requests), group_by=("plan",)),
+            tuple(results),
+        )
+
+    def _placement(self, plan, year, semester, page, *, course_code="06016465"):
+        return {
+            "program": "IT",
+            "course_code": course_code,
+            "plan_key": plan,
+            "year": year,
+            "semester": semester,
+            "provenance": ({"source_page": page},),
+        }
+
+    def _year_credit_spec(self, *, semesters=()):
+        return replace(
+            self._spec(("sum_credits",)),
+            years=(2,),
+            semesters=tuple(semesters),
+            group_by=(),
+        )
+
+    def _credit_component(
+        self,
+        plan,
+        semester,
+        page,
+        *,
+        course_code="06016420",
+        counted_credit_units=3,
+    ):
+        return {
+            "program": "IT",
+            "course_code": course_code,
+            "counted_credit_units": counted_credit_units,
+            "partition": {
+                "program": "IT",
+                "plans": (plan,),
+                "years": (2,),
+                "semesters": (semester,),
+                "category": None,
+                "group_by": (),
+            },
+            "provenance": ({"source_page": page},),
+        }
+
+    def _credit_group(self, plan, semester, page, member_page):
+        return {
+            "program": "IT",
+            "alternative_group_id": 7,
+            "counted_credit_units": 6,
+            "alternative_courses": (
+                {
+                    "program": "IT",
+                    "course_code": "06016421",
+                    "provenance": ({"source_page": member_page},),
+                },
+            ),
+            "partition": {
+                "program": "IT",
+                "plans": (plan,),
+                "years": (2,),
+                "semesters": (semester,),
+                "category": None,
+                "group_by": (),
+            },
+            "provenance": ({"source_page": page},),
+        }
+
+    def _credit_bundle(self, entries):
+        plan_keys = tuple(dict.fromkeys(plan for plan, _semester, _status, _components in entries))
+        bundle_scope = StructuralScope(
+            program="IT",
+            plans=plan_keys,
+            years=(2,),
+            group_by=(),
+        )
+        requests = []
+        results = []
+        for index, (plan, semester, status, components) in enumerate(entries, start=1):
+            scope = StructuralScope(
+                program="IT",
+                plans=(plan,),
+                years=(2,),
+                semesters=(semester,),
+                group_by=(),
+            )
+            request = EvidenceRequest(
+                f"credit_{index}",
+                "credit_facts",
+                scope,
+            )
+            requests.append(request)
+            results.append(
+                EvidenceExecutionResult(
+                    request_id=request.request_id,
+                    kind=request.kind,
+                    planned_request=request,
+                    effective_scope=scope,
+                    status=status,
+                    payload={"components": components},
+                )
+            )
+        return EvidenceBundle(
+            EvidencePlan(bundle_scope, tuple(requests)),
+            tuple(results),
+        )
+
+    def _greatest_credit_spec(self):
+        return replace(
+            self._spec(("sum_credits", "compare")),
+            years=(),
+            semesters=(),
+            course_codes=(),
+            group_by=("semester",),
+        )
+
+    def _greatest_credit_component(
+        self,
+        plan,
+        year,
+        semester,
+        page,
+        counted_credit_units=3,
+        *,
+        alternative_group_id=None,
+        alternative_courses=(),
+    ):
+        component = {
+            "program": "IT",
+            "course_code": f"00000{page:03d}",
+            "counted_credit_units": counted_credit_units,
+            "partition": {
+                "program": "IT",
+                "plans": (plan,),
+                "years": (year,),
+                "semesters": (semester,),
+                "category": None,
+                "group_by": ("semester",),
+            },
+            "provenance": ({"source_page": page},),
+        }
+        if alternative_group_id is not None:
+            component["alternative_group_id"] = alternative_group_id
+            component["alternative_courses"] = alternative_courses
+        return component
+
+    def _greatest_credit_bundle(self, entries, *, years, semesters):
+        plan_keys = tuple(dict.fromkeys(plan for plan, _year, _semester, _status, _components in entries))
+        bundle_scope = StructuralScope(
+            program="IT",
+            plans=plan_keys,
+            years=tuple(years),
+            semesters=tuple(semesters),
+            group_by=("semester",),
+        )
+        requests = []
+        results = []
+        for index, (plan, year, semester, status, components) in enumerate(entries, start=1):
+            scope = StructuralScope(
+                program="IT",
+                plans=(plan,),
+                years=(year,),
+                semesters=(semester,),
+                group_by=("semester",),
+            )
+            request = EvidenceRequest(f"greatest_{index}", "credit_facts", scope)
+            requests.append(request)
+            results.append(
+                EvidenceExecutionResult(
+                    request_id=request.request_id,
+                    kind=request.kind,
+                    planned_request=request,
+                    effective_scope=scope,
+                    status=status,
+                    payload={"components": components},
+                )
+            )
+        return EvidenceBundle(
+            EvidencePlan(bundle_scope, tuple(requests)),
+            tuple(results),
+        )
+
     def _course(self, code="06016414", page=1):
         return {
             "program": "IT",
@@ -642,6 +991,49 @@ class RagQaTest(unittest.TestCase):
         self.assertTrue(claims[2].value)
         self.assertTrue(all(isinstance(claim, GroundedClaim) for claim in claims))
         self.assertEqual([claim.claim_id for claim in claims], ["claim_001", "claim_002", "claim_003"])
+
+    def test_typed_course_set_claims_preserve_alternative_parent(self):
+        alternative_parent = {
+            "program": "IT",
+            "course_code": None,
+            "alternative_group_id": 8,
+            "minimum_choices": 1,
+            "maximum_choices": 1,
+            "counted_credit_units": 6,
+            "alternative_courses": [
+                {"program": "IT", "course_code": "06016481"},
+                {"program": "IT", "course_code": "06016482"},
+            ],
+            "partition": {"plan": "coop", "year": 3, "semester": 2},
+            "provenance": ({"group": 8}, {"source_page": 20}),
+        }
+        bundle = self._bundle(
+            (
+                (
+                    "course_set",
+                    "course_set",
+                    {"courses": [alternative_parent]},
+                    "complete",
+                ),
+            )
+        )
+
+        claims = _compose_evidence_claims(
+            self._spec(("list", "count", "existence")), bundle
+        )
+
+        self.assertEqual([claim.status for claim in claims], ["complete"] * 3)
+        item = claims[0].value[0]
+        self.assertIsNone(item["course_code"])
+        self.assertEqual(item["alternative_group_id"], 8)
+        self.assertEqual(
+            {member["course_code"] for member in item["alternative_courses"]},
+            {"06016481", "06016482"},
+        )
+        self.assertEqual(claims[1].value, 1)
+        self.assertTrue(claims[2].value)
+        self.assertIn({"group": 8}, claims[0].provenance)
+        self.assertIn({"source_page": 20}, claims[0].provenance)
 
     def test_topic_operations_use_topic_matches_candidates_not_course_set(self):
         topic_course = {
@@ -730,6 +1122,291 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(claims[2].value.value, (2, 1))
         self.assertEqual(claims[3].kind, "grounded_summary")
 
+    def test_coarse_year_credit_rollup_groups_each_plan_once(self):
+        bundle = self._credit_bundle(
+            (
+                (
+                    "coop",
+                    1,
+                    "complete",
+                    [self._credit_component("coop", 1, 101)],
+                ),
+                (
+                    "coop",
+                    2,
+                    "complete",
+                    [
+                        self._credit_component("coop", 2, 102),
+                        self._credit_group("coop", 2, 103, 104),
+                    ],
+                ),
+                (
+                    "no_coop",
+                    1,
+                    "complete",
+                    [self._credit_component("no_coop", 1, 201, counted_credit_units=5)],
+                ),
+                (
+                    "no_coop",
+                    2,
+                    "complete",
+                    [self._credit_component("no_coop", 2, 202, counted_credit_units=6)],
+                ),
+            )
+        )
+
+        with patch("rag.qa.aggregate_sum_credits", wraps=aggregate_sum_credits) as aggregate:
+            claims = _compose_evidence_claims(self._year_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 2)
+        self.assertEqual(
+            [(claim.effective_scope.plans, claim.value) for claim in claims],
+            [(('coop',), 12), (('no_coop',), 11)],
+        )
+        self.assertEqual(aggregate.call_count, 2)
+        self.assertTrue(all(claim.effective_scope.semesters == () for claim in claims))
+        coop_components = claims[0].evidence.components
+        grouped = next(
+            component
+            for component in coop_components
+            if component.get("alternative_group_id") == 7
+        )
+        self.assertEqual(grouped["alternative_courses"][0]["provenance"], ({"source_page": 104},))
+        self.assertEqual(
+            [reference["source_page"] for reference in claims[0].provenance],
+            [101, 103, 102],
+        )
+        self.assertEqual(
+            {component["partition"]["semesters"] for component in coop_components},
+            {(1,), (2,)},
+        )
+
+    def test_coarse_year_credit_rollup_complete_plus_valid_empty_is_complete(self):
+        bundle = self._credit_bundle(
+            (
+                ("coop", 1, "complete", [self._credit_component("coop", 1, 101)]),
+                ("coop", 2, "valid_empty", []),
+            )
+        )
+
+        claims = _compose_evidence_claims(self._year_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "complete")
+        self.assertEqual(claims[0].value, 3)
+        self.assertEqual(claims[0].effective_scope.semesters, ())
+
+    def test_coarse_year_credit_rollup_all_valid_empty_keeps_zero_semantics(self):
+        bundle = self._credit_bundle(
+            (
+                ("coop", 1, "valid_empty", []),
+                ("coop", 2, "valid_empty", []),
+            )
+        )
+
+        claims = _compose_evidence_claims(self._year_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "valid_empty")
+        self.assertEqual(claims[0].value, 0)
+        self.assertEqual(claims[0].evidence.status, "valid_empty")
+
+    def test_coarse_year_credit_rollup_insufficient_semester_fails_closed(self):
+        bundle = self._credit_bundle(
+            (
+                ("coop", 1, "complete", [self._credit_component("coop", 1, 101)]),
+                ("coop", 2, "insufficient_evidence", []),
+            )
+        )
+
+        claims = _compose_evidence_claims(self._year_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "insufficient_evidence")
+        self.assertIsNone(claims[0].value)
+        self.assertIsNone(claims[0].evidence)
+        self.assertEqual(claims[0].provenance, ())
+
+    def test_explicit_semester_credit_query_keeps_semester_level_behavior(self):
+        bundle = self._credit_bundle(
+            (("coop", 1, "complete", [self._credit_component("coop", 1, 101)]),)
+        )
+
+        claims = _compose_evidence_claims(
+            self._year_credit_spec(semesters=(1,)), bundle
+        )
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].value, 3)
+        self.assertEqual(claims[0].effective_scope.semesters, (1,))
+
+    def test_greatest_credit_selects_highest_concrete_term(self):
+        entries = tuple(
+            (
+                "coop",
+                year,
+                semester,
+                "complete",
+                [self._greatest_credit_component("coop", year, semester, page, credits)],
+            )
+            for year, semester, page, credits in (
+                (1, 1, 301, 5),
+                (1, 2, 302, 9),
+                (2, 1, 303, 7),
+                (2, 2, 304, 4),
+            )
+        )
+        bundle = self._greatest_credit_bundle(entries, years=(1, 2), semesters=(1, 2))
+
+        claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].operation, "sum_credits")
+        self.assertEqual(claims[0].value, 9)
+        self.assertEqual(claims[0].effective_scope.plans, ("coop",))
+        self.assertEqual(claims[0].effective_scope.years, (1,))
+        self.assertEqual(claims[0].effective_scope.semesters, (2,))
+
+    def test_greatest_credit_reduces_plans_independently(self):
+        entries = []
+        for plan, values in (("coop", (5, 9)), ("no_coop", (8, 6))):
+            for year, credits in enumerate(values, start=1):
+                entries.append(
+                    (
+                        plan,
+                        year,
+                        1,
+                        "complete",
+                        [self._greatest_credit_component(plan, year, 1, 310 + year, credits)],
+                    )
+                )
+        bundle = self._greatest_credit_bundle(entries, years=(1, 2), semesters=(1,))
+
+        claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(
+            [(claim.effective_scope.plans, claim.value) for claim in claims],
+            [(('coop',), 9), (('no_coop',), 8)],
+        )
+
+    def test_greatest_credit_delegates_candidate_arithmetic(self):
+        entries = tuple(
+            (
+                "coop",
+                year,
+                1,
+                "complete",
+                [self._greatest_credit_component("coop", year, 1, 320 + year, credits)],
+            )
+            for year, credits in ((1, 5), (2, 9), (3, 7))
+        )
+        bundle = self._greatest_credit_bundle(entries, years=(1, 2, 3), semesters=(1,))
+
+        with patch("rag.qa.aggregate_sum_credits", wraps=aggregate_sum_credits) as aggregate:
+            claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].value, 9)
+        self.assertEqual(aggregate.call_count, 3)
+
+    def test_greatest_credit_valid_empty_is_a_zero_candidate(self):
+        bundle = self._greatest_credit_bundle(
+            (
+                ("coop", 1, 1, "valid_empty", []),
+                ("coop", 2, 1, "valid_empty", []),
+            ),
+            years=(1, 2),
+            semesters=(1,),
+        )
+
+        claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 2)
+        self.assertEqual([claim.status for claim in claims], ["valid_empty", "valid_empty"])
+        self.assertEqual([claim.value for claim in claims], [0, 0])
+        self.assertEqual(
+            [claim.effective_scope.years for claim in claims],
+            [(1,), (2,)],
+        )
+        self.assertTrue(all(claim.evidence.status == "valid_empty" for claim in claims))
+
+    def test_greatest_credit_insufficient_candidate_fails_plan_closed(self):
+        bundle = self._greatest_credit_bundle(
+            (
+                ("coop", 1, 1, "complete", [self._greatest_credit_component("coop", 1, 1, 330, 9)]),
+                ("coop", 2, 1, "insufficient_evidence", []),
+            ),
+            years=(1, 2),
+            semesters=(1,),
+        )
+
+        claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "insufficient_evidence")
+        self.assertIsNone(claims[0].value)
+        self.assertIsNone(claims[0].evidence)
+
+    def test_greatest_credit_missing_candidate_is_not_zero(self):
+        bundle = self._greatest_credit_bundle(
+            (
+                ("coop", 1, 1, "complete", [self._greatest_credit_component("coop", 1, 1, 340, 9)]),
+                ("coop", 1, 2, "complete", [self._greatest_credit_component("coop", 1, 2, 341, 5)]),
+                ("coop", 2, 1, "complete", [self._greatest_credit_component("coop", 2, 1, 342, 7)]),
+            ),
+            years=(1, 2),
+            semesters=(1, 2),
+        )
+
+        claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "insufficient_evidence")
+        self.assertIsNone(claims[0].value)
+
+    def test_greatest_credit_returns_all_ties_in_term_order_with_provenance(self):
+        alt = (
+            {
+                "program": "IT",
+                "course_code": "00000001",
+                "provenance": ({"source_page": 350},),
+            },
+        )
+        entries = (
+            (
+                "coop",
+                3,
+                1,
+                "complete",
+                [
+                    self._greatest_credit_component(
+                        "coop", 3, 1, 351, 21,
+                        alternative_group_id=7,
+                        alternative_courses=alt,
+                    )
+                ],
+            ),
+            ("coop", 1, 1, "complete", [self._greatest_credit_component("coop", 1, 1, 352, 4)]),
+            ("coop", 1, 2, "complete", [self._greatest_credit_component("coop", 1, 2, 353, 21)]),
+            ("coop", 3, 2, "complete", [self._greatest_credit_component("coop", 3, 2, 354, 6)]),
+        )
+        bundle = self._greatest_credit_bundle(entries, years=(1, 3), semesters=(1, 2))
+
+        claims = _compose_evidence_claims(self._greatest_credit_spec(), bundle)
+
+        self.assertEqual(
+            [(claim.effective_scope.years, claim.effective_scope.semesters, claim.value) for claim in claims],
+            [((1,), (2,), 21), ((3,), (1,), 21)],
+        )
+        self.assertEqual(claims[0].evidence.components[0]["course_code"], "00000353")
+        self.assertEqual(claims[0].provenance, ({"source_page": 353},))
+        self.assertEqual(claims[1].evidence.components[0]["alternative_group_id"], 7)
+        self.assertEqual(claims[1].evidence.components[0]["alternative_courses"], alt)
+        self.assertEqual(
+            [reference["source_page"] for reference in claims[1].provenance],
+            [351],
+        )
+
     def test_judgement_adapters_preserve_valid_zero_and_workload_proxies(self):
         empty_scope = StructuralScope(program="IT", plans=("coop",), years=(1,), semesters=(1,))
         request = EvidenceRequest("course_set", "course_set", empty_scope)
@@ -762,6 +1439,113 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(
             [reference["source_page"] for reference in claims[0].provenance], [1, 2]
         )
+
+    def test_compare_without_comparison_payload_fails_closed(self):
+        bundle = self._bundle(
+            (("course_set", "course_set", {"courses": []}, "valid_empty"),)
+        )
+
+        claims = _compose_evidence_claims(self._spec(("compare",)), bundle)
+
+        self.assertEqual(len(claims), 1)
+        claim = claims[0]
+        self.assertEqual(claim.operation, "compare")
+        self.assertEqual(claim.status, "insufficient_evidence")
+        self.assertIsNone(claim.value)
+        self.assertIsNone(claim.evidence)
+        self.assertEqual(claim.provenance, ())
+
+    def test_earliest_plan_comparison_preserves_isolated_operands_and_provenance(self):
+        bundle = self._earliest_bundle(
+            {
+                "coop": [self._placement("coop", 2, 2, 11)],
+                "no_coop": [self._placement("no_coop", 4, 1, 22)],
+            }
+        )
+
+        with patch("rag.qa.compare_aggregates", wraps=compare_aggregates) as compare:
+            claims = _compose_evidence_claims(self._earliest_spec(), bundle)
+
+        comparison = next(claim for claim in claims if claim.operation == "compare")
+        self.assertEqual(comparison.status, "complete")
+        self.assertIsInstance(comparison.value, ComparisonAggregation)
+        self.assertEqual(comparison.value.relation, "less")
+        self.assertTrue(compare.called)
+        left = comparison.value.left
+        right = comparison.value.right
+        self.assertIsInstance(left, EarliestAggregation)
+        self.assertIsInstance(right, EarliestAggregation)
+        self.assertEqual(left.value, (2, 2))
+        self.assertEqual(right.value, (4, 1))
+        self.assertEqual(left.partitions[0].partition["plans"], ("coop",))
+        self.assertEqual(right.partitions[0].partition["plans"], ("no_coop",))
+        self.assertEqual(
+            [reference["source_page"] for reference in comparison.provenance],
+            [11, 22],
+        )
+
+    def test_earliest_plan_comparison_equal_values_produce_equal(self):
+        bundle = self._earliest_bundle(
+            {
+                "coop": [self._placement("coop", 2, 2, 11)],
+                "no_coop": [self._placement("no_coop", 2, 2, 22)],
+            }
+        )
+
+        claims = _compose_evidence_claims(self._earliest_spec(), bundle)
+
+        comparison = next(claim for claim in claims if claim.operation == "compare")
+        self.assertEqual(comparison.status, "complete")
+        self.assertEqual(comparison.value.relation, "equal")
+
+    def test_earliest_plan_comparison_missing_operand_fails_closed(self):
+        bundle = self._earliest_bundle(
+            {
+                "coop": [self._placement("coop", 2, 2, 11)],
+                "no_coop": [],
+            },
+            statuses={"no_coop": "insufficient_evidence"},
+        )
+
+        claims = _compose_evidence_claims(self._earliest_spec(), bundle)
+
+        comparison = next(claim for claim in claims if claim.operation == "compare")
+        self.assertEqual(comparison.status, "insufficient_evidence")
+        self.assertIsNone(comparison.value)
+        self.assertIsNone(comparison.evidence)
+        self.assertEqual(comparison.provenance, ())
+
+    def test_earliest_plan_comparison_identity_mismatch_fails_closed(self):
+        bundle = self._earliest_bundle(
+            {
+                "coop": [self._placement("coop", 2, 2, 11)],
+                "no_coop": [
+                    self._placement("no_coop", 4, 1, 22, course_code="06016414")
+                ],
+            },
+            target_codes={"no_coop": "06016414"},
+        )
+
+        claims = _compose_evidence_claims(self._earliest_spec(), bundle)
+
+        comparison = next(claim for claim in claims if claim.operation == "compare")
+        self.assertEqual(comparison.status, "insufficient_evidence")
+        self.assertIsNone(comparison.value)
+
+    def test_unsupported_comparison_shape_remains_fail_closed(self):
+        bundle = self._bundle(
+            (("credit_facts", "credit_facts", {"components": []}, "valid_empty"),)
+        )
+
+        claims = _compose_evidence_claims(
+            self._spec(("sum_credits", "compare")), bundle
+        )
+
+        comparison = next(claim for claim in claims if claim.operation == "compare")
+        self.assertEqual(comparison.status, "insufficient_evidence")
+        self.assertIsNone(comparison.value)
+        self.assertIsNone(comparison.evidence)
+        self.assertEqual(comparison.provenance, ())
 
 
 if __name__ == "__main__":

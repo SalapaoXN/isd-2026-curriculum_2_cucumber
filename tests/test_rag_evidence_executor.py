@@ -340,6 +340,21 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertEqual(result.status, "valid_empty")
         self.assertEqual(result.primitive_state, "empty_relation")
 
+    def test_explicit_year_five_credit_scope_maps_no_data_to_valid_empty(self):
+        scope = self._scope(years=(5,))
+        request = EvidenceRequest("credits", "credit_facts", scope)
+        empty = {"status": "no_data", "components": (), "provenance": ()}
+
+        with patch(
+            "rag.evidence_executor.get_semester_credits",
+            return_value=empty,
+        ) as get_credits:
+            result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "valid_empty")
+        self.assertEqual(result.effective_scope.years, (5,))
+        get_credits.assert_called_once_with(DB_PATH, "IT", "coop", 5, 1)
+
     def test_credit_facts_keep_authoritative_components_and_provenance(self):
         scope = self._scope()
         request = EvidenceRequest("credits", "credit_facts", scope)
@@ -1095,6 +1110,81 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertEqual(
             [record["partition"]["plan"] for record in right_records],
             ["coop", "no_coop"],
+        )
+
+    def test_exact_similarity_bridge_aligns_real_courses_across_placements(self):
+        left_target = {
+            "course_id": 632,
+            "program": "IT",
+            "course_code": "06016414",
+        }
+        right_target = {
+            "course_id": 697,
+            "program": "IT",
+            "course_code": "06016465",
+        }
+        scope = self._scope(
+            plans=(),
+            years=(),
+            semesters=(),
+            expand_applicable=("plan",),
+            unconstrained=("year", "semester"),
+            course_targets=(left_target, right_target),
+        )
+        left_request = EvidenceRequest(
+            "left_descriptions",
+            "description_evidence",
+            scope,
+            course_targets=(left_target,),
+        )
+        right_request = EvidenceRequest(
+            "right_descriptions",
+            "description_evidence",
+            scope,
+            course_targets=(right_target,),
+        )
+        bundle = execute_evidence_plan(
+            DB_PATH,
+            self._plan(left_request, right_request, scope=scope),
+        )
+
+        with patch(
+            "rag.evidence_executor.aggregate_exact_course_similarity",
+            return_value=SimilarityEvidence(status="valid_empty"),
+        ) as aggregate:
+            result = execute_exact_similarity_from_bundle(
+                DB_PATH,
+                bundle,
+                "left_descriptions",
+                "right_descriptions",
+            )
+
+        self.assertEqual(result.status, "valid_empty")
+        left_records, right_records = aggregate.call_args.args[1:3]
+        self.assertEqual(
+            {record["partition"]["plan"] for record in left_records},
+            {"coop", "no_coop"},
+        )
+        self.assertEqual(
+            {record["partition"]["plan"] for record in right_records},
+            {"coop", "no_coop"},
+        )
+        self.assertEqual(
+            {key for record in left_records for key in record["partition"]},
+            {"program", "plan", "plans"},
+        )
+        self.assertEqual(
+            {key for record in right_records for key in record["partition"]},
+            {"program", "plan", "plans"},
+        )
+        self.assertEqual(
+            {
+                (left["partition"]["plan"], right["partition"]["plan"])
+                for left in left_records
+                for right in right_records
+                if left["partition"] == right["partition"]
+            },
+            {("coop", "coop"), ("no_coop", "no_coop")},
         )
 
     def test_exact_similarity_bridge_missing_description_fails_closed(self):

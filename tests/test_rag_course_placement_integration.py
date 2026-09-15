@@ -12,6 +12,7 @@ from rag.structured.queries import (
     get_semester_credits,
     parse_flexible_year_semester,
     placement_year_semester_choices,
+    scoped_course_set,
     semester_credits_and_prerequisites,
 )
 
@@ -61,7 +62,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
 
     def test_malformed_flexible_value_fails_safely(self):
         self.assertEqual(parse_flexible_year_semester("3/1, unknown"), [])
-        self.assertEqual(parse_flexible_year_semester("5/1"), [])
+        self.assertEqual(parse_flexible_year_semester("6/1"), [])
         self.assertEqual(placement_year_semester_choices(None, None, None), [])
 
     def test_earliest_composition_handles_mixed_placements_without_guessing(self):
@@ -82,6 +83,24 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertIsNone(
             earliest_year_semester_from_choices([(3, 1), ("4", 1)])
         )
+
+    def test_scoped_course_set_preserves_empty_year_five_scope(self):
+        result = scoped_course_set(
+            DB_PATH,
+            "BIT",
+            "no_coop",
+            years=(5,),
+            semesters=(1,),
+        )
+
+        self.assertEqual(result["status"], "no_data")
+        self.assertEqual(result["years"], (5,))
+        self.assertEqual(result["semesters"], (1,))
+        self.assertEqual(result["courses"], [])
+        credit_result = get_semester_credits(DB_PATH, "BIT", "no_coop", 5, 1)
+        self.assertEqual(credit_result["status"], "no_data")
+        self.assertEqual(credit_result["year"], 5)
+        self.assertEqual(credit_result["semester"], 1)
 
     def test_course_placement_preserves_raw_and_exposes_choices(self):
         result = course_placement(DB_PATH, "IT", "06016481", ["coop", "no_coop"])

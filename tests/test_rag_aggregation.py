@@ -149,6 +149,88 @@ class RagAggregationTest(unittest.TestCase):
         )
         self.assertEqual(result.courses[0]["provenance"], ({"source_page": 42},))
 
+    def test_alternative_parent_is_one_course_set_item(self):
+        component = self._group(group_id=10)
+        result = aggregate_course_set([component])
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.count, 1)
+        self.assertTrue(result.exists)
+        item = result.courses[0]
+        self.assertIsNone(item["course_code"])
+        self.assertEqual(item["alternative_group_id"], 10)
+        self.assertEqual(item["minimum_choices"], 1)
+        self.assertEqual(
+            {member["course_code"] for member in item["alternative_courses"]},
+            {"00000001", "00000002"},
+        )
+        self.assertEqual(item["provenance"], ({"group": 10},))
+
+    def test_duplicate_alternative_parent_merges_parent_and_member_provenance(self):
+        first = self._group(group_id=11)
+        second = self._group(group_id=11)
+        second["provenance"] = [{"group_source": 11}]
+        second["alternative_courses"][0]["provenance"].append(
+            {"member_source": "00000001"}
+        )
+
+        result = aggregate_course_set([first, second])
+
+        self.assertEqual(result.count, 1)
+        item = result.courses[0]
+        self.assertIn({"group": 11}, item["provenance"])
+        self.assertIn({"group_source": 11}, item["provenance"])
+        member = next(
+            member
+            for member in item["alternative_courses"]
+            if member["course_code"] == "00000001"
+        )
+        self.assertIn(
+            {"member_source": "00000001"}, member["provenance"]
+        )
+
+    def test_distinct_alternative_groups_remain_distinct(self):
+        result = aggregate_course_set(
+            [self._group(group_id=12), self._group(group_id=13)]
+        )
+
+        self.assertEqual(result.count, 2)
+        self.assertEqual(
+            {item["alternative_group_id"] for item in result.courses},
+            {12, 13},
+        )
+
+    def test_same_alternative_group_across_plans_remains_separate(self):
+        result = aggregate_course_set(
+            [
+                self._group(group_id=14, plan="coop"),
+                self._group(group_id=14, plan="no_coop"),
+            ]
+        )
+
+        self.assertEqual(result.count, 2)
+        self.assertEqual(
+            {item["partition"]["plan"] for item in result.courses},
+            {"coop", "no_coop"},
+        )
+
+    def test_course_set_rejects_missing_concrete_or_group_identity(self):
+        with self.assertRaises(ValueError):
+            aggregate_course_set(
+                [{"program": "IT", "course_code": None, "partition": {}}]
+            )
+        with self.assertRaises(ValueError):
+            aggregate_course_set(
+                [
+                    {
+                        "program": "IT",
+                        "course_code": None,
+                        "is_alternative": True,
+                        "partition": {},
+                    }
+                ]
+            )
+
     def test_inputs_are_not_mutated(self):
         component = self._course("IT", "00000001", "coop", [{"source_page": 1}])
         original = {

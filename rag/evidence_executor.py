@@ -891,7 +891,7 @@ def execute_evidence_plan(
 
 
 def _similarity_partition(scope: StructuralScope) -> dict[str, Any] | None:
-    """Project one concrete executor scope to the retrieval partition shape."""
+    """Project one concrete scope to its stable similarity identity."""
     if (
         not isinstance(scope.program, str)
         or not scope.program.strip()
@@ -904,12 +904,6 @@ def _similarity_partition(scope: StructuralScope) -> dict[str, Any] | None:
         "program": scope.program,
         "plan": scope.plans[0],
         "plans": tuple(scope.plans),
-        "years": tuple(scope.years),
-        "semesters": tuple(scope.semesters),
-        "category": scope.category,
-        "group_by": tuple(scope.group_by),
-        "expand_applicable": tuple(scope.expand_applicable),
-        "unconstrained": tuple(scope.unconstrained),
     }
 
 
@@ -965,10 +959,15 @@ def _valid_description_record(
         return True
     if not isinstance(supplied_partition, Mapping):
         return False
-    return all(
-        key in partition and partition[key] == value
-        for key, value in supplied_partition.items()
-    )
+    if "program" in supplied_partition and supplied_partition["program"] != partition["program"]:
+        return False
+    if "plan" in supplied_partition and supplied_partition["plan"] != partition["plan"]:
+        return False
+    if "plans" in supplied_partition:
+        plans = supplied_partition["plans"]
+        if not isinstance(plans, (list, tuple)) or tuple(plans) != partition["plans"]:
+            return False
+    return True
 
 
 def _similarity_course_records(

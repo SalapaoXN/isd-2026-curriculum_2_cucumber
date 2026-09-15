@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -10,10 +11,12 @@ from rag.aggregation import (
     ComparisonAggregation,
     ComponentAggregation,
     CourseSetAggregation,
+    EarliestAggregation,
     aggregate_course_set,
     aggregate_earliest,
     aggregate_required_load,
     aggregate_sum_credits,
+    compare_aggregates,
 )
 from rag.evidence_executor import (
     EvidenceBundle,
@@ -192,6 +195,12 @@ def _provenance_from_value(value: Any) -> tuple[Any, ...]:
         return _provenance_from_records(value.courses)
     if isinstance(value, ComponentAggregation):
         return _provenance_from_records(value.components)
+    if isinstance(value, EarliestAggregation):
+        return tuple(
+            reference
+            for partition in value.partitions
+            for reference in partition.provenance
+        )
     if isinstance(value, ComparisonAggregation):
         return _provenance_from_value(value.left) + _provenance_from_value(value.right)
     if isinstance(value, JudgementEvidence):
@@ -212,6 +221,7 @@ def _claim(
     provenance: tuple[Any, ...] = (),
     kind: str = "deterministic_fact",
     status: str | None = None,
+    effective_scope: Any = None,
 ) -> GroundedClaim:
     """Build one immutable claim while redacting failed evidence."""
     claim_status = status or result.status
@@ -224,7 +234,9 @@ def _claim(
     return GroundedClaim(
         claim_id="pending",
         operation=operation,
-        effective_scope=result.effective_scope,
+        effective_scope=(
+            result.effective_scope if effective_scope is None else effective_scope
+        ),
         status=claim_status,
         kind=kind,
         value=value,
@@ -301,6 +313,309 @@ def _claim_for_credit_operation(
         provenance=provenance,
         status=aggregate.status,
     )
+
+
+def _missing_greatest_credit_claim() -> GroundedClaim:
+    """Represent an unsupported or incomplete greatest-credit result."""
+    return GroundedClaim(
+        claim_id="pending",
+        operation="sum_credits",
+        status="insufficient_evidence",
+    )
+
+
+def _greatest_credit_claims(
+    query_spec: Any,
+    bundle: EvidenceBundle,
+    results: tuple[EvidenceExecutionResult, ...],
+) -> tuple[GroundedClaim, ...] | None:
+    """Select maximum concrete-term credit claims independently per plan."""
+    operations = set(getattr(query_spec, "operations", ()))
+    if (
+        operations != {"sum_credits", "compare"}
+        or tuple(getattr(query_spec, "group_by", ())) != ("semester",)
+        or getattr(query_spec, "years", ())
+        or getattr(query_spec, "semesters", ())
+        or getattr(query_spec, "course_codes", ())
+        or getattr(query_spec, "course_name", None) is not None
+    ):
+        return None
+
+    if not isinstance(bundle, EvidenceBundle) or not results:
+        return (_missing_greatest_credit_claim(),)
+
+    requested_program = getattr(query_spec, "program", None)
+    candidates: dict[tuple[str, str], dict[tuple[int, int], ComponentAggregation]] = {}
+    representatives: dict[tuple[str, str], EvidenceExecutionResult] = {}
+    invalid_plans: set[tuple[str, str]] = set()
+    global_invalid = False
+
+    for result in results:
+        scope = result.effective_scope
+        program = getattr(scope, "program", None)
+        plans = tuple(getattr(scope, "plans", ()))
+        years = tuple(getattr(scope, "years", ()))
+        semesters = tuple(getattr(scope, "semesters", ()))
+        if (
+            not isinstance(program, str)
+            or not program.strip()
+            or (isinstance(requested_program, str) and program != requested_program)
+            or len(plans) != 1
+            or not isinstance(plans[0], str)
+            or not plans[0].strip()
+            or len(years) != 1
+            or isinstance(years[0], bool)
+            or not isinstance(years[0], int)
+            or len(semesters) != 1
+            or isinstance(semesters[0], bool)
+            or not isinstance(semesters[0], int)
+        ):
+            global_invalid = True
+            continue
+
+        plan_key = (program, plans[0])
+        representatives.setdefault(plan_key, result)
+        candidate_key = (years[0], semesters[0])
+        if candidate_key in candidates.setdefault(plan_key, {}):
+            invalid_plans.add(plan_key)
+            continue
+
+        aggregate = _credit_aggregate(result)
+        if result.status == "complete":
+            valid_status = aggregate is not None and aggregate.status == "complete"
+        elif result.status == "valid_empty":
+            valid_status = aggregate is not None and aggregate.status == "valid_empty"
+        else:
+            valid_status = False
+        if not valid_status or aggregate is None or aggregate.value is None:
+            invalid_plans.add(plan_key)
+            continue
+
+        provenance = _provenance_from_records(aggregate.components)
+        if result.planned_request.provenance_required and aggregate.status == "complete" and not provenance:
+            invalid_plans.add(plan_key)
+            continue
+
+        for component in aggregate.components:
+            partition = component.get("partition")
+            if (
+                not isinstance(partition, Mapping)
+                or partition.get("program") != program
+                or tuple(partition.get("plans", ())) != (plans[0],)
+                or tuple(partition.get("years", ())) != years
+                or tuple(partition.get("semesters", ())) != semesters
+            ):
+                invalid_plans.add(plan_key)
+                break
+        else:
+            candidates[plan_key][candidate_key] = aggregate
+
+    if global_invalid or not candidates:
+        return (_missing_greatest_credit_claim(),)
+
+    expected: dict[tuple[str, str], set[tuple[int, int]]] = {}
+    relation_results = _relation_results(query_spec, bundle)
+    if relation_results:
+        for result in relation_results:
+            scope = result.effective_scope
+            program = getattr(scope, "program", None)
+            plans = tuple(getattr(scope, "plans", ()))
+            years = tuple(getattr(scope, "years", ()))
+            semesters = tuple(getattr(scope, "semesters", ()))
+            if (
+                not isinstance(program, str)
+                or len(plans) != 1
+                or not isinstance(plans[0], str)
+                or not years
+                or not semesters
+            ):
+                global_invalid = True
+                continue
+            plan_key = (program, plans[0])
+            expected.setdefault(plan_key, set()).update(
+                (year, semester)
+                for year in years
+                for semester in semesters
+            )
+    else:
+        scope = getattr(bundle.plan, "scope", None)
+        plans = tuple(getattr(scope, "plans", ()))
+        years = tuple(getattr(scope, "years", ()))
+        semesters = tuple(getattr(scope, "semesters", ()))
+        program = getattr(scope, "program", None)
+        if plans and years and semesters and isinstance(program, str):
+            for plan in plans:
+                expected[(program, plan)] = {
+                    (year, semester)
+                    for year in years
+                    for semester in semesters
+                }
+
+    if global_invalid:
+        return (_missing_greatest_credit_claim(),)
+
+    plan_keys = set(candidates) | set(expected)
+    claims: list[GroundedClaim] = []
+    for plan_key in sorted(plan_keys):
+        plan_candidates = candidates.get(plan_key, {})
+        if (
+            plan_key in invalid_plans
+            or not plan_candidates
+            or (
+                plan_key in expected
+                and set(plan_candidates) != expected[plan_key]
+            )
+        ):
+            representative = representatives.get(plan_key)
+            if representative is None:
+                claims.append(_missing_greatest_credit_claim())
+            else:
+                claims.append(
+                    _claim(
+                        "sum_credits",
+                        representative,
+                        status="insufficient_evidence",
+                        effective_scope=replace(
+                            representative.effective_scope,
+                            years=(),
+                            semesters=(),
+                            group_by=("plan",),
+                        ),
+                    )
+                )
+            continue
+
+        maximum = max(aggregate.value for aggregate in plan_candidates.values())
+        winners = sorted(
+            (
+                term,
+                aggregate,
+            )
+            for term, aggregate in plan_candidates.items()
+            if aggregate.value == maximum
+        )
+        for term, aggregate in winners:
+            representative = next(
+                result
+                for result in results
+                if result.effective_scope.program == plan_key[0]
+                and tuple(result.effective_scope.plans) == (plan_key[1],)
+                and tuple(result.effective_scope.years) == (term[0],)
+                and tuple(result.effective_scope.semesters) == (term[1],)
+            )
+            claims.append(
+                _claim(
+                    "sum_credits",
+                    representative,
+                    value=aggregate.value,
+                    evidence=aggregate,
+                    provenance=_provenance_from_records(aggregate.components),
+                    status=aggregate.status,
+                )
+            )
+    return tuple(claims)
+
+
+def _coarse_year_credit_claims(
+    query_spec: Any,
+    results: tuple[EvidenceExecutionResult, ...],
+) -> tuple[GroundedClaim, ...] | None:
+    """Roll semester credit facts up to one requested year per concrete plan."""
+    years = tuple(getattr(query_spec, "years", ()))
+    semesters = tuple(getattr(query_spec, "semesters", ()))
+    group_by = tuple(getattr(query_spec, "group_by", ()))
+    if len(years) != 1 or semesters or "semester" in group_by or not results:
+        return None
+
+    requested_year = years[0]
+    grouped: dict[
+        tuple[str, str, int],
+        list[tuple[EvidenceExecutionResult, tuple[Mapping[str, Any], ...] | None]],
+    ] = {}
+    for result in results:
+        scope = result.effective_scope
+        program = getattr(scope, "program", None)
+        plans = tuple(getattr(scope, "plans", ()))
+        result_years = tuple(getattr(scope, "years", ()))
+        result_semesters = tuple(getattr(scope, "semesters", ()))
+        if (
+            not isinstance(program, str)
+            or not program.strip()
+            or len(plans) != 1
+            or not isinstance(plans[0], str)
+            or not plans[0].strip()
+            or len(result_years) != 1
+            or result_years[0] != requested_year
+            or len(result_semesters) != 1
+        ):
+            return None
+
+        records: tuple[Mapping[str, Any], ...] | None
+        if result.status == "insufficient_evidence":
+            records = None
+        elif result.status == "valid_empty":
+            records = ()
+        elif result.status == "complete":
+            records = _payload_records(result, "components")
+            if records is None:
+                return None
+        else:
+            return None
+        key = (program, plans[0], requested_year)
+        grouped.setdefault(key, []).append((result, records))
+
+    claims: list[GroundedClaim] = []
+    for (_program, _plan, _year), entries in grouped.items():
+        representative, _ = entries[0]
+        rollup_scope = replace(
+            representative.effective_scope,
+            semesters=(),
+            group_by=tuple(
+                axis
+                for axis in representative.effective_scope.group_by
+                if axis != "semester"
+            ),
+        )
+        if any(records is None for _, records in entries):
+            claims.append(
+                _claim(
+                    "sum_credits",
+                    representative,
+                    status="insufficient_evidence",
+                    effective_scope=rollup_scope,
+                )
+            )
+            continue
+
+        components = tuple(
+            component
+            for _, records in entries
+            for component in records or ()
+        )
+        try:
+            aggregate = aggregate_sum_credits(components, evidence_complete=True)
+        except (TypeError, ValueError, OverflowError):
+            claims.append(
+                _claim(
+                    "sum_credits",
+                    representative,
+                    status="insufficient_evidence",
+                    effective_scope=rollup_scope,
+                )
+            )
+            continue
+        claims.append(
+            _claim(
+                "sum_credits",
+                representative,
+                value=aggregate.value,
+                evidence=aggregate,
+                provenance=_provenance_from_records(aggregate.components),
+                status=aggregate.status,
+                effective_scope=rollup_scope,
+            )
+        )
+    return tuple(claims)
 
 
 def _claim_for_placement_operation(
@@ -454,16 +769,152 @@ def _comparison_claims(
     payload = result.payload
     if not isinstance(payload, ComparisonAggregation):
         return ()
+    return _comparison_claim_from_payload(
+        payload,
+        effective_scope=result.effective_scope,
+        provenance_required=result.planned_request.provenance_required,
+    )
+
+
+def _comparison_claim_from_payload(
+    payload: ComparisonAggregation,
+    *,
+    effective_scope: Any = None,
+    provenance_required: bool = True,
+) -> tuple[GroundedClaim, ...]:
+    """Compose one comparison payload while preserving its typed operands."""
     provenance = _provenance_from_value(payload)
+    status = payload.status
+    if status == "complete" and provenance_required and not provenance:
+        status = "insufficient_evidence"
+    value = payload if status != "insufficient_evidence" else None
+    evidence = payload if status != "insufficient_evidence" else None
+    retained_provenance = provenance if status != "insufficient_evidence" else ()
     return (
-        _claim(
-            "compare",
-            result,
-            value=payload,
-            evidence=payload,
-            provenance=provenance,
-            status=payload.status,
+        GroundedClaim(
+            claim_id="pending",
+            operation="compare",
+            effective_scope=effective_scope,
+            status=status,
+            kind="deterministic_fact",
+            value=value,
+            evidence=evidence,
+            provenance=retained_provenance,
         ),
+    )
+
+
+def _earliest_comparison_payload(
+    query_spec: Any,
+    bundle: EvidenceBundle,
+) -> ComparisonAggregation | None:
+    """Build the frozen two-plan earliest comparison from placement evidence."""
+    operations = set(getattr(query_spec, "operations", ()))
+    if not {"placement", "earliest", "compare"}.issubset(operations):
+        return None
+    if tuple(getattr(query_spec, "group_by", ())) != ("plan",):
+        return None
+    course_codes = tuple(getattr(query_spec, "course_codes", ()))
+    if len(course_codes) != 1 or not isinstance(course_codes[0], str):
+        return None
+    requested_course_code = course_codes[0].strip()
+    if not requested_course_code:
+        return None
+
+    grouped_records: dict[str, list[Mapping[str, Any]]] = {}
+    grouped_statuses: dict[str, list[str]] = {}
+    group_identity: tuple[str, str] | None = None
+    placement_results = _execution_results(bundle, "placement_facts")
+    if not placement_results:
+        return None
+
+    for result in placement_results:
+        scope = result.effective_scope
+        program = getattr(scope, "program", None)
+        plans = tuple(getattr(scope, "plans", ()))
+        if not isinstance(program, str) or not program.strip() or len(plans) != 1:
+            return None
+        plan = plans[0]
+        if not isinstance(plan, str) or not plan.strip():
+            return None
+
+        request_targets = tuple(
+            getattr(result.planned_request, "course_targets", ())
+            or getattr(scope, "course_targets", ())
+        )
+        if len(request_targets) != 1:
+            return None
+        target_identity = _logical_target_key(request_targets[0])
+        if (
+            target_identity is None
+            or target_identity[0] != program
+            or target_identity[1] != requested_course_code
+        ):
+            return None
+        if group_identity is None:
+            group_identity = target_identity
+        elif target_identity != group_identity:
+            return None
+
+        records = _payload_records(result, "courses")
+        if records is None or result.status != "complete":
+            return None
+        for record in records:
+            if _logical_target_key(record) != group_identity:
+                return None
+            record_plan = record.get("plan_key", record.get("plan"))
+            if record_plan is not None and record_plan != plan:
+                return None
+            provenance = record.get("provenance")
+            if (
+                not isinstance(provenance, (list, tuple))
+                or not provenance
+                or any(not isinstance(reference, Mapping) for reference in provenance)
+            ):
+                return None
+        grouped_records.setdefault(plan, []).extend(records)
+        grouped_statuses.setdefault(plan, []).append(result.status)
+
+    if group_identity is None or len(grouped_records) != 2:
+        return None
+    operands: dict[str, EarliestAggregation] = {}
+    for plan, records in grouped_records.items():
+        if not records or any(status != "complete" for status in grouped_statuses[plan]):
+            return None
+        try:
+            aggregate = aggregate_earliest(records, evidence_complete=True)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        if (
+            aggregate.status != "complete"
+            or aggregate.value is None
+            or len(aggregate.partitions) != 1
+            or not _provenance_from_value(aggregate)
+        ):
+            return None
+        operands[plan] = aggregate
+
+    plan_scope = getattr(getattr(bundle, "plan", None), "scope", None)
+    plan_order = tuple(
+        plan
+        for plan in getattr(plan_scope, "plans", ())
+        if plan in operands
+    )
+    plan_order += tuple(plan for plan in operands if plan not in plan_order)
+    if len(plan_order) != 2:
+        return None
+    try:
+        return compare_aggregates(operands[plan_order[0]], operands[plan_order[1]])
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _missing_comparison_claim() -> GroundedClaim:
+    """Represent an unexecuted comparison without inventing a relation."""
+    return GroundedClaim(
+        claim_id="pending",
+        operation="compare",
+        status="insufficient_evidence",
     )
 
 
@@ -640,6 +1091,12 @@ def _compose_evidence_claims(
         operations += (judgement,)
     relation_results = _relation_results(query_spec, bundle)
     credit_results = _execution_results(bundle, "credit_facts")
+    greatest_credit_claims = _greatest_credit_claims(
+        query_spec,
+        bundle,
+        credit_results,
+    )
+    coarse_credit_claims = _coarse_year_credit_claims(query_spec, credit_results)
     placement_results = _execution_results(bundle, "placement_facts")
     prerequisite_results = _execution_results(bundle, "prerequisite_facts")
     description_results = _execution_results(bundle, "description_evidence")
@@ -648,6 +1105,9 @@ def _compose_evidence_claims(
         for result in bundle.results
         if isinstance(result.payload, ComparisonAggregation)
     )
+    generated_comparison = None
+    if not comparison_results:
+        generated_comparison = _earliest_comparison_payload(query_spec, bundle)
     course_cache: dict[int, CourseSetAggregation | None] = {}
     claims: list[GroundedClaim] = []
     for operation in operations:
@@ -657,10 +1117,15 @@ def _compose_evidence_claims(
                 if claim is not None:
                     claims.append(claim)
         elif operation == "sum_credits":
-            claims.extend(
-                _claim_for_credit_operation(operation, result)
-                for result in credit_results
-            )
+            if greatest_credit_claims is not None:
+                claims.extend(greatest_credit_claims)
+            elif coarse_credit_claims is not None:
+                claims.extend(coarse_credit_claims)
+            else:
+                claims.extend(
+                    _claim_for_credit_operation(operation, result)
+                    for result in credit_results
+                )
         elif operation in {"placement", "earliest"}:
             claims.extend(
                 _claim_for_placement_operation(operation, result)
@@ -692,8 +1157,23 @@ def _compose_evidence_claims(
                     )
                 )
         elif operation == "compare":
-            for result in comparison_results:
-                claims.extend(_comparison_claims(result))
+            if comparison_results:
+                for result in comparison_results:
+                    claims.extend(_comparison_claims(result))
+            elif generated_comparison is not None:
+                claims.extend(
+                    _comparison_claim_from_payload(
+                        generated_comparison,
+                        effective_scope=None,
+                    )
+                )
+            elif greatest_credit_claims is not None:
+                # The supported greatest-credit operation is represented by
+                # its winning sum_credits claims, not a synthetic pairwise
+                # ComparisonAggregation.
+                pass
+            else:
+                claims.append(_missing_comparison_claim())
         elif operation == "similarity":
             claims.append(
                 _similarity_claim(

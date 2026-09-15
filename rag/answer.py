@@ -8,6 +8,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, is_dataclass
 from typing import Any
 
+from rag.aggregation import ComparisonAggregation, EarliestAggregation
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.retrieval.retrieve import SimilarityEvidence
 
@@ -708,6 +709,82 @@ def _summary_synthesis_payload(claim: GroundedClaim) -> tuple[Any, ...]:
     return tuple({"description": text} for text in _description_texts(claim.evidence))
 
 
+_SCOPE_DIMENSIONS = (("plan", "plans"), ("year", "years"), ("semester", "semesters"))
+
+
+def _scope_dimension_values(scope: Any, field: str) -> tuple[Any, ...]:
+    if scope is None:
+        return ()
+    if isinstance(scope, Mapping):
+        value = scope.get(field)
+        if value is None:
+            value = scope.get(field[:-1])
+    else:
+        value = getattr(scope, field, None)
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes)):
+        return (value,)
+    if isinstance(value, Sequence):
+        return tuple(value)
+    return (value,)
+
+
+def _scope_value_text(values: tuple[Any, ...]) -> str:
+    return ",".join(str(value) for value in values)
+
+
+def _scope_diff_dimensions(claims: Sequence[GroundedClaim]) -> tuple[str, ...]:
+    dimensions: list[str] = []
+    for dimension, field in _SCOPE_DIMENSIONS:
+        values = [_scope_dimension_values(claim.effective_scope, field) for claim in claims]
+        if any(values) and len({repr(value) for value in values}) > 1:
+            dimensions.append(dimension)
+    return tuple(dimensions)
+
+
+def _scope_prefix(
+    claim: GroundedClaim,
+    dimensions: Sequence[str],
+) -> str:
+    labels: list[str] = []
+    for dimension, field in _SCOPE_DIMENSIONS:
+        if dimension not in dimensions:
+            continue
+        values = _scope_dimension_values(claim.effective_scope, field)
+        if values:
+            labels.append(f"{dimension}={_scope_value_text(values)}")
+    return f"{', '.join(labels)} | " if labels else ""
+
+
+def _has_scope_dimensions(scope: Any) -> bool:
+    return any(
+        _scope_dimension_values(scope, field)
+        for _, field in _SCOPE_DIMENSIONS
+    )
+
+
+def _earliest_operand_scope_prefix(claim: GroundedClaim) -> str:
+    if _has_scope_dimensions(claim.effective_scope):
+        return ""
+    if not isinstance(claim.value, ComparisonAggregation):
+        return ""
+    labels: list[str] = []
+    for name, operand in (("left", claim.value.left), ("right", claim.value.right)):
+        if not isinstance(operand, EarliestAggregation) or len(operand.partitions) != 1:
+            return ""
+        partition = operand.partitions[0].partition
+        fields_text: list[str] = []
+        for dimension, field in _SCOPE_DIMENSIONS:
+            values = _scope_dimension_values(partition, field)
+            if values:
+                fields_text.append(f"{dimension}={_scope_value_text(values)}")
+        if not fields_text:
+            return ""
+        labels.append(f"{name}[{', '.join(fields_text)}]")
+    return f"{' '.join(labels)} | "
+
+
 def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
     """Expose persisted similarity numbers without comparing or recalculating."""
     return {
@@ -728,37 +805,49 @@ def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
     }
 
 
-def _deterministic_claim_text(claim: GroundedClaim) -> str:
+def _deterministic_claim_text(
+    claim: GroundedClaim,
+    *,
+    scope_dimensions: Sequence[str] = (),
+) -> str:
+    def finish(text: str) -> str:
+        return _scope_prefix(claim, scope_dimensions) + text
+
     if claim.status == "insufficient_evidence":
-        return "หลักฐานไม่เพียงพอ"
+        return finish("หลักฐานไม่เพียงพอ")
     if claim.status not in {"complete", "valid_empty", "descriptive_only"}:
         return ""
 
     if claim.operation == "similarity" and isinstance(claim.value, SimilarityEvidence):
         value = _plain_typed_value(_similarity_numeric_payload(claim.value))
-        return "similarity: " + json.dumps(
-            value,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-            default=str,
+        return finish(
+            "similarity: "
+            + json.dumps(
+                value,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+                default=str,
+            )
         )
 
     if claim.operation in {"describe", "topic_matches", "description_evidence"}:
         texts = _description_texts(claim.evidence)
         if texts:
-            return "\n".join(texts)
+            return finish("\n".join(texts))
     if claim.operation == "preference":
         options = _preference_synthesis_options(claim.evidence)
         if options:
-            return "\n".join(
-                json.dumps(_plain_typed_value(option), ensure_ascii=False, sort_keys=True)
-                for option in options
+            return finish(
+                "\n".join(
+                    json.dumps(_plain_typed_value(option), ensure_ascii=False, sort_keys=True)
+                    for option in options
+                )
             )
 
     value = _plain_typed_value(claim.value)
     if value is None:
-        return f"{claim.operation}: {claim.status}"
+        return finish(f"{claim.operation}: {claim.status}")
     serialized = json.dumps(
         value,
         ensure_ascii=False,
@@ -766,22 +855,30 @@ def _deterministic_claim_text(claim: GroundedClaim) -> str:
         separators=(",", ":"),
         default=str,
     )
-    return f"{claim.operation}: {serialized}"
+    return finish(
+        _earliest_operand_scope_prefix(claim) + f"{claim.operation}: {serialized}"
+    )
 
 
-def render_grounded_claim(claim: GroundedClaim) -> str:
+def render_grounded_claim(
+    claim: GroundedClaim,
+    *,
+    scope_dimensions: Sequence[str] = (),
+) -> str:
     """Render one typed claim without calling a model or recomputing facts."""
     if not isinstance(claim, GroundedClaim):
         return ""
-    return _deterministic_claim_text(claim)
+    return _deterministic_claim_text(claim, scope_dimensions=scope_dimensions)
 
 
 def synthesize_grounded_claim(
     claim: GroundedClaim,
     answer_model_callable: Callable[[str], str] | None = None,
+    *,
+    scope_dimensions: Sequence[str] = (),
 ) -> str:
     """Bound synthesis for one claim, falling back to deterministic evidence text."""
-    fallback = render_grounded_claim(claim)
+    fallback = render_grounded_claim(claim, scope_dimensions=scope_dimensions)
     if not isinstance(claim, GroundedClaim) or claim.kind != "grounded_summary":
         return fallback
     if claim.status == "insufficient_evidence" or not callable(answer_model_callable):
@@ -813,7 +910,7 @@ def synthesize_grounded_claim(
     generated_text = generated.strip()
     if claim.operation == "similarity":
         return fallback + "\n" + generated_text
-    return generated_text
+    return _scope_prefix(claim, scope_dimensions) + generated_text
 
 
 def render_grounded_answer(
@@ -825,12 +922,20 @@ def render_grounded_answer(
         raise TypeError("result must be a GroundedAnswerResult")
     if not result.claims:
         return result
+    scope_dimensions = _scope_diff_dimensions(result.claims)
     segments: list[str] = []
     for claim in result.claims:
         if claim.kind == "grounded_summary":
-            segment = synthesize_grounded_claim(claim, answer_model_callable)
+            segment = synthesize_grounded_claim(
+                claim,
+                answer_model_callable,
+                scope_dimensions=scope_dimensions,
+            )
         else:
-            segment = render_grounded_claim(claim)
+            segment = render_grounded_claim(
+                claim,
+                scope_dimensions=scope_dimensions,
+            )
         if segment:
             segments.append(segment)
     final_answer = "\n".join(segments) if segments else result.final_answer

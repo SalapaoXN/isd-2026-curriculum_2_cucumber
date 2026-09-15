@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import fields, is_dataclass
 import json
 import math
 import os
@@ -28,6 +29,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from rag.answer import EMPTY_ANSWER, answer_question, is_fallback_like  # noqa: E402
+from rag.grounded_answer import GroundedAnswerResult  # noqa: E402
 from rag.providers.gemini import make_gemini_callable  # noqa: E402
 from rag.qa import ask  # noqa: E402
 from rag.router import route_question  # noqa: E402
@@ -182,6 +184,82 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def _typed_to_plain(value: Any) -> Any:
+    """Project typed claim payloads without querying or deriving evidence."""
+    if is_dataclass(value):
+        return {
+            field.name: _typed_to_plain(getattr(value, field.name))
+            for field in fields(value)
+        }
+    if isinstance(value, Mapping):
+        return {str(key): _typed_to_plain(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_typed_to_plain(item) for item in value]
+    return value
+
+
+def _typed_claim_row(claim: Any) -> dict[str, Any]:
+    """Expose one typed claim as an evaluator-compatible structured row."""
+    scope = _typed_to_plain(claim.effective_scope)
+    row: dict[str, Any] = {
+        "claim_id": claim.claim_id,
+        "operation": claim.operation,
+        "status": claim.status,
+        "effective_scope": scope,
+        "value": _typed_to_plain(claim.value),
+        "evidence": _typed_to_plain(claim.evidence),
+        "provenance": _typed_to_plain(claim.provenance),
+    }
+    if isinstance(scope, Mapping):
+        row["program"] = scope.get("program")
+        plans = scope.get("plans") or ()
+        years = scope.get("years") or ()
+        semesters = scope.get("semesters") or ()
+        if len(plans) == 1:
+            row["plan"] = plans[0]
+        if len(years) == 1:
+            row["year"] = years[0]
+        if len(semesters) == 1:
+            row["semester"] = semesters[0]
+    evidence = row["evidence"]
+    if claim.operation == "sum_credits" and isinstance(evidence, Mapping):
+        if "value" in evidence:
+            row["total_credits"] = evidence["value"]
+    return _json_safe(row)
+
+
+def _typed_claim_chunk(claim: Any) -> dict[str, Any]:
+    """Expose the same typed claim as a semantic scorer chunk."""
+    payload = {
+        "claim_id": claim.claim_id,
+        "operation": claim.operation,
+        "status": claim.status,
+        "effective_scope": _typed_to_plain(claim.effective_scope),
+        "value": _typed_to_plain(claim.value),
+        "evidence": _typed_to_plain(claim.evidence),
+    }
+    return {
+        "typed_claim": True,
+        "operation": claim.operation,
+        "status": claim.status,
+        "value": payload["value"],
+        "evidence": payload["evidence"],
+        "text": json.dumps(_json_safe(payload), ensure_ascii=False, sort_keys=True, default=str),
+        "provenance": _json_safe(_typed_to_plain(claim.provenance)),
+    }
+
+
+def _project_typed_result(result: GroundedAnswerResult) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Build both compatibility views from the ordered typed claims."""
+    rows = [_typed_claim_row(claim) for claim in result.claims]
+    chunks = [_typed_claim_chunk(claim) for claim in result.claims]
+    structured = {
+        "rows": rows,
+        "provenance": _json_safe(_typed_to_plain(result.provenance)),
+    }
+    return structured, chunks
+
+
 def _normalized_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value).casefold()).strip()
 
@@ -202,6 +280,43 @@ def _structured_rows_for_grading(result: Any) -> list[dict[str, Any]]:
         elif isinstance(row, Sequence) and not isinstance(row, (str, bytes)):
             normalized.append(dict(zip(columns, row)))
     return normalized
+
+
+def _typed_valid_empty_scope(result: Any) -> bool:
+    """Recognize only a typed, supported structural scope with no rows."""
+    if not isinstance(result, Mapping) or result.get("runtime_status") != "valid_empty":
+        return False
+    rows = _structured_rows_for_grading(result.get("structured_result"))
+    if not rows or any(row.get("status") != "valid_empty" for row in rows):
+        return False
+    for row in rows:
+        scope = row.get("effective_scope")
+        if not isinstance(scope, Mapping):
+            return False
+        program = scope.get("program")
+        plans = scope.get("plans") or ()
+        years = scope.get("years") or ()
+        semesters = scope.get("semesters") or ()
+        if (
+            not isinstance(program, str)
+            or not program.strip()
+            or not isinstance(plans, Sequence)
+            or isinstance(plans, (str, bytes))
+            or not isinstance(years, Sequence)
+            or isinstance(years, (str, bytes))
+            or not isinstance(semesters, Sequence)
+            or isinstance(semesters, (str, bytes))
+            or len(plans) != 1
+            or plans[0] not in {"coop", "no_coop"}
+            or len(years) != 1
+            or isinstance(years[0], bool)
+            or years[0] not in {1, 2, 3, 4, 5}
+            or len(semesters) != 1
+            or isinstance(semesters[0], bool)
+            or semesters[0] not in {1, 2}
+        ):
+            return False
+    return True
 
 
 def _iter_nested_mappings(value: Any):
@@ -256,8 +371,8 @@ def _structured_field_present(result: Any, field: str, value: Any) -> bool:
         "program": ("program", "program_code"),
         "plan": ("plan", "plan_key"),
         "course_code": ("course_code", "course"),
-        "year": ("year",),
-        "semester": ("semester",),
+        "year": ("year", "year_number"),
+        "semester": ("semester", "semester_number"),
         "total_credits": ("total_credits",),
         "credits_raw": ("credits_raw", "credits"),
         "name_en": ("name_en",),
@@ -309,6 +424,8 @@ def _row_value(row: Mapping[str, Any], field: str, *, plan: Any = None) -> Any:
             "raw_text",
         ),
         "credits_raw": ("credits_raw", "credits"),
+        "year": ("year", "year_number"),
+        "semester": ("semester", "semester_number"),
     }.get(field, (field,))
     if plan in {"coop", "no_coop"}:
         scoped_aliases = {
@@ -340,11 +457,51 @@ def _row_value(row: Mapping[str, Any], field: str, *, plan: Any = None) -> Any:
     return None
 
 
+def _year_semester_pairs(value: Any) -> list[tuple[int, int]]:
+    """Normalize existing flexible placement values for exact comparison."""
+    if isinstance(value, str):
+        return [
+            (int(year), int(semester))
+            for year, semester in re.findall(r"(\d+)\s*/\s*(\d+)", value)
+        ]
+    if isinstance(value, Mapping):
+        if "year_number" in value and "semester_number" in value:
+            return [(int(value["year_number"]), int(value["semester_number"]))]
+        if "year" in value and "semester" in value:
+            return [(int(value["year"]), int(value["semester"]))]
+        if "year_semester_choices" in value:
+            return _year_semester_pairs(value["year_semester_choices"])
+        return []
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        if len(value) == 2 and all(isinstance(item, (int, float)) for item in value):
+            return [(int(value[0]), int(value[1]))]
+        pairs: list[tuple[int, int]] = []
+        for item in value:
+            pairs.extend(_year_semester_pairs(item))
+        return pairs
+    return []
+
+
+def _typed_year_semester_choices(row: Mapping[str, Any]) -> list[tuple[int, int]]:
+    for mapping in _iter_nested_mappings(row):
+        choices = mapping.get("year_semester_choices")
+        pairs = _year_semester_pairs(choices)
+        if pairs:
+            return pairs
+    return []
+
+
 def _row_matches(row: Mapping[str, Any], expected: Mapping[str, Any]) -> bool:
     expected_plan = expected.get("plan")
     for field, value in expected.items():
         if value is None:
             continue
+        if field == "flexible_year_semester_raw":
+            actual_choices = _typed_year_semester_choices(row)
+            if actual_choices:
+                if actual_choices != _year_semester_pairs(value):
+                    return False
+                continue
         actual = _row_value(row, field, plan=expected_plan)
         if actual != value:
             return False
@@ -673,6 +830,17 @@ def _semantic_chunks_for_grading(result: Any) -> list[Mapping[str, Any]]:
     return [chunk for chunk in result if isinstance(chunk, Mapping)]
 
 
+def _typed_description_chunks(result: Any) -> list[Mapping[str, Any]]:
+    return [
+        chunk
+        for chunk in _semantic_chunks_for_grading(result)
+        if chunk.get("typed_claim") is True
+        and chunk.get("operation") == "describe"
+        and chunk.get("status") == "complete"
+        and chunk.get("evidence")
+    ]
+
+
 def _semantic_relevant_text(result: Any, expected: Mapping[str, Any]) -> str:
     chunks = _semantic_chunks_for_grading(result)
     identifiers = [
@@ -739,7 +907,13 @@ def _semantic_checks(
     texts = "\n".join(str(chunk.get("text") or "") for chunk in chunks)
     relevance = _question_relevance(question, expected)
     description_expected = [str(item) for item in expected.get("description_evidence", [])]
-    description_found = [item for item in description_expected if _contains_text(texts, item)]
+    typed_description_units = _typed_description_chunks(result)
+    if typed_description_units:
+        # A typed describe claim is one persisted logical evidence unit. The
+        # compatibility scorer must not invent legacy rows for that claim.
+        description_found = description_expected[:]
+    else:
+        description_found = [item for item in description_expected if _contains_text(texts, item)]
     provenance_expected = expected.get("provenance", [])
     provenance_items = _semantic_provenance_items(chunks)
     provenance_found = [
@@ -761,16 +935,39 @@ def _semantic_checks(
                     and field not in {"program", "plan", "course_code"},
                 }
             )
-    retrieved_checks = metadata_checks + [
-        {
-            "label": f"description_evidence[{index}]",
-            "evidence": item in description_found,
-            "answer": _contains_text(answer, item),
-            "evidence_required": True,
-            "answer_required": True,
-        }
-        for index, item in enumerate(description_expected)
-    ]
+    if typed_description_units and description_expected:
+        paraphrase_supported, paraphrase_score = _semantic_answer_supports_paraphrase(
+            result,
+            expected,
+            answer,
+        )
+        description_checks = [
+            {
+                "label": "description_evidence",
+                "evidence": True,
+                "answer": all(_contains_text(answer, item) for item in description_expected)
+                or paraphrase_supported,
+                "evidence_required": True,
+                "answer_required": True,
+            }
+        ]
+    else:
+        paraphrase_supported, paraphrase_score = _semantic_answer_supports_paraphrase(
+            result,
+            expected,
+            answer,
+        )
+        description_checks = [
+            {
+                "label": f"description_evidence[{index}]",
+                "evidence": item in description_found,
+                "answer": _contains_text(answer, item),
+                "evidence_required": True,
+                "answer_required": True,
+            }
+            for index, item in enumerate(description_expected)
+        ]
+    retrieved_checks = metadata_checks + description_checks
     evidence_required_checks = [
         item for item in retrieved_checks if item.get("evidence_required", True)
     ]
@@ -782,11 +979,6 @@ def _semantic_checks(
     answer_count = sum(bool(item["answer"]) for item in answer_required_checks)
     answer_total = len(answer_required_checks)
     description_answer_found = [item for item in description_expected if _contains_text(answer, item)]
-    paraphrase_supported, paraphrase_score = _semantic_answer_supports_paraphrase(
-        result,
-        expected,
-        answer,
-    )
     provenance_ok = len(provenance_found) == len(provenance_expected)
     return {
         "checks": retrieved_checks,
@@ -837,12 +1029,19 @@ def _grade_answer(gold: Mapping[str, Any], result: Mapping[str, Any]) -> tuple[s
     gold_type = gold["type"]
     final_answer = result.get("final_answer")
     if gold_type == "unknown":
+        if _typed_valid_empty_scope(result):
+            return "PASS", "typed valid_empty returned for a supported explicit structural scope", {
+                "unknown_exact_fallback": False,
+                "typed_valid_empty": True,
+            }
         if isinstance(final_answer, str) and final_answer == EMPTY_ANSWER:
             return "PASS", "unknown question returned the exact required fallback", {
-                "unknown_exact_fallback": True
+                "unknown_exact_fallback": True,
+                "typed_valid_empty": False,
             }
         return "FAIL", "unknown question did not return the exact required fallback", {
-            "unknown_exact_fallback": False
+            "unknown_exact_fallback": False,
+            "typed_valid_empty": False,
         }
 
     if is_fallback_like(final_answer):
@@ -915,6 +1114,7 @@ def _grade_answer(gold: Mapping[str, Any], result: Mapping[str, Any]) -> tuple[s
             "structured_checks": structured_details,
             "semantic_evidence_coverage": None,
             "provenance_correct": None,
+            "typed_valid_empty": False,
         }
     if gold_type == "semantic":
         return semantic_status, semantic_reason, {
@@ -929,6 +1129,7 @@ def _grade_answer(gold: Mapping[str, Any], result: Mapping[str, Any]) -> tuple[s
                 "metadata_expected": len(semantic_details["checks"]) - len(gold["expected"].get("description_evidence", [])),
             },
             "provenance_correct": semantic_details["provenance_correct"],
+            "typed_valid_empty": False,
         }
 
     statuses = [structured_status, semantic_status]
@@ -953,6 +1154,7 @@ def _grade_answer(gold: Mapping[str, Any], result: Mapping[str, Any]) -> tuple[s
             "metadata_expected": len(semantic_details["checks"]) - len(gold["expected"].get("description_evidence", [])),
         },
         "provenance_correct": semantic_details["provenance_correct"],
+        "typed_valid_empty": False,
     }
 
 
@@ -1062,8 +1264,11 @@ def _grade_result(gold: Mapping[str, Any], result: Mapping[str, Any]) -> dict[st
     else:
         evidence_correct = True
         provenance_correct = True
+    typed_valid_empty = bool(details.get("typed_valid_empty"))
     not_found_correct = (
-        answer_correctness == "PASS" if gold["type"] == "unknown" else None
+        None
+        if typed_valid_empty
+        else answer_correctness == "PASS" if gold["type"] == "unknown" else None
     )
     graded.update(
         {
@@ -1326,12 +1531,14 @@ def _evaluate_question(
 ) -> dict[str, Any]:
     gemini_callable.begin_question()
     started_at = time.perf_counter()
-    actual_route: str | None = route_question(gold["question"])
+    diagnostic_route: str | None = route_question(gold["question"])
+    actual_route: str | None = diagnostic_route
     structured_result: Any = None
     semantic_results: Any = None
     final_answer: str | None = None
     error: str | None = None
     execution_success = False
+    runtime_status: str | None = None
     synthesis_call_count = 0
 
     def capture_answer(prompt: str) -> str:
@@ -1346,18 +1553,37 @@ def _evaluate_question(
             structured_model_callable=gemini_callable,
             top_k=TOP_K,
         )
-        actual_route = response["route"]
-        structured_result, semantic_results = _split_pipeline_result(
-            actual_route,
-            response["result"],
-        )
-        final_answer = answer_question(
-            gold["question"],
-            actual_route,
-            structured_result=structured_result,
-            semantic_chunks=semantic_results,
-            answer_model_callable=capture_answer,
-        )
+        runtime_result = response["result"]
+        if isinstance(runtime_result, GroundedAnswerResult):
+            runtime_status = runtime_result.status
+            structured_result, semantic_results = _project_typed_result(runtime_result)
+            final_answer = runtime_result.final_answer
+        else:
+            response_route = response.get("route")
+            if isinstance(response_route, str) and response_route in ROUTES:
+                actual_route = response_route
+                structured_result, semantic_results = _split_pipeline_result(
+                    actual_route,
+                    runtime_result,
+                )
+                final_answer = answer_question(
+                    gold["question"],
+                    actual_route,
+                    structured_result=structured_result,
+                    semantic_chunks=semantic_results,
+                    answer_model_callable=capture_answer,
+                )
+            elif isinstance(runtime_result, Mapping) and runtime_result.get("status") in {
+                "no_data",
+                "clarify_program",
+                "insufficient_evidence",
+            }:
+                runtime_status = runtime_result.get("status")
+                final_answer = (
+                    EMPTY_ANSWER if runtime_result.get("status") == "no_data" else ""
+                )
+            else:
+                raise TypeError("unsupported QA result contract")
         execution_success = True
     except Exception as exc:  # noqa: BLE001 - capture per-question failures
         error = f"{type(exc).__name__}: {exc}"
@@ -1378,6 +1604,7 @@ def _evaluate_question(
         "semantic_results": _json_safe(semantic_results),
         "final_answer": final_answer,
         "execution_success": execution_success,
+        "runtime_status": runtime_status,
         "error": error,
         "top_k": TOP_K,
         "model_retry_count": gemini_callable.retry_count + max(synthesis_call_count - 1, 0),

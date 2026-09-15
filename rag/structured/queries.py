@@ -15,7 +15,7 @@ Database = str | Path | sqlite3.Connection
 _CREDIT_RE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)")
 _COURSE_CODE_RE = re.compile(r"[0-9]{8}")
 _COURSE_NAME_TOKEN_RE = re.compile(r"\w+", re.UNICODE)
-_FLEXIBLE_YEAR_SEMESTER_PART = re.compile(r"\s*([1-4])\s*/\s*([1-2])\s*")
+_FLEXIBLE_YEAR_SEMESTER_PART = re.compile(r"\s*([1-5])\s*/\s*([1-2])\s*")
 _CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
 
 
@@ -281,7 +281,7 @@ def placement_year_semester_choices(
             and not isinstance(year, bool)
             and isinstance(semester, int)
             and not isinstance(semester, bool)
-            and 1 <= year <= 4
+            and 1 <= year <= 5
             and 1 <= semester <= 2
         ):
             return [(year, semester)]
@@ -305,7 +305,7 @@ def earliest_year_semester_from_choices(
             or isinstance(choice[1], bool)
             or not isinstance(choice[0], int)
             or not isinstance(choice[1], int)
-            or not 1 <= choice[0] <= 4
+            or not 1 <= choice[0] <= 5
             or not 1 <= choice[1] <= 2
         ):
             return None
@@ -1001,8 +1001,8 @@ def _normalize_semester_credit_inputs(
         raise ValueError("year_number must be an integer")
     if isinstance(semester_number, bool) or not isinstance(semester_number, int):
         raise ValueError("semester_number must be an integer")
-    if not 1 <= year_number <= 4:
-        raise ValueError("year_number must be between 1 and 4")
+    if not 1 <= year_number <= 5:
+        raise ValueError("year_number must be between 1 and 5")
     if not 1 <= semester_number <= 2:
         raise ValueError("semester_number must be between 1 and 2")
     return program.strip().upper(), normalized_plan_key, year_number, semester_number
@@ -1504,10 +1504,10 @@ def scoped_course_set(
     normalized_years = tuple(years)
     normalized_semesters = tuple(semesters)
     if any(
-        isinstance(year, bool) or not isinstance(year, int) or not 1 <= year <= 4
+        isinstance(year, bool) or not isinstance(year, int) or not 1 <= year <= 5
         for year in normalized_years
     ):
-        raise ValueError("years must contain integers between 1 and 4")
+        raise ValueError("years must contain integers between 1 and 5")
     if any(
         isinstance(semester, bool)
         or not isinstance(semester, int)

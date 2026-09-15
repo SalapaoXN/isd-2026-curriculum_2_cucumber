@@ -77,6 +77,16 @@ def _partition_key(component: Mapping[str, Any]) -> str:
     return _stable_key(partition)
 
 
+def _course_set_identity(component: Mapping[str, Any]) -> tuple[str, Any]:
+    """Return the logical identity used by course-set aggregation."""
+    if (
+        component.get("alternative_group_id") is not None
+        or component.get("is_alternative") is True
+    ):
+        return "alternative_group", _alternative_group_id(component)
+    return "course", _identity(component)
+
+
 def _merge_provenance(
     components: Iterable[Mapping[str, Any]],
 ) -> tuple[Any, ...]:
@@ -604,26 +614,45 @@ def aggregate_course_set(
 ) -> CourseSetAggregation:
     """Deduplicate and aggregate one already-scoped course relation.
 
-    Logical identity is ``(program, course_code)``.  The identity is deduped
-    only within the exact supplied partition mapping.  Duplicate components
-    merge their provenance; plan/year/semester/category partition metadata is
-    retained on each resulting component.
+    Logical identity is either ``(program, course_code)`` for a concrete
+    course or ``(program, alternative_group_id)`` for an alternative parent.
+    The identity is deduped only within the exact supplied partition mapping.
+    Duplicate components merge their provenance; plan/year/semester/category
+    partition metadata is retained on each resulting component.
     """
     if not isinstance(evidence_complete, bool):
         raise ValueError("evidence_complete must be a boolean")
 
-    grouped: dict[tuple[tuple[str, str], str], list[Mapping[str, Any]]] = {}
+    grouped: dict[tuple[tuple[str, Any], str], list[Mapping[str, Any]]] = {}
     for component in components:
         if not isinstance(component, Mapping):
             raise ValueError("course components must be mappings")
-        identity = _identity(component)
+        identity = _course_set_identity(component)
         partition_key = _partition_key(component)
         grouped.setdefault((identity, partition_key), []).append(component)
 
     courses: list[dict[str, Any]] = []
-    for group in sorted(grouped, key=lambda key: (key[1], key[0][0], key[0][1])):
+    for group in sorted(
+        grouped, key=lambda key: (key[1], key[0][0], repr(key[0][1]))
+    ):
         members = sorted(grouped[group], key=_stable_key)
         merged = dict(members[0])
+        if group[0][0] == "alternative_group" and len(members) > 1:
+            alternative_members: dict[
+                tuple[Any, Any], list[Mapping[str, Any]]
+            ] = {}
+            for member in members:
+                for alternative in _alternative_members(member):
+                    identity = (
+                        alternative.get("program", member.get("program")),
+                        alternative.get("course_code"),
+                    )
+                    alternative_members.setdefault(identity, []).append(alternative)
+            if alternative_members:
+                merged["alternative_courses"] = tuple(
+                    _merge_member_records(alternative_members[identity])
+                    for identity in sorted(alternative_members, key=repr)
+                )
         provenance = _merge_provenance(members)
         if provenance:
             merged["provenance"] = provenance

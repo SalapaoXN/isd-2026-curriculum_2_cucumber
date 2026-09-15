@@ -37,7 +37,7 @@ _PLAN_ALIASES = (
 )
 
 _YEAR_PATTERN = re.compile(
-    r"ปี\s*(?:ที่\s*)?([1-4])(?!\d)|\byear\s*([1-4])\b",
+    r"ปี\s*(?:ที่\s*)?([1-5])(?!\d)|\byear\s*([1-5])\b",
     re.IGNORECASE,
 )
 _SEMESTER_PATTERN = re.compile(
@@ -56,7 +56,7 @@ _COURSE_NAME_PATTERN = re.compile(
 _CATEGORY_PATTERN = re.compile(r"วิชาเลือก")
 _TOPIC_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])(programming|database|network|data|web|AI)"
-    r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ",
+    r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
     re.IGNORECASE,
 )
 _OPERATION_PATTERNS = (
@@ -98,12 +98,17 @@ _OPERATION_PATTERNS = (
     (
         "placement",
         re.compile(
-            r"เรียนปีไหน|เรียนเทอมไหน|เปิดให้ลง|ลงช่วง|แผนไหน|เรียนก่อน|\bplacement\b",
+            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|เรียนช่วงไหนของหลักสูตร|เปิดให้ลง|ลงช่วง|แผนไหน|เรียนก่อน|\bplacement\b",
             re.IGNORECASE,
         ),
     ),
     ("prerequisite", re.compile(r"ก่อนลง|ต้องผ่าน|เรียน.*มาก่อน|prerequisite", re.IGNORECASE)),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
+)
+_COURSE_DETAIL_PATTERN = re.compile(
+    r"ลักษณะไหน|ด้าน(?:ไหน|ใด)(?:บ้าง)?|พูดถึง|อะไรบ้าง|อย่างไร|แบบไหน|"
+    r"เนื้อหา.*?(?:ครอบคลุม|ช่วยจัดการ).*?เรื่องใด(?:บ้าง)?",
+    re.IGNORECASE,
 )
 _IDENTITY_NAME_TO_CODE_PATTERN = re.compile(
     r"รหัส(?:วิชา)?\s*อะไร", re.IGNORECASE
@@ -212,6 +217,8 @@ def _extract_topic(question: str, course_name: str | None) -> str | None:
         return None
     if match.group(0) == "เขียนโปรแกรม":
         return "programming"
+    if match.group(0) == "ฐานข้อมูล":
+        return "database"
     return match.group(0)
 
 
@@ -230,6 +237,7 @@ def _extract_operations(
         (course_name and _IDENTITY_NAME_TO_CODE_PATTERN.search(question))
         or (course_codes and _IDENTITY_CODE_TO_NAME_PATTERN.search(question))
     )
+    course_targeted_detail = bool(course_codes or course_name) and not identity_request
     for operation, pattern in _OPERATION_PATTERNS:
         if operation == "describe" and identity_request:
             continue
@@ -237,6 +245,10 @@ def _extract_operations(
             continue
         for match in pattern.finditer(question):
             matches.append((match.start(), _OPERATION_ORDER[operation], operation))
+    if course_targeted_detail:
+        match = _COURSE_DETAIL_PATTERN.search(question)
+        if match:
+            matches.append((match.start(), _OPERATION_ORDER["describe"], "describe"))
     comparison_before = _COMPARISON_BEFORE_PATTERN.search(question)
     if comparison_before:
         matches.append((comparison_before.end(), _OPERATION_ORDER["compare"], "compare"))
@@ -335,6 +347,7 @@ def parse_query_spec(question: str) -> QuerySpec:
         or (bool(years) and bool(semesters))
         or bool(course_codes)
         or course_name is not None
+        or topic is not None
     )
 
     return QuerySpec(

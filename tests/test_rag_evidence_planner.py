@@ -140,6 +140,55 @@ class EvidencePlannerModelTests(unittest.TestCase):
         self.assertEqual(len(scope.course_targets), 1)
         self.assertNotIn("course", scope.expand_applicable)
 
+    def test_multi_operation_placement_plan_keeps_all_evidence_requests(self):
+        candidate = {
+            "program": "IT",
+            "course_code": "06016419",
+            "course_id": 19,
+        }
+        plan = plan_evidence(
+            self._spec(
+                course_codes=("06016419",),
+                plans=("no_coop",),
+                operations=("placement", "sum_credits", "describe"),
+            ),
+            self._resolution(candidates=(candidate,), resolved_plans=("no_coop",)),
+        )
+
+        self.assertEqual(
+            [request.kind for request in plan.requests],
+            ["description_evidence", "course_set", "credit_facts", "placement_facts"],
+        )
+        self.assertEqual(plan.requests[2].depends_on, ("course_set",))
+        self.assertEqual(plan.requests[3].depends_on, ())
+
+    def test_residual_course_targeted_queries_plan_placement_and_description(self):
+        cases = (
+            ("06016418", "IT", "coop"),
+            ("06036115", "BIT", "coop"),
+        )
+        for course_code, program, plan_key in cases:
+            with self.subTest(course_code=course_code):
+                plan = plan_evidence(
+                    self._spec(
+                        program=program,
+                        course_codes=(course_code,),
+                        plans=(plan_key,),
+                        operations=("placement", "describe"),
+                    ),
+                    self._resolution(
+                        program=program,
+                        candidates=(
+                            {"program": program, "course_code": course_code, "course_id": 1},
+                        ),
+                        resolved_plans=(plan_key,),
+                    ),
+                )
+                self.assertEqual(
+                    [request.kind for request in plan.requests],
+                    ["description_evidence", "placement_facts"],
+                )
+
     def test_empty_axes_are_symbolic_and_no_cross_product_is_materialized(self):
         scope = build_structural_scope(self._spec(), self._resolution())
 

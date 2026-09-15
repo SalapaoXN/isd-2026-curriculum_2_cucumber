@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
 
+from rag.aggregation import ComparisonAggregation, EarliestAggregation, EarliestPartition
+from rag.evidence_planner import StructuralScope
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.judgement import JudgementEvidence
 from rag.retrieval.retrieve import SimilarityEvidence, SimilarityPair
@@ -37,6 +39,170 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
 
         self.assertIn('"count":2', rendered)
         self.assertEqual(calls, [])
+
+    def test_single_scoped_claim_keeps_existing_rendering(self):
+        claim = GroundedClaim(
+            "claim_001",
+            "sum_credits",
+            effective_scope=StructuralScope(
+                program="IT", plans=("coop",), years=(2,)
+            ),
+            value=18,
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult("answer", "deterministic", claims=(claim,))
+        )
+
+        self.assertEqual(rendered.final_answer, "sum_credits: 18")
+
+    def test_sibling_claims_prefix_only_differing_plan(self):
+        claims = (
+            GroundedClaim(
+                "claim_001",
+                "sum_credits",
+                effective_scope=StructuralScope(
+                    program="IT", plans=("coop",), years=(2,)
+                ),
+                value=48,
+            ),
+            GroundedClaim(
+                "claim_002",
+                "sum_credits",
+                effective_scope=StructuralScope(
+                    program="IT", plans=("no_coop",), years=(2,)
+                ),
+                value=45,
+            ),
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult("answer", "deterministic", claims=claims)
+        )
+
+        self.assertEqual(
+            rendered.final_answer,
+            "plan=coop | sum_credits: 48\nplan=no_coop | sum_credits: 45",
+        )
+        self.assertNotIn("year=", rendered.final_answer)
+        self.assertNotIn("program=", rendered.final_answer)
+
+    def test_sibling_claims_prefix_year_and_semester_in_fixed_order(self):
+        claims = (
+            GroundedClaim(
+                "claim_001",
+                "sum_credits",
+                effective_scope=StructuralScope(
+                    program="IT", plans=("coop",), years=(2,), semesters=(1,)
+                ),
+                value=21,
+            ),
+            GroundedClaim(
+                "claim_002",
+                "sum_credits",
+                effective_scope=StructuralScope(
+                    program="IT", plans=("coop",), years=(3,), semesters=(2,)
+                ),
+                value=21,
+            ),
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult("answer", "deterministic", claims=claims)
+        )
+
+        self.assertEqual(
+            rendered.final_answer,
+            "year=2, semester=1 | sum_credits: 21\n"
+            "year=3, semester=2 | sum_credits: 21",
+        )
+
+    def test_sibling_claims_prefix_all_differing_dimensions_and_preserve_order(self):
+        first = GroundedClaim(
+            "claim_001",
+            "sum_credits",
+            effective_scope=StructuralScope(
+                program="IT", plans=("coop",), years=(2,), semesters=(1,)
+            ),
+            value=48,
+            provenance=({"source_page": 1},),
+        )
+        second = GroundedClaim(
+            "claim_002",
+            "sum_credits",
+            effective_scope=StructuralScope(
+                program="IT", plans=("no_coop",), years=(3,), semesters=(2,)
+            ),
+            value=45,
+            provenance=({"source_page": 2},),
+        )
+        source = GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            claims=(first, second),
+            provenance=first.provenance + second.provenance,
+        )
+
+        rendered = render_grounded_answer(source)
+
+        self.assertEqual(
+            rendered.final_answer,
+            "plan=coop, year=2, semester=1 | sum_credits: 48\n"
+            "plan=no_coop, year=3, semester=2 | sum_credits: 45",
+        )
+        self.assertEqual(rendered.claims, source.claims)
+        self.assertEqual(rendered.provenance, source.provenance)
+
+    def test_earliest_comparison_labels_existing_operand_scopes(self):
+        left = EarliestAggregation(
+            "complete",
+            (
+                EarliestPartition(
+                    {
+                        "program": "IT",
+                        "plans": ("coop",),
+                        "years": (2,),
+                        "semesters": (2,),
+                    },
+                    (2, 2),
+                    ({"provenance": ({"source_page": 11},)},),
+                    ({"source_page": 11},),
+                ),
+            ),
+        )
+        right = EarliestAggregation(
+            "complete",
+            (
+                EarliestPartition(
+                    {
+                        "program": "IT",
+                        "plans": ("no_coop",),
+                        "years": (4,),
+                        "semesters": (1,),
+                    },
+                    (4, 1),
+                    ({"provenance": ({"source_page": 22},)},),
+                    ({"source_page": 22},),
+                ),
+            ),
+        )
+        claim = GroundedClaim(
+            "claim_001",
+            "compare",
+            value=ComparisonAggregation("complete", "less", left, right),
+            provenance=({"source_page": 11}, {"source_page": 22}),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertTrue(
+            rendered.startswith(
+                "left[plan=coop, year=2, semester=2] "
+                "right[plan=no_coop, year=4, semester=1] | compare: "
+            )
+        )
+        self.assertIn('"relation":"less"', rendered)
+        self.assertEqual(claim.provenance, ({"source_page": 11}, {"source_page": 22}))
 
     def test_summary_synthesis_receives_only_that_claim_description(self):
         prompts = []

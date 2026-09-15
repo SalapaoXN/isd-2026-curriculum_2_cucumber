@@ -123,8 +123,11 @@ class QuerySpecEntityTests(unittest.TestCase):
         self.assertEqual(parse_query_spec("IT เทอมไหนมีวิชา database").semesters, ())
         self.assertEqual(parse_query_spec("year 3 term 1").years, (3,))
         self.assertEqual(parse_query_spec("year 3 term 1").semesters, (1,))
+        self.assertEqual(parse_query_spec("IT ปี 5 เทอม 1").years, (5,))
+        self.assertEqual(parse_query_spec("IT ปี 5 เทอม 1").semesters, (1,))
         self.assertEqual(parse_query_spec("ปี 20 เทอม 12").years, ())
         self.assertEqual(parse_query_spec("ปี 20 เทอม 12").semesters, ())
+        self.assertEqual(parse_query_spec("IT ปี 6 เทอม 1").years, ())
 
     def test_course_codes_are_bounded_and_preserve_order(self):
         self.assertEqual(
@@ -155,6 +158,27 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertIsNone(spec.course_name)
                 self.assertEqual(spec.topic, topic)
         self.assertIsNone(parse_query_spec("06016414 เรียนเกี่ยวกับอะไร").course_name)
+
+    def test_thai_database_alias_uses_canonical_topic_and_stays_narrow(self):
+        for question in (
+            "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง",
+            "วิชาเกี่ยวกับฐานข้อมูลใน IT มีอะไรบ้าง",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.topic, "database")
+
+        self.assertEqual(
+            parse_query_spec("มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง").operations,
+            ("list",),
+        )
+
+        self.assertEqual(
+            parse_query_spec("วิชาเกี่ยวกับฐานข้อมูลใน IT มีอะไรบ้าง").operations,
+            ("list",),
+        )
+        self.assertIsNone(parse_query_spec("ข้อมูลทั่วไปของหลักสูตร").topic)
+        self.assertEqual(parse_query_spec("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง").operations, ())
 
     def test_category_is_explicit_and_can_coexist_with_topic(self):
         spec = parse_query_spec("วิชาเลือกของ IT ที่เกี่ยวกับ AI")
@@ -232,6 +256,93 @@ class QuerySpecEntityTests(unittest.TestCase):
             with self.subTest(wording=wording):
                 spec = parse_query_spec(f"วิชา Calculus 1 {wording}")
                 self.assertEqual(spec.operations, ("describe",))
+
+    def test_course_targeted_semantic_detail_wording_enables_describe(self):
+        questions = (
+            "วิชา 06016406 ของ IT แบบไม่สหกิจเป็นโครงงานลักษณะไหน และผู้เรียนต้องทำหรือแสดงผลลัพธ์อะไรบ้าง?",
+            "วิชา 06046413 ในหลักสูตร AIT นำเทคโนโลยีไปใช้กับงานด้านไหน และใช้เครื่องมืออะไรบ้าง?",
+            "วิชา 06036111 ของ BIT แบบสหกิจพูดถึงเทคโนโลยีอะไร และส่งผลต่อการทำธุรกิจในด้านใดบ้าง?",
+            "GENED 90641002 ช่วยเตรียมทักษะอะไรบ้าง และควรระวังความเสี่ยงด้านใดเมื่อใช้เทคโนโลยีดิจิทัล?",
+            "GENED 90642011 ช่วยฝึกการคิดวิเคราะห์อย่างไร และนำไปใช้กับการเรียนหรือการทำงานได้แบบไหน?",
+            "สำหรับ IT แบบสหกิจ วิชา 06016418 เรียนช่วงไหนของหลักสูตร และเนื้อหาครอบคลุมเรื่องใดเกี่ยวกับฐานข้อมูลบ้าง?",
+            "วิชา 06036115 ใน BIT แบบสหกิจเรียนปีไหน เทอมไหน และเนื้อหาช่วยจัดการความปลอดภัยของระบบสารสนเทศเรื่องใดบ้าง?",
+        )
+        for question in questions:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertIn("describe", spec.operations)
+                self.assertTrue(spec.course_codes or spec.course_name)
+
+    def test_course_targeted_describe_rule_keeps_non_describe_guards(self):
+        expected = {
+            "IT ปี 2 เรียนอะไรบ้าง": ("list",),
+            "IT มีกี่วิชา": ("count",),
+            "06016420 เรียนปีไหน": ("placement",),
+            "06016420 ต้องผ่านวิชาอะไรก่อน": ("prerequisite",),
+            "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง": ("list",),
+            "IT มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง": ("list",),
+        }
+        for question, operations in expected.items():
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).operations, operations)
+
+    def test_residual_course_targeted_wording_emits_each_operation_once(self):
+        cases = (
+            (
+                "สำหรับ IT แบบสหกิจ วิชา 06016418 เรียนช่วงไหนของหลักสูตร และเนื้อหาครอบคลุมเรื่องใดเกี่ยวกับฐานข้อมูลบ้าง?",
+                ("placement", "describe"),
+            ),
+            (
+                "วิชา 06036115 ใน BIT แบบสหกิจเรียนปีไหน เทอมไหน และเนื้อหาช่วยจัดการความปลอดภัยของระบบสารสนเทศเรื่องใดบ้าง?",
+                ("placement", "describe"),
+            ),
+        )
+        for question, operations in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.operations, operations)
+                self.assertEqual(spec.operations.count("placement"), 1)
+                self.assertEqual(spec.operations.count("describe"), 1)
+
+    def test_residual_wording_requires_exact_course_target_and_context(self):
+        self.assertNotIn(
+            "describe",
+            parse_query_spec("เนื้อหาครอบคลุมเรื่องใดบ้าง").operations,
+        )
+        self.assertNotIn(
+            "describe",
+            parse_query_spec("IT เนื้อหาช่วยจัดการเรื่องใดบ้าง").operations,
+        )
+        self.assertNotIn("placement", parse_query_spec("ช่วงไหน").operations)
+
+    def test_curriculum_placement_wording_does_not_duplicate_placement(self):
+        spec = parse_query_spec(
+            "วิชา 06016418 ของ IT แบบสหกิจเรียนช่วงไหนของหลักสูตร และเรียนปีไหน?"
+        )
+        self.assertEqual(spec.operations.count("placement"), 1)
+
+    def test_equivalent_study_placement_wording_enables_placement(self):
+        questions = (
+            "วิชา 06016419 ของ IT แบบไม่สหกิจอยู่ปีไหน เทอมไหน กี่หน่วยกิต และเนื้อหาเกี่ยวกับเครือข่ายกับความปลอดภัยอย่างไร?",
+            "ถ้าเรียน BIT แบบไม่สหกิจ วิชา 06036122 อยู่ปีไหน เทอมไหน กี่หน่วยกิต และเรียนเรื่องใดเกี่ยวกับมัลติมีเดียบ้าง?",
+            "วิชา 06016404 ของ IT แบบไม่สหกิจอยู่ปีไหน เทอมไหน กี่หน่วยกิต และเนื้อหาเกี่ยวกับบริการคลาวด์ด้านใดบ้าง?",
+        )
+        for question in questions:
+            with self.subTest(question=question):
+                self.assertEqual(
+                    parse_query_spec(question).operations,
+                    ("placement", "sum_credits", "describe"),
+                )
+
+        dsba = parse_query_spec(
+            "วิชา 06026259 ของ DSBA แบบสหกิจเรียนปีไหน เทอมไหน กี่หน่วยกิต และมีเนื้อหาที่ทำงานร่วมกับสถานประกอบการอย่างไร?"
+        )
+        self.assertEqual(dsba.operations, ("placement", "sum_credits", "describe"))
+
+        comparison = parse_query_spec(
+            "วิชา 06036103 ใน BIT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน และรายละเอียดการจัดวางต่างกันอย่างไร?"
+        )
+        self.assertEqual(comparison.operations, ("placement", "compare", "describe"))
 
     def test_year_semester_scope_detects_operations_without_program(self):
         spec = parse_query_spec("ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
