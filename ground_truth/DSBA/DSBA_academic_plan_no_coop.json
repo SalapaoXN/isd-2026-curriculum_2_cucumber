@@ -253,7 +253,7 @@
 		},
 		{
 		"code": "90644xxx",
-		"name_th": "วิชาเลือกภาษาและการสื่อสาร",
+		"name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
 		"name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION",
 		"credits": "3(3-0-6) หรือ 3(2-2-5)",
 		"year": 2,
@@ -526,7 +526,7 @@
 		},
 		{
 		"code": "06026xxx",
-		"name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาเฉพาะด้าน 1",
+		"name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1",
 		"name_en": "ELECTIVE IN ELECTIVE OR SPECIFIC\nPROFESSIONAL COURSES 1",
 		"credits": "3(3-0-6) หรือ 3(2-2-5)",
 		"year": 4,
@@ -539,7 +539,7 @@
 		},
 		{
 		"code": "06026xxx",
-		"name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาเฉพาะด้าน 2",
+		"name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2",
 		"name_en": "ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL\nCOURSES 2",
 		"credits": "3(3-0-6) หรือ 3(2-2-5)",
 		"year": 4,
@@ -708,7 +708,7 @@
 		},
 		{
 		"code": "06026225",
-		"name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวิดีโอทางการแพทย์",
+		"name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์",
 		"name_en": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO\nANALYSIS",
 		"credits": "3(2-2-5)",
 		"year": 0,
@@ -968,7 +968,7 @@
 		},
 		{
 		"code": "06026245",
-		"name_th": "ระบบข้อมูลแบบกระจาย",
+		"name_th": "ระบบฐานข้อมูลแบบกระจาย",
 		"name_en": "DISTRIBUTED DATABASE SYSTEMS",
 		"credits": "3(3-0-6)",
 		"year": 0,

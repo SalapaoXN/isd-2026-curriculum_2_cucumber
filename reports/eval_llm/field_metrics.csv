@@ -1,6 +1,6 @@
 layer,field,denominator,strict_correct,strict_incorrect,strict_accuracy,normalized_correct,normalized_incorrect,normalized_accuracy,cer,wer
 llm,code,839,833,6,0.992849,839,0,1.0,,
-llm,name_th,839,730,109,0.870083,736,103,0.877235,0.022179,0.105999
+llm,name_th,839,756,83,0.901073,762,77,0.908224,0.019622,0.07501
 llm,name_en,839,712,127,0.848629,752,87,0.896305,0.006963,0.046242
 llm,credits,839,832,7,0.991657,832,7,0.991657,,
 llm,year,573,566,7,0.987784,566,7,0.987784,,

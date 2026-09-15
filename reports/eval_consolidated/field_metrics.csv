@@ -1,6 +1,6 @@
 layer,field,denominator,strict_correct,strict_incorrect,strict_accuracy,normalized_correct,normalized_incorrect,normalized_accuracy,cer,wer
 consolidated,code,839,833,6,0.992849,839,0,1.0,,
-consolidated,name_th,839,591,248,0.70441,596,243,0.710369,0.030517,0.309019
+consolidated,name_th,839,607,232,0.72348,612,227,0.72944,0.027954,0.289948
 consolidated,name_en,839,316,523,0.376639,323,516,0.384982,0.040677,0.26546
 consolidated,credits,839,832,7,0.991657,832,7,0.991657,,
 consolidated,year,573,566,7,0.987784,566,7,0.987784,,

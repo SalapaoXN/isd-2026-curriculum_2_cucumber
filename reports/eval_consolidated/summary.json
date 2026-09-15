@@ -18,14 +18,14 @@
     },
     "name_th": {
       "denominator": 839,
-      "strict_correct": 591,
-      "strict_incorrect": 248,
-      "strict_accuracy": 0.70441,
-      "normalized_correct": 596,
-      "normalized_incorrect": 243,
-      "normalized_accuracy": 0.710369,
-      "cer": 0.030517,
-      "wer": 0.309019
+      "strict_correct": 607,
+      "strict_incorrect": 232,
+      "strict_accuracy": 0.72348,
+      "normalized_correct": 612,
+      "normalized_incorrect": 227,
+      "normalized_accuracy": 0.72944,
+      "cer": 0.027954,
+      "wer": 0.289948
     },
     "name_en": {
       "denominator": 839,

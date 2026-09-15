@@ -136,7 +136,7 @@
     },
     {
       "code": "06066301",
-      "name_th": "โครงสร้างข้อมูลและอัลกอรึทึม",
+      "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
       "name_en": "DATA STRUCTURES AND ALGORITHMS",
       "credits": "3(2-2-5)",
       "year": 1,
@@ -188,7 +188,7 @@
     },
     {
       "code": "06016409",
-      "name_th": "การประมวลผลทางกายภาพ",
+      "name_th": "การประมวลทางกายภาพ",
       "name_en": "PHYSICAL COMPUTING",
       "credits": "3(2-2-5)",
       "year": 2,
@@ -279,7 +279,7 @@
     },
     {
       "code": "06016412",
-      "name_th": "โครงสร้างระบบคอมพิวเตอร์และระบบปฎิบัติการ",
+      "name_th": "โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ",
       "name_en": "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
       "credits": "3(2-2-5)",
       "year": 2,
@@ -877,7 +877,7 @@
     },
     {
       "code": "06016443",
-      "name_th": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเตอร์เน็ตแห่งสรรพสิ่ง",
+      "name_th": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
       "name_en": "INTERNET OF THINGS DATA ANALYTICS AND APPLICATIONS",
       "credits": "3(2-2-5)",
       "year": 0,
@@ -1124,7 +1124,7 @@
     },
     {
       "code": "06016462",
-      "name_th": "เทคโนโลยีสื่อสารการเคลื่อนที่",
+      "name_th": "เทคโนโลยีสื่อสารเคลื่อนที่",
       "name_en": "MOBILE COMMUNICATION TECHNOLOGY",
       "credits": "3(3-0-6)",
       "year": 0,

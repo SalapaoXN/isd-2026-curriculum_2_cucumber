@@ -11,12 +11,12 @@
     },
     {
       "field": "name_th",
-      "consolidated_accuracy": 0.710369,
-      "llm_accuracy": 0.877235,
-      "delta_percentage_points": 16.6865,
-      "improvements": 142,
-      "regressions": 2,
-      "net_improvement": 140
+      "consolidated_accuracy": 0.72944,
+      "llm_accuracy": 0.908224,
+      "delta_percentage_points": 17.8784,
+      "improvements": 153,
+      "regressions": 3,
+      "net_improvement": 150
     },
     {
       "field": "name_en",
@@ -84,18 +84,18 @@
     {
       "field": "name_th",
       "comparison_mode": "normalized",
-      "correct_to_correct": 594,
-      "wrong_to_correct": 142,
-      "correct_to_wrong": 2,
-      "wrong_to_wrong": 101
+      "correct_to_correct": 609,
+      "wrong_to_correct": 153,
+      "correct_to_wrong": 3,
+      "wrong_to_wrong": 74
     },
     {
       "field": "name_th",
       "comparison_mode": "strict",
-      "correct_to_correct": 589,
-      "wrong_to_correct": 141,
-      "correct_to_wrong": 2,
-      "wrong_to_wrong": 107
+      "correct_to_correct": 604,
+      "wrong_to_correct": 152,
+      "correct_to_wrong": 3,
+      "wrong_to_wrong": 80
     },
     {
       "field": "name_en",

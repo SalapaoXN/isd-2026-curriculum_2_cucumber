@@ -1,8 +1,8 @@
 field,comparison_mode,correct_to_correct,wrong_to_correct,correct_to_wrong,wrong_to_wrong
 code,normalized,839,0,0,0
 code,strict,833,0,0,6
-name_th,normalized,594,142,2,101
-name_th,strict,589,141,2,107
+name_th,normalized,609,153,3,74
+name_th,strict,604,152,3,80
 name_en,normalized,319,433,4,83
 name_en,strict,312,400,4,123
 credits,normalized,832,0,0,7

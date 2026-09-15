@@ -58,14 +58,15 @@
 - Phase 6A-R.2: dual Consolidated/LLM vs GT evaluator implemented and baseline reports generated.
 - Phase 6A-R.3a: prerequisite alternative normalization fixed; dual reports regenerated.
 - Phase 6A-R.4: source-backed Ground Truth correction batch applied; dual reports regenerated.
+- Phase 6A-R.4 follow-up: second source-confirmed Thai GT correction batch applied; dual reports regenerated.
 
 ## Current Task
-Phase 6A-R.4 — Audit Remaining Evaluation Mismatches
+Phase 6A-R.4a — Source-backed Thai Mismatch Taxonomy and Remediation Planning
 Status: AUDIT ONLY
 
 Goal:
-Audit the remaining evaluation mismatches after the source-backed Ground
-Truth correction batch.
+Plan source-backed taxonomy and remediation for the remaining Thai name
+mismatches.
 
 ## Next
 

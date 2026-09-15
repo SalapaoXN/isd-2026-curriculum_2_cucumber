@@ -1,6 +1,6 @@
 field,consolidated_accuracy,llm_accuracy,delta_percentage_points,improvements,regressions,net_improvement
 code,1.0,1.0,0.0,0,0,0
-name_th,0.710369,0.877235,16.6865,142,2,140
+name_th,0.72944,0.908224,17.8784,153,3,150
 name_en,0.384982,0.896305,51.1323,433,4,429
 credits,0.991657,0.991657,0.0,0,0,0
 year,0.987784,0.987784,0.0,0,0,0
