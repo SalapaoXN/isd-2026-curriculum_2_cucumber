@@ -466,6 +466,98 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertEqual(result.status, "complete")
         get_credits.assert_called_once_with(DB_PATH, "IT", "coop", 2, 1)
 
+    def test_exact_course_credit_forwards_target_to_term_query(self):
+        target = {
+            "course_id": 20,
+            "catalog_id": 7,
+            "program": "IT",
+            "course_code": "06016420",
+        }
+        scope = self._scope(course_targets=(target,))
+        request = EvidenceRequest(
+            "credits",
+            "credit_facts",
+            scope,
+            course_targets=(target,),
+        )
+        payload = {
+            "status": "ok",
+            "components": ({
+                "course_id": 20,
+                "course_code": "06016420",
+                "counted_credit_units": 3,
+                "provenance": ({"source_page": 1},),
+            },),
+            "provenance": ({"source_page": 1},),
+        }
+
+        with patch(
+            "rag.evidence_executor.get_semester_credits",
+            return_value=payload,
+        ) as get_credits:
+            result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(
+            [component["course_code"] for component in result.payload["components"]],
+            ["06016420"],
+        )
+        get_credits.assert_called_once_with(
+            DB_PATH,
+            "IT",
+            "coop",
+            2,
+            1,
+            course_targets=(target,),
+        )
+
+    def test_exact_course_credit_without_term_uses_direct_course_fact(self):
+        target = {
+            "course_id": 20,
+            "catalog_id": 7,
+            "program": "IT",
+            "course_code": "06016420",
+        }
+        scope = self._scope(
+            years=(),
+            semesters=(),
+            course_targets=(target,),
+        )
+        request = EvidenceRequest(
+            "credits",
+            "credit_facts",
+            scope,
+            course_targets=(target,),
+        )
+        direct_payload = {
+            "status": "ok",
+            "courses": ({
+                "course_id": 20,
+                "catalog_id": 7,
+                "course_code": "06016420",
+                "name_th": "Course",
+                "name_en": "Course",
+                "credits": "3(3-0-6)",
+                "credits_raw": "3(3-0-6)",
+                "credit_units": 3,
+                "provenance": ({"source_page": 1},),
+            },),
+        }
+
+        with patch(
+            "rag.evidence_executor._materialize_scopes",
+            return_value=(scope,),
+        ), patch(
+            "rag.evidence_executor.course_facts",
+            return_value=direct_payload,
+        ) as get_course_facts:
+            result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.payload["components"][0]["course_code"], "06016420")
+        self.assertEqual(result.payload["components"][0]["counted_credit_units"], 3)
+        get_course_facts.assert_called_once_with(DB_PATH, "06016420", "IT")
+
     def test_topic_credit_fanout_keeps_plan_targets_isolated(self):
         scope = self._scope(
             plans=(),

@@ -18,6 +18,7 @@ from rag.retrieval.retrieve import (
 )
 from rag.structured.queries import (
     applicable_plan_keys,
+    course_facts,
     get_semester_credits,
     prerequisites_of_course,
     scoped_course_set,
@@ -388,6 +389,103 @@ def _execute_credit(
     *,
     course_targets: Iterable[Mapping[str, Any]] | None = None,
 ) -> EvidenceExecutionResult:
+    targets = tuple(course_targets or ())
+    if targets and (not scope.years or not scope.semesters):
+        if len(targets) != 1:
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="course_credit_target_not_single",
+            )
+        target = targets[0]
+        course_code = target.get("course_code")
+        if not isinstance(course_code, str) or not course_code.strip():
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="invalid_course_credit_target",
+            )
+        try:
+            direct = course_facts(db_path, course_code.strip(), scope.program)
+        except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError, KeyError):
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="course_credit_lookup_failure",
+            )
+        facts = direct.get("courses") if isinstance(direct, Mapping) else None
+        if not isinstance(facts, (list, tuple)):
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="course_credit_missing",
+            )
+        target_id = target.get("course_id")
+        target_catalog = target.get("catalog_id")
+        matching = [
+            fact
+            for fact in facts
+            if isinstance(fact, Mapping)
+            and fact.get("course_code") == course_code.strip()
+        ]
+        if isinstance(target_id, int) and not isinstance(target_id, bool):
+            identified = [fact for fact in matching if fact.get("course_id") == target_id]
+            if identified:
+                matching = identified
+        elif isinstance(target_catalog, int) and not isinstance(target_catalog, bool):
+            identified = [fact for fact in matching if fact.get("catalog_id") == target_catalog]
+            if identified:
+                matching = identified
+        if len(matching) != 1:
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="course_credit_ambiguous_or_missing",
+            )
+        fact = matching[0]
+        credit_units = fact.get("credit_units")
+        provenance = fact.get("provenance")
+        if (
+            isinstance(credit_units, bool)
+            or not isinstance(credit_units, (int, float))
+            or not isinstance(provenance, (list, tuple))
+            or not provenance
+        ):
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="course_credit_incomplete",
+            )
+        component = {
+            "course_id": fact.get("course_id"),
+            "catalog_id": fact.get("catalog_id"),
+            "program": scope.program,
+            "plan_key": scope.plans[0] if len(scope.plans) == 1 else None,
+            "course_code": fact.get("course_code"),
+            "name_th": fact.get("name_th"),
+            "name_en": fact.get("name_en"),
+            "credits_raw": fact.get("credits_raw"),
+            "credit_units": credit_units,
+            "counted_credit_units": credit_units,
+            "alternative_group_id": None,
+            "alternative_courses": (),
+            "year": None,
+            "semester": None,
+            "provenance": tuple(provenance),
+        }
+        payload = {
+            "status": "ok",
+            "program": scope.program,
+            "components": (component,),
+            "provenance": tuple(provenance),
+        }
+        return _result(request, scope, "complete", payload)
     if (
         len(scope.plans) != 1
         or len(scope.years) != 1
@@ -406,10 +504,10 @@ def _execute_credit(
         scope.years[0],
         scope.semesters[0],
     )
-    if course_targets is None:
+    if not targets:
         result = get_semester_credits(*credit_args)
     else:
-        result = get_semester_credits(*credit_args, course_targets=course_targets)
+        result = get_semester_credits(*credit_args, course_targets=targets)
     if result.get("status") == "no_data":
         return _result(request, scope, "valid_empty", result, "empty_relation")
     return _result(request, scope, _status_for_payload(result), result)
@@ -880,8 +978,18 @@ def execute_evidence_plan(
                     )
                 ]
             else:
+                credit_targets = (
+                    request.course_targets
+                    if request.kind == "credit_facts" and request.course_targets
+                    else None
+                )
                 request_results = [
-                    _execute_materialized_request(db_path, request, scope)
+                    _execute_materialized_request(
+                        db_path,
+                        request,
+                        scope,
+                        credit_targets=credit_targets,
+                    )
                     for scope in scopes
                 ]
         results.extend(request_results)
