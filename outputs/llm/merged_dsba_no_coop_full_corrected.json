@@ -7,7 +7,7 @@
     "courses": [
         {
             "code": "06026200",
-            "name_th": "แคลคูลัส",
+            "name_th": "แคลคูลัส 1",
             "name_en": "CALCULUS 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -879,7 +879,7 @@
         {
             "code": "06026xxx",
             "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
-            "name_en": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYTICS 1 ELECTIVE IN DATA ENGINEERING 1",
+            "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -966,7 +966,7 @@
         },
         {
             "code": "06026213",
-            "name_th": "ระบบข้อมูลขนาดใหญ่",
+            "name_th": "ระบบข้อมูลมหัต",
             "name_en": "BIG DATA SYSTEMS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1050,7 +1050,7 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
             "name_en": "ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1671,7 +1671,7 @@
         {
             "code": "06026232",
             "name_th": "กระบวนการสโตแคสติกเบื้องต้น",
-            "name_en": "INTRODUCTION TO STOCHASTIC PROCESS",
+            "name_en": "INTRODUCTION TO STOCHASTIC PROCESSES",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
@@ -1947,7 +1947,7 @@
         },
         {
             "code": "06026243",
-            "name_th": "ระบบฐานข้อมูลขันสูง",
+            "name_th": "ระบบฐานข้อมูลขั้นสูง",
             "name_en": "ADVANCED DATABASE SYSTEMS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -2369,8 +2369,8 @@
         },
         {
             "code": "06026260",
-            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
-            "name_en": "OVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+            "name_en": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
             "credits": "6(0-35-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",

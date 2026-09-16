@@ -42,6 +42,70 @@ def description_course(code, page):
 
 
 class GenEdCleanupTests(unittest.TestCase):
+    def test_source_backed_placeholder_title_repairs_use_exact_identity(self):
+        cases = (
+            (19, "90642065", "name_th", "ไม่ระบุ", "รักบี้ฟุตบอล"),
+            (63, "90642065", "name_th", "ไม่ระบุ", "รักบี้ฟุตบอล"),
+            (24, "90642152", "name_th", "ไม่ระบุ", "ปันสุข"),
+            (86, "90642152", "name_th", "ไม่ระบุ", "ปันสุข"),
+            (29, "90644044", "name_th", "ไม่ระบุ", "พูดได้ พูดดี พูดเป็น"),
+            (111, "90644044", "name_th", "ไม่ระบุ", "พูดได้ พูดดี พูดเป็น"),
+            (
+                26,
+                "90643037",
+                "name_en",
+                "N/A",
+                "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+            ),
+            (
+                99,
+                "90643037",
+                "name_en",
+                "N/A",
+                "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+            ),
+        )
+        extractor = CurriculumExtractor(program="GENED", plan="gened")
+
+        for page, code, field, before, after in cases:
+            with self.subTest(page=page, code=code, field=field):
+                course = {
+                    "code": code,
+                    "name_th": "ชื่อภาษาไทย",
+                    "name_en": "ENGLISH NAME",
+                    field: before,
+                    "source_provenance": [context(page, "description")],
+                }
+                repaired = extractor._apply_source_backed_title_repairs(course)
+                self.assertEqual(repaired[field], after)
+                self.assertEqual(repaired["code"], code)
+                self.assertEqual(repaired["source_provenance"], [context(page, "description")])
+
+    def test_source_backed_placeholder_title_repairs_fail_closed(self):
+        extractor = CurriculumExtractor(program="GENED", plan="gened")
+        base = {
+            "code": "90642065",
+            "name_th": "ไม่ระบุ",
+            "name_en": "ENGLISH NAME",
+        }
+        cases = (
+            (20, "90642065", "name_th", "ไม่ระบุ"),
+            (19, "90642066", "name_th", "ไม่ระบุ"),
+            (19, "90642065", "name_th", "ชื่ออื่น"),
+        )
+        for page, code, field, before in cases:
+            with self.subTest(page=page, code=code, before=before):
+                course = dict(base)
+                course.update(
+                    {
+                        "code": code,
+                        field: before,
+                        "source_provenance": [context(page, "description")],
+                    }
+                )
+                repaired = extractor._apply_source_backed_title_repairs(course)
+                self.assertEqual(repaired[field], before)
+
     def test_numeric_section_heading_does_not_bleed_into_gened_catalog_course(self):
         extractor = CurriculumExtractor(program="GENED", plan="gened")
         result = extractor.extract_from_lines(

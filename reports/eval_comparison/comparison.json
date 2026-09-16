@@ -11,21 +11,21 @@
     },
     {
       "field": "name_th",
-      "consolidated_accuracy": 0.725864,
-      "llm_accuracy": 0.907032,
-      "delta_percentage_points": 18.1168,
-      "improvements": 166,
-      "regressions": 14,
-      "net_improvement": 152
+      "consolidated_accuracy": 0.72944,
+      "llm_accuracy": 0.909416,
+      "delta_percentage_points": 17.9976,
+      "improvements": 151,
+      "regressions": 0,
+      "net_improvement": 151
     },
     {
       "field": "name_en",
-      "consolidated_accuracy": 0.386174,
-      "llm_accuracy": 0.896305,
-      "delta_percentage_points": 51.0131,
-      "improvements": 434,
-      "regressions": 6,
-      "net_improvement": 428
+      "consolidated_accuracy": 0.390942,
+      "llm_accuracy": 0.909416,
+      "delta_percentage_points": 51.8474,
+      "improvements": 435,
+      "regressions": 0,
+      "net_improvement": 435
     },
     {
       "field": "credits",
@@ -84,34 +84,34 @@
     {
       "field": "name_th",
       "comparison_mode": "normalized",
-      "correct_to_correct": 595,
-      "wrong_to_correct": 166,
-      "correct_to_wrong": 14,
-      "wrong_to_wrong": 64
+      "correct_to_correct": 612,
+      "wrong_to_correct": 151,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 76
     },
     {
       "field": "name_th",
       "comparison_mode": "strict",
-      "correct_to_correct": 590,
-      "wrong_to_correct": 165,
-      "correct_to_wrong": 14,
-      "wrong_to_wrong": 70
-    },
-    {
-      "field": "name_en",
-      "comparison_mode": "normalized",
-      "correct_to_correct": 318,
-      "wrong_to_correct": 434,
-      "correct_to_wrong": 6,
+      "correct_to_correct": 607,
+      "wrong_to_correct": 151,
+      "correct_to_wrong": 0,
       "wrong_to_wrong": 81
     },
     {
       "field": "name_en",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 328,
+      "wrong_to_correct": 435,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 76
+    },
+    {
+      "field": "name_en",
       "comparison_mode": "strict",
-      "correct_to_correct": 311,
-      "wrong_to_correct": 401,
-      "correct_to_wrong": 6,
-      "wrong_to_wrong": 121
+      "correct_to_correct": 321,
+      "wrong_to_correct": 402,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 116
     },
     {
       "field": "credits",

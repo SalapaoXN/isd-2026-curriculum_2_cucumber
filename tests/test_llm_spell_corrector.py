@@ -152,6 +152,123 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         self.assertEqual(corrected["courses"][0]["name_en"], "COURSE NAME")
         self.assertEqual([entry["field"] for entry in corrections], ["name_en"])
 
+    def test_source_fidelity_registry_rejects_changed_reconstruction_candidates(self):
+        for (program, course_code, field), source_value in (
+            llm_spell_corrector.SOURCE_FIDELITY_VALUES.items()
+        ):
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = source_value
+                corrected, applied = llm_spell_corrector._reconstruct_document(
+                    {"program": program, "courses": [record]},
+                    {(field, source_value): f"{source_value} changed"},
+                )
+                self.assertEqual(corrected["courses"][0][field], source_value)
+                self.assertEqual(applied, [])
+
+    def test_reconstruct_still_applies_unregistered_correction(self):
+        record = make_record(name_en="Original name")
+        corrected, applied = llm_spell_corrector._reconstruct_document(
+            {"program": "IT", "courses": [record]},
+            {("name_en", "Original name"): "Corrected name"},
+        )
+        self.assertEqual(corrected["courses"][0]["name_en"], "Corrected name")
+        self.assertEqual(
+            applied,
+            [{
+                "course_code": "06000001",
+                "field": "name_en",
+                "before": "Original name",
+                "after": "Corrected name",
+            }],
+        )
+
+    def test_placeholder_names_are_not_corrected_or_logged(self):
+        for field, placeholder in (("name_th", "ไม่ระบุ"), ("name_en", "N/A")):
+            with self.subTest(field=field):
+                record = make_record(course_code="06000001")
+                record[field] = placeholder
+                corrected, reconstructed = llm_spell_corrector._reconstruct_document(
+                    {"program": "IT", "courses": [record]},
+                    {(field, placeholder): "Hallucinated course name"},
+                )
+                self.assertEqual(corrected["courses"][0][field], placeholder)
+                self.assertEqual(reconstructed, [])
+
+                replayed, applied = llm_spell_corrector.apply_corrections(
+                    {"courses": [record]},
+                    [{
+                        "course_code": "06000001",
+                        "field": field,
+                        "before": placeholder,
+                        "after": "Hallucinated course name",
+                    }],
+                )
+                self.assertEqual(replayed["courses"][0][field], placeholder)
+                self.assertEqual(applied, [])
+
+    def test_source_fidelity_registry_rejects_changed_replayed_candidates(self):
+        for (program, course_code, field), source_value in (
+            llm_spell_corrector.SOURCE_FIDELITY_VALUES.items()
+        ):
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record["program"] = program
+                record[field] = source_value
+                corrected, applied = llm_spell_corrector.apply_corrections(
+                    {"courses": [record]},
+                    [{
+                        "course_code": course_code,
+                        "field": field,
+                        "before": source_value,
+                        "after": f"{source_value} changed",
+                    }],
+                )
+                self.assertEqual(corrected["courses"][0][field], source_value)
+                self.assertEqual(applied, [])
+
+    def test_source_fidelity_exact_candidate_and_identity_guards(self):
+        source_key, source_value = next(
+            iter(llm_spell_corrector.SOURCE_FIDELITY_VALUES.items())
+        )
+        program, course_code, field = source_key
+        record = make_record(course_code=course_code)
+        record["program"] = program
+        record[field] = source_value
+
+        unchanged, applied = llm_spell_corrector.apply_corrections(
+            {"courses": [record]},
+            [{
+                "course_code": course_code,
+                "field": field,
+                "before": source_value,
+                "after": source_value,
+            }],
+        )
+        self.assertEqual(unchanged["courses"][0][field], source_value)
+        self.assertEqual(applied, [])
+
+        for wrong_program, wrong_code, wrong_field in (
+            ("AIT", course_code, field),
+            (program, "99999999", field),
+            (program, course_code, "name_en" if field == "name_th" else "name_th"),
+        ):
+            wrong_record = make_record(course_code=wrong_code)
+            wrong_record["program"] = wrong_program
+            wrong_record[wrong_field] = source_value
+            changed, wrong_applied = llm_spell_corrector.apply_corrections(
+                {"courses": [wrong_record]},
+                [{
+                    "course_code": wrong_code,
+                    "field": wrong_field,
+                    "before": source_value,
+                    "after": "changed text",
+                }],
+            )
+            self.assertEqual(changed["courses"][0][wrong_field], "changed text")
+            self.assertEqual(len(wrong_applied), 1)
+
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.directory = Path(self.temp_dir.name)

@@ -292,7 +292,7 @@
         {
             "code": "06046404",
             "name_th": "พื้นฐานของระบบสมองกลฝังตัว",
-            "name_en": "FUNDAMENTALS OF EMBEDDED SYSTEMS",
+            "name_en": "FUNDAMENTAL OF EMBEDDED SYSTEM",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -345,7 +345,7 @@
         {
             "code": "90641004",
             "name_th": "โครงงานกลุ่ม 1",
-            "name_en": "TEAM PROJECT 1",
+            "name_en": "TEAM-PROJECT 1",
             "credits": "1(0-2-1)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
@@ -520,7 +520,7 @@
         {
             "code": "06046413",
             "name_th": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง",
-            "name_en": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THINGS",
+            "name_en": "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -550,8 +550,8 @@
         },
         {
             "code": "90641009",
-            "name_th": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1",
-            "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1",
+            "name_th": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม",
+            "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
@@ -733,7 +733,7 @@
         {
             "code": "90641005",
             "name_th": "โครงงานกลุ่ม 2",
-            "name_en": "TEAM PROJECT 2",
+            "name_en": "TEAM-PROJECT 2",
             "credits": "1(0-2-1)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
@@ -867,8 +867,8 @@
         },
         {
             "code": "06046440",
-            "name_th": "วิชาสัมมนาปัญญาประดิษฐ์",
-            "name_en": "SEMINAR IN ARTIFICIAL INTELLIGENCE",
+            "name_th": "วิชาสัมมนาปัญญาประะ",
+            "name_en": "SEMINAR IN ARTIFICIAL INTELLIGENCE 1",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -943,7 +943,7 @@
         {
             "code": "90641006",
             "name_th": "โครงงานกลุ่ม 3",
-            "name_en": "TEAM PROJECT 3",
+            "name_en": "TEAM-PROJECT 3",
             "credits": "1(0-2-1)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
@@ -1279,7 +1279,7 @@
         {
             "code": "06046422",
             "name_th": "จริยธรรมด้านปัญญาประดิษฐ์",
-            "name_en": "ARTIFICIAL INTELLIGENCE ETHICS",
+            "name_en": "ARTIFICIAL INTELLIGIENCE ETHICS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
@@ -1421,7 +1421,7 @@
         },
         {
             "code": "06046432",
-            "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์",
+            "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 3",
             "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 3",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1501,7 +1501,7 @@
         {
             "code": "06046435",
             "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 6",
-            "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE",
+            "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 6",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",

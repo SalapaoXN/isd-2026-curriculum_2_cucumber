@@ -10,7 +10,6 @@ PROGRAMMING",PROBLEM SOLVING AND COMPUTER PROGRAMMNG,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""90641008"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,พื้นฐานทักษะการสื่อสารภาษาอังกฤษ,พืนฐานทักษะการสือสารภาษาอังกฤษ,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06066301"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,DATA STRUCTURES AND ALGORITHMS,DATA STRUCTURES AND ALGORTHMS,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046404"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,พื้นฐานของระบบสมองกลฝังตัว,พืนฐานของระบบสมองกลฝังตัว,False,False,FIELD_MISMATCH
-consolidated,AIT,,1,"{""code"": ""90641004"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,TEAM-PROJECT 1,TEAM PR0ECT 1,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""9064xxxx"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06066300"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,DATABASE SYSTEM CONCEPTS,DATABASE SVSTEM CONCEPTS,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06066300"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",year,2,1,False,False,FIELD_MISMATCH
@@ -37,7 +36,6 @@ consolidated,AIT,,1,"{""code"": ""06046412"", ""occurrence"": 1, ""plan"": null,
 consolidated,AIT,,1,"{""code"": ""06046411"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย,การวิเคราะห์และเพิมประสิทธิภาพเครือข่าย,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046411"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,NETWORK ANALYSIS AND OPTIMIZATION,NETWORK ANALSIS AND OPTMMLZATON,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""90641010"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2,ทักษะการสือสารภาษาอังกฤษระหว่างวัฒนธรรม 2,False,False,FIELD_MISMATCH
-consolidated,AIT,,1,"{""code"": ""90641005"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,TEAM-PROJECT 2,TEAM PR0JECT 2,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046414"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING,NATURAL LANCUAGE PROCESSING WITH DEEP LEARNNG,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""90642012"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,DESIGN THINKING,DESIGN THINKNG,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""060464xx"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION,ELECTIE IN ARTIFICIAL INTELLIGENCE SPECIALLZATION,False,False,FIELD_MISMATCH
@@ -49,7 +47,6 @@ consolidated,AIT,,2,"{""code"": ""060464xx"", ""occurrence"": 2, ""plan"": null,
 consolidated,AIT,,1,"{""code"": ""06046441"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1,โครงงานเทคโนโลยีปัญญาประดิษฐ์,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046441"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1,PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""90641006"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,โครงงานกลุ่ม 3,โครงงานกลุ่ม  3,False,True,FIELD_MISMATCH
-consolidated,AIT,,1,"{""code"": ""90641006"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,TEAM-PROJECT 3,TEAM PROECT 3,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""xxxxxxxx"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,วิชาเลือกเสรี 1,วิชาเลือกเสรี,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""xxxxxxxx"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,FREE ELECTIVE COURSE 1,FREE ELECTIVE COURSE,False,False,FIELD_MISMATCH
 consolidated,AIT,,2,"{""code"": ""9064xxxx"", ""occurrence"": 2, ""plan"": null, ""program"": ""AIT""}",name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป,วิชาเลือกหมวดวิชาศึกษาทัวไป,False,False,FIELD_MISMATCH
@@ -530,7 +527,6 @@ consolidated,GENED,gened,1,"{""code"": ""90642060"", ""occurrence"": 1, ""plan""
 consolidated,GENED,gened,1,"{""code"": ""90642062"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เรื่องกินเรื่องใหญ่,เรื่องกินเรื่องใหญ่ 3,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642062"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ALL ABOUT FOOD,ALL ABOUT FOQD,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642063"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,HOLISTIC HEALTH DEVELOPMENT,HOLSTIC HEALTH DEVELOPMENT,False,False,FIELD_MISMATCH
-consolidated,GENED,gened,1,"{""code"": ""90642065"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,รักบี้ฟุตบอล,ไม่ระบุ,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642065"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,RUGBY FOOTBALL,RUGBV FOOTBALL,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642071"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,BADMINTON,BADMNTON,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642074"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,E-SPORTS,E SPORTS,False,False,FIELD_MISMATCH
@@ -604,7 +600,6 @@ consolidated,GENED,gened,1,"{""code"": ""90642143"", ""occurrence"": 1, ""plan""
 consolidated,GENED,gened,1,"{""code"": ""90642145"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,POWER OF PERSONALITY,POWER OF PERSONALIT,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642148"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ARTS OF EMOTION DEVELOPMENT,ARTS OF EMOTLON DEVELOPMENT,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642149"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,IMAGINATIVE ART,IMAGINATIE ART,False,False,FIELD_MISMATCH
-consolidated,GENED,gened,1,"{""code"": ""90642152"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปันสุข,ไม่ระบุ,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642152"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,JOY OF SHARING,JOV OF SHARNG,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642153"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,UNDERSTANDING HUMAN BEHAVIOR,UNDERSTANDING HUMAN BEHAVOR,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642154"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,FAIL-ABLE,FALL ABLE,False,False,FIELD_MISMATCH
@@ -644,7 +639,6 @@ consolidated,GENED,gened,1,"{""code"": ""90643035"", ""occurrence"": 1, ""plan""
 consolidated,GENED,gened,1,"{""code"": ""90643035"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,KNOWLEDGE MANAGEMENT FOR INNOVATION DEVELOPMENT,KNOWLEDGE MANAGEMENT FOR INOVATION DEVELOPMENT,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90643036"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การจัดการความรู้เพื่อการบริหารโครงการ,การจัดการความรู้เพือการบริหารโครงการ,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90643037"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21,การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่,False,False,FIELD_MISMATCH
-consolidated,GENED,gened,1,"{""code"": ""90643037"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY,N/A,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90643038"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,REBRANDING,REBRANDNG,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644002"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฏิบัติงานตามทักษะด้านการสื่อสาร 2,ปฏิบัติงานตามทักษะด้านการสือสาร 2,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644003"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ปฏิบัติงานตามทักษะด้านการสื่อสาร 3,ปฏิบัติงานตามทักษะด้านการสือสาร 3,False,False,FIELD_MISMATCH
@@ -688,7 +682,6 @@ consolidated,GENED,gened,1,"{""code"": ""90644040"", ""occurrence"": 1, ""plan""
 consolidated,GENED,gened,1,"{""code"": ""90644040"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,COMMUNICATION SKILLS THROUGH DRAMA,COMMUNICATION SKILLS THROUCH DRAMA,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644041"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FROM ENTERTAINMENT MEDIA,ENGLISH FROM ENTERTA NMENT MEDIA,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644043"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,PUBLIC SPEAKING,PUBLIC SPEAKNNG,False,False,FIELD_MISMATCH
-consolidated,GENED,gened,1,"{""code"": ""90644044"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,พูดได้ พูดดี พูดเป็น,ไม่ระบุ,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644046"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,การฟังและการอ่านเพื่อพัฒนาคุณภาพชีวิต,การฟังและการอ่านเพือพัฒนาคุณภาพชีวิต,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644046"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,LISTENING AND READING FOR IMPROVING LIFE QUALITY,LISTENING AND READING FOR IMPROVNG LIFE QUALTV,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90644047"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,DEVELOPMENT OF THAI CREATIVE WRITING SKILLS,DEVELOPMENT OF THAL CREATIVE WRTNG SKILLS,False,False,FIELD_MISMATCH

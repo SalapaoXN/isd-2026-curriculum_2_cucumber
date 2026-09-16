@@ -93,7 +93,7 @@
         "course_code": "06026207",
         "field": "name_en",
         "before": "NOSOL DATABASE SYSTEMS",
-        "after": "NoSQL DATABASE SYSTEMS"
+        "after": "NOSQL DATABASE SYSTEMS"
     },
     {
         "course_code": "06026209",
@@ -127,15 +127,9 @@
     },
     {
         "course_code": "06026xxx",
-        "field": "name_th",
-        "before": "วิชาเลือกกลุ่ม วิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
-        "after": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1"
-    },
-    {
-        "course_code": "06026xxx",
         "field": "name_en",
         "before": "ELECTIE IN DATA SCIENCE ELECTIE IN STATISTICAL ANAL YSIS 1 ELECTIE IN DATA ENGINEERNNG 1",
-        "after": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYTICS 1 ELECTIVE IN DATA ENGINEERING 1"
+        "after": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1"
     },
     {
         "course_code": "06026xxx",
@@ -165,7 +159,7 @@
         "course_code": "06026213",
         "field": "name_th",
         "before": "ระบบ ข้อมูลมหัต",
-        "after": "ระบบข้อมูลขนาดใหญ่"
+        "after": "ระบบข้อมูลมหัต"
     },
     {
         "course_code": "06026213",
@@ -189,7 +183,7 @@
         "course_code": "06026xxx",
         "field": "name_en",
         "before": "A ELECTIE IN DATA SCIENCE 4 ELECTIE IN STATISTICAL ANALWTICS 4 ELECTIE IN DATA ENGINEERINC 4",
-        "after": "AN ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS 4 ELECTIVE IN DATA ENGINEERING 4"
+        "after": "ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS 4 ELECTIVE IN DATA ENGINEERING 4"
     },
     {
         "course_code": "06066100",
@@ -237,7 +231,7 @@
         "course_code": "06026259 หรือ 06026260",
         "field": "name_en",
         "before": "O COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALTICS\nOVERSEA COOPERATIE EDUCATION IN DATA SCIENCE AND BUSINESS ANALTICS",
-        "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+        "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
     },
     {
         "course_code": "06026217",
@@ -284,13 +278,13 @@
     {
         "course_code": "06026226",
         "field": "name_en",
-        "before": "SPECIAL TOPICS IN DATA SCIENCE1",
+        "before": "SPECIAL TOPICS IN DATA SCIENCE1 1",
         "after": "SPECIAL TOPICS IN DATA SCIENCE 1"
     },
     {
         "course_code": "06026227",
         "field": "name_en",
-        "before": "SPECIAL TOPICS IN DATA SCIENCE2",
+        "before": "SPECIAL TOPICS IN DATA SCIENCE2 2",
         "after": "SPECIAL TOPICS IN DATA SCIENCE 2"
     },
     {
@@ -309,7 +303,7 @@
         "course_code": "06026232",
         "field": "name_en",
         "before": "INTRODUCTIOM TO STOCHASTIC PROCESS",
-        "after": "INTRODUCTION TO STOCHASTIC PROCESS"
+        "after": "INTRODUCTION TO STOCHASTIC PROCESSES"
     },
     {
         "course_code": "06026233",
@@ -358,6 +352,12 @@
         "field": "name_en",
         "before": "CLOUD TECHNOLOGV INFRASTRUCTURE",
         "after": "CLOUD TECHNOLOGY INFRASTRUCTURE"
+    },
+    {
+        "course_code": "06026243",
+        "field": "name_th",
+        "before": "ระบบฐานข้อมูลขันสูง",
+        "after": "ระบบฐานข้อมูลขั้นสูง"
     },
     {
         "course_code": "06026244",
@@ -427,8 +427,14 @@
     },
     {
         "course_code": "06026260",
+        "field": "name_th",
+        "before": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
+        "after": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
+    },
+    {
+        "course_code": "06026260",
         "field": "name_en",
         "before": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+        "after": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
     }
 ]

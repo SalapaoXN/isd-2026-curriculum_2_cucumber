@@ -60,18 +60,6 @@
         "after": "พื้นฐานของระบบสมองกลฝังตัว"
     },
     {
-        "course_code": "06046404",
-        "field": "name_en",
-        "before": "FUNDAMENTAL OF EMBEDDED SYSTEM",
-        "after": "FUNDAMENTALS OF EMBEDDED SYSTEMS"
-    },
-    {
-        "course_code": "90641004",
-        "field": "name_en",
-        "before": "TEAM PR0ECT",
-        "after": "TEAM PROJECT 1"
-    },
-    {
         "course_code": "9064xxxx",
         "field": "name_th",
         "before": "วิชาเลือกหมวดวิชาศึกษาทัวไป",
@@ -120,22 +108,10 @@
         "after": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง"
     },
     {
-        "course_code": "06046413",
-        "field": "name_en",
-        "before": "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
-        "after": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THINGS"
-    },
-    {
         "course_code": "90641009",
         "field": "name_th",
         "before": "ทักษะการสือสารภาษา อังกฤษระหว่างวัฒนธรรม",
-        "after": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1"
-    },
-    {
-        "course_code": "90641009",
-        "field": "name_en",
-        "before": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH",
-        "after": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+        "after": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม"
     },
     {
         "course_code": "06046408",
@@ -186,12 +162,6 @@
         "after": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
     },
     {
-        "course_code": "90641005",
-        "field": "name_en",
-        "before": "TEAM PR0JECT 2",
-        "after": "TEAM PROJECT 2"
-    },
-    {
         "course_code": "06046414",
         "field": "name_en",
         "before": "NATURAL LANCUAGE PROCESSING WITH DEEP LEARNNG",
@@ -210,12 +180,6 @@
         "after": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION"
     },
     {
-        "course_code": "06046440",
-        "field": "name_th",
-        "before": "วิชาสัมมนาปัญญาประะ",
-        "after": "วิชาสัมมนาปัญญาประดิษฐ์"
-    },
-    {
         "course_code": "060464xx",
         "field": "name_th",
         "before": "วิชาเลือกเทคโนโลยีปัญญาป ร ดิษฐ์ เฉพาะทาง",
@@ -232,12 +196,6 @@
         "field": "name_th",
         "before": "โครงงานกลุ่ม  3",
         "after": "โครงงานกลุ่ม 3"
-    },
-    {
-        "course_code": "90641006",
-        "field": "name_en",
-        "before": "TEAM PROECT 3",
-        "after": "TEAM PROJECT 3"
     },
     {
         "course_code": "9064xxxx",
@@ -292,12 +250,6 @@
         "field": "name_th",
         "before": "จริยธรรมด้านปัญญาประดษ",
         "after": "จริยธรรมด้านปัญญาประดิษฐ์"
-    },
-    {
-        "course_code": "06046422",
-        "field": "name_en",
-        "before": "ARTIFICIAL INTELLIGIENCE ETHICS",
-        "after": "ARTIFICIAL INTELLIGENCE ETHICS"
     },
     {
         "course_code": "06046423",

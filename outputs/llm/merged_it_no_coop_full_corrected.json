@@ -704,7 +704,7 @@
         {
             "code": "06016414",
             "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-            "name_en": "NoSQL DATABASE SYSTEMS",
+            "name_en": "NOSQL DATABASE SYSTEMS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1049,7 +1049,7 @@
         },
         {
             "code": "06016418",
-            "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+            "name_th": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
             "name_en": "SERVER SIDE WEB DEVELOPMENT",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1242,7 +1242,7 @@
         },
         {
             "code": "06016418",
-            "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+            "name_th": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
             "name_en": "SERVER SIDE WEB DEVELOPMENT",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1467,7 +1467,7 @@
         },
         {
             "code": "9064xxxx",
-            "name_th": "วิชาเลือกหมวดศึกษาทัวไป",
+            "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
             "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1935,7 +1935,7 @@
         },
         {
             "code": "06016442",
-            "name_th": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+            "name_th": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
             "name_en": "INTERNET OF THINGS HARDWARE DESIGN",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1959,7 +1959,7 @@
         },
         {
             "code": "06016443",
-            "name_th": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+            "name_th": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
             "name_en": "INTERNET OF THINGS DATA ANALYTICS AND APPLICATIONS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -2309,7 +2309,7 @@
         },
         {
             "code": "06016457",
-            "name_th": "ระบบฐานข้อมูลขันสูง",
+            "name_th": "ระบบฐานข้อมูลขั้นสูง",
             "name_en": "ADVANCED DATABASE SYSTEMS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -2540,7 +2540,7 @@
         {
             "code": "06016466",
             "name_th": "การแก้ไขปัญหาระบบและเครือข่าย",
-            "name_en": "NETWORK AND SYSTEM TROUBLESHOOTING",
+            "name_en": "NETWORK AND SYSTEM TROUBLE SHOOTING",
             "credits": "3(0-6-3)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
@@ -2921,7 +2921,7 @@
         {
             "code": "06016481 หรือ 06016482",
             "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
-            "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+            "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
             "credits": "6(0-36-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",

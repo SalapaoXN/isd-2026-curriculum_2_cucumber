@@ -65,7 +65,7 @@
         },
         {
             "code": "90641003",
-            "name_th": "กีฬาและนันทนาการ",
+            "name_th": "กีฬาและนันทนาการ 1",
             "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
             "credits": "1(0-3-2)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -94,7 +94,7 @@
         },
         {
             "code": "90642001",
-            "name_th": "ปฏิบัติงานตามทักษะด้านบุคคลและสนับสนุนวิชาชีพ",
+            "name_th": "ปฏิบัติงานตามทักษะด้านบุคคลและสนับสนุนวิชาชีพ 1",
             "name_en": "PRACTICE UNDER PERSONAL AND PROFESSIONAL SKILLS 1",
             "credits": "1(0-2-1)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -449,7 +449,7 @@
         },
         {
             "code": "90642013",
-            "name_th": "บูรณาการแห่งการคิด",
+            "name_th": "บูรณาการแห่งการคิด 3",
             "name_en": "INTEGRATED THINKING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -826,7 +826,7 @@
         },
         {
             "code": "90642026",
-            "name_th": "การพัฒนาทักษะเชิงวิจัย",
+            "name_th": "การพัฒนาทักษะเชิงวิจัย 3",
             "name_en": "RESEARCH SKILL DEVELOPMENT",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1124,7 +1124,7 @@
         {
             "code": "90642036",
             "name_th": "เตรียมความพร้อมสำหรับวิศวกร",
-            "name_en": "PRE-ACTIVITIES FOR ENGINEERS",
+            "name_en": "PRE ACTIVITIES FOR ENGINEERS",
             "credits": "1(0-3-0)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -1326,7 +1326,7 @@
         },
         {
             "code": "90642043",
-            "name_th": "ศาสตร์ของเบอร์เกอร์",
+            "name_th": "ศาสตร์ของเบอร์เกอร์ 3",
             "name_en": "SCIENCE OF BURGER",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1385,7 +1385,7 @@
         {
             "code": "90642045",
             "name_th": "เรื่องเหล้า",
-            "name_en": "BEER MY BEV.",
+            "name_en": "BEVERAGE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -1891,7 +1891,7 @@
         },
         {
             "code": "90642062",
-            "name_th": "เรื่องกินเรื่องใหญ่",
+            "name_th": "เรื่องกินเรื่องใหญ่ 3",
             "name_en": "ALL ABOUT FOOD",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1978,7 +1978,7 @@
         },
         {
             "code": "90642065",
-            "name_th": "ไม่ระบุ",
+            "name_th": "รักบี้ฟุตบอล",
             "name_en": "RUGBY FOOTBALL",
             "credits": "2(1-2-3)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2036,7 +2036,7 @@
         },
         {
             "code": "90642067",
-            "name_th": "ซอฟต์บอลและเบสบอล",
+            "name_th": "ซอฟบอลและเบสบอล",
             "name_en": "SOFTBALL & BASEBALL",
             "credits": "2(1-2-3)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2240,7 +2240,7 @@
         {
             "code": "90642074",
             "name_th": "อีสปอร์ต",
-            "name_en": "ESPORTS",
+            "name_en": "E SPORTS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -2558,7 +2558,7 @@
         },
         {
             "code": "90642085",
-            "name_th": "วัฒนธรรมร่วมสมัย",
+            "name_th": "วัฒนธรรมรวมสมัย",
             "name_en": "CONTEMPORARY CULTURE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3326,7 +3326,7 @@
         },
         {
             "code": "90642111",
-            "name_th": "สนุกกับการเขียนโค้ด",
+            "name_th": "สนุกกับการเขียนโค้ด 3",
             "name_en": "FUN WITH CODING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3420,7 +3420,7 @@
         },
         {
             "code": "90642114",
-            "name_th": "ฟาร์มอัจฉริยะ",
+            "name_th": "ฟาร์มอัจฉริยะ 3",
             "name_en": "SMART FARMING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3537,7 +3537,7 @@
         {
             "code": "90642118",
             "name_th": "โปรแกรมคอมพิวเตอร์ประยุกต์ทางธุรกิจ",
-            "name_en": "APPLICATION SOFTWARE FOR BUSINESS",
+            "name_en": "APPLICATION SOFTWARE FOR BUSSINESS",
             "credits": "2(1-2-3)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -3652,7 +3652,7 @@
         },
         {
             "code": "90642122",
-            "name_th": "การใช้แอปพลิเคชันไมโครคอมพิวเตอร์",
+            "name_th": "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์",
             "name_en": "INTRODUCTION TO MICROCOMPUTER APPLICATION",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3746,7 +3746,7 @@
         },
         {
             "code": "90642125",
-            "name_th": "การดำรงชีพท่ามกลางภัยพิบัติและวิกฤติในอนาคต",
+            "name_th": "การดำรงชีพท่ามกลางภัยพิบัติและวิกฤติในอนาคต 3",
             "name_en": "LIVING IN FUTURE DISASTER AND CRISIS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3956,7 +3956,7 @@
         },
         {
             "code": "90642132",
-            "name_th": "ชุมพรศึกษาเพื่อการท่องเที่ยว",
+            "name_th": "ชุมพรศึกษาเพื่อการท่องเที่ยว 3",
             "name_en": "CHUMPHON STUDY FOR TOURISM",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4072,7 +4072,7 @@
         },
         {
             "code": "90642136",
-            "name_th": "จริยศาสตร์และสุนทรียศาสตร์",
+            "name_th": "จริยศาสตร์และสุนทรียศาสตร์ 3",
             "name_en": "ETHICS AND AESTHETICS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4289,7 +4289,7 @@
         },
         {
             "code": "90642143",
-            "name_th": "ชีวิตออกแบบได้",
+            "name_th": "ชีวิตออกแบบได้ 3",
             "name_en": "DESIGNING YOUR LIFE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4557,7 +4557,7 @@
         },
         {
             "code": "90642152",
-            "name_th": "ไม่ระบุ",
+            "name_th": "ปันสุข",
             "name_en": "JOY OF SHARING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4616,7 +4616,7 @@
         {
             "code": "90642154",
             "name_th": "ล้มให้เป็น",
-            "name_en": "FALLABLE",
+            "name_en": "FALL ABLE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -4709,7 +4709,7 @@
         },
         {
             "code": "90642157",
-            "name_th": "โหราศาสตร์ไทย",
+            "name_th": "โหราศาสตร์ไทย 3",
             "name_en": "THAI ASTROLOGY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4803,7 +4803,7 @@
         },
         {
             "code": "90643001",
-            "name_th": "ปฏิบัติงานตามทักษะด้านการจัดการ",
+            "name_th": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
             "name_en": "PRACTICE UNDER MANAGEMENT SKILLS 1",
             "credits": "1(0-2-1)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5245,7 +5245,7 @@
         },
         {
             "code": "90643016",
-            "name_th": "สนุกกับธุรกิจออนไลน์",
+            "name_th": "สนุกกับธุรกิจออนไลน์ 3",
             "name_en": "FUN WITH ONLINE BUSINESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5672,7 +5672,7 @@
         },
         {
             "code": "90643030",
-            "name_th": "เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ",
+            "name_th": "เศรษฐศาสตร์ทั่วไปและการศึกษาความเป็นไปได้ของโครงการ",
             "name_en": "GENERAL ECONOMICS AND PROJECT FEASIBILITY STUDY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5883,7 +5883,7 @@
         {
             "code": "90643037",
             "name_th": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21",
-            "name_en": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21ST CENTURY",
+            "name_en": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -6375,7 +6375,7 @@
         },
         {
             "code": "90644016",
-            "name_th": "ภาษาอังกฤษเพื่ออุตสาหกรรม",
+            "name_th": "อังกฤษเพื่ออุตสาหกรรม",
             "name_en": "ENGLISH FOR INDUSTRY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -7194,7 +7194,7 @@
         },
         {
             "code": "90644044",
-            "name_th": "ไม่ระบุ",
+            "name_th": "พูดได้ พูดดี พูดเป็น",
             "name_en": "BEST SPEECH",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -7752,7 +7752,7 @@
         },
         {
             "code": "90644063",
-            "name_th": "ภาษาญี่ปุ่นเพื่อการท่องเที่ยว",
+            "name_th": "ภาษาญี่ปุ่นเพื่อการท่องเที่ยว 3",
             "name_en": "JAPANESE FOR TRAVEL",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",

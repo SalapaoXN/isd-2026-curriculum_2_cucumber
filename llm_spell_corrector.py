@@ -37,6 +37,18 @@ CORRECTION_PROMPT = (
     "no markdown code fences or extra commentary."
 )
 
+SOURCE_FIDELITY_VALUES = {
+    ("GENED", "90642067", "name_th"): "ซอฟบอลและเบสบอล",
+    ("GENED", "90642122", "name_th"): "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์",
+    ("GENED", "90642118", "name_en"): "APPLICATION SOFTWARE FOR BUSSINESS",
+    ("AIT", "06046404", "name_en"): "FUNDAMENTAL OF EMBEDDED SYSTEM",
+    ("AIT", "06046413", "name_en"):
+        "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
+    ("AIT", "06046422", "name_en"): "ARTIFICIAL INTELLIGIENCE ETHICS",
+    ("AIT", "06046425", "name_en"): "GENERATIVE MODEL",
+}
+NON_CORRECTABLE_NAME_VALUES = frozenset(("ไม่ระบุ", "N/A"))
+
 
 def _records_from_document(document: Any) -> list[dict[str, Any]]:
     if isinstance(document, list):
@@ -57,6 +69,44 @@ def _record_course_code(record: dict[str, Any]) -> Any:
     if "course_code" in record:
         return record["course_code"]
     return record.get("code")
+
+
+def _source_fidelity_value(
+    record: dict[str, Any],
+    field: str,
+    before: Any,
+    candidate: str,
+    *,
+    program: Any = None,
+) -> str:
+    record_program = record.get("program")
+    if record_program is None:
+        record_program = program
+    source_value = SOURCE_FIDELITY_VALUES.get(
+        (record_program, _record_course_code(record), field)
+    )
+    if source_value == before:
+        return source_value
+    return candidate
+
+
+def _guard_correction_value(
+    record: dict[str, Any],
+    field: str,
+    before: Any,
+    candidate: str,
+    *,
+    program: Any = None,
+) -> str:
+    if field in TEXT_FIELDS and before in NON_CORRECTABLE_NAME_VALUES:
+        return before
+    return _source_fidelity_value(
+        record,
+        field,
+        before,
+        candidate,
+        program=program,
+    )
 
 
 def _reject_empty_text_replacement(
@@ -140,13 +190,16 @@ def apply_corrections(
             )
         if matching_indexes:
             target_record = corrected_records[matching_indexes[0]]
+            candidate_after = _guard_correction_value(
+                target_record, field, before, after
+            )
             _reject_empty_text_replacement(
                 target_record.get(field),
-                after,
+                candidate_after,
                 f"Correction {correction_index}",
             )
-            target_record[field] = after
-            if before != after:
+            target_record[field] = candidate_after
+            if before != candidate_after:
                 applied.append(
                     {
                         "course_code": _record_course_code(
@@ -180,13 +233,19 @@ def apply_corrections(
             ]
             if approved_value and len(same_code_indexes) == 1:
                 target_index = same_code_indexes[0]
-                _reject_empty_text_replacement(
+                candidate_after = _guard_correction_value(
+                    corrected_records[target_index],
+                    field,
                     original_records[target_index].get(field),
                     after,
+                )
+                _reject_empty_text_replacement(
+                    original_records[target_index].get(field),
+                    candidate_after,
                     f"Correction {correction_index}",
                 )
-                corrected_records[target_index][field] = after
-                if before != after:
+                corrected_records[target_index][field] = candidate_after
+                if before != candidate_after:
                     applied.append(
                         {
                             "course_code": _record_course_code(
@@ -430,15 +489,22 @@ def _reconstruct_document(
             if key not in corrected_by_key:
                 continue
             after = corrected_by_key[key]
-            if before == after:
+            candidate_after = _guard_correction_value(
+                original_record,
+                field,
+                before,
+                after,
+                program=document.get("program") if isinstance(document, dict) else None,
+            )
+            if before == candidate_after:
                 continue
-            corrected_record[field] = after
+            corrected_record[field] = candidate_after
             corrections.append(
                 {
                     "course_code": _record_course_code(original_record),
                     "field": field,
                     "before": before,
-                    "after": after,
+                    "after": candidate_after,
                 }
             )
     return corrected_document, corrections

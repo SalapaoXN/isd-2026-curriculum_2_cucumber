@@ -142,6 +142,44 @@ class CourseCleanupTests(unittest.TestCase):
                 )
                 self.assertEqual(result["source_provenance"], provenance_data)
 
+    def test_source_backed_ait_title_repairs_require_exact_identity_and_before_value(self):
+        cases = (
+            (23, "90641004", "TEAM PR0ECT 1", "TEAM-PROJECT 1"),
+            (24, "90641005", "TEAM PR0JECT 2", "TEAM-PROJECT 2"),
+            (25, "90641006", "TEAM PROECT 3", "TEAM-PROJECT 3"),
+        )
+        for page, code, before, after in cases:
+            with self.subTest(page=page, code=code):
+                provenance_data = provenance("AIT", page, "plan")
+                course = {
+                    "code": code,
+                    "name_th": "AIT Thai",
+                    "name_en": before,
+                    "source_provenance": provenance_data,
+                }
+                result = CurriculumExtractor._apply_source_backed_title_repairs(
+                    course
+                )
+                self.assertEqual(result["name_en"], after)
+
+        fail_closed_cases = (
+            (24, "90641004", "TEAM PR0ECT 1"),
+            (23, "90649999", "TEAM PR0ECT 1"),
+            (23, "90641004", "TEAM PROJECT 1"),
+        )
+        for page, code, current in fail_closed_cases:
+            with self.subTest(page=page, code=code, current=current):
+                course = {
+                    "code": code,
+                    "name_th": "AIT Thai",
+                    "name_en": current,
+                    "source_provenance": provenance("AIT", page, "plan"),
+                }
+                result = CurriculumExtractor._apply_source_backed_title_repairs(
+                    course
+                )
+                self.assertEqual(result["name_en"], current)
+
     def test_source_backed_title_repair_covers_both_persisted_gened_occurrences(self):
         extractor = CurriculumExtractor(program="GENED", plan="gened")
         plan = extractor.extract_from_lines(

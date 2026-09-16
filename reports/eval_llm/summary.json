@@ -18,25 +18,25 @@
     },
     "name_th": {
       "denominator": 839,
-      "strict_correct": 756,
-      "strict_incorrect": 83,
-      "strict_accuracy": 0.901073,
-      "normalized_correct": 762,
-      "normalized_incorrect": 77,
-      "normalized_accuracy": 0.908224,
-      "cer": 0.019622,
-      "wer": 0.07501
+      "strict_correct": 758,
+      "strict_incorrect": 81,
+      "strict_accuracy": 0.903456,
+      "normalized_correct": 763,
+      "normalized_incorrect": 76,
+      "normalized_accuracy": 0.909416,
+      "cer": 0.014076,
+      "wer": 0.076003
     },
     "name_en": {
       "denominator": 839,
-      "strict_correct": 712,
-      "strict_incorrect": 127,
-      "strict_accuracy": 0.848629,
-      "normalized_correct": 752,
-      "normalized_incorrect": 87,
-      "normalized_accuracy": 0.896305,
-      "cer": 0.006963,
-      "wer": 0.046242
+      "strict_correct": 723,
+      "strict_incorrect": 116,
+      "strict_accuracy": 0.86174,
+      "normalized_correct": 763,
+      "normalized_incorrect": 76,
+      "normalized_accuracy": 0.909416,
+      "cer": 0.006981,
+      "wer": 0.044475
     },
     "credits": {
       "denominator": 839,

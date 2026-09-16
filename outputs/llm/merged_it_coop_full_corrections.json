@@ -141,7 +141,7 @@
         "course_code": "06016414",
         "field": "name_en",
         "before": "NOSOL DATABASE SYSTEMS",
-        "after": "NoSQL DATABASE SYSTEMS"
+        "after": "NOSQL DATABASE SYSTEMS"
     },
     {
         "course_code": "06016415",
@@ -192,12 +192,6 @@
         "after": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS"
     },
     {
-        "course_code": "06016418",
-        "field": "name_th",
-        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
-        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
-    },
-    {
         "course_code": "06016421",
         "field": "name_en",
         "before": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITV",
@@ -240,10 +234,10 @@
         "after": "การออกแบบและพัฒนาเกมเบื้องต้น"
     },
     {
-        "course_code": "06016418",
-        "field": "name_th",
-        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
-        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
+        "course_code": "06016481 หรือ 06016482",
+        "field": "name_en",
+        "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
     },
     {
         "course_code": "06016406",
@@ -319,21 +313,9 @@
     },
     {
         "course_code": "06016442",
-        "field": "name_th",
-        "before": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
-        "after": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง"
-    },
-    {
-        "course_code": "06016442",
         "field": "name_en",
         "before": "ITERNET OF THIGS HARDWARE DESIGI",
         "after": "INTERNET OF THINGS HARDWARE DESIGN"
-    },
-    {
-        "course_code": "06016443",
-        "field": "name_th",
-        "before": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
-        "after": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง"
     },
     {
         "course_code": "06016443",
@@ -370,6 +352,12 @@
         "field": "name_en",
         "before": "CUSTOMER RELATIONSH|P MANAGEMENT",
         "after": "CUSTOMER RELATIONSHIP MANAGEMENT"
+    },
+    {
+        "course_code": "06016457",
+        "field": "name_th",
+        "before": "ระบบฐานข้อมูลขันสูง",
+        "after": "ระบบฐานข้อมูลขั้นสูง"
     },
     {
         "course_code": "06016458",
@@ -411,7 +399,7 @@
         "course_code": "06016466",
         "field": "name_en",
         "before": "NETWORK AND SYSTEM TROUBLE SHOOTNG",
-        "after": "NETWORK AND SYSTEM TROUBLESHOOTING"
+        "after": "NETWORK AND SYSTEM TROUBLE SHOOTING"
     },
     {
         "course_code": "06016467",

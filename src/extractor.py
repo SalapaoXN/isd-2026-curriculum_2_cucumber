@@ -48,6 +48,50 @@ SOURCE_BACKED_TITLE_REPAIRS = {
         "before": "ปฏิบัติงานตามทักษะด้านการจัดการ",
         "after": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
     },
+    ("GENED", 19, "90642065", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "รักบี้ฟุตบอล",
+    },
+    ("GENED", 63, "90642065", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "รักบี้ฟุตบอล",
+    },
+    ("GENED", 24, "90642152", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "ปันสุข",
+    },
+    ("GENED", 86, "90642152", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "ปันสุข",
+    },
+    ("GENED", 29, "90644044", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "พูดได้ พูดดี พูดเป็น",
+    },
+    ("GENED", 111, "90644044", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "พูดได้ พูดดี พูดเป็น",
+    },
+    ("GENED", 26, "90643037", "name_en"): {
+        "before": "N/A",
+        "after": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+    },
+    ("GENED", 99, "90643037", "name_en"): {
+        "before": "N/A",
+        "after": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+    },
+    ("AIT", 23, "90641004", "name_en"): {
+        "before": "TEAM PR0ECT 1",
+        "after": "TEAM-PROJECT 1",
+    },
+    ("AIT", 24, "90641005", "name_en"): {
+        "before": "TEAM PR0JECT 2",
+        "after": "TEAM-PROJECT 2",
+    },
+    ("AIT", 25, "90641006", "name_en"): {
+        "before": "TEAM PROECT 3",
+        "after": "TEAM-PROJECT 3",
+    },
 }
 DEFAULT_COOP_PAIRS = (
     ("06026259", "06026260", "6(0-35-0)"),

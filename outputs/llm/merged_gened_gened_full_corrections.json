@@ -147,7 +147,7 @@
         "course_code": "90642036",
         "field": "name_en",
         "before": "PRE ACTMITIES FOR ENGINEERS",
-        "after": "PRE-ACTIVITIES FOR ENGINEERS"
+        "after": "PRE ACTIVITIES FOR ENGINEERS"
     },
     {
         "course_code": "90642038",
@@ -171,7 +171,7 @@
         "course_code": "90642045",
         "field": "name_en",
         "before": "BE MV BEV.",
-        "after": "BEER MY BEV."
+        "after": "BEVERAGE"
     },
     {
         "course_code": "90642049",
@@ -258,22 +258,10 @@
         "after": "RUGBY FOOTBALL"
     },
     {
-        "course_code": "90642067",
-        "field": "name_th",
-        "before": "ซอฟบอลและเบสบอล",
-        "after": "ซอฟต์บอลและเบสบอล"
-    },
-    {
         "course_code": "90642071",
         "field": "name_en",
         "before": "BADMNTON",
         "after": "BADMINTON"
-    },
-    {
-        "course_code": "90642074",
-        "field": "name_en",
-        "before": "E SPORTS",
-        "after": "ESPORTS"
     },
     {
         "course_code": "90642080",
@@ -304,12 +292,6 @@
         "field": "name_en",
         "before": "PHOTOCRAPHY APPRECATION",
         "after": "PHOTOGRAPHY APPRECIATION"
-    },
-    {
-        "course_code": "90642085",
-        "field": "name_th",
-        "before": "วัฒนธรรมรวมสมัย",
-        "after": "วัฒนธรรมร่วมสมัย"
     },
     {
         "course_code": "90642086",
@@ -480,12 +462,6 @@
         "after": "INFORMATION LITERACY SKILLS FOR THE 21ST CENTURY"
     },
     {
-        "course_code": "90642118",
-        "field": "name_en",
-        "before": "APPLICATION SOFTWARE FOR BUSSINESS",
-        "after": "APPLICATION SOFTWARE FOR BUSINESS"
-    },
-    {
         "course_code": "90642119",
         "field": "name_en",
         "before": "COMPUTER FOR DEVELOPMENT OF ANAL ITICAL THINKING PROCESS",
@@ -502,12 +478,6 @@
         "field": "name_en",
         "before": "DATA ANALYSIS AND MANACEMENT WITH COMPUTATIONAL PROCRAM",
         "after": "DATA ANALYSIS AND MANAGEMENT WITH COMPUTATIONAL PROGRAM"
-    },
-    {
-        "course_code": "90642122",
-        "field": "name_th",
-        "before": "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์",
-        "after": "การใช้แอปพลิเคชันไมโครคอมพิวเตอร์"
     },
     {
         "course_code": "90642122",
@@ -678,12 +648,6 @@
         "after": "UNDERSTANDING HUMAN BEHAVIOR"
     },
     {
-        "course_code": "90642154",
-        "field": "name_en",
-        "before": "FALL ABLE",
-        "after": "FALLABLE"
-    },
-    {
         "course_code": "90642156",
         "field": "name_en",
         "before": "FENG SHUL",
@@ -819,7 +783,7 @@
         "course_code": "90643030",
         "field": "name_th",
         "before": "เศร ริษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ",
-        "after": "เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ"
+        "after": "เศรษฐศาสตร์ทั่วไปและการศึกษาความเป็นไปได้ของโครงการ"
     },
     {
         "course_code": "90643030",
@@ -868,12 +832,6 @@
         "field": "name_th",
         "before": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่",
         "after": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21"
-    },
-    {
-        "course_code": "90643037",
-        "field": "name_en",
-        "before": "N/A",
-        "after": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21ST CENTURY"
     },
     {
         "course_code": "90643038",
@@ -934,12 +892,6 @@
         "field": "name_th",
         "before": "ภาษา อังกฤษเพื่อการศึกษาต่อ",
         "after": "ภาษาอังกฤษเพื่อการศึกษาต่อ"
-    },
-    {
-        "course_code": "90644016",
-        "field": "name_th",
-        "before": "อังกฤษเพื่ออุตสาหกรรม",
-        "after": "ภาษาอังกฤษเพื่ออุตสาหกรรม"
     },
     {
         "course_code": "90644016",
