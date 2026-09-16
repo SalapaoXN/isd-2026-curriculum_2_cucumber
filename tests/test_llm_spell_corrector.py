@@ -74,6 +74,24 @@ class LlmSpellCorrectorTests(unittest.TestCase):
             "COURSE NAME 3",
         )
 
+    def test_terminal_numeric_suffix_accepts_only_one_digit(self):
+        cases = {
+            "1": "1",
+            "9": "9",
+            "12": None,
+            "23": None,
+            "COURSE 1": "1",
+            "COURSE 12": None,
+            "COURSE1": None,
+            "": None,
+            None: None,
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assertEqual(
+                    llm_spell_corrector._terminal_numeric_suffix(value), expected
+                )
+
     def test_terminal_suffix_addition_is_rejected(self):
         self.assertEqual(
             self.validated_text("COURSE NAME", "COURSE NAME 3"),

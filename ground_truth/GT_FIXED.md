@@ -69,6 +69,7 @@ The following Ground Truth corrections were verified against the official curric
 
 ### General Education
 
+- `90641003`: `กีฬาและนันทนาการ` → `กีฬาและนันทนาการ 1` (verified against official curriculum PDFs)
 - `90642062`: `เรื่ื่องกินเรื่องใหญ่` → `เรื่องกินเรื่องใหญ่`
 - `90642083`: `ศิลปะแห่งภาพยนต์` → `ศิลปะแห่งภาพยนตร์`
 - `90642095`: `การพัฒนาตวามมั่นคงแห่งชาติ` → `การพัฒนาความมั่นคงแห่งชาติ`

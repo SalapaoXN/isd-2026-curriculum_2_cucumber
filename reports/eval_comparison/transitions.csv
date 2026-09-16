@@ -1,10 +1,10 @@
 field,comparison_mode,correct_to_correct,wrong_to_correct,correct_to_wrong,wrong_to_wrong
 code,normalized,839,0,0,0
 code,strict,833,0,0,6
-name_th,normalized,609,153,3,74
-name_th,strict,604,152,3,80
-name_en,normalized,319,433,4,83
-name_en,strict,312,400,4,123
+name_th,normalized,595,166,14,64
+name_th,strict,590,165,14,70
+name_en,normalized,318,434,6,81
+name_en,strict,311,401,6,121
 credits,normalized,832,0,0,7
 credits,strict,832,0,0,7
 year,normalized,566,0,0,7

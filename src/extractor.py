@@ -36,6 +36,19 @@ SOURCE_PROVENANCE_FIELDS = (
     "document_category",
 )
 PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
+
+# Source-backed repairs for OCR omissions.  Matching is exact and intentionally
+# separate from the parser's suffix heuristics.
+SOURCE_BACKED_TITLE_REPAIRS = {
+    ("GENED", 24, "90643001", "name_th"): {
+        "before": "ปฏิบัติงานตามทักษะด้านการจัดการ",
+        "after": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
+    },
+    ("GENED", 89, "90643001", "name_th"): {
+        "before": "ปฏิบัติงานตามทักษะด้านการจัดการ",
+        "after": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
+    },
+}
 DEFAULT_COOP_PAIRS = (
     ("06026259", "06026260", "6(0-35-0)"),
     ("06046443", "06046444", "6(0-45-0)"),
@@ -311,8 +324,13 @@ class CurriculumExtractor:
         )
 
     @classmethod
-    def _reconcile_bilingual_terminal_suffix(cls, course: Dict) -> Dict:
+    def _reconcile_bilingual_terminal_suffix(
+        cls, course: Dict, program: Optional[str] = None
+    ) -> Dict:
         """Copy a clearly parsed terminal numeric suffix to the other name."""
+        if program == "GENED":
+            return course
+
         def terminal_suffix(value: object) -> Optional[str]:
             if not isinstance(value, str):
                 return None
@@ -457,6 +475,31 @@ class CurriculumExtractor:
         result = dict(course)
         result[SOURCE_PROVENANCE_KEY] = [dict(source_context)]
         return result
+
+    @classmethod
+    def _apply_source_backed_title_repairs(cls, course: Dict) -> Dict:
+        """Apply only exact source-identity and before-value title repairs."""
+        code = course.get("code")
+        provenance = course.get(SOURCE_PROVENANCE_KEY)
+        if not isinstance(code, str) or not isinstance(provenance, list):
+            return course
+
+        for source in provenance:
+            if not isinstance(source, dict):
+                continue
+            source_identity = (
+                source.get("program"),
+                source.get("source_page"),
+                code,
+            )
+            for (program, source_page, repair_code, field), repair in (
+                SOURCE_BACKED_TITLE_REPAIRS.items()
+            ):
+                if source_identity != (program, source_page, repair_code):
+                    continue
+                if course.get(field) == repair["before"]:
+                    course[field] = repair["after"]
+        return course
 
     def _gened_audit_course_codes(self, lines: List[str]) -> List[str]:
         if self.program != "GENED":
@@ -852,9 +895,16 @@ class CurriculumExtractor:
 
             if re.fullmatch(r"\d+", line.strip()):
                 next_line = self._next_nonempty_line(block.lines, line_index)
+                gened_title_suffix = (
+                    self.program == "GENED"
+                    and last_name_field == "name_th"
+                    and last_name_line_index == line_index - 1
+                    and re.fullmatch(r"[1-9]", line.strip()) is not None
+                )
                 if (
                     next_line is not None
                     and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
+                    and not gened_title_suffix
                 ):
                     credit_unit = line.strip()
                     credits = f"{credits} {credit_unit}".strip() if credits else credit_unit
@@ -975,7 +1025,7 @@ class CurriculumExtractor:
             course["year"] = block.year
             course["semester"] = block.semester
 
-        return self._reconcile_bilingual_terminal_suffix(course)
+        return self._reconcile_bilingual_terminal_suffix(course, self.program)
 
     # ------------------------------------------------------------------ #
     #  Step 3: post-process the whole course list                         #
@@ -1037,10 +1087,11 @@ class CurriculumExtractor:
         )
         audit_course_codes = self._gened_audit_course_codes(lines)
         blocks = self.split_into_blocks(lines)
-        courses = [
-            self._attach_source_provenance(self.parse_single_block(block), source_context)
-            for block in blocks
-        ]
+        courses = []
+        for block in blocks:
+            course = self.parse_single_block(block)
+            course = self._attach_source_provenance(course, source_context)
+            courses.append(self._apply_source_backed_title_repairs(course))
         courses = self.post_process(courses)
 
         return {
@@ -1474,7 +1525,10 @@ class CurriculumExtractor:
             
             self._append_description_lines(course, desc_lines)
             course = self._attach_source_provenance(course, source_context)
-            courses.append(self._reconcile_bilingual_terminal_suffix(course))
+            course = self._apply_source_backed_title_repairs(course)
+            courses.append(
+                self._reconcile_bilingual_terminal_suffix(course, self.program)
+            )
             i = j
 
         return courses, leading_lines

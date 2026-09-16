@@ -72,7 +72,7 @@ def _terminal_numeric_suffix(text: Any) -> str | None:
     """Return only a standalone final digit suffix from a name-like value."""
     if not isinstance(text, str) or not text:
         return None
-    if text in "123456789":
+    if len(text) == 1 and text in "123456789":
         return text
     if text[-1] in "123456789" and len(text) > 1 and text[-2].isspace():
         return text[-1]

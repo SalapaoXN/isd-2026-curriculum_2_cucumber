@@ -106,6 +106,82 @@ class CourseCleanupTests(unittest.TestCase):
                 self.assertEqual(result.get("name_th"), expected_th)
                 self.assertEqual(result.get("name_en"), expected_en)
 
+    def test_gened_bilingual_terminal_suffix_reconciliation_is_disabled(self):
+        result = CurriculumExtractor._reconcile_bilingual_terminal_suffix(
+            {"name_th": "ชื่อไทย 1", "name_en": "ENGLISH"}, "GENED"
+        )
+        self.assertEqual(result["name_th"], "ชื่อไทย 1")
+        self.assertEqual(result["name_en"], "ENGLISH")
+
+    def test_source_backed_title_repair_requires_exact_identity_and_before_value(self):
+        before = "ปฏิบัติงานตามทักษะด้านการจัดการ"
+        after = "ปฏิบัติงานตามทักษะด้านการจัดการ 1"
+        cases = (
+            (24, "90643001", before, after),
+            (89, "90643001", before, after),
+            (25, "90643001", before, before),
+            (24, "90643002", before, before),
+            (24, "90643001", after, after),
+            (24, "90643001", "ชื่ออื่น", "ชื่ออื่น"),
+        )
+        for page, code, current, expected in cases:
+            with self.subTest(page=page, code=code, current=current):
+                provenance_data = provenance("GENED", page, "plan")
+                course = {
+                    "code": code,
+                    "name_th": current,
+                    "name_en": "PRACTICE UNDER MANAGEMENT SKILLS",
+                    "source_provenance": provenance_data,
+                }
+                result = CurriculumExtractor._apply_source_backed_title_repairs(
+                    course
+                )
+                self.assertEqual(result["name_th"], expected)
+                self.assertEqual(
+                    result["name_en"], "PRACTICE UNDER MANAGEMENT SKILLS"
+                )
+                self.assertEqual(result["source_provenance"], provenance_data)
+
+    def test_source_backed_title_repair_covers_both_persisted_gened_occurrences(self):
+        extractor = CurriculumExtractor(program="GENED", plan="gened")
+        plan = extractor.extract_from_lines(
+            [
+                "90643001",
+                "ปฏิบัติงานตามทักษะด้านการจัดการ",
+                "1 (0-2-1)",
+                "PRACTICE UNDER MANAGEMENT SKILLS",
+            ],
+            provenance("GENED", 24, "plan")[0],
+        )["courses"][0]
+        description = extractor.extract_descriptions(
+            [
+                "คำอธิบายรายวิชา",
+                "90643001",
+                "ปฏิบัติงานตามทักษะด้านการจัดการ",
+                "(0-2-1)",
+                "PRACTICE UNDER MANAGEMENT SKILLS 1",
+                "รายวิชาบังคับก่อน",
+                "ไม่มี",
+            ],
+            provenance("GENED", 89, "description")[0],
+        )["courses"][0]
+
+        self.assertEqual(plan["name_th"], "ปฏิบัติงานตามทักษะด้านการจัดการ 1")
+        self.assertEqual(
+            description["name_th"], "ปฏิบัติงานตามทักษะด้านการจัดการ 1"
+        )
+        self.assertEqual(plan["name_en"], "PRACTICE UNDER MANAGEMENT SKILLS")
+        self.assertEqual(
+            description["name_en"], "PRACTICE UNDER MANAGEMENT SKILLS 1"
+        )
+        self.assertEqual(
+            plan["source_provenance"], [provenance("GENED", 24, "plan")[0]]
+        )
+        self.assertEqual(
+            description["source_provenance"],
+            [provenance("GENED", 89, "description")[0]],
+        )
+
     def test_plan_parser_reconciles_one_sided_terminal_suffix(self):
         extractor = CurriculumExtractor(program="BIT", plan="no_coop")
         result = extractor.parse_single_block(
