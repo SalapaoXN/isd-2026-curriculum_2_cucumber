@@ -5,10 +5,11 @@ from pathlib import Path
 
 from merge_consecutive import (
     _preserve_authoritative_extracted_credit,
+    _preserve_exact_description_terminal_suffix,
     merge_consecutive_files,
     merge_plan_with_description,
 )
-from src.extractor import CurriculumExtractor
+from src.extractor import CourseBlock, CurriculumExtractor
 
 
 def provenance(program, page, category):
@@ -42,6 +43,180 @@ def alternative_course(code, page, category, marker):
 
 
 class CourseCleanupTests(unittest.TestCase):
+    def test_exact_description_terminal_suffix_preservation_rules(self):
+        cases = (
+            ("ชื่อโครงงาน", "ชื่อโครงงาน 1", "ชื่อโครงงาน 1"),
+            ("PROJECT", "PROJECT 2", "PROJECT 2"),
+            ("COURSE 1", "COURSE 1", "COURSE 1"),
+            ("COURSE 1", "COURSE 2", "COURSE 1"),
+            ("COURSE", "COURSE", "COURSE"),
+            ("COURSE", "DIFFERENT COURSE 1", "COURSE"),
+            ("COURSE NAME", "COURSE  NAME 1", "COURSE NAME"),
+            ("COURSE", "COURSE 12", "COURSE"),
+            ("COURSE", "COURSE I", "COURSE"),
+            ("", "COURSE 1", ""),
+            ("COURSE", "", "COURSE"),
+        )
+        for plan_title, description_title, expected in cases:
+            with self.subTest(plan_title=plan_title, description_title=description_title):
+                self.assertEqual(
+                    _preserve_exact_description_terminal_suffix(
+                        plan_title, description_title
+                    ),
+                    expected,
+                )
+
+    def test_unique_description_merge_preserves_exact_suffix_titles_and_fields(self):
+        plan = alternative_course("SUFFIX01", 1, "plan", "PLAN")
+        plan["name_th"] = "ชื่อโครงงาน"
+        plan["name_en"] = "BUSINESS PROJECT"
+        description = alternative_course("SUFFIX01", 2, "description", "DESC")
+        description["name_th"] = "ชื่อโครงงาน 1"
+        description["name_en"] = "BUSINESS PROJECT 2"
+
+        result = merge_plan_with_description(
+            [plan], [description], {"program": "IT", "plan": "no_coop"}
+        )
+        merged = result["courses"][0]
+
+        self.assertEqual(merged["name_th"], "ชื่อโครงงาน 1")
+        self.assertEqual(merged["name_en"], "BUSINESS PROJECT 2")
+        self.assertEqual(merged["prerequisite"], description["prerequisite"])
+        self.assertEqual(merged["desc_th"], description["desc_th"])
+        self.assertEqual(merged["desc_en"], description["desc_en"])
+        self.assertEqual(
+            [entry["source_page"] for entry in merged["source_provenance"]],
+            [1, 2],
+        )
+
+    def test_bilingual_terminal_suffix_reconciliation_rules(self):
+        cases = (
+            ({"name_th": "ชื่อไทย 1", "name_en": "ENGLISH"}, "ชื่อไทย 1", "ENGLISH 1"),
+            ({"name_th": "ชื่อไทย", "name_en": "ENGLISH 2"}, "ชื่อไทย 2", "ENGLISH 2"),
+            ({"name_th": "ชื่อไทย 3", "name_en": "ENGLISH 3"}, "ชื่อไทย 3", "ENGLISH 3"),
+            ({"name_th": "ชื่อไทย 1", "name_en": "ENGLISH 2"}, "ชื่อไทย 1", "ENGLISH 2"),
+            ({"name_th": "ชื่อไทย", "name_en": "ENGLISH"}, "ชื่อไทย", "ENGLISH"),
+            ({"name_th": "", "name_en": "ENGLISH 2"}, "", "ENGLISH 2"),
+            ({"name_th": "ชื่อไทย 1", "name_en": ""}, "ชื่อไทย 1", ""),
+            ({"code": "06016409", "name_th": "ชื่อไทย", "name_en": "ENGLISH"}, "ชื่อไทย", "ENGLISH"),
+        )
+        for raw, expected_th, expected_en in cases:
+            with self.subTest(raw=raw):
+                result = CurriculumExtractor._reconcile_bilingual_terminal_suffix(dict(raw))
+                self.assertEqual(result.get("name_th"), expected_th)
+                self.assertEqual(result.get("name_en"), expected_en)
+
+    def test_plan_parser_reconciles_one_sided_terminal_suffix(self):
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+        result = extractor.parse_single_block(
+            CourseBlock(
+                code="06000001",
+                lines=["ชื่อไทย 1", "ENGLISH TITLE", "3(3-0-6)"],
+            )
+        )
+        self.assertEqual(result["name_th"], "ชื่อไทย 1")
+        self.assertEqual(result["name_en"], "ENGLISH TITLE 1")
+
+    def test_bit_pending_numeric_suffix_before_code_is_reconciled(self):
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+        result = extractor.extract_from_lines(
+            ["ชื่อไทย", "1", "06000011", "3(3-0-6)", "ENGLISH TITLE"]
+        )["courses"][0]
+
+        self.assertEqual(result["name_th"], "ชื่อไทย 1")
+        self.assertEqual(result["name_en"], "ENGLISH TITLE 1")
+        self.assertEqual(result["credits"], "3(3-0-6)")
+
+    def test_bit_pending_numeric_suffix_requires_pending_title_and_code(self):
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+
+        no_pending = extractor.extract_from_lines(
+            ["1", "06000012", "3(3-0-6)", "ENGLISH TITLE"]
+        )["courses"][0]
+        self.assertEqual(no_pending["name_en"], "ENGLISH TITLE")
+
+        no_following_code = extractor.extract_from_lines(
+            ["ชื่อไทย", "1", "не код", "06000013", "3(3-0-6)", "ENGLISH TITLE"]
+        )["courses"][0]
+        self.assertEqual(no_following_code["name_th"], "ชื่อไทย")
+        self.assertEqual(no_following_code["name_en"], "ENGLISH TITLE")
+
+        multi_digit = extractor.extract_from_lines(
+            ["ชื่อไทย", "12", "06000014", "3(3-0-6)", "ENGLISH TITLE"]
+        )["courses"][0]
+        self.assertEqual(multi_digit["name_th"], "ไม่ระบุ")
+        self.assertEqual(multi_digit["name_en"], "ENGLISH TITLE")
+
+    def test_bit_pending_numeric_suffix_boundary_clears_state(self):
+        for boundary in ("ปีที่ 2", "รหัสวิชา", "หมวดวิชาเลือก"):
+            with self.subTest(boundary=boundary):
+                extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+                result = extractor.extract_from_lines(
+                    [
+                        "ชื่อไทย",
+                        "1",
+                        boundary,
+                        "06000015",
+                        "3(3-0-6)",
+                        "ENGLISH TITLE",
+                    ]
+                )["courses"][0]
+                self.assertEqual(result["name_th"], "ไม่ระบุ")
+                self.assertEqual(result["name_en"], "ENGLISH TITLE")
+
+    def test_bit_pending_numeric_suffix_does_not_duplicate_or_replace(self):
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+
+        same_suffix = extractor.extract_from_lines(
+            ["ชื่อไทย 1", "1", "06000016", "3(3-0-6)", "ENGLISH TITLE"]
+        )["courses"][0]
+        self.assertEqual(same_suffix["name_th"], "ชื่อไทย 1")
+        self.assertEqual(same_suffix["name_en"], "ENGLISH TITLE 1")
+
+        conflicting_suffix = extractor.extract_from_lines(
+            ["ชื่อไทย 2", "1", "06000017", "3(3-0-6)", "ENGLISH TITLE"]
+        )["courses"][0]
+        self.assertEqual(conflicting_suffix["name_th"], "ชื่อไทย 2")
+        self.assertEqual(conflicting_suffix["name_en"], "ENGLISH TITLE 2")
+
+    def test_description_parser_attaches_suffix_before_partial_credit_prefix(self):
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+        result = extractor.extract_descriptions(
+            [
+                "คำอธิบายรายวิชา",
+                "06000001",
+                "ชื่อวิชาทดลอง",
+                "2",
+                "3(2-2",
+                "EXPERIMENTAL COURSE",
+                "วิชาบังคับก่อน",
+                "ไม่มี",
+            ]
+        )["courses"][0]
+
+        self.assertEqual(result["name_th"], "ชื่อวิชาทดลอง 2")
+        self.assertEqual(result["name_en"], "EXPERIMENTAL COURSE 2")
+
+    def test_description_parser_discards_numeric_suffix_without_credit_boundary(self):
+        extractor = CurriculumExtractor(program="BIT", plan="no_coop")
+        result = extractor.extract_descriptions(
+            [
+                "คำอธิบายรายวิชา",
+                "06000002",
+                "ชื่อวิชาทดลอง",
+                "2",
+                "not a credit boundary",
+                "EXPERIMENTAL COURSE",
+                "วิชาบังคับก่อน",
+                "ไม่มี",
+            ]
+        )["courses"][0]
+
+        self.assertEqual(result["name_th"], "ชื่อวิชาทดลอง")
+        self.assertEqual(
+            result["name_en"], "NOT A CREDIT BOUNDARY EXPERIMENTAL COURSE"
+        )
+
     def test_complete_persisted_credit_replaces_empty_or_parenthetical_raw_credit(self):
         persisted = alternative_course("CREDIT01", 366, "description", "PERSISTED")
         persisted["credits"] = "3(3-0-6)"

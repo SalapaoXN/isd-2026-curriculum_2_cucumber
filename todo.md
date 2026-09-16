@@ -59,14 +59,24 @@
 - Phase 6A-R.3a: prerequisite alternative normalization fixed; dual reports regenerated.
 - Phase 6A-R.4: source-backed Ground Truth correction batch applied; dual reports regenerated.
 - Phase 6A-R.4 follow-up: second source-confirmed Thai GT correction batch applied; dual reports regenerated.
+- Phase 6A-R.5b: deterministic bilingual terminal-suffix reconciliation implemented.
+- Phase 6A-R.5c: deterministic LLM terminal-suffix invariant implemented and tested.
+- Phase 6A-R.5d: regenerated Extracted/Consolidated and measured bilingual suffix reconciliation impact.
+- Exact description-title suffix preservation implemented in consolidation.
+- Phase 6A-R.5g: fixed generic raw-OCR suffix attachment after malformed credit boundaries.
+- Phase 6A-R.5h: regenerated Extracted/Consolidated; suffix mismatches 22 -> 13; 3/4 proven fields repaired, with remaining OCR-missing/source variants plus BIT 06036145 name_en.
+- Phase 6A-R.5i: prior 619/325 Consolidated snapshot was not retained; exact 15-field regression trace is not reconstructable.
+- Phase 6A-R.5j: deterministic field-level semantic baseline frozen for future C->W / W->C attribution.
+- Phase 6A-R.5k: BIT 06036145 title lineage audited; plan-source support, OCR/extractor loss, and source variant confirmed; no fix applied.
+- Phase 6A-R.5l: redundant plan occurrence audit found official page 76 unavailable in persisted OCR/Extracted inputs; no recovery rule added.
+- Final deterministic suffix-fidelity regeneration passed against frozen field-level baseline; no production suffix defect remains.
 
 ## Current Task
-Phase 6A-R.4a — Source-backed Thai Mismatch Taxonomy and Remediation Planning
+Checkpoint deterministic suffix-fidelity fixes before rerunning LLM correction.
 Status: AUDIT ONLY
 
 Goal:
-Plan source-backed taxonomy and remediation for the remaining Thai name
-mismatches.
+Checkpoint deterministic suffix-fidelity fixes before rerunning LLM correction.
 
 ## Next
 

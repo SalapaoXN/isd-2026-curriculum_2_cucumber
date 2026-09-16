@@ -68,6 +68,17 @@ def _reject_empty_text_replacement(
         raise ValueError(f"{context} cannot replace non-empty text with empty text")
 
 
+def _terminal_numeric_suffix(text: Any) -> str | None:
+    """Return only a standalone final digit suffix from a name-like value."""
+    if not isinstance(text, str) or not text:
+        return None
+    if text in "123456789":
+        return text
+    if text[-1] in "123456789" and len(text) > 1 and text[-2].isspace():
+        return text[-1]
+    return None
+
+
 def apply_corrections(
     document: Any,
     correction_records: list[dict[str, Any]],
@@ -300,6 +311,13 @@ def _validate_batch(
             after["text"],
             f"Gemini batch {batch_number} unit_index {unit_index}",
         )
+        if (
+            expected_unit["field"] in TEXT_FIELDS
+            and _terminal_numeric_suffix(expected_unit["text"])
+            != _terminal_numeric_suffix(after["text"])
+        ):
+            after = dict(after)
+            after["text"] = expected_unit["text"]
         validated[unit_index] = after
 
     missing_indices = sorted(expected_indices.difference(validated))

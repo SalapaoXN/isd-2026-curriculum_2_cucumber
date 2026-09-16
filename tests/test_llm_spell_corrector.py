@@ -62,6 +62,78 @@ class FakeClient:
 
 
 class LlmSpellCorrectorTests(unittest.TestCase):
+    @staticmethod
+    def validated_text(original, corrected, field="name_en"):
+        before = [{"unit_index": 0, "field": field, "text": original}]
+        after = [{"unit_index": 0, "field": field, "text": corrected}]
+        return llm_spell_corrector._validate_batch(before, after, 1, 0)[0]["text"]
+
+    def test_terminal_suffix_deletion_is_rejected(self):
+        self.assertEqual(
+            self.validated_text("COURSE NAME 3", "COURSE NAME"),
+            "COURSE NAME 3",
+        )
+
+    def test_terminal_suffix_addition_is_rejected(self):
+        self.assertEqual(
+            self.validated_text("COURSE NAME", "COURSE NAME 3"),
+            "COURSE NAME",
+        )
+
+    def test_terminal_suffix_substitution_is_rejected(self):
+        self.assertEqual(
+            self.validated_text("COURSE NAME 3", "COURSE NAME 4"),
+            "COURSE NAME 3",
+        )
+
+    def test_same_terminal_suffix_and_suffix_free_corrections_are_accepted(self):
+        self.assertEqual(
+            self.validated_text("COURSE NANE 3", "COURSE NAME 3"),
+            "COURSE NAME 3",
+        )
+        self.assertEqual(
+            self.validated_text("COURSE NANE", "COURSE NAME"),
+            "COURSE NAME",
+        )
+        self.assertEqual(
+            self.validated_text("COURSE 12", "COURSE"),
+            "COURSE",
+        )
+
+    def test_terminal_suffix_guard_applies_to_thai_names(self):
+        self.assertEqual(
+            self.validated_text(
+                "โครงงานปัญญาประดิษฐ์ 1",
+                "โครงงานปัญญาประดิษฐ์",
+                field="name_th",
+            ),
+            "โครงงานปัญญาประดิษฐ์ 1",
+        )
+
+    def test_mixed_batch_preserves_unsafe_unit_and_applies_valid_unit(self):
+        before = [
+            {"unit_index": 0, "field": "name_th", "text": "ชื่อวิชา 1"},
+            {"unit_index": 1, "field": "name_en", "text": "COURSE NANE"},
+        ]
+        after = [
+            {"unit_index": 0, "field": "name_th", "text": "ชื่อวิชา"},
+            {"unit_index": 1, "field": "name_en", "text": "COURSE NAME"},
+        ]
+        validated = llm_spell_corrector._validate_batch(before, after, 1, 0)
+        self.assertEqual(validated[0]["text"], "ชื่อวิชา 1")
+        self.assertEqual(validated[1]["text"], "COURSE NAME")
+
+        corrected, corrections = llm_spell_corrector._reconstruct_document(
+            {"courses": [make_record(name_th="ชื่อวิชา 1", name_en="COURSE NANE")]},
+            {
+                (original["field"], original["text"]): unit["text"]
+                for original, unit in zip(before, validated.values())
+            },
+        )
+        self.assertEqual(corrected["courses"][0]["name_th"], "ชื่อวิชา 1")
+        self.assertEqual(corrected["courses"][0]["name_en"], "COURSE NAME")
+        self.assertEqual([entry["field"] for entry in corrections], ["name_en"])
+
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.directory = Path(self.temp_dir.name)

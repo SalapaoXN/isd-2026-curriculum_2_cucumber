@@ -246,6 +246,10 @@ class CurriculumExtractor:
         re.IGNORECASE,
     )
     SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
+    # A description OCR row can expose the credit prefix without the final
+    # tuple component (e.g. ``3(2-2``).  This is only a structural lookahead
+    # for suffix attachment; it is not treated as a parsed credit value.
+    PARTIAL_CREDIT_PREFIX_RE = re.compile(r"\d+\(\d+-\d+$")
     PAREN_ONLY_CREDIT_RE = re.compile(
         r"^\s*\([0-9xX]+[ -][0-9xX]+[ -][0-9xX]+\)\s*$"
     )
@@ -305,6 +309,28 @@ class CurriculumExtractor:
             or cls.PREREQ_KEYWORD_RE.search(next_line)
             or cls.DESCRIPTION_CODE_LINE_RE.fullmatch(next_line)
         )
+
+    @classmethod
+    def _reconcile_bilingual_terminal_suffix(cls, course: Dict) -> Dict:
+        """Copy a clearly parsed terminal numeric suffix to the other name."""
+        def terminal_suffix(value: object) -> Optional[str]:
+            if not isinstance(value, str):
+                return None
+            match = re.search(r"(?:^|\s)([1-9])$", value)
+            return match.group(1) if match else None
+
+        name_th = course.get("name_th")
+        name_en = course.get("name_en")
+        suffix_th = terminal_suffix(name_th)
+        suffix_en = terminal_suffix(name_en)
+
+        if suffix_th and suffix_en:
+            return course
+        if suffix_th and isinstance(name_en, str) and name_en:
+            course["name_en"] = f"{name_en} {suffix_th}"
+        elif suffix_en and isinstance(name_th, str) and name_th:
+            course["name_th"] = f"{name_th} {suffix_en}"
+        return course
 
     # Year / semester headers, with or without the number on the same line.
     YEAR_HEADER_RE = re.compile(r"(?:ชั้น)?[ปขชบ]ี\s*ที่?")                    # "ปีที่"
@@ -480,6 +506,8 @@ class CurriculumExtractor:
         blocks: List[CourseBlock] = []
         current: Optional[CourseBlock] = None
         pending_bit_name_lines: List[str] = []
+        pending_bit_name_suffix: Optional[str] = None
+        pending_bit_suffix_conflict = False
 
         idx = 0
         n = len(lines)
@@ -514,6 +542,8 @@ class CurriculumExtractor:
             # 1) Year / semester header -> a new term starts, close any open block.
             if self.META_LINE_RE.match(line):
                 pending_bit_name_lines.clear()
+                pending_bit_name_suffix = None
+                pending_bit_suffix_conflict = False
                 current = None
                 idx += self._apply_meta_context(line, lines, idx)
                 continue
@@ -540,15 +570,22 @@ class CurriculumExtractor:
                     type=self._ctx_type,
                 )
                 if self.program == "BIT" and pending_bit_name_lines:
-                    current.lines.append(
-                        "".join(
-                            part[1:]
-                            if index and pending_bit_name_lines[index - 1][-1:] == part[:1]
-                            else part
-                            for index, part in enumerate(pending_bit_name_lines)
-                        )
+                    pending_title = "".join(
+                        part[1:]
+                        if index and pending_bit_name_lines[index - 1][-1:] == part[:1]
+                        else part
+                        for index, part in enumerate(pending_bit_name_lines)
                     )
+                    if pending_bit_name_suffix and not pending_bit_suffix_conflict:
+                        existing_suffix = re.search(r"(?:^|\s)([1-9])$", pending_title)
+                        if existing_suffix is None:
+                            pending_title = f"{pending_title} {pending_bit_name_suffix}"
+                        elif existing_suffix.group(1) != pending_bit_name_suffix:
+                            pending_bit_suffix_conflict = True
+                    current.lines.append(pending_title)
                     pending_bit_name_lines.clear()
+                    pending_bit_name_suffix = None
+                    pending_bit_suffix_conflict = False
                 # The name / credits may share the code's line (rare) -> keep the tail.
                 if remainder:
                     current.lines.append(remainder)
@@ -559,6 +596,8 @@ class CurriculumExtractor:
             # 3) Table / total / page-number noise -> close any open block.
             if self._is_noise_line(line):
                 pending_bit_name_lines.clear()
+                pending_bit_name_suffix = None
+                pending_bit_suffix_conflict = False
                 current = None
                 idx += 1
                 continue
@@ -570,6 +609,8 @@ class CurriculumExtractor:
             )
             if (is_category_header or is_it_section_header) and not self.CREDITS_RE.search(line):
                 pending_bit_name_lines.clear()
+                pending_bit_name_suffix = None
+                pending_bit_suffix_conflict = False
                 self._ctx_category = line
                 self._ctx_type = "เลือก" if "เลือก" in line else "บังคับ"
                 current = None
@@ -588,10 +629,40 @@ class CurriculumExtractor:
                     idx > 0 and lines[idx - 1].strip().startswith("(บรรยาย")
                 )
             ):
+                pending_bit_name_suffix = None
                 pending_bit_name_lines.append(line)
                 current = None
                 idx += 1
                 continue
+
+            # Some BIT plan rows place a numeric title suffix between the
+            # pending Thai title and its following course-code line.  Retain
+            # only this exact code-adjacent structural token; it is consumed
+            # when the next valid course block is created.
+            if (
+                self.program == "BIT"
+                and current is None
+                and pending_bit_name_lines
+                and re.fullmatch(r"[1-9]", line)
+            ):
+                if (
+                    pending_bit_name_suffix is not None
+                    and pending_bit_name_suffix != line
+                ):
+                    pending_bit_suffix_conflict = True
+                    pending_bit_name_suffix = None
+                elif not pending_bit_suffix_conflict:
+                    pending_bit_name_suffix = line
+                idx += 1
+                continue
+
+            if (
+                self.program == "BIT"
+                and current is None
+                and pending_bit_name_lines
+                and pending_bit_name_suffix is not None
+            ):
+                pending_bit_name_suffix = None
 
             # IT plan OCR sometimes emits a section-heading continuation as a
             # Thai-only line after a complete course row. GenEd pages likewise
@@ -904,7 +975,7 @@ class CurriculumExtractor:
             course["year"] = block.year
             course["semester"] = block.semester
 
-        return course
+        return self._reconcile_bilingual_terminal_suffix(course)
 
     # ------------------------------------------------------------------ #
     #  Step 3: post-process the whole course list                         #
@@ -1215,7 +1286,11 @@ class CurriculumExtractor:
                     )
                     next_line = self._next_nonempty_line(lines, j)
                     next_is_credit = bool(
-                        next_line and self.SINGLE_CREDIT_RE.search(next_line)
+                        next_line
+                        and (
+                            self.SINGLE_CREDIT_RE.search(next_line)
+                            or self.PARTIAL_CREDIT_PREFIX_RE.fullmatch(next_line)
+                        )
                     )
                     if en_words and credits_seen and (
                         (is_numeric_suffix and (next_line is None or strong_position or
@@ -1398,7 +1473,8 @@ class CurriculumExtractor:
                 course["semester"] = 0
             
             self._append_description_lines(course, desc_lines)
-            courses.append(self._attach_source_provenance(course, source_context))
+            course = self._attach_source_provenance(course, source_context)
+            courses.append(self._reconcile_bilingual_terminal_suffix(course))
             i = j
 
         return courses, leading_lines

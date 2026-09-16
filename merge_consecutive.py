@@ -131,6 +131,29 @@ def _recover_credit_from_matching_description(
 
     return desc_credit
 
+
+def _preserve_exact_description_terminal_suffix(
+    plan_title: object,
+    description_title: object,
+) -> object:
+    """Preserve a description's exact terminal suffix when the plan omits it."""
+    if not isinstance(plan_title, str) or not plan_title:
+        return plan_title
+    if not isinstance(description_title, str) or not description_title:
+        return plan_title
+    if any(plan_title.endswith(f" {suffix}") for suffix in "123456789"):
+        return plan_title
+
+    suffix = description_title[-1]
+    if suffix not in "123456789" or not description_title.endswith(f" {suffix}"):
+        return plan_title
+
+    description_base = description_title[:-2]
+    if description_base == plan_title:
+        return description_title
+    return plan_title
+
+
 def _apply_gened_audit_credit(course: dict, audit_codes: set[str]) -> dict:
     code = course.get("code")
     credits = course.get("credits")
@@ -506,6 +529,12 @@ class CurriculumConsolidator:
                     for field in ("prerequisite", "desc_th", "desc_en"):
                         if field in target_desc:
                             merged_course[field] = target_desc[field]
+
+                    for field in ("name_th", "name_en"):
+                        merged_course[field] = _preserve_exact_description_terminal_suffix(
+                            merged_course.get(field),
+                            target_desc.get(field),
+                        )
 
                     merged_course["source_provenance"] = merge_source_provenance(
                         course,
