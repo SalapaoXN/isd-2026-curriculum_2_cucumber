@@ -9,7 +9,7 @@
         "course_code": "06036101",
         "field": "name_th",
         "before": "เตศาสตร์ สำหรับธุรกิจ",
-        "after": "สถิติศาสตร์สำหรับธุรกิจ"
+        "after": "สถิติศาสตร์ สำหรับธุรกิจ"
     },
     {
         "course_code": "06036118",
@@ -106,12 +106,6 @@
         "field": "name_en",
         "before": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITV",
         "after": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY"
-    },
-    {
-        "course_code": "9664xxxx",
-        "field": "name_th",
-        "before": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
-        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1"
     },
     {
         "course_code": "9664xxxx",
@@ -214,12 +208,6 @@
         "field": "name_en",
         "before": "GE ELECTIE COURSE REOUIREMENT 2",
         "after": "GE ELECTIVE COURSE REQUIREMENT 2"
-    },
-    {
-        "course_code": "06036xxx",
-        "field": "name_th",
-        "before": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
-        "after": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4"
     },
     {
         "course_code": "06036xxx",

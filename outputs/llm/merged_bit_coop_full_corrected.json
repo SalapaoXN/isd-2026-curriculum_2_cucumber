@@ -732,7 +732,7 @@
         },
         {
             "code": "9664xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
             "name_en": "GE ELECTIVE COURSE REQUIREMENT 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1015,7 +1015,7 @@
         },
         {
             "code": "06036xxx",
-            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
             "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4",
             "credits": "หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1112,7 +1112,7 @@
         },
         {
             "code": "06036xxx",
-            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่ม วิชาที่ 1-4",
             "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4",
             "credits": "หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",

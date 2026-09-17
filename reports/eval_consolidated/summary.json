@@ -35,8 +35,8 @@
       "normalized_correct": 325,
       "normalized_incorrect": 514,
       "normalized_accuracy": 0.387366,
-      "cer": 0.038729,
-      "wer": 0.260891
+      "cer": 0.038685,
+      "wer": 0.260593
     },
     "credits": {
       "denominator": 839,

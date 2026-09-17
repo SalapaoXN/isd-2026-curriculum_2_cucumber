@@ -103,12 +103,6 @@
     },
     {
         "course_code": "9664xxxx",
-        "field": "name_th",
-        "before": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
-        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1"
-    },
-    {
-        "course_code": "9664xxxx",
         "field": "name_en",
         "before": "GE ELECTIE COURSE REOULREMENT 1",
         "after": "GE ELECTIVE COURSE REQUIREMENT 1"
@@ -163,12 +157,6 @@
     },
     {
         "course_code": "06036xxx",
-        "field": "name_th",
-        "before": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
-        "after": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4"
-    },
-    {
-        "course_code": "06036xxx",
         "field": "name_en",
         "before": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOCY 1 OR COURSE GR0UP 1-4",
         "after": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4"
@@ -190,12 +178,6 @@
         "field": "name_th",
         "before": "กฎหมายสำหรับคนรุนใหม่",
         "after": "กฎหมายสำหรับคนรุ่นใหม่"
-    },
-    {
-        "course_code": "06036xxx",
-        "field": "name_th",
-        "before": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่ม วิชาที่ 1-4",
-        "after": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4"
     },
     {
         "course_code": "06036xxx",

@@ -187,6 +187,69 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 self.assertEqual(corrected["courses"][0][field], after)
                 self.assertEqual(applied[0]["after"], after)
 
+    def test_phase_6c2_pins_apply_exact_verified_values(self):
+        expected_pins = {
+            ("IT", "06016412", "name_en", "COMPUTER ORCANIZATON AND OPERATING SSTEM"):
+                "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
+            ("IT", "06016466", "name_en", "NETWORK AND SYSTEM TROUBLE SHOOTNG"):
+                "NETWORK AND SYSTEM TROUBLE SHOOTING",
+            ("AIT", "06046413", "name_th", "ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง"):
+                "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง",
+            (
+                "DSBA",
+                "06026260",
+                "name_en",
+                "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
+            ): "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            ("GENED", "90642056", "name_en", "ST EPLDEMICS IN THE 21 CENTURV"):
+                "EPIDEMICS IN THE 21ST CENTURY",
+            ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+            ("IT", "06016418", "name_th", "การพัฒนาเว็บฝังเซิร์ฟเวอร์"):
+                "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+            (
+                "IT",
+                "06016442",
+                "name_th",
+                "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+            ): "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+            (
+                "IT",
+                "06016443",
+                "name_th",
+                "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+            ): "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+            ("IT", "90643021", "name_th", "ผู้ ประกอบการสมัยใหม่"):
+                "ผู้ประกอบการสมัยใหม่",
+            ("GENED", "90642134", "name_en", "KING MONGKUTS REIGN STUDV"):
+                "KING MONGKUTS REIGN STUDY",
+        }
+        for (program, course_code, field, before), after in expected_pins.items():
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = before
+                document = {"program": program, "courses": [record]}
+                reconstructed, reconstruction_log = (
+                    llm_spell_corrector._reconstruct_document(
+                        document,
+                        {(field, before): "untrusted candidate"},
+                    )
+                )
+                self.assertEqual(reconstructed["courses"][0][field], after)
+                self.assertEqual(reconstruction_log[0]["after"], after)
+
+                replayed, replay_log = llm_spell_corrector.apply_corrections(
+                    document,
+                    [{
+                        "course_code": course_code,
+                        "field": field,
+                        "before": before,
+                        "after": "untrusted candidate",
+                    }],
+                )
+                self.assertEqual(replayed["courses"][0][field], after)
+                self.assertEqual(replay_log[0]["after"], after)
+
     def test_canonical_rules_fail_closed_on_identity_and_before(self):
         for program, course_code, field, before in (
             key for key in llm_spell_corrector.CANONICAL_NAME_CORRECTIONS
@@ -285,6 +348,39 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 )
                 self.assertEqual(corrected["courses"][0][field], preserved_value)
                 self.assertEqual(applied, [])
+
+    def test_phase_6c2_preserves_gened_source_titles(self):
+        for course_code, source_value, candidate in (
+            ("90642126", "SURVIVORS", "SURVIVAL"),
+            ("90642154", "FALL ABLE", "FALLABLE"),
+        ):
+            with self.subTest(course_code=course_code):
+                record = make_record(course_code=course_code, name_en=source_value)
+                record.pop("program")
+                document = {"program": "GENED", "courses": [record]}
+
+                reconstructed, reconstruction_log = (
+                    llm_spell_corrector._reconstruct_document(
+                        document,
+                        {("name_en", source_value): candidate},
+                    )
+                )
+                self.assertEqual(
+                    reconstructed["courses"][0]["name_en"], source_value
+                )
+                self.assertEqual(reconstruction_log, [])
+
+                replayed, replay_log = llm_spell_corrector.apply_corrections(
+                    document,
+                    [{
+                        "course_code": course_code,
+                        "field": "name_en",
+                        "before": source_value,
+                        "after": candidate,
+                    }],
+                )
+                self.assertEqual(replayed["courses"][0]["name_en"], source_value)
+                self.assertEqual(replay_log, [])
 
     def test_literal_preserve_rules_fail_closed_on_identity_and_before(self):
         for program, course_code, field, before in (

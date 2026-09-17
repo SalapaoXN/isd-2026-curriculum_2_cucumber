@@ -1049,7 +1049,7 @@
         },
         {
             "code": "06016418",
-            "name_th": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+            "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
             "name_en": "SERVER SIDE WEB DEVELOPMENT",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1242,7 +1242,7 @@
         },
         {
             "code": "06016418",
-            "name_th": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+            "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
             "name_en": "SERVER SIDE WEB DEVELOPMENT",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1274,7 +1274,7 @@
         {
             "code": "06016481 หรือ 06016482",
             "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
-            "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
+            "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
             "credits": "6(0-36-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1386,7 +1386,7 @@
         },
         {
             "code": "9064xxxx",
-            "name_th": "วิชาเลือก หมวดศึกษาทั่วไป 1",
+            "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 1",
             "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1557,7 +1557,7 @@
         },
         {
             "code": "9064xxxx",
-            "name_th": "วิชาเลือก หมวดศึกษาทั่วไป 2",
+            "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 2",
             "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION 2",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1929,7 +1929,7 @@
         },
         {
             "code": "06016442",
-            "name_th": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+            "name_th": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
             "name_en": "INTERNET OF THINGS HARDWARE DESIGN",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1953,7 +1953,7 @@
         },
         {
             "code": "06016443",
-            "name_th": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+            "name_th": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
             "name_en": "INTERNET OF THINGS DATA ANALYTICS AND APPLICATIONS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",

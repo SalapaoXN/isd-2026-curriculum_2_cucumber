@@ -32,19 +32,20 @@ llm,BIT,coop,1,"{""code"": ""06036105"", ""occurrence"": 1, ""plan"": ""coop"", 
 llm,BIT,coop,1,"{""code"": ""06036122"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,VISUAL COMMUNICATION FORBUSINESS,VISUAL COMMUNICATION FOR BUSINESS,False,False,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""06036124"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,"INTRODUCTION TO COMPUTER NETWORK AND
 CYBERSECURITY",INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY,False,True,FIELD_MISMATCH
+llm,BIT,coop,1,"{""code"": ""9664xxxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1,วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1,False,False,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,True,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",code,96644XXX,96644xxx,False,True,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),False,False,FIELD_MISMATCH
-llm,BIT,coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4,False,False,FIELD_MISMATCH
+llm,BIT,coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4,False,False,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,"ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY1 
 OR
 COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4,False,False,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),False,False,FIELD_MISMATCH
-llm,BIT,coop,2,"{""code"": ""06036xxx"", ""occurrence"": 2, ""plan"": ""coop"", ""program"": ""BIT""}",name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4,False,False,FIELD_MISMATCH
+llm,BIT,coop,2,"{""code"": ""06036xxx"", ""occurrence"": 2, ""plan"": ""coop"", ""program"": ""BIT""}",name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่ม วิชาที่ 1-4,False,False,FIELD_MISMATCH
 llm,BIT,coop,2,"{""code"": ""06036xxx"", ""occurrence"": 2, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,"ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2
 OR
 COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4,False,False,FIELD_MISMATCH
@@ -68,20 +69,21 @@ llm,BIT,coop,1,"{""code"": ""06036134"", ""occurrence"": 1, ""plan"": ""coop"", 
 llm,BIT,coop,1,"{""code"": ""06036135"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY2,SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2,False,False,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""06036143"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,UX/UI REQUIREMENT AND PROTOTYPING,UX / UI REQUIREMENT AND PROTOTYPING,False,False,FIELD_MISMATCH
 llm,BIT,coop,1,"{""code"": ""06036144"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""BIT""}",name_en,EVALUATING USERINTERFACE,EVALUATING USER INTERFACE,False,False,FIELD_MISMATCH
-llm,BIT,no_coop,1,"{""code"": ""06036101"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,คณิตศาสตร์สำหรับธุรกิจ,สถิติศาสตร์สำหรับธุรกิจ,False,False,FIELD_MISMATCH
+llm,BIT,no_coop,1,"{""code"": ""06036101"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,คณิตศาสตร์สำหรับธุรกิจ,สถิติศาสตร์ สำหรับธุรกิจ,False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""96644042"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,การสื่อสารและการนำเสนออย่างมืออาชีพ,กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ,False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""06036103"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,"INTEGRATION OF STATISTICALTECHNIQUES FOR
 BUSINESS",INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS,False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""06036105"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,FINANCIAL ACCOUNTING FOR NON-ACCOUNTANTS,FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS,False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""06036124"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,"INTRODUCTION TO COMPUTER NETWORK AND
 CYBERSECURITY",INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY,False,True,FIELD_MISMATCH
+llm,BIT,no_coop,1,"{""code"": ""9664xxxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1,วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1,False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""06036114"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",prerequisite,06036119 หรือ 06036122,"06036119, 06036122",False,True,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",code,96644XXX,96644xxx,False,True,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""96644xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""96642033"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,กฎหมายสำหรับคนรุ่นใหม่,กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่,False,False,FIELD_MISMATCH
-llm,BIT,no_coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4,False,False,FIELD_MISMATCH
+llm,BIT,no_coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4,False,False,FIELD_MISMATCH
 llm,BIT,no_coop,1,"{""code"": ""06036xxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""BIT""}",name_en,"ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY1 
 OR
 COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4,False,False,FIELD_MISMATCH
@@ -275,7 +277,6 @@ llm,GENED,gened,1,"{""code"": ""90643003"", ""occurrence"": 1, ""plan"": ""gened
 llm,GENED,gened,1,"{""code"": ""90643016"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,สนุกกับธุรกิจออนไลน์,สนุกกับธุรกิจออนไลน์ 3,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643027"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,มนุษย์ เงิน และคณิตศาสตร์,เงินและคณิตศาสตร์,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643028"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,SMART TIPS FOR BEGINNING INVESTERS,SMART TIPS FOR BEGINNING INVESTORS,False,False,FIELD_MISMATCH
-llm,GENED,gened,1,"{""code"": ""90643030"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ,เศรษฐศาสตร์ทั่วไปและการศึกษาความเป็นไปได้ของโครงการ,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90643031"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,CIRCULAR ECONOMIC LIFESTYLE FOR 21st CENTURY,CIRCULAR ECONOMIC LIFESTYLE FOR 21ST CENTURY,False,True,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644008"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",prerequisite,FOUNDATION ENGLISH 1,FOUNDATION ENGLISH,False,False,FIELD_MISMATCH
 llm,GENED,gened,1,"{""code"": ""90644020"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ENGLISH FOR MADIA,ENGLISH FOR MEDIA,False,False,FIELD_MISMATCH
@@ -292,7 +293,6 @@ llm,GENED,gened,1,"{""code"": ""90644063"", ""occurrence"": 1, ""plan"": ""gened
 llm,IT,coop,1,"{""code"": ""06016401"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016408"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,OBJECT-ORIENTED PROGRAMMING,OBJECT ORIENTED PROGRAMMING,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06066302"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,False,False,FIELD_MISMATCH
-llm,IT,coop,1,"{""code"": ""06016418"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การพัฒนาเว็บฝั่งเซิร์ฟเวอร์,การพัฒนาเว็บฝังเซิร์ฟเวอร์,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016418"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016423"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016481 หรือ 06016482"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",code,"06016481
@@ -305,14 +305,10 @@ llm,IT,coop,1,"{""code"": ""06016481 หรือ 06016482"", ""occurrence"": 1,
 llm,IT,coop,1,"{""code"": ""06016481 หรือ 06016482"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,"COOPERATIVE EDUCATION
 OR
 OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
-OVERSEAS COOPERATIVE EDUCATION",False,False,FIELD_MISMATCH
+OVERSEA COOPERATIVE EDUCATION",False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016406"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,โครงงาน 1,ไม่ระบุ 1,False,False,FIELD_MISMATCH
-llm,IT,coop,1,"{""code"": ""9064xxxx"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,วิชาเลือกหมวดศึกษาทั่วไป 1,วิชาเลือก หมวดศึกษาทั่วไป 1,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016407"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,โครงงาน 2,ไม่ระบุ 2,False,False,FIELD_MISMATCH
-llm,IT,coop,2,"{""code"": ""9064xxxx"", ""occurrence"": 2, ""plan"": ""coop"", ""program"": ""IT""}",name_th,วิชาเลือกหมวดศึกษาทั่วไป 2,วิชาเลือก หมวดศึกษาทั่วไป 2,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016429"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,False,False,FIELD_MISMATCH
-llm,IT,coop,1,"{""code"": ""06016442"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง,False,False,FIELD_MISMATCH
-llm,IT,coop,1,"{""code"": ""06016443"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016448"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน,False,False,FIELD_MISMATCH
 llm,IT,coop,1,"{""code"": ""06016454"", ""occurrence"": 1, ""plan"": ""coop"", ""program"": ""IT""}",name_en,"UX TOOLS AND SOFTWARE DEVELOPMENT FOR DIGITAL
 BUSINESS",UX TOOLS AND SOFTWARE DEVELOPMENT FOR DIGITAL BUSINESS,False,True,FIELD_MISMATCH
@@ -321,17 +317,13 @@ llm,IT,coop,2,"{""code"": ""06016418"", ""occurrence"": 2, ""plan"": ""coop"", "
 llm,IT,no_coop,1,"{""code"": ""06016401"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016408"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,OBJECT-ORIENTED PROGRAMMING,OBJECT ORIENTED PROGRAMMING,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06066302"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,False,False,FIELD_MISMATCH
-llm,IT,no_coop,1,"{""code"": ""06016418"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การพัฒนาเว็บฝั่งเซิร์ฟเวอร์,การพัฒนาเว็บฝังเซิร์ฟเวอร์,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016418"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016423"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,False,False,FIELD_MISMATCH
-llm,IT,no_coop,1,"{""code"": ""90643021"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,ผู้ประกอบการสมัยใหม่,ผู้ ประกอบการสมัยใหม่,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""9064xxxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,วิชาเลือกหมวดศึกษาทั่วไป 1,วิชาเลือกหมวดศึกษาทั่วไป,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""9064xxxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,ELECTIVE COURSE IN GENERAL EDUCATION 1,ELECTIVE COURSE IN GENERAL EDUCATION,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""xxxxxxxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,วิชาเลือกเสรี 1,วิชาเลือกเสรี,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""xxxxxxxx"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,FREE ELECTIVE COURSE 1,FREE ELECTIVE COURSE,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016429"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,False,False,FIELD_MISMATCH
-llm,IT,no_coop,1,"{""code"": ""06016442"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง,การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง,False,False,FIELD_MISMATCH
-llm,IT,no_coop,1,"{""code"": ""06016443"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง,การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016448"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน,False,False,FIELD_MISMATCH
 llm,IT,no_coop,1,"{""code"": ""06016454"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,"UX TOOLS AND SOFTWARE DEVELOPMENT FOR DIGITAL
 BUSINESS",UX TOOLS AND SOFTWARE DEVELOPMENT FOR DIGITAL BUSINESS,False,True,FIELD_MISMATCH
@@ -346,5 +338,5 @@ llm,IT,no_coop,1,"{""code"": ""06016481 หรือ 06016482"", ""occurrence"":
 llm,IT,no_coop,1,"{""code"": ""06016481 หรือ 06016482"", ""occurrence"": 1, ""plan"": ""no_coop"", ""program"": ""IT""}",name_en,"COOPERATIVE EDUCATION
 OR
 OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
-OVERSEAS COOPERATIVE EDUCATION",False,False,FIELD_MISMATCH
+OVERSEA COOPERATIVE EDUCATION",False,False,FIELD_MISMATCH
 llm,IT,no_coop,2,"{""code"": ""06016418"", ""occurrence"": 2, ""plan"": ""no_coop"", ""program"": ""IT""}",__record__,,06016418,False,False,EXTRA_OUTPUT

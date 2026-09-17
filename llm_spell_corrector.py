@@ -57,6 +57,67 @@ CANONICAL_NAME_CORRECTIONS = {
         "name_en",
         "ARTIFICIAL INTELLIGIENCE ETHICS",
     ): "ARTIFICIAL INTELLIGENCE ETHICS",
+    (
+        "IT",
+        "06016412",
+        "name_en",
+        "COMPUTER ORCANIZATON AND OPERATING SSTEM",
+    ): "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
+    (
+        "IT",
+        "06016466",
+        "name_en",
+        "NETWORK AND SYSTEM TROUBLE SHOOTNG",
+    ): "NETWORK AND SYSTEM TROUBLE SHOOTING",
+    (
+        "AIT",
+        "06046413",
+        "name_th",
+        "ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง",
+    ): "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง",
+    (
+        "DSBA",
+        "06026260",
+        "name_en",
+        "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
+    ): "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+    (
+        "GENED",
+        "90642056",
+        "name_en",
+        "ST EPLDEMICS IN THE 21 CENTURV",
+    ): "EPIDEMICS IN THE 21ST CENTURY",
+    ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+    (
+        "IT",
+        "06016418",
+        "name_th",
+        "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+    ): "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+    (
+        "IT",
+        "06016442",
+        "name_th",
+        "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+    ): "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+    (
+        "IT",
+        "06016443",
+        "name_th",
+        "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+    ): "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+    (
+        "IT",
+        "90643021",
+        "name_th",
+        "ผู้ ประกอบการสมัยใหม่",
+    ): "ผู้ประกอบการสมัยใหม่",
+    (
+        "GENED",
+        "90642134",
+        "name_en",
+        "KING MONGKUTS REIGN STUDV",
+    ): "KING MONGKUTS REIGN STUDY",
 }
 LITERAL_PRESERVE_VALUES = {
     ("GENED", "90642122", "name_th", "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์"):
@@ -64,6 +125,8 @@ LITERAL_PRESERVE_VALUES = {
     ("AIT", "06046404", "name_en", "FUNDAMENTAL OF EMBEDDED SYSTEM"):
         "FUNDAMENTAL OF EMBEDDED SYSTEM",
     ("AIT", "06046425", "name_en", "GENERATIVE MODEL"): "GENERATIVE MODEL",
+    ("GENED", "90642126", "name_en", "SURVIVORS"): "SURVIVORS",
+    ("GENED", "90642154", "name_en", "FALL ABLE"): "FALL ABLE",
 }
 NON_CORRECTABLE_NAME_VALUES = frozenset(("ไม่ระบุ", "N/A"))
 

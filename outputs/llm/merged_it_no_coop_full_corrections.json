@@ -186,6 +186,12 @@
         "after": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS"
     },
     {
+        "course_code": "06016418",
+        "field": "name_th",
+        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
+    },
+    {
         "course_code": "06016421",
         "field": "name_en",
         "before": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITV",
@@ -228,6 +234,12 @@
         "after": "การออกแบบและพัฒนาเกมเบื้องต้น"
     },
     {
+        "course_code": "06016418",
+        "field": "name_th",
+        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
+    },
+    {
         "course_code": "060164xx",
         "field": "name_en",
         "before": "ELECTIE COURSE INV INFORMATION TECHNOLOGV 1",
@@ -250,6 +262,12 @@
         "field": "name_en",
         "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 3",
         "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 3"
+    },
+    {
+        "course_code": "90643021",
+        "field": "name_th",
+        "before": "ผู้ ประกอบการสมัยใหม่",
+        "after": "ผู้ประกอบการสมัยใหม่"
     },
     {
         "course_code": "9064xxxx",
@@ -319,9 +337,21 @@
     },
     {
         "course_code": "06016442",
+        "field": "name_th",
+        "before": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+        "after": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง"
+    },
+    {
+        "course_code": "06016442",
         "field": "name_en",
         "before": "ITERNET OF THIGS HARDWARE DESIGI",
         "after": "INTERNET OF THINGS HARDWARE DESIGN"
+    },
+    {
+        "course_code": "06016443",
+        "field": "name_th",
+        "before": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+        "after": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง"
     },
     {
         "course_code": "06016443",
@@ -460,11 +490,5 @@
         "field": "name_en",
         "before": "SPECAL WORKSHOP II INFORMATIOM TECHNOLOGV 4",
         "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 4"
-    },
-    {
-        "course_code": "06016481 หรือ 06016482",
-        "field": "name_en",
-        "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
-        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
     }
 ]
