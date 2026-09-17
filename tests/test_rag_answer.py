@@ -136,6 +136,44 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("ปี 3 ภาคเรียนที่ 1", rendered)
         self.assertIn("DATABASE TECHNOLOGY", rendered)
 
+    def test_describe_claim_renders_grounded_text_without_typed_dump(self):
+        claim = GroundedClaim(
+            "describe_001",
+            "describe",
+            value=({"text": "DATABASE TECHNOLOGY"},),
+            evidence=({"text": "DATABASE TECHNOLOGY"},),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertEqual(rendered, "DATABASE TECHNOLOGY")
+        self.assertNotIn('"text"', rendered)
+
+    def test_describe_claim_preserves_all_grounded_text_items(self):
+        claim = GroundedClaim(
+            "describe_002",
+            "describe",
+            value=({"text": "DATA MANAGEMENT"}, {"text": "DATABASE TECHNOLOGY"}),
+            evidence=({"text": "DATA MANAGEMENT"}, {"text": "DATABASE TECHNOLOGY"}),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("DATA MANAGEMENT", rendered)
+        self.assertIn("DATABASE TECHNOLOGY", rendered)
+        self.assertNotIn('"text"', rendered)
+
+    def test_insufficient_describe_claim_remains_fail_closed(self):
+        claim = GroundedClaim(
+            "describe_003",
+            "describe",
+            status="insufficient_evidence",
+            value=({"text": "UNSUPPORTED"},),
+            evidence=(),
+        )
+
+        self.assertEqual(render_grounded_claim(claim), "หลักฐานไม่เพียงพอ")
+
     def test_structured_prompt_is_grounded_in_sql_rows(self):
         prompts = []
 

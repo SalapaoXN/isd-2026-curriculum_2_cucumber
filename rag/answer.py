@@ -657,6 +657,11 @@ def _description_texts(value: Any) -> tuple[str, ...]:
             for item in values:
                 texts.extend(_description_texts(item))
         return tuple(texts)
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        texts: list[str] = []
+        for item in value:
+            texts.extend(_description_texts(item))
+        return tuple(texts)
     options = getattr(value, "options", None)
     if options is not None:
         texts: list[str] = []
