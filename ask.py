@@ -133,18 +133,101 @@ def _clean_answer_for_display(answer: Any) -> str:
     ).strip()
 
 
+_BLOCKED_STATUSES = frozenset(
+    {
+        "insufficient_evidence",
+        "unsupported",
+        "clarify_program",
+        "context_conflict",
+        "valid_empty",
+    }
+)
+
+
+def _blocked_status_message(status: Any) -> str | None:
+    """Render one blocked status as concise Thai, or None when answerable."""
+    if not isinstance(status, str) or status not in _BLOCKED_STATUSES:
+        return None
+    if status == "insufficient_evidence":
+        return "ไม่พบหลักฐานเพียงพอในเล่มหลักสูตรสำหรับคำถามนี้ โปรดระบุรหัสวิชา หลักสูตร หรือช่วงปีและเทอมให้ชัดเจนขึ้น"
+    if status == "unsupported":
+        return "คำถามนี้อยู่นอกเหนือขอบเขตข้อมูลหลักสูตรที่ระบบรองรับ"
+    if status == "clarify_program":
+        return "คำถามนี้ยังระบุหลักสูตรไม่ชัดเจน โปรดระบุหลักสูตรที่ต้องการถาม เช่น IT, DSBA, BIT หรือ AIT"
+    if status == "context_conflict":
+        return "เงื่อนไขในคำถามขัดแย้งกัน โปรดทบทวนคำถามแล้วถามใหม่อีกครั้ง"
+    if status == "valid_empty":
+        return "ไม่พบข้อมูลตามเงื่อนไขที่ถามในเล่มหลักสูตร"
+    return "ระบบยังไม่สามารถตอบคำถามนี้ได้ โปรดระบุรหัสวิชา หลักสูตร และแผนการเรียนให้ชัดเจน"
+
+
+def _blocked_ambiguity_kinds(value: Any) -> tuple[str, ...]:
+    """Return normalized ambiguity markers without exposing internal values."""
+    if isinstance(value, (str, bytes)):
+        items: list[Any] = [value]
+    elif isinstance(value, Sequence):
+        items = list(value)
+    else:
+        items = _as_sequence(value)
+    kinds: list[str] = []
+    for item in items:
+        text = str(item).casefold()
+        if "program" in text and "program" not in kinds:
+            kinds.append("program")
+        elif "plan" in text and "plan" not in kinds:
+            kinds.append("plan")
+    return tuple(kinds)
+
+
+def _blocked_clarification(result: Mapping[str, Any]) -> str | None:
+    """Render a blocked mapping as concise Thai, or None when not blocked."""
+    status = result.get("status")
+    action = result.get("action")
+    key = action if isinstance(action, str) and action.strip() else status
+    if not isinstance(key, str) or key not in _BLOCKED_STATUSES:
+        return None
+    ambiguity = _blocked_ambiguity_kinds(result.get("blocking_ambiguity"))
+    needs_program = key == "clarify_program" or "program" in ambiguity
+    needs_plan = "plan" in ambiguity
+    if needs_program and needs_plan:
+        return "คำถามนี้ยังระบุหลักสูตรและแผนการเรียนไม่ชัดเจน โปรดระบุหลักสูตรและแผนสหกิจหรือไม่สหกิจที่ต้องการถาม"
+    if needs_program:
+        return "คำถามนี้ยังระบุหลักสูตรไม่ชัดเจน โปรดระบุหลักสูตรที่ต้องการถาม เช่น IT, DSBA, BIT หรือ AIT"
+    if needs_plan:
+        return "คำถามนี้ยังระบุแผนการเรียนไม่ชัดเจน โปรดระบุแผนสหกิจหรือไม่สหกิจที่ต้องการถาม"
+    if key == "context_conflict" or _as_sequence(result.get("context_conflicts")):
+        return "เงื่อนไขในคำถามขัดแย้งกัน โปรดทบทวนคำถามแล้วถามใหม่อีกครั้ง"
+    if key == "insufficient_evidence":
+        return "ไม่พบหลักฐานเพียงพอในเล่มหลักสูตรสำหรับคำถามนี้ โปรดระบุรหัสวิชา หลักสูตร หรือช่วงปีและเทอมให้ชัดเจนขึ้น"
+    if key == "unsupported":
+        return "คำถามนี้อยู่นอกเหนือขอบเขตข้อมูลหลักสูตรที่ระบบรองรับ"
+    if key == "valid_empty":
+        return "ไม่พบข้อมูลตามเงื่อนไขที่ถามในเล่มหลักสูตร"
+    return "ระบบยังไม่สามารถตอบคำถามนี้ได้ โปรดระบุรหัสวิชา หลักสูตร และแผนการเรียนให้ชัดเจน"
+
+
 def _print_result(question: str, response: Mapping[str, Any], *, show_question: bool) -> None:
     if show_question:
         print(f"ถาม: {question}")
     result = response.get("result")
     if isinstance(result, GroundedAnswerResult):
         answer = result.final_answer
+        if not answer.strip():
+            blocked_answer = _blocked_status_message(result.status)
+            if blocked_answer is not None:
+                answer = blocked_answer
     elif isinstance(result, Mapping) and (
         result.get("status") == "no_data" or result.get("action") == "no_data"
     ):
         answer = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
     else:
-        answer = _clean_answer_for_display(response.get("final_answer", ""))
+        blocked_answer = (
+            _blocked_clarification(result) if isinstance(result, Mapping) else None
+        )
+        if blocked_answer is not None:
+            answer = blocked_answer
+        else:
+            answer = _clean_answer_for_display(response.get("final_answer", ""))
     print(f"ตอบ: {answer}")
     print(f"แหล่งข้อมูล: {_format_sources(response)}")
 
