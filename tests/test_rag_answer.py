@@ -95,7 +95,7 @@ class RagAnswerTest(unittest.TestCase):
 
         rendered = render_grounded_claim(claim, scope_dimensions=("plan",))
 
-        self.assertIn("plan=no_coop", rendered)
+        self.assertIn("แผนไม่สหกิจ", rendered)
         self.assertIn("ต้องเรียนวิชา 06016413 INTRODUCTION TO NETWORK SYSTEMS มาก่อน", rendered)
         for field in (
             "prerequisite_id",
@@ -128,10 +128,73 @@ class RagAnswerTest(unittest.TestCase):
             )
         ).final_answer
 
-        self.assertIn("plan=coop", rendered)
-        self.assertIn("plan=no_coop", rendered)
+        self.assertIn("แผนสหกิจ", rendered)
+        self.assertIn("แผนไม่สหกิจ", rendered)
         self.assertIn("06016413", rendered)
         self.assertIn("06016414", rendered)
+        self.assertNotIn("plan=", rendered)
+
+    def test_describe_plan_claims_use_human_scope_labels(self):
+        claims = tuple(
+            GroundedClaim(
+                f"describe_{plan}",
+                "describe",
+                effective_scope={"plans": (plan,)},
+                evidence=({"text": "DATABASE TECHNOLOGY"},),
+            )
+            for plan in ("coop", "no_coop")
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="answer",
+                answer_mode="deterministic",
+                claims=claims,
+            )
+        ).final_answer
+
+        self.assertIn("แผนสหกิจ: DATABASE TECHNOLOGY", rendered)
+        self.assertIn("แผนไม่สหกิจ: DATABASE TECHNOLOGY", rendered)
+        self.assertNotIn("plan=", rendered)
+        self.assertNotIn("year=", rendered)
+        self.assertNotIn("semester=", rendered)
+
+    def test_describe_without_scope_diff_has_no_prefix(self):
+        claim = GroundedClaim(
+            "describe_single_001",
+            "describe",
+            effective_scope={"plans": ("no_coop",)},
+            evidence=({"text": "DATABASE TECHNOLOGY"},),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertEqual(rendered, "DATABASE TECHNOLOGY")
+
+    def test_human_scope_prefix_includes_grounded_program_year_semester(self):
+        claim = GroundedClaim(
+            "describe_scoped_001",
+            "describe",
+            effective_scope={
+                "program": "IT",
+                "plans": ("no_coop",),
+                "years": (2,),
+                "semesters": (2,),
+            },
+            evidence=({"text": "DATABASE TECHNOLOGY"},),
+        )
+
+        rendered = render_grounded_claim(
+            claim, scope_dimensions=("plan", "year", "semester")
+        )
+
+        self.assertIn(
+            "หลักสูตร IT แผนไม่สหกิจ ปี 2 ภาคเรียนที่ 2: DATABASE TECHNOLOGY",
+            rendered,
+        )
+        self.assertNotIn("plan=", rendered)
+        self.assertNotIn("year=", rendered)
+        self.assertNotIn("semester=", rendered)
 
     def test_prerequisite_alternative_group_renders_or_semantics(self):
         claim = GroundedClaim(
@@ -341,6 +404,118 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("MATHEMATICS FOR INFORMATION TECHNOLOGY", rendered)
         self.assertIn("3", rendered)
         self.assertNotIn("identity: [{", rendered)
+
+    def test_sum_credits_course_claim_renders_thai_scope_without_raw_labels(self):
+        for plan, plan_th in (("coop", "แผนสหกิจ"), ("no_coop", "แผนไม่สหกิจ")):
+            with self.subTest(plan=plan):
+                claim = GroundedClaim(
+                    f"credits_course_{plan}_001",
+                    "sum_credits",
+                    effective_scope={
+                        "program": "IT",
+                        "plans": (plan,),
+                        "years": (1,),
+                        "semesters": (1,),
+                        "course_targets": ({"course_code": "06016401"},),
+                    },
+                    value=3,
+                )
+
+                rendered = render_grounded_claim(claim)
+
+                self.assertIn(
+                    f"วิชา 06016401 ในหลักสูตร IT {plan_th} ปี 1 ภาคเรียนที่ 1: 3 หน่วยกิต",
+                    rendered,
+                )
+                for raw in ("sum_credits:", "plan=", "year=", "semester="):
+                    self.assertNotIn(raw, rendered)
+
+    def test_sum_credits_semester_total_renders_aggregate_thai(self):
+        claim = GroundedClaim(
+            "credits_semester_001",
+            "sum_credits",
+            effective_scope={
+                "program": "IT",
+                "plans": ("no_coop",),
+                "years": (2,),
+                "semesters": (2,),
+                "course_targets": (),
+            },
+            value=30,
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn(
+            "หลักสูตร IT แผนไม่สหกิจ ปี 2 ภาคเรียนที่ 2 ลงทะเบียนรวม 30 หน่วยกิต",
+            rendered,
+        )
+        for raw in ("sum_credits:", "plan=", "year=", "semester="):
+            self.assertNotIn(raw, rendered)
+
+    def test_sum_credits_missing_value_is_fail_closed(self):
+        claim = GroundedClaim(
+            "credits_missing_001",
+            "sum_credits",
+            effective_scope={"program": "IT", "plans": ("no_coop",)},
+            value=None,
+        )
+        self.assertEqual(render_grounded_claim(claim), "หลักฐานไม่เพียงพอ")
+
+    def test_mixed_semester_total_and_prerequisite_preserves_both(self):
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=(
+                GroundedClaim(
+                    "credits_mixed_001",
+                    "sum_credits",
+                    effective_scope={
+                        "program": "IT",
+                        "plans": ("no_coop",),
+                        "years": (2,),
+                        "semesters": (2,),
+                        "course_targets": (),
+                    },
+                    value=30,
+                ),
+                GroundedClaim(
+                    "prereq_mixed_001",
+                    "prerequisite",
+                    evidence=(
+                        {"prerequisite_code": "06016413", "prerequisite_name_en": "NETWORK SYSTEMS"},
+                    ),
+                ),
+            ),
+        )
+
+        rendered = render_grounded_answer(result).final_answer
+
+        self.assertIn("ลงทะเบียนรวม 30 หน่วยกิต", rendered)
+        self.assertIn("ต้องเรียนวิชา 06016413 NETWORK SYSTEMS มาก่อน", rendered)
+        self.assertNotIn("sum_credits:", rendered)
+
+    def test_sum_credits_rendering_keeps_result_provenance_unchanged(self):
+        provenance = ({"source_page": 35, "program": "IT"},)
+        claim = GroundedClaim(
+            "credits_provenance_001",
+            "sum_credits",
+            effective_scope={"program": "IT", "plans": ("no_coop",)},
+            value=3,
+            provenance=provenance,
+        )
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=(claim,),
+            provenance=provenance,
+        )
+
+        rendered = render_grounded_answer(result)
+
+        self.assertIn("3 หน่วยกิต", rendered.final_answer)
+        self.assertEqual(rendered.provenance, result.provenance)
+        self.assertEqual(rendered.claims, result.claims)
 
     def test_structured_placement_renders_thai_year_semester_and_credits(self):
         claim = GroundedClaim(

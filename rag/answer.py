@@ -762,6 +762,37 @@ def _scope_prefix(
     return f"{', '.join(labels)} | " if labels else ""
 
 
+def _human_scope_prefix(
+    claim: GroundedClaim,
+    dimensions: Sequence[str],
+) -> str:
+    """Render grounded scope dimensions as Thai without raw field names."""
+    scope = claim.effective_scope
+    parts: list[str] = []
+    program = (
+        scope.get("program") if isinstance(scope, Mapping) else getattr(scope, "program", None)
+    )
+    if program not in (None, ""):
+        parts.append(f"หลักสูตร {program}")
+    for dimension, field in _SCOPE_DIMENSIONS:
+        if dimension not in dimensions:
+            continue
+        values = tuple(
+            str(value)
+            for value in _scope_dimension_values(scope, field)
+            if value not in (None, "")
+        )
+        if not values:
+            continue
+        if dimension == "plan":
+            parts.append("แผน" + "/".join(_plan_display(value) for value in values))
+        elif dimension == "year":
+            parts.append("ปี " + "/".join(values))
+        elif dimension == "semester":
+            parts.append("ภาคเรียนที่ " + "/".join(values))
+    return (" ".join(parts) + ": ") if parts else ""
+
+
 def _has_scope_dimensions(scope: Any) -> bool:
     return any(
         _scope_dimension_values(scope, field)
@@ -1042,6 +1073,66 @@ def _identity_claim_text(value: Any) -> str | None:
     return "\n".join(rendered) if rendered else None
 
 
+def _credit_claim_targets(scope: Any) -> tuple[Mapping[str, Any], ...]:
+    """Return concrete course targets on a credit scope, if any."""
+    targets = (
+        scope.get("course_targets")
+        if isinstance(scope, Mapping)
+        else getattr(scope, "course_targets", ())
+    )
+    if not isinstance(targets, (list, tuple)):
+        return ()
+    return tuple(target for target in targets if isinstance(target, Mapping))
+
+
+def _credit_scope_text(scope: Any, *, prefix: str) -> str:
+    """Render only grounded program/plan/year/semester scope wording."""
+    parts = [prefix] if prefix else []
+    program = (
+        scope.get("program") if isinstance(scope, Mapping) else getattr(scope, "program", None)
+    )
+    if program not in (None, ""):
+        parts.append(f"หลักสูตร {program}" if not prefix else f"ในหลักสูตร {program}")
+    plans = [str(plan) for plan in _scope_dimension_values(scope, "plans")]
+    if plans:
+        parts.append("แผน" + "/".join(_plan_display(plan) for plan in plans))
+    years = [str(year) for year in _scope_dimension_values(scope, "years")]
+    if years:
+        parts.append("ปี " + "/".join(years))
+    semesters = [str(semester) for semester in _scope_dimension_values(scope, "semesters")]
+    if semesters:
+        parts.append("ภาคเรียนที่ " + "/".join(semesters))
+    return " ".join(parts)
+
+
+def _sum_credits_text(claim: GroundedClaim) -> str | None:
+    """Render course credits or semester totals as natural Thai."""
+    value = claim.value
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    total: Any = int(value) if float(value).is_integer() else value
+    scope = claim.effective_scope
+    targets = _credit_claim_targets(scope)
+    if targets:
+        code = next(
+            (
+                target.get(key)
+                for target in targets
+                for key in ("course_code", "code")
+                if isinstance(target.get(key), str) and target.get(key).strip()
+            ),
+            None,
+        )
+        if code is None:
+            return None
+        context = _credit_scope_text(scope, prefix=f"วิชา {code}")
+        return f"{context}: {total} หน่วยกิต" if context else f"{total} หน่วยกิต"
+    context = _credit_scope_text(scope, prefix="")
+    if context:
+        return f"{context} ลงทะเบียนรวม {total} หน่วยกิต"
+    return f"ลงทะเบียนรวม {total} หน่วยกิต"
+
+
 def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
     """Expose persisted similarity numbers without comparing or recalculating."""
     return {
@@ -1126,9 +1217,10 @@ def _deterministic_claim_text(
             claim.evidence if claim.evidence is not None else claim.value,
             valid_empty=claim.status == "valid_empty",
         )
+        human_prefix = _human_scope_prefix(claim, scope_dimensions)
         if prerequisite_text is not None:
-            return finish(prerequisite_text)
-        return finish("หลักฐานไม่เพียงพอ")
+            return human_prefix + prerequisite_text
+        return human_prefix + "หลักฐานไม่เพียงพอ"
 
     if claim.operation == "identity":
         identity_text = _identity_claim_text(claim.value) or _identity_claim_text(
@@ -1138,10 +1230,16 @@ def _deterministic_claim_text(
             return finish(identity_text)
         return finish("หลักฐานไม่เพียงพอ")
 
+    if claim.operation == "sum_credits":
+        credits_text = _sum_credits_text(claim)
+        if credits_text is not None:
+            return credits_text
+        return finish("หลักฐานไม่เพียงพอ")
+
     if claim.operation in {"describe", "topic_matches", "description_evidence"}:
         texts = _description_texts(claim.evidence)
         if texts:
-            return finish("\n".join(texts))
+            return _human_scope_prefix(claim, scope_dimensions) + "\n".join(texts)
     if claim.operation == "preference":
         options = _preference_synthesis_options(claim.evidence)
         if options:

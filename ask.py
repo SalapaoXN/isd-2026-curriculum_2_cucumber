@@ -71,56 +71,56 @@ def _provenance_entries(value: Any) -> list[Mapping[str, Any]]:
     return entries
 
 
-def _format_sources(response: Mapping[str, Any]) -> str:
-    candidates: list[tuple[str, str, str, str]] = []
-    result = response.get("result")
-    source = result.provenance if isinstance(result, GroundedAnswerResult) else result
+def _source_page_sort_key(page: str) -> tuple[int, Any]:
+    try:
+        return (0, int(page))
+    except (TypeError, ValueError):
+        return (1, page)
+
+
+def _source_pages_by_book(source: Any) -> list[tuple[str, list[str]]]:
+    """Group displayable source pages by book, sorted ascending, deduplicated."""
+    pages_by_book: dict[str, dict[str, None]] = {}
+    order: list[str] = []
     for entry in _provenance_entries(source):
         program = entry.get("program")
-        filename = entry.get("source_filename") or entry.get("document_filename")
-        if filename is None:
-            filename = entry.get("source")
+        book = str(program).strip() if program not in (None, "") else ""
+        if not book:
+            continue
+        if book not in pages_by_book:
+            pages_by_book[book] = {}
+            order.append(book)
         pages = entry.get("source_page")
         if pages is None:
             pages = entry.get("page")
-        page_values = _as_sequence(pages)
-        if not page_values:
-            page_values = [None]
-        for page in page_values:
-            parts = []
-            if program:
-                parts.append(str(program))
-            if filename:
-                parts.append(str(filename))
-            if page is not None:
-                parts.append(f"หน้า {page}")
-            if not parts:
+        for page in _as_sequence(pages):
+            if page is None or isinstance(page, bool):
                 continue
-            candidates.append(
-                (
-                    str(program or ""),
-                    str(filename or ""),
-                    str(page or ""),
-                    " / ".join(parts),
-                )
-            )
+            text = str(page).strip()
+            if not text:
+                continue
+            pages_by_book[book].setdefault(text, None)
+    return [
+        (book, sorted(pages_by_book[book], key=_source_page_sort_key))
+        for book in order
+    ]
 
-    references: list[str] = []
-    seen: set[tuple[str, str, str]] = set()
-    rich_pages = {
-        page
-        for _program, filename, page, _reference in candidates
-        if filename and page
-    }
-    for program, filename, page, reference in candidates:
-        identity = (program, filename, page)
-        if identity in seen:
-            continue
-        if not filename and page in rich_pages:
-            continue
-        seen.add(identity)
-        references.append(reference)
-    return ", ".join(references) if references else "ไม่พบ provenance ในผลลัพธ์"
+
+def _format_sources(response: Mapping[str, Any]) -> str:
+    result = response.get("result")
+    source = result.provenance if isinstance(result, GroundedAnswerResult) else result
+    grouped = _source_pages_by_book(source)
+    with_pages = [(book, pages) for book, pages in grouped if pages]
+    if with_pages:
+        return "\n\n".join(
+            f"เล่มหลักสูตร: {book}\nหน้า: {', '.join(pages)}"
+            for book, pages in with_pages
+        )
+    if grouped:
+        return "\n\n".join(
+            f"เล่มหลักสูตร: {book}\nหน้า: ไม่ระบุ" for book, _ in grouped
+        )
+    return "ไม่พบ provenance ในผลลัพธ์"
 
 
 def _clean_answer_for_display(answer: Any) -> str:
@@ -229,7 +229,8 @@ def _print_result(question: str, response: Mapping[str, Any], *, show_question: 
         else:
             answer = _clean_answer_for_display(response.get("final_answer", ""))
     print(f"ตอบ: {answer}")
-    print(f"แหล่งข้อมูล: {_format_sources(response)}")
+    print("แหล่งข้อมูล:")
+    print(_format_sources(response))
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
