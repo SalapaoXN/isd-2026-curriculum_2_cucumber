@@ -3,7 +3,7 @@ import unittest
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
-from rag.answer import EMPTY_ANSWER, answer_question, render_grounded_claim
+from rag.answer import EMPTY_ANSWER, answer_question, render_grounded_answer, render_grounded_claim
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.hybrid_demo import run_hybrid_demo
 from rag.retrieval.retrieve import SimilarityEvidence, SimilarityPair
@@ -59,6 +59,82 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("cosine_similarity", rendered)
         self.assertNotIn('"pairs"', rendered)
         self.assertNotIn("เนื้อหาเหมือนกัน", rendered)
+
+    def test_structured_placement_renders_thai_year_semester_and_credits(self):
+        claim = GroundedClaim(
+            "placement_001",
+            "placement",
+            value={
+                "program": "BIT",
+                "plan_key": "coop",
+                "year_number": 3,
+                "semester_number": 1,
+                "credits": "3(3-0-6)",
+            },
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("แผนสหกิจ", rendered)
+        self.assertIn("เรียนในปี 3 ภาคเรียนที่ 1", rendered)
+        self.assertIn("3(3-0-6) หน่วยกิต", rendered)
+        self.assertNotIn("year_number", rendered)
+
+    def test_same_timing_plan_comparison_is_rendered_explicitly(self):
+        claim = GroundedClaim(
+            "placement_compare_001",
+            "compare",
+            value=(
+                {"plan_key": "coop", "year_semester_choices": ((2, 1),)},
+                {"plan_key": "no_coop", "year_semester_choices": ((2, 1),)},
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("ทั้งแผนสหกิจและแผนไม่สหกิจ", rendered)
+        self.assertIn("ปี 2 ภาคเรียนที่ 1", rendered)
+        self.assertIn("ไม่ต่างกันด้านช่วงเรียน", rendered)
+
+    def test_flexible_placement_lists_each_grounded_choice(self):
+        claim = GroundedClaim(
+            "placement_flexible_001",
+            "placement",
+            value={
+                "program": "IT",
+                "plan_key": "no_coop",
+                "year_semester_choices": ((3, 1), (3, 2), (4, 1)),
+            },
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("สามารถเรียนได้ในปี 3 ภาคเรียนที่ 1 หรือ ปี 3 ภาคเรียนที่ 2 หรือ ปี 4 ภาคเรียนที่ 1", rendered)
+        self.assertNotIn("year_semester_choices", rendered)
+
+    def test_hybrid_rendering_keeps_placement_and_description_grounded(self):
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=(
+                GroundedClaim(
+                    "placement_002",
+                    "placement",
+                    value={"plan_key": "coop", "year_number": 3, "semester_number": 1},
+                ),
+                GroundedClaim(
+                    "description_001",
+                    "describe",
+                    value={"text": "DATABASE TECHNOLOGY"},
+                    evidence={"text": "DATABASE TECHNOLOGY"},
+                ),
+            ),
+        )
+
+        rendered = render_grounded_answer(result).final_answer
+
+        self.assertIn("ปี 3 ภาคเรียนที่ 1", rendered)
+        self.assertIn("DATABASE TECHNOLOGY", rendered)
 
     def test_structured_prompt_is_grounded_in_sql_rows(self):
         prompts = []

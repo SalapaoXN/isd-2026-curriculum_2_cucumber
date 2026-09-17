@@ -905,6 +905,29 @@ def _answer_has_value(answer: Any, field: str, value: Any) -> bool:
                 text,
             )
         )
+    if field == "flexible_year_semester_raw":
+        if _contains_text(text, value):
+            return True
+        pairs = _year_semester_pairs(value)
+        if not pairs:
+            return False
+        for year, semester in pairs:
+            raw_pair = bool(
+                re.search(
+                    rf"(?<!\d){year}\s*/\s*{semester}(?!\d)",
+                    text,
+                )
+            )
+            thai_pair = bool(
+                re.search(
+                    rf"(?:ปี|year)\s*(?:ที่\s*)?{year}(?!\d)\s*"
+                    rf"(?:เทอม|ภาคเรียน|ภาคการศึกษา|semester)\s*(?:ที่\s*)?{semester}(?!\d)",
+                    text,
+                )
+            )
+            if not (raw_pair or thai_pair):
+                return False
+        return True
     if field == "course_count":
         return bool(re.search(rf"(?<!\d){re.escape(str(value))}(?!\d)", text)) and (
             "วิชา" in text or "course" in text

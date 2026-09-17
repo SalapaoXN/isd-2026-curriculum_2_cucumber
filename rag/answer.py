@@ -764,6 +764,117 @@ def _has_scope_dimensions(scope: Any) -> bool:
     )
 
 
+def _placement_choices(value: Mapping[str, Any]) -> tuple[tuple[int, int], ...]:
+    choices = value.get("year_semester_choices")
+    if choices is not None and not isinstance(choices, (str, bytes, Mapping)):
+        result: list[tuple[int, int]] = []
+        try:
+            for choice in choices:
+                if (
+                    isinstance(choice, Sequence)
+                    and not isinstance(choice, (str, bytes))
+                    and len(choice) == 2
+                    and all(isinstance(item, int) and not isinstance(item, bool) for item in choice)
+                ):
+                    result.append((choice[0], choice[1]))
+        except TypeError:
+            return ()
+        if result:
+            return tuple(result)
+    year = value.get("year_number", value.get("year"))
+    semester = value.get("semester_number", value.get("semester"))
+    if (
+        isinstance(year, int)
+        and not isinstance(year, bool)
+        and isinstance(semester, int)
+        and not isinstance(semester, bool)
+    ):
+        return ((year, semester),)
+    return ()
+
+
+def _placement_entries(value: Any) -> tuple[Mapping[str, Any], ...]:
+    if isinstance(value, Mapping):
+        if _placement_choices(value):
+            return (value,)
+        return ()
+    if isinstance(value, EarliestAggregation):
+        entries: list[Mapping[str, Any]] = []
+        for partition in value.partitions:
+            placements = partition.placements
+            if placements:
+                entries.extend(placements)
+            else:
+                partition_data = dict(_plain_typed_value(partition.partition))
+                partition_data["year_semester_choices"] = (partition.value,)
+                entries.append(partition_data)
+        return tuple(entries)
+    if isinstance(value, ComparisonAggregation):
+        return _placement_entries(value.left) + _placement_entries(value.right)
+    if isinstance(value, (list, tuple)):
+        entries: list[Mapping[str, Any]] = []
+        for item in value:
+            entries.extend(_placement_entries(item))
+        return tuple(entries)
+    return ()
+
+
+def _plan_display(plan: Any) -> str:
+    if plan == "coop":
+        return "สหกิจ"
+    if plan == "no_coop":
+        return "ไม่สหกิจ"
+    return str(plan) if plan not in (None, "") else "ไม่ระบุแผน"
+
+
+def _placement_sentence(entry: Mapping[str, Any]) -> str | None:
+    choices = _placement_choices(entry)
+    if not choices:
+        return None
+    program = entry.get("program")
+    plan = entry.get("plan_key", entry.get("plan"))
+    prefix = "วิชานี้"
+    if program not in (None, ""):
+        prefix += f"ในหลักสูตร {program}"
+    if plan not in (None, ""):
+        prefix += f" แผน{_plan_display(plan)}"
+    if len(choices) == 1:
+        timing = f"เรียนในปี {choices[0][0]} ภาคเรียนที่ {choices[0][1]}"
+    else:
+        options = " หรือ ".join(
+            f"ปี {year} ภาคเรียนที่ {semester}" for year, semester in choices
+        )
+        timing = f"สามารถเรียนได้ใน{options}"
+    credits = entry.get("placement_credits", entry.get("credits"))
+    suffix = f" และมี {credits} หน่วยกิต" if credits not in (None, "") else ""
+    return f"{prefix}{timing}{suffix}"
+
+
+def _placement_text(value: Any) -> str | None:
+    entries = _placement_entries(value)
+    if not entries:
+        return None
+    if len(entries) == 2:
+        left, right = entries
+        left_choices = _placement_choices(left)
+        right_choices = _placement_choices(right)
+        left_plan = left.get("plan_key", left.get("plan"))
+        right_plan = right.get("plan_key", right.get("plan"))
+        if left_plan and right_plan and left_choices == right_choices:
+            timing = " หรือ ".join(
+                f"ปี {year} ภาคเรียนที่ {semester}"
+                for year, semester in left_choices
+            )
+            timing = f"{timing}" if len(left_choices) > 1 else timing
+            return (
+                f"ทั้งแผน{_plan_display(left_plan)}และแผน{_plan_display(right_plan)}"
+                f"เรียนใน{timing} จึงไม่ต่างกันด้านช่วงเรียน"
+            )
+    sentences = [_placement_sentence(entry) for entry in entries]
+    rendered = [sentence for sentence in sentences if sentence]
+    return "\n".join(rendered) if rendered else None
+
+
 def _earliest_operand_scope_prefix(claim: GroundedClaim) -> str:
     if _has_scope_dimensions(claim.effective_scope):
         return ""
@@ -871,7 +982,12 @@ def _deterministic_claim_text(
                 separators=(",", ":"),
                 default=str,
             )
-        )
+            )
+
+    if claim.operation in {"placement", "earliest", "compare"}:
+        placement_text = _placement_text(claim.value)
+        if placement_text is not None:
+            return finish(placement_text)
 
     if claim.operation in {"describe", "topic_matches", "description_evidence"}:
         texts = _description_texts(claim.evidence)
