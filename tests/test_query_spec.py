@@ -317,6 +317,26 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertEqual(spec.operations.count("placement"), 1)
                 self.assertEqual(spec.operations.count("describe"), 1)
 
+    def test_course_timing_and_content_question_uses_hybrid_operations(self):
+        question = (
+            "วิชา 06016420 ของ IT แบบไม่สหกิจอยู่ช่วงไหนของหลักสูตร "
+            "และเรียนเกี่ยวกับอะไรบ้าง?"
+        )
+        self.assertEqual(parse_query_spec(question).operations, ("placement", "describe"))
+
+    def test_course_timing_phrase_alone_uses_placement(self):
+        question = "วิชา 06016420 ของ IT แบบไม่สหกิจอยู่ช่วงไหนของหลักสูตร"
+        self.assertEqual(parse_query_spec(question).operations, ("placement",))
+
+    def test_course_content_only_remains_describe(self):
+        self.assertEqual(
+            parse_query_spec("วิชา 06016420 ของ IT แบบไม่สหกิจเรียนเกี่ยวกับอะไรบ้าง?").operations,
+            ("describe",),
+        )
+
+    def test_unrelated_curriculum_wording_does_not_trigger_placement(self):
+        self.assertNotIn("placement", parse_query_spec("ข้อมูลทั่วไปของหลักสูตร").operations)
+
     def test_residual_wording_requires_exact_course_target_and_context(self):
         self.assertNotIn(
             "describe",
