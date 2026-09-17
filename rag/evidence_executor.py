@@ -198,6 +198,47 @@ def _axis_values(
     return tuple(sorted(values))
 
 
+def _is_flexible_only_exact_credit_request(
+    db_path: str,
+    request: EvidenceRequest,
+    plan_keys: Iterable[str],
+    targets: tuple[Mapping[str, Any], ...],
+) -> bool:
+    if (
+        request.kind != "credit_facts"
+        or request.scope.years
+        or request.scope.semesters
+        or request.scope.group_by
+        or len(targets) != 1
+        or not isinstance(request.scope.program, str)
+        or not request.scope.program.strip()
+    ):
+        return False
+
+    placements: list[Mapping[str, Any]] = []
+    for plan_key in plan_keys:
+        result = scoped_course_set(
+            db_path,
+            request.scope.program,
+            plan_key,
+            course_targets=targets,
+        )
+        plan_courses = result.get("courses")
+        if not isinstance(plan_courses, (list, tuple)) or not plan_courses:
+            return False
+        placements.extend(
+            course
+            for course in plan_courses
+            if isinstance(course, Mapping)
+        )
+
+    return bool(placements) and all(
+        placement.get("year_number") is None
+        and placement.get("semester_number") is None
+        for placement in placements
+    )
+
+
 def _materialize_scopes(
     db_path: str,
     request: EvidenceRequest,
@@ -211,6 +252,29 @@ def _materialize_scopes(
     plan_keys = source.plans or applicable_plan_keys(db_path, source.program)
     if not plan_keys:
         return (materialization_source,)
+
+    if _is_flexible_only_exact_credit_request(
+        db_path,
+        request,
+        plan_keys,
+        request_targets,
+    ):
+        return (
+            replace(
+                materialization_source,
+                plans=tuple(plan_keys),
+                expand_applicable=tuple(
+                    axis
+                    for axis in materialization_source.expand_applicable
+                    if axis != "plan"
+                ),
+                unconstrained=tuple(
+                    axis
+                    for axis in materialization_source.unconstrained
+                    if axis != "plan"
+                ),
+            ),
+        )
 
     scopes: list[StructuralScope] = []
     for plan_key in plan_keys:

@@ -1259,7 +1259,7 @@ def ask(
     if resolution.action != "answer":
         return {"route": None, "result": _blocked_result(resolution)}
 
-    if "identity" in spec.operations:
+    if spec.operations == ("identity",):
         grounded = compose_grounded_answer(
             identity_result=_identity_result(resolution),
         )
@@ -1306,6 +1306,11 @@ def ask(
         similarity_request_ids=similarity_request_ids,
         selected_plan=selected_plan,
     )
+    if "identity" in spec.operations:
+        identity_claims = compose_grounded_answer(
+            identity_result=_identity_result(resolution),
+        ).claims
+        claims = (*identity_claims, *claims)
     grounded = compose_grounded_answer(composed_claims=claims)
     return {
         "route": None,

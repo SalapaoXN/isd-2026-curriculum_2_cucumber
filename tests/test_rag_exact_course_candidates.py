@@ -104,7 +104,7 @@ class ExactCourseCandidatesTest(unittest.TestCase):
         self.assertIsNone(candidate["name_th"])
         self.assertEqual(
             set(candidate["name_th_variants"]),
-            {"ไม่ระบุ", "แคลคูลัส"},
+            {"ไม่ระบุ 1", "แคลคูลัส 1"},
         )
         self.assertEqual(candidate["name_en"], "CALCULUS 1")
         self.assertEqual(candidate["name_en_variants"], ["CALCULUS 1"])

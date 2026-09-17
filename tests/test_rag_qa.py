@@ -564,8 +564,76 @@ class RagQaTest(unittest.TestCase):
             {claim.operation for claim in claims},
             {"placement", "sum_credits", "describe"},
         )
-        self.assertTrue(all(claim.status == "complete" for claim in claims))
-        self.assertTrue(all(claim.provenance for claim in claims))
+        for claim in claims:
+            if claim.operation in {"placement", "describe"}:
+                with self.subTest(operation=claim.operation):
+                    self.assertEqual(claim.status, "complete")
+                    self.assertTrue(claim.provenance)
+        # Exact-course credit scope: only the 4/2 term carries the course,
+        # so the other evaluated terms are successfully-empty relations.
+        credit_by_term = {
+            (
+                tuple(claim.effective_scope.years),
+                tuple(claim.effective_scope.semesters),
+            ): claim
+            for claim in claims
+            if claim.operation == "sum_credits"
+        }
+        self.assertEqual(
+            sorted(credit_by_term),
+            [((3,), (1,)), ((3,), (2,)), ((4,), (1,)), ((4,), (2,))],
+        )
+        for term in (((3,), (1,)), ((3,), (2,)), ((4,), (1,))):
+            with self.subTest(term=term):
+                self.assertEqual(credit_by_term[term].status, "valid_empty")
+                self.assertEqual(credit_by_term[term].value, 0)
+        with self.subTest(term=((4,), (2,))):
+            self.assertEqual(credit_by_term[((4,), (2,))].status, "complete")
+            self.assertEqual(credit_by_term[((4,), (2,))].value, 6)
+            self.assertTrue(credit_by_term[((4,), (2,))].provenance)
+
+    def test_flexible_only_exact_course_credit_uses_direct_course_fact(self):
+        result = ask(DB_PATH, "IT วิชา 06016465 มีกี่หน่วยกิต?")
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claims = result["result"].claims
+        self.assertEqual(len(claims), 1)
+        claim = claims[0]
+        self.assertEqual(claim.operation, "sum_credits")
+        self.assertEqual(claim.status, "complete")
+        self.assertEqual(claim.value, 3)
+        self.assertEqual(claim.effective_scope.years, ())
+        self.assertEqual(claim.effective_scope.semesters, ())
+        self.assertEqual(
+            tuple(target["course_code"] for target in claim.effective_scope.course_targets),
+            ("06016465",),
+        )
+        self.assertEqual(claim.evidence.components[0]["course_code"], "06016465")
+        self.assertTrue(claim.provenance)
+
+    def test_exact_course_name_and_credit_preserves_both_typed_claims(self):
+        result = ask(DB_PATH, "วิชา 06016420 ชื่ออะไรและมีกี่หน่วยกิต?")
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        claims = result["result"].claims
+        self.assertEqual(
+            [claim.operation for claim in claims],
+            ["identity", "sum_credits", "sum_credits"],
+        )
+        identity, *credit_claims = claims
+        self.assertEqual(identity.status, "complete")
+        self.assertTrue(identity.value)
+        self.assertTrue(identity.provenance)
+        self.assertEqual(
+            {tuple(claim.effective_scope.plans) for claim in credit_claims},
+            {("coop",), ("no_coop",)},
+        )
+        for credit in credit_claims:
+            with self.subTest(plan=credit.effective_scope.plans):
+                self.assertEqual(credit.status, "complete")
+                self.assertEqual(credit.value, 3)
+                self.assertTrue(credit.evidence.components)
+                self.assertTrue(credit.provenance)
 
     def test_generic_plan_comparison_stays_fail_closed_after_placement_parse(self):
         result = ask(

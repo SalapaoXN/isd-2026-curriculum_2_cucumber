@@ -102,7 +102,10 @@ _OPERATION_PATTERNS = (
             re.IGNORECASE,
         ),
     ),
-    ("prerequisite", re.compile(r"ก่อนลง|ต้องผ่าน|เรียน.*มาก่อน|prerequisite", re.IGNORECASE)),
+    (
+        "prerequisite",
+        re.compile(r"ก่อนลง|ต้องผ่าน|เตรียมผ่านวิชา|เรียน.*มาก่อน|prerequisite", re.IGNORECASE),
+    ),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
 )
 _COURSE_DETAIL_PATTERN = re.compile(
