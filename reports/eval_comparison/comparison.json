@@ -11,21 +11,21 @@
     },
     {
       "field": "name_th",
-      "consolidated_accuracy": 0.72944,
+      "consolidated_accuracy": 0.728248,
       "llm_accuracy": 0.909416,
-      "delta_percentage_points": 17.9976,
-      "improvements": 151,
+      "delta_percentage_points": 18.1168,
+      "improvements": 152,
       "regressions": 0,
-      "net_improvement": 151
+      "net_improvement": 152
     },
     {
       "field": "name_en",
-      "consolidated_accuracy": 0.390942,
+      "consolidated_accuracy": 0.387366,
       "llm_accuracy": 0.909416,
-      "delta_percentage_points": 51.8474,
-      "improvements": 435,
+      "delta_percentage_points": 52.205,
+      "improvements": 438,
       "regressions": 0,
-      "net_improvement": 435
+      "net_improvement": 438
     },
     {
       "field": "credits",
@@ -84,32 +84,32 @@
     {
       "field": "name_th",
       "comparison_mode": "normalized",
-      "correct_to_correct": 612,
-      "wrong_to_correct": 151,
+      "correct_to_correct": 611,
+      "wrong_to_correct": 152,
       "correct_to_wrong": 0,
       "wrong_to_wrong": 76
     },
     {
       "field": "name_th",
       "comparison_mode": "strict",
-      "correct_to_correct": 607,
-      "wrong_to_correct": 151,
+      "correct_to_correct": 606,
+      "wrong_to_correct": 152,
       "correct_to_wrong": 0,
       "wrong_to_wrong": 81
     },
     {
       "field": "name_en",
       "comparison_mode": "normalized",
-      "correct_to_correct": 328,
-      "wrong_to_correct": 435,
+      "correct_to_correct": 325,
+      "wrong_to_correct": 438,
       "correct_to_wrong": 0,
       "wrong_to_wrong": 76
     },
     {
       "field": "name_en",
       "comparison_mode": "strict",
-      "correct_to_correct": 321,
-      "wrong_to_correct": 402,
+      "correct_to_correct": 318,
+      "wrong_to_correct": 405,
       "correct_to_wrong": 0,
       "wrong_to_wrong": 116
     },

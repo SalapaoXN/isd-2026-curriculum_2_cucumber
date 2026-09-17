@@ -258,6 +258,12 @@
         "after": "RUGBY FOOTBALL"
     },
     {
+        "course_code": "90642067",
+        "field": "name_th",
+        "before": "ซอฟบอลและเบสบอล",
+        "after": "ซอฟต์บอลและเบสบอล"
+    },
+    {
         "course_code": "90642071",
         "field": "name_en",
         "before": "BADMNTON",
@@ -460,6 +466,12 @@
         "field": "name_en",
         "before": "INFORMATION LITERACY SKILLS FOR THE 2IST CENTURY",
         "after": "INFORMATION LITERACY SKILLS FOR THE 21ST CENTURY"
+    },
+    {
+        "course_code": "90642118",
+        "field": "name_en",
+        "before": "APPLICATION SOFTWARE FOR BUSSINESS",
+        "after": "APPLICATION SOFTWARE FOR BUSINESS"
     },
     {
         "course_code": "90642119",

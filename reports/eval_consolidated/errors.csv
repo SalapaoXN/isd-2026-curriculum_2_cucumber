@@ -22,6 +22,7 @@ consolidated,AIT,,1,"{""code"": ""06046406"", ""occurrence"": 1, ""plan"": null,
 consolidated,AIT,,1,"{""code"": ""06046409"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,คอมพิวเตอร์วิทัศน์เบื้องต้น,คอมพิวเตอร์วิทัศน์เบืองต้น,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046409"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",year,2,1,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046413"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง,ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง,False,False,FIELD_MISMATCH
+consolidated,AIT,,1,"{""code"": ""06046413"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,ARTIFICIAL INTELLIGENCE AND INTERNET OF THINGS,ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046413"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",year,2,1,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""90641009"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1,ทักษะการสือสารภาษา อังกฤษระหว่างวัฒนธรรม,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""90641009"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1,INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH,False,False,FIELD_MISMATCH
@@ -62,6 +63,7 @@ consolidated,AIT,,1,"{""code"": ""06046418"", ""occurrence"": 1, ""plan"": null,
 consolidated,AIT,,1,"{""code"": ""06046419"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,การเรียนรู้แบบเสริมกำลัง,การเรียนร้แบบเสริมกำลัง,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046420"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,INTELLIGENT RECOMMENDATION SYSTEMS,INTELLIGET RECOMMENDATION SVSTEMS,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046422"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_th,จริยธรรมด้านปัญญาประดิษฐ์,จริยธรรมด้านปัญญาประดษ,False,False,FIELD_MISMATCH
+consolidated,AIT,,1,"{""code"": ""06046422"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,ARTIFICIAL INTELLIGENCE ETHICS,ARTIFICIAL INTELLIGIENCE ETHICS,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046423"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,ARTIFICIAL INTELLIGIENCE SERVICE DESIGN,ARTIFICAL INTELLIGIENCE SERVICE DESIGI,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046430"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 1,SELECTED TOPICS IN ARTIFICAL INTELLIGENCE 1,False,False,FIELD_MISMATCH
 consolidated,AIT,,1,"{""code"": ""06046431"", ""occurrence"": 1, ""plan"": null, ""program"": ""AIT""}",name_en,SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 2,SELECTED TOPICS IN ARTIFICIAL INTEL LIGENCE 2,False,False,FIELD_MISMATCH
@@ -528,6 +530,7 @@ consolidated,GENED,gened,1,"{""code"": ""90642062"", ""occurrence"": 1, ""plan""
 consolidated,GENED,gened,1,"{""code"": ""90642062"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,ALL ABOUT FOOD,ALL ABOUT FOQD,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642063"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,HOLISTIC HEALTH DEVELOPMENT,HOLSTIC HEALTH DEVELOPMENT,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642065"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,RUGBY FOOTBALL,RUGBV FOOTBALL,False,False,FIELD_MISMATCH
+consolidated,GENED,gened,1,"{""code"": ""90642067"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ซอฟต์บอลและเบสบอล,ซอฟบอลและเบสบอล,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642071"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,BADMINTON,BADMNTON,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642074"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,E-SPORTS,E SPORTS,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642080"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,INTRODUCTION TO MUSIC COMPOSITION,NTRODUCTION TO MUSIC COMPOSITION,False,False,FIELD_MISMATCH
@@ -566,6 +569,7 @@ consolidated,GENED,gened,1,"{""code"": ""90642115"", ""occurrence"": 1, ""plan""
 consolidated,GENED,gened,1,"{""code"": ""90642116"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,SMART CITY AND INNOVATION,SMART CIT AND CITV INNOVATION,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642117"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,ทักษะการรู้สารสนเทศแห่งศตวรรษที่ 21,ทักษะการรู้สารสนเทศแห่งศตวรรษที 21,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642117"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,INFORMATION LITERACY SKILLS FOR THE 21st CENTURY,INFORMATION LITERACY SKILLS FOR THE 2IST CENTURY,False,False,FIELD_MISMATCH
+consolidated,GENED,gened,1,"{""code"": ""90642118"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,APPLICATION SOFTWARE FOR BUSINESS,APPLICATION SOFTWARE FOR BUSSINESS,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642119"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,COMPUTER FOR DEVELOPMENT OF ANALYTICAL THINKING PROCESS,COMPUTER FOR DEVELOPMENT OF ANAL ITICAL THINKING PROCESS,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642120"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_th,เอ็กเซลเพื่อความเป็นมืออาชีพ,เอ็กเซลเพือความเป็นมืออาชีพ,False,False,FIELD_MISMATCH
 consolidated,GENED,gened,1,"{""code"": ""90642121"", ""occurrence"": 1, ""plan"": ""gened"", ""program"": ""GENED""}",name_en,DATA ANALYSIS AND MANAGEMENT WITH COMPUTATIONAL PROGRAM,DATA ANALYSIS AND MANACEMENT WITH COMPUTATIONAL PROCRAM,False,False,FIELD_MISMATCH

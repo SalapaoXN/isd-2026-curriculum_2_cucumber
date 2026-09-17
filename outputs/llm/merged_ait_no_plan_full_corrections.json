@@ -108,6 +108,12 @@
         "after": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง"
     },
     {
+        "course_code": "06046413",
+        "field": "name_en",
+        "before": "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
+        "after": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THINGS"
+    },
+    {
         "course_code": "90641009",
         "field": "name_th",
         "before": "ทักษะการสือสารภาษา อังกฤษระหว่างวัฒนธรรม",
@@ -250,6 +256,12 @@
         "field": "name_th",
         "before": "จริยธรรมด้านปัญญาประดษ",
         "after": "จริยธรรมด้านปัญญาประดิษฐ์"
+    },
+    {
+        "course_code": "06046422",
+        "field": "name_en",
+        "before": "ARTIFICIAL INTELLIGIENCE ETHICS",
+        "after": "ARTIFICIAL INTELLIGENCE ETHICS"
     },
     {
         "course_code": "06046423",
