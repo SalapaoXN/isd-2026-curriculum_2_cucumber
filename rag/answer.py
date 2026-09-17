@@ -838,7 +838,8 @@ def _placement_sentence(entry: Mapping[str, Any]) -> str | None:
         return None
     program = entry.get("program")
     plan = entry.get("plan_key", entry.get("plan"))
-    prefix = "วิชานี้"
+    course_code = entry.get("course_code")
+    prefix = f"วิชา {course_code}" if course_code not in (None, "") else "วิชานี้"
     if program not in (None, ""):
         prefix += f"ในหลักสูตร {program}"
     if plan not in (None, ""):
@@ -901,6 +902,146 @@ def _earliest_operand_scope_prefix(claim: GroundedClaim) -> str:
     return f"{' '.join(labels)} | "
 
 
+def _prerequisite_course_text(entry: Mapping[str, Any]) -> str | None:
+    code = next(
+        (
+            entry.get(key)
+            for key in ("prerequisite_code", "prerequisite_course_code", "course_code", "code")
+            if entry.get(key) not in (None, "")
+        ),
+        None,
+    )
+    name = next(
+        (
+            entry.get(key)
+            for key in (
+                "prerequisite_name_en",
+                "prerequisite_name_th",
+                "course_name",
+                "name_en",
+                "name_th",
+                "name",
+            )
+            if entry.get(key) not in (None, "")
+        ),
+        None,
+    )
+    parts = [str(value).strip() for value in (code, name) if value not in (None, "")]
+    return " ".join(parts) if parts else None
+
+
+def _prerequisite_entries(value: Any) -> tuple[tuple[str, tuple[Mapping[str, Any], ...]], ...]:
+    """Collect only user-facing prerequisite entries, excluding metadata."""
+    groups: list[tuple[str, tuple[Mapping[str, Any], ...]]] = []
+
+    def visit(item: Any) -> None:
+        if isinstance(item, Mapping):
+            alternatives = item.get("alternative_courses")
+            if isinstance(alternatives, Mapping):
+                alternatives = (alternatives,)
+            if isinstance(alternatives, (list, tuple)):
+                alternative_entries = tuple(
+                    candidate for candidate in alternatives if isinstance(candidate, Mapping)
+                )
+                if alternative_entries:
+                    groups.append(("alternative", alternative_entries))
+
+            if any(
+                item.get(key) not in (None, "")
+                for key in ("prerequisite_code", "prerequisite_course_code", "course_code", "code")
+            ):
+                groups.append(("required", (item,)))
+
+            for key in ("prerequisites", "required_prerequisites", "entries", "items"):
+                nested = item.get(key)
+                if isinstance(nested, Mapping) or isinstance(nested, (list, tuple)):
+                    visit(nested)
+        elif isinstance(item, (list, tuple)):
+            for nested in item:
+                visit(nested)
+
+    visit(value)
+
+    unique: list[tuple[str, tuple[Mapping[str, Any], ...]]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for kind, entries in groups:
+        readable_entries = tuple(
+            entry for entry in entries if _prerequisite_course_text(entry) is not None
+        )
+        if not readable_entries:
+            continue
+        key = (
+            kind,
+            tuple(_prerequisite_course_text(entry) for entry in readable_entries),
+        )
+        if key not in seen:
+            seen.add(key)
+            unique.append((kind, readable_entries))
+    return tuple(unique)
+
+
+def _prerequisite_text(value: Any, *, valid_empty: bool = False) -> str | None:
+    groups = _prerequisite_entries(value)
+    if not groups:
+        return "ไม่มีวิชาบังคับก่อน" if valid_empty else None
+    rendered: list[str] = []
+    for kind, entries in groups:
+        courses = tuple(_prerequisite_course_text(entry) for entry in entries)
+        courses = tuple(course for course in courses if course)
+        if kind == "alternative":
+            rendered.append("ต้องผ่านอย่างน้อยหนึ่งวิชาจาก: " + " หรือ ".join(courses))
+        else:
+            rendered.extend(f"ต้องเรียนวิชา {course} มาก่อน" for course in courses)
+    return "\n".join(rendered) if rendered else ("ไม่มีวิชาบังคับก่อน" if valid_empty else None)
+
+
+def _identity_entry_text(entry: Mapping[str, Any]) -> str | None:
+    """Render one grounded course identity without internal fields."""
+    code = next(
+        (
+            entry.get(key)
+            for key in ("course_code", "code")
+            if isinstance(entry.get(key), str) and entry.get(key).strip()
+        ),
+        None,
+    )
+    names: dict[str, str] = {}
+    for label, key in (("ชื่อภาษาไทย", "name_th"), ("ชื่อภาษาอังกฤษ", "name_en")):
+        value = entry.get(key)
+        if isinstance(value, str) and value.strip():
+            names[label] = value.strip()
+    if code is None and not names:
+        return None
+    if len(names) > 1:
+        detail = "; ".join(f"{label}: {name}" for label, name in names.items())
+        return f"{code} {detail}" if code is not None else detail
+    if names:
+        ((_, name),) = names.items()
+        return f"{code} — {name}" if code is not None else name
+    return str(code)
+
+
+def _identity_claim_text(value: Any) -> str | None:
+    """Render every distinct grounded course identity in a claim value."""
+    if isinstance(value, Mapping):
+        entries: tuple[Any, ...] = (value,)
+    elif isinstance(value, (list, tuple)):
+        entries = tuple(value)
+    else:
+        return None
+    rendered: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            continue
+        text = _identity_entry_text(entry)
+        if text is None or text in seen:
+            continue
+        seen.add(text)
+        rendered.append(text)
+    return "\n".join(rendered) if rendered else None
+
+
 def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
     """Expose persisted similarity numbers without comparing or recalculating."""
     return {
@@ -943,20 +1084,6 @@ def _similarity_description_text(value: SimilarityEvidence) -> str | None:
             if isinstance(plan, str) and plan.strip():
                 label += f" ({plan})"
             sections.append(f"{label}:\n{text}")
-        if pair.cosine_similarity is not None or pair.cosine_distance is not None:
-            sections.append(
-                "similarity: "
-                + json.dumps(
-                    {
-                        "cosine_distance": pair.cosine_distance,
-                        "cosine_similarity": pair.cosine_similarity,
-                    },
-                    ensure_ascii=False,
-                    sort_keys=True,
-                    separators=(",", ":"),
-                    default=str,
-                )
-            )
     return "\n".join(sections)
 
 
@@ -994,6 +1121,23 @@ def _deterministic_claim_text(
         if placement_text is not None:
             return finish(placement_text)
 
+    if claim.operation == "prerequisite":
+        prerequisite_text = _prerequisite_text(
+            claim.evidence if claim.evidence is not None else claim.value,
+            valid_empty=claim.status == "valid_empty",
+        )
+        if prerequisite_text is not None:
+            return finish(prerequisite_text)
+        return finish("หลักฐานไม่เพียงพอ")
+
+    if claim.operation == "identity":
+        identity_text = _identity_claim_text(claim.value) or _identity_claim_text(
+            claim.evidence
+        )
+        if identity_text is not None:
+            return finish(identity_text)
+        return finish("หลักฐานไม่เพียงพอ")
+
     if claim.operation in {"describe", "topic_matches", "description_evidence"}:
         texts = _description_texts(claim.evidence)
         if texts:
@@ -1021,6 +1165,83 @@ def _deterministic_claim_text(
     return finish(
         _earliest_operand_scope_prefix(claim) + f"{claim.operation}: {serialized}"
     )
+
+
+_POLISH_INSTRUCTION = """You are the final-response writer for a university curriculum QA system.
+
+Your ONLY task is to rewrite GROUNDED_CONTENT into natural, fluent Thai.
+
+STRICT RULES:
+
+- Use only facts present in GROUNDED_CONTENT.
+- Do not add, infer, guess, correct, or expand factual content from your own knowledge.
+- Preserve course codes, program names, plan names, year/semester values, credits, prerequisite relationships, and numerical values exactly.
+- Do not omit facts that directly answer USER_QUESTION.
+- Combine duplicate statements naturally.
+- Avoid JSON/database/internal terminology.
+- Answer directly in natural Thai.
+- Keep technical/course-content meaning equivalent to the supplied content.
+- If GROUNDED_CONTENT says information is missing or ambiguous, preserve that limitation.
+- Return only the final user-facing answer."""
+
+
+def _critical_facts(text: str) -> tuple[str, ...]:
+    facts: list[str] = []
+    for match in re.finditer(r"(?<!\d)\d{8}(?!\d)", text):
+        facts.append(f"code:{match.group(0)}")
+    for match in re.finditer(r"\b(\d+)\s*(\([^\n)]*\))", text):
+        facts.append(f"credit:{match.group(1)}{match.group(2)}")
+
+    for match in re.finditer(r"ปี(?:ที่)?\s*(\d+)", text):
+        facts.append(f"year:{match.group(1)}")
+
+    semester_pattern = (
+        r"(?:ภาคเรียนที่|ภาคเรียน|ภาคการศึกษาที่|ภาคการศึกษา|เทอม(?:ที่)?)\s*(\d+)"
+        r"|\bsemester\s+(\d+)"
+    )
+    for match in re.finditer(semester_pattern, text, re.IGNORECASE):
+        facts.append(f"semester:{match.group(1) or match.group(2)}")
+
+    if re.search(r"\bno_coop\b|ไม่\s*สหกิจ", text):
+        facts.append("plan:no_coop")
+    elif re.search(r"\bcoop\b|(?<!ไม่)สหกิจ", text):
+        facts.append("plan:coop")
+
+    for match in re.finditer(
+        r"(?<![A-Za-z0-9_])(AIT|BIT|DSBA|GENED|IT)(?![A-Za-z0-9_])", text
+    ):
+        facts.append(f"program:{match.group(1)}")
+    return tuple(facts)
+
+
+def _polish_deterministic_answer(
+    question: str | None,
+    deterministic_answer: str,
+    answer_model_callable: Callable[[str], str] | None,
+) -> str:
+    if not deterministic_answer or not isinstance(question, str) or not question.strip():
+        return deterministic_answer
+    if not callable(answer_model_callable):
+        return deterministic_answer
+    prompt = "\n".join(
+        (
+            _POLISH_INSTRUCTION,
+            f"USER_QUESTION:\n{question}",
+            f"GROUNDED_CONTENT:\n{deterministic_answer}",
+        )
+    )
+    try:
+        polished = answer_model_callable(prompt)
+    except Exception:
+        return deterministic_answer
+    if not isinstance(polished, str) or not polished.strip():
+        return deterministic_answer
+    polished = polished.strip()
+    required_facts = set(_critical_facts(deterministic_answer))
+    available_facts = set(_critical_facts(polished))
+    if not required_facts.issubset(available_facts):
+        return deterministic_answer
+    return polished
 
 
 def render_grounded_claim(
@@ -1079,8 +1300,10 @@ def synthesize_grounded_claim(
 def render_grounded_answer(
     result: GroundedAnswerResult,
     answer_model_callable: Callable[[str], str] | None = None,
+    *,
+    question: str | None = None,
 ) -> GroundedAnswerResult:
-    """Render a typed answer claim-by-claim without mutating its evidence."""
+    """Render deterministic evidence, then optionally polish its final text."""
     if not isinstance(result, GroundedAnswerResult):
         raise TypeError("result must be a GroundedAnswerResult")
     if not result.claims:
@@ -1088,20 +1311,13 @@ def render_grounded_answer(
     scope_dimensions = _scope_diff_dimensions(result.claims)
     segments: list[str] = []
     for claim in result.claims:
-        if claim.kind == "grounded_summary":
-            segment = synthesize_grounded_claim(
-                claim,
-                answer_model_callable,
-                scope_dimensions=scope_dimensions,
-            )
-        else:
-            segment = render_grounded_claim(
-                claim,
-                scope_dimensions=scope_dimensions,
-            )
+        segment = render_grounded_claim(claim, scope_dimensions=scope_dimensions)
         if segment:
             segments.append(segment)
     final_answer = "\n".join(segments) if segments else result.final_answer
+    final_answer = _polish_deterministic_answer(
+        question, final_answer, answer_model_callable
+    )
     return GroundedAnswerResult(
         status=result.status,
         answer_mode=result.answer_mode,

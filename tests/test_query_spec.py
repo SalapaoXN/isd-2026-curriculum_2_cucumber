@@ -263,6 +263,49 @@ class QuerySpecEntityTests(unittest.TestCase):
         code_to_name_short = parse_query_spec("06016414 รหัสอะไร")
         self.assertEqual(code_to_name_short.operations, ())
 
+    def test_language_specific_course_name_questions_request_identity(self):
+        combined_en = parse_query_spec(
+            "วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไร และมีหน่วยกิตเท่าไร?"
+        )
+        self.assertIn("identity", combined_en.operations)
+        self.assertIn("sum_credits", combined_en.operations)
+
+        combined_th = parse_query_spec(
+            "วิชา 06016401 ชื่อภาษาไทยว่าอะไร และมีหน่วยกิตเท่าไร?"
+        )
+        self.assertIn("identity", combined_th.operations)
+        self.assertIn("sum_credits", combined_th.operations)
+
+        en_only = parse_query_spec("วิชา 06016401 ชื่อภาษาอังกฤษคืออะไร")
+        self.assertEqual(en_only.operations, ("identity",))
+
+        th_only = parse_query_spec("วิชา 06016401 ชื่อภาษาไทยคืออะไร")
+        self.assertEqual(th_only.operations, ("identity",))
+
+        identity_and_content_en = parse_query_spec(
+            "วิชา GENED 90641001 มีชื่อภาษาอังกฤษว่าอะไร และเรียนเกี่ยวกับเรื่องอะไรบ้าง?"
+        )
+        self.assertEqual(identity_and_content_en.operations, ("identity", "describe"))
+
+        identity_and_content_th = parse_query_spec(
+            "วิชา GENED 90641001 มีชื่อภาษาไทยว่าอะไร และเรียนเกี่ยวกับเรื่องอะไรบ้าง?"
+        )
+        self.assertEqual(identity_and_content_th.operations, ("identity", "describe"))
+
+        credits_only = parse_query_spec("วิชา 06016401 มีหน่วยกิตเท่าไร?")
+        self.assertNotIn("identity", credits_only.operations)
+        self.assertIn("sum_credits", credits_only.operations)
+
+        unrelated_language = parse_query_spec(
+            "วิชา 06016402 สอนเป็นภาษาอังกฤษหรือไม่"
+        )
+        self.assertNotIn("identity", unrelated_language.operations)
+
+        content_only = parse_query_spec(
+            "วิชา GENED 90641001 เรียนเกี่ยวกับเรื่องอะไรบ้าง?"
+        )
+        self.assertEqual(content_only.operations, ("describe",))
+
     def test_describe_wording_does_not_become_identity(self):
         for wording in ("เรียนเรื่องอะไร", "เรียนเกี่ยวกับอะไร"):
             with self.subTest(wording=wording):

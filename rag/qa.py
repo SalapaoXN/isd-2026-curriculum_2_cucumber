@@ -1317,6 +1317,7 @@ def ask(
         "result": render_grounded_answer(
             grounded,
             answer_model_callable=answer_model_callable,
+            question=question,
         ),
     }
 

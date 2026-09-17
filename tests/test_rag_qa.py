@@ -532,6 +532,30 @@ class RagQaTest(unittest.TestCase):
         self.assertTrue(all(claim.status == "complete" for claim in claims))
         self.assertTrue(all(claim.provenance for claim in claims))
 
+    def test_final_polish_receives_original_question_without_mutating_claims(self):
+        question = (
+            "วิชา 06016420 ของ IT แบบไม่สหกิจอยู่ช่วงไหนของหลักสูตร "
+            "และเรียนเกี่ยวกับอะไรบ้าง?"
+        )
+        deterministic = ask(DB_PATH, question)["result"]
+        prompts = []
+
+        def polish(prompt):
+            prompts.append(prompt)
+            return (
+                "วิชา 06016420 ในหลักสูตร IT แผน no_coop เรียนในปี 2 "
+                "ภาคเรียนที่ 2 มี 3(2-2-5) หน่วยกิต และมีเนื้อหาตามหลักฐาน"
+            )
+
+        polished = ask(DB_PATH, question, answer_model_callable=polish)["result"]
+
+        self.assertEqual(len(prompts), 1)
+        self.assertIn(question, prompts[0])
+        self.assertIn("GROUNDED_CONTENT", prompts[0])
+        self.assertEqual(polished.claims, deterministic.claims)
+        self.assertEqual(polished.provenance, deterministic.provenance)
+        self.assertIn("06016420", polished.final_answer)
+
     def test_residual_course_targeted_wording_produces_complete_claims(self):
         cases = (
             "สำหรับ IT แบบสหกิจ วิชา 06016418 เรียนช่วงไหนของหลักสูตร และเนื้อหาครอบคลุมเรื่องใดเกี่ยวกับฐานข้อมูลบ้าง?",

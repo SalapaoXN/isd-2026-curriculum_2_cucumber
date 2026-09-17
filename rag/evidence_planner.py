@@ -7,6 +7,7 @@ vectors, or derive answers.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Any, Mapping
@@ -27,6 +28,10 @@ EVIDENCE_PRIMITIVES = (
 )
 GROUP_BY_VALUES = ("plan", "year", "semester", "course")
 SCOPE_EXPANSION_AXES = GROUP_BY_VALUES
+_SEMESTER_TOTAL_CREDIT_PATTERN = re.compile(
+    r"(?:ลงทะเบียน\s*)?รวม\s*กี่\s*หน่วยกิต|รวม\s*ทั้งหมด\s*กี่\s*หน่วยกิต",
+    re.IGNORECASE,
+)
 
 
 def _ordered_unique(values: Any) -> tuple[Any, ...]:
@@ -294,6 +299,16 @@ def _request(
     )
 
 
+def _credit_request_targets(
+    query_spec: QuerySpec,
+    exact_targets: tuple[Mapping[str, Any], ...],
+) -> tuple[Mapping[str, Any], ...]:
+    """Keep exact targets only for course-credit, not explicit semester totals."""
+    if _SEMESTER_TOTAL_CREDIT_PATTERN.search(query_spec.original_question):
+        return ()
+    return exact_targets
+
+
 def plan_evidence(
     query_spec: QuerySpec,
     resolution: ResolutionOutcome,
@@ -375,7 +390,7 @@ def plan_evidence(
                 "credit_facts",
                 scope,
                 depends_on=(target_relation_id,) if target_relation_id else (),
-                course_targets=exact_targets,
+                course_targets=_credit_request_targets(query_spec, exact_targets),
             )
         )
 

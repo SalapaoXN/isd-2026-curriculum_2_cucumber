@@ -329,6 +329,60 @@ class EvidencePlannerModelTests(unittest.TestCase):
         self.assertEqual(plan.scope.years, (3,))
         self.assertEqual(plan.scope.semesters, (2,))
 
+    def test_mixed_semester_total_and_prerequisite_scopes_credit_request_without_course(self):
+        target = {"program": "IT", "course_code": "06016420", "course_id": 20}
+        spec = self._spec(
+            original_question=(
+                "IT แบบไม่สหกิจ ในปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต "
+                "และวิชา 06016420 ต้องผ่านวิชาอะไรมาก่อน?"
+            ),
+            plans=("no_coop",),
+            years=(2,),
+            semesters=(2,),
+            course_codes=("06016420",),
+            operations=("sum_credits", "prerequisite"),
+        )
+        plan = plan_evidence(spec, self._resolution(candidates=(target,)))
+
+        credit = next(request for request in plan.requests if request.kind == "credit_facts")
+        prerequisite = next(
+            request for request in plan.requests if request.kind == "prerequisite_facts"
+        )
+        self.assertEqual(credit.course_targets, ())
+        self.assertEqual(credit.scope.program, "IT")
+        self.assertEqual(credit.scope.plans, ("no_coop",))
+        self.assertEqual(credit.scope.years, (2,))
+        self.assertEqual(credit.scope.semesters, (2,))
+        self.assertEqual(
+            tuple(target["course_code"] for target in prerequisite.course_targets),
+            ("06016420",),
+        )
+
+    def test_course_credit_question_keeps_exact_course_target(self):
+        target = {"program": "IT", "course_code": "06016401", "course_id": 1}
+        spec = self._spec(
+            original_question="วิชา 06016401 มีหน่วยกิตเท่าไร?",
+            course_codes=("06016401",),
+            operations=("sum_credits",),
+        )
+        plan = plan_evidence(spec, self._resolution(candidates=(target,)))
+
+        credit = next(request for request in plan.requests if request.kind == "credit_facts")
+        self.assertEqual(credit.course_targets, (target,))
+
+    def test_pure_semester_total_has_no_course_targets(self):
+        spec = self._spec(
+            original_question="IT แบบไม่สหกิจ ปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต?",
+            plans=("no_coop",),
+            years=(2,),
+            semesters=(2,),
+            operations=("sum_credits",),
+        )
+        plan = plan_evidence(spec, self._resolution())
+
+        credit = next(request for request in plan.requests if request.kind == "credit_facts")
+        self.assertEqual(credit.course_targets, ())
+
     def test_nq_030_and_nq_031_use_description_and_placement_shapes(self):
         candidates = (
             {"program": "IT", "course_code": "06016420", "course_id": 20},

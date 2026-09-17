@@ -117,7 +117,8 @@ _IDENTITY_NAME_TO_CODE_PATTERN = re.compile(
     r"รหัส(?:วิชา)?\s*อะไร", re.IGNORECASE
 )
 _IDENTITY_CODE_TO_NAME_PATTERN = re.compile(
-    r"(?:ชื่อวิชา\s*อะไร|ชื่อ\s*อะไร|คือวิชา\s*อะไร)",
+    r"(?:ชื่อวิชา\s*อะไร|ชื่อ\s*อะไร|คือวิชา\s*อะไร|"
+    r"ชื่อภาษาอังกฤษ\s*(?:ว่า|คือ)\s*อะไร|ชื่อภาษาไทย\s*(?:ว่า|คือ)\s*อะไร)",
     re.IGNORECASE,
 )
 _WORKLOAD_PATTERN = re.compile(r"หนัก(?:ไหม|มั้ย|หรือไม่)", re.IGNORECASE)
@@ -244,13 +245,14 @@ def _extract_operations(
         (course_name and _IDENTITY_NAME_TO_CODE_PATTERN.search(question))
         or (course_codes and _IDENTITY_CODE_TO_NAME_PATTERN.search(question))
     )
+    explicit_describe_request = bool(_COURSE_DETAIL_PATTERN.search(question))
     course_targeted_detail = bool(course_codes or course_name) and not identity_request
     course_content_comparison = (
         len(course_codes) > 1
         and bool(_COURSE_CONTENT_COMPARISON_PATTERN.search(question))
     )
     for operation, pattern in _OPERATION_PATTERNS:
-        if operation == "describe" and identity_request:
+        if operation == "describe" and identity_request and not explicit_describe_request:
             continue
         if operation == "existence" and judgement in {"quantity", "workload"}:
             continue
