@@ -1292,6 +1292,170 @@ def _semantic_provenance_items(chunks: Sequence[Mapping[str, Any]]) -> list[Mapp
     return items
 
 
+def _nested_course_sides(result: Any) -> list[Mapping[str, Any]]:
+    sides: list[Mapping[str, Any]] = []
+    for chunk in _semantic_chunks_for_grading(result):
+        evidence = chunk.get("evidence")
+        if not isinstance(evidence, Mapping):
+            continue
+        for pair in evidence.get("pairs", ()):
+            if not isinstance(pair, Mapping):
+                continue
+            for side in (pair.get("left"), pair.get("right")):
+                if isinstance(side, Mapping):
+                    sides.append(side)
+    return sides
+
+
+def _nested_course_semantic_checks(
+    expected_courses: Any,
+    result: Any,
+    answer: Any,
+) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    description_expected: list[str] = []
+    description_found: list[str] = []
+    provenance_expected: list[Mapping[str, Any]] = []
+    provenance_found: list[Mapping[str, Any]] = []
+    actual_sides = _nested_course_sides(result)
+
+    if not isinstance(expected_courses, Sequence) or isinstance(expected_courses, (str, bytes)):
+        expected_courses = ()
+    for index, expected_course in enumerate(expected_courses):
+        if not isinstance(expected_course, Mapping):
+            checks.append(
+                {
+                    "label": f"courses[{index}]",
+                    "evidence": False,
+                    "answer": False,
+                    "evidence_required": True,
+                    "answer_required": True,
+                }
+            )
+            continue
+        expected_program = expected_course.get("program")
+        expected_code = expected_course.get("course_code")
+        expected_plan = expected_course.get("plan")
+        actual = next(
+            (
+                side
+                for side in actual_sides
+                if side.get("program") == expected_program
+                and side.get("course_code") == expected_code
+                and (
+                    expected_plan is None
+                    or (
+                        isinstance(side.get("partition"), Mapping)
+                        and side["partition"].get("plan") == expected_plan
+                    )
+                )
+            ),
+            None,
+        )
+        actual_text = str(actual.get("text") or "") if actual is not None else ""
+        actual_partition = actual.get("partition") if actual is not None else None
+        actual_values = {
+            "program": actual.get("program") if actual is not None else None,
+            "plan": actual_partition.get("plan")
+            if isinstance(actual_partition, Mapping)
+            else None,
+            "course_code": actual.get("course_code") if actual is not None else None,
+        }
+        for field in ("program", "plan", "course_code", "name_en"):
+            if field not in expected_course:
+                continue
+            expected_value = expected_course[field]
+            evidence = (
+                _contains_text(actual_text, expected_value)
+                if field == "name_en"
+                else actual_values.get(field) == expected_value
+            )
+            checks.append(
+                {
+                    "label": f"courses[{index}].{field}",
+                    "evidence": evidence,
+                    "answer": _answer_has_value(answer, field, expected_value),
+                    "evidence_required": True,
+                    "answer_required": True,
+                }
+            )
+
+        expected_descriptions = [
+            str(item) for item in expected_course.get("description_evidence", [])
+        ]
+        description_expected.extend(expected_descriptions)
+        for item in expected_descriptions:
+            found = _contains_text(actual_text, item)
+            if found:
+                description_found.append(item)
+            checks.append(
+                {
+                    "label": f"courses[{index}].description_evidence[{len(description_found)}]",
+                    "evidence": found,
+                    "answer": _contains_text(answer, item),
+                    "evidence_required": True,
+                    "answer_required": True,
+                }
+            )
+
+        expected_provenance = expected_course.get("provenance", [])
+        if isinstance(expected_provenance, Sequence) and not isinstance(expected_provenance, (str, bytes)):
+            provenance_expected.extend(
+                item for item in expected_provenance if isinstance(item, Mapping)
+            )
+        actual_provenance = actual.get("provenance", ()) if actual is not None else ()
+        if not isinstance(actual_provenance, Sequence) or isinstance(actual_provenance, (str, bytes)):
+            actual_provenance = ()
+        for item in expected_provenance:
+            if not isinstance(item, Mapping):
+                continue
+            found = any(
+                _provenance_matches(item, actual_reference)
+                for actual_reference in actual_provenance
+                if isinstance(actual_reference, Mapping)
+            )
+            if found:
+                provenance_found.append(item)
+            checks.append(
+                {
+                    "label": f"courses[{index}].provenance",
+                    "evidence": found,
+                    "answer": True,
+                    "evidence_required": True,
+                    "answer_required": False,
+                }
+            )
+
+    if not checks:
+        checks.append(
+            {
+                "label": "courses",
+                "evidence": False,
+                "answer": False,
+                "evidence_required": True,
+                "answer_required": True,
+            }
+        )
+    evidence_required_checks = [item for item in checks if item["evidence_required"]]
+    answer_required_checks = [item for item in checks if item["answer_required"]]
+    return {
+        "checks": checks,
+        "evidence_count": sum(bool(item["evidence"]) for item in evidence_required_checks),
+        "evidence_total": len(evidence_required_checks),
+        "answer_count": sum(bool(item["answer"]) for item in answer_required_checks),
+        "answer_total": len(answer_required_checks),
+        "description_found": description_found,
+        "description_missing": [item for item in description_expected if item not in description_found],
+        "description_answer_found": [item for item in description_expected if _contains_text(answer, item)],
+        "paraphrase_supported": False,
+        "paraphrase_score": 0.0,
+        "provenance_found": provenance_found,
+        "provenance_missing": [item for item in provenance_expected if item not in provenance_found],
+        "provenance_correct": len(provenance_found) == len(provenance_expected),
+        "description_expected": description_expected,
+    }
+
+
 _SOURCE_PAGE_KEY_RE = re.compile(
     r"^(?P<program>[A-Za-z0-9]+)_page_(?P<page>\d+)(?:_ocr)?\.(?:png|json|txt)$",
     re.IGNORECASE,
@@ -1399,6 +1563,8 @@ def _semantic_checks(
     result: Any,
     answer: Any,
 ) -> dict[str, Any]:
+    if "courses" in expected:
+        return _nested_course_semantic_checks(expected.get("courses"), result, answer)
     chunks = _semantic_chunks_for_grading(result)
     texts = "\n".join(str(chunk.get("text") or "") for chunk in chunks)
     relevance = _question_relevance(question, expected)
@@ -1506,6 +1672,7 @@ def _semantic_checks(
         "provenance_found": provenance_found,
         "provenance_missing": [item for item in provenance_expected if item not in provenance_found],
         "provenance_correct": provenance_ok,
+        "description_expected": description_expected,
     }
 
 
@@ -1655,11 +1822,11 @@ def _grade_answer(gold: Mapping[str, Any], result: Mapping[str, Any]) -> tuple[s
             "structured_checks": None,
             "semantic_evidence_coverage": {
                 "matched": len(semantic_details["description_found"]),
-                "expected": len(gold["expected"].get("description_evidence", [])),
+                "expected": len(semantic_details["description_expected"]),
                 "description_matched": len(semantic_details["description_found"]),
-                "description_expected": len(gold["expected"].get("description_evidence", [])),
+                "description_expected": len(semantic_details["description_expected"]),
                 "metadata_matched": semantic_details["evidence_count"] - len(semantic_details["description_found"]),
-                "metadata_expected": len(semantic_details["checks"]) - len(gold["expected"].get("description_evidence", [])),
+                "metadata_expected": len(semantic_details["checks"]) - len(semantic_details["description_expected"]),
             },
             "provenance_correct": semantic_details["provenance_correct"],
             "typed_valid_empty": False,
@@ -1680,11 +1847,11 @@ def _grade_answer(gold: Mapping[str, Any], result: Mapping[str, Any]) -> tuple[s
         "structured_checks": structured_details,
         "semantic_evidence_coverage": {
             "matched": len(semantic_details["description_found"]),
-            "expected": len(gold["expected"].get("description_evidence", [])),
+            "expected": len(semantic_details["description_expected"]),
             "description_matched": len(semantic_details["description_found"]),
-            "description_expected": len(gold["expected"].get("description_evidence", [])),
+            "description_expected": len(semantic_details["description_expected"]),
             "metadata_matched": semantic_details["evidence_count"] - len(semantic_details["description_found"]),
-            "metadata_expected": len(semantic_details["checks"]) - len(gold["expected"].get("description_evidence", [])),
+            "metadata_expected": len(semantic_details["checks"]) - len(semantic_details["description_expected"]),
         },
         "provenance_correct": semantic_details["provenance_correct"],
         "typed_valid_empty": False,

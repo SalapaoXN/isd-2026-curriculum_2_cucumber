@@ -239,6 +239,18 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertEqual(spec.group_by, group_by)
                 self.assertEqual(spec.judgement, judgement)
 
+    def test_explicit_course_content_comparison_uses_similarity(self):
+        spec = parse_query_spec(
+            "วิชา 06016402 ของ IT แบบไม่สหกิจ กับ 06026207 ของ DSBA แบบไม่สหกิจต่างก็เกี่ยวข้องกับข้อมูล แต่แต่ละวิชาเน้นเรื่องใดบ้าง?"
+        )
+        self.assertEqual(spec.operations, ("similarity",))
+        self.assertEqual(spec.group_by, ("course",))
+
+        placement_comparison = parse_query_spec(
+            "06016414 กับ 06016419 ตัวไหนเรียนก่อน"
+        )
+        self.assertEqual(placement_comparison.operations, ("placement", "compare"))
+
     def test_identity_operation_uses_narrow_course_identity_cues(self):
         name_to_code = parse_query_spec("วิชา Calculus 1 รหัสวิชาอะไร")
         self.assertEqual(name_to_code.course_name, "Calculus 1")

@@ -225,6 +225,24 @@ def _stable_partition_key(partition: Mapping[str, Any]) -> str:
     return json.dumps(dict(partition), ensure_ascii=False, sort_keys=True, default=str)
 
 
+def _similarity_partition_key(partition: Mapping[str, Any]) -> str:
+    """Match structural partitions without merging target program identity."""
+    return _stable_partition_key(
+        {key: value for key, value in partition.items() if key != "program"}
+    )
+
+
+def _similarity_pair_partition(partition: Mapping[str, Any]) -> dict[str, Any]:
+    """Store only shared structural scope on a similarity pair.
+
+    A single ``program`` value cannot describe a cross-program comparison;
+    per-side program identity stays on the left/right evidence.
+    """
+    if not isinstance(partition, Mapping):
+        return {}
+    return {key: value for key, value in partition.items() if key != "program"}
+
+
 def _description_partition(evidence: Mapping[str, Any]) -> dict[str, Any]:
     partition = evidence.get("partition")
     if isinstance(partition, Mapping):
@@ -484,7 +502,7 @@ def compare_exact_description_vectors(
     right_value = right or {}
     left_partition = _description_partition(left_value)
     right_partition = _description_partition(right_value)
-    selected_partition = dict(partition or left_partition)
+    selected_partition = _similarity_pair_partition(partition or left_partition)
     if left_reason is not None or right_reason is not None:
         missing_chunk_ids = tuple(
             chunk_id
@@ -504,7 +522,12 @@ def compare_exact_description_vectors(
         )
     if (
         partition is not None
-        and (left_partition != selected_partition or right_partition != selected_partition)
+        and (
+            _similarity_partition_key(left_partition)
+            != _similarity_partition_key(selected_partition)
+            or _similarity_partition_key(right_partition)
+            != _similarity_partition_key(selected_partition)
+        )
     ):
         return SimilarityPair(
             "insufficient_evidence",
@@ -513,7 +536,12 @@ def compare_exact_description_vectors(
             right_value,
             reason="partition_mismatch",
         )
-    if left is not None and right is not None and left_partition != right_partition:
+    if (
+        left is not None
+        and right is not None
+        and _similarity_partition_key(left_partition)
+        != _similarity_partition_key(right_partition)
+    ):
         return SimilarityPair(
             "insufficient_evidence",
             selected_partition,
@@ -571,7 +599,7 @@ def _partitioned_descriptions(
         if not isinstance(raw_partition, Mapping):
             raise ValueError("course partition must be a mapping")
         partition = dict(raw_partition)
-        key = _stable_partition_key(partition)
+        key = _similarity_partition_key(partition)
         if key not in partitions:
             partitions[key] = (partition, [])
         descriptions = course.get("description_evidence", ()) or ()
@@ -652,7 +680,7 @@ def aggregate_exact_course_similarity(
             pairs.append(
                 SimilarityPair(
                     "insufficient_evidence",
-                    left_partition,
+                    _similarity_pair_partition(left_partition),
                     left_unique[0] if left_unique else {},
                     right_unique[0] if right_unique else {},
                     reason="multiple_non_identical_descriptions"
@@ -669,7 +697,7 @@ def aggregate_exact_course_similarity(
                 right_unique[0]["chunk_id"],
                 left_evidence=left_unique[0],
                 right_evidence=right_unique[0],
-                partition=left_partition,
+                partition=_similarity_pair_partition(left_partition),
             )
         )
 

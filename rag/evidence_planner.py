@@ -7,7 +7,7 @@ vectors, or derive answers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -317,21 +317,31 @@ def plan_evidence(
     if query_spec.operations and exact_targets:
         if "describe" in query_spec.operations:
             for index, target in enumerate(exact_targets, start=1):
+                target_scope = replace(
+                    scope,
+                    program=target.get("program"),
+                    course_targets=(target,),
+                )
                 add(
                     _request(
                         f"description_{index}",
                         "description_evidence",
-                        scope,
+                        target_scope,
                         course_targets=(target,),
                     )
                 )
         if "similarity" in query_spec.operations:
             for index, target in enumerate(exact_targets, start=1):
+                target_scope = replace(
+                    scope,
+                    program=target.get("program"),
+                    course_targets=(target,),
+                )
                 add(
                     _request(
                         f"similarity_description_{index}",
                         "description_evidence",
-                        scope,
+                        target_scope,
                         course_targets=(target,),
                     )
                 )

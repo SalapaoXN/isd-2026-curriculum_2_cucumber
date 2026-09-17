@@ -805,6 +805,45 @@ def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
     }
 
 
+def _similarity_description_text(value: SimilarityEvidence) -> str | None:
+    """Render complete pair-side descriptions without adding synthesis."""
+    if value.status != "complete" or not value.pairs:
+        return None
+    sections: list[str] = []
+    for pair in value.pairs:
+        for side in (pair.left, pair.right):
+            text = _description_text(side)
+            if text is None:
+                return None
+            program = side.get("program")
+            course_code = side.get("course_code")
+            partition = side.get("partition")
+            plan = partition.get("plan") if isinstance(partition, Mapping) else None
+            label = " ".join(
+                str(part)
+                for part in (program, course_code)
+                if isinstance(part, str) and part.strip()
+            ) or "วิชา"
+            if isinstance(plan, str) and plan.strip():
+                label += f" ({plan})"
+            sections.append(f"{label}:\n{text}")
+        if pair.cosine_similarity is not None or pair.cosine_distance is not None:
+            sections.append(
+                "similarity: "
+                + json.dumps(
+                    {
+                        "cosine_distance": pair.cosine_distance,
+                        "cosine_similarity": pair.cosine_similarity,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    default=str,
+                )
+            )
+    return "\n".join(sections)
+
+
 def _deterministic_claim_text(
     claim: GroundedClaim,
     *,
@@ -819,6 +858,9 @@ def _deterministic_claim_text(
         return ""
 
     if claim.operation == "similarity" and isinstance(claim.value, SimilarityEvidence):
+        description_text = _similarity_description_text(claim.value)
+        if description_text is not None:
+            return finish(description_text)
         value = _plain_typed_value(_similarity_numeric_payload(claim.value))
         return finish(
             "similarity: "

@@ -128,6 +128,10 @@ _UNSUPPORTED_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _COMPARISON_BEFORE_PATTERN = re.compile(r"(?:ตัวไหน|อันไหน|วิชาไหน).{0,20}เรียนก่อน", re.IGNORECASE)
+_COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
+    r"เนื้อหา|หัวข้อ|สาระ|เน้นเรื่องใด(?:บ้าง)?|\bcontent\b|\btopic\b",
+    re.IGNORECASE,
+)
 
 _OPERATION_ORDER = MappingProxyType(
     {
@@ -241,13 +245,39 @@ def _extract_operations(
         or (course_codes and _IDENTITY_CODE_TO_NAME_PATTERN.search(question))
     )
     course_targeted_detail = bool(course_codes or course_name) and not identity_request
+    course_content_comparison = (
+        len(course_codes) > 1
+        and bool(_COURSE_CONTENT_COMPARISON_PATTERN.search(question))
+    )
     for operation, pattern in _OPERATION_PATTERNS:
         if operation == "describe" and identity_request:
             continue
         if operation == "existence" and judgement in {"quantity", "workload"}:
             continue
         for match in pattern.finditer(question):
-            matches.append((match.start(), _OPERATION_ORDER[operation], operation))
+            resolved_operation = (
+                "similarity"
+                if operation == "compare" and course_content_comparison
+                else operation
+            )
+            matches.append(
+                (
+                    match.start(),
+                    _OPERATION_ORDER[resolved_operation],
+                    resolved_operation,
+                )
+            )
+    if course_content_comparison and not any(
+        operation == "similarity" for _, _, operation in matches
+    ):
+        match = _COURSE_CONTENT_COMPARISON_PATTERN.search(question)
+        matches.append(
+            (
+                match.start() if match else 0,
+                _OPERATION_ORDER["similarity"],
+                "similarity",
+            )
+        )
     if course_targeted_detail:
         match = _COURSE_DETAIL_PATTERN.search(question)
         if match:

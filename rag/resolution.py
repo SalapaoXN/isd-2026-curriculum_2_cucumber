@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Mapping
 
 from rag.query_spec import QuerySpec
@@ -10,6 +11,23 @@ from rag.structured.queries import Database, exact_course_candidates
 
 
 _PROGRAM_BLOCKING_AMBIGUITY = ("program",)
+_PROGRAM_REFERENCE_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_])(?P<program>ait|bit|dsba|gened|it)"
+    r"(?![A-Za-z0-9_])(?:\s+วิชา)?\s*(?P<course_code>\d{8})(?!\d)",
+    re.IGNORECASE,
+)
+_CODE_FIRST_PROGRAM_REFERENCE_PATTERN = re.compile(
+    r"(?<!\d)(?P<course_code>\d{8})(?!\d)\s*ของ\s*"
+    r"(?P<program>ait|bit|dsba|gened|it)(?![A-Za-z0-9_])",
+    re.IGNORECASE,
+)
+_PROGRAM_ALIASES = {
+    "ait": "AIT",
+    "bit": "BIT",
+    "dsba": "DSBA",
+    "gened": "GENED",
+    "it": "IT",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +84,19 @@ def _explicit_references(spec: QuerySpec) -> tuple[tuple[str, str], ...]:
     if spec.course_name is not None:
         references.append(("course_name", spec.course_name))
     return tuple(references)
+
+
+def _explicit_reference_programs(question: str) -> dict[str, str]:
+    programs: dict[str, str] = {}
+    for pattern in (
+        _PROGRAM_REFERENCE_PATTERN,
+        _CODE_FIRST_PROGRAM_REFERENCE_PATTERN,
+    ):
+        for match in pattern.finditer(question):
+            programs[match.group("course_code")] = _PROGRAM_ALIASES[
+                match.group("program").casefold()
+            ]
+    return programs
 
 
 def _outcome(
@@ -146,14 +177,19 @@ def resolve_query_spec(
     effective_plans = spec.plans or (
         (context.plan,) if context.plan is not None else ()
     )
+    explicit_reference_programs = _explicit_reference_programs(spec.original_question)
 
     references: list[CourseReferenceResolution] = []
     for reference_type, reference in _explicit_references(spec):
+        reference_program = (
+            explicit_reference_programs.get(reference)
+            or effective_program
+        )
         candidates = exact_course_candidates(
             db_path,
             course_code=reference if reference_type == "course_code" else None,
             course_name=reference if reference_type == "course_name" else None,
-            program=effective_program,
+            program=reference_program,
         )
         references.append(
             CourseReferenceResolution(

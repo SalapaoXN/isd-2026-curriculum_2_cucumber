@@ -196,6 +196,49 @@ class ResolutionTest(unittest.TestCase):
             ["06016414", "06016419"],
         )
 
+    def test_explicit_programs_resolve_each_cross_program_reference(self):
+        spec = parse_query_spec(
+            "IT วิชา 06016402 และ DSBA วิชา 06026207 คล้ายกันไหม"
+        )
+        outcome = resolve_query_spec(spec, DB_PATH)
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(
+            [
+                (reference.candidates[0]["program"], reference.reference)
+                for reference in outcome.course_references
+            ],
+            [("IT", "06016402"), ("DSBA", "06026207")],
+        )
+
+    def test_code_first_program_reference_resolves_explicit_identity(self):
+        spec = parse_query_spec("วิชา 06026207 ของ DSBA")
+        outcome = resolve_query_spec(spec, DB_PATH)
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(
+            [
+                (candidate["program"], candidate["course_code"])
+                for candidate in outcome.course_references[0].candidates
+            ],
+            [("DSBA", "06026207")],
+        )
+
+    def test_mixed_program_and_code_first_references_resolve_independently(self):
+        spec = parse_query_spec(
+            "IT วิชา 06016402 และวิชา 06026207 ของ DSBA เรียนเกี่ยวกับ database อย่างไร?"
+        )
+        outcome = resolve_query_spec(spec, DB_PATH)
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(
+            [
+                (reference.candidates[0]["program"], reference.reference)
+                for reference in outcome.course_references
+            ],
+            [("IT", "06016402"), ("DSBA", "06026207")],
+        )
+
     def test_multi_code_cross_program_clarifies(self):
         spec = parse_query_spec("06016414 และ 06026207 คล้ายกันไหม")
 

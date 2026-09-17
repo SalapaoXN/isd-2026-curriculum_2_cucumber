@@ -41,7 +41,7 @@ class RagSimilarityTest(unittest.TestCase):
             connection.commit()
         return directory, path
 
-    def _description(self, chunk_id, code, plan, text, page):
+    def _description(self, chunk_id, code, plan, text, page, program="IT"):
         return (
             chunk_id,
             {
@@ -49,28 +49,28 @@ class RagSimilarityTest(unittest.TestCase):
                 "chunk_type": "description",
                 "course_id": code,
                 "course_code": code,
-                "program": "IT",
+                "program": program,
                 "plan": plan,
                 "text": text,
                 "provenance": [{"source_page": page}],
             },
         )
 
-    def _evidence(self, chunk_id, code, plan, text, page):
+    def _evidence(self, chunk_id, code, plan, text, page, program="IT"):
         return {
             "chunk_id": chunk_id,
             "chunk_type": "description",
             "course_id": code,
             "course_code": code,
-            "program": "IT",
+            "program": program,
             "text": text,
             "provenance": ({"source_page": page},),
             "partition": {"plan": plan},
         }
 
-    def _course(self, code, plan, descriptions):
+    def _course(self, code, plan, descriptions, program="IT"):
         return {
-            "program": "IT",
+            "program": program,
             "course_code": code,
             "partition": {"plan": plan},
             "description_evidence": tuple(descriptions),
@@ -166,6 +166,39 @@ class RagSimilarityTest(unittest.TestCase):
         self.assertEqual(result.status, "complete")
         self.assertEqual([pair.partition["plan"] for pair in result.pairs], ["coop", "no_coop"])
         self.assertEqual([pair.cosine_distance for pair in result.pairs], [0.0, 1.0])
+
+    def test_cross_program_same_plan_pair_is_compared_without_merging_identity(self):
+        directory, path = self._database(
+            [
+                self._description("left", "00000001", "coop", "left", 1, "IT"),
+                self._description("right", "00000002", "coop", "right", 2, "DSBA"),
+            ],
+            [("left", [1] + [0] * 383), ("right", [1] + [0] * 383)],
+        )
+        try:
+            result = aggregate_exact_course_similarity(
+                path,
+                self._course(
+                    "00000001",
+                    "coop",
+                    [self._evidence("left", "00000001", "coop", "left", 1, "IT")],
+                    "IT",
+                ),
+                self._course(
+                    "00000002",
+                    "coop",
+                    [self._evidence("right", "00000002", "coop", "right", 2, "DSBA")],
+                    "DSBA",
+                ),
+            )
+        finally:
+            directory.cleanup()
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(len(result.pairs), 1)
+        self.assertEqual(result.pairs[0].partition["plan"], "coop")
+        self.assertEqual(result.pairs[0].left["program"], "IT")
+        self.assertEqual(result.pairs[0].right["program"], "DSBA")
 
     def test_nonmatching_partitions_are_not_cross_compared(self):
         directory, path = self._database([], [])

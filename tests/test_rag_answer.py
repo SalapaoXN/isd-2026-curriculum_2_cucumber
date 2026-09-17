@@ -3,12 +3,63 @@ import unittest
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
-from rag.answer import EMPTY_ANSWER, answer_question
+from rag.answer import EMPTY_ANSWER, answer_question, render_grounded_claim
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.hybrid_demo import run_hybrid_demo
+from rag.retrieval.retrieve import SimilarityEvidence, SimilarityPair
 
 
 class RagAnswerTest(unittest.TestCase):
+    def test_complete_similarity_renders_grounded_course_descriptions(self):
+        value = SimilarityEvidence(
+            status="complete",
+            pairs=(
+                SimilarityPair(
+                    "complete",
+                    {"program": "IT", "plan": "no_coop"},
+                    {
+                        "program": "IT",
+                        "course_code": "06016402",
+                        "partition": {"plan": "no_coop"},
+                        "text": "IT grounded description",
+                        "provenance": ({"source_page": 10},),
+                    },
+                    {
+                        "program": "DSBA",
+                        "course_code": "06026207",
+                        "partition": {"plan": "no_coop"},
+                        "text": "DSBA grounded description",
+                        "provenance": ({"source_page": 20},),
+                    },
+                    cosine_distance=0.2193,
+                    cosine_similarity=0.7807,
+                ),
+            ),
+            mean_distance=0.2193,
+            min_distance=0.2193,
+            max_distance=0.2193,
+        )
+        claim = GroundedClaim(
+            "claim_001",
+            "similarity",
+            value=value,
+            evidence=value,
+            provenance=(
+                {"source_page": 10},
+                {"source_page": 20},
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("IT 06016402 (no_coop)", rendered)
+        self.assertIn("DSBA 06026207 (no_coop)", rendered)
+        self.assertIn("IT grounded description", rendered)
+        self.assertIn("DSBA grounded description", rendered)
+        self.assertIn("cosine_similarity", rendered)
+        self.assertNotIn('"pairs"', rendered)
+        self.assertNotIn("เนื้อหาเหมือนกัน", rendered)
+
     def test_structured_prompt_is_grounded_in_sql_rows(self):
         prompts = []
 
