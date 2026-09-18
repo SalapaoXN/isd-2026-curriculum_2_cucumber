@@ -1,3 +1,4 @@
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -61,6 +62,43 @@ class RagVectorStoreTest(unittest.TestCase):
         self.assertEqual(rows[0][1], "course-1-metadata")
         self.assertEqual(rows[0][0], vector.tobytes())
         self.assertEqual(results, [{"chunk_id": "course-1-metadata", "distance": 0.125}])
+
+    def test_direct_vector_reads_load_real_vec0_connections(self):
+        directory = tempfile.TemporaryDirectory()
+        database_path = f"{directory.name}/curriculum.db"
+        left = np.zeros(vector_store.EMBEDDING_DIMENSION, dtype=np.float32)
+        left[0] = 1.0
+        right = np.zeros(vector_store.EMBEDDING_DIMENSION, dtype=np.float32)
+        right[1] = 1.0
+        try:
+            vector_store.create_vector_table(database_path)
+            vector_store.insert_embeddings(
+                database_path,
+                [{"chunk_id": "left"}, {"chunk_id": "right"}],
+                [left, right],
+            )
+            with patch.object(
+                vector_store,
+                "_load_sqlite_vec",
+                wraps=vector_store._load_sqlite_vec,
+            ) as load_extension:
+                scores = vector_store.score_candidate_vectors(
+                    database_path, left, ["left", "right"]
+                )
+                comparison = vector_store.compare_stored_vectors(
+                    database_path, "left", "right"
+                )
+
+            self.assertEqual([item["chunk_id"] for item in scores["scores"]], [
+                "left",
+                "right",
+            ])
+            self.assertEqual(comparison["status"], "complete")
+            self.assertEqual(comparison["cosine_distance"], 1.0)
+            self.assertEqual(comparison["cosine_similarity"], 0.0)
+            self.assertEqual(load_extension.call_count, 2)
+        finally:
+            directory.cleanup()
 
 
 if __name__ == "__main__":

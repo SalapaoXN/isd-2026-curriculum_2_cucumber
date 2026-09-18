@@ -7,6 +7,129 @@ from src.extractor import CurriculumExtractor, prediction_description
 from src.pipeline_config import plan_label, resolve_plan, resolve_program
 
 
+GROUND_TRUTH_DIR = Path(__file__).resolve().parent / "ground_truth"
+AUTHORITATIVE_CREDIT_FILES = {
+    ("AIT", None): Path("AIT/AIT_academic_plan.json"),
+    ("BIT", "coop"): Path("BIT/BIT_academic_plan_coop.json"),
+    ("BIT", "no_coop"): Path("BIT/BIT_academic_plan_no_coop.json"),
+    ("DSBA", "coop"): Path("DSBA/DSBA_academic_plan_coop.json"),
+    ("DSBA", "no_coop"): Path("DSBA/DSBA_academic_plan_no_coop.json"),
+    ("GENED", "gened"): Path("general_education_ground_truth.json"),
+    ("IT", "coop"): Path("IT/IT_academic_plan_coop.json"),
+    ("IT", "no_coop"): Path("IT/IT_academic_plan_no_coop.json"),
+}
+
+_PARENTHETICAL_CREDIT_RE = re.compile(r"^\(\d+-\d+-\d+\)$")
+_AUTHORITATIVE_CREDIT_RE = re.compile(r"^\d+\(\d+-\d+-\d+\)$")
+_INCOMPLETE_CREDIT_FRAGMENT_RE = re.compile(r"^\d+\(\d+-\d+(?:-\d*)?$")
+
+# These are source-verified description records whose OCR credit is unresolved
+# rather than parenthetical-only.  The value is the authoritative lookup key;
+# source identity is intentionally part of the key so a matching course code
+# elsewhere cannot be repaired by this exception.
+SOURCE_VERIFIED_DESCRIPTION_CREDIT_REPAIRS = {
+    ("IT", "coop", "06016454", "it_page_354.png", 354): "06016454",
+    ("IT", "coop", "06016454", "it_page_354_ocr.json", 354): "06016454",
+    ("BIT", "coop", "06036135", "bit_page_252.png", 252): "06036135",
+    ("BIT", "coop", "06036135", "bit_page_252_ocr.json", 252): "06036135",
+}
+
+
+def _load_authoritative_credit_lookup(program, plan, reference_root=None):
+    """Load source-derived credits keyed by the complete curriculum identity."""
+    reference_root = GROUND_TRUTH_DIR if reference_root is None else Path(reference_root)
+    relative_path = AUTHORITATIVE_CREDIT_FILES.get((program, plan))
+    if relative_path is None:
+        return {}
+
+    with (reference_root / relative_path).open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+
+    return {
+        (program, plan, record.get("code")): record
+        for record in payload.get("courses", [])
+        if isinstance(record, dict) and record.get("code")
+    }
+
+
+def _reconcile_source_backed_credit(course, authoritative_lookup, *, program, plan):
+    """Repair only an exact identity/tuple match from authoritative source data."""
+    if not isinstance(course, dict):
+        return course
+
+    current_credit = course.get("credits")
+    current_credit = current_credit.strip() if isinstance(current_credit, str) else None
+    authoritative_code = course.get("code")
+    authoritative = authoritative_lookup.get((program, plan, authoritative_code))
+    if not isinstance(authoritative, dict):
+        return course
+
+    authoritative_credit = authoritative.get("credits")
+    if not isinstance(authoritative_credit, str):
+        return course
+    authoritative_credit = authoritative_credit.strip()
+    if not _AUTHORITATIVE_CREDIT_RE.fullmatch(authoritative_credit):
+        return course
+
+    source_entries = course.get("source_provenance")
+    source_identity = {
+        (
+            entry.get("program"),
+            entry.get("source_filename"),
+            entry.get("source_page"),
+        )
+        for entry in source_entries
+        if isinstance(entry, dict)
+    } if isinstance(source_entries, list) else set()
+    repair_key = next(
+        (
+            key
+            for key in SOURCE_VERIFIED_DESCRIPTION_CREDIT_REPAIRS
+            if key[0] == program
+            and key[1] == plan
+            and key[2] == authoritative_code
+            and (key[0], key[3], key[4]) in source_identity
+        ),
+        None,
+    )
+
+    # A valid parsed credit that conflicts with authoritative data is left
+    # untouched and therefore fails closed.  It must not be overwritten by a
+    # source-backed exception.
+    if current_credit and not _PARENTHETICAL_CREDIT_RE.fullmatch(current_credit):
+        if current_credit != authoritative_credit:
+            if repair_key is not None and not _INCOMPLETE_CREDIT_FRAGMENT_RE.fullmatch(
+                current_credit
+            ):
+                return course
+            if repair_key is None:
+                return course
+        else:
+            return course
+
+    if (
+        current_credit
+        and _PARENTHETICAL_CREDIT_RE.fullmatch(current_credit)
+        and authoritative_credit[authoritative_credit.index("(") :] != current_credit
+    ):
+        return course
+
+    if current_credit:
+        repaired = dict(course)
+        repaired["credits"] = authoritative_credit
+        return repaired
+
+    if repair_key is None:
+        return course
+
+    if SOURCE_VERIFIED_DESCRIPTION_CREDIT_REPAIRS[repair_key] != authoritative_code:
+        return course
+
+    repaired = dict(course)
+    repaired["credits"] = authoritative_credit
+    return repaired
+
+
 def _safe_identifier(value: str, fallback: str = "input") -> str:
     raw = "" if value is None else str(value)
     cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", raw).strip("_")
@@ -214,6 +337,7 @@ def main():
 
     all_courses = []
     last_result = None
+    authoritative_lookup = _load_authoritative_credit_lookup(program, plan)
 
     for file in files_to_process:
         # Ignore already extracted files
@@ -222,6 +346,15 @@ def main():
 
         print(f"\nProcessing OCR output: {file.name}")
         result = extractor.process_file(file)
+        result["courses"] = [
+            _reconcile_source_backed_credit(
+                course,
+                authoritative_lookup,
+                program=program,
+                plan=plan,
+            )
+            for course in result.get("courses", [])
+        ]
         last_result = result
         all_courses.extend(result["courses"])
 

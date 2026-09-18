@@ -4,6 +4,7 @@ from typing import List
 
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
+from .page_metadata import resolve_document_page
 from .pre_clean import pre_clean_with_regex
 from .pipeline_config import (
     discover_page_files,
@@ -14,6 +15,21 @@ from .pipeline_config import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _document_page_for_ocr(
+    text_lines: List[str],
+    program: str,
+    source_page: int,
+    source_filename: str | None = None,
+) -> int | None:
+    """Compatibility wrapper around the central document-page resolver."""
+    return resolve_document_page(
+        program,
+        source_page,
+        source_filename,
+        text_lines,
+    ).document_page
 
 
 def parse_pages(pages_str: str) -> List[int]:
@@ -144,6 +160,9 @@ def run_ocr(
         raw_text_joined = "\n".join(lines)
         raw_text_joined = pre_clean_with_regex(raw_text_joined)
         lines = [line for line in raw_text_joined.split("\n") if line.strip()]
+        document_page = _document_page_for_ocr(
+            lines, program, page_num, source_filename=img_file.name
+        )
 
         # Step 1.5: Autocorrect English text (pyspellchecker)
         # lines, typos = spell_checker.process_lines(lines)
@@ -159,6 +178,7 @@ def run_ocr(
             source_filename=img_file.name,
             source_page=page_num,
             program=program,
+            document_page=document_page,
         )
 
     print(f"\n Finished OCR stage! Files saved at: {ocr_output_dir.resolve()}")

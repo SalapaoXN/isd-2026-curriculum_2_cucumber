@@ -37,6 +37,123 @@ CORRECTION_PROMPT = (
     "no markdown code fences or extra commentary."
 )
 
+CANONICAL_NAME_CORRECTIONS = {
+    (
+        "DSBA",
+        "06026200",
+        "name_th",
+        "ไม่ระบุ 1",
+    ): "แคลคูลัส 1",
+    (
+        "IT",
+        "06016406",
+        "name_th",
+        "ไม่ระบุ 1",
+    ): "โครงงาน 1",
+    (
+        "IT",
+        "06016407",
+        "name_th",
+        "ไม่ระบุ 2",
+    ): "โครงงาน 2",
+    ("GENED", "90642067", "name_th", "ซอฟบอลและเบสบอล"): "ซอฟต์บอลและเบสบอล",
+    (
+        "GENED",
+        "90642118",
+        "name_en",
+        "APPLICATION SOFTWARE FOR BUSSINESS",
+    ): "APPLICATION SOFTWARE FOR BUSINESS",
+    (
+        "AIT",
+        "06046413",
+        "name_en",
+        "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
+    ): "ARTIFICIAL INTELLIGENCE AND INTERNET OF THINGS",
+    (
+        "AIT",
+        "06046422",
+        "name_en",
+        "ARTIFICIAL INTELLIGIENCE ETHICS",
+    ): "ARTIFICIAL INTELLIGENCE ETHICS",
+    (
+        "IT",
+        "06016412",
+        "name_en",
+        "COMPUTER ORCANIZATON AND OPERATING SSTEM",
+    ): "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
+    (
+        "IT",
+        "06016466",
+        "name_en",
+        "NETWORK AND SYSTEM TROUBLE SHOOTNG",
+    ): "NETWORK AND SYSTEM TROUBLE SHOOTING",
+    (
+        "AIT",
+        "06046413",
+        "name_th",
+        "ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง",
+    ): "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง",
+    (
+        "DSBA",
+        "06026260",
+        "name_en",
+        "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
+    ): "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+    (
+        "DSBA",
+        "06026259 หรือ 06026260",
+        "name_en",
+        "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+    ): "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+    (
+        "GENED",
+        "90642056",
+        "name_en",
+        "ST EPLDEMICS IN THE 21 CENTURV",
+    ): "EPIDEMICS IN THE 21ST CENTURY",
+    ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+    (
+        "IT",
+        "06016418",
+        "name_th",
+        "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+    ): "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+    (
+        "IT",
+        "06016442",
+        "name_th",
+        "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+    ): "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+    (
+        "IT",
+        "06016443",
+        "name_th",
+        "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+    ): "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+    (
+        "IT",
+        "90643021",
+        "name_th",
+        "ผู้ ประกอบการสมัยใหม่",
+    ): "ผู้ประกอบการสมัยใหม่",
+    (
+        "GENED",
+        "90642134",
+        "name_en",
+        "KING MONGKUTS REIGN STUDV",
+    ): "KING MONGKUTS REIGN STUDY",
+}
+LITERAL_PRESERVE_VALUES = {
+    ("GENED", "90642122", "name_th", "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์"):
+        "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์",
+    ("AIT", "06046404", "name_en", "FUNDAMENTAL OF EMBEDDED SYSTEM"):
+        "FUNDAMENTAL OF EMBEDDED SYSTEM",
+    ("AIT", "06046425", "name_en", "GENERATIVE MODEL"): "GENERATIVE MODEL",
+    ("GENED", "90642126", "name_en", "SURVIVORS"): "SURVIVORS",
+    ("GENED", "90642154", "name_en", "FALL ABLE"): "FALL ABLE",
+}
+NON_CORRECTABLE_NAME_VALUES = frozenset(("ไม่ระบุ", "N/A"))
+
 
 def _records_from_document(document: Any) -> list[dict[str, Any]]:
     if isinstance(document, list):
@@ -59,6 +176,49 @@ def _record_course_code(record: dict[str, Any]) -> Any:
     return record.get("code")
 
 
+def _guard_correction_value(
+    record: dict[str, Any],
+    field: str,
+    before: Any,
+    candidate: str,
+    *,
+    program: Any = None,
+) -> str:
+    if field in TEXT_FIELDS and before in NON_CORRECTABLE_NAME_VALUES:
+        return before
+    record_program = record.get("program")
+    if record_program is None:
+        record_program = program
+    identity = (record_program, _record_course_code(record), field, before)
+    canonical_after = CANONICAL_NAME_CORRECTIONS.get(identity)
+    if canonical_after is not None:
+        return canonical_after
+    preserved_value = LITERAL_PRESERVE_VALUES.get(identity)
+    if preserved_value is not None:
+        return preserved_value
+    return candidate
+
+
+def _reject_empty_text_replacement(
+    original: Any,
+    corrected: str,
+    context: str,
+) -> None:
+    if isinstance(original, str) and original.strip() and not corrected.strip():
+        raise ValueError(f"{context} cannot replace non-empty text with empty text")
+
+
+def _terminal_numeric_suffix(text: Any) -> str | None:
+    """Return only a standalone final digit suffix from a name-like value."""
+    if not isinstance(text, str) or not text:
+        return None
+    if len(text) == 1 and text in "123456789":
+        return text
+    if text[-1] in "123456789" and len(text) > 1 and text[-2].isspace():
+        return text[-1]
+    return None
+
+
 def apply_corrections(
     document: Any,
     correction_records: list[dict[str, Any]],
@@ -69,6 +229,9 @@ def apply_corrections(
     corrected_document = copy.deepcopy(document)
     original_records = _records_from_document(document)
     corrected_records = _records_from_document(corrected_document)
+    document_program = (
+        document.get("program") if isinstance(document, dict) else None
+    )
     if len(original_records) != len(corrected_records):
         raise ValueError("Correction reconstruction changed curriculum record count")
     approved_records = (
@@ -119,8 +282,21 @@ def apply_corrections(
                 f"{course_code}/{field}: matched {len(matching_indexes)} records"
             )
         if matching_indexes:
-            corrected_records[matching_indexes[0]][field] = after
-            if before != after:
+            target_record = corrected_records[matching_indexes[0]]
+            candidate_after = _guard_correction_value(
+                target_record,
+                field,
+                before,
+                after,
+                program=document_program,
+            )
+            _reject_empty_text_replacement(
+                target_record.get(field),
+                candidate_after,
+                f"Correction {correction_index}",
+            )
+            target_record[field] = candidate_after
+            if before != candidate_after:
                 applied.append(
                     {
                         "course_code": _record_course_code(
@@ -128,7 +304,7 @@ def apply_corrections(
                         ),
                         "field": field,
                         "before": before,
-                        "after": after,
+                        "after": candidate_after,
                     }
                 )
             continue
@@ -154,8 +330,20 @@ def apply_corrections(
             ]
             if approved_value and len(same_code_indexes) == 1:
                 target_index = same_code_indexes[0]
-                corrected_records[target_index][field] = after
-                if before != after:
+                candidate_after = _guard_correction_value(
+                    corrected_records[target_index],
+                    field,
+                    original_records[target_index].get(field),
+                    after,
+                    program=document_program,
+                )
+                _reject_empty_text_replacement(
+                    original_records[target_index].get(field),
+                    candidate_after,
+                    f"Correction {correction_index}",
+                )
+                corrected_records[target_index][field] = candidate_after
+                if before != candidate_after:
                     applied.append(
                         {
                             "course_code": _record_course_code(
@@ -163,7 +351,7 @@ def apply_corrections(
                             ),
                             "field": field,
                             "before": original_records[target_index].get(field),
-                            "after": after,
+                            "after": candidate_after,
                         }
                     )
                 continue
@@ -275,6 +463,18 @@ def _validate_batch(
             raise ValueError(
                 f"Gemini batch {batch_number} text for unit_index {unit_index} is not a string"
             )
+        _reject_empty_text_replacement(
+            expected_unit["text"],
+            after["text"],
+            f"Gemini batch {batch_number} unit_index {unit_index}",
+        )
+        if (
+            expected_unit["field"] in TEXT_FIELDS
+            and _terminal_numeric_suffix(expected_unit["text"])
+            != _terminal_numeric_suffix(after["text"])
+        ):
+            after = dict(after)
+            after["text"] = expected_unit["text"]
         validated[unit_index] = after
 
     missing_indices = sorted(expected_indices.difference(validated))
@@ -318,7 +518,7 @@ def _write_json_pair(
 
 
 def _output_paths(path: Path, output_dir: str | Path | None) -> tuple[Path, Path]:
-    directory = path.parent if output_dir is None else Path(output_dir)
+    directory = LLM_OUTPUT_DIR if output_dir is None else Path(output_dir)
     return (
         directory / f"{path.stem}_corrected.json",
         directory / f"{path.stem}_corrections.json",
@@ -387,15 +587,22 @@ def _reconstruct_document(
             if key not in corrected_by_key:
                 continue
             after = corrected_by_key[key]
-            if before == after:
+            candidate_after = _guard_correction_value(
+                original_record,
+                field,
+                before,
+                after,
+                program=document.get("program") if isinstance(document, dict) else None,
+            )
+            if before == candidate_after:
                 continue
-            corrected_record[field] = after
+            corrected_record[field] = candidate_after
             corrections.append(
                 {
                     "course_code": _record_course_code(original_record),
                     "field": field,
                     "before": before,
-                    "after": after,
+                    "after": candidate_after,
                 }
             )
     return corrected_document, corrections

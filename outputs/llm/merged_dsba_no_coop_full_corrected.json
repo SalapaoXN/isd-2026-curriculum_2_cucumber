@@ -7,12 +7,12 @@
     "courses": [
         {
             "code": "06026200",
-            "name_th": "แคลคูลัส",
+            "name_th": "แคลคูลัส 1",
             "name_en": "CALCULUS 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -30,7 +30,7 @@
                     "source_filename": "dsba_page_317.png",
                     "source_page": 317,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 312
                 }
             ],
             "desc_th": "ฟังก์ชัน, ลิมิต, ความต่อเนือง และการประยุกต์ใช้อุปนัยเชิงคณิตศาสตร์ แนะนำ\nอนุพันธ์การหาอนุพันธ์การประยุกต์ ใช้อนุพันธ์ ปริพันธ์จำกัดเขตฺการปริพันธ์ด้วยปฏิยานุพันธ์การ\nประยุกต์ใช้ปริพันธ์จำกัดเขตฺรูปแบบของการปริพันธ์ที่หาค่าไมได้ ปริพันธ์ไม่ตรงแบบ ฺการหาปริพันธ์\nด้วยวิธีเชิงตัวเลข อันดับและอนุกรมของจำนวน การกระจายอนุกรมเทเลอร์ของฟังก\nวิเคราะห์เวกเตอร์",
@@ -43,7 +43,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -61,7 +61,7 @@
                     "source_filename": "dsba_page_318.png",
                     "source_page": 318,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 313
                 }
             ],
             "desc_th": "ระบบสมการเชิงเส่น การดำเนินการมูลฐาน การกำจัดเกาส์เซียน การกำจัดเกาส์-\nจอร์แดน ค่าลำดับชับ\nการดำเนินการของเมทริกซ์ ผกผันของเมทริกซ์ เมทริกซ์มูลฐาน เมทริกซ์ย่อย\nและผลแบ่งส่วน เมทริกซ์ การแยกแบบแอลยู ดีเทอร์มิเนนต์ ตัวประกอบร่วมเกียว เมทริกซ์ผูกพัน\nกฎคราเมอร์ ปริภูมิ เวกเตอร์ ปริภูมิย่อย ค่าลักษณะเฉพาะ เวกเตอร์ลักษณะเฉพาะ การทำให้เป็นเม\nริกซ์ทแยงมุม การแปลงเชิง เส้น เคอร์เนล เรนจ์",
@@ -74,7 +74,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -92,7 +92,7 @@
                     "source_filename": "dsba_page_320.png",
                     "source_page": 320,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 315
                 }
             ],
             "desc_th": "สภาพแวดล้อมทางธุรกิจและระบบเศรษฐกิจ พืนฐานของการบริหารการเงิน มูลค่า\nของเงินและต้นทุนของเงินทุน งบการเงิน การบริหารการผลิต\nการควบคุมสินค้าคงคลัง การตลาด\nพื้นฐานการจัดการ การจัดองค์กรการบริหารงานบุคคล จริยธรรมทางธุรกิจและความรับผิดชอบต่อ",
@@ -105,7 +105,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -123,14 +123,14 @@
                     "source_filename": "dsba_page_322.png",
                     "source_page": 322,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 317
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_323.png",
                     "source_page": 323,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 318
                 }
             ],
             "desc_th": "กลยุทธ์และหลักการแก้บัญหา การคิดแบบขันตอนวิธี ผังงาน แนวคิดและเกรินนำ\nการเขียน โปรแกรมคอมพิวเตอร์",
@@ -160,9 +160,9 @@
         },
         {
             "code": "90641003",
-            "name_th": "กีฬาและนันทนาการ 1",
+            "name_th": "กีฬาและนันทนาการ",
             "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
-            "credits": "(0-3-2)",
+            "credits": "1(0-3-2)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -227,14 +227,14 @@
                     "source_filename": "dsba_page_317.png",
                     "source_page": 317,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 312
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_318.png",
                     "source_page": 318,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 313
                 }
             ],
             "desc_th": "ฟังก์ชันหลายตัวแปรและการประยุกต์ใช้ พีชคณิตของเวกเตอร์ในสามมิติ พิกัดเชิงขัว\nแคลคูลัสของ\nฟังก์ชันจำนวนจริงสองตัวแปร  การหาอนุพันธ์และปริพันธ์ของฟังก์ชันจำนวนจริงและ\nฟังก์ชันเวกเตอร์จำนวนจริงหลายตัวแปร แนะนำปริพันธ์เส้น เส้น ระนาบ และพื้นผิว ในปริภูมิสามมิติ\nแคลคูลัสของฟังก์ชันจำนวนจริงในปริภูมิสามมิติ ฺทฤษฎีบทหลักที่เกี่ยวกับการประยุกต์ เช่น ทฤษฎีบท\nของกรีน ทฤษฎีไดเวอร์เจนซ์ ทฎษฎีบทของเกาส์ ทฤษฎีบทของสโตกส์ เป็นต้น",
@@ -247,7 +247,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -265,7 +265,7 @@
                     "source_filename": "dsba_page_319.png",
                     "source_page": 319,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 314
                 }
             ],
             "desc_th": "แนะนำภาษาการสร้างโปรแกรมเชิงโครงสร้างและเชิงวัตถฺการเขียนผังงาน แนวคิด\nของโปรแกรมฟังก์ชันเบื้องต้นและข้อความสั่งกำหนดค่า โครงสร้างการวนซ้ำและเงื่อนไข อาร์เรย์\nการประมวลผลสตริง ฺการเขียนการเขียนฟังก์ชัน การเขียนข้อมูลชนิดโครงสร้าง การเขียนข้อมูลเช\nนิดอ็อบเจกต์ หลักการห่อหุ้ม คลาสและอ็อบเจกต์ เมธอดและการส่งสาร การสืบทอดคุณลักษณะ\nภาวะพหุสัณฐาน",
@@ -278,7 +278,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -296,7 +296,7 @@
                     "source_filename": "dsba_page_323.png",
                     "source_page": 323,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 318
                 }
             ],
             "desc_th": "วิชานี้ศึกษาเกี่ยวกับพฤติกรรมของผู้บริโภคการกำหนดกลยุทธ์ส่วนแบ่งตลาด การ\nกำหนดกลุ่มเป้าหมาย และการกำหนดตำแหน่งทางการตลาด รวมถึงการดำเนินการสร้างผลิตภัณฑ์\nการกำหนดราคา การเลือกใช้ช่องทางจัดจำหน่ายตลอดจนการใช้การส่งเสริมการตลาดโดยคำนึง\nความรับผิดชอบสังคมเป็นหลัก แนวคิดและกลยุทธ์การตลาดดิจิทัล การตลาดผ่านสื่อดิจิทัล",
@@ -309,7 +309,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 1,
@@ -327,14 +327,14 @@
                     "source_filename": "dsba_page_318.png",
                     "source_page": 318,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 313
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_319.png",
                     "source_page": 319,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 314
                 }
             ],
             "desc_th": "ความน่าจะเป็นและตัวแปรสุ่ม การแจกแจงความน่าจะเป็นแบบไม่ต่อเนืองและ\nแบบต่อเนื่อง ฟังก์ชันของตัวแปรสุ่ม การแจกแจงของตัวอย่าง ช่วงความเชื่อมั่น การทดสอบ\nการถดถอยอย่างง่ายและการถดถอยเชิงซ้อนในตัวแบบเชิงเส้น การวิเคราะห์สหสัมพันธ์",
@@ -413,7 +413,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -424,14 +424,14 @@
                     "source_filename": "dsba_page_028.png",
                     "source_page": 28,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 23
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_324.png",
                     "source_page": 324,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 319
                 }
             ],
             "desc_th": "ในภาคทฤษฎี แนะนำการวิเคราะห์ข้อมูลเชิงธุรกิจและการตัดสินใจ  สถิติเชิง\nพรรณนาการวิเคราะห์ความแปรปรวนหลายตัวแปร การวิเคราะห์ความถดถอยเชิงเส้นอย่างง่าย การ\nวิเคราะห์ความถดถอยเชิง ซ้อน การวิเคราะห์ จำแนกกลุ่ม( DISCRIMINANT ANALYSIS)\nความถดถอยโลจิสติก การพยากรณ์และอนุกรมเวลา\nการหาค่าที่เหมาะสมที่สุดฺ ฺในภาคปฏิบัติ\nแนะนำการเขียนโปรแกรมทางสถิติ เช่น ภาษา อาร์\nประเภทข้อมูล เข้อมูลตัวแปรเดี่ยว ข้อมูลตัวแปรคู่\nข้อมูลหลายตัวแปร สถิติเชิงพรรณา ตัวแปรอาร์เรย์ เมตริกซ์\nลรายการ\nและเฟรมข้อมูล\nโครงสร้างการควบคุม ฺการวนลูปฺการพลือตกราฟและกราฟฟิค การจัดการข้อมูล การสร้างฟังก์ชัน\nและแพคเกจ\nรวมทั้งการใช้โปรแกรมสำเร็จรูปทางสถิติในการวิเคราะห์ข้อมูล",
@@ -444,7 +444,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -455,14 +455,14 @@
                     "source_filename": "dsba_page_028.png",
                     "source_page": 28,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 23
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_318.png",
                     "source_page": 318,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 313
                 }
             ],
             "desc_th": "ระบบ ตัวเลข ฺตรรกะและเซต ความสัมพันธ์และฟังก์ชัน ลำดับและอนุกรม อุปนัย\nเชิง คณิตศาสตร์ คอมบินาทอรีส์ กราฟ ระบบพืชคณิต ฺทฤษฎีสารสนเทศและการเข้ารหัสและระบบ\nสถานะจำกัด",
@@ -475,7 +475,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -486,14 +486,14 @@
                     "source_filename": "dsba_page_028.png",
                     "source_page": 28,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 23
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_321.png",
                     "source_page": 321,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 316
                 }
             ],
             "desc_th": "แนะ\nนำฐานข้อมูลและระบบจัดการฐานข้อมูล\nระบบฐานข้อมูลและสภาพแวดล้อม\nระบบ จัดการฐานข้อมูล ฺชนิดของฐานข้อมูล แบบจำลองข้อมูล แบบจำลองฐานข้อมูลเชิงสัมพันธ์ สกี\nมา\nอินแสตน รีเลชันชิป ฺกฎบูรณภาพ พจนานุกรมข้อมูล  แบบจำลองความสัมพันธ์ระหว่างเอนทิตี\nฟังก์ชันดีเพนเดนซี นอร์มัลไลซ์เซชัน พืชคณิตเชิงสัมพันธ์ เอสคิวแอล การประมวลผลทรานแซคชัน\nแนวคิดคลังข้อมูลและการออกแบบ ปฏิบัติการด้านการจำลองข้อมูลและภาษาฐานข้อมูล",
@@ -506,7 +506,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -517,14 +517,14 @@
                     "source_filename": "dsba_page_028.png",
                     "source_page": 28,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 23
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_322.png",
                     "source_page": 322,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 317
                 }
             ],
             "desc_th": "แนวคิดพื้นฐานและหลักการทำงานของระบบเว็บ เครื่องมือสำหรับการออกแบบ\nและพัฒนาเว็บ การเขียนโปรแกรมเว็บฝังไคลแอนท์ HTML CSS JAVASCRIPT\nส่วนต่อประสานกับผู้ใช้ การจัดการกับ EVENTS การจัดการโครงสร้างเอกสารและ DOM\nโปรแกรมเว็บฝังเซิร์ฟเวอร์ PHP\nการจัดการและการใช้งานฐานข้อมูล การใช้งานเฟรมเวิร์ค",
@@ -537,7 +537,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -548,14 +548,14 @@
                     "source_filename": "dsba_page_028.png",
                     "source_page": 28,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 23
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_323.png",
                     "source_page": 323,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 318
                 }
             ],
             "desc_th": "การพัฒนาโดยใช้แนวคิดเชิงวัตถฺการวิเคราะห์และออกแบบ การเลือกโครงการและ\nการจัดการ โครงการสารสนเทศ กำหนดความต้องการระบบการวิเคราะห์ด้วยยูสเคส แบบจำลอง\nกระบวนการ\nแบบจำลองข้อมูล การออกแบบสถาปัตยกรรมและกลยุทธการออก การออกแบบส่วน\nติดต่อกับผู้ใช้ การออกแบบส่วนจัดเก็บข้อมูล ฺการออกแบบโปรแกรม คลาสและเมธอด การสร้างและ\nการติดตังระบบ",
@@ -578,7 +578,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_028.png",
                     "source_page": 28,
-                    "document_page": null,
+                    "document_page": 23,
                     "document_category": "plan"
                 }
             ]
@@ -590,7 +590,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -608,7 +608,7 @@
                     "source_filename": "dsba_page_319.png",
                     "source_page": 319,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 314
                 }
             ],
             "desc_th": "แนวคิดพื้นฐานเกี่ยวกับเครือข่ายคอมพิวเตอร์และความมั่นคงทางไชเบอร์\nการสื่อสารข้อมูลและการเชื่อมโยงเครือข่าย สถาปัตยกรรมเครือข่ายและอินเทอร์เน็ต แอปพลิเคชัน\nและบริการบนเครือข่าย ภัยคุกคามและการโจมตีทางไชเบอร์ ช่องโหว่และความเสี่ยง พื้นฐานมัลแวร์\nการป้องกันความปลอดภัย การเข้ารหัสลับและการพิสูจน์ ตัวตน ฺการควบคุมการเข้าถึง กฎหมายและ\nจริยธรรมทางไซเบอร์",
@@ -621,7 +621,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -639,7 +639,7 @@
                     "source_filename": "dsba_page_324.png",
                     "source_page": 324,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 319
                 }
             ],
             "desc_th": "แนะนำระบบฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ ความแตกต่างจากระบบฐานข้อมูลเชิง\nสัมพันธ์ ข้อดีและข้อเสียของฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ ชนิดและโครงสร้างฐานข้อมูลแบบไมใช่\nเชิงสัมพันธ์ แบบคอลัมน์ แบบคีย์แวลยฺู แบบเอกสาร และแบบกราฟ เตัวอย่างการออกแบบฐานข้อมูล\nแบบไมใช่เชิงสัมพันธ์ การใช้ภาษาเจสันกับฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ แนะนำภาษาเจสัน\nไวยากรณ์ของเจสัน ฺชนิดข้อมูลของเจสัน",
@@ -652,7 +652,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -670,7 +670,7 @@
                     "source_filename": "dsba_page_325.png",
                     "source_page": 325,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 320
                 }
             ],
             "desc_th": "วิทยาการข้อมูลกับแรงจูงใจเชิงธุรกิจ นิยามของวิทยาการข้อมูล กระบวนการทำ\nวิทยาการข้อมูล เช่น ปกระบวนการ เคิรสดีเอ็มการทำความเข้าใจข้อมูล การเตรียมข้อมูล ฺดึงข้อมูล\nจากเว็บไซต์ การดึงข้อมูลจากเอฟีไอ นิยามของปัญญาประดิษฐ์ การแทนความรู้ การใช้เหตุผลแบบ\nตรรกศาสตร์และความน่าจะเป็น คอมพิวเตอร์วิทัศน์ การประมวลผลภาษาธรรมชาติ การเรียนรู้ของ\nเครื่องจักร ภาษาไพธอนสำหรับวิทยาการข้อมูล",
@@ -683,7 +683,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -701,7 +701,7 @@
                     "source_filename": "dsba_page_325.png",
                     "source_page": 325,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 320
                 }
             ],
             "desc_th": "หลักการการแสดงข้อมูลด้วยแผนภาพ การออกแบบการแสดงข้อมูลด้วยแผนภาพ\nเครื่องมือที่ใช้ การแสดงข้อมูลด้วยแผนภาพ การได้มาซี\nการจัดระเบียบข้อมูล การเลือก\nแผนภูมิต่าง\nที่เหมาะสม ฺเช่น ฮึทโตรแกรม\nแผนภูมิการกระจาย แผนภูมิเส้น แผนภูมิแท่ง แผนภูมิ\nวงกลม\nแผนภูมิแบบเครือข่าย กราพสตรีม แผนภูมิตัวชี้วัดผลงาน แผนที่ แผนภูมิแบบ\nปฏิสัมพันธ์ การอธิบายแผนภูมิ หลักการเล่าเรื่องด้วยภาพ",
@@ -714,7 +714,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -732,14 +732,14 @@
                     "source_filename": "dsba_page_325.png",
                     "source_page": 325,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 320
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_326.png",
                     "source_page": 326,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 321
                 }
             ],
             "desc_th": "การสร้างตัวแบบกำหนดการเชิงเส้น วิธีแก้ปัญหากำหนดการเชิงเส้น ปัญหาควบคู่\nในกำหนดการเชิงเส้น กำหนดการเชิงเส้นและตัวแบบถดถอยควอนไทล์ การหาค่าเหมาะที่สุดกับ\nปัญหากำลังสอง การหาค่าเจ\nเหมาะสมที่สุดกับปัญหาคอน วิธีเกรเดียนต์เพื่อแก้ปัญหาการหาค่าเหมาะ\nที่สุดกับปัญหาคอนเวกซ์ การหาค่าเหมาะที่สุดกับปัญหาสโทแคสติก วิธีสโทแคสติกเกรเดียนต์วิธีการ\nเมตาฮิวริสติก",
@@ -770,7 +770,7 @@
                     "source_filename": "dsba_page_321.png",
                     "source_page": 321,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 316
                 }
             ],
             "desc_th": "บทบาทของเทคโนโลยีสารสนเทศในธุรกิจ แนวคิดระบบสารสนเทศและการจัดการ\nการวางแผนเทคโนโลยีสารสนเทศเชิงกลยุทธ์ ความสอดคล้องของเทคโนโลยีสารสนเทศกับกลยุทธ์\nทางธุรกิจ ฺการได้มาซึ่งระบบสารสนเทศ ระบบสารสนเทศตามลักษณะที่สนับสนุนการทำงาน ระบบ\nสารสนเทศระดับองค์กร แนวโน้มการประยุกต์ ใช้เทคโนโลยีสารสนเทศ จริยธรรมและประเด็นทาง\nสังคม",
@@ -783,7 +783,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 2,
@@ -801,7 +801,7 @@
                     "source_filename": "dsba_page_322.png",
                     "source_page": 322,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 317
                 }
             ],
             "desc_th": "ชนิดของข้อมูล โครงสร้างข้อมูลและชนิดข้อมูลแบบนามธรรม ฺโครงสร้างข้อมูล\nเช่น ลิสท์ สแต็ก และคิว โครงสร้างข้อมูลแบบพลวัต คำศัพท์1เฉพาะเกี่ยวกับทรี ไบนารีทรี ไบ\nนารีเสิร์ชทรี เอวีแอลทรี กราฟ การวิเคราะห์โปรแกรมเชิงเวลาและพื้นที่ อัลกอริทึมการเรียงลำดับ\nและการค้นหาข้อมูล อัลกอริทึมแบบละโมบ อัลกอริทึมแบบแบ่งเพื่อเอาชนะ อัลกอริทึมเกี่ยวกับ\nกราฟ และการเขียนโปรแกรมพลวัต",
@@ -814,7 +814,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 3,
@@ -825,14 +825,14 @@
                     "source_filename": "dsba_page_030.png",
                     "source_page": 30,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 25
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_326.png",
                     "source_page": 326,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 321
                 }
             ],
             "desc_th": "กร\nระบวนการทำเหมืองข้อมูล ฺการแบ่งกลุ่มข้อมูล การแบ่งกลุ่มแบบเคมีน\nการ\nแบ่งกลุ่มแบบเด็นซิตี้ การตรวจสอบความเหมาะสมของการแบ่งกลุ่ม\nการจัดกลุ่มข้อมูล ฺต้นไม้\nตัดสินใจ โโครงข่ายประสาทเทียม เคเนียร์เรสเ\nเทคนิคที่ใช้แบบจำลองการจัดกลุ่มข้อมูล\nหลาย\nแบบจำลอง การตรวจสอบความถู\nต้องและการประเมินแบบจำลอง การค้นหากฎ\nความสัมพันธ์ของข้อมูล ฺอพริโอริอัลกอริทึม เอฟพีทีอัลกอริทึม  การสืบค้นรูปแบบลำดับเหตุการณ์\nการวิเคราะห์แบบให้คำแนะนำ เครื่องมือการทำเหมืองข้อมูลต่างๆ\nกระบวนการทำเอ็มแอลอือพ\nการประยุกติ๋ใช้งานเหมืองข้อมูล",
@@ -856,21 +856,21 @@
                     "source_filename": "dsba_page_030.png",
                     "source_page": 30,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 25
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_326.png",
                     "source_page": 326,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 321
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_327.png",
                     "source_page": 327,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 322
                 }
             ],
             "desc_th": "ลักษณะของคลังข้อมู\nล กระบวนการส\nเร้างคลังข้อมูล ฺสถาปัตยกรรมของคลังข้อมูล\nการค้นหาความต้องการคลังข้อมู\nล.\nการออกแบบแบบจำลอง\nเลสตาร์และแบบสโนเฟค การ\nออกแบบแบบจำลองข้อมูลเพื่อติดตามการเปลี่ยนแปลงของมิติข้อมูล ฺการสกัดข้อมูล การแปลงข้อมูล\nและการนำข้อมูลเข้าระบบคลังข้อมูล แนวคิดการสร้างคลังข้อมูลบคลาวด์แพลตฟอร์ม ฺสถาปัตยกรรม\nของคลังข้อมูลบนคลาวด์แพลตฟอร์ม",
@@ -879,7 +879,7 @@
         {
             "code": "06026xxx",
             "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
-            "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYTICS 1 ELECTIVE IN DATA ENGINEERING 1",
+            "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -893,7 +893,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_030.png",
                     "source_page": 30,
-                    "document_page": null,
+                    "document_page": 25,
                     "document_category": "plan"
                 }
             ]
@@ -915,7 +915,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_030.png",
                     "source_page": 30,
-                    "document_page": null,
+                    "document_page": 25,
                     "document_category": "plan"
                 }
             ]
@@ -937,7 +937,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_030.png",
                     "source_page": 30,
-                    "document_page": null,
+                    "document_page": 25,
                     "document_category": "plan"
                 }
             ]
@@ -959,7 +959,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_030.png",
                     "source_page": 30,
-                    "document_page": null,
+                    "document_page": 25,
                     "document_category": "plan"
                 }
             ]
@@ -989,7 +989,7 @@
                     "source_filename": "dsba_page_327.png",
                     "source_page": 327,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 322
                 }
             ],
             "desc_th": "การติดตั้ง การพัฒนาการซ่อมบำรุง และการจัดการข้อมูลขนาดใหญ่ พื้นฐานการ\nเขียนโปรแกรมเพื่อวิเคราะห์ข้อมูลด้วยภาษา SOL\nข้อมูลบนหน่วยความจำบนคลัสเตอร์ การวิเคราะห์ข้อมูลจากระบบฐานข้อมูลแบบมีโครงสร้าง และ\nฐานข้อมูลแบบไม่มีโครงสร้าง และการใช้งานระบบฐานข้อมูลขนาดใหญ่บน CLOUD",
@@ -1002,7 +1002,7 @@
             "credits": "3(0-9-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 3,
@@ -1020,7 +1020,7 @@
                     "source_filename": "dsba_page_327.png",
                     "source_page": 327,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 322
                 }
             ],
             "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อบัจจุบันที่น่าสนใจทางวิทยาการข้อมูลในรูปแบบ\nโครงการ\nที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การ\nดูแลและแนะนำของอาจารย์ที่ปรึกษา สามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จาก\nการแก้ปัญหาเชิงปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
@@ -1050,7 +1050,7 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
             "name_en": "ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1077,7 +1077,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 3,
@@ -1095,7 +1095,7 @@
                     "source_filename": "dsba_page_320.png",
                     "source_page": 320,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 315
                 }
             ],
             "desc_th": "ธรรมชาติและวงจรชีวิตของโครงการ การศึกษาความเป็นไปได้ของโครงการ เทคนิค\nการเลือกโครงการ องค์ความรู้สำหรับการบริหารโครงการ กลุ่มกระบวนการบริหารโครงการ การ\nจัดการขอบเขตของโครงการ การจัดการตารางเวลา การจัดการค่าใช้จ่ายโครงการ การจัดการ\nณภาพ การจัดทึมงานและทรัพยากร การจัดการงานสือสาร การจัดการความเสียง การควบคุม\nโครงการ และประเมินผลโครงการ",
@@ -1141,14 +1141,14 @@
                     "source_filename": "dsba_page_032.png",
                     "source_page": 32,
                     "document_category": "plan",
-                    "document_page": null
+                    "document_page": 27
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_328.png",
                     "source_page": 328,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 323
                 }
             ],
             "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางวิทยาการข้อมูลในรูปแบบ\nโครงการ ที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การ\nดูแลและแนะนำของอาจารย์ที่ปรึกษา สามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอ\nและศึกษาต่อเนื่องมาจากวิชาโครงงานวิทยาการข้อมูล"
@@ -1170,7 +1170,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_032.png",
                     "source_page": 32,
-                    "document_page": null,
+                    "document_page": 27,
                     "document_category": "plan"
                 }
             ]
@@ -1192,7 +1192,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_032.png",
                     "source_page": 32,
-                    "document_page": null,
+                    "document_page": 27,
                     "document_category": "plan"
                 }
             ]
@@ -1214,7 +1214,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_032.png",
                     "source_page": 32,
-                    "document_page": null,
+                    "document_page": 27,
                     "document_category": "plan"
                 }
             ]
@@ -1236,7 +1236,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_032.png",
                     "source_page": 32,
-                    "document_page": null,
+                    "document_page": 27,
                     "document_category": "plan"
                 }
             ]
@@ -1258,7 +1258,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_032.png",
                     "source_page": 32,
-                    "document_page": null,
+                    "document_page": 27,
                     "document_category": "plan"
                 }
             ]
@@ -1270,7 +1270,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1282,7 +1282,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_328.png",
                     "source_page": 328,
-                    "document_page": null,
+                    "document_page": 323,
                     "document_category": "description"
                 }
             ]
@@ -1294,7 +1294,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1306,7 +1306,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_329.png",
                     "source_page": 329,
-                    "document_page": null,
+                    "document_page": 324,
                     "document_category": "description"
                 }
             ]
@@ -1318,7 +1318,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1330,7 +1330,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_329.png",
                     "source_page": 329,
-                    "document_page": null,
+                    "document_page": 324,
                     "document_category": "description"
                 }
             ]
@@ -1342,7 +1342,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1354,14 +1354,14 @@
                     "source_filename": "dsba_page_329.png",
                     "source_page": 329,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 324
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_330.png",
                     "source_page": 330,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 325
                 }
             ],
             "desc_en": "OVERVIEW  OF NATURAL  LANGUAGE  PROCESSING\nMODULE,\nTEXT  CLASSIFICATION\nTASKS\nSUCH\nAS\nNEWS\nCLASSIFICATION,\nSENTIMENT\nANALYSIS,\nSPAM\nFILTERING,\nTRADITIONAL\nCLASSIFIERS, DEEP LEARNING TECHNIQUES, LANGUAGE MODELING AND SEQUENCE TAGGING, TEXT\nREPRESENTATION IN VECTOR SPACE MODELS, FORMULATE SEQUENCE TO SEQUENCE TASKS SUCH\nAS MACHINE TRANSLATION., SUMMARIZATION., QUESTION ANSWERING."
@@ -1373,7 +1373,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1385,7 +1385,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_330.png",
                     "source_page": 330,
-                    "document_page": null,
+                    "document_page": 325,
                     "document_category": "description"
                 }
             ]
@@ -1397,7 +1397,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1409,7 +1409,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_330.png",
                     "source_page": 330,
-                    "document_page": null,
+                    "document_page": 325,
                     "document_category": "description"
                 }
             ]
@@ -1421,7 +1421,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1433,7 +1433,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_331.png",
                     "source_page": 331,
-                    "document_page": null,
+                    "document_page": 326,
                     "document_category": "description"
                 }
             ]
@@ -1445,7 +1445,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1457,7 +1457,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_331.png",
                     "source_page": 331,
-                    "document_page": null,
+                    "document_page": 326,
                     "document_category": "description"
                 }
             ]
@@ -1469,7 +1469,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1481,14 +1481,14 @@
                     "source_filename": "dsba_page_331.png",
                     "source_page": 331,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 326
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_332.png",
                     "source_page": 332,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 327
                 }
             ],
             "desc_en": "INTRODUCTION\nTO\nDIGITAL  IMAGE  PROCESSING FOR  BINARY,\nGRAY\nAND\nCOLOR\nIMAGES, LOCAL IMAGE FILTERING, DIMENSIONALITY REDUCTION., TRANSFORMATION: DISCRETE FOURIER\nTRANSFORM.,  PRINCIPAL  COMPONENTS  ANALYSIS,\nLINEAR  DISCRIMINANT  ANALYSIS,\n2D\nWAVELET\nTRANSFORM,\nBI DIMENSIONAL\nEMPIRICAL\nMODE  DECOMPOSITION,\n2D\nEMPIRICAL\nWAVELET\nTRANSFORM\nAND\nEMPIRICAL  MONOCOMPONENT  IMAGE  DECOMPOSITION.,  INTRODUCTION\nTO\nIMAGE RECOGNITION: HANDCRAFT BASED AND LEARNING BASED APPROACHES."
@@ -1500,7 +1500,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1512,7 +1512,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_332.png",
                     "source_page": 332,
-                    "document_page": null,
+                    "document_page": 327,
                     "document_category": "description"
                 }
             ]
@@ -1524,7 +1524,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1536,7 +1536,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_332.png",
                     "source_page": 332,
-                    "document_page": null,
+                    "document_page": 327,
                     "document_category": "description"
                 }
             ]
@@ -1548,7 +1548,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1560,7 +1560,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_333.png",
                     "source_page": 333,
-                    "document_page": null,
+                    "document_page": 328,
                     "document_category": "description"
                 }
             ]
@@ -1572,7 +1572,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1584,7 +1584,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_333.png",
                     "source_page": 333,
-                    "document_page": null,
+                    "document_page": 328,
                     "document_category": "description"
                 }
             ]
@@ -1596,7 +1596,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1608,7 +1608,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_333.png",
                     "source_page": 333,
-                    "document_page": null,
+                    "document_page": 328,
                     "document_category": "description"
                 }
             ]
@@ -1620,7 +1620,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1632,14 +1632,14 @@
                     "source_filename": "dsba_page_333.png",
                     "source_page": 333,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 328
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_334.png",
                     "source_page": 334,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 329
                 }
             ],
             "desc_en": "AN\nOVERVIEW  OF FORECASTING, TIME\nSERIES\nDATA,\nDATA  ACQUISITION\nAND\nHANDLING\nIN  FORECASTING,  FORECASTING\nWITH\nSMOOTHING  TECHNIQUES,  FORECASTING\nBY\nREGRESSION TECHNIQUES, THE DECOMPOSITION METHOD OF TIME SERIES FORECASTING, THE BOX-\nJENKINS METHOD OF FORECASTING, THE EVALUATION OF FORECASTING TECHNIQUES."
@@ -1651,7 +1651,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1663,7 +1663,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_334.png",
                     "source_page": 334,
-                    "document_page": null,
+                    "document_page": 329,
                     "document_category": "description"
                 }
             ]
@@ -1671,11 +1671,11 @@
         {
             "code": "06026232",
             "name_th": "กระบวนการสโตแคสติกเบื้องต้น",
-            "name_en": "INTRODUCTION TO STOCHASTIC PROCESS",
+            "name_en": "INTRODUCTION TO STOCHASTIC PROCESSES",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1687,7 +1687,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_334.png",
                     "source_page": 334,
-                    "document_page": null,
+                    "document_page": 329,
                     "document_category": "description"
                 }
             ]
@@ -1699,7 +1699,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1711,14 +1711,14 @@
                     "source_filename": "dsba_page_334.png",
                     "source_page": 334,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 329
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_335.png",
                     "source_page": 335,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 330
                 }
             ],
             "desc_en": "INTRODUCTION\nTO\nMULTIVARIATE\nANALYSIS,\nTHE\nMULTIVARIATE\nNORMAL\nDISTRIBUTION, MULTIVARIATE ANALYSIS OF VARIANCE, PRINCIPAL COMPONENT ANALYSIS, FACTOR\nANALYSIS, CLUSTER ANALYSIS, CANONICAL CORRELATION ANALYSIS, DISCRIMINANT ANALYSIS, LOGISTIC\nREGRESSION ANALYSIS."
@@ -1730,7 +1730,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1742,7 +1742,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_335.png",
                     "source_page": 335,
-                    "document_page": null,
+                    "document_page": 330,
                     "document_category": "description"
                 }
             ]
@@ -1754,7 +1754,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1766,7 +1766,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_335.png",
                     "source_page": 335,
-                    "document_page": null,
+                    "document_page": 330,
                     "document_category": "description"
                 }
             ]
@@ -1778,7 +1778,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1790,14 +1790,14 @@
                     "source_filename": "dsba_page_335.png",
                     "source_page": 335,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 330
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_336.png",
                     "source_page": 336,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 331
                 }
             ],
             "desc_en": "THIS\nCOURSE\nWILL  COVER  RECENT ADVANCES AND OTHER TOPICS  OF INTEREST\nSELECTED BY THE INSTRUCTORS IN THE FIELD OF STATISTICAL DATA ANALYSIS."
@@ -1809,7 +1809,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1821,7 +1821,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_336.png",
                     "source_page": 336,
-                    "document_page": null,
+                    "document_page": 331,
                     "document_category": "description"
                 }
             ]
@@ -1833,7 +1833,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1845,7 +1845,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_336.png",
                     "source_page": 336,
-                    "document_page": null,
+                    "document_page": 331,
                     "document_category": "description"
                 }
             ]
@@ -1857,7 +1857,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1868,7 +1868,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_336.png",
                     "source_page": 336,
-                    "document_page": null,
+                    "document_page": 331,
                     "document_category": "description"
                 }
             ]
@@ -1880,7 +1880,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1892,7 +1892,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_337.png",
                     "source_page": 337,
-                    "document_page": null,
+                    "document_page": 332,
                     "document_category": "description"
                 }
             ]
@@ -1904,7 +1904,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1916,7 +1916,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_337.png",
                     "source_page": 337,
-                    "document_page": null,
+                    "document_page": 332,
                     "document_category": "description"
                 }
             ]
@@ -1928,7 +1928,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1940,7 +1940,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_337.png",
                     "source_page": 337,
-                    "document_page": null,
+                    "document_page": 332,
                     "document_category": "description"
                 }
             ]
@@ -1952,7 +1952,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1964,7 +1964,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_338.png",
                     "source_page": 338,
-                    "document_page": null,
+                    "document_page": 333,
                     "document_category": "description"
                 }
             ]
@@ -1976,7 +1976,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -1988,7 +1988,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_338.png",
                     "source_page": 338,
-                    "document_page": null,
+                    "document_page": 333,
                     "document_category": "description"
                 }
             ]
@@ -2000,7 +2000,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2012,7 +2012,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_339.png",
                     "source_page": 339,
-                    "document_page": null,
+                    "document_page": 334,
                     "document_category": "description"
                 }
             ]
@@ -2024,7 +2024,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2036,7 +2036,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_339.png",
                     "source_page": 339,
-                    "document_page": null,
+                    "document_page": 334,
                     "document_category": "description"
                 }
             ]
@@ -2048,7 +2048,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2060,7 +2060,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_339.png",
                     "source_page": 339,
-                    "document_page": null,
+                    "document_page": 334,
                     "document_category": "description"
                 }
             ]
@@ -2072,7 +2072,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2084,7 +2084,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_340.png",
                     "source_page": 340,
-                    "document_page": null,
+                    "document_page": 335,
                     "document_category": "description"
                 }
             ]
@@ -2096,7 +2096,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2108,7 +2108,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_340.png",
                     "source_page": 340,
-                    "document_page": null,
+                    "document_page": 335,
                     "document_category": "description"
                 }
             ]
@@ -2120,7 +2120,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2132,7 +2132,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_340.png",
                     "source_page": 340,
-                    "document_page": null,
+                    "document_page": 335,
                     "document_category": "description"
                 }
             ]
@@ -2144,7 +2144,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2156,7 +2156,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_341.png",
                     "source_page": 341,
-                    "document_page": null,
+                    "document_page": 336,
                     "document_category": "description"
                 }
             ]
@@ -2168,7 +2168,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2180,7 +2180,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_341.png",
                     "source_page": 341,
-                    "document_page": null,
+                    "document_page": 336,
                     "document_category": "description"
                 }
             ]
@@ -2192,7 +2192,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2204,14 +2204,14 @@
                     "source_filename": "dsba_page_341.png",
                     "source_page": 341,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 336
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_342.png",
                     "source_page": 342,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 337
                 }
             ],
             "desc_en": "MARKETING\nANALYTICS,\nMARKET\nSIZING\nAND\nTREND\nANALYSIS,\nMARKET\nSEGMENTATION., COMPETITIVE ANALYSIS,\nBUSINESS STRATEGY AND OPERATIONS- FORECASTING,\nPREDICTIVE ANALYTICS, AND DATA MINING, PRODUCT AND SERVICE ANALYTICS, PRICE ANALYTICS,\nDISTRIBUTION ANALYTICS, PROMOTION\nANALYTICS, SALES ANALYTICS, ANALYTICS IN\nACTION AND\nDATA DRIVEN PRESENTATIONS."
@@ -2223,7 +2223,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2235,7 +2235,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_342.png",
                     "source_page": 342,
-                    "document_page": null,
+                    "document_page": 337,
                     "document_category": "description"
                 }
             ]
@@ -2247,7 +2247,7 @@
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2259,14 +2259,14 @@
                     "source_filename": "dsba_page_342.png",
                     "source_page": 342,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 337
                 },
                 {
                     "program": "DSBA",
                     "source_filename": "dsba_page_343.png",
                     "source_page": 343,
                     "document_category": "description",
-                    "document_page": null
+                    "document_page": 338
                 }
             ],
             "desc_en": "STANDARD OF HEALTH DATA AND STRUCTURE, HEALTH SCIENCE DATA ANALYTICS,\nHUMAN ASPECT OFTHE SYSTEM, DATA TYPE OF HEALTH DATA IN ELECTRONIC HEALTHCARE RECORD\nAND HEALTHCARE INFORMATION EXCHANGE, CLINICAL DATA ACQUISITION AND PREPARATION., X-RAY\nSEGMENTATION TECHNIQUE, MEDICAL IMAGE PREPARATION AND CORRECTION., WAVE FORM DATA\nPREPARATION\nAND\nOTHERS\nMEDICAL\nDATA\nEXAMPLE,\nNATURAL  LANGUAGE  PROCESSING\nIN\nMEDICINE, SOCIAL MEDIA ANALYTICS, DEEP LEARNING IN CLINICAL PREDICTION MODELS, CLINICAL\nDECISION SUPPORT SYSTEM"
@@ -2278,7 +2278,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2290,7 +2290,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_343.png",
                     "source_page": 343,
-                    "document_page": null,
+                    "document_page": 338,
                     "document_category": "description"
                 }
             ]
@@ -2302,7 +2302,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2314,7 +2314,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_343.png",
                     "source_page": 343,
-                    "document_page": null,
+                    "document_page": 338,
                     "document_category": "description"
                 }
             ]
@@ -2326,7 +2326,7 @@
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": null,
             "year": 0,
@@ -2338,7 +2338,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_344.png",
                     "source_page": 344,
-                    "document_page": null,
+                    "document_page": 339,
                     "document_category": "description"
                 }
             ]
@@ -2350,7 +2350,7 @@
             "credits": "6(0-35-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
             "year": 0,
@@ -2362,7 +2362,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_344.png",
                     "source_page": 344,
-                    "document_page": null,
+                    "document_page": 339,
                     "document_category": "description"
                 }
             ]
@@ -2374,7 +2374,7 @@
             "credits": "6(0-35-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
-            "prerequisite": "NONE",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": "3/1, 3/2, 4/1",
             "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
             "year": 0,
@@ -2385,7 +2385,7 @@
                     "program": "DSBA",
                     "source_filename": "dsba_page_344.png",
                     "source_page": 344,
-                    "document_page": null,
+                    "document_page": 339,
                     "document_category": "description"
                 }
             ]

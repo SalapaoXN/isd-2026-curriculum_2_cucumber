@@ -45,7 +45,7 @@
 		},
 		{
 			"code": "06066303",
-			"name_th": "การแก้ปัญหาและโปรแกรมคอมพิวเตอร์",
+			"name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
 			"name_en": "PROBLEM SOLVING AND COMPUTER\nPROGRAMMING",
 			"credits": "3(2-2-5)",
 			"year": 1,
@@ -58,7 +58,7 @@
 		},
 		{
 			"code": "90641001",
-			"name_th": "โรงเรียนสร้างเสน่าห์",
+			"name_th": "โรงเรียนสร้างเสน่ห์",
 			"name_en": "CHARM SCHOOL",
 			"credits": "2(1-2-3)",
 			"year": 1,
@@ -123,7 +123,7 @@
 		},
 		{
 			"code": "06026205",
-			"name_th": "การตลาดเบื้อต้น",
+			"name_th": "การตลาดเบื้องต้น",
 			"name_en": "INTRODUCTION TO MARKETING",
 			"credits": "3(3-0-6)",
 			"year": 1,
@@ -240,7 +240,7 @@
 		},
 		{
 			"code": "06066304",
-			"name_th": "การวิเคราะห์และอออกแบบระบบสารสนเทศ",
+			"name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ",
 			"name_en": "INFORMATION SYSTEM ANALYSIS AND DESIGN",
 			"credits": "3(3-0-6)",
 			"year": 2,
@@ -253,7 +253,7 @@
 		},
 		{
 			"code": "90644xxx",
-			"name_th": "วิชาเลือกภาษาและการสื่อสาร",
+			"name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
 			"name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION",
 			"credits": "3(3-0-6) หรือ 3(2-2-5)",
 			"year": 2,
@@ -266,7 +266,7 @@
 		},
 		{
 			"code": "06026204",
-			"name_th": "เครือข่ายและความมั่นคงทางไซเบอร์เบื่องต้น",
+			"name_th": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น",
 			"name_en": "INTRODUCTION TO NETWORKS AND\nCYBERSECURITY",
 			"credits": "3(3-0-6)",
 			"year": 2,
@@ -695,7 +695,7 @@
 		},
 		{
 			"code": "06026225",
-			"name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวิดีโอทางการแพทย์",
+			"name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์",
 			"name_en": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO\nANALYSIS",
 			"credits": "3(2-2-5)",
 			"year": 0,
@@ -877,7 +877,7 @@
 		},
 		{
 			"code": "06026239",
-			"name_th": "สถิาปัตยกรรมข้อมูลแบบไปป์ไลน์",
+			"name_th": "สถาปัตยกรรมข้อมูลแบบไปป์ไลน์",
 			"name_en": "DATA PIPELINE ARCHITECTURE",
 			"credits": "3(3-0-6)",
 			"year": 0,
@@ -955,7 +955,7 @@
 		},
 		{
 			"code": "06026245",
-			"name_th": "ระบบข้อมูลแบบกระจาย",
+			"name_th": "ระบบฐานข้อมูลแบบกระจาย",
 			"name_en": "DISTRIBUTED DATABASE SYSTEMS",
 			"credits": "3(3-0-6)",
 			"year": 0,

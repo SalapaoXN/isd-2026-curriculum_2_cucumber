@@ -1,0 +1,182 @@
+{
+  "field_deltas": [
+    {
+      "field": "code",
+      "consolidated_accuracy": 1.0,
+      "llm_accuracy": 1.0,
+      "delta_percentage_points": 0.0,
+      "improvements": 0,
+      "regressions": 0,
+      "net_improvement": 0
+    },
+    {
+      "field": "name_th",
+      "consolidated_accuracy": 0.728248,
+      "llm_accuracy": 0.918951,
+      "delta_percentage_points": 19.0703,
+      "improvements": 160,
+      "regressions": 0,
+      "net_improvement": 160
+    },
+    {
+      "field": "name_en",
+      "consolidated_accuracy": 0.387366,
+      "llm_accuracy": 0.909416,
+      "delta_percentage_points": 52.205,
+      "improvements": 438,
+      "regressions": 0,
+      "net_improvement": 438
+    },
+    {
+      "field": "credits",
+      "consolidated_accuracy": 0.991657,
+      "llm_accuracy": 0.991657,
+      "delta_percentage_points": 0.0,
+      "improvements": 0,
+      "regressions": 0,
+      "net_improvement": 0
+    },
+    {
+      "field": "year",
+      "consolidated_accuracy": 0.987784,
+      "llm_accuracy": 0.987784,
+      "delta_percentage_points": 0.0,
+      "improvements": 0,
+      "regressions": 0,
+      "net_improvement": 0
+    },
+    {
+      "field": "semester",
+      "consolidated_accuracy": 0.998255,
+      "llm_accuracy": 0.998255,
+      "delta_percentage_points": 0.0,
+      "improvements": 0,
+      "regressions": 0,
+      "net_improvement": 0
+    },
+    {
+      "field": "prerequisite",
+      "consolidated_accuracy": 0.997616,
+      "llm_accuracy": 0.997616,
+      "delta_percentage_points": 0.0,
+      "improvements": 0,
+      "regressions": 0,
+      "net_improvement": 0
+    }
+  ],
+  "transitions": [
+    {
+      "field": "code",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 839,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 0
+    },
+    {
+      "field": "code",
+      "comparison_mode": "strict",
+      "correct_to_correct": 833,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 6
+    },
+    {
+      "field": "name_th",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 611,
+      "wrong_to_correct": 160,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 68
+    },
+    {
+      "field": "name_th",
+      "comparison_mode": "strict",
+      "correct_to_correct": 606,
+      "wrong_to_correct": 160,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 73
+    },
+    {
+      "field": "name_en",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 325,
+      "wrong_to_correct": 438,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 76
+    },
+    {
+      "field": "name_en",
+      "comparison_mode": "strict",
+      "correct_to_correct": 318,
+      "wrong_to_correct": 405,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 116
+    },
+    {
+      "field": "credits",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 832,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 7
+    },
+    {
+      "field": "credits",
+      "comparison_mode": "strict",
+      "correct_to_correct": 832,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 7
+    },
+    {
+      "field": "year",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 566,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 7
+    },
+    {
+      "field": "year",
+      "comparison_mode": "strict",
+      "correct_to_correct": 566,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 7
+    },
+    {
+      "field": "semester",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 572,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 1
+    },
+    {
+      "field": "semester",
+      "comparison_mode": "strict",
+      "correct_to_correct": 572,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 1
+    },
+    {
+      "field": "prerequisite",
+      "comparison_mode": "normalized",
+      "correct_to_correct": 837,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 2
+    },
+    {
+      "field": "prerequisite",
+      "comparison_mode": "strict",
+      "correct_to_correct": 835,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "wrong_to_wrong": 4
+    }
+  ],
+  "non_name_layer_differences": []
+}

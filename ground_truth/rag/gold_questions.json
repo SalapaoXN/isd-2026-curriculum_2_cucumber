@@ -595,7 +595,7 @@
           "program": "IT",
           "plan": "no_coop",
           "course_code": "06016402",
-          "name_en": "IFORMATION TECHNOLOGY FUNDAMENTALS",
+          "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
           "description_evidence": [
             "DATA PROCESSING SYSTEMS",
             "DATA MANAGEMENT",
@@ -620,9 +620,9 @@
           "program": "DSBA",
           "plan": "no_coop",
           "course_code": "06026207",
-          "name_en": "NOSOL DATABASE SVSTEMS",
+          "name_en": "NOSQL DATABASE SYSTEMS",
           "description_evidence": [
-            "NOSOL DATABASE SYSTEM",
+            "NOSQL DATABASE SYSTEM",
             "RELATIONAL DATABASE SYSTEM",
             "COLUMN ORIENTED",
             "DOCUMENT AND GRAPH",

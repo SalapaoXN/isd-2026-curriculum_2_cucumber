@@ -127,11 +127,157 @@ def nearest_neighbor_search(
     ]
 
 
+def score_candidate_vectors(
+    database_path: str | Path,
+    query_embedding: Any,
+    candidate_chunk_ids: Iterable[str],
+) -> dict[str, Any]:
+    """Score only the supplied stored vectors, without k-nearest search.
+
+    The returned mapping keeps valid scores separate from missing and invalid
+    IDs.  Invalid vectors are never assigned a distance, and result ordering
+    is deterministic regardless of database row order.
+    """
+    candidate_ids: list[str] = []
+    seen: set[str] = set()
+    for chunk_id in candidate_chunk_ids:
+        if not isinstance(chunk_id, str) or not chunk_id:
+            raise ValueError("each candidate chunk_id must be a non-empty string")
+        if chunk_id not in seen:
+            seen.add(chunk_id)
+            candidate_ids.append(chunk_id)
+    if not candidate_ids:
+        return {
+            "scores": [],
+            "missing_chunk_ids": [],
+            "invalid_chunk_ids": [],
+        }
+
+    query_matrix = _embedding_matrix(query_embedding, 1)
+    query_vector = query_matrix[0]
+    query_norm = float(np.linalg.norm(query_vector))
+    if not np.isfinite(query_norm) or query_norm == 0.0:
+        raise ValueError("query embedding must have a finite non-zero norm")
+
+    placeholders = ", ".join("?" for _ in candidate_ids)
+    with closing(sqlite3.connect(str(database_path))) as connection:
+        _load_sqlite_vec(connection)
+        rows = connection.execute(
+            f"SELECT chunk_id, {VECTOR_COLUMN} FROM {VECTOR_TABLE} "
+            f"WHERE chunk_id IN ({placeholders})",
+            candidate_ids,
+        ).fetchall()
+
+    rows_by_id = {row[0]: row[1] for row in rows}
+    missing_ids = [chunk_id for chunk_id in candidate_ids if chunk_id not in rows_by_id]
+    invalid_ids: list[str] = []
+    scores: list[dict[str, Any]] = []
+    for chunk_id in candidate_ids:
+        if chunk_id not in rows_by_id:
+            continue
+        try:
+            vector = np.frombuffer(rows_by_id[chunk_id], dtype=np.float32)
+            vector = _embedding_matrix(vector, 1)[0]
+            vector_norm = float(np.linalg.norm(vector))
+            if not np.isfinite(vector_norm) or vector_norm == 0.0:
+                raise ValueError("candidate vector must have a finite non-zero norm")
+            similarity = float(
+                np.dot(query_vector, vector) / (query_norm * vector_norm)
+            )
+        except (TypeError, ValueError):
+            invalid_ids.append(chunk_id)
+            continue
+        scores.append(
+            {
+                "chunk_id": chunk_id,
+                "distance": float(1.0 - similarity),
+            }
+        )
+
+    scores.sort(key=lambda result: (result["distance"], result["chunk_id"]))
+    return {
+        "scores": scores,
+        "missing_chunk_ids": missing_ids,
+        "invalid_chunk_ids": invalid_ids,
+    }
+
+
+def compare_stored_vectors(
+    database_path: str | Path,
+    left_chunk_id: str,
+    right_chunk_id: str,
+) -> dict[str, Any]:
+    """Compare exactly two persisted vectors without nearest-neighbor search."""
+    for name, chunk_id in (("left_chunk_id", left_chunk_id), ("right_chunk_id", right_chunk_id)):
+        if not isinstance(chunk_id, str) or not chunk_id:
+            raise ValueError(f"{name} must be a non-empty string")
+
+    requested_ids = [left_chunk_id]
+    if right_chunk_id != left_chunk_id:
+        requested_ids.append(right_chunk_id)
+    placeholders = ", ".join("?" for _ in requested_ids)
+    with closing(sqlite3.connect(str(database_path))) as connection:
+        _load_sqlite_vec(connection)
+        rows = connection.execute(
+            f"SELECT chunk_id, {VECTOR_COLUMN} FROM {VECTOR_TABLE} "
+            f"WHERE chunk_id IN ({placeholders})",
+            requested_ids,
+        ).fetchall()
+
+    rows_by_id = {row[0]: row[1] for row in rows}
+    missing_ids = tuple(chunk_id for chunk_id in requested_ids if chunk_id not in rows_by_id)
+    invalid_ids: list[str] = []
+    vectors: dict[str, np.ndarray] = {}
+    for chunk_id in requested_ids:
+        if chunk_id not in rows_by_id:
+            continue
+        try:
+            vector = _embedding_matrix(
+                np.frombuffer(rows_by_id[chunk_id], dtype=np.float32), 1
+            )[0]
+            norm = float(np.linalg.norm(vector))
+            if not np.isfinite(norm) or norm == 0.0:
+                raise ValueError("vector must have a finite non-zero norm")
+        except (BufferError, TypeError, ValueError):
+            invalid_ids.append(chunk_id)
+            continue
+        vectors[chunk_id] = vector
+
+    if missing_ids or invalid_ids:
+        return {
+            "status": "insufficient_evidence",
+            "left_chunk_id": left_chunk_id,
+            "right_chunk_id": right_chunk_id,
+            "cosine_distance": None,
+            "cosine_similarity": None,
+            "missing_chunk_ids": missing_ids,
+            "invalid_chunk_ids": tuple(invalid_ids),
+        }
+
+    left_vector = vectors[left_chunk_id]
+    right_vector = vectors[right_chunk_id]
+    left_norm = float(np.linalg.norm(left_vector))
+    right_norm = float(np.linalg.norm(right_vector))
+    similarity = float(np.dot(left_vector, right_vector) / (left_norm * right_norm))
+    distance = float(1.0 - similarity)
+    return {
+        "status": "complete",
+        "left_chunk_id": left_chunk_id,
+        "right_chunk_id": right_chunk_id,
+        "cosine_distance": distance,
+        "cosine_similarity": float(1.0 - distance),
+        "missing_chunk_ids": (),
+        "invalid_chunk_ids": (),
+    }
+
+
 __all__ = [
     "EMBEDDING_DIMENSION",
     "VECTOR_COLUMN",
     "VECTOR_TABLE",
     "create_vector_table",
+    "compare_stored_vectors",
     "insert_embeddings",
     "nearest_neighbor_search",
+    "score_candidate_vectors",
 ]

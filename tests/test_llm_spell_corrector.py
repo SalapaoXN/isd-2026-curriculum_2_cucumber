@@ -62,6 +62,362 @@ class FakeClient:
 
 
 class LlmSpellCorrectorTests(unittest.TestCase):
+    @staticmethod
+    def validated_text(original, corrected, field="name_en"):
+        before = [{"unit_index": 0, "field": field, "text": original}]
+        after = [{"unit_index": 0, "field": field, "text": corrected}]
+        return llm_spell_corrector._validate_batch(before, after, 1, 0)[0]["text"]
+
+    def test_terminal_suffix_deletion_is_rejected(self):
+        self.assertEqual(
+            self.validated_text("COURSE NAME 3", "COURSE NAME"),
+            "COURSE NAME 3",
+        )
+
+    def test_terminal_numeric_suffix_accepts_only_one_digit(self):
+        cases = {
+            "1": "1",
+            "9": "9",
+            "12": None,
+            "23": None,
+            "COURSE 1": "1",
+            "COURSE 12": None,
+            "COURSE1": None,
+            "": None,
+            None: None,
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assertEqual(
+                    llm_spell_corrector._terminal_numeric_suffix(value), expected
+                )
+
+    def test_terminal_suffix_addition_is_rejected(self):
+        self.assertEqual(
+            self.validated_text("COURSE NAME", "COURSE NAME 3"),
+            "COURSE NAME",
+        )
+
+    def test_terminal_suffix_substitution_is_rejected(self):
+        self.assertEqual(
+            self.validated_text("COURSE NAME 3", "COURSE NAME 4"),
+            "COURSE NAME 3",
+        )
+
+    def test_same_terminal_suffix_and_suffix_free_corrections_are_accepted(self):
+        self.assertEqual(
+            self.validated_text("COURSE NANE 3", "COURSE NAME 3"),
+            "COURSE NAME 3",
+        )
+        self.assertEqual(
+            self.validated_text("COURSE NANE", "COURSE NAME"),
+            "COURSE NAME",
+        )
+        self.assertEqual(
+            self.validated_text("COURSE 12", "COURSE"),
+            "COURSE",
+        )
+
+    def test_terminal_suffix_guard_applies_to_thai_names(self):
+        self.assertEqual(
+            self.validated_text(
+                "โครงงานปัญญาประดิษฐ์ 1",
+                "โครงงานปัญญาประดิษฐ์",
+                field="name_th",
+            ),
+            "โครงงานปัญญาประดิษฐ์ 1",
+        )
+
+    def test_mixed_batch_preserves_unsafe_unit_and_applies_valid_unit(self):
+        before = [
+            {"unit_index": 0, "field": "name_th", "text": "ชื่อวิชา 1"},
+            {"unit_index": 1, "field": "name_en", "text": "COURSE NANE"},
+        ]
+        after = [
+            {"unit_index": 0, "field": "name_th", "text": "ชื่อวิชา"},
+            {"unit_index": 1, "field": "name_en", "text": "COURSE NAME"},
+        ]
+        validated = llm_spell_corrector._validate_batch(before, after, 1, 0)
+        self.assertEqual(validated[0]["text"], "ชื่อวิชา 1")
+        self.assertEqual(validated[1]["text"], "COURSE NAME")
+
+        corrected, corrections = llm_spell_corrector._reconstruct_document(
+            {"courses": [make_record(name_th="ชื่อวิชา 1", name_en="COURSE NANE")]},
+            {
+                (original["field"], original["text"]): unit["text"]
+                for original, unit in zip(before, validated.values())
+            },
+        )
+        self.assertEqual(corrected["courses"][0]["name_th"], "ชื่อวิชา 1")
+        self.assertEqual(corrected["courses"][0]["name_en"], "COURSE NAME")
+        self.assertEqual([entry["field"] for entry in corrections], ["name_en"])
+
+    def test_canonical_corrections_apply_deterministically_in_reconstruction(self):
+        for (program, course_code, field, before), after in (
+            llm_spell_corrector.CANONICAL_NAME_CORRECTIONS.items()
+        ):
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = before
+                corrected, applied = llm_spell_corrector._reconstruct_document(
+                    {"program": program, "courses": [record]},
+                    {(field, before): "LLM candidate"},
+                )
+                self.assertEqual(corrected["courses"][0][field], after)
+                self.assertEqual(applied[0]["after"], after)
+
+    def test_canonical_corrections_apply_deterministically_in_replay(self):
+        for (program, course_code, field, before), after in (
+            llm_spell_corrector.CANONICAL_NAME_CORRECTIONS.items()
+        ):
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = before
+                corrected, applied = llm_spell_corrector.apply_corrections(
+                    {"program": program, "courses": [record]},
+                    [{
+                        "course_code": course_code,
+                        "field": field,
+                        "before": before,
+                        "after": "LLM candidate",
+                    }],
+                )
+                self.assertEqual(corrected["courses"][0][field], after)
+                self.assertEqual(applied[0]["after"], after)
+
+    def test_phase_6c2_pins_apply_exact_verified_values(self):
+        expected_pins = {
+            ("IT", "06016412", "name_en", "COMPUTER ORCANIZATON AND OPERATING SSTEM"):
+                "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
+            ("IT", "06016466", "name_en", "NETWORK AND SYSTEM TROUBLE SHOOTNG"):
+                "NETWORK AND SYSTEM TROUBLE SHOOTING",
+            ("AIT", "06046413", "name_th", "ปัญญา ประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิง"):
+                "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง",
+            (
+                "DSBA",
+                "06026260",
+                "name_en",
+                "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
+            ): "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            (
+                "DSBA",
+                "06026259 หรือ 06026260",
+                "name_en",
+                "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            ): "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+            ("GENED", "90642056", "name_en", "ST EPLDEMICS IN THE 21 CENTURV"):
+                "EPIDEMICS IN THE 21ST CENTURY",
+            ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+            ("IT", "06016418", "name_th", "การพัฒนาเว็บฝังเซิร์ฟเวอร์"):
+                "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+            (
+                "IT",
+                "06016442",
+                "name_th",
+                "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+            ): "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+            (
+                "IT",
+                "06016443",
+                "name_th",
+                "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+            ): "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง",
+            ("IT", "90643021", "name_th", "ผู้ ประกอบการสมัยใหม่"):
+                "ผู้ประกอบการสมัยใหม่",
+            ("GENED", "90642134", "name_en", "KING MONGKUTS REIGN STUDV"):
+                "KING MONGKUTS REIGN STUDY",
+        }
+        for (program, course_code, field, before), after in expected_pins.items():
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = before
+                document = {"program": program, "courses": [record]}
+                reconstructed, reconstruction_log = (
+                    llm_spell_corrector._reconstruct_document(
+                        document,
+                        {(field, before): "untrusted candidate"},
+                    )
+                )
+                self.assertEqual(reconstructed["courses"][0][field], after)
+                self.assertEqual(reconstruction_log[0]["after"], after)
+
+                replayed, replay_log = llm_spell_corrector.apply_corrections(
+                    document,
+                    [{
+                        "course_code": course_code,
+                        "field": field,
+                        "before": before,
+                        "after": "untrusted candidate",
+                    }],
+                )
+                self.assertEqual(replayed["courses"][0][field], after)
+                self.assertEqual(replay_log[0]["after"], after)
+
+    def test_canonical_rules_fail_closed_on_identity_and_before(self):
+        for program, course_code, field, before in (
+            key for key in llm_spell_corrector.CANONICAL_NAME_CORRECTIONS
+        ):
+            wrong_field = "name_en" if field == "name_th" else "name_th"
+            cases = (
+                ("WRONG", course_code, field, before),
+                (program, "99999999", field, before),
+                (program, course_code, wrong_field, before),
+                (program, course_code, field, f"{before} changed"),
+            )
+            for wrong_program, wrong_code, wrong_name_field, current in cases:
+                with self.subTest(
+                    program=program,
+                    course_code=course_code,
+                    field=wrong_name_field,
+                    current=current,
+                ):
+                    record = make_record(course_code=wrong_code)
+                    record.pop("program")
+                    record[wrong_name_field] = current
+                    corrected, applied = llm_spell_corrector._reconstruct_document(
+                        {"program": wrong_program, "courses": [record]},
+                        {(wrong_name_field, current): "LLM candidate"},
+                    )
+                    self.assertEqual(
+                        corrected["courses"][0][wrong_name_field], "LLM candidate"
+                    )
+                    self.assertEqual(len(applied), 1)
+
+    def test_reconstruct_still_applies_unregistered_correction(self):
+        record = make_record(name_en="Original name")
+        corrected, applied = llm_spell_corrector._reconstruct_document(
+            {"program": "IT", "courses": [record]},
+            {("name_en", "Original name"): "Corrected name"},
+        )
+        self.assertEqual(corrected["courses"][0]["name_en"], "Corrected name")
+        self.assertEqual(
+            applied,
+            [{
+                "course_code": "06000001",
+                "field": "name_en",
+                "before": "Original name",
+                "after": "Corrected name",
+            }],
+        )
+
+    def test_placeholder_names_are_not_corrected_or_logged(self):
+        for field, placeholder in (("name_th", "ไม่ระบุ"), ("name_en", "N/A")):
+            with self.subTest(field=field):
+                record = make_record(course_code="06000001")
+                record[field] = placeholder
+                corrected, reconstructed = llm_spell_corrector._reconstruct_document(
+                    {"program": "IT", "courses": [record]},
+                    {(field, placeholder): "Hallucinated course name"},
+                )
+                self.assertEqual(corrected["courses"][0][field], placeholder)
+                self.assertEqual(reconstructed, [])
+
+                replayed, applied = llm_spell_corrector.apply_corrections(
+                    {"courses": [record]},
+                    [{
+                        "course_code": "06000001",
+                        "field": field,
+                        "before": placeholder,
+                        "after": "Hallucinated course name",
+                    }],
+                )
+                self.assertEqual(replayed["courses"][0][field], placeholder)
+                self.assertEqual(applied, [])
+
+    def test_literal_preserve_values_reject_changed_candidates(self):
+        for (program, course_code, field, source_value), preserved_value in (
+            llm_spell_corrector.LITERAL_PRESERVE_VALUES.items()
+        ):
+            with self.subTest(program=program, course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = source_value
+                reconstructed, reconstruction_log = llm_spell_corrector._reconstruct_document(
+                    {"program": program, "courses": [record]},
+                    {(field, source_value): "LLM candidate"},
+                )
+                self.assertEqual(
+                    reconstructed["courses"][0][field], preserved_value
+                )
+                self.assertEqual(reconstruction_log, [])
+                corrected, applied = llm_spell_corrector.apply_corrections(
+                    {"program": program, "courses": [record]},
+                    [{
+                        "course_code": course_code,
+                        "field": field,
+                        "before": source_value,
+                        "after": f"{source_value} changed",
+                    }],
+                )
+                self.assertEqual(corrected["courses"][0][field], preserved_value)
+                self.assertEqual(applied, [])
+
+    def test_phase_6c2_preserves_gened_source_titles(self):
+        for course_code, source_value, candidate in (
+            ("90642126", "SURVIVORS", "SURVIVAL"),
+            ("90642154", "FALL ABLE", "FALLABLE"),
+        ):
+            with self.subTest(course_code=course_code):
+                record = make_record(course_code=course_code, name_en=source_value)
+                record.pop("program")
+                document = {"program": "GENED", "courses": [record]}
+
+                reconstructed, reconstruction_log = (
+                    llm_spell_corrector._reconstruct_document(
+                        document,
+                        {("name_en", source_value): candidate},
+                    )
+                )
+                self.assertEqual(
+                    reconstructed["courses"][0]["name_en"], source_value
+                )
+                self.assertEqual(reconstruction_log, [])
+
+                replayed, replay_log = llm_spell_corrector.apply_corrections(
+                    document,
+                    [{
+                        "course_code": course_code,
+                        "field": "name_en",
+                        "before": source_value,
+                        "after": candidate,
+                    }],
+                )
+                self.assertEqual(replayed["courses"][0]["name_en"], source_value)
+                self.assertEqual(replay_log, [])
+
+    def test_literal_preserve_rules_fail_closed_on_identity_and_before(self):
+        for program, course_code, field, before in (
+            key for key in llm_spell_corrector.LITERAL_PRESERVE_VALUES
+        ):
+            wrong_field = "name_en" if field == "name_th" else "name_th"
+            cases = (
+                ("WRONG", course_code, field, before),
+                (program, "99999999", field, before),
+                (program, course_code, wrong_field, before),
+                (program, course_code, field, f"{before} changed"),
+            )
+            for wrong_program, wrong_code, wrong_name_field, current in cases:
+                with self.subTest(
+                    program=program,
+                    course_code=course_code,
+                    field=wrong_name_field,
+                    current=current,
+                ):
+                    record = make_record(course_code=wrong_code)
+                    record.pop("program")
+                    record[wrong_name_field] = current
+                    corrected, applied = llm_spell_corrector._reconstruct_document(
+                        {"program": wrong_program, "courses": [record]},
+                        {(wrong_name_field, current): "LLM candidate"},
+                    )
+                    self.assertEqual(
+                        corrected["courses"][0][wrong_name_field], "LLM candidate"
+                    )
+                    self.assertEqual(len(applied), 1)
+
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.directory = Path(self.temp_dir.name)
@@ -108,6 +464,8 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         return responder
 
     def run_files(self, paths, responses, output_dir=None):
+        if output_dir is None:
+            output_dir = self.directory
         client = FakeClient(responses)
         with patch("llm_spell_corrector.genai.Client", return_value=client):
             output_paths = llm_spell_corrector.correct_json_files(
@@ -124,6 +482,39 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         directory = self.directory if directory is None else directory
         self.assertFalse(list(directory.glob("*_corrected.json")))
         self.assertFalse(list(directory.glob("*_corrections.json")))
+
+    def test_default_output_paths_use_canonical_llm_layer_for_all_nested_scopes(self):
+        cases = (
+            "outputs/consolidated/ait/full/merged_ait_no_plan_full.json",
+            "outputs/consolidated/bit/coop/full/merged_bit_coop_full.json",
+            "outputs/consolidated/dsba/no_coop/full/merged_dsba_no_coop_full.json",
+        )
+        for source in cases:
+            with self.subTest(source=source):
+                corrected, corrections = llm_spell_corrector._output_paths(Path(source), None)
+                self.assertEqual(corrected.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+                self.assertEqual(corrections.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+                self.assertEqual(corrected.name, f"{Path(source).stem}_corrected.json")
+                self.assertEqual(corrections.name, f"{Path(source).stem}_corrections.json")
+                self.assertNotEqual(corrected.parent, Path(source).parent)
+
+    def test_explicit_output_directory_still_overrides_canonical_default(self):
+        source = Path("outputs/consolidated/bit/coop/full/merged_bit_coop_full.json")
+        corrected, corrections = llm_spell_corrector._output_paths(source, self.directory)
+        self.assertEqual(corrected.parent, self.directory)
+        self.assertEqual(corrections.parent, self.directory)
+
+    def test_default_routing_does_not_write_beside_nested_input(self):
+        source = self.directory / "outputs" / "consolidated" / "ait" / "full" / "merged_ait_no_plan_full.json"
+        source.parent.mkdir(parents=True)
+        source.write_text(json.dumps({"courses": [make_record()]}), encoding="utf-8")
+
+        corrected, corrections = llm_spell_corrector._output_paths(source, None)
+
+        self.assertEqual(corrected.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+        self.assertEqual(corrections.parent, llm_spell_corrector.LLM_OUTPUT_DIR)
+        self.assertFalse((source.parent / corrected.name).exists())
+        self.assertFalse((source.parent / corrections.name).exists())
 
     def test_discovery_finds_only_full_consolidated_files_in_deterministic_order(self):
         consolidated = self.directory / "outputs" / "consolidated"
@@ -288,6 +679,70 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         )
         self.assertEqual(client.models.calls[0]["model"], "gemini-3.5-flash-lite")
         self.assertEqual(client.models.calls[0]["config"], {"temperature": 0})
+
+    def test_empty_corrected_name_th_is_rejected_before_output(self):
+        path, _ = self.write_document("curriculum.json", [make_record()])
+
+        def empty_name_th(contents):
+            payload = json.loads(contents[1])
+            payload[0]["text"] = ""
+            return self.response_for_payload(payload)
+
+        with self.assertRaisesRegex(ValueError, "empty text"):
+            self.run_corrector(path, [empty_name_th])
+        self.assert_no_outputs()
+
+    def test_whitespace_corrected_name_en_is_rejected_before_output(self):
+        path, _ = self.write_document("curriculum.json", [make_record()])
+
+        def whitespace_name_en(contents):
+            payload = json.loads(contents[1])
+            for unit in payload:
+                if unit["field"] == "name_en":
+                    unit["text"] = " \t\n"
+            return self.response_for_payload(payload)
+
+        with self.assertRaisesRegex(ValueError, "empty text"):
+            self.run_corrector(path, [whitespace_name_en])
+        self.assert_no_outputs()
+
+    def test_empty_original_text_does_not_require_a_replacement(self):
+        path, _ = self.write_document(
+            "curriculum.json",
+            [make_record(name_th="", name_en="", desc_th="", desc_en="")],
+        )
+
+        output_path, client = self.run_corrector(path, [])
+
+        result = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["courses"][0]["name_th"], "")
+        self.assertEqual(result["courses"][0]["name_en"], "")
+        self.assertEqual(client.models.calls, [])
+
+    def test_whitespace_only_original_text_does_not_require_a_replacement(self):
+        before = [{"unit_index": 0, "field": "name_en", "text": "   "}]
+        after = [{"unit_index": 0, "field": "name_en", "text": ""}]
+
+        validated = llm_spell_corrector._validate_batch(before, after, 1, 0)
+
+        self.assertEqual(validated[0]["text"], "")
+
+    def test_reviewed_corrections_reject_empty_text_for_all_supported_text_fields(self):
+        for field in ("name_th", "name_en", "desc_th", "desc_en"):
+            record = make_record()
+            before = record[field]
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "empty text"):
+                llm_spell_corrector.apply_corrections(
+                    {"courses": [record]},
+                    [
+                        {
+                            "course_code": record["course_code"],
+                            "field": field,
+                            "before": before,
+                            "after": "",
+                        }
+                    ],
+                )
 
     def test_identical_text_across_files_uses_one_unit_and_same_output(self):
         first_records = [make_record("06000001", name_th=None, name_en="Shared text", desc_th=None, desc_en=None, note=None)]

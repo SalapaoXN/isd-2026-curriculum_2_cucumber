@@ -38,7 +38,7 @@
         },
         {
             "code": "06036101",
-            "name_th": "ตรรกศาสตร์สำหรับธุรกิจ",
+            "name_th": "สถิติศาสตร์ สำหรับธุรกิจ",
             "name_en": "MATHEMATICS FOR BUSINESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -220,7 +220,7 @@
         {
             "code": "06036109",
             "name_th": "กระบวนการและโมเดลทางธุรกิจ",
-            "name_en": "BUSINESS PROCESSES AND BUSINESS MODELS",
+            "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -282,7 +282,7 @@
         {
             "code": "06036125",
             "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
-            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEMS",
+            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -732,7 +732,7 @@
         },
         {
             "code": "9664xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
             "name_en": "GE ELECTIVE COURSE REQUIREMENT 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -993,8 +993,8 @@
         },
         {
             "code": "06036145",
-            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ",
-            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY",
+            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1",
+            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1",
             "credits": "3(0-9-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1462,8 +1462,8 @@
         },
         {
             "code": "06036135",
-            "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ",
-            "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY",
+            "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
+            "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",

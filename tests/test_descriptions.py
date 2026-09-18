@@ -21,6 +21,136 @@ def source_context(program, page):
 
 
 class DescriptionExtractionTests(unittest.TestCase):
+    def test_description_credits_preserve_observed_forms_without_fallback(self):
+        cases = (
+            ("1(0-2-1)", "1(0-2-1)"),
+            ("(0-2-1)", "(0-2-1)"),
+            ("(4-0-8)", "(4-0-8)"),
+            ("(3-0-6)", "(3-0-6)"),
+            (None, ""),
+        )
+
+        for index, (credit, expected) in enumerate(cases, start=1):
+            with self.subTest(credit=credit):
+                lines = [
+                    "คำอธิบายรายวิชา",
+                    f"060000{index:02d}",
+                    "ชื่อวิชา",
+                ]
+                if credit is not None:
+                    lines.append(credit)
+                lines.extend(["TEST COURSE", "PREREQUISITE", "NONE"])
+
+                course = CurriculumExtractor(program="DSBA", plan="coop").extract_descriptions(
+                    lines, source_context("DSBA", 317)
+                )["courses"][0]
+
+                self.assertEqual(course["credits"], expected)
+                self.assertEqual(course["name_th"], "ชื่อวิชา")
+                self.assertEqual(course["name_en"], "TEST COURSE")
+
+    def test_description_missing_credit_is_not_inferred_from_neighboring_record(self):
+        result = CurriculumExtractor(program="DSBA", plan="coop").extract_descriptions(
+            [
+                "คำอธิบายรายวิชา",
+                "06000011",
+                "วิชาไม่มีหน่วยกิต",
+                "COURSE WITHOUT CREDIT",
+                "PREREQUISITE",
+                "NONE",
+                "กลุ่ม วิชาถัดไป",
+                "06000012",
+                "วิชาถัดไป",
+                "3(3-0-6)",
+                "NEXT COURSE",
+                "PREREQUISITE",
+                "NONE",
+            ],
+            source_context("DSBA", 318),
+        )
+
+        self.assertEqual(
+            [(course["code"], course["credits"]) for course in result["courses"]],
+            [("06000011", ""), ("06000012", "3(3-0-6)")],
+        )
+
+    def test_description_credit_normalizes_complete_missing_closing_delimiter(self):
+        for credit, expected in (("3(3-0-6", "3(3-0-6)"), ("1(0-2-1", "1(0-2-1)")):
+            with self.subTest(credit=credit):
+                course = CurriculumExtractor(program="DSBA", plan="coop").extract_descriptions(
+                    [
+                        "คำอธิบายรายวิชา",
+                        "06000021",
+                        "ชื่อวิชา",
+                        credit,
+                        "TEST COURSE",
+                        "PREREQUISITE",
+                        "NONE",
+                    ],
+                    source_context("DSBA", 321),
+                )["courses"][0]
+
+                self.assertEqual(course["credits"], expected)
+
+    def test_description_credit_joins_adjacent_complete_fragments(self):
+        course = CurriculumExtractor(program="DSBA", plan="coop").extract_descriptions(
+            [
+                "คำอธิบายรายวิชา",
+                "06000023",
+                "ชื่อวิชา",
+                "3(3-0-",
+                "6)",
+                "TEST COURSE",
+                "PREREQUISITE",
+                "NONE",
+            ],
+            source_context("DSBA", 322),
+        )["courses"][0]
+
+        self.assertEqual(course["credits"], "3(3-0-6)")
+        self.assertEqual(course["name_th"], "ชื่อวิชา")
+
+    def test_description_credit_does_not_infer_incomplete_tuple_or_title_suffix(self):
+        course = CurriculumExtractor(program="BIT", plan="no_coop").extract_descriptions(
+            [
+                "คำอธิบายรายวิชา",
+                "06000024",
+                "ปฏิบัติการพิเศษทางธุรกิจ",
+                "2",
+                "3(2-2",
+                "SPECIAL WORKSHOP IN BUSINESS",
+                "2",
+                "PREREQUISITE",
+                "NONE",
+            ],
+            source_context("BIT", 252),
+        )["courses"][0]
+
+        self.assertEqual(course["credits"], "")
+
+    def test_description_credit_preserves_full_parenthetical_and_wildcard_forms(self):
+        cases = (
+            ("3(3-0-6)", "3(3-0-6)"),
+            ("(0-2-1)", "(0-2-1)"),
+            ("3(x-x-x)", ""),
+        )
+        for credit, expected in cases:
+            with self.subTest(credit=credit):
+                course = CurriculumExtractor(program="DSBA", plan="coop").extract_descriptions(
+                    [
+                        "คำอธิบายรายวิชา",
+                        "06000025",
+                        "ชื่อวิชา",
+                        credit,
+                        "TEST COURSE",
+                        "PREREQUISITE",
+                        "NONE",
+                    ],
+                    source_context("DSBA", 323),
+                )["courses"][0]
+
+                self.assertEqual(course["credits"], expected)
+
     def test_stored_dsba_it_and_ait_pages_preserve_both_description_languages(self):
         cases = [
             ("DSBA", "coop", "dsba_page_317_ocr.json", "06026200"),

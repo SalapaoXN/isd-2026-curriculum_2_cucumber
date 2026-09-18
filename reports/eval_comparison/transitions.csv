@@ -1,0 +1,15 @@
+field,comparison_mode,correct_to_correct,wrong_to_correct,correct_to_wrong,wrong_to_wrong
+code,normalized,839,0,0,0
+code,strict,833,0,0,6
+name_th,normalized,611,160,0,68
+name_th,strict,606,160,0,73
+name_en,normalized,325,438,0,76
+name_en,strict,318,405,0,116
+credits,normalized,832,0,0,7
+credits,strict,832,0,0,7
+year,normalized,566,0,0,7
+year,strict,566,0,0,7
+semester,normalized,572,0,0,1
+semester,strict,572,0,0,1
+prerequisite,normalized,837,0,0,2
+prerequisite,strict,835,0,0,4

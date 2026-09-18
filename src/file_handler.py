@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import Any, List, Sequence
 
-from .page_metadata import document_page_from_lines
+from .page_metadata import document_page_from_lines, parse_document_page
 
 
 def save_ocr_results(
@@ -26,11 +26,16 @@ def save_ocr_results(
     print(f" Text output saved to: {txt_file}")
 
     # 2. Save Structured JSON File
+    if document_page is None:
+        document_page = document_page_from_lines(text_lines)
+    else:
+        document_page = parse_document_page(document_page)
+
     json_data = {
         "filename": base_name,
         "line_count": len(text_lines),
         "text_lines": text_lines,
-        "document_page": document_page_from_lines(text_lines),
+        "document_page": document_page,
     }
     if source_filename is not None:
         json_data["source_filename"] = Path(source_filename).name

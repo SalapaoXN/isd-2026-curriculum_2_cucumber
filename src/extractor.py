@@ -23,6 +23,7 @@ from .page_metadata import (
     document_page_candidates_from_lines,
     document_page_from_lines,
     parse_document_page,
+    resolve_document_page,
 )
 from .pre_clean import pre_clean_with_regex
 
@@ -35,8 +36,63 @@ SOURCE_PROVENANCE_FIELDS = (
     "document_category",
 )
 PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
-GENED_DESCRIPTION_SOURCE_PAGE_MIN = 44
-GENED_DESCRIPTION_SOURCE_PAGE_MAX = 117
+
+# Source-backed repairs for OCR omissions.  Matching is exact and intentionally
+# separate from the parser's suffix heuristics.
+SOURCE_BACKED_TITLE_REPAIRS = {
+    ("GENED", 24, "90643001", "name_th"): {
+        "before": "ปฏิบัติงานตามทักษะด้านการจัดการ",
+        "after": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
+    },
+    ("GENED", 89, "90643001", "name_th"): {
+        "before": "ปฏิบัติงานตามทักษะด้านการจัดการ",
+        "after": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
+    },
+    ("GENED", 19, "90642065", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "รักบี้ฟุตบอล",
+    },
+    ("GENED", 63, "90642065", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "รักบี้ฟุตบอล",
+    },
+    ("GENED", 24, "90642152", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "ปันสุข",
+    },
+    ("GENED", 86, "90642152", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "ปันสุข",
+    },
+    ("GENED", 29, "90644044", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "พูดได้ พูดดี พูดเป็น",
+    },
+    ("GENED", 111, "90644044", "name_th"): {
+        "before": "ไม่ระบุ",
+        "after": "พูดได้ พูดดี พูดเป็น",
+    },
+    ("GENED", 26, "90643037", "name_en"): {
+        "before": "N/A",
+        "after": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+    },
+    ("GENED", 99, "90643037", "name_en"): {
+        "before": "N/A",
+        "after": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+    },
+    ("AIT", 23, "90641004", "name_en"): {
+        "before": "TEAM PR0ECT 1",
+        "after": "TEAM-PROJECT 1",
+    },
+    ("AIT", 24, "90641005", "name_en"): {
+        "before": "TEAM PR0JECT 2",
+        "after": "TEAM-PROJECT 2",
+    },
+    ("AIT", 25, "90641006", "name_en"): {
+        "before": "TEAM PROECT 3",
+        "after": "TEAM-PROJECT 3",
+    },
+}
 DEFAULT_COOP_PAIRS = (
     ("06026259", "06026260", "6(0-35-0)"),
     ("06046443", "06046444", "6(0-45-0)"),
@@ -247,6 +303,10 @@ class CurriculumExtractor:
         re.IGNORECASE,
     )
     SINGLE_CREDIT_RE = re.compile(CREDIT_GROUP_RE)
+    # A description OCR row can expose the credit prefix without the final
+    # tuple component (e.g. ``3(2-2``).  This is only a structural lookahead
+    # for suffix attachment; it is not treated as a parsed credit value.
+    PARTIAL_CREDIT_PREFIX_RE = re.compile(r"\d+\(\d+-\d+$")
     PAREN_ONLY_CREDIT_RE = re.compile(
         r"^\s*\([0-9xX]+[ -][0-9xX]+[ -][0-9xX]+\)\s*$"
     )
@@ -306,6 +366,33 @@ class CurriculumExtractor:
             or cls.PREREQ_KEYWORD_RE.search(next_line)
             or cls.DESCRIPTION_CODE_LINE_RE.fullmatch(next_line)
         )
+
+    @classmethod
+    def _reconcile_bilingual_terminal_suffix(
+        cls, course: Dict, program: Optional[str] = None
+    ) -> Dict:
+        """Copy a clearly parsed terminal numeric suffix to the other name."""
+        if program == "GENED":
+            return course
+
+        def terminal_suffix(value: object) -> Optional[str]:
+            if not isinstance(value, str):
+                return None
+            match = re.search(r"(?:^|\s)([1-9])$", value)
+            return match.group(1) if match else None
+
+        name_th = course.get("name_th")
+        name_en = course.get("name_en")
+        suffix_th = terminal_suffix(name_th)
+        suffix_en = terminal_suffix(name_en)
+
+        if suffix_th and suffix_en:
+            return course
+        if suffix_th and isinstance(name_en, str) and name_en:
+            course["name_en"] = f"{name_en} {suffix_th}"
+        elif suffix_en and isinstance(name_th, str) and name_th:
+            course["name_th"] = f"{name_th} {suffix_en}"
+        return course
 
     # Year / semester headers, with or without the number on the same line.
     YEAR_HEADER_RE = re.compile(r"(?:ชั้น)?[ปขชบ]ี\s*ที่?")                    # "ปีที่"
@@ -408,24 +495,14 @@ class CurriculumExtractor:
         if not isinstance(program, str) or not program.strip():
             program = self.program if isinstance(self.program, str) and self.program.strip() else None
 
-        document_page = parse_document_page(metadata.get("document_page"))
-        ocr_candidates = set()
-        if document_page is None:
-            document_page = document_page_from_lines(text_lines)
-            if document_page is None:
-                ocr_candidates = document_page_candidates_from_lines(text_lines)
-
-        if (
-            document_page is None
-            and not ocr_candidates
-            and isinstance(source_page, int)
-            and str(program).strip().upper() == "GENED"
-            and document_category == "description"
-            and GENED_DESCRIPTION_SOURCE_PAGE_MIN
-            <= source_page
-            <= GENED_DESCRIPTION_SOURCE_PAGE_MAX
-        ):
-            document_page = source_page - 4
+        document_page = resolve_document_page(
+            program,
+            source_page,
+            source_filename,
+            text_lines,
+            explicit_document_page=metadata.get("document_page"),
+            allow_bounded_rule=document_category == "description",
+        ).document_page
 
         return {
             "program": program,
@@ -442,6 +519,31 @@ class CurriculumExtractor:
         result = dict(course)
         result[SOURCE_PROVENANCE_KEY] = [dict(source_context)]
         return result
+
+    @classmethod
+    def _apply_source_backed_title_repairs(cls, course: Dict) -> Dict:
+        """Apply only exact source-identity and before-value title repairs."""
+        code = course.get("code")
+        provenance = course.get(SOURCE_PROVENANCE_KEY)
+        if not isinstance(code, str) or not isinstance(provenance, list):
+            return course
+
+        for source in provenance:
+            if not isinstance(source, dict):
+                continue
+            source_identity = (
+                source.get("program"),
+                source.get("source_page"),
+                code,
+            )
+            for (program, source_page, repair_code, field), repair in (
+                SOURCE_BACKED_TITLE_REPAIRS.items()
+            ):
+                if source_identity != (program, source_page, repair_code):
+                    continue
+                if course.get(field) == repair["before"]:
+                    course[field] = repair["after"]
+        return course
 
     def _gened_audit_course_codes(self, lines: List[str]) -> List[str]:
         if self.program != "GENED":
@@ -491,6 +593,8 @@ class CurriculumExtractor:
         blocks: List[CourseBlock] = []
         current: Optional[CourseBlock] = None
         pending_bit_name_lines: List[str] = []
+        pending_bit_name_suffix: Optional[str] = None
+        pending_bit_suffix_conflict = False
 
         idx = 0
         n = len(lines)
@@ -525,6 +629,8 @@ class CurriculumExtractor:
             # 1) Year / semester header -> a new term starts, close any open block.
             if self.META_LINE_RE.match(line):
                 pending_bit_name_lines.clear()
+                pending_bit_name_suffix = None
+                pending_bit_suffix_conflict = False
                 current = None
                 idx += self._apply_meta_context(line, lines, idx)
                 continue
@@ -551,15 +657,22 @@ class CurriculumExtractor:
                     type=self._ctx_type,
                 )
                 if self.program == "BIT" and pending_bit_name_lines:
-                    current.lines.append(
-                        "".join(
-                            part[1:]
-                            if index and pending_bit_name_lines[index - 1][-1:] == part[:1]
-                            else part
-                            for index, part in enumerate(pending_bit_name_lines)
-                        )
+                    pending_title = "".join(
+                        part[1:]
+                        if index and pending_bit_name_lines[index - 1][-1:] == part[:1]
+                        else part
+                        for index, part in enumerate(pending_bit_name_lines)
                     )
+                    if pending_bit_name_suffix and not pending_bit_suffix_conflict:
+                        existing_suffix = re.search(r"(?:^|\s)([1-9])$", pending_title)
+                        if existing_suffix is None:
+                            pending_title = f"{pending_title} {pending_bit_name_suffix}"
+                        elif existing_suffix.group(1) != pending_bit_name_suffix:
+                            pending_bit_suffix_conflict = True
+                    current.lines.append(pending_title)
                     pending_bit_name_lines.clear()
+                    pending_bit_name_suffix = None
+                    pending_bit_suffix_conflict = False
                 # The name / credits may share the code's line (rare) -> keep the tail.
                 if remainder:
                     current.lines.append(remainder)
@@ -570,6 +683,8 @@ class CurriculumExtractor:
             # 3) Table / total / page-number noise -> close any open block.
             if self._is_noise_line(line):
                 pending_bit_name_lines.clear()
+                pending_bit_name_suffix = None
+                pending_bit_suffix_conflict = False
                 current = None
                 idx += 1
                 continue
@@ -581,6 +696,8 @@ class CurriculumExtractor:
             )
             if (is_category_header or is_it_section_header) and not self.CREDITS_RE.search(line):
                 pending_bit_name_lines.clear()
+                pending_bit_name_suffix = None
+                pending_bit_suffix_conflict = False
                 self._ctx_category = line
                 self._ctx_type = "เลือก" if "เลือก" in line else "บังคับ"
                 current = None
@@ -599,10 +716,40 @@ class CurriculumExtractor:
                     idx > 0 and lines[idx - 1].strip().startswith("(บรรยาย")
                 )
             ):
+                pending_bit_name_suffix = None
                 pending_bit_name_lines.append(line)
                 current = None
                 idx += 1
                 continue
+
+            # Some BIT plan rows place a numeric title suffix between the
+            # pending Thai title and its following course-code line.  Retain
+            # only this exact code-adjacent structural token; it is consumed
+            # when the next valid course block is created.
+            if (
+                self.program == "BIT"
+                and current is None
+                and pending_bit_name_lines
+                and re.fullmatch(r"[1-9]", line)
+            ):
+                if (
+                    pending_bit_name_suffix is not None
+                    and pending_bit_name_suffix != line
+                ):
+                    pending_bit_suffix_conflict = True
+                    pending_bit_name_suffix = None
+                elif not pending_bit_suffix_conflict:
+                    pending_bit_name_suffix = line
+                idx += 1
+                continue
+
+            if (
+                self.program == "BIT"
+                and current is None
+                and pending_bit_name_lines
+                and pending_bit_name_suffix is not None
+            ):
+                pending_bit_name_suffix = None
 
             # IT plan OCR sometimes emits a section-heading continuation as a
             # Thai-only line after a complete course row. GenEd pages likewise
@@ -790,6 +937,24 @@ class CurriculumExtractor:
             if self.DESCRIPTION_START_RE.search(line):
                 break
 
+            if re.fullmatch(r"\d+", line.strip()):
+                next_line = self._next_nonempty_line(block.lines, line_index)
+                gened_title_suffix = (
+                    self.program == "GENED"
+                    and last_name_field == "name_th"
+                    and last_name_line_index == line_index - 1
+                    and re.fullmatch(r"[1-9]", line.strip()) is not None
+                )
+                if (
+                    next_line is not None
+                    and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
+                    and not gened_title_suffix
+                ):
+                    credit_unit = line.strip()
+                    credits = f"{credits} {credit_unit}".strip() if credits else credit_unit
+                    credits_seen = True
+                    continue
+
             suffix_value = self._standalone_course_suffix(line)
             if suffix_value is not None:
                 immediately_after_name = (
@@ -817,16 +982,6 @@ class CurriculumExtractor:
             ):
                 continue
 
-            if line.strip() == "0":
-                next_line = self._next_nonempty_line(block.lines, line_index)
-                if (
-                    not credits
-                    and next_line is not None
-                    and self.PAREN_ONLY_CREDIT_RE.fullmatch(next_line)
-                ):
-                    credits = "0"
-                    continue
-            
             # Credits and the "หรือ" keyword that joins alternative credit rows.
             if self.SINGLE_CREDIT_RE.search(line) or self.OR_KEYWORD_RE.search(line):
                 credit_piece = "หรือ" if "หรอ" in line else line
@@ -914,7 +1069,7 @@ class CurriculumExtractor:
             course["year"] = block.year
             course["semester"] = block.semester
 
-        return course
+        return self._reconcile_bilingual_terminal_suffix(course, self.program)
 
     # ------------------------------------------------------------------ #
     #  Step 3: post-process the whole course list                         #
@@ -976,10 +1131,11 @@ class CurriculumExtractor:
         )
         audit_course_codes = self._gened_audit_course_codes(lines)
         blocks = self.split_into_blocks(lines)
-        courses = [
-            self._attach_source_provenance(self.parse_single_block(block), source_context)
-            for block in blocks
-        ]
+        courses = []
+        for block in blocks:
+            course = self.parse_single_block(block)
+            course = self._attach_source_provenance(course, source_context)
+            courses.append(self._apply_source_backed_title_repairs(course))
         courses = self.post_process(courses)
 
         return {
@@ -1120,7 +1276,7 @@ class CurriculumExtractor:
         total = len(lines)
 
         code_regex = re.compile(r"\b\d{8}\b")
-        credit_regex = re.compile(r"\d+\s*[({]\d+-\d+-\d+[)}]")
+        credit_regex = re.compile(r"(?:\d+\s*)?[({]\d+-\d+-\d+[)}]")
         any_prereq_key_regex = re.compile(
             r"(?:วิชาบังคับก่อน|บังคับก่อน|ความรู้พื้นฐาน|PRERE\s*[A-Z]*|"
             r"PRERECUISITE|PRERECUSITE|PREREQUISITE)",
@@ -1162,7 +1318,7 @@ class CurriculumExtractor:
             saw_course = True
             name_th = ""
             name_en = ""
-            credits = "3(3-0-6)"
+            credits = ""
             credits_seen = False
 
             th_words = []
@@ -1198,6 +1354,25 @@ class CurriculumExtractor:
                     j += 1
                     continue
 
+                # Description OCR can preserve every numeric credit token while
+                # dropping only the closing delimiter or splitting the final
+                # token onto the immediately following line.  Normalize only
+                # these exact, unambiguous shapes; incomplete tuples remain
+                # unresolved rather than being guessed.
+                if re.fullmatch(r"\d+\(\d+-\d+-\d+", curr):
+                    credits = f"{curr})"
+                    credits_seen = True
+                    j += 1
+                    continue
+
+                if re.fullmatch(r"\d+\(\d+-\d+-", curr) and j + 1 < total:
+                    next_credit_fragment = lines[j + 1].strip()
+                    if re.fullmatch(r"\d+\)", next_credit_fragment):
+                        credits = f"{curr}{next_credit_fragment}"
+                        credits_seen = True
+                        j += 2
+                        continue
+
                 suffix_value = self._standalone_course_suffix(curr)
                 if suffix_value is not None:
                     is_numeric_suffix = re.fullmatch(r"[1-9]", curr) is not None
@@ -1206,7 +1381,11 @@ class CurriculumExtractor:
                     )
                     next_line = self._next_nonempty_line(lines, j)
                     next_is_credit = bool(
-                        next_line and self.SINGLE_CREDIT_RE.search(next_line)
+                        next_line
+                        and (
+                            self.SINGLE_CREDIT_RE.search(next_line)
+                            or self.PARTIAL_CREDIT_PREFIX_RE.fullmatch(next_line)
+                        )
                     )
                     if en_words and credits_seen and (
                         (is_numeric_suffix and (next_line is None or strong_position or
@@ -1389,7 +1568,11 @@ class CurriculumExtractor:
                 course["semester"] = 0
             
             self._append_description_lines(course, desc_lines)
-            courses.append(self._attach_source_provenance(course, source_context))
+            course = self._attach_source_provenance(course, source_context)
+            course = self._apply_source_backed_title_repairs(course)
+            courses.append(
+                self._reconcile_bilingual_terminal_suffix(course, self.program)
+            )
             i = j
 
         return courses, leading_lines

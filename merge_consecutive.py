@@ -17,6 +17,84 @@ from src.extractor import (
 from src.pre_clean import pre_clean_with_regex
 from src.pipeline_config import plan_label
 
+
+_COMPLETE_CREDIT_RE = re.compile(r"^\d+\([0-9]+-[0-9]+-[0-9]+\)$")
+_PARENTHETICAL_CREDIT_RE = re.compile(r"^\([0-9]+-[0-9]+-[0-9]+\)$")
+
+
+def _ordinary_credit_rank(value: object) -> int | None:
+    if not isinstance(value, str):
+        return None
+    compact = value.replace(" ", "").strip()
+    if not compact:
+        return 0
+    if _COMPLETE_CREDIT_RE.fullmatch(compact):
+        return 2
+    if _PARENTHETICAL_CREDIT_RE.fullmatch(compact):
+        return 1
+    return None
+
+
+def _source_course_identity(course: dict) -> set[tuple]:
+    return {
+        (
+            entry.get("program"),
+            entry.get("source_filename"),
+            entry.get("source_page"),
+            entry.get("document_category"),
+        )
+        for entry in course.get("source_provenance", [])
+        if isinstance(entry, dict)
+    }
+
+
+def _preserve_authoritative_extracted_credit(
+    merge_time_record: dict,
+    extracted_records: list[dict],
+) -> dict:
+    """Keep a stronger persisted Extracted credit for the same source record."""
+    raw_identity = _source_course_identity(merge_time_record)
+    if not raw_identity:
+        return merge_time_record
+
+    matches = [
+        record
+        for record in extracted_records
+        if record.get("code") == merge_time_record.get("code")
+        and raw_identity.intersection(_source_course_identity(record))
+    ]
+    if not matches:
+        return merge_time_record
+
+    authoritative_values = {
+        record.get("credits")
+        for record in matches
+        if _ordinary_credit_rank(record.get("credits")) == 2
+    }
+    if len(authoritative_values) > 1:
+        raise ValueError(
+            "Conflicting complete Extracted credits for "
+            f"{merge_time_record.get('code')}"
+        )
+    if not authoritative_values:
+        return merge_time_record
+
+    authoritative_credit = next(iter(authoritative_values))
+    merge_rank = _ordinary_credit_rank(merge_time_record.get("credits"))
+    if merge_rank is not None and merge_rank < 2:
+        preserved = dict(merge_time_record)
+        preserved["credits"] = authoritative_credit
+        return preserved
+    if merge_rank == 2 and authoritative_credit.replace(" ", "") != str(
+        merge_time_record.get("credits")
+    ).replace(" ", ""):
+        raise ValueError(
+            "Conflicting complete merge credits for "
+            f"{merge_time_record.get('code')}"
+        )
+    return merge_time_record
+
+
 def _recover_credit_from_matching_description(
     plan_credit: object,
     desc_credit: object,
@@ -52,6 +130,29 @@ def _recover_credit_from_matching_description(
         return None
 
     return desc_credit
+
+
+def _preserve_exact_description_terminal_suffix(
+    plan_title: object,
+    description_title: object,
+) -> object:
+    """Preserve a description's exact terminal suffix when the plan omits it."""
+    if not isinstance(plan_title, str) or not plan_title:
+        return plan_title
+    if not isinstance(description_title, str) or not description_title:
+        return plan_title
+    if any(plan_title.endswith(f" {suffix}") for suffix in "123456789"):
+        return plan_title
+
+    suffix = description_title[-1]
+    if suffix not in "123456789" or not description_title.endswith(f" {suffix}"):
+        return plan_title
+
+    description_base = description_title[:-2]
+    if description_base == plan_title:
+        return description_title
+    return plan_title
+
 
 def _apply_gened_audit_credit(course: dict, audit_codes: set[str]) -> dict:
     code = course.get("code")
@@ -332,7 +433,21 @@ def _load_ordered_description_courses(
                     break
         pages.append((normalized_lines, source_context))
 
-    return extractor.extract_descriptions_from_pages(pages).get("courses", [])
+    reparsed_courses = extractor.extract_descriptions_from_pages(pages).get("courses", [])
+    persisted_courses = [
+        course
+        for _, _, page_data in page_records
+        for course in page_data.get("courses", [])
+        if any(
+            isinstance(entry, dict)
+            and entry.get("document_category") == "description"
+            for entry in course.get("source_provenance", [])
+        )
+    ]
+    return [
+        _preserve_authoritative_extracted_credit(course, persisted_courses)
+        for course in reparsed_courses
+    ]
 
 
 def dedupe_courses(courses: List[dict]) -> List[dict]:
@@ -414,6 +529,12 @@ class CurriculumConsolidator:
                     for field in ("prerequisite", "desc_th", "desc_en"):
                         if field in target_desc:
                             merged_course[field] = target_desc[field]
+
+                    for field in ("name_th", "name_en"):
+                        merged_course[field] = _preserve_exact_description_terminal_suffix(
+                            merged_course.get(field),
+                            target_desc.get(field),
+                        )
 
                     merged_course["source_provenance"] = merge_source_provenance(
                         course,

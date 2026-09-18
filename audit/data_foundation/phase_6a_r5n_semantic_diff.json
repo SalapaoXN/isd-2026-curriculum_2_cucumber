@@ -1,0 +1,274 @@
+{
+  "baseline": {
+    "relative_path": "audit/data_foundation/phase_6a_r5j_semantic_baseline.json",
+    "sha256": "57789ece0c67069ec0afe9ff96343356b1efa395345a1f360f8498a909205bca"
+  },
+  "correct_to_wrong": [],
+  "current": {
+    "relative_path": "audit/data_foundation/phase_6a_r5n_semantic_baseline.json",
+    "sha256": "e2a6a8a0deb6c03f51c091d47e6aca9d84cde429ccf14801a50157a161544b40"
+  },
+  "identity_count": 839,
+  "llm_hash_invariant": {
+    "mismatches": [],
+    "unchanged": true
+  },
+  "metric_after": {
+    "code": {
+      "denominator": 839,
+      "normalized_accuracy": 1.0,
+      "normalized_correct": 839,
+      "normalized_incorrect": 0,
+      "strict_accuracy": 0.992849,
+      "strict_correct": 833,
+      "strict_incorrect": 6
+    },
+    "credits": {
+      "denominator": 839,
+      "normalized_accuracy": 0.991657,
+      "normalized_correct": 832,
+      "normalized_incorrect": 7,
+      "strict_accuracy": 0.991657,
+      "strict_correct": 832,
+      "strict_incorrect": 7
+    },
+    "name_en": {
+      "denominator": 839,
+      "normalized_accuracy": 0.381406,
+      "normalized_correct": 320,
+      "normalized_incorrect": 519,
+      "strict_accuracy": 0.373063,
+      "strict_correct": 313,
+      "strict_incorrect": 526
+    },
+    "name_th": {
+      "denominator": 839,
+      "normalized_accuracy": 0.725864,
+      "normalized_correct": 609,
+      "normalized_incorrect": 230,
+      "strict_accuracy": 0.719905,
+      "strict_correct": 604,
+      "strict_incorrect": 235
+    },
+    "prerequisite": {
+      "denominator": 839,
+      "normalized_accuracy": 0.997616,
+      "normalized_correct": 837,
+      "normalized_incorrect": 2,
+      "strict_accuracy": 0.995232,
+      "strict_correct": 835,
+      "strict_incorrect": 4
+    },
+    "semester": {
+      "denominator": 573,
+      "normalized_accuracy": 0.998255,
+      "normalized_correct": 572,
+      "normalized_incorrect": 1,
+      "strict_accuracy": 0.998255,
+      "strict_correct": 572,
+      "strict_incorrect": 1
+    },
+    "year": {
+      "denominator": 573,
+      "normalized_accuracy": 0.987784,
+      "normalized_correct": 566,
+      "normalized_incorrect": 7,
+      "strict_accuracy": 0.987784,
+      "strict_correct": 566,
+      "strict_incorrect": 7
+    }
+  },
+  "metric_before": {
+    "code": {
+      "denominator": 839,
+      "normalized_accuracy": 1.0,
+      "normalized_correct": 839,
+      "normalized_incorrect": 0,
+      "strict_accuracy": 0.992849,
+      "strict_correct": 833,
+      "strict_incorrect": 6
+    },
+    "credits": {
+      "denominator": 839,
+      "normalized_accuracy": 0.991657,
+      "normalized_correct": 832,
+      "normalized_incorrect": 7,
+      "strict_accuracy": 0.991657,
+      "strict_correct": 832,
+      "strict_incorrect": 7
+    },
+    "name_en": {
+      "denominator": 839,
+      "normalized_accuracy": 0.381406,
+      "normalized_correct": 320,
+      "normalized_incorrect": 519,
+      "strict_accuracy": 0.373063,
+      "strict_correct": 313,
+      "strict_incorrect": 526
+    },
+    "name_th": {
+      "denominator": 839,
+      "normalized_accuracy": 0.725864,
+      "normalized_correct": 609,
+      "normalized_incorrect": 230,
+      "strict_accuracy": 0.719905,
+      "strict_correct": 604,
+      "strict_incorrect": 235
+    },
+    "prerequisite": {
+      "denominator": 839,
+      "normalized_accuracy": 0.997616,
+      "normalized_correct": 837,
+      "normalized_incorrect": 2,
+      "strict_accuracy": 0.995232,
+      "strict_correct": 835,
+      "strict_incorrect": 4
+    },
+    "semester": {
+      "denominator": 573,
+      "normalized_accuracy": 0.998255,
+      "normalized_correct": 572,
+      "normalized_incorrect": 1,
+      "strict_accuracy": 0.998255,
+      "strict_correct": 572,
+      "strict_incorrect": 1
+    },
+    "year": {
+      "denominator": 573,
+      "normalized_accuracy": 0.987784,
+      "normalized_correct": 566,
+      "normalized_incorrect": 7,
+      "strict_accuracy": 0.987784,
+      "strict_correct": 566,
+      "strict_incorrect": 7
+    }
+  },
+  "population_after": {
+    "ambiguous_count": 0,
+    "extra_count": 2,
+    "extra_identities": [
+      "{\"code\": \"06016418\", \"occurrence\": 2, \"plan\": \"coop\", \"program\": \"IT\"}",
+      "{\"code\": \"06016418\", \"occurrence\": 2, \"plan\": \"no_coop\", \"program\": \"IT\"}"
+    ],
+    "gt_count": 839,
+    "matched_count": 839,
+    "missing_count": 0,
+    "output_count": 841
+  },
+  "population_before": {
+    "ambiguous_count": 0,
+    "extra_count": 2,
+    "extra_identities": [
+      "{\"code\": \"06016418\", \"occurrence\": 2, \"plan\": \"coop\", \"program\": \"IT\"}",
+      "{\"code\": \"06016418\", \"occurrence\": 2, \"plan\": \"no_coop\", \"program\": \"IT\"}"
+    ],
+    "gt_count": 839,
+    "matched_count": 839,
+    "missing_count": 0,
+    "output_count": 841
+  },
+  "raw_changed_match_state_same": [
+    {
+      "baseline_raw": "PROJECT IV BUSINESS INFORMATION TECHNOLOCY",
+      "code_expression": "06036145",
+      "current_raw": "PROJECT IV BUSINESS INFORMATION TECHNOLOCY 1",
+      "field": "name_en",
+      "normalized_match_state": "W",
+      "occurrence": 1,
+      "plan": "no_coop",
+      "program": "BIT",
+      "strict_match_state": "W"
+    }
+  ],
+  "schema_version": "phase_6a_r5n_diff.v1",
+  "suffix_after": {
+    "RAW_OCR_MISSING_SUFFIX": 10,
+    "SOURCE_OR_GT_VARIANT": 2,
+    "terminal_suffix_mismatch_count": 12,
+    "unresolved_production_defect": null
+  },
+  "suffix_before": {
+    "RAW_OCR_MISSING_SUFFIX": 10,
+    "SOURCE_OR_GT_VARIANT": 2,
+    "terminal_suffix_mismatch_count": 13,
+    "unresolved_production_defect": {
+      "code": "06036145",
+      "count": 1,
+      "field": "name_en",
+      "plan": "no_coop",
+      "program": "BIT"
+    }
+  },
+  "transitions": {
+    "code": {
+      "normalized": {
+        "C_TO_C": 839
+      },
+      "strict": {
+        "C_TO_C": 833,
+        "W_TO_W": 6
+      }
+    },
+    "credits": {
+      "normalized": {
+        "C_TO_C": 832,
+        "W_TO_W": 7
+      },
+      "strict": {
+        "C_TO_C": 832,
+        "W_TO_W": 7
+      }
+    },
+    "name_en": {
+      "normalized": {
+        "C_TO_C": 320,
+        "W_TO_W": 519
+      },
+      "strict": {
+        "C_TO_C": 313,
+        "W_TO_W": 526
+      }
+    },
+    "name_th": {
+      "normalized": {
+        "C_TO_C": 609,
+        "W_TO_W": 230
+      },
+      "strict": {
+        "C_TO_C": 604,
+        "W_TO_W": 235
+      }
+    },
+    "prerequisite": {
+      "normalized": {
+        "C_TO_C": 837,
+        "W_TO_W": 2
+      },
+      "strict": {
+        "C_TO_C": 835,
+        "W_TO_W": 4
+      }
+    },
+    "semester": {
+      "normalized": {
+        "C_TO_C": 572,
+        "W_TO_W": 1
+      },
+      "strict": {
+        "C_TO_C": 572,
+        "W_TO_W": 1
+      }
+    },
+    "year": {
+      "normalized": {
+        "C_TO_C": 566,
+        "W_TO_W": 7
+      },
+      "strict": {
+        "C_TO_C": 566,
+        "W_TO_W": 7
+      }
+    }
+  },
+  "wrong_to_correct": []
+}
