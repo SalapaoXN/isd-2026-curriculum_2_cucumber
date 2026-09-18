@@ -15,12 +15,14 @@ from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.structured.fallback import (
     GroundedCourseListResult,
+    GroundedPlacementResult,
     StructuredFallbackResult,
 )
 from rag.qa import (
     _classify_structured_parse_completeness,
     _compose_evidence_claims,
     _course_set_aggregate,
+    _fallback_scope,
     ask,
 )
 from rag.query_spec import parse_query_spec
@@ -768,6 +770,24 @@ class RagQaTest(unittest.TestCase):
             "provenance": ({"provenance_id": 301, "source_page": 2},),
         }
 
+    @staticmethod
+    def fallback_placement_record():
+        return {
+            "program": "DSBA",
+            "plan_key": "no_coop",
+            "year_number": 2,
+            "semester_number": 1,
+            "course_id": 212,
+            "course_code": "06026212",
+            "name_th": "COURSE TH",
+            "name_en": "CANONICAL PLACEMENT NAME",
+            "credits": "3(3-0-6)",
+            "placement_id": 401,
+            "provenance": ({"provenance_id": 501, "source_page": 7},),
+            "is_alternative": False,
+            "alternative_group_id": None,
+        }
+
     def _patch_list_fallback(self, *, status="complete"):
         sql_result = StructuredFallbackResult(
             status="success",
@@ -853,6 +873,190 @@ class RagQaTest(unittest.TestCase):
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
         fallback.assert_not_called()
+
+    def test_complete_placement_stays_on_deterministic_path_without_model_call(self):
+        model = lambda prompt: self.fail("complete placement must not call SQL model")
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "DSBA วิชา 06026212 เรียนปีไหน เทอมไหน",
+                structured_model_callable=model,
+            )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertTrue(
+            any(claim.operation == "placement" for claim in result["result"].claims)
+        )
+        fallback.assert_not_called()
+
+    def test_unrecognized_placement_uses_one_fallback_and_canonical_claim(self):
+        structured_calls = []
+        answer_calls = []
+        grounded_result = GroundedPlacementResult(
+            status="complete",
+            records=(self.fallback_placement_record(),),
+        )
+
+        def structured_model(prompt):
+            structured_calls.append(prompt)
+            return "SELECT 401 AS placement_id"
+
+        def forbidden_answer_model(prompt):
+            answer_calls.append(prompt)
+            self.fail("SQL placement fallback must not invoke answer polishing")
+
+        with patch(
+            "rag.qa.ground_placement", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("placement fallback must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                structured_model_callable=structured_model,
+                answer_model_callable=forbidden_answer_model,
+            )
+
+        self.assertEqual(len(structured_calls), 1)
+        ground.assert_called_once()
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(result["result"].claims[0].operation, "placement")
+        self.assertEqual(result["result"].claims[0].status, "complete")
+        self.assertEqual(
+            result["result"].claims[0].evidence[0]["year_number"],
+            2,
+        )
+        self.assertIn("06026212", result["result"].final_answer)
+        self.assertEqual(answer_calls, [])
+        self.assertEqual(ground.call_args.args[2].program, "DSBA")
+        self.assertEqual(ground.call_args.args[2].course_codes, ("06026212",))
+
+    def test_unconstrained_placement_scope_preserves_code_across_catalogs(self):
+        question = "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง"
+        spec = parse_query_spec(question)
+        resolution = resolve_query_spec(spec, DB_PATH)
+        completeness = _classify_structured_parse_completeness(
+            spec, resolution
+        )
+        scope = _fallback_scope(
+            completeness,
+            resolution,
+            placement_code_identity=True,
+        )
+
+        self.assertIsNotNone(scope)
+        self.assertEqual(scope.program, "DSBA")
+        self.assertEqual(scope.plans, ())
+        self.assertEqual(scope.course_ids, ())
+        self.assertEqual(scope.course_codes, ("06026212",))
+
+        model_calls = []
+
+        def structured_model(prompt):
+            model_calls.append(prompt)
+            return (
+                "SELECT DISTINCT p.placement_id AS placement_id "
+                "FROM v_plan_courses AS p "
+                "WHERE p.course_code = '06026212'"
+            )
+
+        result = ask(
+            DB_PATH,
+            question,
+            structured_model_callable=structured_model,
+        )["result"]
+        claim = result.claims[0]
+
+        self.assertEqual(len(model_calls), 1)
+        self.assertEqual(claim.status, "complete")
+        self.assertEqual(
+            [(record["placement_id"], record["plan_key"]) for record in claim.evidence],
+            [(211, "coop"), (300, "no_coop")],
+        )
+
+    def test_explicit_placement_plan_keeps_only_that_plan(self):
+        cases = (
+            ("DSBA แบบสหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", 211, "coop"),
+            ("DSBA แบบไม่สหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", 300, "no_coop"),
+        )
+        for question, placement_id, plan_key in cases:
+            with self.subTest(question=question):
+                result = ask(
+                    DB_PATH,
+                    question,
+                    structured_model_callable=lambda prompt, placement_id=placement_id: (
+                        f"SELECT {placement_id} AS placement_id"
+                    ),
+                )["result"]
+                claim = result.claims[0]
+
+                self.assertEqual(claim.status, "complete")
+                self.assertEqual(
+                    [(record["placement_id"], record["plan_key"]) for record in claim.evidence],
+                    [(placement_id, plan_key)],
+                )
+
+    def test_placement_fallback_rejects_selector_from_another_program(self):
+        result = ask(
+            DB_PATH,
+            "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+            structured_model_callable=lambda prompt: (
+                "SELECT DISTINCT p.placement_id AS placement_id "
+                "FROM v_plan_courses AS p WHERE p.program = 'IT'"
+            ),
+        )["result"]
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.claims[0].status, "insufficient_evidence")
+
+    def test_placement_fallback_failure_returns_insufficient_evidence(self):
+        fallback_result = StructuredFallbackResult(
+            status="error",
+            error_category="relation_guard",
+            error="disallowed relation",
+        )
+        failed = GroundedPlacementResult(status="insufficient_evidence")
+        with patch(
+            "rag.qa.run_structured_fallback", return_value=fallback_result
+        ) as fallback, patch(
+            "rag.qa.ground_placement", return_value=failed
+        ), patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("placement fallback failure must not plan"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].claims[0].status, "insufficient_evidence")
+        fallback.assert_called_once()
+        self.assertEqual(fallback.call_args.kwargs["selector_mode"], "placement")
+
+    def test_placement_fallback_valid_empty_uses_existing_empty_status(self):
+        fallback_result = StructuredFallbackResult(
+            status="success",
+            sql="SELECT placement_id FROM v_plan_courses",
+            columns=("placement_id",),
+            rows=(),
+        )
+        empty = GroundedPlacementResult(status="valid_empty")
+        with patch(
+            "rag.qa.run_structured_fallback", return_value=fallback_result
+        ), patch(
+            "rag.qa.ground_placement", return_value=empty
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        self.assertEqual(result["result"].status, "valid_empty")
+        self.assertEqual(result["result"].claims[0].status, "valid_empty")
 
     def test_semantic_and_unsupported_queries_do_not_use_sql_fallback(self):
         model = lambda prompt: self.fail("non-list query must not call SQL model")

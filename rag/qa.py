@@ -45,8 +45,10 @@ from rag.answer import render_grounded_answer
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
 from rag.structured.fallback import (
     GroundedCourseListResult,
+    GroundedPlacementResult,
     StructuredFallbackScope,
     ground_course_list,
+    ground_placement,
     run_structured_fallback,
 )
 from rag.structured.queries import exact_course_candidates, prerequisite_state
@@ -71,6 +73,11 @@ _CREDIT_UNIT_FILTER_RESIDUE = re.compile(
 _LIST_FILTER_FALLBACK_CUE = re.compile(
     r"มีวิชา(?:[^?\n]{0,80})?(?:อะไร|ไหน)(?:บ้าง)?|"
     r"ลงเรียนวิชา[^?\n]{0,80}(?:อะไร|ไหน)(?:บ้าง)?",
+    re.IGNORECASE,
+)
+_PLACEMENT_FALLBACK_CUE = re.compile(
+    r"สามารถลงได้[^?\n]{0,50}(?:ช่วงไหน|ตอนไหน|ปีไหน|เทอมไหน)|"
+    r"(?:อยู่ช่วงไหน|เรียนตอนไหน|ลงตอนไหน|เรียนปีไหน|เทอมไหน)",
     re.IGNORECASE,
 )
 
@@ -150,7 +157,10 @@ def _classify_structured_parse_completeness(
         or common["course_codes"]
         or common["course_name"]
     )
-    if has_scope and _STRUCTURED_FALLBACK_CUE.search(question):
+    if has_scope and (
+        _STRUCTURED_FALLBACK_CUE.search(question)
+        or _PLACEMENT_FALLBACK_CUE.search(question)
+    ):
         return StructuredParseCompleteness(
             "unrecognized_structured",
             **common,
@@ -177,9 +187,29 @@ def _is_course_list_fallback_candidate(
     )
 
 
+def _is_placement_fallback_candidate(
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+) -> bool:
+    """Allow only bounded placement wording into the placement SQL seam."""
+    if completeness.missing_filters:
+        return False
+    operations = tuple(getattr(spec, "operations", ()))
+    if operations:
+        return operations == ("placement",)
+    return bool(
+        completeness.classification == "unrecognized_structured"
+        and _PLACEMENT_FALLBACK_CUE.search(
+            getattr(spec, "normalized_question", "")
+        )
+    )
+
+
 def _fallback_scope(
     completeness: StructuredParseCompleteness,
     resolution: ResolutionOutcome,
+    *,
+    placement_code_identity: bool = False,
 ) -> StructuredFallbackScope | None:
     """Build fallback scope only from deterministic parser/resolver state."""
     program = completeness.program or resolution.resolved_program
@@ -199,6 +229,13 @@ def _fallback_scope(
             if isinstance(candidate_code, str) and candidate_code.strip():
                 if candidate_code not in course_codes:
                     course_codes.append(candidate_code)
+
+    # A resolved course_id is catalog-local.  For placement fallback, an
+    # exact course-code reference remains authoritative across all applicable
+    # plan/catalog partitions unless no exact code was resolved.  Do not let
+    # one resolver candidate narrow an otherwise unconstrained placement set.
+    if placement_code_identity and course_codes:
+        course_ids = []
 
     try:
         return StructuredFallbackScope(
@@ -263,6 +300,42 @@ def _fallback_course_list_claim(
         value=aggregate.courses,
         evidence=aggregate,
         provenance=_provenance_from_records(aggregate.courses),
+    )
+
+
+def _fallback_placement_claim(
+    grounded: GroundedPlacementResult,
+    scope: StructuredFallbackScope,
+) -> GroundedClaim:
+    """Adapt canonical fallback placement records to the typed claim shape."""
+    effective_scope = StructuralScope(
+        program=scope.program,
+        plans=scope.plans,
+        years=scope.years,
+        semesters=scope.semesters,
+    )
+    if grounded.status == "insufficient_evidence":
+        return GroundedClaim(
+            claim_id="fallback_placement",
+            operation="placement",
+            effective_scope=effective_scope,
+            status="insufficient_evidence",
+        )
+    if grounded.status == "valid_empty":
+        return GroundedClaim(
+            claim_id="fallback_placement",
+            operation="placement",
+            effective_scope=effective_scope,
+            status="valid_empty",
+        )
+    return GroundedClaim(
+        claim_id="fallback_placement",
+        operation="placement",
+        effective_scope=effective_scope,
+        status="complete",
+        value=grounded.records,
+        evidence=grounded.records,
+        provenance=_provenance_from_records(grounded.records),
     )
 
 
@@ -1865,6 +1938,43 @@ def ask(
                 fallback_scope,
             )
             claim = _fallback_course_list_claim(grounded_list, fallback_scope)
+            grounded = compose_grounded_answer(composed_claims=(claim,))
+            return {
+                "route": None,
+                "result": render_grounded_answer(
+                    grounded,
+                    answer_model_callable=None,
+                    question=question,
+                ),
+            }
+
+    if (
+        completeness.classification in {"partial", "unrecognized_structured"}
+        and callable(structured_model_callable)
+        and _is_placement_fallback_candidate(spec, completeness)
+    ):
+        fallback_scope = _fallback_scope(
+            completeness,
+            resolution,
+            placement_code_identity=True,
+        )
+        if fallback_scope is not None:
+            fallback_result = run_structured_fallback(
+                db_path,
+                question,
+                fallback_scope,
+                structured_model_callable,
+                selector_mode="placement",
+            )
+            grounded_placement = ground_placement(
+                db_path,
+                fallback_result,
+                fallback_scope,
+            )
+            claim = _fallback_placement_claim(
+                grounded_placement,
+                fallback_scope,
+            )
             grounded = compose_grounded_answer(composed_claims=(claim,))
             return {
                 "route": None,
