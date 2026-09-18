@@ -18,10 +18,8 @@ prototype_outputs/*
 example/*
 work/*
 /work/
-/curriculum.db
 *.tmp
 *.log
-demo.db
 
 # Keep tracked placeholder folders
 !inputs/.gitkeep
