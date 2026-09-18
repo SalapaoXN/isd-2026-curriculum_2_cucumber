@@ -44,9 +44,11 @@ from rag.retrieval.retrieve import (
 from rag.answer import render_grounded_answer
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
 from rag.structured.fallback import (
+    GroundedCourseCreditResult,
     GroundedCourseListResult,
     GroundedPlacementResult,
     StructuredFallbackScope,
+    ground_course_credit,
     ground_course_list,
     ground_placement,
     run_structured_fallback,
@@ -78,6 +80,16 @@ _LIST_FILTER_FALLBACK_CUE = re.compile(
 _PLACEMENT_FALLBACK_CUE = re.compile(
     r"สามารถลงได้[^?\n]{0,50}(?:ช่วงไหน|ตอนไหน|ปีไหน|เทอมไหน)|"
     r"(?:อยู่ช่วงไหน|เรียนตอนไหน|ลงตอนไหน|เรียนปีไหน|เทอมไหน)",
+    re.IGNORECASE,
+)
+_COURSE_CREDIT_FALLBACK_CUE = re.compile(
+    r"กี่\s*หน่วย(?:กิต)?(?![ก-๙A-Za-z0-9_])|"
+    r"กี่\s*เครดิต(?![ก-๙A-Za-z0-9_])|"
+    r"(?<![A-Za-z0-9_])credits?(?![A-Za-z0-9_])",
+    re.IGNORECASE,
+)
+_COURSE_CREDIT_EXCLUDE_CUE = re.compile(
+    r"ลงทะเบียน|รวม|ทั้งหมด|ทุกวิชา|หมวด|วิชาบังคับ|วิชาเลือก|มีวิชา|กี่รายวิชา",
     re.IGNORECASE,
 )
 
@@ -160,6 +172,7 @@ def _classify_structured_parse_completeness(
     if has_scope and (
         _STRUCTURED_FALLBACK_CUE.search(question)
         or _PLACEMENT_FALLBACK_CUE.search(question)
+        or _COURSE_CREDIT_FALLBACK_CUE.search(question)
     ):
         return StructuredParseCompleteness(
             "unrecognized_structured",
@@ -203,6 +216,34 @@ def _is_placement_fallback_candidate(
             getattr(spec, "normalized_question", "")
         )
     )
+
+
+def _is_course_credit_fallback_candidate(
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+    resolution: ResolutionOutcome,
+) -> bool:
+    """Allow only one exact logical course into the credit SQL seam."""
+    if completeness.missing_filters or tuple(getattr(spec, "operations", ())):
+        return False
+
+    question = getattr(spec, "normalized_question", "")
+    if not _COURSE_CREDIT_FALLBACK_CUE.search(question):
+        return False
+    if _COURSE_CREDIT_EXCLUDE_CUE.search(question):
+        return False
+
+    course_codes: list[str] = []
+    for code in completeness.course_codes:
+        if isinstance(code, str) and code.strip() and code not in course_codes:
+            course_codes.append(code)
+    for reference in resolution.course_references:
+        for candidate in reference.candidates:
+            code = candidate.get("course_code")
+            if isinstance(code, str) and code.strip() and code not in course_codes:
+                course_codes.append(code)
+
+    return len(resolution.course_references) == 1 and len(course_codes) == 1
 
 
 def _fallback_scope(
@@ -336,6 +377,59 @@ def _fallback_placement_claim(
         value=grounded.records,
         evidence=grounded.records,
         provenance=_provenance_from_records(grounded.records),
+    )
+
+
+def _fallback_course_credit_claim(
+    grounded: GroundedCourseCreditResult,
+    scope: StructuredFallbackScope,
+) -> GroundedClaim:
+    """Adapt canonical fallback credit facts to the existing credit claim shape."""
+    effective_scope = StructuralScope(
+        program=scope.program,
+        plans=scope.plans,
+        years=scope.years,
+        semesters=scope.semesters,
+        course_targets=tuple(
+            {"course_code": course_code} for course_code in scope.course_codes
+        ),
+    )
+    if grounded.status == "insufficient_evidence":
+        return GroundedClaim(
+            claim_id="fallback_course_credit",
+            operation="sum_credits",
+            effective_scope=effective_scope,
+            status="insufficient_evidence",
+        )
+    if grounded.status == "valid_empty":
+        aggregate = ComponentAggregation(
+            operation="sum_credits",
+            status="valid_empty",
+            value=0,
+        )
+    else:
+        try:
+            aggregate = ComponentAggregation(
+                operation="sum_credits",
+                status="complete",
+                value=grounded.credit_units,
+                components=grounded.records,
+            )
+        except (TypeError, ValueError, OverflowError):
+            return GroundedClaim(
+                claim_id="fallback_course_credit",
+                operation="sum_credits",
+                effective_scope=effective_scope,
+                status="insufficient_evidence",
+            )
+    return GroundedClaim(
+        claim_id="fallback_course_credit",
+        operation="sum_credits",
+        effective_scope=effective_scope,
+        status=aggregate.status,
+        value=aggregate.value,
+        evidence=aggregate,
+        provenance=grounded.provenance,
     )
 
 
@@ -1973,6 +2067,43 @@ def ask(
             )
             claim = _fallback_placement_claim(
                 grounded_placement,
+                fallback_scope,
+            )
+            grounded = compose_grounded_answer(composed_claims=(claim,))
+            return {
+                "route": None,
+                "result": render_grounded_answer(
+                    grounded,
+                    answer_model_callable=None,
+                    question=question,
+                ),
+            }
+
+    if (
+        completeness.classification in {"partial", "unrecognized_structured"}
+        and callable(structured_model_callable)
+        and _is_course_credit_fallback_candidate(spec, completeness, resolution)
+    ):
+        fallback_scope = _fallback_scope(
+            completeness,
+            resolution,
+            placement_code_identity=True,
+        )
+        if fallback_scope is not None:
+            fallback_result = run_structured_fallback(
+                db_path,
+                question,
+                fallback_scope,
+                structured_model_callable,
+                selector_mode="course_credit",
+            )
+            grounded_credit = ground_course_credit(
+                db_path,
+                fallback_result,
+                fallback_scope,
+            )
+            claim = _fallback_course_credit_claim(
+                grounded_credit,
                 fallback_scope,
             )
             grounded = compose_grounded_answer(composed_claims=(claim,))

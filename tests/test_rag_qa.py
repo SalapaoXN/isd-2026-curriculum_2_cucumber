@@ -14,6 +14,7 @@ from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.structured.fallback import (
+    GroundedCourseCreditResult,
     GroundedCourseListResult,
     GroundedPlacementResult,
     StructuredFallbackResult,
@@ -861,6 +862,183 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(len(model_calls), 1)
         ground.assert_called_once()
         self.assertEqual(result["result"].status, "answer")
+
+    def test_colloquial_single_course_credit_uses_one_fallback(self):
+        model_calls = []
+        grounded_result = GroundedCourseCreditResult(
+            status="complete",
+            records=(
+                {
+                    "program": "DSBA",
+                    "course_id": 205,
+                    "course_code": "06026212",
+                    "credit_units": 3,
+                    "credits": "3(3-0-6)",
+                    "provenance": ({"source_page": 37},),
+                },
+            ),
+            credit_units=3,
+            credits="3(3-0-6)",
+            provenance=({"source_page": 37},),
+        )
+
+        def structured_model(prompt):
+            model_calls.append(prompt)
+            return "SELECT DISTINCT course_id AS course_id FROM courses"
+
+        with patch(
+            "rag.qa.ground_course_credit", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("credit fallback must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 กี่หน่วย",
+                structured_model_callable=structured_model,
+            )
+
+        self.assertEqual(len(model_calls), 1)
+        ground.assert_called_once()
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(result["result"].claims[0].operation, "sum_credits")
+        self.assertEqual(result["result"].claims[0].value, 3)
+        self.assertIn("3", result["result"].final_answer)
+
+    def test_complete_single_course_credit_stays_on_deterministic_path(self):
+        model = lambda prompt: self.fail("complete credit must not call SQL model")
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "DSBA วิชา 06026212 มีกี่หน่วยกิต",
+                structured_model_callable=model,
+            )
+
+        self.assertEqual(result["result"].status, "answer")
+        self.assertTrue(
+            any(
+                claim.operation == "sum_credits" and claim.value == 3
+                for claim in result["result"].claims
+            )
+        )
+        fallback.assert_not_called()
+
+    def test_course_credit_fallback_uses_canonical_credit_and_provenance(self):
+        model_calls = []
+
+        def structured_model(prompt):
+            model_calls.append(prompt)
+            return (
+                "SELECT DISTINCT p.course_id AS course_id "
+                "FROM v_plan_courses AS p "
+                "WHERE p.program = 'DSBA' AND p.course_code = '06026212'"
+            )
+
+        result = ask(
+            DB_PATH,
+            "DSBA 06026212 กี่หน่วย",
+            structured_model_callable=structured_model,
+        )["result"]
+
+        self.assertEqual(len(model_calls), 1)
+        self.assertEqual(result.status, "answer")
+        claim = result.claims[0]
+        self.assertEqual(claim.operation, "sum_credits")
+        self.assertEqual(claim.status, "complete")
+        self.assertEqual(claim.value, 3)
+        self.assertTrue(claim.provenance)
+        self.assertNotIn("SELECT", result.final_answer)
+
+    def test_course_credit_fallback_uses_exact_code_scope_and_no_polish(self):
+        fallback_result = StructuredFallbackResult(
+            status="success",
+            sql="SELECT DISTINCT course_id AS course_id FROM courses",
+            columns=("course_id",),
+            rows=((205,),),
+        )
+        grounded_result = GroundedCourseCreditResult(
+            status="complete",
+            records=(
+                {
+                    "program": "DSBA",
+                    "course_id": 205,
+                    "course_code": "06026212",
+                    "credit_units": 3,
+                    "credits": "3(3-0-6)",
+                    "provenance": ({"source_page": 37},),
+                },
+            ),
+            credit_units=3,
+            credits="3(3-0-6)",
+            provenance=({"source_page": 37},),
+        )
+
+        def forbidden_answer_model(prompt):
+            self.fail("course-credit fallback must not invoke answer polishing")
+
+        with patch(
+            "rag.qa.run_structured_fallback", return_value=fallback_result
+        ) as fallback, patch(
+            "rag.qa.ground_course_credit", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("credit fallback must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 กี่หน่วย",
+                structured_model_callable=lambda prompt: "unused",
+                answer_model_callable=forbidden_answer_model,
+            )
+
+        fallback.assert_called_once()
+        self.assertEqual(fallback.call_args.kwargs["selector_mode"], "course_credit")
+        scope = fallback.call_args.args[2]
+        self.assertEqual(scope.program, "DSBA")
+        self.assertEqual(scope.plans, ())
+        self.assertEqual(scope.course_ids, ())
+        self.assertEqual(scope.course_codes, ("06026212",))
+        ground.assert_called_once()
+        self.assertEqual(result["result"].claims[0].value, 3)
+
+    def test_semester_total_does_not_use_course_credit_fallback(self):
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต",
+                structured_model_callable=lambda prompt: self.fail(
+                    "semester totals must not use course-credit fallback"
+                ),
+            )
+
+        self.assertEqual(result["result"].status, "answer")
+        fallback.assert_not_called()
+
+    def test_course_credit_fallback_failure_fails_closed(self):
+        failed = GroundedCourseCreditResult(status="insufficient_evidence")
+        with patch(
+            "rag.qa.run_structured_fallback",
+            return_value=StructuredFallbackResult(
+                status="error",
+                error_category="relation_guard",
+                error="disallowed relation",
+            ),
+        ) as fallback, patch(
+            "rag.qa.ground_course_credit", return_value=failed
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("credit fallback failure must not plan"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 กี่หน่วย",
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].claims[0].status, "insufficient_evidence")
+        fallback.assert_called_once()
+        ground.assert_called_once()
 
     def test_complete_list_stays_on_deterministic_path_without_model_call(self):
         model = lambda prompt: self.fail("complete query must not call SQL model")
