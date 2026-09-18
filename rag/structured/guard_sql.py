@@ -158,18 +158,7 @@ def _validate_statement(tokens: list[_Token]) -> None:
         raise ValueError("only SELECT and WITH queries are allowed")
 
     if first_word == "WITH":
-        main_statement = next(
-            (
-                token.value.upper()
-                for token in tokens[1:]
-                if token.kind == "word"
-                and token.depth == 0
-                and token.value.upper() in _STATEMENT_WORDS
-            ),
-            None,
-        )
-        if main_statement != "SELECT":
-            raise ValueError("WITH must contain a SELECT statement")
+        _validate_with_structure(tokens)
 
 
 _RELATION_TERMINATORS: Final = frozenset(
@@ -196,6 +185,81 @@ def _normalized_tokens(tokens: list[_Token]) -> list[_Token]:
         return []
     base_depth = tokens[0].depth
     return [replace(token, depth=token.depth - base_depth) for token in tokens]
+
+
+def _validate_cte_column_list(
+    tokens: list[_Token], opening_index: int, closing_index: int
+) -> None:
+    expected_name = True
+    expected_depth = tokens[opening_index].depth + 1
+    for token in tokens[opening_index + 1 : closing_index]:
+        if expected_name:
+            if token.kind != "word" or token.depth != expected_depth:
+                raise ValueError("malformed CTE column list")
+            expected_name = False
+        else:
+            if token.value != "," or token.depth != expected_depth:
+                raise ValueError("malformed CTE column list")
+            expected_name = True
+    if expected_name:
+        raise ValueError("malformed CTE column list")
+
+
+def _validate_with_structure(tokens: list[_Token]) -> None:
+    """Validate the supported WITH/CTE grammar before relation extraction."""
+    if not tokens or tokens[0].value.upper() != "WITH":
+        raise ValueError("WITH must contain a valid CTE list")
+
+    index = 1
+    if (
+        index < len(tokens)
+        and tokens[index].kind == "word"
+        and tokens[index].value.upper() == "RECURSIVE"
+    ):
+        index += 1
+
+    while True:
+        if index >= len(tokens) or tokens[index].kind != "word":
+            raise ValueError("WITH must contain a valid CTE name")
+        cte_name_depth = tokens[index].depth
+        if cte_name_depth != 0:
+            raise ValueError("WITH CTE name must be top-level")
+        index += 1
+
+        if index < len(tokens) and tokens[index].value == "(":
+            column_list_end = _matching_parenthesis(tokens, index)
+            _validate_cte_column_list(tokens, index, column_list_end)
+            index = column_list_end + 1
+
+        if (
+            index >= len(tokens)
+            or tokens[index].kind != "word"
+            or tokens[index].value.upper() != "AS"
+        ):
+            raise ValueError("CTE must contain AS")
+        index += 1
+
+        if index >= len(tokens) or tokens[index].value != "(":
+            raise ValueError("CTE body must be parenthesized")
+        body_end = _matching_parenthesis(tokens, index)
+        body = _normalized_tokens(tokens[index + 1 : body_end])
+        if not body:
+            raise ValueError("CTE body must contain SELECT or WITH")
+        _validate_statement(body)
+        index = body_end + 1
+
+        if index < len(tokens) and tokens[index].value == ",":
+            index += 1
+            continue
+        break
+
+    if (
+        index >= len(tokens)
+        or tokens[index].kind != "word"
+        or tokens[index].depth != 0
+        or tokens[index].value.upper() != "SELECT"
+    ):
+        raise ValueError("WITH must be followed by a main SELECT")
 
 
 def _cte_names(tokens: list[_Token]) -> set[str]:

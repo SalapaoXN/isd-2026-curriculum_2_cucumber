@@ -157,6 +157,31 @@ class RagGuardSqlTest(unittest.TestCase):
             sql,
         )
 
+    def test_relation_allowlist_rejects_malformed_cte_syntax(self):
+        for sql in (
+            "WITH selected AS SELECT 1",
+            "WITH selected(course_id) (SELECT course_id FROM courses) SELECT 1",
+            "WITH selected(course_id,) AS (SELECT course_id FROM courses) "
+            "SELECT course_id FROM selected",
+            "WITH selected AS (SELECT course_id FROM courses) "
+            "other AS (SELECT course_id FROM courses) SELECT course_id FROM selected",
+        ):
+            with self.subTest(sql=sql):
+                with self.assertRaises(ValueError):
+                    guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_relation_allowlist_accepts_nested_cte_body(self):
+        sql = (
+            "WITH selected AS ("
+            "WITH inner_set AS (SELECT course_id FROM courses) "
+            "SELECT course_id FROM inner_set"
+            ") SELECT course_id FROM selected LIMIT 100"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            sql,
+        )
+
     def test_relation_allowlist_rejects_ambiguous_parenthesized_relation_source(self):
         with self.assertRaises(ValueError):
             guard_sql(
