@@ -472,5 +472,17 @@
         "field": "name_en",
         "before": "SPECAL WORKSHOP II INFORMATIOM TECHNOLOGV 4",
         "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 4"
+    },
+    {
+        "course_code": "06016406",
+        "field": "name_th",
+        "before": "ไม่ระบุ 1",
+        "after": "โครงงาน 1"
+    },
+    {
+        "course_code": "06016407",
+        "field": "name_th",
+        "before": "ไม่ระบุ 2",
+        "after": "โครงงาน 2"
     }
 ]

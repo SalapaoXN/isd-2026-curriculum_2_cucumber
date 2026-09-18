@@ -436,5 +436,11 @@
         "field": "name_en",
         "before": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSIESS ANALYTICS",
         "after": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    },
+    {
+        "course_code": "06026200",
+        "field": "name_th",
+        "before": "ไม่ระบุ 1",
+        "after": "แคลคูลัส 1"
     }
 ]
