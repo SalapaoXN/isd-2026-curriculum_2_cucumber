@@ -1,6 +1,7 @@
 import io
 import unittest
 from contextlib import redirect_stdout
+from types import MappingProxyType
 from unittest.mock import patch
 
 from rag.answer import (
@@ -620,9 +621,12 @@ class RagAnswerTest(unittest.TestCase):
                 f"list_{plan}",
                 "list",
                 effective_scope={"program": "IT", "plans": (plan,)},
-                value=({"course_code": "06016418", "name_en": "SERVER SIDE"},),
+                value=({"course_code": code, "name_en": name},),
             )
-            for plan in ("coop", "no_coop")
+            for plan, code, name in (
+                ("coop", "06016418", "SERVER SIDE"),
+                ("no_coop", "06016419", "CLIENT SIDE"),
+            )
         )
 
         rendered = render_grounded_answer(
@@ -636,6 +640,284 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("หลักสูตร IT แผนสหกิจ:", rendered)
         self.assertIn("หลักสูตร IT แผนไม่สหกิจ:", rendered)
         self.assertNotIn("plan=", rendered)
+
+    @staticmethod
+    def _semester_list_claim(plan, entries, program="DSBA", status="complete"):
+        return GroundedClaim(
+            f"list_collapse_{plan}",
+            "list",
+            effective_scope={
+                "program": program,
+                "plans": (plan,),
+                "years": (1,),
+                "semesters": (1,),
+            },
+            status=status,
+            value=entries,
+        )
+
+    def test_identical_coop_no_coop_semester_list_collapses_to_one_section(self):
+        entries = (
+            {
+                "course_code": "06026200",
+                "name_th": "แคลคูลัส 1",
+                "name_en": "CALCULUS 1",
+                "credits": "3(3-0-6)",
+            },
+            {
+                "course_code": "06026202",
+                "name_th": "พีชคณิตเชิงเส้น",
+                "name_en": "LINEAR ALGEBRA",
+                "credits": "3(3-0-6)",
+            },
+        )
+        provenance = ({"source_page": 21}, {"source_page": 28})
+        claims = (
+            self._semester_list_claim("coop", entries),
+            self._semester_list_claim("no_coop", entries),
+        )
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=claims,
+            provenance=provenance,
+        )
+
+        rendered = render_grounded_answer(result)
+
+        self.assertEqual(rendered.final_answer.count("06026200"), 1)
+        self.assertEqual(rendered.final_answer.count("06026202"), 1)
+        self.assertIn("หลักสูตร DSBA", rendered.final_answer)
+        self.assertIn("แผนสหกิจ/ไม่สหกิจ", rendered.final_answer)
+        self.assertIn("ปี 1 ภาคเรียนที่ 1", rendered.final_answer)
+        for raw in ("plan=", "no_coop", "course_id", "placement_id", "list: [{"):
+            self.assertNotIn(raw, rendered.final_answer)
+        self.assertNotIn("coop_", rendered.final_answer)
+        self.assertEqual(rendered.claims, result.claims)
+        self.assertEqual(rendered.provenance, result.provenance)
+
+    def test_differing_coop_no_coop_semester_lists_remain_separate(self):
+        provenance = ({"source_page": 21}, {"source_page": 28})
+        claims = (
+            self._semester_list_claim(
+                "coop",
+                ({"course_code": "06026200", "name_en": "CALCULUS 1"},),
+            ),
+            self._semester_list_claim(
+                "no_coop",
+                ({"course_code": "06026209", "name_en": "OTHER COURSE"},),
+            ),
+        )
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=claims,
+            provenance=provenance,
+        )
+
+        rendered = render_grounded_answer(result).final_answer
+
+        self.assertIn("หลักสูตร DSBA แผนสหกิจ ปี 1 ภาคเรียนที่ 1:", rendered)
+        self.assertIn("หลักสูตร DSBA แผนไม่สหกิจ ปี 1 ภาคเรียนที่ 1:", rendered)
+        self.assertNotIn("แผนสหกิจ/ไม่สหกิจ", rendered)
+        self.assertNotIn("plan=", rendered)
+        self.assertEqual(rendered.count("หลักสูตร DSBA"), 2)
+
+    def test_partially_overlapping_lists_are_not_unioned(self):
+        shared = {"course_code": "06026200", "name_en": "CALCULUS 1"}
+        claims = (
+            self._semester_list_claim(
+                "coop",
+                (shared, {"course_code": "06026202", "name_en": "LINEAR ALGEBRA"}),
+            ),
+            self._semester_list_claim(
+                "no_coop",
+                (shared, {"course_code": "06026209", "name_en": "OTHER COURSE"}),
+            ),
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="answer",
+                answer_mode="deterministic",
+                claims=claims,
+            )
+        ).final_answer
+
+        self.assertEqual(rendered.count("หลักสูตร DSBA"), 2)
+        self.assertEqual(rendered.count("06026200"), 2)
+        self.assertEqual(rendered.count("06026202"), 1)
+        self.assertEqual(rendered.count("06026209"), 1)
+        self.assertNotIn("แผนสหกิจ/ไม่สหกิจ", rendered)
+
+    def test_single_plan_list_renders_unchanged(self):
+        claim = self._semester_list_claim(
+            "coop",
+            ({"course_code": "06026200", "name_en": "CALCULUS 1"},),
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="answer",
+                answer_mode="deterministic",
+                claims=(claim,),
+            )
+        ).final_answer
+
+        self.assertEqual(
+            rendered,
+            "หลักสูตร DSBA แผนสหกิจ ปี 1 ภาคเรียนที่ 1:\n- 06026200 (CALCULUS 1)",
+        )
+
+    def test_identical_alternative_groups_collapse_preserving_choices(self):
+        group = {
+            "course_code": None,
+            "alternative_courses": (
+                {"course_code": "06016481", "name_en": "COOPERATIVE EDUCATION"},
+                {"course_code": "06016482", "name_en": "OVERSEA COOPERATIVE EDUCATION"},
+            ),
+            "minimum_choices": 1,
+            "maximum_choices": 1,
+        }
+        claims = (
+            GroundedClaim(
+                "list_alt_coop",
+                "list",
+                effective_scope={"program": "IT", "plans": ("coop",)},
+                value=(group,),
+            ),
+            GroundedClaim(
+                "list_alt_no_coop",
+                "list",
+                effective_scope={"program": "IT", "plans": ("no_coop",)},
+                value=(dict(group),),
+            ),
+        )
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=claims,
+            provenance=({"source_page": 36},),
+        )
+
+        rendered = render_grounded_answer(result)
+
+        self.assertEqual(rendered.final_answer.count("เลือก 1 วิชาจาก:"), 1)
+        self.assertIn("06016481", rendered.final_answer)
+        self.assertIn("06016482", rendered.final_answer)
+        self.assertIn(" หรือ ", rendered.final_answer)
+        self.assertNotIn("alternative_courses", rendered.final_answer)
+        self.assertNotIn("plan=", rendered.final_answer)
+        self.assertEqual(rendered.claims, result.claims)
+        self.assertEqual(rendered.provenance, result.provenance)
+
+    def test_semantically_identical_entries_collapse_across_representation_noise(self):
+        coop_group = MappingProxyType(
+            {
+                "course_code": None,
+                "alternative_courses": [
+                    MappingProxyType(
+                        {"course_code": "06016481", "name_en": "COOPERATIVE EDUCATION"}
+                    ),
+                    {"course_code": "06016482", "name_en": "OVERSEA COOPERATIVE EDUCATION"},
+                ],
+                "minimum_choices": 1,
+                "maximum_choices": 1,
+            }
+        )
+        no_coop_group = {
+            "course_code": None,
+            "alternative_courses": (
+                {"course_code": "06016481", "name_en": "COOPERATIVE EDUCATION"},
+                {"course_code": "06016482", "name_en": "OVERSEA COOPERATIVE EDUCATION"},
+            ),
+            "minimum_choices": 1,
+            "maximum_choices": 1,
+        }
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=(
+                self._semester_list_claim("coop", (coop_group,), program="IT"),
+                self._semester_list_claim("no_coop", (no_coop_group,), program="IT"),
+            ),
+        )
+
+        rendered = render_grounded_answer(result).final_answer
+
+        self.assertEqual(rendered.count("เลือก 1 วิชาจาก:"), 1)
+
+    def test_rendered_text_match_does_not_hide_semantic_entry_differences(self):
+        base = {
+            "course_code": "06016481",
+            "name_en": "COOPERATIVE EDUCATION",
+            "credits": "3(3-0-6)",
+        }
+        for field, changed_value in (
+            ("notes", "different applicability note"),
+            ("group_notes", "different group note"),
+            ("category", "different category"),
+            ("requirement_type", "elective"),
+        ):
+            with self.subTest(field=field):
+                coop = dict(base)
+                no_coop = dict(base)
+                no_coop[field] = changed_value
+                rendered = render_grounded_answer(
+                    GroundedAnswerResult(
+                        status="answer",
+                        answer_mode="deterministic",
+                        claims=(
+                            self._semester_list_claim("coop", (coop,), program="IT"),
+                            self._semester_list_claim("no_coop", (no_coop,), program="IT"),
+                        ),
+                    )
+                ).final_answer
+                self.assertEqual(rendered.count("หลักสูตร IT"), 2)
+
+    def test_alternative_group_note_difference_does_not_collapse(self):
+        base_group = {
+            "course_code": None,
+            "alternative_courses": (
+                {"course_code": "06016481", "name_en": "COOPERATIVE EDUCATION"},
+                {"course_code": "06016482", "name_en": "OVERSEA COOPERATIVE EDUCATION"},
+            ),
+            "minimum_choices": 1,
+            "maximum_choices": 1,
+        }
+        changed_group = dict(base_group)
+        changed_group["group_notes"] = "different applicability"
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="answer",
+                answer_mode="deterministic",
+                claims=(
+                    self._semester_list_claim("coop", (base_group,), program="IT"),
+                    self._semester_list_claim("no_coop", (changed_group,), program="IT"),
+                ),
+            )
+        ).final_answer
+
+        self.assertEqual(rendered.count("หลักสูตร IT"), 2)
+
+    def test_valid_empty_lists_are_not_collapsed(self):
+        claims = (
+            self._semester_list_claim("coop", (), status="valid_empty"),
+            self._semester_list_claim("no_coop", (), status="valid_empty"),
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="valid_empty",
+                answer_mode="deterministic",
+                claims=claims,
+            )
+        ).final_answer
+
+        self.assertEqual(rendered.count("ไม่พบรายวิชาตามเงื่อนไขที่ถาม"), 2)
+        self.assertIn("หลักสูตร DSBA แผนสหกิจ ปี 1 ภาคเรียนที่ 1:", rendered)
+        self.assertIn("หลักสูตร DSBA แผนไม่สหกิจ ปี 1 ภาคเรียนที่ 1:", rendered)
+        self.assertNotIn("แผนสหกิจ/ไม่สหกิจ", rendered)
 
     def test_list_duplicate_courses_are_suppressed(self):
         entry = {"course_code": "06016404", "name_en": "CLOUD COMPUTING"}

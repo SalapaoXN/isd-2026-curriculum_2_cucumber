@@ -1559,6 +1559,209 @@ def synthesize_grounded_claim(
     return _scope_prefix(claim, scope_dimensions) + generated_text
 
 
+def _scope_program_text(scope: Any) -> str:
+    program = (
+        scope.get("program") if isinstance(scope, Mapping) else getattr(scope, "program", None)
+    )
+    return str(program).strip() if isinstance(program, str) and program.strip() else ""
+
+
+def _scope_category_text(scope: Any) -> str:
+    category = (
+        scope.get("category") if isinstance(scope, Mapping) else getattr(scope, "category", None)
+    )
+    return str(category).strip() if isinstance(category, str) and category.strip() else ""
+
+
+def _scope_topic_text(scope: Any) -> str:
+    for field in ("topic", "topics"):
+        if isinstance(scope, Mapping):
+            value = scope.get(field)
+        else:
+            value = getattr(scope, field, None)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+            texts = [str(item).strip() for item in value if str(item).strip()]
+            if texts:
+                return "|".join(texts)
+    return ""
+
+
+def _scope_course_targets_text(scope: Any) -> str:
+    if isinstance(scope, Mapping):
+        targets = scope.get("course_targets")
+    else:
+        targets = getattr(scope, "course_targets", None)
+    if targets is None:
+        return ""
+    try:
+        return json.dumps(
+            _plain_typed_value(targets), ensure_ascii=False, sort_keys=True, default=str
+        )
+    except (TypeError, ValueError):
+        return repr(targets)
+
+
+def _list_collapse_scope_key(claim: GroundedClaim) -> tuple[Any, ...] | None:
+    """Identify one complete list scope ignoring the plan axis."""
+    if claim.operation != "list" or claim.status != "complete":
+        return None
+    plans = tuple(
+        str(plan) for plan in _scope_dimension_values(claim.effective_scope, "plans")
+    )
+    if sorted(plans) not in (["coop"], ["no_coop"]):
+        return None
+    years = tuple(
+        str(value) for value in _scope_dimension_values(claim.effective_scope, "years")
+    )
+    semesters = tuple(
+        str(value) for value in _scope_dimension_values(claim.effective_scope, "semesters")
+    )
+    return (
+        _scope_program_text(claim.effective_scope),
+        years,
+        semesters,
+        _scope_category_text(claim.effective_scope),
+        _scope_topic_text(claim.effective_scope),
+        _scope_course_targets_text(claim.effective_scope),
+    )
+
+
+def _course_list_body_lines(claim: GroundedClaim) -> tuple[str, ...] | None:
+    """Return ordered deduped rendered entry lines without the scope header."""
+    value = claim.value
+    if isinstance(value, Mapping):
+        entries: tuple[Any, ...] = (value,)
+    elif isinstance(value, (list, tuple)):
+        entries = tuple(value)
+    else:
+        return None
+    lines: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        text = _course_list_entry_text(entry)
+        if text is None or text in seen:
+            continue
+        seen.add(text)
+        lines.append(text)
+    return tuple(lines) if lines else None
+
+
+_LIST_SEMANTIC_IGNORED_KEYS = frozenset(
+    {
+        "provenance",
+        "provenance_id",
+        "course_id",
+        "catalog_id",
+        "placement_id",
+        "document_page",
+        "source_page",
+        "source_uri",
+        "source_locator",
+        "source_filename",
+        "source_key",
+    }
+)
+
+
+def _course_list_semantic_fingerprint(value: Any) -> tuple[Any, ...]:
+    """Normalize grounded list semantics without using rendered text."""
+    if isinstance(value, Mapping):
+        items: list[tuple[str, tuple[Any, ...]]] = []
+        for key in sorted(value, key=lambda item: str(item)):
+            key_text = str(key)
+            if key_text in _LIST_SEMANTIC_IGNORED_KEYS:
+                continue
+            normalized = value[key]
+            if normalized is None:
+                continue
+            items.append((key_text, _course_list_semantic_fingerprint(normalized)))
+        return ("mapping", tuple(items))
+    if isinstance(value, (list, tuple)):
+        return ("sequence", tuple(_course_list_semantic_fingerprint(item) for item in value))
+    if isinstance(value, set):
+        normalized = tuple(_course_list_semantic_fingerprint(item) for item in value)
+        return ("set", tuple(sorted(normalized, key=repr)))
+    return ("value", value)
+
+
+def _course_list_body_semantic_fingerprint(claim: GroundedClaim) -> tuple[Any, ...] | None:
+    value = claim.value
+    if isinstance(value, Mapping):
+        entries: tuple[Any, ...] = (value,)
+    elif isinstance(value, (list, tuple)):
+        entries = tuple(value)
+    else:
+        return None
+    if not all(isinstance(entry, Mapping) for entry in entries):
+        return None
+    return tuple(_course_list_semantic_fingerprint(entry) for entry in entries)
+
+
+def _collapse_identical_list_segments(
+    claimed_segments: list[tuple[GroundedClaim, str]],
+) -> list[tuple[GroundedClaim, str]]:
+    """Merge one coop/no_coop pair sharing scope and identical list contents.
+
+    Presentation-only: claims, evidence, and provenance are never modified.
+    Only complete ``list`` claims with the same program/year/semester/
+    category/topic scope and exactly identical ordered semantic entries collapse.
+    Partial overlaps, differing credits/alternatives/ordering, single plans,
+    and valid_empty claims keep their existing separate sections.
+    """
+    groups: dict[tuple[Any, ...], list[int]] = {}
+    for index, (claim, _segment) in enumerate(claimed_segments):
+        key = _list_collapse_scope_key(claim)
+        if key is None:
+            continue
+        if _course_list_body_semantic_fingerprint(claim) is None:
+            continue
+        groups.setdefault(key, []).append(index)
+    collapsed_indices: set[int] = set()
+    replacements: dict[int, str] = {}
+    for key, indices in groups.items():
+        if len(indices) != 2:
+            continue
+        first_claim = claimed_segments[indices[0]][0]
+        second_claim = claimed_segments[indices[1]][0]
+        first_plans = tuple(
+            str(plan) for plan in _scope_dimension_values(first_claim.effective_scope, "plans")
+        )
+        second_plans = tuple(
+            str(plan) for plan in _scope_dimension_values(second_claim.effective_scope, "plans")
+        )
+        if {first_plans, second_plans} != {("coop",), ("no_coop",)}:
+            continue
+        first_fingerprint = _course_list_body_semantic_fingerprint(first_claim)
+        second_fingerprint = _course_list_body_semantic_fingerprint(second_claim)
+        if first_fingerprint is None or first_fingerprint != second_fingerprint:
+            continue
+        first_lines = _course_list_body_lines(first_claim)
+        if first_lines is None:
+            continue
+        program, years, semesters = key[0], key[1], key[2]
+        combined_scope: dict[str, Any] = {"program": program or None}
+        if years:
+            combined_scope["years"] = tuple(int(value) if value.isdigit() else value for value in years)
+        if semesters:
+            combined_scope["semesters"] = tuple(
+                int(value) if value.isdigit() else value for value in semesters
+            )
+        combined_scope["plans"] = ("coop", "no_coop")
+        header = _credit_scope_text(combined_scope, prefix="")
+        body = "\n".join(f"- {line}" for line in first_lines)
+        replacements[indices[0]] = f"{header}:\n{body}" if header else body
+        collapsed_indices.add(indices[1])
+    if not replacements:
+        return claimed_segments
+    return [
+        (claim, replacements.get(index, segment))
+        for index, (claim, segment) in enumerate(claimed_segments)
+        if index not in collapsed_indices
+    ]
+
+
 def _suppress_covered_placement_segments(
     claimed_segments: list[tuple[GroundedClaim, str]],
 ) -> list[tuple[GroundedClaim, str]]:
@@ -1617,6 +1820,7 @@ def render_grounded_answer(
         if segment:
             claimed_segments.append((claim, segment))
     claimed_segments = _suppress_covered_placement_segments(claimed_segments)
+    claimed_segments = _collapse_identical_list_segments(claimed_segments)
     segments = [segment for _, segment in claimed_segments]
     final_answer = "\n".join(segments) if segments else result.final_answer
     final_answer = _polish_deterministic_answer(
