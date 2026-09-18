@@ -683,6 +683,7 @@ class QuerySpecEntityTests(unittest.TestCase):
             "nq_010": ("plan",),
             "nq_023": ("year",),
             "nq_024": ("semester",),
+            "nq_025": ("plan",),
             "nq_031": ("course",),
             "nq_032": ("course",),
         }

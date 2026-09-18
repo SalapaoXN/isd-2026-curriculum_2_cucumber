@@ -79,7 +79,7 @@
     {
       "id": "nq_016",
       "question": "มีวิชาเกี่ยวกับเว็บไหม",
-      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "เว็บ"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "เว็บ"}, "operations": ["existence"], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
     },
     {
       "id": "nq_017",
@@ -99,7 +99,7 @@
     {
       "id": "nq_020",
       "question": "ปี 2 มีวิชาเกี่ยวกับคอมพิวเตอร์เยอะมั้ย",
-      "expected": {"entities": {"program": null, "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "คอมพิวเตอร์"}, "operations": [], "judgement": "quantity", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+      "expected": {"entities": {"program": null, "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "คอมพิวเตอร์"}, "operations": ["count"], "judgement": "quantity", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
     },
     {
       "id": "nq_021",
@@ -124,7 +124,7 @@
     {
       "id": "nq_025",
       "question": "แผนสหกิจมีวิชาเกี่ยวกับ data มากกว่าแผนปกติไหม",
-      "expected": {"entities": {"program": null, "plans": ["coop", "no_coop"], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "data"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+      "expected": {"entities": {"program": null, "plans": ["coop", "no_coop"], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "data"}, "operations": ["count", "existence", "compare"], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
     },
     {
       "id": "nq_026",
@@ -139,12 +139,12 @@
     {
       "id": "nq_028",
       "question": "ถ้าอยากเรียน AI เริ่มมีวิชาแนวนี้ตั้งแต่ปีไหน",
-      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "AI"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "AI"}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
     },
     {
       "id": "nq_029",
       "question": "ถ้าอยากเรียน database ต้องผ่านวิชาอะไรมาก่อนบ้าง",
-      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": ["prerequisite"], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
     },
     {
       "id": "nq_030",
