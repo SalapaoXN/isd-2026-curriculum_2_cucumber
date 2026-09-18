@@ -178,6 +178,7 @@ def resolve_query_spec(
         (context.plan,) if context.plan is not None else ()
     )
     program_discovery = "program_discovery" in spec.operations
+    pure_identity = spec.operations == ("identity",)
     explicit_reference_programs = _explicit_reference_programs(spec.original_question)
 
     references: list[CourseReferenceResolution] = []
@@ -193,7 +194,8 @@ def resolve_query_spec(
             course_code=reference if reference_type == "course_code" else None,
             course_name=reference if reference_type == "course_name" else None,
             program=reference_program,
-            exact_title=program_discovery and reference_type == "course_name",
+            exact_title=(program_discovery or pure_identity)
+            and reference_type == "course_name",
         )
         references.append(
             CourseReferenceResolution(
@@ -216,6 +218,14 @@ def resolve_query_spec(
         return _outcome(
             "answer",
             resolved_program=None,
+            course_references=resolved_references,
+            resolved_plans=effective_plans,
+        )
+
+    if pure_identity:
+        return _outcome(
+            "answer",
+            resolved_program=effective_program,
             course_references=resolved_references,
             resolved_plans=effective_plans,
         )

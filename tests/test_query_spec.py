@@ -300,9 +300,16 @@ class QuerySpecEntityTests(unittest.TestCase):
         self.assertEqual(placement_comparison.operations, ("placement", "compare"))
 
     def test_identity_operation_uses_narrow_course_identity_cues(self):
-        name_to_code = parse_query_spec("วิชา Calculus 1 รหัสวิชาอะไร")
-        self.assertEqual(name_to_code.course_name, "Calculus 1")
-        self.assertEqual(name_to_code.operations, ("identity",))
+        for question in (
+            "Calculus 1 รหัสวิชาอะไร",
+            "Calculus 1 มีรหัสวิชาอะไร",
+            "วิชา Calculus 1 รหัสวิชาอะไร",
+            "วิชา Calculus 1 มีรหัสวิชาอะไร",
+        ):
+            with self.subTest(question=question):
+                name_to_code = parse_query_spec(question)
+                self.assertEqual(name_to_code.course_name, "Calculus 1")
+                self.assertEqual(name_to_code.operations, ("identity",))
 
         code_to_name = parse_query_spec("06016414 ชื่อวิชาอะไร")
         self.assertEqual(code_to_name.course_codes, ("06016414",))

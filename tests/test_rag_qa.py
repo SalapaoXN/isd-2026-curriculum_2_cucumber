@@ -258,7 +258,7 @@ class RagQaTest(unittest.TestCase):
         planner.assert_not_called()
         executor.assert_not_called()
 
-    def test_identity_code_without_program_requests_clarification(self):
+    def test_identity_code_without_program_answers_directly(self):
         with patch(
             "rag.qa.plan_evidence",
             side_effect=AssertionError("clarify must not plan"),
@@ -269,19 +269,38 @@ class RagQaTest(unittest.TestCase):
             result = ask(DB_PATH, "06046400 ชื่ออะไร")
 
         self.assertIsNone(result["route"])
-        self.assertEqual(result["result"]["status"], "clarify_program")
-        self.assertEqual(result["result"]["action"], "clarify_program")
-        self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
-        self.assertIsNone(result["result"]["resolved_program"])
-        (reference,) = result["result"]["course_references"]
-        self.assertEqual(reference["reference"], "06046400")
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(result["result"].claims[0].operation, "identity")
         self.assertEqual(
             [
                 (candidate["program"], candidate["course_code"])
-                for candidate in reference["candidates"]
+                for candidate in result["result"].claims[0].value
             ],
             [("AIT", "06046400")],
         )
+        planner.assert_not_called()
+        executor.assert_not_called()
+
+    def test_pure_identity_queries_bypass_planner_executor_and_model(self):
+        questions = (
+            "Calculus 1 มีรหัสวิชาอะไร",
+            "06016420 ชื่อวิชาอะไร",
+            "DSBA วิชา Calculus 1 มีรหัสวิชาอะไร",
+        )
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("identity must not plan"),
+        ) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("identity must not execute"),
+        ) as executor:
+            for question in questions:
+                with self.subTest(question=question):
+                    result = ask(DB_PATH, question)
+                    self.assertIsInstance(result["result"], GroundedAnswerResult)
+                    self.assertEqual(result["result"].status, "answer")
+                    self.assertTrue(result["result"].final_answer)
         planner.assert_not_called()
         executor.assert_not_called()
 

@@ -51,14 +51,19 @@ class ResolutionTest(unittest.TestCase):
                     code,
                 )
 
-    def test_unscoped_calculus_name_requires_program_clarification(self):
+    def test_unscoped_calculus_name_identity_answers_across_programs(self):
         outcome = resolve_query_spec(
             parse_query_spec("วิชา Calculus 1 รหัสวิชาอะไร"),
             DB_PATH,
         )
 
-        self.assertEqual(outcome.action, "clarify_program")
-        self.assertEqual(outcome.blocking_ambiguity, ("program",))
+        self.assertEqual(outcome.action, "answer")
+        self.assertIsNone(outcome.resolved_program)
+        self.assertEqual(
+            [(candidate["program"], candidate["course_code"])
+             for candidate in outcome.course_references[0].candidates],
+            [("AIT", "06046400"), ("DSBA", "06026200")],
+        )
 
     def test_calculus_roman_numeral_remains_no_data(self):
         outcome = resolve_query_spec(
@@ -177,7 +182,6 @@ class ResolutionTest(unittest.TestCase):
     def test_program_scoped_course_facts_require_program_context(self):
         for question in (
             "06016420 ต้องผ่านวิชาอะไรมาก่อน?",
-            "วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไร?",
             "06016481 ลงได้ตอนไหนบ้าง?",
             "06016414 กับ 06016419 วิชาไหนเรียนก่อน?",
         ):
@@ -251,6 +255,63 @@ class ResolutionTest(unittest.TestCase):
     def test_program_discovery_does_not_change_normal_program_scope_guard(self):
         outcome = resolve_query_spec(
             parse_query_spec("06016420 ต้องผ่านวิชาอะไรมาก่อน?"),
+            DB_PATH,
+        )
+        self.assertEqual(outcome.action, "clarify_program")
+
+    def test_pure_identity_name_lookup_answers_across_programs(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("Calculus 1 มีรหัสวิชาอะไร"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertIsNone(outcome.resolved_program)
+        self.assertEqual(
+            [
+                (candidate["program"], candidate["course_code"])
+                for candidate in outcome.course_references[0].candidates
+            ],
+            [("AIT", "06046400"), ("DSBA", "06026200")],
+        )
+
+    def test_pure_identity_code_lookup_answers_without_program(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("06016420 ชื่อวิชาอะไร"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, None)
+        self.assertEqual(
+            [candidate["course_code"] for candidate in outcome.course_references[0].candidates],
+            ["06016420"],
+        )
+
+    def test_pure_identity_respects_explicit_and_context_programs(self):
+        explicit = resolve_query_spec(
+            parse_query_spec("DSBA วิชา Calculus 1 มีรหัสวิชาอะไร"),
+            DB_PATH,
+        )
+        contextual = resolve_query_spec(
+            parse_query_spec("Calculus 1 มีรหัสวิชาอะไร"),
+            DB_PATH,
+            QueryContext(program="DSBA"),
+        )
+
+        for outcome in (explicit, contextual):
+            with self.subTest(outcome=outcome):
+                self.assertEqual(outcome.action, "answer")
+                self.assertEqual(outcome.resolved_program, "DSBA")
+                self.assertEqual(
+                    [(candidate["program"], candidate["course_code"])
+                     for candidate in outcome.course_references[0].candidates],
+                    [("DSBA", "06026200")],
+                )
+
+    def test_mixed_identity_and_credit_still_requires_program(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("06016420 ชื่ออะไรและมีกี่หน่วยกิต?"),
             DB_PATH,
         )
         self.assertEqual(outcome.action, "clarify_program")
