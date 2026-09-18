@@ -1861,6 +1861,67 @@ def prerequisites_of_course(
         return _prerequisite_records(connection, course_id)
 
 
+_EXPLICIT_NONE_PREREQUISITE_TEXT = frozenset(
+    {
+        "ไม่มี",
+        "ไม่มีวิชาบังคับก่อน",
+        "none",
+        "no prerequisite",
+        "no prerequisites",
+        "-",
+    }
+)
+
+
+def prerequisite_state(
+    db_path: Database, course_id: int
+) -> dict[str, Any]:
+    """Classify one physical course's prerequisite evidence conservatively."""
+    if isinstance(course_id, bool) or not isinstance(course_id, int):
+        raise ValueError("course_id must be an integer")
+    with _open_database(db_path) as connection:
+        row = connection.execute(
+            "SELECT prerequisite_text FROM courses WHERE course_id = ?",
+            (course_id,),
+        ).fetchone()
+        if row is None:
+            return {
+                "state": "unknown",
+                "records": (),
+                "prerequisite_text": None,
+                "provenance": (),
+            }
+        records = tuple(_prerequisite_records(connection, course_id))
+        provenance = tuple(
+            _provenance_for(connection, "course_provenance", "course_id", course_id)
+        )
+        prerequisite_text = row["prerequisite_text"]
+        normalized_text = (
+            " ".join(prerequisite_text.casefold().split())
+            if isinstance(prerequisite_text, str)
+            else ""
+        )
+        has_description_provenance = any(
+            reference.get("document_category") == "description"
+            for reference in provenance
+        )
+        if records:
+            state = "required"
+        elif (
+            normalized_text in _EXPLICIT_NONE_PREREQUISITE_TEXT
+            and has_description_provenance
+        ):
+            state = "explicit_none"
+        else:
+            state = "unknown"
+        return {
+            "state": state,
+            "records": records,
+            "prerequisite_text": prerequisite_text,
+            "provenance": provenance,
+        }
+
+
 def courses_requiring_prerequisite(
     db_path: Database, prerequisite_course_id: int
 ) -> list[dict[str, Any]]:
@@ -1930,6 +1991,7 @@ __all__ = [
     "parse_flexible_year_semester",
     "placement_year_semester_choices",
     "prerequisites_of_course",
+    "prerequisite_state",
     "semester_credits_and_prerequisites",
     "semester_total_credits",
     "scoped_course_set",

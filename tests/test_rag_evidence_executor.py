@@ -640,6 +640,55 @@ class EvidenceExecutorTests(unittest.TestCase):
         if result.status == "complete":
             self.assertIsInstance(result.payload, tuple)
 
+    def test_explicit_none_prerequisite_requires_positive_description_evidence(self):
+        scope = self._scope(
+            program="AIT",
+            plans=("default",),
+            years=(),
+            semesters=(),
+            course_targets=({
+                "course_id": 1,
+                "program": "AIT",
+                "course_code": "06046400",
+            },),
+        )
+        request = EvidenceRequest(
+            "prereqs", "prerequisite_facts", scope, course_targets=scope.course_targets
+        )
+
+        result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "valid_empty")
+        self.assertEqual(result.primitive_state, "explicit_none")
+        self.assertTrue(result.payload)
+        self.assertTrue(
+            any(
+                reference.get("document_category") == "description"
+                for reference in result.payload[0]["provenance"]
+            )
+        )
+
+    def test_unknown_empty_prerequisite_is_insufficient_evidence(self):
+        scope = self._scope(
+            program="GENED",
+            plans=("gened",),
+            years=(),
+            semesters=(),
+            course_targets=({
+                "course_id": 343,
+                "program": "GENED",
+                "course_code": "90641001",
+            },),
+        )
+        request = EvidenceRequest(
+            "prereqs", "prerequisite_facts", scope, course_targets=scope.course_targets
+        )
+
+        result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.primitive_state, "prerequisite_state_unknown")
+
     def test_prerequisite_facts_remap_physical_course_per_plan(self):
         target = {
             "course_id": 635,

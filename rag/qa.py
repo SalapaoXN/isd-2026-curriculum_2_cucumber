@@ -42,6 +42,7 @@ from rag.retrieval.retrieve import (
 )
 from rag.answer import render_grounded_answer
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
+from rag.structured.queries import exact_course_candidates, prerequisite_state
 
 
 def _execution_results(
@@ -668,6 +669,175 @@ def _claim_for_prerequisite_operation(
         evidence=records if result.status == "complete" else None,
         provenance=_provenance_from_records(records),
     )
+
+
+def _normalized_prerequisite_title(record: Mapping[str, Any]) -> str | None:
+    for field in (
+        "prerequisite_name_en",
+        "prerequisite_name_th",
+        "name_en",
+        "name_th",
+        "course_name",
+    ):
+        value = record.get(field)
+        if isinstance(value, str) and value.strip():
+            return " ".join(value.casefold().split())
+    return None
+
+
+def _prerequisite_semantic_fingerprint(
+    records: Iterable[Mapping[str, Any]],
+) -> tuple[tuple[Any, ...], ...] | None:
+    fingerprint: list[tuple[Any, ...]] = []
+    for record in records:
+        if not isinstance(record, Mapping):
+            return None
+        alternatives = record.get("alternative_courses")
+        if isinstance(alternatives, Mapping):
+            alternatives = (alternatives,)
+        if isinstance(alternatives, (list, tuple)) and alternatives:
+            member_titles: list[str] = []
+            for member in alternatives:
+                if not isinstance(member, Mapping):
+                    return None
+                title = _normalized_prerequisite_title(member)
+                if title is None:
+                    return None
+                member_titles.append(title)
+            group = record.get("alternative_group")
+            minimum = record.get("minimum_choices")
+            maximum = record.get("maximum_choices")
+            if isinstance(group, Mapping):
+                minimum = group.get("minimum_choices", minimum)
+                maximum = group.get("maximum_choices", maximum)
+            fingerprint.append(
+                (
+                    "alternative",
+                    record.get("requirement_type"),
+                    minimum,
+                    maximum,
+                    tuple(member_titles),
+                )
+            )
+            continue
+        title = _normalized_prerequisite_title(record)
+        if title is None:
+            return None
+        fingerprint.append(("direct", record.get("requirement_type"), title))
+    return tuple(fingerprint)
+
+
+def _merge_consensus_prerequisites(
+    record_sets: tuple[tuple[Mapping[str, Any], ...], ...],
+) -> tuple[Mapping[str, Any], ...]:
+    if not record_sets:
+        return ()
+    merged: list[dict[str, Any]] = [dict(record) for record in record_sets[0]]
+    for index, record in enumerate(merged):
+        references: list[Any] = []
+        for records in record_sets:
+            provenance = records[index].get("provenance", ())
+            if isinstance(provenance, Mapping) or isinstance(provenance, str):
+                provenance = (provenance,)
+            if isinstance(provenance, (list, tuple)):
+                for reference in provenance:
+                    if reference not in references:
+                        references.append(reference)
+        record["provenance"] = tuple(references)
+    return tuple(merged)
+
+
+def _consensus_prerequisite_grounded_answer(
+    db_path: str | Path,
+    spec: Any,
+    resolution: ResolutionOutcome,
+    context: QueryContext | None,
+) -> Any | None:
+    """Answer only unanimous, program-free exact prerequisite references."""
+    if spec.operations != ("prerequisite",):
+        return None
+    if getattr(spec, "program", None) is not None:
+        return None
+    if context is not None and context.program is not None:
+        return None
+    if len(resolution.course_references) != 1:
+        return None
+    reference = resolution.course_references[0]
+    if spec.course_name is not None:
+        candidates = exact_course_candidates(
+            db_path,
+            course_name=spec.course_name,
+            exact_title=True,
+        )
+    else:
+        candidates = list(reference.candidates)
+    programs = {
+        str(candidate.get("program"))
+        for candidate in candidates
+        if candidate.get("program") not in (None, "")
+    }
+    if len(programs) < 2:
+        return None
+
+    states: list[Mapping[str, Any]] = []
+    fingerprints: list[tuple[tuple[Any, ...], ...] | None] = []
+    for candidate in candidates:
+        course_id = candidate.get("course_id")
+        if isinstance(course_id, bool) or not isinstance(course_id, int):
+            return None
+        state = prerequisite_state(db_path, course_id)
+        states.append(state)
+        if state.get("state") == "explicit_none":
+            fingerprints.append((('explicit_none',),))
+        elif state.get("state") == "required":
+            fingerprints.append(
+                _prerequisite_semantic_fingerprint(state.get("records", ()))
+            )
+        else:
+            fingerprints.append(None)
+    if not fingerprints or any(fingerprint is None for fingerprint in fingerprints):
+        return None
+    first = fingerprints[0]
+    if any(fingerprint != first for fingerprint in fingerprints[1:]):
+        return None
+    if first == (('explicit_none',),):
+        merged_provenance: list[Any] = []
+        for state in states:
+            for reference in state.get("provenance", ()):
+                if reference not in merged_provenance:
+                    merged_provenance.append(reference)
+        merged = (
+            {
+                "prerequisite_state": "explicit_none",
+                "prerequisite_text": states[0].get("prerequisite_text"),
+                "provenance": tuple(merged_provenance),
+            },
+        )
+    else:
+        merged = _merge_consensus_prerequisites(
+            tuple(tuple(state.get("records", ())) for state in states)
+        )
+    provenance_values: list[Any] = list(_provenance_from_records(merged))
+    for candidate in candidates:
+        candidate_provenance = candidate.get("provenance", ())
+        if isinstance(candidate_provenance, Mapping) or isinstance(candidate_provenance, str):
+            candidate_provenance = (candidate_provenance,)
+        if isinstance(candidate_provenance, (list, tuple)):
+            for reference in candidate_provenance:
+                if reference not in provenance_values:
+                    provenance_values.append(reference)
+    provenance = tuple(provenance_values)
+    claim_status = "valid_empty" if first == (('explicit_none',),) else "complete"
+    claim = GroundedClaim(
+        claim_id="prerequisite_consensus",
+        operation="prerequisite",
+        status=claim_status,
+        kind="deterministic_fact",
+        value=merged,
+        evidence=merged,
+        provenance=provenance,
+    )
+    return compose_grounded_answer(composed_claims=(claim,))
 
 
 def _claim_for_description_operation(
@@ -1407,6 +1577,22 @@ def ask(
     spec = parse_query_spec(question)
     resolution = resolve_query_spec(spec, db_path, context=context)
     if resolution.action != "answer":
+        if resolution.action == "clarify_program":
+            consensus = _consensus_prerequisite_grounded_answer(
+                db_path,
+                spec,
+                resolution,
+                context,
+            )
+            if consensus is not None:
+                return {
+                    "route": None,
+                    "result": render_grounded_answer(
+                        consensus,
+                        answer_model_callable=answer_model_callable,
+                        question=question,
+                    ),
+                }
         return {"route": None, "result": _blocked_result(resolution)}
 
     if spec.operations == ("program_discovery",):

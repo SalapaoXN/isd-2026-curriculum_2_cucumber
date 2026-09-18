@@ -658,6 +658,55 @@ class RagQaTest(unittest.TestCase):
             [("IT", "06016420")],
         )
 
+    def test_program_free_calculus_prerequisite_answers_by_consensus(self):
+        result = ask(DB_PATH, "Calculus 2 มีวิชาบังคับก่อนคืออะไร")
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        self.assertIn("CALCULUS 1", result["result"].final_answer)
+        self.assertTrue(result["result"].provenance)
+        self.assertEqual(
+            [claim.operation for claim in result["result"].claims],
+            ["prerequisite"],
+        )
+
+    def test_program_free_prerequisite_with_divergent_candidates_still_clarifies(self):
+        for question in (
+            "Advanced Database Systems มีวิชาบังคับก่อนคืออะไร",
+            "Database System Maintenance and Administration มีวิชาบังคับก่อนคืออะไร",
+        ):
+            with self.subTest(question=question):
+                result = ask(DB_PATH, question)
+                self.assertEqual(result["result"]["status"], "clarify_program")
+                self.assertEqual(result["result"]["action"], "clarify_program")
+                self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
+
+    def test_program_free_prerequisite_with_unknown_candidate_still_clarifies(self):
+        result = ask(DB_PATH, "Design Thinking มีวิชาบังคับก่อนคืออะไร")
+
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+
+    def test_explicit_unknown_prerequisite_is_insufficient_evidence(self):
+        result = ask(DB_PATH, "GENED 90641001 มีวิชาบังคับก่อนคืออะไร")
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+
+    def test_program_free_unanimous_explicit_none_prerequisite_is_valid_empty(self):
+        result = ask(DB_PATH, "Discrete Mathematics มีวิชาบังคับก่อนคืออะไร")
+        typed = result["result"]
+
+        self.assertEqual(typed.status, "valid_empty")
+        self.assertIn("ไม่มีวิชาบังคับก่อน", typed.final_answer)
+        self.assertTrue(typed.provenance)
+
+    def test_explicit_program_prerequisite_does_not_use_consensus_exception(self):
+        result = ask(DB_PATH, "AIT 06046401 มีวิชาบังคับก่อนคืออะไร")
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        self.assertIn("CALCULUS 1", result["result"].final_answer)
+
     def test_explicit_plan_comparison_uses_complete_placement_operands(self):
         result = ask(
             DB_PATH,

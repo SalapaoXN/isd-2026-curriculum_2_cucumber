@@ -20,7 +20,7 @@ from rag.structured.queries import (
     applicable_plan_keys,
     course_facts,
     get_semester_credits,
-    prerequisites_of_course,
+    prerequisite_state,
     scoped_course_set,
 )
 
@@ -592,11 +592,36 @@ def _execute_prerequisites(
             primitive_state="invalid_course_target",
         )
     records: list[Mapping[str, Any]] = []
+    explicit_none_records: list[Mapping[str, Any]] = []
     for course_id in course_ids:
-        records.extend(prerequisites_of_course(db_path, course_id))
+        state = prerequisite_state(db_path, course_id)
+        if state.get("state") == "unknown":
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="prerequisite_state_unknown",
+            )
+        if state.get("state") == "required":
+            records.extend(state.get("records", ()))
+        elif state.get("state") == "explicit_none":
+            explicit_none_records.append(
+                {
+                    "course_id": course_id,
+                    "prerequisite_state": "explicit_none",
+                    "prerequisite_text": state.get("prerequisite_text"),
+                    "provenance": tuple(state.get("provenance", ())),
+                }
+            )
     payload = tuple(records)
     if not payload:
-        return _result(request, scope, "valid_empty", payload, "empty_relation")
+        return _result(
+            request,
+            scope,
+            "valid_empty",
+            tuple(explicit_none_records),
+            "explicit_none",
+        )
     return _result(request, scope, _status_for_payload(payload), payload)
 
 
