@@ -20,6 +20,8 @@ work/*
 /work/
 *.tmp
 *.log
+/curriculum.db
+demo.db
 
 # Keep tracked placeholder folders
 !inputs/.gitkeep
