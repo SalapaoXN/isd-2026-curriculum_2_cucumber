@@ -97,6 +97,73 @@ class RagGuardSqlTest(unittest.TestCase):
             f"{sql} LIMIT 100",
         )
 
+    def test_relation_allowlist_accepts_allowed_derived_table_in_from(self):
+        sql = (
+            "SELECT x.course_id FROM (SELECT course_id FROM courses) AS x "
+            "LIMIT 100"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            sql,
+        )
+
+    def test_relation_allowlist_accepts_allowed_derived_table_in_join(self):
+        sql = (
+            "SELECT c.course_id FROM courses AS c "
+            "JOIN (SELECT course_id FROM courses) AS x "
+            "ON x.course_id = c.course_id LIMIT 100"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            sql,
+        )
+
+    def test_relation_allowlist_rejects_disallowed_derived_table_relation(self):
+        sql = (
+            "SELECT x.course_id FROM (SELECT course_id FROM secret_table) AS x "
+            "LIMIT 100"
+        )
+        with self.assertRaises(ValueError):
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_relation_allowlist_accepts_cte_column_list(self):
+        sql = (
+            "WITH selected(course_id) AS (SELECT course_id FROM courses) "
+            "SELECT course_id FROM selected LIMIT 100"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            sql,
+        )
+
+    def test_relation_allowlist_rejects_disallowed_cte_column_list_relation(self):
+        sql = (
+            "WITH selected(course_id) AS (SELECT course_id FROM secret_table) "
+            "SELECT course_id FROM selected LIMIT 100"
+        )
+        with self.assertRaises(ValueError):
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_relation_allowlist_accepts_multiple_ctes_with_column_lists(self):
+        sql = (
+            "WITH first_set(course_id) AS (SELECT course_id FROM courses), "
+            "second_set(course_id) AS (SELECT course_id FROM v_plan_courses) "
+            "SELECT first_set.course_id FROM first_set "
+            "JOIN second_set ON second_set.course_id = first_set.course_id "
+            "LIMIT 100"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            sql,
+        )
+
+    def test_relation_allowlist_rejects_ambiguous_parenthesized_relation_source(self):
+        with self.assertRaises(ValueError):
+            guard_sql(
+                "SELECT * FROM (courses) AS selected LIMIT 100",
+                allowed_relations=self.ALLOWED_RELATIONS,
+            )
+
     def test_relation_allowlist_rejects_schema_qualified_relations(self):
         with self.assertRaises(ValueError):
             guard_sql(

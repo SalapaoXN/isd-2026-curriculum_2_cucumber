@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import re
 from typing import Final
 
@@ -177,13 +177,40 @@ _RELATION_TERMINATORS: Final = frozenset(
 )
 
 
+def _matching_parenthesis(tokens: list[_Token], opening_index: int) -> int:
+    if (
+        opening_index >= len(tokens)
+        or tokens[opening_index].value != "("
+    ):
+        raise ValueError("ambiguous SQL parenthesized relation")
+    opening_depth = tokens[opening_index].depth
+    for index in range(opening_index + 1, len(tokens)):
+        token = tokens[index]
+        if token.value == ")" and token.depth == opening_depth:
+            return index
+    raise ValueError("ambiguous SQL parenthesized relation")
+
+
+def _normalized_tokens(tokens: list[_Token]) -> list[_Token]:
+    if not tokens:
+        return []
+    base_depth = tokens[0].depth
+    return [replace(token, depth=token.depth - base_depth) for token in tokens]
+
+
 def _cte_names(tokens: list[_Token]) -> set[str]:
     names: set[str] = set()
     for index, token in enumerate(tokens[:-2]):
         if token.kind != "word":
             continue
-        as_token = tokens[index + 1]
-        opening = tokens[index + 2]
+        as_index = index + 1
+        if tokens[as_index].value == "(":
+            column_list_end = _matching_parenthesis(tokens, as_index)
+            as_index = column_list_end + 1
+        if as_index + 1 >= len(tokens):
+            continue
+        as_token = tokens[as_index]
+        opening = tokens[as_index + 1]
         if (
             as_token.kind == "word"
             and as_token.value.upper() == "AS"
@@ -200,7 +227,17 @@ def _validate_relation_name(
     allowed: set[str],
     cte_names: set[str],
 ) -> int:
-    if index >= len(tokens) or tokens[index].kind != "word":
+    if index >= len(tokens):
+        raise ValueError("ambiguous SQL relation reference")
+    if tokens[index].value == "(":
+        closing_index = _matching_parenthesis(tokens, index)
+        nested_tokens = _normalized_tokens(tokens[index + 1 : closing_index])
+        if not nested_tokens:
+            raise ValueError("ambiguous SQL parenthesized relation")
+        _validate_statement(nested_tokens)
+        _validate_relations(nested_tokens, allowed)
+        return closing_index + 1
+    if tokens[index].kind != "word":
         raise ValueError("ambiguous SQL relation reference")
     relation = tokens[index].value.casefold()
     if index + 1 < len(tokens) and tokens[index + 1].value == ".":
