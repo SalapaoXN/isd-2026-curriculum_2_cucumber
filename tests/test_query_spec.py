@@ -129,6 +129,17 @@ class QuerySpecEntityTests(unittest.TestCase):
         self.assertEqual(parse_query_spec("ปี 20 เทอม 12").semesters, ())
         self.assertEqual(parse_query_spec("IT ปี 6 เทอม 1").years, ())
 
+    def test_english_y_year_alias_preserves_exact_year_scope(self):
+        for alias, expected in (("Y1", 1), ("Y2", 2), ("Y3", 3), ("Y4", 4)):
+            with self.subTest(alias=alias):
+                spec = parse_query_spec(f"DSBA {alias} มีวิชาอะไรบ้าง")
+                self.assertEqual(spec.years, (expected,))
+                self.assertIn("list", spec.operations)
+
+        invalid = parse_query_spec("DSBA Y5 มีวิชาอะไรบ้าง")
+        self.assertEqual(invalid.years, ())
+        self.assertEqual(invalid.judgement, "unsupported")
+
     def test_course_codes_are_bounded_and_preserve_order(self):
         self.assertEqual(
             parse_query_spec("06016419 กับ 06016414").course_codes,
@@ -233,6 +244,55 @@ class QuerySpecEntityTests(unittest.TestCase):
         self.assertEqual(spec.category, "วิชาเลือก")
         self.assertEqual(spec.topic, "AI")
         self.assertIsNone(parse_query_spec("IT เรียนเกี่ยวกับ AI").category)
+
+    def test_dsba_general_education_list_wording_uses_existing_category(self):
+        expected_category = "หมวดวิชาศึกษาทั่วไป"
+        for question in (
+            "ในหลักสูตร DSBA ตอนปี 2 ลงเรียนวิชา Gened อะไรได้บ้าง",
+            "ในหลักสูตร DSBA ตอนปี 2 ลงเรียนวิชาศึกษาทั่วไปอะไรได้บ้าง",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.program, "DSBA")
+                self.assertEqual(spec.years, (2,))
+                self.assertEqual(spec.plans, ())
+                self.assertEqual(spec.category, expected_category)
+                self.assertEqual(spec.operations, ("list",))
+
+    def test_bounded_colloquial_list_cues_request_course_lists(self):
+        for question in (
+            "DSBA ปี 2 ขอรายวิชาอะไรบ้าง",
+            "DSBA ปี 2 มีตัวไหนบ้าง",
+            "DSBA ปี 2 เรียนตัวไหนกันบ้าง",
+            "DSBA ปี 2 เรียนอะไรกัน",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).operations, ("list",))
+
+        description = parse_query_spec("วิชา 06016420 เรียนเกี่ยวกับอะไรบ้าง")
+        self.assertIn("describe", description.operations)
+
+    def test_bare_kho_raiwicha_requests_list_without_interrogative(self):
+        spec = parse_query_spec("ขอรายวิชาของ DSBA ตอนปี 2 หน่อย")
+        self.assertEqual(spec.program, "DSBA")
+        self.assertEqual(spec.years, (2,))
+        self.assertEqual(spec.operations, ("list",))
+
+    def test_bounded_placement_cues_request_placement(self):
+        for question in (
+            "DSBA 06026212 ปีใด ภาคเรียนใด",
+            "DSBA 06026212 จัดไว้ปีไหน",
+            "DSBA 06026212 เทอมอะไร",
+            "DSBA 06026212 ลงทะเบียนช่วงไหน",
+        ):
+            with self.subTest(question=question):
+                self.assertIn("placement", parse_query_spec(question).operations)
+
+    def test_credit_cue_accepts_bounded_trailing_particles(self):
+        for particle in ("อะ", "นะ", "ครับ", "คะ"):
+            with self.subTest(particle=particle):
+                spec = parse_query_spec(f"DSBA 06026212 กี่หน่วย{particle}")
+                self.assertIn("sum_credits", spec.operations)
 
     def test_representative_frozen_questions_extract_entities_without_later_stages(self):
         fixture_path = Path(__file__).parents[0] / "fixtures" / "natural_qa_v1.json"
@@ -389,6 +449,15 @@ class QuerySpecEntityTests(unittest.TestCase):
             ("prerequisite",),
         )
         self.assertNotIn("prerequisite", parse_query_spec("วิชาบังคับมีอะไรบ้าง").operations)
+
+    def test_bare_english_course_names_support_prerequisite_directions(self):
+        prerequisite = parse_query_spec("Calculus 2 มีวิชาบังคับก่อนคืออะไร")
+        self.assertEqual(prerequisite.course_name, "Calculus 2")
+        self.assertEqual(prerequisite.operations, ("prerequisite",))
+
+        successor = parse_query_spec("calculus 1 ต้องเรียนอะไรต่อไหม")
+        self.assertEqual(successor.course_name, "calculus 1")
+        self.assertEqual(successor.operations, ("prerequisite",))
 
     def test_bounded_describe_variants_are_supported(self):
         for question in (

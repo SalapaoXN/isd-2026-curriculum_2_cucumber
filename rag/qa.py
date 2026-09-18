@@ -83,7 +83,7 @@ _PLACEMENT_FALLBACK_CUE = re.compile(
     re.IGNORECASE,
 )
 _COURSE_CREDIT_FALLBACK_CUE = re.compile(
-    r"กี่\s*หน่วย(?:กิต)?(?![ก-๙A-Za-z0-9_])|"
+    r"กี่\s*หน่วย(?:กิต)?(?:อะ|นะ|ครับ|คะ)?(?![ก-๙A-Za-z0-9_])|"
     r"กี่\s*เครดิต(?![ก-๙A-Za-z0-9_])|"
     r"(?<![A-Za-z0-9_])credits?(?![A-Za-z0-9_])",
     re.IGNORECASE,

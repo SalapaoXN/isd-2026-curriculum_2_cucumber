@@ -154,6 +154,28 @@ class RagQaTest(unittest.TestCase):
             [("coop",), ("no_coop",)],
         )
 
+    def test_english_y2_list_keeps_year_scope_in_grounded_claims(self):
+        result = ask(DB_PATH, "DSBA Y2 มีวิชาอะไรบ้าง")
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertTrue(result["result"].claims)
+        self.assertTrue(
+            all(claim.effective_scope.years == (2,) for claim in result["result"].claims)
+        )
+
+    def test_invalid_english_year_fails_closed_without_scope_widening(self):
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "DSBA Y5 มีวิชาอะไรบ้าง",
+                structured_model_callable=lambda prompt: self.fail(
+                    "invalid year must not enter fallback"
+                ),
+            )
+
+        self.assertEqual(result["result"]["status"], "unsupported")
+        fallback.assert_not_called()
+
     def test_context_program_topic_query_uses_existing_topic_matches_path(self):
         explicit = ask(DB_PATH, "IT มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง")
         contextual = ask(
@@ -183,6 +205,19 @@ class RagQaTest(unittest.TestCase):
 
         self.assertEqual(result["result"]["status"], "clarify_program")
         self.assertEqual(result["result"]["action"], "clarify_program")
+
+    def test_workload_credit_wording_without_program_still_clarifies(self):
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "วิชา 06026212 หนักกี่หน่วย",
+                structured_model_callable=lambda prompt: self.fail(
+                    "program-free workload must not use credit fallback"
+                ),
+            )
+
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        fallback.assert_not_called()
 
     def test_context_plan_restricts_each_runtime_claim_to_selected_plan(self):
         for plan in ("coop", "no_coop"):

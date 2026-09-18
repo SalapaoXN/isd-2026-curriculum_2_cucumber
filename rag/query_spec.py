@@ -37,7 +37,13 @@ _PLAN_ALIASES = (
 )
 
 _YEAR_PATTERN = re.compile(
-    r"ปี\s*(?:ที่\s*)?([1-5])(?!\d)|\byear\s*([1-5])\b",
+    r"ปี\s*(?:ที่\s*)?([1-5])(?!\d)|\byear\s*([1-5])\b|\bY\s*([1-4])\b",
+    re.IGNORECASE,
+)
+_INVALID_YEAR_PATTERN = re.compile(
+    r"\bY\s*(?:0|[5-9]|\d{2,})\b|"
+    r"\byear\s*(?:0|[6-9]|\d{2,})\b|"
+    r"ปี\s*(?:ที่\s*)?(?:0|[6-9]|\d{2,})(?!\d)",
     re.IGNORECASE,
 )
 _SEMESTER_PATTERN = re.compile(
@@ -61,6 +67,7 @@ _BARE_COURSE_NAME_PATTERN = re.compile(
     r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
     r"เรียนเรื่อง|เรียนเกี่ยวกับ|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
     r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร|"
+    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|ต้องเรียนอะไรต่อ(?:ไหม)?|"
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร(?:อะไร|ไหน)(?:บ้าง)?))",
     re.IGNORECASE,
 )
@@ -68,7 +75,7 @@ _PROGRAM_DISCOVERY_PATTERN = re.compile(
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร\s*(?:อะไร|ไหน)(?:บ้าง)?",
     re.IGNORECASE,
 )
-_CATEGORY_PATTERN = re.compile(r"วิชาเลือก")
+_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gened(?![A-Za-z0-9_])", re.IGNORECASE)
 _TOPIC_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])(programming|database|network|data|web|AI)"
     r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
@@ -79,14 +86,18 @@ _OPERATION_PATTERNS = (
         "list",
         re.compile(
             r"เรียนอะไรบ้าง|มีอะไรบ้าง|มีวิชา(?:อะไร|ไหน)|มีวิชา.*?(?:อะไร|ไหน)(?:บ้าง)?|"
-            r"ต้องเรียนอะไรบ้าง|วิชาอะไรบ้าง",
+            r"ต้องเรียนอะไรบ้าง|วิชาอะไรบ้าง|"
+            r"ขอ\s*รายวิชา(?:[^?\n]{0,60}(?:อะไร|ไหน|บ้าง))?|"
+            r"มี(?:วิชา)?[^?\n]{0,40}ตัวไหนบ้าง|เรียนตัวไหนกันบ้าง|"
+            r"เรียนอะไรกัน(?:บ้าง)?|"
+            r"ลงเรียนวิชา\s*(?:gened|ศึกษาทั่วไป)\s*อะไรได้บ้าง",
             re.IGNORECASE,
         ),
     ),
     (
         "describe",
         re.compile(
-            r"เรียน(?:เกี่ยวกับ|เรื่อง)|สอน(?:เกี่ยวกับ|เรื่อง)|เนื้อหาเป็นอย่างไร|ชื่ออะไร|เรียนอะไร(?!บ้าง)",
+            r"เรียน(?:เกี่ยวกับ|เรื่อง)|สอน(?:เกี่ยวกับ|เรื่อง)|เนื้อหาเป็นอย่างไร|ชื่ออะไร|เรียนอะไร(?!บ้าง|กัน)",
             re.IGNORECASE,
         ),
     ),
@@ -97,7 +108,15 @@ _OPERATION_PATTERNS = (
             re.IGNORECASE,
         ),
     ),
-    ("sum_credits", re.compile(r"หน่วยกิต|เครดิต|\bcredits?\b", re.IGNORECASE)),
+    (
+        "sum_credits",
+        re.compile(
+            r"หน่วยกิต|เครดิต|\bcredits?\b|"
+            r"กี่\s*หน่วย(?:กิต)?(?:อะ|นะ|ครับ|คะ)(?![ก-๙A-Za-z0-9_])|"
+            r"หนัก\s*กี่\s*หน่วย(?:กิต)?(?![ก-๙A-Za-z0-9_])",
+            re.IGNORECASE,
+        ),
+    ),
     (
         "existence",
         re.compile(r"(?:มี|อยู่|พบ).{0,40}(?:ไหม|มั้ย|หรือไม่)|\b(?:exists?|whether)\b", re.IGNORECASE),
@@ -113,13 +132,22 @@ _OPERATION_PATTERNS = (
     (
         "placement",
         re.compile(
-            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เรียนช่วงเดียวกัน|เปิดให้ลง|ลงช่วง|(?:ลง|เรียน|อยู่).{0,20}ตอนไหน|(?:ลง|เรียน|อยู่).{0,20}เมื่อไหร่|(?:ลง|เรียน|อยู่).{0,20}เมื่อไร|ลง.{0,20}เทอมไหน|แผนไหน|เรียนก่อน|\bplacement\b",
+            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|"
+            r"ปีใด|ภาคเรียนใด|เทอมอะไร|จัดไว้ปีไหน|ลงทะเบียนช่วงไหน|"
+            r"(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เรียนช่วงเดียวกัน|เปิดให้ลง|ลงช่วง|"
+            r"(?:ลง|เรียน|อยู่).{0,20}ตอนไหน|(?:ลง|เรียน|อยู่).{0,20}เมื่อไหร่|"
+            r"(?:ลง|เรียน|อยู่).{0,20}เมื่อไร|ลง.{0,20}เทอมไหน|แผนไหน|เรียนก่อน|"
+            r"\bplacement\b",
             re.IGNORECASE,
         ),
     ),
     (
         "prerequisite",
-        re.compile(r"ก่อนลง|วิชาบังคับก่อน|ต้อง(?:เคย)?ผ่าน|เตรียมผ่านวิชา|(?:เรียน|ผ่าน).*มาก่อน|prerequisite", re.IGNORECASE),
+        re.compile(
+            r"ก่อนลง|วิชาบังคับก่อน|ต้อง(?:เคย)?ผ่าน|เตรียมผ่านวิชา|"
+            r"(?:เรียน|ผ่าน).*มาก่อน|ต้องเรียนอะไรต่อ(?:ไหม)?|prerequisite",
+            re.IGNORECASE,
+        ),
     ),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
 )
@@ -152,7 +180,7 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
 )
 _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
-    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?",
+    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
     re.IGNORECASE,
 )
 
@@ -211,6 +239,10 @@ def _extract_plans(question: str) -> tuple[str, ...]:
     matches = []
     for match in _PLAN_PATTERN.finditer(question):
         value = match.group(0).casefold()
+        if value == "gened" and re.search(
+            r"วิชา\s*gened\b|gened\s+อะไร", question, re.IGNORECASE
+        ):
+            continue
         canonical = next(canonical for alias, canonical in _PLAN_ALIASES if alias == value)
         matches.append((match.start(), canonical))
     return _ordered_unique(value for _, value in sorted(matches))
@@ -244,7 +276,11 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
 
 def _extract_category(question: str) -> str | None:
     match = _CATEGORY_PATTERN.search(question)
-    return match.group(0) if match else None
+    if not match:
+        return None
+    if match.group(0).casefold() == "วิชาเลือก":
+        return "วิชาเลือก"
+    return "หมวดวิชาศึกษาทั่วไป"
 
 
 def _extract_topic(question: str, course_name: str | None) -> str | None:
@@ -428,6 +464,8 @@ def parse_query_spec(question: str) -> QuerySpec:
     category = _extract_category(normalized_question)
     topic = _extract_topic(normalized_question, course_name)
     judgement = _extract_judgement(normalized_question)
+    if _INVALID_YEAR_PATTERN.search(normalized_question):
+        judgement = "unsupported"
     # A fully specified year/semester scope is sufficient to recognize an
     # operation even when the program will be supplied later through
     # QueryContext.  Keep one-axis, no-program questions on the existing
