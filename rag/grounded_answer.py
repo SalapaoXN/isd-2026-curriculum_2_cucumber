@@ -41,6 +41,7 @@ CLAIM_STATUSES = (
 CLAIM_OPERATIONS = frozenset(
     {
         "identity",
+        "program_discovery",
         "list",
         "count",
         "course_set",
@@ -289,9 +290,12 @@ def _identity_claim(identity_result: Mapping[str, Any]) -> GroundedClaim:
     provenance = _provenance_from(identity_result)
     if provenance is None:
         raise _InvalidComposition("malformed identity provenance")
+    operation = identity_result.get("operation", "identity")
+    if operation not in CLAIM_OPERATIONS:
+        raise _InvalidComposition("identity result has an unsupported operation")
     return GroundedClaim(
         claim_id="pending",
-        operation="identity",
+        operation=operation,
         status="complete",
         kind="deterministic_fact",
         value=tuple(identities),

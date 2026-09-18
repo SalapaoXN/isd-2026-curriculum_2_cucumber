@@ -11,6 +11,7 @@ from rag.retrieval.retrieve import (
     CONSTRAINED_RETRIEVAL_STATES,
     CONSTRAINED_TOPIC_DISTANCE_THRESHOLD,
     ConstrainedTopicRetrievalResult,
+    _fetch_course_description_evidence_batch,
     enrich_candidate_description_scores,
     fetch_course_description_evidence,
     make_constrained_topic_retrieval_result,
@@ -418,6 +419,56 @@ class RagRetrieveTest(unittest.TestCase):
             self.assertEqual(
                 [item["partition"] for item in mapped],
                 [{"year": 1}, {"year": 2}],
+            )
+        finally:
+            directory.cleanup()
+
+    def test_candidate_mapping_batches_unique_course_ids_once(self):
+        directory, database_path = self._course_chunk_database(
+            [
+                (
+                    "description-one",
+                    {
+                        "chunk_type": "description",
+                        "course_id": 1,
+                        "text": "one",
+                        "provenance": [],
+                    },
+                ),
+                (
+                    "description-two",
+                    {
+                        "chunk_type": "description",
+                        "course_id": 2,
+                        "text": "two",
+                        "provenance": [],
+                    },
+                ),
+            ]
+        )
+        try:
+            with patch(
+                "rag.retrieval.retrieve._fetch_course_description_evidence_batch",
+                wraps=_fetch_course_description_evidence_batch,
+            ) as batch_fetch:
+                mapped = map_course_candidates_to_description_evidence(
+                    database_path,
+                    (
+                        {"course_id": 1, "partition": {"plan": "coop"}},
+                        {"course_id": 2, "partition": {"plan": "coop"}},
+                        {"course_id": 1, "partition": {"plan": "no_coop"}},
+                    ),
+                )
+
+            self.assertEqual(batch_fetch.call_count, 1)
+            self.assertEqual(batch_fetch.call_args.args[1], [1, 2, 1])
+            self.assertEqual(
+                [item["description_evidence"][0]["text"] for item in mapped],
+                ["one", "two", "one"],
+            )
+            self.assertEqual(
+                [item["partition"]["plan"] for item in mapped],
+                ["coop", "coop", "no_coop"],
             )
         finally:
             directory.cleanup()

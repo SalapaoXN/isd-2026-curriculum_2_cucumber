@@ -821,7 +821,9 @@ def _normalize_course_name(value: str) -> str:
     return " ".join(value.casefold().split())
 
 
-def _course_name_matches(reference: str, candidate: str | None) -> bool:
+def _course_name_matches(
+    reference: str, candidate: str | None, *, exact_only: bool = False
+) -> bool:
     if not candidate:
         return False
     normalized_reference = _normalize_course_name(reference)
@@ -830,6 +832,8 @@ def _course_name_matches(reference: str, candidate: str | None) -> bool:
         return False
     if normalized_reference == normalized_candidate:
         return True
+    if exact_only:
+        return False
 
     reference_tokens = _COURSE_NAME_TOKEN_RE.findall(normalized_reference)
     candidate_tokens = _COURSE_NAME_TOKEN_RE.findall(normalized_candidate)
@@ -853,6 +857,7 @@ def exact_course_candidates(
     course_code: str | None = None,
     course_name: str | None = None,
     program: str | None = None,
+    exact_title: bool = False,
 ) -> list[dict[str, Any]]:
     """Return exact relational course identities for one code or name reference.
 
@@ -860,6 +865,9 @@ def exact_course_candidates(
     and ``name_en`` values. Results that differ only by plan, catalog duplicate,
     or repeated relational joins are collapsed by logical ``(program, code)``.
     This helper only returns candidates; it does not decide ambiguity or policy.
+
+    Pass ``exact_title=True`` to skip contiguous token-subsequence matching and
+    keep only normalized title equality. Course-code lookup is unaffected.
     """
     if (course_code is None) == (course_name is None):
         raise ValueError("provide exactly one of course_code or course_name")
@@ -916,8 +924,10 @@ def exact_course_candidates(
                     str(row["program_code_normalized"]),
                     str(row["course_code_normalized"]),
                 )
-                if _course_name_matches(course_name or "", row["name_th"]) or _course_name_matches(
-                    course_name or "", row["name_en"]
+                if _course_name_matches(
+                    course_name or "", row["name_th"], exact_only=exact_title
+                ) or _course_name_matches(
+                    course_name or "", row["name_en"], exact_only=exact_title
                 ):
                     matched_keys.add(logical_key)
 

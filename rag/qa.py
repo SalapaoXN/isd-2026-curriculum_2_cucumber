@@ -909,6 +909,138 @@ def _earliest_comparison_payload(
         return None
 
 
+def _placement_comparison_payloads(
+    query_spec: Any,
+    bundle: EvidenceBundle,
+) -> tuple[ComparisonAggregation, ...]:
+    """Compare complete exact-course placement operands within safe partitions."""
+    operations = set(getattr(query_spec, "operations", ()))
+    if (
+        "compare" not in operations
+        or "placement" not in operations
+        or "earliest" in operations
+    ):
+        return ()
+
+    placement_results = _execution_results(bundle, "placement_facts")
+    if not placement_results:
+        return ()
+
+    requested_targets: set[tuple[str, str]] = set()
+    grouped: dict[tuple[str, str], dict[tuple[str, str], list[Mapping[str, Any]]]] = {}
+    for result in placement_results:
+        if result.status != "complete":
+            return ()
+        scope = result.effective_scope
+        program = getattr(scope, "program", None)
+        plans = tuple(getattr(scope, "plans", ()))
+        if not isinstance(program, str) or not program.strip() or len(plans) != 1:
+            return ()
+        plan = plans[0]
+        if not isinstance(plan, str) or not plan.strip():
+            return ()
+
+        for target in tuple(
+            getattr(result.planned_request, "course_targets", ())
+            or getattr(scope, "course_targets", ())
+        ):
+            target_key = _logical_target_key(target)
+            if target_key is not None:
+                requested_targets.add(target_key)
+
+        records = _payload_records(result, "courses")
+        if not records:
+            return ()
+        identities = {_logical_target_key(record) for record in records}
+        if None in identities or len(identities) != 1:
+            return ()
+        identity = next(iter(identities))
+        if identity[0] != program or identity not in requested_targets:
+            return ()
+        for record in records:
+            record_plan = record.get("plan_key", record.get("plan"))
+            if record.get("program") != program or record_plan != plan:
+                return ()
+        grouped.setdefault((program, plan), {}).setdefault(identity, []).extend(records)
+
+    if not requested_targets or len({program for program, _ in requested_targets}) != 1:
+        return ()
+
+    target_count = len(requested_targets)
+    requested_plans = tuple(getattr(query_spec, "plans", ()))
+    if target_count == 2:
+        if any(set(targets) != requested_targets for targets in grouped.values()):
+            return ()
+        if len(grouped) == 0:
+            return ()
+    elif target_count == 1:
+        if len(requested_plans) != 2 or set(requested_plans) != {
+            plan for _, plan in grouped
+        }:
+            return ()
+        if any(set(targets) != requested_targets for targets in grouped.values()):
+            return ()
+    else:
+        return ()
+
+    ordered_targets = tuple(sorted(requested_targets))
+    if target_count == 1:
+        plans = sorted(grouped)
+        if len(plans) != 2:
+            return ()
+        target = ordered_targets[0]
+        left_records = grouped[plans[0]][target]
+        right_records = grouped[plans[1]][target]
+        try:
+            left = aggregate_earliest(left_records, evidence_complete=True)
+            right = aggregate_earliest(right_records, evidence_complete=True)
+            comparison = compare_aggregates(left, right)
+        except (TypeError, ValueError, OverflowError):
+            return ()
+        if (
+            left.status != "complete"
+            or right.status != "complete"
+            or left.value is None
+            or right.value is None
+            or len(left.partitions) != 1
+            or len(right.partitions) != 1
+            or not _provenance_from_value(left)
+            or not _provenance_from_value(right)
+        ):
+            return ()
+        return (comparison,)
+
+    payloads: list[ComparisonAggregation] = []
+    for target_records in grouped.values():
+        aggregates: dict[tuple[str, str], EarliestAggregation] = {}
+        for target in ordered_targets:
+            try:
+                aggregate = aggregate_earliest(
+                    target_records[target],
+                    evidence_complete=True,
+                )
+            except (TypeError, ValueError, OverflowError):
+                return ()
+            if (
+                aggregate.status != "complete"
+                or aggregate.value is None
+                or len(aggregate.partitions) != 1
+                or not _provenance_from_value(aggregate)
+            ):
+                return ()
+            aggregates[target] = aggregate
+        try:
+            payloads.append(
+                compare_aggregates(
+                    aggregates[ordered_targets[0]],
+                    aggregates[ordered_targets[1]],
+                )
+            )
+        except (TypeError, ValueError, OverflowError):
+            return ()
+    return tuple(payloads)
+
+
 def _missing_comparison_claim() -> GroundedClaim:
     """Represent an unexecuted comparison without inventing a relation."""
     return GroundedClaim(
@@ -1105,8 +1237,14 @@ def _compose_evidence_claims(
         for result in bundle.results
         if isinstance(result.payload, ComparisonAggregation)
     )
+    generated_placement_comparisons: tuple[ComparisonAggregation, ...] = ()
     generated_comparison = None
     if not comparison_results:
+        generated_placement_comparisons = _placement_comparison_payloads(
+            query_spec,
+            bundle,
+        )
+    if not comparison_results and not generated_placement_comparisons:
         generated_comparison = _earliest_comparison_payload(query_spec, bundle)
     course_cache: dict[int, CourseSetAggregation | None] = {}
     claims: list[GroundedClaim] = []
@@ -1160,6 +1298,14 @@ def _compose_evidence_claims(
             if comparison_results:
                 for result in comparison_results:
                     claims.extend(_comparison_claims(result))
+            elif generated_placement_comparisons:
+                for payload in generated_placement_comparisons:
+                    claims.extend(
+                        _comparison_claim_from_payload(
+                            payload,
+                            effective_scope=None,
+                        )
+                    )
             elif generated_comparison is not None:
                 claims.extend(
                     _comparison_claim_from_payload(
@@ -1220,7 +1366,11 @@ def _blocked_result(outcome: ResolutionOutcome) -> dict[str, Any]:
     }
 
 
-def _identity_result(outcome: ResolutionOutcome) -> dict[str, Any]:
+def _identity_result(
+    outcome: ResolutionOutcome,
+    *,
+    operation: str = "identity",
+) -> dict[str, Any]:
     identities: list[dict[str, Any]] = []
     for reference in outcome.course_references:
         for candidate in reference.candidates:
@@ -1234,7 +1384,7 @@ def _identity_result(outcome: ResolutionOutcome) -> dict[str, Any]:
     return {
         "status": "answer",
         "action": "answer",
-        "operation": "identity",
+        "operation": operation,
         "resolved_program": outcome.resolved_program,
         "resolved_plans": outcome.resolved_plans,
         "identities": identities,
@@ -1258,6 +1408,22 @@ def ask(
     resolution = resolve_query_spec(spec, db_path, context=context)
     if resolution.action != "answer":
         return {"route": None, "result": _blocked_result(resolution)}
+
+    if spec.operations == ("program_discovery",):
+        grounded = compose_grounded_answer(
+            identity_result=_identity_result(
+                resolution,
+                operation="program_discovery",
+            ),
+        )
+        return {
+            "route": None,
+            "result": render_grounded_answer(
+                grounded,
+                answer_model_callable=answer_model_callable,
+                question=question,
+            ),
+        }
 
     if spec.operations == ("identity",):
         grounded = compose_grounded_answer(

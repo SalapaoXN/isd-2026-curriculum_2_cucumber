@@ -226,23 +226,62 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(result["result"]["status"], "no_data")
         self.assertEqual(result["result"]["action"], "no_data")
 
-    def test_identity_code_returns_canonical_name_without_model(self):
+    def test_program_discovery_bypasses_planner_and_preserves_all_matches(self):
         with patch(
             "rag.qa.plan_evidence",
-            side_effect=AssertionError("identity must not plan"),
+            side_effect=AssertionError("program discovery must not plan"),
         ) as planner, patch(
             "rag.qa.execute_evidence_plan",
-            side_effect=AssertionError("identity must not execute"),
+            side_effect=AssertionError("program discovery must not execute"),
+        ) as executor:
+            result = ask(DB_PATH, "CHARM SCHOOL มีอยู่ในหลักสูตรอะไรบ้าง?")
+
+        self.assertIsNone(result["route"])
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].claims[0].operation, "program_discovery")
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(
+            [
+                (item["program"], item["course_code"])
+                for item in result["result"].claims[0].value
+            ],
+            [
+                ("BIT", "96641001"),
+                ("DSBA", "90641001"),
+                ("GENED", "90641001"),
+                ("IT", "90641001"),
+            ],
+        )
+        self.assertIn("BIT", result["result"].final_answer)
+        self.assertIn("IT", result["result"].final_answer)
+        self.assertTrue(result["result"].provenance)
+        planner.assert_not_called()
+        executor.assert_not_called()
+
+    def test_identity_code_without_program_requests_clarification(self):
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("clarify must not plan"),
+        ) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("clarify must not execute"),
         ) as executor:
             result = ask(DB_PATH, "06046400 ชื่ออะไร")
 
         self.assertIsNone(result["route"])
-        self.assertIsInstance(result["result"], GroundedAnswerResult)
-        identity = result["result"].claims[0].value
-        self.assertEqual(len(identity), 1)
-        self.assertEqual(identity[0]["program"], "AIT")
-        self.assertEqual(identity[0]["course_code"], "06046400")
-        self.assertEqual(identity[0]["name_en"], "CALCULUS 1")
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+        self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
+        self.assertIsNone(result["result"]["resolved_program"])
+        (reference,) = result["result"]["course_references"]
+        self.assertEqual(reference["reference"], "06046400")
+        self.assertEqual(
+            [
+                (candidate["program"], candidate["course_code"])
+                for candidate in reference["candidates"]
+            ],
+            [("AIT", "06046400")],
+        )
         planner.assert_not_called()
         executor.assert_not_called()
 
@@ -380,100 +419,47 @@ class RagQaTest(unittest.TestCase):
             selected_plan="coop",
         )
 
-    def test_real_similarity_query_keeps_each_course_and_aggregates_once(self):
-        def fake_aggregate(_db_path, left_courses, right_courses, *, selected_plan=None):
-            self.assertIsNone(selected_plan)
-            left_by_plan = {
-                record["partition"]["plan"]: record
-                for record in left_courses
-            }
-            right_by_plan = {
-                record["partition"]["plan"]: record
-                for record in right_courses
-            }
-            pairs = []
-            for plan in sorted(set(left_by_plan) & set(right_by_plan)):
-                left_record = left_by_plan[plan]
-                right_record = right_by_plan[plan]
-                pairs.append(SimilarityPair(
-                    status="complete",
-                    partition=left_record["partition"],
-                    left=left_record["description_evidence"][0],
-                    right=right_record["description_evidence"][0],
-                    cosine_distance=0.25,
-                    cosine_similarity=0.75,
-                ))
-            return SimilarityEvidence(
-                status="complete",
-                pairs=tuple(pairs),
-                mean_distance=0.25,
-                min_distance=0.25,
-                max_distance=0.25,
-            )
-
+    def test_real_similarity_query_without_program_requests_clarification(self):
         with patch(
             "rag.evidence_executor.aggregate_exact_course_similarity",
-            side_effect=fake_aggregate,
+            side_effect=AssertionError("clarify must not aggregate"),
         ) as aggregate:
             result = ask(
                 DB_PATH,
                 "06016414 กับ 06016419 เนื้อหาคล้ายกันไหม",
             )
 
-        self.assertIsInstance(result["result"], GroundedAnswerResult)
-        claim = result["result"].claims[0]
-        self.assertEqual(result["result"].status, "answer")
-        self.assertEqual(claim.operation, "similarity")
-        self.assertEqual(claim.value.status, "complete")
-        self.assertEqual(len(claim.value.pairs), 2)
-        self.assertTrue(all(pair.left["provenance"] for pair in claim.value.pairs))
-        self.assertTrue(all(pair.right["provenance"] for pair in claim.value.pairs))
+        self.assertIsNone(result["route"])
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+        self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
+        self.assertIsNone(result["result"]["resolved_program"])
         self.assertEqual(
-            {
-                pair.left["course_code"] for pair in claim.value.pairs
-            },
-            {"06016414"},
+            {ref["reference"] for ref in result["result"]["course_references"]},
+            {"06016414", "06016419"},
         )
-        self.assertEqual(
-            {
-                pair.right["course_code"] for pair in claim.value.pairs
-            },
-            {"06016419"},
-        )
-        aggregate.assert_called_once()
+        aggregate.assert_not_called()
 
-    def test_real_similarity_query_uses_plan_specific_description_evidence(self):
+    def test_real_similarity_query_without_context_keeps_references_and_clarifies(self):
         with patch(
             "rag.evidence_executor.aggregate_exact_course_similarity",
-            wraps=aggregate_exact_course_similarity,
+            side_effect=AssertionError("clarify must not aggregate"),
         ) as aggregate:
             result = ask(
                 DB_PATH,
                 "06016414 กับ 06016419 เนื้อหาคล้ายกันไหม",
             )
 
-        self.assertIsInstance(result["result"], GroundedAnswerResult)
-        self.assertEqual(result["result"].status, "answer")
-        claim = result["result"].claims[0]
-        self.assertEqual(claim.value.status, "complete")
-        self.assertEqual(len(claim.value.pairs), 2)
-        chunks = {
-            pair.partition["plan"]: (
-                pair.left["chunk_id"],
-                pair.right["chunk_id"],
-            )
-            for pair in claim.value.pairs
-        }
+        self.assertIsNone(result["route"])
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+        self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
+        self.assertIsNone(result["result"]["resolved_program"])
         self.assertEqual(
-            chunks,
-            {
-                "coop": ("course-632-description", "course-634-description"),
-                "no_coop": ("course-736-description", "course-738-description"),
-            },
+            {ref["reference"] for ref in result["result"]["course_references"]},
+            {"06016414", "06016419"},
         )
-        self.assertTrue(all(pair.left["provenance"] for pair in claim.value.pairs))
-        self.assertTrue(all(pair.right["provenance"] for pair in claim.value.pairs))
-        aggregate.assert_called_once()
+        aggregate.assert_not_called()
 
     def test_plan_specific_single_course_describe_preserves_no_coop_evidence(self):
         result = ask(
@@ -635,31 +621,25 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(claim.evidence.components[0]["course_code"], "06016465")
         self.assertTrue(claim.provenance)
 
-    def test_exact_course_name_and_credit_preserves_both_typed_claims(self):
+    def test_exact_course_name_and_credit_without_program_requests_clarification(self):
         result = ask(DB_PATH, "วิชา 06016420 ชื่ออะไรและมีกี่หน่วยกิต?")
 
-        self.assertIsInstance(result["result"], GroundedAnswerResult)
-        claims = result["result"].claims
+        self.assertIsNone(result["route"])
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+        self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
+        self.assertIsNone(result["result"]["resolved_program"])
+        (reference,) = result["result"]["course_references"]
+        self.assertEqual(reference["reference"], "06016420")
         self.assertEqual(
-            [claim.operation for claim in claims],
-            ["identity", "sum_credits", "sum_credits"],
+            [
+                (candidate["program"], candidate["course_code"])
+                for candidate in reference["candidates"]
+            ],
+            [("IT", "06016420")],
         )
-        identity, *credit_claims = claims
-        self.assertEqual(identity.status, "complete")
-        self.assertTrue(identity.value)
-        self.assertTrue(identity.provenance)
-        self.assertEqual(
-            {tuple(claim.effective_scope.plans) for claim in credit_claims},
-            {("coop",), ("no_coop",)},
-        )
-        for credit in credit_claims:
-            with self.subTest(plan=credit.effective_scope.plans):
-                self.assertEqual(credit.status, "complete")
-                self.assertEqual(credit.value, 3)
-                self.assertTrue(credit.evidence.components)
-                self.assertTrue(credit.provenance)
 
-    def test_generic_plan_comparison_stays_fail_closed_after_placement_parse(self):
+    def test_explicit_plan_comparison_uses_complete_placement_operands(self):
         result = ask(
             DB_PATH,
             "วิชา 06036103 ใน BIT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน และรายละเอียดการจัดวางต่างกันอย่างไร?",
@@ -672,8 +652,8 @@ class RagQaTest(unittest.TestCase):
         self.assertTrue(placement)
         self.assertTrue(all(claim.status == "complete" for claim in placement))
         self.assertEqual(len(comparison), 1)
-        self.assertEqual(comparison[0].status, "insufficient_evidence")
-        self.assertIsNone(comparison[0].value)
+        self.assertEqual(comparison[0].status, "complete")
+        self.assertEqual(comparison[0].value.relation, "equal")
 
     def test_similarity_claim_keeps_multiple_partitions_without_scope_merge(self):
         planned_scope = StructuralScope(
@@ -871,6 +851,57 @@ class RagQaTest(unittest.TestCase):
             )
         return EvidenceBundle(
             EvidencePlan(bundle_scope, tuple(requests), group_by=("plan",)),
+            tuple(results),
+        )
+
+    def _placement_comparison_bundle(
+        self,
+        records_by_plan,
+        target_codes,
+        *,
+        group_by,
+        program="IT",
+    ):
+        targets = tuple(
+            {"program": program, "course_code": code, "course_id": index}
+            for index, code in enumerate(target_codes, start=1)
+        )
+        plans = tuple(records_by_plan)
+        bundle_scope = StructuralScope(
+            program=program,
+            plans=plans,
+            course_targets=targets,
+            group_by=tuple(group_by),
+        )
+        requests = []
+        results = []
+        for plan in plans:
+            scope = StructuralScope(
+                program=program,
+                plans=(plan,),
+                course_targets=targets,
+                group_by=tuple(group_by),
+            )
+            for index, record in enumerate(records_by_plan[plan], start=1):
+                request = EvidenceRequest(
+                    f"placement_{plan}_{index}",
+                    "placement_facts",
+                    scope,
+                    course_targets=targets,
+                )
+                requests.append(request)
+                results.append(
+                    EvidenceExecutionResult(
+                        request_id=request.request_id,
+                        kind=request.kind,
+                        planned_request=request,
+                        effective_scope=scope,
+                        status="complete",
+                        payload={"courses": [record]},
+                    )
+                )
+        return EvidenceBundle(
+            EvidencePlan(bundle_scope, tuple(requests), group_by=tuple(group_by)),
             tuple(results),
         )
 
@@ -1546,6 +1577,153 @@ class RagQaTest(unittest.TestCase):
         self.assertIsNone(claim.value)
         self.assertIsNone(claim.evidence)
         self.assertEqual(claim.provenance, ())
+
+    def test_normal_two_course_placement_comparison_is_partition_local(self):
+        spec = parse_query_spec("06016414 กับ 06016419 วิชาไหนเรียนก่อน?")
+        bundle = self._placement_comparison_bundle(
+            {
+                "coop": [
+                    self._placement("coop", 2, 2, 11, course_code="06016414"),
+                    self._placement("coop", 2, 2, 12, course_code="06016419"),
+                ],
+                "no_coop": [
+                    self._placement("no_coop", 2, 2, 21, course_code="06016414"),
+                    self._placement("no_coop", 2, 2, 22, course_code="06016419"),
+                ],
+            },
+            ("06016414", "06016419"),
+            group_by=("course",),
+        )
+
+        claims = _compose_evidence_claims(spec, bundle)
+        comparisons = [claim for claim in claims if claim.operation == "compare"]
+        self.assertEqual(len(comparisons), 2)
+        self.assertTrue(all(claim.status == "complete" for claim in comparisons))
+        self.assertTrue(all(claim.value.relation == "equal" for claim in comparisons))
+        self.assertEqual(
+            {
+                partition.partition["plans"]
+                for claim in comparisons
+                for aggregate in (claim.value.left, claim.value.right)
+                for partition in aggregate.partitions
+            },
+            {("coop",), ("no_coop",)},
+        )
+        self.assertEqual(
+            len({reference["source_page"] for claim in comparisons for reference in claim.provenance}),
+            4,
+        )
+
+    def test_normal_two_course_placement_comparison_orders_operands(self):
+        spec = parse_query_spec("06016414 กับ 06016419 วิชาไหนเรียนก่อน?")
+        earlier = self._placement_comparison_bundle(
+            {
+                "coop": [
+                    self._placement("coop", 1, 1, 11, course_code="06016414"),
+                    self._placement("coop", 2, 1, 12, course_code="06016419"),
+                ]
+            },
+            ("06016414", "06016419"),
+            group_by=("course",),
+        )
+        later = self._placement_comparison_bundle(
+            {
+                "coop": [
+                    self._placement("coop", 2, 1, 11, course_code="06016414"),
+                    self._placement("coop", 1, 1, 12, course_code="06016419"),
+                ]
+            },
+            ("06016414", "06016419"),
+            group_by=("course",),
+        )
+
+        self.assertEqual(
+            _compose_evidence_claims(spec, earlier)[-1].value.relation,
+            "less",
+        )
+        self.assertEqual(
+            _compose_evidence_claims(spec, later)[-1].value.relation,
+            "greater",
+        )
+
+    def test_normal_same_course_plan_comparison_preserves_plan_operands(self):
+        spec = parse_query_spec(
+            "06016401 ในแผนสหกิจกับไม่สหกิจ เรียนช่วงเดียวกันไหม?"
+        )
+        bundle = self._placement_comparison_bundle(
+            {
+                "coop": [self._placement("coop", 1, 1, 11, course_code="06016401")],
+                "no_coop": [
+                    self._placement("no_coop", 1, 1, 22, course_code="06016401")
+                ],
+            },
+            ("06016401",),
+            group_by=("plan",),
+        )
+
+        claims = _compose_evidence_claims(spec, bundle)
+        comparison = next(claim for claim in claims if claim.operation == "compare")
+        self.assertEqual(comparison.status, "complete")
+        self.assertEqual(comparison.value.relation, "equal")
+        self.assertEqual(
+            [
+                operand.partitions[0].partition["plans"]
+                for operand in (comparison.value.left, comparison.value.right)
+            ],
+            [("coop",), ("no_coop",)],
+        )
+
+    def test_normal_same_course_plan_comparison_reports_unequal_periods(self):
+        spec = parse_query_spec(
+            "06016401 ในแผนสหกิจกับไม่สหกิจ เรียนช่วงเดียวกันไหม?"
+        )
+        bundle = self._placement_comparison_bundle(
+            {
+                "coop": [self._placement("coop", 1, 1, 11, course_code="06016401")],
+                "no_coop": [
+                    self._placement("no_coop", 2, 1, 22, course_code="06016401")
+                ],
+            },
+            ("06016401",),
+            group_by=("plan",),
+        )
+
+        comparison = next(
+            claim
+            for claim in _compose_evidence_claims(spec, bundle)
+            if claim.operation == "compare"
+        )
+        self.assertEqual(comparison.status, "complete")
+        self.assertEqual(comparison.value.relation, "less")
+
+    def test_normal_placement_comparison_missing_or_incompatible_operand_fails_closed(self):
+        spec = parse_query_spec("06016414 กับ 06016419 วิชาไหนเรียนก่อน?")
+        missing = self._placement_comparison_bundle(
+            {
+                "coop": [self._placement("coop", 2, 2, 11, course_code="06016414")]
+            },
+            ("06016414", "06016419"),
+            group_by=("course",),
+        )
+        incompatible_record = self._placement(
+            "coop", 2, 2, 11, course_code="06016414"
+        )
+        incompatible_record["program"] = "DSBA"
+        incompatible = self._placement_comparison_bundle(
+            {"coop": [incompatible_record, self._placement("coop", 2, 2, 12, course_code="06016419")]},
+            ("06016414", "06016419"),
+            group_by=("course",),
+        )
+
+        for bundle in (missing, incompatible):
+            with self.subTest(bundle=bundle):
+                comparison = next(
+                    claim
+                    for claim in _compose_evidence_claims(spec, bundle)
+                    if claim.operation == "compare"
+                )
+                self.assertEqual(comparison.status, "insufficient_evidence")
+                self.assertIsNone(comparison.value)
 
     def test_earliest_plan_comparison_preserves_isolated_operands_and_provenance(self):
         bundle = self._earliest_bundle(

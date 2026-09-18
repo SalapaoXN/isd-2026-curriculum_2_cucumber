@@ -855,6 +855,15 @@ def _placement_entries(value: Any) -> tuple[Mapping[str, Any], ...]:
     return ()
 
 
+def _placement_entry_key(entry: Mapping[str, Any]) -> tuple[Any, ...]:
+    """Identify one placement entry by course, plan, and timing choices."""
+    return (
+        entry.get("course_code"),
+        entry.get("plan_key", entry.get("plan")),
+        tuple(_placement_choices(entry)),
+    )
+
+
 def _plan_display(plan: Any) -> str:
     if plan == "coop":
         return "สหกิจ"
@@ -897,7 +906,7 @@ def _placement_text(value: Any) -> str | None:
         right_choices = _placement_choices(right)
         left_plan = left.get("plan_key", left.get("plan"))
         right_plan = right.get("plan_key", right.get("plan"))
-        if left_plan and right_plan and left_choices == right_choices:
+        if left_plan and right_plan and left_plan != right_plan and left_choices == right_choices:
             timing = " หรือ ".join(
                 f"ปี {year} ภาคเรียนที่ {semester}"
                 for year, semester in left_choices
@@ -907,6 +916,21 @@ def _placement_text(value: Any) -> str | None:
                 f"ทั้งแผน{_plan_display(left_plan)}และแผน{_plan_display(right_plan)}"
                 f"เรียนใน{timing} จึงไม่ต่างกันด้านช่วงเรียน"
             )
+        if left_plan == right_plan and left_choices == right_choices:
+            left_code = left.get("course_code")
+            right_code = right.get("course_code")
+            if left_code not in (None, "") and right_code not in (None, ""):
+                timing = " หรือ ".join(
+                    f"ปี {year} ภาคเรียนที่ {semester}"
+                    for year, semester in left_choices
+                )
+                program = left.get("program")
+                program_text = f"ในหลักสูตร {program}" if program not in (None, "") else ""
+                plan_text = f" แผน{_plan_display(left_plan)}" if left_plan else ""
+                return (
+                    f"วิชา {left_code} และวิชา {right_code} {program_text}{plan_text}"
+                    f"เรียนใน{timing} จึงอยู่ช่วงเดียวกัน"
+                )
     sentences = [_placement_sentence(entry) for entry in entries]
     rendered = [sentence for sentence in sentences if sentence]
     return "\n".join(rendered) if rendered else None
@@ -1073,6 +1097,36 @@ def _identity_claim_text(value: Any) -> str | None:
     return "\n".join(rendered) if rendered else None
 
 
+def _program_discovery_text(value: Any) -> str | None:
+    if isinstance(value, Mapping):
+        entries: tuple[Any, ...] = (value,)
+    elif isinstance(value, (list, tuple)):
+        entries = tuple(value)
+    else:
+        return None
+
+    rendered: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            continue
+        program = entry.get("program")
+        course_code = entry.get("course_code")
+        if not isinstance(program, str) or not program.strip():
+            continue
+        if not isinstance(course_code, str) or not course_code.strip():
+            continue
+        identity = (program.strip(), course_code.strip())
+        if identity in seen:
+            continue
+        seen.add(identity)
+        name = _identity_entry_text(entry)
+        if name is None:
+            name = course_code.strip()
+        rendered.append(f"- {program.strip()} — {name}")
+    return "\n".join(rendered) if rendered else None
+
+
 def _credit_claim_targets(scope: Any) -> tuple[Mapping[str, Any], ...]:
     """Return concrete course targets on a credit scope, if any."""
     targets = (
@@ -1131,6 +1185,104 @@ def _sum_credits_text(claim: GroundedClaim) -> str | None:
     if context:
         return f"{context} ลงทะเบียนรวม {total} หน่วยกิต"
     return f"ลงทะเบียนรวม {total} หน่วยกิต"
+
+
+def _course_list_course_text(entry: Mapping[str, Any]) -> str | None:
+    """Render one grounded course as a user-facing line without internals."""
+    code = entry.get("course_code")
+    code_text = str(code).strip() if isinstance(code, str) and code.strip() else None
+    name_th = entry.get("name_th")
+    name_th = name_th.strip() if isinstance(name_th, str) and name_th.strip() else None
+    name_en = entry.get("name_en")
+    name_en = name_en.strip() if isinstance(name_en, str) and name_en.strip() else None
+    if code_text is None and name_th is None and name_en is None:
+        return None
+    line = code_text or ""
+    if name_th is not None:
+        line = f"{line} {name_th}".strip()
+    if name_en is not None:
+        line = f"{line} ({name_en})".strip()
+    credits = next(
+        (
+            str(entry.get(key)).strip()
+            for key in ("placement_credits", "credits", "credits_raw")
+            if (
+                isinstance(entry.get(key), (str, int))
+                and not isinstance(entry.get(key), bool)
+                and str(entry.get(key)).strip()
+            )
+        ),
+        None,
+    )
+    if credits is not None:
+        line = f"{line} — {credits} หน่วยกิต".strip()
+    return line or None
+
+
+def _course_list_alternative_text(entry: Mapping[str, Any]) -> str | None:
+    """Render an alternative-course group using only grounded choice data."""
+    alternatives = entry.get("alternative_courses")
+    if isinstance(alternatives, Mapping):
+        alternatives = (alternatives,)
+    if not isinstance(alternatives, (list, tuple)):
+        return None
+    options: list[str] = []
+    for member in alternatives:
+        if not isinstance(member, Mapping):
+            continue
+        text = _course_list_course_text(member)
+        if text is not None:
+            options.append(text)
+    if not options:
+        return None
+    minimum = entry.get("minimum_choices")
+    maximum = entry.get("maximum_choices")
+    if (
+        isinstance(minimum, int)
+        and not isinstance(minimum, bool)
+        and minimum == maximum
+    ):
+        return f"เลือก {minimum} วิชาจาก: " + " หรือ ".join(options)
+    return "วิชาทางเลือก: " + " หรือ ".join(options)
+
+
+def _course_list_entry_text(entry: Any) -> str | None:
+    if not isinstance(entry, Mapping):
+        return None
+    alternatives = entry.get("alternative_courses")
+    if isinstance(alternatives, (Mapping, list, tuple)):
+        alternative_text = _course_list_alternative_text(entry)
+        if alternative_text is not None:
+            return alternative_text
+    return _course_list_course_text(entry)
+
+
+def _course_list_text(claim: GroundedClaim) -> str | None:
+    """Render semester/topic course lists as readable lines without internals."""
+    if claim.status == "valid_empty":
+        header = _credit_scope_text(claim.effective_scope, prefix="")
+        message = "ไม่พบรายวิชาตามเงื่อนไขที่ถาม"
+        return f"{header}:\n{message}" if header else message
+    value = claim.value
+    if isinstance(value, Mapping):
+        entries: tuple[Any, ...] = (value,)
+    elif isinstance(value, (list, tuple)):
+        entries = tuple(value)
+    else:
+        return None
+    lines: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        text = _course_list_entry_text(entry)
+        if text is None or text in seen:
+            continue
+        seen.add(text)
+        lines.append(f"- {text}")
+    if not lines:
+        return None
+    header = _credit_scope_text(claim.effective_scope, prefix="")
+    body = "\n".join(lines)
+    return f"{header}:\n{body}" if header else body
 
 
 def _similarity_numeric_payload(value: SimilarityEvidence) -> Mapping[str, Any]:
@@ -1210,7 +1362,7 @@ def _deterministic_claim_text(
     if claim.operation in {"placement", "earliest", "compare"}:
         placement_text = _placement_text(claim.value)
         if placement_text is not None:
-            return finish(placement_text)
+            return _human_scope_prefix(claim, scope_dimensions) + placement_text
 
     if claim.operation == "prerequisite":
         prerequisite_text = _prerequisite_text(
@@ -1230,11 +1382,23 @@ def _deterministic_claim_text(
             return finish(identity_text)
         return finish("หลักฐานไม่เพียงพอ")
 
+    if claim.operation == "program_discovery":
+        discovery_text = _program_discovery_text(claim.value)
+        if discovery_text is not None:
+            return finish("พบวิชาในหลักสูตร:\n" + discovery_text)
+        return finish("หลักฐานไม่เพียงพอ")
+
     if claim.operation == "sum_credits":
         credits_text = _sum_credits_text(claim)
         if credits_text is not None:
             return credits_text
         return finish("หลักฐานไม่เพียงพอ")
+
+    if claim.operation == "list":
+        list_text = _course_list_text(claim)
+        if list_text is not None:
+            return list_text
+        return _human_scope_prefix(claim, scope_dimensions) + "หลักฐานไม่เพียงพอ"
 
     if claim.operation in {"describe", "topic_matches", "description_evidence"}:
         texts = _description_texts(claim.evidence)
@@ -1395,6 +1559,46 @@ def synthesize_grounded_claim(
     return _scope_prefix(claim, scope_dimensions) + generated_text
 
 
+def _suppress_covered_placement_segments(
+    claimed_segments: list[tuple[GroundedClaim, str]],
+) -> list[tuple[GroundedClaim, str]]:
+    """Drop operand placement lines already conveyed by a comparison summary.
+
+    A complete compare claim renders every entry it compares, either as a
+    same-period summary or as per-entry sentences, so placement/earliest
+    segments repeating exactly those entries add no fact.  Segments with
+    entries outside every comparison summary are preserved, keeping distinct
+    plan results visible.  Typed claims and provenance are never modified.
+    """
+    compared_keys: set[tuple[Any, ...]] = set()
+    has_comparison_summary = False
+    for claim, _segment in claimed_segments:
+        if claim.operation != "compare" or claim.status != "complete":
+            continue
+        if _placement_text(claim.value) is None:
+            continue
+        has_comparison_summary = True
+        for entry in _placement_entries(claim.value):
+            if isinstance(entry, Mapping):
+                compared_keys.add(_placement_entry_key(entry))
+    if not has_comparison_summary:
+        return claimed_segments
+    kept: list[tuple[GroundedClaim, str]] = []
+    for claim, segment in claimed_segments:
+        if claim.operation in {"placement", "earliest"} and claim.status == "complete":
+            entries = [
+                entry
+                for entry in _placement_entries(claim.value)
+                if isinstance(entry, Mapping)
+            ]
+            if entries and all(
+                _placement_entry_key(entry) in compared_keys for entry in entries
+            ):
+                continue
+        kept.append((claim, segment))
+    return kept
+
+
 def render_grounded_answer(
     result: GroundedAnswerResult,
     answer_model_callable: Callable[[str], str] | None = None,
@@ -1407,11 +1611,13 @@ def render_grounded_answer(
     if not result.claims:
         return result
     scope_dimensions = _scope_diff_dimensions(result.claims)
-    segments: list[str] = []
+    claimed_segments: list[tuple[GroundedClaim, str]] = []
     for claim in result.claims:
         segment = render_grounded_claim(claim, scope_dimensions=scope_dimensions)
         if segment:
-            segments.append(segment)
+            claimed_segments.append((claim, segment))
+    claimed_segments = _suppress_covered_placement_segments(claimed_segments)
+    segments = [segment for _, segment in claimed_segments]
     final_answer = "\n".join(segments) if segments else result.final_answer
     final_answer = _polish_deterministic_answer(
         question, final_answer, answer_model_callable

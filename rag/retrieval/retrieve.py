@@ -159,16 +159,16 @@ def _course_code_candidates(
     return candidate_ids, len(rows)
 
 
-def fetch_course_description_evidence(
+def _fetch_course_description_evidence_batch(
     db_path: str | Path,
-    course_id: int,
-) -> list[dict[str, Any]]:
-    """Fetch description evidence for one persisted course identity.
-
-    This direct path intentionally does not embed or search.  A missing
-    description is represented by an empty list, and no distance is invented
-    for evidence that was not produced by nearest-neighbor search.
-    """
+    course_ids: Iterable[int],
+) -> dict[int, list[dict[str, Any]]]:
+    """Fetch direct description evidence for several course identities once."""
+    requested_ids = tuple(dict.fromkeys(course_ids))
+    if not requested_ids:
+        return {}
+    evidence_by_course_id = {course_id: [] for course_id in requested_ids}
+    placeholders = ", ".join("?" for _ in requested_ids)
     try:
         with closing(sqlite3.connect(str(db_path))) as connection:
             rows = connection.execute(
@@ -176,13 +176,16 @@ def fetch_course_description_evidence(
                 SELECT chunk_id, chunk_json
                 FROM {_SEMANTIC_CHUNKS_TABLE}
                 WHERE chunk_json IS NOT NULL
+                  AND json_valid(chunk_json)
+                  AND json_extract(chunk_json, '$.chunk_type') = 'description'
+                  AND json_extract(chunk_json, '$.course_id') IN ({placeholders})
                 ORDER BY chunk_id
-                """
+                """,
+                requested_ids,
             ).fetchall()
     except sqlite3.Error:
-        return []
+        return evidence_by_course_id
 
-    evidence: list[dict[str, Any]] = []
     for chunk_id, chunk_json in rows:
         try:
             chunk = json.loads(chunk_json)
@@ -190,7 +193,8 @@ def fetch_course_description_evidence(
             continue
         if not isinstance(chunk, dict):
             continue
-        if chunk.get("course_id") != course_id:
+        course_id = chunk.get("course_id")
+        if course_id not in evidence_by_course_id:
             continue
         if chunk.get("chunk_type") != "description":
             continue
@@ -214,8 +218,24 @@ def fetch_course_description_evidence(
                 "provenance": provenance,
             }
         )
-        evidence.append(result)
-    return evidence
+        evidence_by_course_id[course_id].append(result)
+    return evidence_by_course_id
+
+
+def fetch_course_description_evidence(
+    db_path: str | Path,
+    course_id: int,
+) -> list[dict[str, Any]]:
+    """Fetch description evidence for one persisted course identity.
+
+    This direct path intentionally does not embed or search.  A missing
+    description is represented by an empty list, and no distance is invented
+    for evidence that was not produced by nearest-neighbor search.
+    """
+    return _fetch_course_description_evidence_batch(db_path, (course_id,)).get(
+        course_id,
+        [],
+    )
 
 
 SIMILARITY_STATES = ("complete", "valid_empty", "insufficient_evidence")
@@ -730,13 +750,21 @@ def map_course_candidates_to_description_evidence(
     tuple; an empty input therefore remains distinguishable from missing
     description evidence for a non-empty candidate set.
     """
-    mapped: list[dict[str, Any]] = []
-    for candidate in candidates:
+    candidate_records = tuple(candidates)
+    course_ids: list[int] = []
+    for candidate in candidate_records:
         if "course_id" not in candidate:
             raise ValueError("each candidate must contain course_id")
+        course_ids.append(candidate["course_id"])
+    evidence_by_course_id = _fetch_course_description_evidence_batch(
+        db_path,
+        course_ids,
+    )
+    mapped: list[dict[str, Any]] = []
+    for candidate in candidate_records:
         mapped_candidate = dict(candidate)
         mapped_candidate["description_evidence"] = tuple(
-            fetch_course_description_evidence(db_path, candidate["course_id"])
+            evidence_by_course_id.get(candidate["course_id"], ())
         )
         mapped.append(mapped_candidate)
     return tuple(mapped)

@@ -159,6 +159,54 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertEqual(spec.topic, topic)
         self.assertIsNone(parse_query_spec("06016414 เรียนเกี่ยวกับอะไร").course_name)
 
+    def test_bare_course_name_extraction_is_bounded(self):
+        project = parse_query_spec("PROJECT 1 เรียนปีไหน?")
+        self.assertEqual(project.course_name, "PROJECT 1")
+        self.assertIn("placement", project.operations)
+
+        charm = parse_query_spec(
+            "CHARM SCHOOL มีชื่อภาษาไทยว่าอะไร และเรียนเนื้อหาเกี่ยวกับอะไรบ้าง?"
+        )
+        self.assertEqual(charm.course_name, "CHARM SCHOOL")
+        self.assertIn("identity", charm.operations)
+        self.assertIn("describe", charm.operations)
+
+        calculus = parse_query_spec(
+            "ในหลักสูตร DSBA วิชา Calculus 1 เรียนตอนไหน"
+        )
+        self.assertEqual(calculus.course_name, "Calculus 1")
+        self.assertEqual(calculus.program, "DSBA")
+        self.assertIn("placement", calculus.operations)
+
+        for question in (
+            "IT ปี 2 เรียนอะไรบ้าง",
+            "DSBA ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+            "IT มีวิชาเกี่ยวกับ database อะไรบ้าง",
+            "database systems เรียนอะไรบ้าง",
+        ):
+            with self.subTest(question=question):
+                self.assertIsNone(parse_query_spec(question).course_name)
+
+    def test_program_discovery_is_bounded_to_exact_course_references(self):
+        for question, expected_name in (
+            ("PROJECT 1 อยู่ในหลักสูตรอะไรบ้าง?", "PROJECT 1"),
+            ("วิชา 06016420 อยู่ในหลักสูตรไหน?", None),
+            ("CHARM SCHOOL มีอยู่ในหลักสูตรอะไรบ้าง?", "CHARM SCHOOL"),
+            ("TEAM-PROJECT 1 อยู่ในหลักสูตรอะไรบ้าง?", "TEAM-PROJECT 1"),
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.operations, ("program_discovery",))
+                self.assertEqual(spec.course_name, expected_name)
+
+        for question in (
+            "ข้อมูลทั่วไปของหลักสูตร",
+            "อยู่ในหลักสูตรอะไร",
+            "PROJECT 1 เรียนปีไหน?",
+        ):
+            with self.subTest(question=question):
+                self.assertNotIn("program_discovery", parse_query_spec(question).operations)
+
     def test_thai_database_alias_uses_canonical_topic_and_stays_narrow(self):
         for question in (
             "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง",
@@ -306,6 +354,66 @@ class QuerySpecEntityTests(unittest.TestCase):
         )
         self.assertEqual(content_only.operations, ("describe",))
 
+    def test_bounded_identity_aliases_keep_describe_when_content_is_explicit(self):
+        short_alias = parse_query_spec("90641001 นี่เรียนอะไรอะ ชื่ออังกฤษด้วย")
+        self.assertEqual(short_alias.course_codes, ("90641001",))
+        self.assertIn("describe", short_alias.operations)
+        self.assertIn("identity", short_alias.operations)
+
+        thai_alias = parse_query_spec("วิชา 06016414 ชื่อไทยอะไร")
+        self.assertEqual(thai_alias.operations, ("identity",))
+
+    def test_colloquial_earliest_wording_uses_existing_earliest_operation(self):
+        for question in (
+            "06016414 กับ 06016419 ตัวไหนเรียนเร็วสุด",
+            "06016414 กับ 06016419 ตัวไหนได้เรียนไวสุด",
+        ):
+            with self.subTest(question=question):
+                self.assertIn("earliest", parse_query_spec(question).operations)
+        self.assertNotIn("earliest", parse_query_spec("วิชา 06016414 เรียนเร็วไหม").operations)
+
+    def test_prerequisite_noun_form_is_bounded(self):
+        self.assertEqual(
+            parse_query_spec("วิชา 06016420 มีวิชาบังคับก่อนอะไร").operations,
+            ("prerequisite",),
+        )
+        self.assertEqual(
+            parse_query_spec("วิชาบังคับก่อนของ 06016420 คืออะไร").operations,
+            ("prerequisite",),
+        )
+        self.assertNotIn("prerequisite", parse_query_spec("วิชาบังคับมีอะไรบ้าง").operations)
+
+    def test_bounded_describe_variants_are_supported(self):
+        for question in (
+            "06016414 สอนเรื่องอะไร",
+            "06016414 สอนเกี่ยวกับอะไร",
+            "06016414 เนื้อหาเป็นอย่างไร",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).operations, ("describe",))
+
+        self.assertNotIn("describe", parse_query_spec("06016414 สอนดีไหม").operations)
+
+    def test_prerequisite_object_does_not_create_list_or_describe(self):
+        self.assertEqual(
+            parse_query_spec("ก่อนลง 06016420 ต้องผ่านวิชาอะไรบ้าง?").operations,
+            ("prerequisite",),
+        )
+        self.assertEqual(
+            parse_query_spec("06016414 เรียนเรื่องอะไร แล้วเรียนปีไหน").operations,
+            ("describe", "placement"),
+        )
+        self.assertEqual(
+            parse_query_spec("IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต").operations,
+            ("list", "sum_credits"),
+        )
+
+    def test_same_timing_plan_comparison_is_expressed_as_placement_and_compare(self):
+        spec = parse_query_spec(
+            "06016401 ในแผนสหกิจกับไม่สหกิจ เรียนช่วงเดียวกันไหม?"
+        )
+        self.assertEqual(spec.operations, ("placement", "compare"))
+
     def test_describe_wording_does_not_become_identity(self):
         for wording in ("เรียนเรื่องอะไร", "เรียนเกี่ยวกับอะไร"):
             with self.subTest(wording=wording):
@@ -342,6 +450,17 @@ class QuerySpecEntityTests(unittest.TestCase):
             with self.subTest(question=question):
                 self.assertEqual(parse_query_spec(question).operations, operations)
 
+    def test_completed_pass_prerequisite_phrasing_requests_prerequisite(self):
+        spec = parse_query_spec("ถ้าผมจะลง 06016420 ต้องเคยผ่านตัวไหนมาก่อนหรือเปล่า")
+        self.assertEqual(spec.operations, ("prerequisite",))
+        self.assertEqual(spec.course_codes, ("06016420",))
+
+        still_pass = parse_query_spec("06016420 ต้องผ่านวิชาอะไรก่อน")
+        self.assertEqual(still_pass.operations, ("prerequisite",))
+
+        unrelated_pass = parse_query_spec("สอบผ่านวิชา 06016401 แล้วใช่หรือไม่")
+        self.assertNotIn("prerequisite", unrelated_pass.operations)
+
     def test_residual_course_targeted_wording_emits_each_operation_once(self):
         cases = (
             (
@@ -370,6 +489,43 @@ class QuerySpecEntityTests(unittest.TestCase):
     def test_course_timing_phrase_alone_uses_placement(self):
         question = "วิชา 06016420 ของ IT แบบไม่สหกิจอยู่ช่วงไหนของหลักสูตร"
         self.assertEqual(parse_query_spec(question).operations, ("placement",))
+
+    def test_bounded_timing_forms_request_placement(self):
+        for question in (
+            "06016481 ลงได้ตอนไหนบ้าง",
+            "06016481 เรียนเมื่อไหร่",
+            "06016481 เรียนเมื่อไร",
+            "06016481 อยู่เทอมไหน",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertIn("placement", spec.operations)
+                self.assertEqual(spec.course_codes, ("06016481",))
+
+        for question in (
+            "06016420 เรียนปีไหน",
+            "06016420 อยู่ปีไหน",
+            "06016414 เปิดให้ลงช่วงไหนได้บ้าง",
+            "06016414 ลงช่วงไหนได้บ้าง",
+            "วิชา 06016420 ของ IT แบบไม่สหกิจอยู่ช่วงไหนของหลักสูตร",
+        ):
+            with self.subTest(question=question):
+                self.assertIn("placement", parse_query_spec(question).operations)
+
+        unresolved = parse_query_spec("PROJECT 1 เรียนปีไหน?")
+        self.assertEqual(unresolved.course_name, "PROJECT 1")
+        self.assertEqual(unresolved.course_codes, ())
+        self.assertIn("placement", unresolved.operations)
+
+    def test_timing_wording_without_scope_does_not_request_placement(self):
+        for question in (
+            "ตอนไหน",
+            "ลงได้ตอนไหนบ้าง",
+            "เมื่อไหร่",
+            "เรียนเมื่อไหร่",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).operations, ())
 
     def test_course_content_only_remains_describe(self):
         self.assertEqual(

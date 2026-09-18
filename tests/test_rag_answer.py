@@ -16,6 +16,43 @@ from rag.retrieval.retrieve import SimilarityEvidence, SimilarityPair
 
 
 class RagAnswerTest(unittest.TestCase):
+    def test_program_discovery_renders_identities_without_internal_fields(self):
+        claim = GroundedClaim(
+            "program_discovery_001",
+            "program_discovery",
+            value=(
+                {
+                    "program": "IT",
+                    "course_code": "06016406",
+                    "name_en": "PROJECT 1",
+                    "course_id": 651,
+                    "provenance": ({"source_page": 44},),
+                },
+                {
+                    "program": "DSBA",
+                    "course_code": "90641001",
+                    "name_en": "CHARM SCHOOL",
+                    "provenance": ({"source_page": 1},),
+                },
+            ),
+            provenance=(
+                {"source_page": 44},
+                {"source_page": 1},
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("พบวิชาในหลักสูตร", rendered)
+        self.assertIn("IT", rendered)
+        self.assertIn("06016406", rendered)
+        self.assertIn("PROJECT 1", rendered)
+        self.assertIn("DSBA", rendered)
+        self.assertIn("90641001", rendered)
+        self.assertIn("CHARM SCHOOL", rendered)
+        self.assertNotIn("course_id", rendered)
+        self.assertNotIn("provenance", rendered)
+
     def test_complete_similarity_renders_grounded_course_descriptions(self):
         value = SimilarityEvidence(
             status="complete",
@@ -517,6 +554,179 @@ class RagAnswerTest(unittest.TestCase):
         self.assertEqual(rendered.provenance, result.provenance)
         self.assertEqual(rendered.claims, result.claims)
 
+    def test_list_renders_semester_courses_without_internal_fields(self):
+        claim = GroundedClaim(
+            "list_semester_001",
+            "list",
+            effective_scope={
+                "program": "IT",
+                "plans": ("no_coop",),
+                "years": (3,),
+                "semesters": (1,),
+            },
+            value=(
+                {
+                    "course_code": "06016404",
+                    "name_th": "เทคโนโลยีกลุ่มเมฆ",
+                    "name_en": "CLOUD COMPUTING",
+                    "credits": "3(2-2-5)",
+                    "placement_credits": "3(2-2-5)",
+                    "course_id": 742,
+                    "placement_id": 763,
+                    "provenance": ({"provenance_id": 192, "source_page": 329},),
+                },
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("หลักสูตร IT แผนไม่สหกิจ ปี 3 ภาคเรียนที่ 1:", rendered)
+        self.assertIn(
+            "- 06016404 เทคโนโลยีกลุ่มเมฆ (CLOUD COMPUTING) — 3(2-2-5) หน่วยกิต",
+            rendered,
+        )
+        for raw in (
+            "course_id",
+            "placement_id",
+            "provenance_id",
+            "description_evidence",
+            "partition",
+            "plan=",
+            "year=",
+            "semester=",
+            "list: [{",
+        ):
+            self.assertNotIn(raw, rendered)
+
+    def test_list_topic_query_renders_without_scope_header_details(self):
+        claim = GroundedClaim(
+            "list_topic_001",
+            "list",
+            effective_scope={"program": "IT"},
+            value=(
+                {"course_code": "06016414", "name_en": "NOSQL DATABASE SYSTEMS"},
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("หลักสูตร IT:", rendered)
+        self.assertIn("- 06016414 (NOSQL DATABASE SYSTEMS)", rendered)
+        self.assertNotIn("plan=", rendered)
+
+    def test_list_plan_claims_remain_distinguishable(self):
+        claims = tuple(
+            GroundedClaim(
+                f"list_{plan}",
+                "list",
+                effective_scope={"program": "IT", "plans": (plan,)},
+                value=({"course_code": "06016418", "name_en": "SERVER SIDE"},),
+            )
+            for plan in ("coop", "no_coop")
+        )
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="answer",
+                answer_mode="deterministic",
+                claims=claims,
+            )
+        ).final_answer
+
+        self.assertIn("หลักสูตร IT แผนสหกิจ:", rendered)
+        self.assertIn("หลักสูตร IT แผนไม่สหกิจ:", rendered)
+        self.assertNotIn("plan=", rendered)
+
+    def test_list_duplicate_courses_are_suppressed(self):
+        entry = {"course_code": "06016404", "name_en": "CLOUD COMPUTING"}
+        claim = GroundedClaim(
+            "list_dup_001",
+            "list",
+            effective_scope={"program": "IT"},
+            value=(entry, dict(entry)),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertEqual(rendered.count("- 06016404"), 1)
+
+    def test_list_alternative_group_renders_grounded_choices(self):
+        claim = GroundedClaim(
+            "list_alt_001",
+            "list",
+            effective_scope={"program": "IT", "plans": ("no_coop",)},
+            value=(
+                {
+                    "course_code": None,
+                    "alternative_courses": (
+                        {"course_code": "06016481", "name_en": "COOPERATIVE EDUCATION"},
+                        {"course_code": "06016482", "name_en": "OVERSEA COOPERATIVE EDUCATION"},
+                    ),
+                    "minimum_choices": 1,
+                    "maximum_choices": 1,
+                },
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("เลือก 1 วิชาจาก:", rendered)
+        self.assertIn("06016481", rendered)
+        self.assertIn("06016482", rendered)
+        self.assertIn(" หรือ ", rendered)
+        self.assertNotIn("alternative_courses", rendered)
+
+    def test_list_valid_empty_reports_no_courses(self):
+        claim = GroundedClaim(
+            "list_empty_001",
+            "list",
+            status="valid_empty",
+            effective_scope={"program": "IT", "plans": ("no_coop",)},
+            value=(),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("ไม่พบรายวิชาตามเงื่อนไขที่ถาม", rendered)
+        self.assertNotIn("{", rendered)
+
+    def test_list_without_safe_identity_is_fail_closed(self):
+        unsafe = GroundedClaim(
+            "list_unsafe_001",
+            "list",
+            value=({"course_id": 1, "placement_id": 2},),
+        )
+        self.assertEqual(render_grounded_claim(unsafe), "หลักฐานไม่เพียงพอ")
+
+        non_mapping = GroundedClaim(
+            "list_unsafe_002",
+            "list",
+            value="06016404",
+        )
+        self.assertEqual(render_grounded_claim(non_mapping), "หลักฐานไม่เพียงพอ")
+
+    def test_list_rendering_keeps_result_provenance_unchanged(self):
+        provenance = ({"source_page": 36, "program": "IT"},)
+        claim = GroundedClaim(
+            "list_provenance_001",
+            "list",
+            effective_scope={"program": "IT"},
+            value=({"course_code": "06016404", "name_en": "CLOUD COMPUTING"},),
+            provenance=provenance,
+        )
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=(claim,),
+            provenance=provenance,
+        )
+
+        rendered = render_grounded_answer(result)
+
+        self.assertIn("06016404", rendered.final_answer)
+        self.assertEqual(rendered.provenance, result.provenance)
+        self.assertEqual(rendered.claims, result.claims)
+
     def test_structured_placement_renders_thai_year_semester_and_credits(self):
         claim = GroundedClaim(
             "placement_001",
@@ -552,6 +762,150 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("ทั้งแผนสหกิจและแผนไม่สหกิจ", rendered)
         self.assertIn("ปี 2 ภาคเรียนที่ 1", rendered)
         self.assertIn("ไม่ต่างกันด้านช่วงเรียน", rendered)
+
+    @staticmethod
+    def _comparison_placement_entry(course_code, plan, year=2, semester=2):
+        return {
+            "program": "IT",
+            "plan_key": plan,
+            "course_code": course_code,
+            "year_number": year,
+            "semester_number": semester,
+            "year_semester_choices": ((year, semester),),
+            "credits": "3(2-2-5)",
+            "provenance": ({"source_page": 42},),
+        }
+
+    def _two_course_comparison_claims(self):
+        from rag.aggregation import aggregate_earliest, compare_aggregates
+
+        claims = []
+        comparisons = []
+        for plan in ("coop", "no_coop"):
+            left = self._comparison_placement_entry("06016414", plan)
+            right = self._comparison_placement_entry("06016419", plan)
+            claims.append(
+                GroundedClaim(
+                    f"placement_cmp_{plan}_left",
+                    "placement",
+                    effective_scope={"program": "IT", "plans": (plan,)},
+                    value=(left,),
+                    evidence=(left,),
+                    provenance=({"source_page": 42},),
+                )
+            )
+            claims.append(
+                GroundedClaim(
+                    f"placement_cmp_{plan}_right",
+                    "placement",
+                    effective_scope={"program": "IT", "plans": (plan,)},
+                    value=(right,),
+                    evidence=(right,),
+                    provenance=({"source_page": 42},),
+                )
+            )
+            comparisons.append(
+                GroundedClaim(
+                    f"compare_cmp_{plan}",
+                    "compare",
+                    value=compare_aggregates(
+                        aggregate_earliest((left,), evidence_complete=True),
+                        aggregate_earliest((right,), evidence_complete=True),
+                    ),
+                    evidence=compare_aggregates(
+                        aggregate_earliest((left,), evidence_complete=True),
+                        aggregate_earliest((right,), evidence_complete=True),
+                    ),
+                    provenance=({"source_page": 42},),
+                )
+            )
+        return tuple(claims), tuple(comparisons)
+
+    def test_two_course_same_period_comparison_has_no_raw_prefix_or_duplicates(self):
+        placement_claims, comparison_claims = self._two_course_comparison_claims()
+        provenance = ({"source_page": 42},)
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=placement_claims + comparison_claims,
+            provenance=provenance,
+        )
+
+        rendered = render_grounded_answer(result)
+
+        self.assertIn("06016414", rendered.final_answer)
+        self.assertIn("06016419", rendered.final_answer)
+        self.assertIn("จึงอยู่ช่วงเดียวกัน", rendered.final_answer)
+        self.assertEqual(rendered.final_answer.count("จึงอยู่ช่วงเดียวกัน"), 2)
+        self.assertEqual(rendered.final_answer.count("06016414"), 2)
+        for raw in ("plan=", "year=", "semester=", "year_semester_choices"):
+            self.assertNotIn(raw, rendered.final_answer)
+        self.assertEqual(rendered.provenance, provenance)
+        self.assertEqual(rendered.claims, result.claims)
+
+    def test_placement_segment_outside_comparison_is_preserved(self):
+        from rag.aggregation import aggregate_earliest, compare_aggregates
+
+        coop_left = self._comparison_placement_entry("06016414", "coop")
+        coop_right = self._comparison_placement_entry("06016419", "coop")
+        nocoop_left = self._comparison_placement_entry("06016414", "no_coop")
+        comparison = compare_aggregates(
+            aggregate_earliest((coop_left,), evidence_complete=True),
+            aggregate_earliest((coop_right,), evidence_complete=True),
+        )
+        result = GroundedAnswerResult(
+            status="answer",
+            answer_mode="deterministic",
+            claims=(
+                GroundedClaim(
+                    "placement_kept_001",
+                    "placement",
+                    effective_scope={"program": "IT", "plans": ("no_coop",)},
+                    value=(nocoop_left,),
+                    evidence=(nocoop_left,),
+                    provenance=({"source_page": 42},),
+                ),
+                GroundedClaim(
+                    "compare_partial_001",
+                    "compare",
+                    value=comparison,
+                    evidence=comparison,
+                    provenance=({"source_page": 42},),
+                ),
+            ),
+        )
+
+        rendered = render_grounded_answer(result).final_answer
+
+        self.assertIn("จึงอยู่ช่วงเดียวกัน", rendered)
+        self.assertIn("แผนไม่สหกิจ", rendered)
+        for raw in ("plan=", "year=", "semester="):
+            self.assertNotIn(raw, rendered)
+
+    def test_placement_claims_use_human_plan_labels(self):
+        claims = tuple(
+            GroundedClaim(
+                f"placement_human_{plan}",
+                "placement",
+                effective_scope={"program": "IT", "plans": (plan,)},
+                value=(self._comparison_placement_entry("06016401", plan, 1, 1),),
+                evidence=(self._comparison_placement_entry("06016401", plan, 1, 1),),
+                provenance=({"source_page": 42},),
+            )
+            for plan in ("coop", "no_coop")
+        )
+        rendered = render_grounded_answer(
+            GroundedAnswerResult(
+                status="answer",
+                answer_mode="deterministic",
+                claims=claims,
+            )
+        ).final_answer
+
+        self.assertIn("แผนสหกิจ", rendered)
+        self.assertIn("แผนไม่สหกิจ", rendered)
+        for raw in ("plan=", "year=", "semester="):
+            self.assertNotIn(raw, rendered)
 
     def test_flexible_placement_lists_each_grounded_choice(self):
         claim = GroundedClaim(

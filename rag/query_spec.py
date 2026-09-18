@@ -48,9 +48,24 @@ _SEMESTER_PATTERN = re.compile(
 )
 _COURSE_CODE_PATTERN = re.compile(r"(?<!\d)(\d{8})(?!\d)")
 _COURSE_NAME_PATTERN = re.compile(
-    r"(?<!\S)วิชา\s+(?P<name>[A-Za-z][A-Za-z0-9]*(?:[ \t]+[A-Za-z0-9]+)*)"
-    r"\s+(?=(?:เรียนเรื่อง|เรียนเกี่ยวกับ|คืออะไร|เกี่ยวกับอะไร|มีอะไร|"
-    r"รหัส(?:วิชา)?\s*อะไร))",
+    r"(?<!\S)วิชา\s+(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
+    r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
+    r"เรียนเรื่อง|เรียนเกี่ยวกับ|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
+    r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|รหัส(?:วิชา)?\s*อะไร))",
+    re.IGNORECASE,
+)
+_BARE_COURSE_NAME_PATTERN = re.compile(
+    r"^\s*(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
+    r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
+    r"เรียนเรื่อง|เรียนเกี่ยวกับ|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
+    r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|รหัส(?:วิชา)?\s*อะไร|"
+    r"(?:อยู่|มีอยู่)\s*ในหลักสูตร(?:อะไร|ไหน)(?:บ้าง)?))",
+    re.IGNORECASE,
+)
+_PROGRAM_DISCOVERY_PATTERN = re.compile(
+    r"(?:อยู่|มีอยู่)\s*ในหลักสูตร\s*(?:อะไร|ไหน)(?:บ้าง)?",
     re.IGNORECASE,
 )
 _CATEGORY_PATTERN = re.compile(r"วิชาเลือก")
@@ -71,7 +86,7 @@ _OPERATION_PATTERNS = (
     (
         "describe",
         re.compile(
-            r"เรียน(?:เกี่ยวกับ|เรื่อง)|ชื่ออะไร|เรียนอะไร(?!บ้าง)",
+            r"เรียน(?:เกี่ยวกับ|เรื่อง)|สอน(?:เกี่ยวกับ|เรื่อง)|เนื้อหาเป็นอย่างไร|ชื่ออะไร|เรียนอะไร(?!บ้าง)",
             re.IGNORECASE,
         ),
     ),
@@ -90,21 +105,21 @@ _OPERATION_PATTERNS = (
     (
         "compare",
         re.compile(
-            r"ต่างกัน|เปรียบเทียบ|\bcompare\b|(?:มาก|น้อย|เยอะ|เร็ว)(?:กว่า|สุด)",
+            r"ต่างกัน|ช่วงเดียวกัน|เปรียบเทียบ|\bcompare\b|(?:มาก|น้อย|เยอะ|เร็ว)(?:กว่า|สุด)",
             re.IGNORECASE,
         ),
     ),
-    ("earliest", re.compile(r"เร็วกว่า|เร็วที่สุด|\b(?:earliest|sooner)\b", re.IGNORECASE)),
+    ("earliest", re.compile(r"เร็วกว่า|เร็วที่สุด|เร็วสุด|ไวสุด|\b(?:earliest|sooner)\b", re.IGNORECASE)),
     (
         "placement",
         re.compile(
-            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เปิดให้ลง|ลงช่วง|แผนไหน|เรียนก่อน|\bplacement\b",
+            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เรียนช่วงเดียวกัน|เปิดให้ลง|ลงช่วง|(?:ลง|เรียน|อยู่).{0,20}ตอนไหน|(?:ลง|เรียน|อยู่).{0,20}เมื่อไหร่|(?:ลง|เรียน|อยู่).{0,20}เมื่อไร|ลง.{0,20}เทอมไหน|แผนไหน|เรียนก่อน|\bplacement\b",
             re.IGNORECASE,
         ),
     ),
     (
         "prerequisite",
-        re.compile(r"ก่อนลง|ต้องผ่าน|เตรียมผ่านวิชา|เรียน.*มาก่อน|prerequisite", re.IGNORECASE),
+        re.compile(r"ก่อนลง|วิชาบังคับก่อน|ต้อง(?:เคย)?ผ่าน|เตรียมผ่านวิชา|(?:เรียน|ผ่าน).*มาก่อน|prerequisite", re.IGNORECASE),
     ),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
 )
@@ -118,7 +133,9 @@ _IDENTITY_NAME_TO_CODE_PATTERN = re.compile(
 )
 _IDENTITY_CODE_TO_NAME_PATTERN = re.compile(
     r"(?:ชื่อวิชา\s*อะไร|ชื่อ\s*อะไร|คือวิชา\s*อะไร|"
-    r"ชื่อภาษาอังกฤษ\s*(?:ว่า|คือ)\s*อะไร|ชื่อภาษาไทย\s*(?:ว่า|คือ)\s*อะไร)",
+    r"ชื่อ(?:ภาษา)?อังกฤษ\s*(?:(?:ว่า|คือ)\s*)?อะไร|"
+    r"ชื่อ(?:ภาษา)?ไทย\s*(?:(?:ว่า|คือ)\s*)?อะไร|"
+    r"ชื่อ(?:ภาษา)?อังกฤษ\s*ด้วย\b|ชื่อ(?:ภาษา)?ไทย\s*ด้วย\b)",
     re.IGNORECASE,
 )
 _WORKLOAD_PATTERN = re.compile(r"หนัก(?:ไหม|มั้ย|หรือไม่)", re.IGNORECASE)
@@ -133,10 +150,16 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
     r"เนื้อหา|หัวข้อ|สาระ|เน้นเรื่องใด(?:บ้าง)?|\bcontent\b|\btopic\b",
     re.IGNORECASE,
 )
+_PREREQUISITE_OBJECT_PATTERN = re.compile(
+    r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
+    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?",
+    re.IGNORECASE,
+)
 
 _OPERATION_ORDER = MappingProxyType(
     {
         "list": 0,
+        "program_discovery": 0,
         "describe": 1,
         "count": 2,
         "sum_credits": 3,
@@ -209,7 +232,14 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
     if course_codes:
         return None
     match = _COURSE_NAME_PATTERN.search(question)
-    return match.group("name").strip() if match else None
+    if match is None:
+        match = _BARE_COURSE_NAME_PATTERN.search(question)
+    if not match:
+        return None
+    name = match.group("name").strip()
+    if name.casefold() in {"ait", "bit", "dsba", "gened", "it"}:
+        return None
+    return name
 
 
 def _extract_category(question: str) -> str | None:
@@ -240,18 +270,35 @@ def _extract_operations(
 ) -> tuple[str, ...]:
     if not has_scope:
         return ()
+    if (
+        (course_codes or course_name is not None)
+        and _PROGRAM_DISCOVERY_PATTERN.search(question)
+    ):
+        return ("program_discovery",)
     matches = []
     identity_request = bool(
-        (course_name and _IDENTITY_NAME_TO_CODE_PATTERN.search(question))
+        (
+            course_name
+            and (
+                _IDENTITY_NAME_TO_CODE_PATTERN.search(question)
+                or _IDENTITY_CODE_TO_NAME_PATTERN.search(question)
+            )
+        )
         or (course_codes and _IDENTITY_CODE_TO_NAME_PATTERN.search(question))
     )
-    explicit_describe_request = bool(_COURSE_DETAIL_PATTERN.search(question))
+    explicit_describe_request = bool(
+        _COURSE_DETAIL_PATTERN.search(question)
+        or re.search(r"เรียน(?:เกี่ยวกับ|เรื่อง)?อะไร(?:อะ|บ้าง)?", question)
+    )
+    prerequisite_object_request = bool(_PREREQUISITE_OBJECT_PATTERN.search(question))
     course_targeted_detail = bool(course_codes or course_name) and not identity_request
     course_content_comparison = (
         len(course_codes) > 1
         and bool(_COURSE_CONTENT_COMPARISON_PATTERN.search(question))
     )
     for operation, pattern in _OPERATION_PATTERNS:
+        if operation in {"list", "describe"} and prerequisite_object_request:
+            continue
         if operation == "describe" and identity_request and not explicit_describe_request:
             continue
         if operation == "existence" and judgement in {"quantity", "workload"}:
@@ -280,7 +327,15 @@ def _extract_operations(
                 "similarity",
             )
         )
-    if course_targeted_detail:
+    if course_targeted_detail and not prerequisite_object_request:
+        match = _COURSE_DETAIL_PATTERN.search(question)
+        if match:
+            matches.append((match.start(), _OPERATION_ORDER["describe"], "describe"))
+    if (
+        identity_request
+        and explicit_describe_request
+        and not any(operation == "describe" for _, _, operation in matches)
+    ):
         match = _COURSE_DETAIL_PATTERN.search(question)
         if match:
             matches.append((match.start(), _OPERATION_ORDER["describe"], "describe"))

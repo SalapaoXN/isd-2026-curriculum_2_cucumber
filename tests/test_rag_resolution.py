@@ -174,23 +174,141 @@ class ResolutionTest(unittest.TestCase):
             {("IT", "06016414"), ("DSBA", "06026207")},
         )
 
-    def test_unique_code_supplies_program_scope(self):
+    def test_program_scoped_course_facts_require_program_context(self):
         for question in (
-            "06016414 เรียนอะไร",
-            "06016414 เรียนเกี่ยวกับอะไร",
+            "06016420 ต้องผ่านวิชาอะไรมาก่อน?",
+            "วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไร?",
+            "06016481 ลงได้ตอนไหนบ้าง?",
+            "06016414 กับ 06016419 วิชาไหนเรียนก่อน?",
         ):
             with self.subTest(question=question):
                 outcome = resolve_query_spec(parse_query_spec(question), DB_PATH)
-                self.assertEqual(outcome.action, "answer")
-                self.assertEqual(outcome.resolved_program, "IT")
+                self.assertEqual(outcome.action, "clarify_program")
+                self.assertEqual(outcome.blocking_ambiguity, ("program",))
 
-    def test_multi_code_same_program_answers(self):
+    def test_explicit_program_scopes_prerequisite(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("IT: 06016420 ต้องผ่านวิชาอะไรมาก่อน?"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, "IT")
+
+    def test_program_context_scopes_prerequisite(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("06016420 ต้องผ่านวิชาอะไรมาก่อน?"),
+            DB_PATH,
+            QueryContext(program="IT"),
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, "IT")
+
+    def test_program_discovery_returns_all_exact_title_programs(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("CHARM SCHOOL มีอยู่ในหลักสูตรอะไรบ้าง?"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertIsNone(outcome.resolved_program)
+        self.assertEqual(
+            [
+                (candidate["program"], candidate["course_code"])
+                for candidate in outcome.course_references[0].candidates
+            ],
+            [
+                ("BIT", "96641001"),
+                ("DSBA", "90641001"),
+                ("GENED", "90641001"),
+                ("IT", "90641001"),
+            ],
+        )
+
+    def test_program_discovery_uses_strict_title_matching(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("PROJECT 1 อยู่ในหลักสูตรอะไรบ้าง?"),
+            DB_PATH,
+        )
+
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(
+            [
+                (candidate["program"], candidate["course_code"])
+                for candidate in outcome.course_references[0].candidates
+            ],
+            [("IT", "06016406")],
+        )
+
+    def test_program_discovery_unknown_reference_is_no_data(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("99999999 อยู่ในหลักสูตรไหน?"),
+            DB_PATH,
+        )
+        self.assertEqual(outcome.action, "no_data")
+
+    def test_program_discovery_does_not_change_normal_program_scope_guard(self):
+        outcome = resolve_query_spec(
+            parse_query_spec("06016420 ต้องผ่านวิชาอะไรมาก่อน?"),
+            DB_PATH,
+        )
+        self.assertEqual(outcome.action, "clarify_program")
+
+    def test_bare_project_name_preserves_context_and_ambiguity(self):
+        spec = parse_query_spec("PROJECT 1 เรียนปีไหน?")
+        contextual = resolve_query_spec(spec, DB_PATH, QueryContext(program="IT"))
+        self.assertEqual(contextual.action, "answer")
+        self.assertEqual(contextual.resolved_program, "IT")
+        self.assertEqual(
+            contextual.course_references[0].candidates[0]["course_code"],
+            "06016406",
+        )
+
+        unscoped = resolve_query_spec(spec, DB_PATH)
+        self.assertEqual(unscoped.action, "clarify_program")
+        self.assertEqual(unscoped.blocking_ambiguity, ("program",))
+        self.assertEqual(
+            {
+                (candidate["program"], candidate["course_code"])
+                for candidate in unscoped.course_references[0].candidates
+            },
+            {("AIT", "90641004"), ("IT", "06016406")},
+        )
+
+    def test_bare_charm_school_name_is_ambiguous_without_program(self):
+        spec = parse_query_spec(
+            "CHARM SCHOOL มีชื่อภาษาไทยว่าอะไร และเรียนเนื้อหาเกี่ยวกับอะไรบ้าง?"
+        )
+        outcome = resolve_query_spec(spec, DB_PATH)
+        self.assertEqual(outcome.action, "clarify_program")
+        self.assertEqual(outcome.blocking_ambiguity, ("program",))
+
+        contextual = resolve_query_spec(spec, DB_PATH, QueryContext(program="IT"))
+        self.assertEqual(contextual.action, "answer")
+        self.assertEqual(contextual.resolved_program, "IT")
+        self.assertEqual(
+            contextual.course_references[0].candidates[0]["course_code"],
+            "90641001",
+        )
+
+    def test_bare_calculus_name_uses_explicit_dsba_program(self):
+        spec = parse_query_spec("ในหลักสูตร DSBA วิชา Calculus 1 เรียนตอนไหน")
+        outcome = resolve_query_spec(spec, DB_PATH)
+        self.assertEqual(outcome.action, "answer")
+        self.assertEqual(outcome.resolved_program, "DSBA")
+        self.assertEqual(
+            outcome.course_references[0].candidates[0]["course_code"],
+            "06026200",
+        )
+
+    def test_multi_code_same_program_requires_program_context(self):
         spec = parse_query_spec("06016414 และ 06016419 คล้ายกันไหม")
 
         outcome = resolve_query_spec(spec, DB_PATH)
 
-        self.assertEqual(outcome.action, "answer")
-        self.assertEqual(outcome.resolved_program, "IT")
+        self.assertEqual(outcome.action, "clarify_program")
+        self.assertEqual(outcome.blocking_ambiguity, ("program",))
         self.assertEqual(
             [reference.reference for reference in outcome.course_references],
             ["06016414", "06016419"],

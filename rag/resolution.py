@@ -177,12 +177,15 @@ def resolve_query_spec(
     effective_plans = spec.plans or (
         (context.plan,) if context.plan is not None else ()
     )
+    program_discovery = "program_discovery" in spec.operations
     explicit_reference_programs = _explicit_reference_programs(spec.original_question)
 
     references: list[CourseReferenceResolution] = []
     for reference_type, reference in _explicit_references(spec):
         reference_program = (
-            explicit_reference_programs.get(reference)
+            None
+            if program_discovery
+            else explicit_reference_programs.get(reference)
             or effective_program
         )
         candidates = exact_course_candidates(
@@ -190,6 +193,7 @@ def resolve_query_spec(
             course_code=reference if reference_type == "course_code" else None,
             course_name=reference if reference_type == "course_name" else None,
             program=reference_program,
+            exact_title=program_discovery and reference_type == "course_name",
         )
         references.append(
             CourseReferenceResolution(
@@ -208,6 +212,14 @@ def resolve_query_spec(
             resolved_plans=effective_plans,
         )
 
+    if program_discovery:
+        return _outcome(
+            "answer",
+            resolved_program=None,
+            course_references=resolved_references,
+            resolved_plans=effective_plans,
+        )
+
     resolved_program = effective_program
     if effective_program is None and resolved_references:
         programs = set().union(
@@ -221,13 +233,6 @@ def resolve_query_spec(
                 resolved_plans=effective_plans,
                 blocking_ambiguity=_PROGRAM_BLOCKING_AMBIGUITY,
             )
-
-        all_references_unique = all(
-            len(reference.candidates) == 1
-            for reference in resolved_references
-        )
-        if all_references_unique and len(programs) == 1:
-            resolved_program = next(iter(programs))
 
     if (
         effective_program is None
