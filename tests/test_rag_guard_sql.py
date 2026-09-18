@@ -4,6 +4,15 @@ from rag.structured.guard_sql import guard_sql
 
 
 class RagGuardSqlTest(unittest.TestCase):
+    ALLOWED_RELATIONS = {
+        "courses",
+        "v_plan_courses",
+        "v_semester_credits",
+        "v_prerequisite_edges",
+        "curriculum_plans",
+        "programs",
+    }
+
     def test_allows_read_queries_and_bounds_limits(self):
         self.assertEqual(
             guard_sql("SELECT course_code FROM courses"),
@@ -46,6 +55,60 @@ class RagGuardSqlTest(unittest.TestCase):
         self.assertEqual(
             guard_sql(sql),
             "SELECT 'DROP; UPDATE' AS value LIMIT 100 /* ATTACH */ -- DELETE\n",
+        )
+
+    def test_relation_allowlist_accepts_allowed_tables_and_joins(self):
+        self.assertEqual(
+            guard_sql(
+                "SELECT c.course_code FROM courses AS c",
+                allowed_relations=self.ALLOWED_RELATIONS,
+            ),
+            "SELECT c.course_code FROM courses AS c LIMIT 100",
+        )
+        self.assertEqual(
+            guard_sql(
+                "SELECT c.course_code FROM courses c JOIN v_plan_courses p "
+                "ON p.course_id = c.course_id",
+                allowed_relations=self.ALLOWED_RELATIONS,
+            ),
+            "SELECT c.course_code FROM courses c JOIN v_plan_courses p "
+            "ON p.course_id = c.course_id LIMIT 100",
+        )
+
+    def test_relation_allowlist_rejects_disallowed_nested_and_cte_relations(self):
+        for sql in (
+            "SELECT * FROM secret_table",
+            "SELECT * FROM courses WHERE course_id IN "
+            "(SELECT course_id FROM secret_table)",
+            "WITH selected AS (SELECT * FROM secret_table) "
+            "SELECT * FROM selected",
+        ):
+            with self.subTest(sql=sql):
+                with self.assertRaises(ValueError):
+                    guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_relation_allowlist_allows_cte_when_physical_sources_are_allowed(self):
+        sql = (
+            "WITH selected AS (SELECT course_id FROM courses) "
+            "SELECT * FROM selected"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            f"{sql} LIMIT 100",
+        )
+
+    def test_relation_allowlist_rejects_schema_qualified_relations(self):
+        with self.assertRaises(ValueError):
+            guard_sql(
+                "SELECT * FROM main.courses",
+                allowed_relations=self.ALLOWED_RELATIONS,
+            )
+
+    def test_relation_allowlist_ignores_from_text_inside_sql_strings(self):
+        sql = "SELECT 'FROM secret_table' AS text FROM courses"
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            f"{sql} LIMIT 100",
         )
 
 

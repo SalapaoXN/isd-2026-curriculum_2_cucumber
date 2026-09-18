@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from pathlib import Path
+import re
 from typing import Any
 
 from rag.aggregation import (
@@ -24,7 +25,7 @@ from rag.evidence_executor import (
     execute_evidence_plan,
     execute_exact_similarity_from_bundle,
 )
-from rag.evidence_planner import plan_evidence
+from rag.evidence_planner import StructuralScope, plan_evidence
 from rag.grounded_answer import (
     GroundedClaim,
     compose_grounded_answer,
@@ -42,7 +43,227 @@ from rag.retrieval.retrieve import (
 )
 from rag.answer import render_grounded_answer
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
+from rag.structured.fallback import (
+    GroundedCourseListResult,
+    StructuredFallbackScope,
+    ground_course_list,
+    run_structured_fallback,
+)
 from rag.structured.queries import exact_course_candidates, prerequisite_state
+
+
+_STRUCTURED_FALLBACK_OPERATIONS = frozenset(
+    {"list", "count", "existence", "sum_credits", "placement", "earliest", "prerequisite"}
+)
+_STRUCTURED_FALLBACK_CUE = re.compile(
+    r"วิชา|หลักสูตร|ลงเรียน|ลงทะเบียน|หน่วยกิต|เครดิต|วิชาบังคับ|"
+    r"ปี|เทอม|ภาคเรียน|course|semester|year|credits?|prerequisite",
+    re.IGNORECASE,
+)
+_CATEGORY_FILTER_RESIDUE = re.compile(
+    r"ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s*ed(?![A-Za-z0-9_])|วิชาเลือก",
+    re.IGNORECASE,
+)
+_REQUIREMENT_FILTER_RESIDUE = re.compile(r"วิชาบังคับ(?!\s*ก่อน)", re.IGNORECASE)
+_CREDIT_UNIT_FILTER_RESIDUE = re.compile(
+    r"(?<!\d)\d+(?:\.\d+)?\s*หน่วยกิต", re.IGNORECASE
+)
+_LIST_FILTER_FALLBACK_CUE = re.compile(
+    r"มีวิชา(?:[^?\n]{0,80})?(?:อะไร|ไหน)(?:บ้าง)?|"
+    r"ลงเรียนวิชา[^?\n]{0,80}(?:อะไร|ไหน)(?:บ้าง)?",
+    re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True, slots=True)
+class StructuredParseCompleteness:
+    """Conservative eligibility result for the future SQL fallback."""
+
+    classification: str
+    missing_filters: tuple[str, ...] = ()
+    program: str | None = None
+    plans: tuple[str, ...] = ()
+    years: tuple[int, ...] = ()
+    semesters: tuple[int, ...] = ()
+    course_codes: tuple[str, ...] = ()
+    course_name: str | None = None
+
+
+def _classify_structured_parse_completeness(
+    spec: Any,
+    resolution: ResolutionOutcome,
+    context: QueryContext | None = None,
+) -> StructuredParseCompleteness:
+    """Classify only bounded structured residue; never infer missing facts."""
+    program = getattr(spec, "program", None) or getattr(context, "program", None)
+    common = {
+        "program": program,
+        "plans": tuple(getattr(spec, "plans", ())),
+        "years": tuple(getattr(spec, "years", ())),
+        "semesters": tuple(getattr(spec, "semesters", ())),
+        "course_codes": tuple(getattr(spec, "course_codes", ())),
+        "course_name": getattr(spec, "course_name", None),
+    }
+    not_eligible = StructuredParseCompleteness(
+        "not_eligible",
+        **common,
+    )
+    if getattr(resolution, "action", None) != "answer":
+        return not_eligible
+    if not isinstance(program, str) or not program.strip():
+        return not_eligible
+    if getattr(spec, "judgement", None) == "unsupported":
+        return not_eligible
+
+    operations = tuple(getattr(spec, "operations", ()))
+    if any(operation not in _STRUCTURED_FALLBACK_OPERATIONS for operation in operations):
+        return not_eligible
+    if getattr(spec, "topic", None) is not None:
+        return not_eligible
+
+    question = getattr(spec, "normalized_question", "")
+    missing_filters: list[str] = []
+    if (
+        getattr(spec, "category", None) is None
+        and _CATEGORY_FILTER_RESIDUE.search(question)
+    ):
+        missing_filters.append("category")
+    if _REQUIREMENT_FILTER_RESIDUE.search(question):
+        missing_filters.append("requirement_type")
+    if _CREDIT_UNIT_FILTER_RESIDUE.search(question):
+        missing_filters.append("credit_units")
+
+    if missing_filters:
+        return StructuredParseCompleteness(
+            "partial",
+            missing_filters=tuple(missing_filters),
+            **common,
+        )
+
+    if operations:
+        return StructuredParseCompleteness("complete", **common)
+
+    has_scope = bool(
+        common["plans"]
+        or common["years"]
+        or common["semesters"]
+        or common["course_codes"]
+        or common["course_name"]
+    )
+    if has_scope and _STRUCTURED_FALLBACK_CUE.search(question):
+        return StructuredParseCompleteness(
+            "unrecognized_structured",
+            **common,
+        )
+    return not_eligible
+
+
+def _is_course_list_fallback_candidate(
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+) -> bool:
+    """Allow only bounded course-list/filter residue into the SQL seam."""
+    operations = tuple(getattr(spec, "operations", ()))
+    if operations:
+        return "list" in operations and set(operations) <= {
+            "list",
+            "sum_credits",
+        }
+    return bool(
+        completeness.classification == "unrecognized_structured"
+        and _LIST_FILTER_FALLBACK_CUE.search(
+            getattr(spec, "normalized_question", "")
+        )
+    )
+
+
+def _fallback_scope(
+    completeness: StructuredParseCompleteness,
+    resolution: ResolutionOutcome,
+) -> StructuredFallbackScope | None:
+    """Build fallback scope only from deterministic parser/resolver state."""
+    program = completeness.program or resolution.resolved_program
+    if not isinstance(program, str) or not program.strip():
+        return None
+
+    plans = tuple(resolution.resolved_plans or completeness.plans)
+    course_ids: list[int] = []
+    course_codes: list[str] = list(completeness.course_codes)
+    for reference in resolution.course_references:
+        for candidate in reference.candidates:
+            candidate_id = candidate.get("course_id")
+            if isinstance(candidate_id, int) and not isinstance(candidate_id, bool):
+                if candidate_id not in course_ids:
+                    course_ids.append(candidate_id)
+            candidate_code = candidate.get("course_code")
+            if isinstance(candidate_code, str) and candidate_code.strip():
+                if candidate_code not in course_codes:
+                    course_codes.append(candidate_code)
+
+    try:
+        return StructuredFallbackScope(
+            program=program,
+            plans=plans,
+            years=completeness.years,
+            semesters=completeness.semesters,
+            course_ids=tuple(course_ids),
+            course_codes=tuple(course_codes),
+        )
+    except (TypeError, ValueError):
+        return None
+
+
+def _fallback_course_list_claim(
+    grounded: GroundedCourseListResult,
+    scope: StructuredFallbackScope,
+) -> GroundedClaim:
+    """Adapt canonical fallback list records to the existing list claim shape."""
+    if grounded.status == "insufficient_evidence":
+        return GroundedClaim(
+            claim_id="fallback_list",
+            operation="list",
+            effective_scope=StructuralScope(
+                program=scope.program,
+                plans=scope.plans,
+                years=scope.years,
+                semesters=scope.semesters,
+            ),
+            status="insufficient_evidence",
+        )
+
+    evidence_complete = grounded.status in {"complete", "valid_empty"}
+    try:
+        aggregate = aggregate_course_set(
+            grounded.records,
+            evidence_complete=evidence_complete,
+        )
+    except (TypeError, ValueError, OverflowError):
+        return GroundedClaim(
+            claim_id="fallback_list",
+            operation="list",
+            effective_scope=StructuralScope(
+                program=scope.program,
+                plans=scope.plans,
+                years=scope.years,
+                semesters=scope.semesters,
+            ),
+            status="insufficient_evidence",
+        )
+
+    return GroundedClaim(
+        claim_id="fallback_list",
+        operation="list",
+        effective_scope=StructuralScope(
+            program=scope.program,
+            plans=scope.plans,
+            years=scope.years,
+            semesters=scope.semesters,
+        ),
+        status=aggregate.status,
+        value=aggregate.courses,
+        evidence=aggregate,
+        provenance=_provenance_from_records(aggregate.courses),
+    )
 
 
 def _execution_results(
@@ -1619,6 +1840,40 @@ def ask(
             "route": None,
             "result": render_grounded_answer(grounded),
         }
+
+    completeness = _classify_structured_parse_completeness(
+        spec,
+        resolution,
+        context,
+    )
+    if (
+        completeness.classification in {"partial", "unrecognized_structured"}
+        and callable(structured_model_callable)
+        and _is_course_list_fallback_candidate(spec, completeness)
+    ):
+        fallback_scope = _fallback_scope(completeness, resolution)
+        if fallback_scope is not None:
+            fallback_result = run_structured_fallback(
+                db_path,
+                question,
+                fallback_scope,
+                structured_model_callable,
+            )
+            grounded_list = ground_course_list(
+                db_path,
+                fallback_result,
+                fallback_scope,
+            )
+            claim = _fallback_course_list_claim(grounded_list, fallback_scope)
+            grounded = compose_grounded_answer(composed_claims=(claim,))
+            return {
+                "route": None,
+                "result": render_grounded_answer(
+                    grounded,
+                    answer_model_callable=None,
+                    question=question,
+                ),
+            }
 
     try:
         plan = plan_evidence(spec, resolution)

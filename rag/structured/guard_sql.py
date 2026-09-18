@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 import re
 from typing import Final
@@ -171,6 +172,94 @@ def _validate_statement(tokens: list[_Token]) -> None:
             raise ValueError("WITH must contain a SELECT statement")
 
 
+_RELATION_TERMINATORS: Final = frozenset(
+    {"WHERE", "GROUP", "ORDER", "HAVING", "LIMIT", "UNION", "JOIN", "ON"}
+)
+
+
+def _cte_names(tokens: list[_Token]) -> set[str]:
+    names: set[str] = set()
+    for index, token in enumerate(tokens[:-2]):
+        if token.kind != "word":
+            continue
+        as_token = tokens[index + 1]
+        opening = tokens[index + 2]
+        if (
+            as_token.kind == "word"
+            and as_token.value.upper() == "AS"
+            and opening.value == "("
+            and opening.depth == token.depth
+        ):
+            names.add(token.value.casefold())
+    return names
+
+
+def _validate_relation_name(
+    tokens: list[_Token],
+    index: int,
+    allowed: set[str],
+    cte_names: set[str],
+) -> int:
+    if index >= len(tokens) or tokens[index].kind != "word":
+        raise ValueError("ambiguous SQL relation reference")
+    relation = tokens[index].value.casefold()
+    if index + 1 < len(tokens) and tokens[index + 1].value == ".":
+        raise ValueError("schema-qualified SQL relations are not allowed")
+    if relation not in allowed and relation not in cte_names:
+        raise ValueError(f"SQL relation is not allowed: {tokens[index].value}")
+    return index + 1
+
+
+def _validate_relations(tokens: list[_Token], allowed_relations: Iterable[str]) -> None:
+    allowed: set[str] = set()
+    for relation in allowed_relations:
+        if (
+            not isinstance(relation, str)
+            or _WORD_RE.fullmatch(relation) is None
+        ):
+            raise ValueError("allowed SQL relations must be simple identifiers")
+        allowed.add(relation.casefold())
+
+    cte_names = _cte_names(tokens)
+    for index, token in enumerate(tokens):
+        if token.kind != "word" or token.value.upper() not in {"FROM", "JOIN"}:
+            continue
+        relation_index = _validate_relation_name(
+            tokens, index + 1, allowed, cte_names
+        )
+        if token.value.upper() != "FROM":
+            continue
+
+        # Also reject comma-separated FROM sources.  Commas nested in an
+        # expression or subquery are at a deeper token depth and are ignored.
+        source_depth = token.depth
+        scan_index = relation_index
+        while scan_index < len(tokens):
+            scanned = tokens[scan_index]
+            if scanned.depth < source_depth:
+                break
+            if scanned.depth == source_depth:
+                if (
+                    scanned.kind == "word"
+                    and scanned.value.upper() in _RELATION_TERMINATORS
+                ):
+                    break
+                if scanned.value == ",":
+                    relation_index = _validate_relation_name(
+                        tokens, scan_index + 1, allowed, cte_names
+                    )
+                    scan_index = relation_index
+                    continue
+            scan_index += 1
+
+
+def _validate_relation_allowlist(
+    tokens: list[_Token], allowed_relations: Iterable[str] | None
+) -> None:
+    if allowed_relations is not None:
+        _validate_relations(tokens, allowed_relations)
+
+
 def _next_token(tokens: list[_Token], index: int) -> tuple[int, _Token] | None:
     next_index = index + 1
     if next_index >= len(tokens):
@@ -232,7 +321,12 @@ def _limit_replacement(
     return start, end
 
 
-def guard_sql(sql: str, max_limit: int = 100) -> str:
+def guard_sql(
+    sql: str,
+    max_limit: int = 100,
+    *,
+    allowed_relations: Iterable[str] | None = None,
+) -> str:
     """Validate a read-only SQL query and apply a bounded result limit."""
     if not isinstance(sql, str) or not sql.strip():
         raise ValueError("SQL must be a non-empty string")
@@ -241,6 +335,7 @@ def guard_sql(sql: str, max_limit: int = 100) -> str:
 
     tokens = _tokenize(sql)
     _validate_statement(tokens)
+    _validate_relation_allowlist(tokens, allowed_relations)
 
     limits = [
         index

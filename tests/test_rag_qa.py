@@ -13,7 +13,16 @@ from rag.aggregation import (
 from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
-from rag.qa import _compose_evidence_claims, _course_set_aggregate, ask
+from rag.structured.fallback import (
+    GroundedCourseListResult,
+    StructuredFallbackResult,
+)
+from rag.qa import (
+    _classify_structured_parse_completeness,
+    _compose_evidence_claims,
+    _course_set_aggregate,
+    ask,
+)
 from rag.query_spec import parse_query_spec
 from rag.retrieval.retrieve import (
     ConstrainedTopicRetrievalResult,
@@ -25,6 +34,7 @@ from rag.resolution import (
     CourseReferenceResolution,
     QueryContext,
     ResolutionOutcome,
+    resolve_query_spec,
 )
 
 
@@ -669,6 +679,232 @@ class RagQaTest(unittest.TestCase):
             [claim.operation for claim in result["result"].claims],
             ["prerequisite"],
         )
+
+    def test_structured_parse_completeness_preserves_deterministic_fast_paths(self):
+        for question in (
+            "DSBA ปี 2 มีวิชาศึกษาทั่วไปอะไรบ้าง",
+            "IT ปี 2 เทอม 2 ลงทะเบียนรวมกี่หน่วยกิต?",
+            "วิชา IT 06016420 มีหน่วยกิตเท่าไร?",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                result = _classify_structured_parse_completeness(spec, resolution)
+                self.assertEqual(result.classification, "complete")
+
+    def test_structured_parse_completeness_detects_bounded_partial_filters(self):
+        cases = (
+            (
+                "DSBA ปี 2 มีวิชา Gen Ed อะไรบ้าง",
+                ("category",),
+            ),
+            (
+                "DSBA ปี 2 มีวิชาบังคับ 3 หน่วยกิตอะไรบ้าง",
+                ("requirement_type", "credit_units"),
+            ),
+        )
+        for question, missing_filters in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                result = _classify_structured_parse_completeness(spec, resolution)
+                self.assertEqual(result.classification, "partial")
+                self.assertEqual(result.missing_filters, missing_filters)
+                self.assertEqual(result.program, "DSBA")
+
+    def test_structured_parse_completeness_uses_ui_program_for_partial_query(self):
+        spec = parse_query_spec("ปี 2 มีวิชา Gen Ed อะไรบ้าง")
+        context = QueryContext(program="DSBA")
+        resolution = resolve_query_spec(spec, DB_PATH, context=context)
+
+        result = _classify_structured_parse_completeness(spec, resolution, context)
+
+        self.assertEqual(result.classification, "partial")
+        self.assertEqual(result.program, "DSBA")
+
+    def test_structured_parse_completeness_rejects_semantic_unsupported_and_blocked(self):
+        cases = (
+            ("IT วิชา 06016404 เรียนเกี่ยวกับอะไรบ้าง?", None),
+            ("IT วิชา 06016420 ยากไหม?", None),
+            ("วิชา 06016404 เรียนเกี่ยวกับอะไรบ้าง?", None),
+        )
+        for question, context in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH, context=context)
+                result = _classify_structured_parse_completeness(
+                    spec, resolution, context
+                )
+                self.assertEqual(result.classification, "not_eligible")
+
+    def test_structured_parse_completeness_marks_unrecognized_structured_shape(self):
+        original = parse_query_spec("DSBA ปี 2 มีวิชาอะไรบ้าง")
+        spec = replace(original, operations=())
+        resolution = resolve_query_spec(spec, DB_PATH)
+
+        result = _classify_structured_parse_completeness(spec, resolution)
+
+        self.assertEqual(result.classification, "unrecognized_structured")
+        self.assertEqual(result.program, "DSBA")
+
+    @staticmethod
+    def fallback_course_record():
+        return {
+            "program": "DSBA",
+            "plan_key": "no_coop",
+            "year_number": 2,
+            "semester_number": 1,
+            "course_id": 101,
+            "course_code": "90642067",
+            "name_th": "ซอฟต์บอลและเบสบอล",
+            "name_en": "SOFTBALL AND BASEBALL",
+            "credits": "3(3-0-6)",
+            "placement_credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "requirement_type": "required",
+            "is_alternative": False,
+            "alternative_group_id": None,
+            "placement_id": 201,
+            "provenance": ({"provenance_id": 301, "source_page": 2},),
+        }
+
+    def _patch_list_fallback(self, *, status="complete"):
+        sql_result = StructuredFallbackResult(
+            status="success",
+            sql="SELECT course_id FROM courses LIMIT 100",
+            columns=("course_id",),
+            rows=((101,),),
+        )
+        grounded_result = GroundedCourseListResult(
+            status=status,
+            records=(self.fallback_course_record(),) if status == "complete" else (),
+        )
+        return sql_result, grounded_result
+
+    def test_partial_category_list_uses_one_fallback_and_canonical_claim(self):
+        _, grounded_result = self._patch_list_fallback()
+        structured_calls = []
+        answer_calls = []
+
+        def structured_model(prompt):
+            structured_calls.append(prompt)
+            return "SELECT course_id FROM courses"
+
+        def forbidden_answer_model(prompt):
+            answer_calls.append(prompt)
+            self.fail("SQL fallback answers must not invoke answer polishing")
+
+        with patch(
+            "rag.qa.ground_course_list", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("partial list must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชา Gen Ed อะไรบ้าง",
+                structured_model_callable=structured_model,
+                answer_model_callable=forbidden_answer_model,
+            )
+
+        self.assertEqual(len(structured_calls), 1)
+        ground.assert_called_once()
+        self.assertEqual(result["result"].status, "answer")
+        self.assertEqual(result["result"].claims[0].operation, "list")
+        self.assertIn("90642067", result["result"].final_answer)
+        self.assertNotIn("SELECT course_id", result["result"].final_answer)
+        self.assertEqual(answer_calls, [])
+        scope = ground.call_args.args[2]
+        self.assertEqual(scope.program, "DSBA")
+        self.assertEqual(scope.years, (2,))
+
+    def test_partial_requirement_and_credit_filter_uses_fallback_once(self):
+        _, grounded_result = self._patch_list_fallback()
+        model_calls = []
+
+        def structured_model(prompt):
+            model_calls.append(prompt)
+            return "SELECT course_id FROM courses"
+
+        with patch(
+            "rag.qa.ground_course_list", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("partial list must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับ 3 หน่วยกิตอะไรบ้าง",
+                structured_model_callable=structured_model,
+            )
+
+        self.assertEqual(len(model_calls), 1)
+        ground.assert_called_once()
+        self.assertEqual(result["result"].status, "answer")
+
+    def test_complete_list_stays_on_deterministic_path_without_model_call(self):
+        model = lambda prompt: self.fail("complete query must not call SQL model")
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+                structured_model_callable=model,
+            )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        fallback.assert_not_called()
+
+    def test_semantic_and_unsupported_queries_do_not_use_sql_fallback(self):
+        model = lambda prompt: self.fail("non-list query must not call SQL model")
+        for question in (
+            "DSBA มีวิชาอะไรเกี่ยวกับ database บ้าง",
+            "DSBA ปี 2 เรียนยากไหม",
+        ):
+            with self.subTest(question=question):
+                with patch("rag.qa.run_structured_fallback") as fallback:
+                    ask(
+                        DB_PATH,
+                        question,
+                        structured_model_callable=model,
+                    )
+                fallback.assert_not_called()
+
+    def test_fallback_grounding_failure_returns_insufficient_evidence(self):
+        sql_result, _ = self._patch_list_fallback()
+        failed = GroundedCourseListResult(status="insufficient_evidence")
+        with patch(
+            "rag.qa.run_structured_fallback", return_value=sql_result
+        ), patch(
+            "rag.qa.ground_course_list", return_value=failed
+        ), patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("fallback failure must not plan broadly"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชา Gen Ed อะไรบ้าง",
+                structured_model_callable=lambda prompt: "SELECT course_id FROM courses",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].claims[0].status, "insufficient_evidence")
+
+    def test_fallback_valid_empty_uses_existing_empty_status(self):
+        sql_result, _ = self._patch_list_fallback()
+        empty = GroundedCourseListResult(status="valid_empty")
+        with patch(
+            "rag.qa.run_structured_fallback", return_value=sql_result
+        ), patch(
+            "rag.qa.ground_course_list", return_value=empty
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชา Gen Ed อะไรบ้าง",
+                structured_model_callable=lambda prompt: "SELECT course_id FROM courses",
+            )
+
+        self.assertEqual(result["result"].status, "valid_empty")
+        self.assertEqual(result["result"].claims[0].status, "valid_empty")
 
     def test_program_free_prerequisite_with_divergent_candidates_still_clarifies(self):
         for question in (
