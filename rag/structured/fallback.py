@@ -66,11 +66,18 @@ programs(program_id, catalog_id, program_code, program_code_normalized)
 
 _COURSE_LIST_SELECTOR_CONTRACT = (
     "COURSE LIST/FILTER FALLBACK CONTRACT: SQL is only a candidate selector, "
-    "not a presentation query. The result MUST contain the canonical "
-    "course_id column; prefer selecting only DISTINCT course_id (for example, "
-    "SELECT DISTINCT p.course_id AS course_id ...). Filters may use other "
+    "not a presentation query. ALWAYS return course_id rows: the SELECT output "
+    "MUST contain the canonical course_id column; prefer selecting only "
+    "SELECT DISTINCT p.course_id AS course_id ... Filters may use other "
     "allowed columns, but do not return course_code, names, credits, or "
-    "provenance as output fields. The deterministic scope above is "
+    "provenance as output fields. NEVER use COUNT, SUM, AVG, MIN, MAX, or any "
+    "other presentation aggregate as the selected answer. Even when the user asks "
+    "\"กี่วิชา\" (how many courses), \"มีไหม\" (existence), or \"รวมกี่หน่วยกิต\" "
+    "(total credits), SQL still selects only the matching course_id values. "
+    "Downstream deterministic canonical code computes the count, existence, and "
+    "credit totals; do not answer the aggregation directly in SQL. Correct: "
+    "SELECT DISTINCT p.course_id AS course_id ... WHERE ... Incorrect: "
+    "SELECT COUNT(*) ... or SELECT SUM(p.credits) ... The deterministic scope above is "
     "authoritative and must not be widened or replaced."
 )
 

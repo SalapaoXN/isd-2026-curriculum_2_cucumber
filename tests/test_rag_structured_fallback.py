@@ -800,5 +800,90 @@ class RagStructuredFallbackTest(unittest.TestCase):
         )
 
 
+    def test_course_list_prompt_forbids_presentation_aggregates(self):
+        result, calls = self.run_with_sql(
+            "SELECT DISTINCT course_id AS course_id FROM courses WHERE course_id = 1"
+        )
+
+        self.assertEqual(result.status, "success")
+        self.assertEqual(len(calls), 1)
+        prompt = calls[0]
+        self.assertIn("ALWAYS return course_id rows", prompt)
+        self.assertIn("NEVER use COUNT, SUM, AVG, MIN, MAX", prompt)
+        for token in ("กี่วิชา", "มีไหม", "รวมกี่หน่วยกิต"):
+            self.assertIn(token, prompt)
+        self.assertIn(
+            "Downstream deterministic canonical code computes", prompt
+        )
+        self.assertIn("SELECT COUNT(*)", prompt)
+        self.assertIn("SELECT SUM(p.credits)", prompt)
+
+    def test_count_style_question_uses_course_id_selector(self):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return (
+                "SELECT DISTINCT p.course_id AS course_id "
+                "FROM v_plan_courses AS p WHERE p.program = 'IT'"
+            )
+
+        result = run_structured_fallback(
+            self.db_path,
+            "IT ปี 3 วิชาบังคับมีกี่วิชา",
+            self.scope(),
+            fake_model,
+        )
+
+        self.assertEqual(result.status, "success")
+        self.assertEqual(result.columns, ("course_id",))
+        self.assertEqual(len(calls), 1)
+        grounded, _, _ = self.ground(result, [self.canonical_record()])
+        self.assertEqual(grounded.status, "complete")
+
+    def test_sum_style_question_uses_course_id_selector(self):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return (
+                "SELECT DISTINCT p.course_id AS course_id "
+                "FROM v_plan_courses AS p WHERE p.program = 'IT'"
+            )
+
+        result = run_structured_fallback(
+            self.db_path,
+            "IT ปี 2 เทอม 1 วิชาบังคับ รวมกี่หน่วยกิต",
+            self.scope(),
+            fake_model,
+        )
+
+        self.assertEqual(result.status, "success")
+        self.assertEqual(result.columns, ("course_id",))
+        self.assertEqual(len(calls), 1)
+        grounded, _, _ = self.ground(result, [self.canonical_record()])
+        self.assertEqual(grounded.status, "complete")
+
+    def test_count_aggregate_without_course_id_fails_closed(self):
+        selector = StructuredFallbackResult(
+            status="success",
+            columns=("course_count",),
+            rows=((12,),),
+        )
+        grounded, _, _ = self.ground(selector, [self.canonical_record()])
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_sum_aggregate_without_course_id_fails_closed(self):
+        selector = StructuredFallbackResult(
+            status="success",
+            columns=("SUM(v_plan_courses.credits)",),
+            rows=((36,),),
+        )
+        grounded, _, _ = self.ground(selector, [self.canonical_record()])
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+
 if __name__ == "__main__":
     unittest.main()
