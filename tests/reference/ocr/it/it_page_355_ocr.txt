@@ -1,0 +1,62 @@
+350
+มคอ.
+2
+06016455
+การวิเคราะห์พฤติกรรมลูกค้า
+3(3-0-6)
+CUSTOMER BEHAVIOR ANALYSIS
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+กระบวนการภาย
+ในที่เกี่ยวข้องกับพฤติกรรมผู้บริโภค ทฤษฎีและแบบจำลองพฤติกรรมผู้บริโภค
+การวิเคราะห์และประเมินพฤติกรรมผู้บริโภคการวิเคราะห์แบบจำลองพฤติกรรมผู้บริโภคสามารถนำมา
+ประยุกต์ใช้ในการพัฒนาข้อเสนอมูลค่า  เครื่องมือและวิธีการวิจัยผู้บริโภค
+THE INTERNAL PROCESSES RELATED TO CONSUMER BEHAVIOR., THEORIES AND MODELS OF
+CONSUMER
+BEHAVIOR
+CAN
+BE  APPLIED
+FOR  DEVELOPING
+VALUE  PROPOSALS,  ANALYZE
+AND
+EVALUATE CONSUMER BEHAVIOR, CONSUMER RESEARCH METHODS
+06016456
+แบบจำลองธุรกิจ
+3(3-0-6)
+BUSINESS MODEL
+วิชาบังคับก่อน
+06066101 พืนฐานทางธุรกิจสำหรับเทคโนโลยี
+สารสนเทศ
+PRERECUISITE
+06066101 BUSINESS FUNDAMENTALS FOR
+INFORMATION TECHNOLOGY
+การทำโมเดลธุรกิจแคนวาสซึ่งเป็นครื่องมือสำหรับการอธิบาย วิเคราะห์และออกแบบโมเดล
+ธุรกิจ
+รูปแบบต่าง
+ของโมเดลธุรกิจ เทคนิคช่วยออกแบบโมเดลธุรกิจ กระบวนการออกแบบโมเดล
+ธุรกิจเพื่อช่วยในการออกแบบโมเดลธุรกิจที่เป็นนวัตกรรมใหม่ โดยเชื่อมโยงแนวคิด เทคนิคและ
+เครื่องมือทั้งหมดในการสร้างโมเดลธุรกิจ กรณีศึกษาโมเดลธุรกิจต่าง
+THE
+BUSINESS
+MODEL  CANVAS,
+A
+TOOL  FOR  DESCRIBING,  ANALYZING,
+AND  DESIGNING
+BUSINESS
+MODELS,
+BUSINESS
+MODEL
+PATTERNS, TECHNIQUES
+TO  HELP
+DESIGN
+BUSINESS
+MODELS,
+BUSINESS
+MODEL  DESIGN
+PROCESS TO  HELP  DESIGN INNOVATIVE  BUSINESS
+MODELS,
+TYING TOGETHER ALL. THE CONCEPTS, TECHNIQUES, AND TOOLS IN BUILDING BUSINESS MODEL., CASE
+STUDIES OF SEVERAL BUSINESS MODELS
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

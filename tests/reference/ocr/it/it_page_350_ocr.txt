@@ -1,0 +1,45 @@
+345
+มคอ
+2
+DESIGN., DATA VISUALIZATION
+TOOLS, UNDERSTANDING FUNDAMENTAL OF INDUSTRIAL INTERNET OF
+THINGS (LLOT), DATA COMMUNICATION SYSTEM IN INDUSTRY SYSTEM, LLOT SENSORS AND DEVICES,
+LLOT NETWORKS AND
+PROTOCOLS, SECURITY AND PRIVACY IN LLOT, DESIGN AND DEVELOPMENT OF
+LLOT SYSTEMS, INDUSTRY 4.0: SMART FACTORY.
+06016444
+การออกแบบเว็บ
+3(2-2-5)
+WEB DESIGI
+วิชาบังคับก่อน
+06066302
+การเขียนโปรแกรมเว็บพื้นฐาน
+PREREOUSITE
+06066302 FUNDAMENTAL WEB PROCRAMMING
+กระะ
+เบวนการออกแบบเว็บโดยมี'ผู้ไช้เป็นศูนย์กลาง หลักการออกแบบเว็บ การออกแบบเว็บ
+แบบปรับการนำเสนอได้เอง การออกแบบเว็บสำหรับอุปกรณ์เคลื่อนที่ การออกแบบเว็บ สำหรับแอ
+พลิเคชันแบบคงหน้าจอเดียว เครื่องมือเพื่อการออกแบบเว็บ
+USER CENTERED
+WEB  DESIGN  PROCESS,
+WEB  DESIGN  PRINCIPLES, RESPONSIVE
+WEB
+DESIGN, WEB DESIGN FOR MOBILE DEVICES, WEB DESIGN FOR A SINGLE-PAGE APPLICATION., TOOLS
+FOR WEB DESIGN
+06016445
+การเขียนสคริปต์ขั้นสูงสำหรับการออกแบบ
+3(2-2-5)
+ADVANCED SCRIPTING FOR DESIGI
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+ตัวแปร CSS, การคำนวณ CSS, การออกแบบและหลักการตอบสนองต่อเว็บ, ตัวเลือก CSS
+สูง, ตัวเลือกแอตทริบิวต์, การวางตำแหน่งเว็บ, เกล่อง CSS FLEX, การแปลง CSS 2D/3D,
+CSS ขันสูง, หน่วย CSS, SASS
+CSS VARIABLE,
+CSS CALCULATOR, WEB RESPONSIVE DESIGN  AND PRINCIPLE,
+ADVACNED
+CSS SELECTOR, ATTRIBUTE SELECTOR, WEB POSITIONING, CSS FLEX BOX, CSS 2D/3D TRANSFORM,
+CSS ADVANCED ANIMATION, CSS UNITS, SASS
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

@@ -1,0 +1,82 @@
+344
+มคอ.
+2
+06016442
+การออกแบบ ฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง
+3(2-2-5)
+ITERNET OF THIGS HARDWARE DESIGI
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+วงจรไข
+ไฟฟ้าพื้นฐาน กฎของโอห์มฺ ฺกฎของเคอร์ชอฟ การวิเคราะห์วงจรไฟฟ้าแบบโหนด การ
+วิเคราะห์วงจรไฟฟ้าแบบลูป ฺอุปกรณ์ไฟฟ้าพื้นฐาน เช่น ตัวเก็บประจุตฺตัวเหนี่ยวนำอุปกรณ์เซมิคอนดัก
+เตอร์ เช่น โดโอด ทรานซิสเตอร์ ออปแอมป์เซ็นเซอร์และการทำงานของเซ็นเซอร์ การออกแบบวงจร
+เช่น วงจรขยาย วงจรกำเบิ
+เนิดสัญญาณ การออกแบบแผ่นวงจรพิมพ์และวิธีการสร้าง
+การวาดภาพสามมิติ  และเทคโนโลยีเครื่องพิมพ์สามมิติ  เทคโนโลยีชีเอ็นชี  และหัวข้ออื่นต ที่น่าสนใจ
+BASIC  CIRCUIT,
+OHM'S
+LAW,
+KIRCHOFFS  LAW,
+NODE
+ANALYSIS, LOOP  ANALYSIS,
+BASIC
+CIRCUIT'S COMPONENT
+CAPACTOR, INDUCTOR., SEMICONDUCTOR DEVICE
+DIODE, TRANSISTOR ,OP
+AMP, SENSOR AND ITS OPERATION., BASIC CIRCUIT DESIGN
+AMPLIFIER, SIGNAL  GENERATOR., PRINT
+CIRCUIT
+BOARD
+DESIGN  TECHNOLOGY
+AND
+HOW
+TO
+ASSEMBLE.
+BASIC
+3D
+DRAWING
+AND
+3D  PRINTER  TECHNOLOGY., CNC  TECHNOLOGY., AND THE OTHER INTERESTING TOPIC.
+06016443
+การวิเคราะห์ ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง
+3(2-2-5)
+ITERNET OF THIGS DATA ANALTICS AND APPLICATIONS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+การวิเคราะห์ ข้อมูลบนพื้นฐานของการเก็บรวบรวม ฺตรวจสอบ การคลีนนิ่ง การแปลง การรวม
+และการทำแบบจำลองข้อมูลโดยมีผลลัพธ์ของการค้นหาสารสนเทศที่ใช้ประโยชน์ได้ เทคนิคการ
+วิเคราะห์ข้อมูล รวมถึงการวิเคราะห์แบบคาดการณ์และการวิเคราะห์แบบเดสคริพทีฬการประยุกต์ ใช้
+การวิเคราะห์ ข้อมูลในระบบไอโอที หลักการการแสดงข้อมูลด้วยแผนภาพ การออกแบบการแสดง
+ข้อมูลด้วยแผนภาพ  เครื่องมือที่ใช้
+ความเข้าใจพื้นฐานเกี่ยวกับระบบไอโอทิในอุตสาหกรรม (ไอไอโอที)
+ระบบ.เสื่อสารข้อมูลโครงข่ายในอุตสาหกรรม ระบบเซ็นเซอร์ในไอไอโอที เครือข่ายและโปรโตคอลใน
+ตสาหกรรมไอโอที ความปลอดภัยและความเป็นส่วนตัวในไอไอโอที การพัฒนาและออกแบบระบบไอ
+ไอโอที อุตสาหกรรม 4.0 ระบบโรงงานอัจฉริยะ
+DATA
+ANALYSIS
+PROCESS
+ON
+COLLECTING,
+INSPECTING,
+CLEANING,
+TRANSFORMING,
+INTEGRATING AND MODELING DATA WITH THE GOAL OF
+DISCOVERING USEFUL INFORMATION, DATA
+ANALYSIS TECHNIQUES INCLUDE PREDICTIVE ANALYTICS AND DESCRIPTIVE ANALYTICS,
+APPLICATION
+OF
+DATA  ANALYTICS
+IN
+LOT SYSTEM,  PRINCIPLES
+OF  DATA
+VISUALIZATION,
+DATA
+VISUALIZATION
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+พื้นฐาน
+พืนฐาน

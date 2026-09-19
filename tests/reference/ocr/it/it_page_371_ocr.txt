@@ -1,0 +1,60 @@
+366
+มคอ.
+2
+DRIVEN  PROGRAMMING,
+WEB  DOCUMENT STRUCTURE AND
+SITE MANAGEMENT, UNDERSTANDING
+THE DOCUMENT OBJECT MODEL, SERVER-SIDE SCRIPTING, PHP PROGRAMMING, INTRODUCTION TO
+DATABASE
+MANAGEMENT
+IN
+WEB
+DEVELOPMENT,
+IMPLEMENTING
+WEB
+DEVELOPMENT
+FRAMEWORKS.
+06066303
+การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์
+3(2-2-5)
+PROBLEM SOLVING AND COMPUTER PROCRAMMING
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+กลยุทธ์และหลักการแก้ปัญหา การคิดแบบขันตอนวิธี ผังงาน แนวคิดและเกรินนำการเขียน
+โปรแกรมคอมพิวเตอร์
+PROBLEM
+SOLVING
+STRATEGIES
+AND
+CONCEPTS,
+ALGORITHMIC  THINKING,
+FLOWCHART,
+CONCEPTS AND INTRODUCTION TO COMPUTER PROGRAMMING.
+06066304
+การวิเคราะห์และออกแบบระบบสารสนเทศ
+3(3-0-6)
+INFORMATION SVSTEM ANALYSIS AND DESIGI
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+การพัฒนาโดยใช้แนวคิดเชิงวัตถฺการวิเคราะห์และออกแบบ การเลือกโครงการและการจัดการ
+โครงการสารสนเทศ กำหนดความต้องการระบบการวิเคราะห์ด้วยยูสเคส แบบจำลองกระบวนการ
+แบบจำลองข้อมูล การออกแบบสถาปัตยกรรมและกลยุทธการออก การออกแบบส่วนติดต่อกับผู้ใช้ การ
+ออกแบบส่วนจัดเก็บข้อมูล ฺการออกแบบโปรแกรม คลาสและเมธอด การสร้างและการติดตั้งระบบ
+OBJECT ORIENTED  APPROACHES
+TO  SYSTEM  DEVELOPMENT,  SYSTEM
+ANALYSIS
+AND
+DESIGN.,  PROJECT  SELECTION
+AND  MANAGEMENT, SYSTEM  REQUIREMENT  DETERMINATION,
+USE
+CASE ANALYSIS, PROCESS MODEL., DATA MODEL, DESIGN STRATEGY AND ARCHITECTURE DESIGN., USER
+INTERFACE  DESIGN,
+DATA  STORAGE  DESIGN.,  PROGRAM,  CLASS,
+AND
+METHOD  DESIGN.,  SYSTEM
+IMPLEMENTATION AND INSTALLATION.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

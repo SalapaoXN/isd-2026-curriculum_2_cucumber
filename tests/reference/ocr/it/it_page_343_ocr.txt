@@ -1,0 +1,61 @@
+338
+มคอ.
+2
+06016429
+การพัฒนาเว็บฝั่งไคลเอนต์
+3(2-2-5)
+CLIENT SIDE WEB DEVELOPMENT
+วิชาบังคับก่อน
+06066302
+การเขียนโปรแกรมเว็บพื้นฐาน
+PRERECUISITE
+06066302 FUNDAMENTAL WEB
+PROGRAMMNG
+การพัฒนาเวบด้วยเฟรมเวิร์ค VUE REACT หรือ ANGULAR
+เนื้อหาจากฝั่งเซิร์ฟเวอร์
+JAVASCRIPT TYPESCRIPT
+CLIENT SIDE WEB FRAMEWORK
+SERER SIDE WEB FRAMEWORK
+WEB  DEVELOPMENT  USING
+REACT
+OR
+ANGULAR,  CLIENT SIDE
+WEB  RENDERING,
+JAVASCRIPT, TYPESCRIPT, INTEGRATION OF USING CLIENT SIDE WEB FRAMEWORK WITH SERVER-SIDE
+WEB FRAMEWORK
+06016430
+การพัฒนาคลาวด์แอปพลิเคชัน
+3(2-2-5)
+CLOUD APPLICATION DEVELOPMENT
+วิชาบังคับก่อน
+06016404
+เทคโนโลยีกลุ่มเมฆ
+PREREOUSITE
+06016404 CL0UD COMPUTING
+ความูรู้เบื้องต้นของเทคโนโลยีคลาวด์ สถาปัตยกรรมคลาวด์ คุณลักษณะการสร้างเครื่องจำลอง
+และการให้บริการผู้ใช้หลายคนพร้อมกัน หลักการพัฒนาแอปพลิเคชันสำหรับองค์กรในคลาวด์ การ
+พัฒนาแอปพลิเคชันโดยวิธีการประกาศและวิธีระบุปัญหา ข้อจำกัดของการกำกับดูแล ประเด็นที่พบ
+บ่อยระหว่างการพัฒนาคลาวด์แอปพลิเคชันแบบคลาวด์ ปัจจัยด้านความต้องการหรือความสามารถใน
+การเลือกรูปแบบการพัฒนาที่เหมาะสมฺการวิเคราะห์ข้อมูลโดยใช้แพลตฟอร์มแบบคลาวด์. หลักการ
+จัดการฐานข้อมูลคลาวด์ โนเอสคิวแอล
+INTRODUCTION TO CLOUD TECHNOLOGY., CLOUD ARCHITECTURE, VIRTUALIZATION AND MULTI-
+TENANCY FEATURES, PRINCIPLES TO DEVELOP ENTERPRISE APPLICATION IN CLOUD., DECLARATIVE
+AND
+PROBLEMATIC
+APPLICATION
+DEVELOPMENT,
+GOVERNANCE
+LIMITS,
+REQUIREMENT
+OR
+CAPABILITY
+FACTORS
+TOWARDS
+THE
+SELECTION
+OF
+APPROPRIATE  DEVELOPMENT
+PARADIGMS,
+PRINCIPLE TO CLOUD DATABASE MANAGEMENT, NOSOL.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+VUE,

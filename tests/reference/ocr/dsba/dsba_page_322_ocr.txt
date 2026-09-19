@@ -1,0 +1,67 @@
+317
+มคอ
+2
+06066301
+โครงสร้างข้อมูลและอัลกอริทึม
+3(2-2-5)
+DATA STRUCTURES AND ALGORTHMS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ชนิดของข้อมูล โครงสร้างข้อมูลและชนิดข้อมูลแบบนามธรรม ฺโครงสร้างข้อมูล
+เช่น ลิสท์ สแต็ก และคิว โครงสร้างข้อมูลแบบพลวัต คำศัพท์1เฉพาะเกี่ยวกับทรี ไบนารีทรี ไบ
+นารีเสิร์ชทรี เอวีแอลทรี กราฟ การวิเคราะห์โปรแกรมเชิงเวลาและพื้นที่ อัลกอริทึมการเรียงลำดับ
+และการค้นหาข้อมูล อัลกอริทึมแบบละโมบ อัลกอริทึมแบบแบ่งเพื่อเอาชนะ อัลกอริทึมเกี่ยวกับ
+กราฟ และการเขียนโปรแกรมพลวัต
+DATA  TYPES,
+DATA
+STRUCTURES
+AND
+ABSTRACT
+DATA
+TYPES,
+BASIC
+DATA
+STRUCTURES E.G. LIST, STACK, AND QUEUE, DYNAMIC DATA STRUCTURES, TERMINOLOGY OF TREES,
+BINARY TREES, BINARY SEARCH TREES, AVL TREES, GRAPH., TIME AND SPACE ANALYSIS OF PROGRAMS,
+SORTING AND SEARCHING ALGORITHMS, GREEDY  ALGORITHM,
+DIVIDE AND CONQUER ALGORITHM,
+GRAPH ALGORITHMS, AND DYNAMIC PROGRAMMING.
+06066302
+การเขียนโปรแกรมเว็บพื้นฐาน
+3(2-2-5)
+FUNDAMENTAL WEB PROGRAMMG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+แนวคิดพื้นฐานและหลักการทำงานของระบบเว็บ เครื่องมือสำหรับการออกแบบ
+และพัฒนาเว็บ การเขียนโปรแกรมเว็บฝังไคลแอนท์ HTML CSS JAVASCRIPT
+ส่วนต่อประสานกับผู้ใช้ การจัดการกับ EVENTS การจัดการโครงสร้างเอกสารและ DOM
+โปรแกรมเว็บฝังเซิร์ฟเวอร์ PHP
+การจัดการและการใช้งานฐานข้อมูล การใช้งานเฟรมเวิร์ค
+CONCEPTS OF WEB SYSTEM AND WEB DEVELOPMENT, WEB DEVELOPMENT
+AND DESIGN TOOLS, CLIENT-SIDE SCRIPTING: HTML, CSS, JAVASCRIPT, USER INTERFACE DESIGN
+PROCESS, EVENT DRIVEN PROGRAMMING, WEB DOCUMENT STRUCTURE AND SITE MANAGEMENT,
+UNDERSTANDING THE DOCUMENT OBJECT MODEL., SERVER-SIDE SCRIPTING, PHP PROGRAMMING,
+INTRODUCTION
+TO
+DATABASE  MANAGEMENT  IN
+WEB  DEVELOPMENT, IMPLEMENTING
+WEB
+DEVELOPMENT FRAMEWORKS.
+06066303
+การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์
+3(2-2-5)
+PROBLEM SOLNG AND COMPUTER PROGRAMMNG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+กลยุทธ์และหลักการแก้บัญหา การคิดแบบขันตอนวิธี ผังงาน แนวคิดและเกรินนำ
+การเขียน โปรแกรมคอมพิวเตอร์
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+พื้นฐาน

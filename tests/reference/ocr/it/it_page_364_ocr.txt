@@ -1,0 +1,43 @@
+359
+มคอ
+2
+DEVELOPMENT ENVIRONMENT, ERROR AND EXCEPTION HANALING, EXTERNAL CODE UTILIZATION IN
+RPA, PDF AUTOMATION, EMAIL AUTOMATION., ORCHESTRATOR FOR RPA DEVELOPERS
+06016473
+หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศ 1
+3(3-0-6)
+SPECIAL TOPICS IN INFORMATION TECHNOLOGY
+1
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอนทางด้าน
+เทคโนโลยีสารสนเทศเป็นผู้คัดเลือก
+THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY
+THE INSTRUCTORS IN THE FIELD OF INFORMATION TECHNOLOGY.
+06016474
+หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศ 2
+3(3-0-6)
+SPECIAL TOPICS IN INFORMATION TECHNOLOGY 2
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+วิชานีจะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดยอาจารย์ผู้สอนทางด้าน
+เทคโนโลยีสารสนเทศเป็นผู้คัดเลือก
+THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY
+THE INSTRUCTORS IN THE FIELD OF INFORMATION TECHNOLOGY.
+06016475
+หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศ 3
+3(3-0-6)
+SPECAL TOPICS II INFORMATIOM TECHNOLOGY 3
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+วิชานีจะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดยอาจารย์ผู้สอนทางด้าน
+เทคโนโลยีสารสนเทศเป็นผู้คัดเลือก
+THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY
+THE INSTRUCTORS IN THE FIELD OF INFORMATION TECHNOLOGY.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

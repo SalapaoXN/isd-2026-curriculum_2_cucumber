@@ -1,0 +1,68 @@
+347
+มคอ.
+2
+FRAMEWORK,
+ADVANCED  GRAPHICAL
+AND
+AUDIO  EFECTS,
+NETWORK
+GAME  DEVELOPMENT,
+GAME PERFORMANCE OPTIMIZATION
+06016449
+เกมมิฟิเคชัน
+3(3-0-6)
+GAMIFICATION
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+คำนิยามของเกมมิฟิเคชัน องค์ประกอบของเกม
+หลักการพื้นฐานในการออกแบ
+บบเกม ฺหลักการ
+พื้นฐานในการออกแบบเกมสำหรับบริบทอื่น
+นอกเหนือจากเกม ฺหลักการทางจิตวิทยาที่เกี่ยวข้องกับ
+เกมมิฟิเคชัน เทคนิคต่าง
+ที่เกี่ยวข้องกับเกมมิฟิเคชัน ตัวอย่างของเกมมิฟิเคชันในบริบทต่าง
+GAMIFICATION  DESCRIPTION,  GAME
+ELEMENTS,
+FUNDAMENTATION
+OF  GAME  DESIGN.,
+GAME  DESIGN  PRINCIPLES
+IN
+NON-GAME  CONTEXTS, PSYCHOLOGICAL  CONCEPTS  RELEVANT  TO
+GAMIFICATION., GAMIFICATION RELATED TECHNIQUES, APPLICATIONS OF GAMIFICATION
+06016450
+การพัฒนาเกมด้วยเทคโนโลยีเสมือนจริง
+3(2-2-5)
+GAME DEVELOPMENT WTH REALTV TECHNOLOGY
+วิชาบังคับก่อน
+06016447 การพัฒนาเกมขันต้นด้วยเกมเอนจิน
+PRERECUISITE
+06016447 FUNDAMENTAL GAME
+DEVELOPMENT WTH GAME ENGIE
+หลักการพื้นฐานของ เทคโนโลยีความเป็นจริงเสรีม เทคโนโลยีความเป็นจริงเสมือนและความ
+เป็นจริงผสมฺหลักการทางด้านคณิตศาตร์และฟิสิกส์ที่สำคัญที่เกี่ยวข้องกับการเคลื่อนไหวในโลกความ
+เป็นจริงเสมือนแบบต่าง
+การรับรู้ของมนุษย์ เกมเอนจิน การเขียนโปรแกรมสำหรับการทำงานด้าน
+ความเป็นจริงเสมือน เทคนิคการติดตาม ฺเทคนิคการโต้ตอบ
+FUNDAMENTAL
+OF
+AUGMENTED
+REALITY,
+VIRTUAL
+REALITY
+AND
+MIXED
+REALITY,
+MATHEMATICAL
+OF
+MOTION
+AND
+PHYSICS
+IN
+EXTENDED  REALITY
+WORLDS,
+HUMAN
+VISUAL
+PERCEPTION., GAME ENGINE, VR PROGRAMMING., TRACKING TECHNIQUES, INTERACTION TECHNIQUES
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

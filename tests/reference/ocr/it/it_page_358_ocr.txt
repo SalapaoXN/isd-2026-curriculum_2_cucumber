@@ -1,0 +1,72 @@
+353
+มคอ.
+2
+06016461
+การประมวลผลภาษาธรรมชาติเบื้องต้น
+3(3-0-6)
+INTRODUCTION TO NATURAL LANGUAGE PROCESSING
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ภาพรวมโมดูลการประมวลผลภาษาธรรมชาติ งานด้านการแบ่งกลุ่มข้อความ เช่น การจัดกลุ่ม
+ข่าว การจำแนกอารมณ์ การกรองสแปม
+ตัวแบ่งกลุ่มแบบดั้งเดิม ฺเทคนิคการเรียนรู้เชิงลึก แบบจำลอง
+ภาษาและการกำกับข้อความที่มีลำดับ การแทนข้อความในแบบจำลองเวคเตอร์ งานด้านการสร้างแบบ
+รูปของงานที่มีลำดับ เช่น การแปลภาษาด้วยเครื่องการย่อความ ฺการตอบคำถาม
+OVERVIEW OF NATURAL LANGUAGE PROCESSING MODULE, TEXT CLASSIFICATION TASKS SUCH
+AS
+NEWS CLASSIFICATION, SENTIMENT ANALYSIS, SPAM  FILTERING, TRADITIONAL  CLASSIFIERS,
+LEARNING TECHNIQUES, LANGUAGE MODELING AND SEQUENCE TAGGING, TEXT REPRESENTATION IN
+VECTOR
+SPACE
+MODELS,
+FORMULATE  SEQUENCE
+TO
+SEQUENCE
+TASKS
+SUCH
+AS
+MACHINE
+TRANSLATION, SUMMARIZATION., QUESTION ANSWERING
+06016462
+เทคโนโลยี สื่อสารเคลื่อนที่
+3(3-0-6)
+MOBILE COMMUNICATION TECHNOLOGY
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ภาพรวมของเครือข่ายและระบบสื่อสารเคลื่อนที่ พื้นฐานการสื่อสารเคลื่อนที่ สถาปัตยกรรม
+และอ
+งค์ประกอบของระบบโทรศัพท์เคลื่อนที่ เทคโนโลยีระบบโทรศัพท์เคลื่อนที่จีเอสเอ็ม ทีดีเอ็มเอ
+ซีดีเอ็มเอ แอลทีอี และเทคโนโลยีในอนาคต
+บริการข้อมูลและแอปพลิเคชันในระบบโทรศัพท์ เคลื่อนที่
+พื้นฐานความปลอดภัยในระบบสื่อสารเคลื่อนที่
+AN
+OVERVIEW
+OF
+MOBILE
+COMMUNICATION
+SYSTEMS
+AND
+NETWORKS,
+MOBILE
+COMMUNICATIONS BASICS, MOBILE PHONE SYSTEM COMPONENTS AND ARCHITECTURES, MOBILE
+PHONE SYSTEM TECHNOLOGIES GSM,
+TDMA, CDMA, LTE,
+AND FUTURE TECHNOLOGIES, DATA
+SERICES
+AND
+APPLICATIONS
+IN
+MOBILE
+PHONE
+SYSTEMS,
+BASIC
+SECURITY
+IN
+MOBILE
+COMMUNICATION SYSTEMS.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+DEEP

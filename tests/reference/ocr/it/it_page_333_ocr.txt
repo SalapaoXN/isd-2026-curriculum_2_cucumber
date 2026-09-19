@@ -1,0 +1,56 @@
+328
+มคอ.
+2
+06016411
+ระบบคอมพิวเตอร์เบื้องต้น
+3(2-2-5)
+INTRODUCTIOM TO COMPUTER SYSTEMS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+ระบบจำนวนระบบฐานสองพีชคณิตบูลีนเทคนิคการออกแบบเชิงดิจิทัล ลอจิกเกตและการลด
+จำนวน วงจรเชิงผสมเบื้องต้นหน่วยคำนวณและตรรก วิวัฒนาการของคอมพิวเตอร์ องค์ประกอบของ
+ระบบคอมพิวเตอร์และการเชื่อมต่อระหว่างกัน วิธีการคำนวณทางคณิตศาสตร์ ของเครื่องคอมพิวเตอร์
+NUMBER SYSTEMS, BINARY/ SYSTEM, BOOLEAN ALGEBRAS, DIGITAL DESIGN TECHNIQUES, LOGIC
+AND
+MINIMIZATION,
+BASIC  COMBINATIONAL
+CIRCUITS,  ARITHMETIC  LOGIC
+UNITS,  COMPUTER
+EVOLUTION., COMPUTER FUNCTION AND INTERCONNECTION, COMPUTER ARITHMETIC.
+06016412
+โครงสร้างระบบคอมพิวเตอร์และ
+ระบบปฏิบัติการ
+3(2-2-5)
+COMPUTER ORGAMIZATION AND OPERATNG SYSTEM
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+องค์ประกอบของคอมพิวเตอร์ หน่วยประมวลผลกลาง หน่วยความจำอินพุตและเอาต์พุตฺการ
+ทำงานร่วมกันขององค์ประกอบต่าง
+ภาพรวมการทำงานของระบบปฏิบัติการ กระบวนการ
+และเธรด การสลับการทำงาน การจัดการหน่วยความจำหน่วยความจำเสมือน การใช้งาน
+ระบบปฏิบัติการยูนิค วีเอมแวร์หรือเวอร์ชวลบ้อกว์รวมถึงการใช้งานแพลตฟอร์มดือกเกอร์
+COMPUTER COMPONENTS, CPU, MEMORY., O, COMPONENTS CO OPERATION, OVENVIEW
+OF  OPERATING  SYSTEM,  PROCESS
+AND  THREAD,
+PROCESSING  SWITCH,  MEMOR  MANAGEMENT,
+VIRTUAL MEMOR, USING A UNIX, VMWARE OR VIRTUAL BOX AND USING THE DOCKER PLATFORM.
+06016413
+ระบบเครือข่ายเบื้องต้น
+3(3-0-
+6)
+INTRODUCTION TO NETWORK SYSTEMS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+แนวคิดพื้นฐานของเครือข่ายคอมพิวเตอร์และการสื่อสารข้อมูลสถาปัตยกรรมเครือข่ายและ
+แบบจำลองแบบระดับชัน โพรโตคอลระดับแอปพลิเคชัน สถาปัตยกรรมแอปพลิเคชัน โพรโตคอล
+ระดับทรานสปอร์ต การส่งผ่านข้อมูลให้น่าเชื่อถือ การควบคุมความคับคั่ง โพรโตคอลระดับเครือข่าย
+เครือข่ายเซอร์กิตสวิตซ์และแพ็กเก็ตสวิตช์ การกำหนดเส้นทาง โพรโตคอลอินเทอร์เน็ต โพรโตคอล
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+SATE
+โพรเซส

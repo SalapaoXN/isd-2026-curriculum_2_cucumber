@@ -1,0 +1,86 @@
+326
+มคอ
+2
+06026222
+คอมพิวเตอร์วิชัน
+3(3-0-6)
+COMPUTER VISION
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+เทคนิคพื้นฐานในการป=
+ระมวลผลภาพและวีดิทัศน์ ความเข้มแสงและสี การแปลง
+ภาพ
+การคอนโวลูชันภาพ รูปทรงและเส้นแสดงรูปร่าง ฮิสโตแกรม การแบ่งส่วนภาพ การสกัดวัตถุ
+การตรวจจับและจับคู่คุณลักษณะเด่น การลบฉากหลังการเผ้าติดตามฺการรู้
+วิชัน
+3 มิติ การ
+เรียนรู้ของเครื่องในคอมพิวเตอร์วิชัน การประยุกต์ใช้ เช่น ระบบตรวจสอบสินค้า การวิเคราะห์ภาพ
+ทางการแพทย์ การยืนยันตัวตนโดยใช้ชีวมิติ พาหนะอัจฉริยะ และระบบรักษาความปลอดภัย
+BASIC
+IMAGE
+AND
+VIDEO
+PROCESSING,
+INTENSITY
+AND
+COLOR,
+IMAGE
+TRANSFORMATION,
+IMAGE
+CONVOLUTION,
+SHAPE
+AND
+CONTOUR,
+HISTOGRAM,
+IMAGE
+SEGMENTATION., FOREGROUND  EXTRACTION., FEATURE  DETECTION
+AND  MATCHING,  BACKGROUND
+SUBTRACTION., TRACKING,  OBJECT RECOGNITION,
+3D VISION., MACHINE LEARNING IN  COMPUTER
+VISION,
+SOME
+APPLICATIONS  SUCH
+AS
+PRODUCT  INSPECTION
+SYSTEM,
+BIOMEDICAL  IMAGE
+ANALYSIS, BIOMETRIC AUTHENTICATION., INTELLIGENT VEHICLE, AND SECURITY SYSTEM.
+06026223
+การประมวลผลภาพ
+3(3-0-6)
+IMAGE PROCESSWG
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+พืนฐานของการประมวลผลภาพการแปลงความเข็มแสงและการกรองในขอบเขต
+สเปเชียล ฺการประมวลผลในขอบเขตความถี
+การพื้นฟูภาพ การประมวลผลภาพแบบมอร์โฟโลยี การ
+แบ่งส่วนภาพ
+FUNDAMENTALS
+OF  IMAGE
+PROCESSING,  INTENSITY
+TRANSFORMATIONS
+AND
+SPATIAL FILTERING, FREQUENCY DOMAIN PROCESSING, IMAGE RESTORATION, MORPHOLOGICAL IMAGE
+PROCESSING, IMAGE SEGMENTATION.
+06026224
+การแปลงข้อมูลและการรู้จำรูปภาพ
+3(3-0-6)
+IMAGE TRANSFORMATION AND RECOGTION
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+แนะ
+นำการประมวลผลภาพดิจิตอลสองระดับ ภาพสีเทา และภาพสี การประมวลผล
+ด้วยตัวกรองเฉพาะถิน
+การลดมิติของข้อมูลภาพ การแปลงรูปแบบของข้อมูล ฺอาทิชเช่น การแปลงฟูรี
+เยแบบไม่ต่อเนื่อง การวิเคราะห์องค์ประกอบหลักการวิเคราะห์การจำแนกประเภทเชิงเส้น การ
+แปลงข้อมูลสองมิติแบบเวฟเล็ตเชิงประจักษ์ การแยกองค์ประกอบข้อมูลสองมิติแบบเชิงประจักษ์
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+จำวัตถุ

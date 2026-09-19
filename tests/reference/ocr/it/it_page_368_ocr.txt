@@ -1,0 +1,63 @@
+363
+มคอ.
+2
+06066001
+ความน่าจะเป็นและสถิติ
+3(3-0-6)
+PROBABILIT AND STATISTICS
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ความน่าจะเป็นและตัวแปรสุ่ม การแจกแจงความน่าจะ
+นแบบไม่ต่อเนืองและแบบต่อเนือง
+ฟังก์ชันของตัวแปรสุ่ม ฺการแจกแจงของตัวอย่าง ฺช่วงความเชื่อมั่น การทดสอบสมมติฐาน ฺการถดถอย
+อย่างง่ายและการถดถอยเชิงซ้อนในตัวแบบเชิงเส้น การวิเคราะห์สหสัมพันธ์
+PROBABILITY
+AND
+RANDOM
+VARIABLES,
+DISCRETE
+AND
+CONTINUOUS
+PROBABILITY
+DISTRIBUTIONS, FUNCTIONS OF RANDOM VARIABLES, SAMPLING DISTRIBUTION., CONFIDENCE INTERVALS,
+HYPOTHESIS TESTING, SIMPLE AND MULTIPLE LINEAR REGRESSION, CORRELATION ANALYSIS.
+06066100
+การบริหารโครงการเทคโนโลยีสารสนเทศ
+3(3-0-6)
+INFORMATION TECHNOLOGY PROJECT MANAGEMENT
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ธรรมชาติและวงจรชีวิตของโครงการ การศึกษาความเป็นไปได้ของโครงการ เทคนิคการเลือก
+โครงการ องค์ความรู้สำหรับการบริหารโครงการ กลุ่มกระบวนการบริหารโครงการ การจัดการ
+ขอบเขตของโครงการ การจัดการตารางเวลา การจัดการค่าใช้จ่ายโครงการ การจัดการคุณภาพ การ
+จัดทีมงานและทรัพยากร การจัดการงานสื่อสาร การจัดการความเสี่ยง การควบคุม โครงการ และ
+ประเมินผลโครงการ
+NATURE
+AND
+LIFE
+CYCLE
+OF
+INFORMATION
+TECHNOLOGY
+(IT)  PROJECTS,  PROJECT
+FEASIBILITY., PROJECT SELECTION TECHNIQUES, PROJECT MANAGEMENT BODY OF KNOWLEDGE, PM
+PROCESS GROUPS, PROJECT SCOPE MANAGEMENT, PROJECT COST, PROJECT SCHEDULING, QUALITY
+MANAGEMENT, TEAM
+AND
+RESOURCES MANAGEMENT, COMMUNICATION MANAGEMENT, RISK
+MANAGEMENT, PROJECT CONTROLLING, PROJECT EVALUATION.
+06066101
+พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ
+3(3-0-6)
+BUSIESS FUNDAMENTALS FOR INFORMATION
+TECHNOLOGY
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+สภาพแวดล้อมทางธุรกิจและระบบเศรษฐกิจ พื้นฐานของการบริหารการเงิน มูลค่าของเงินและ
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

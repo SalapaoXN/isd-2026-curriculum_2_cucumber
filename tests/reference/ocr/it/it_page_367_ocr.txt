@@ -1,0 +1,59 @@
+362
+มคอ.
+2
+06016482
+สหกิจศึกษาต่างประเทศ
+6(0-36-0)
+OVERSEA COOPERATIVE EDUCATION
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน
+ต่าง
+ที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่
+หน่วยงานนั้น
+โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน
+ระหว่างคณะ
+และหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้อง
+นำเสนอผลงานของโครงการต่อคณะกรรมการสอบ
+COOPERATIVE EDUCATION IS
+COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL
+INSTITUTES
+AND
+ENTERPRISES
+THAT
+ALLOWS
+STUDENTS
+TO
+APPLY
+THEIR  KNOWLEDGE
+IN
+THE
+CLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED
+BY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS
+NEED TO  PRESENT THEIR
+WORKS TO THE EXAMINATION COMMITTEE.
+คำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)
+06066000
+คณิตศาสตร์ไม่ต่อเนื่อง
+3(3-0-6)
+DISCRETE MATHEMATICS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+ระบบ ตัวเลข ฺตรรกะและเซต ความสัมพันธ์และฟังก์ชัน ลำดับและอนุกรม อุปนัยเชิง
+คณิตศาสตร์ คอมบินาทอรีส กราฟ ระบบพืชคณิต ฺทฤษฎีสารสนเทศและการเข้ารหัสและระบบสถานะ
+จากัด
+NUMBER SYSTEMS, LOGIC AND SETS, RELATIONS AND FUNCTIONS,  SEQUENCES AND SERIES,
+MATHEMATICAL
+INDUCTION,
+COMBINATORIES,
+GRAPHS,
+ALGEBRAIC
+SYSTEMS,
+CODING
+AND
+INFORMATION THEORIES, AND FINITE STATE AUTOMATA.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

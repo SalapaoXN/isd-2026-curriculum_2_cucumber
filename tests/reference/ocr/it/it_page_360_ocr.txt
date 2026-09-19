@@ -1,0 +1,102 @@
+355
+มคอ.
+2
+ปลอดภัยของชือโดเมนฺการวิเคราะห์ความมันคงปลอดภัยเครือข่าย การควบคุมเครือข่าย การทดสอบ
+ความมั่นคงปลอดภัย ฺมาตรฐานด้านความมันคงปลอดภัยและการดำเนินการ
+THEORY AND
+PRACTICE FOR
+SECURITY, INTRODUCTION TO
+SECURITY,
+BASIC
+SECURITY  PROBLEMS,
+COMMUNICATION
+SECURITY
+PROTECTIONS,
+SECURED
+LAYERS,
+SECURITY
+CERTIFICATIONS,
+DIGITAL
+SIGNATURE,
+BASIC
+SECURED
+APPLICATION  PROTOCOLS,
+E MAIL
+SERICE
+SECURITY,  E-MAIL  END POINT
+SECURITY,
+WEB
+SECURITY.,
+DOMAIN
+NAME  SECURITY,
+NETWORK
+SECURITY
+ANALYSIS,
+NETWORK
+CONTROL,
+SECURITY
+TESTING,
+SECURITY
+STANDARDS
+AND
+IMPLEMENTATION.
+06016465
+การออกแบบศูนย์
+3(3-0-6)
+DATA CENTER DESIGI
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+แนะ
+นำการออกแบบศู
+ประเภทของสูนย์
+การออกแบบตำแหน่งที่ตั้ง
+การ
+ออกแบบพื้นที่ทางกายภาพ การออกแบบการระบายความร้อน การออกแบบระบบไฟฟ้า การออกแบบ
+สภาพแวดล้อมทั่วไป การออกแบบคอมพิวเตอร์เชิงกายภาพ การออกแบบคอมพิวเตอร์ลักษณะเสมือน
+ระบบเครือข่ายของสูนย์ข้อมูล ระบบบริหารจัดการศูนย์ข้อมูล ศูนย์ข้อมูลสีเขียว การดำเนินการของ
+ศูนย์ข้อมูล
+INTRODUCTION
+TO
+DATA
+CENTER  DESIGN,  TYPES
+OF
+DATA
+CENTER.,  LOCATION  DESIGN,
+PHYSICAL SPACE DESIGN., COOLING DESIGN, ELECTRICITY DESIGN, ENVIRONMENTAL DESIGN, PHYSICAL
+COMPUTER  DESIGN,
+VIRTUAL
+COMPUTER  DESIGN,
+DATA
+CENTER
+NETWORKING,
+DATA
+CENTER
+MANAGEMENT SYSTEM., GREEN DATA CENTER, OPERATING DATA CENTER.
+06016466
+การแก้ไขปัญหาระบบและเครือข่าย
+3(0-6-3)
+NETWORK AND SYSTEM TROUBLE SHOOTNG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+เป็นการฝึกปฏิบัติการแก้ไขบัญหาทางด้านเครือข่ายและระบบ โดยมีการแนะนำการแก้ไข
+ปัญหาและแนวทางการแก้ไขปัญหา แล้วฝึกปฏิบัติการด้วยกรณีศึกษาหลายกรณี ภายใต้การควบคุม
+แนะนำเพื่อแก้ไขบัญหา และถกถึงกรณีศึกษาในแต่ละกรณี และสุดท้ายทำการสรุปภาพรวมของการ
+เรียนรู้การแก้ไขปัญหาในภาพรวมทั้งหมด
+PROBLEM BASED
+PRACTICES
+FOR
+NETWORK
+AND
+SYSTEM
+TROUBLE
+SHOOTINGS,
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+CYBER
+CYBER
+เข้อมูล
+นย์ข้อมูล
+ข้อมูล

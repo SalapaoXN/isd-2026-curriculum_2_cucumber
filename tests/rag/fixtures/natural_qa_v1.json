@@ -1,0 +1,205 @@
+{
+  "version": "natural_qa_v1",
+  "cases": [
+    {
+      "id": "nq_001",
+      "question": "IT ปี 2 เทอม 1 เรียนอะไรบ้าง",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [1], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_002",
+      "question": "ปีสองเทอมสองของ IT มีวิชาอะไร",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [2], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["normalize_thai", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_003",
+      "question": "IT ปี 3 ต้องเรียนกี่วิชา",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [3], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["count"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["structured_filter", "aggregation", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_004",
+      "question": "ปี 2 ของ IT รวมกี่หน่วยกิต",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["sum_credits"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["aggregation", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_005",
+      "question": "IT เทอมไหนหน่วยกิตเยอะสุด",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["sum_credits", "compare"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["aggregation", "comparison", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_006",
+      "question": "06016414 เรียนปีไหน",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414"], "course_name": null, "category": null, "topic": null}, "operations": ["placement"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_007",
+      "question": "06016414 เปิดให้ลงช่วงไหนได้บ้าง",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414"], "course_name": null, "category": null, "topic": null}, "operations": ["placement"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_008",
+      "question": "06016414 ต้องเรียนวิชาอะไรมาก่อน",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414"], "course_name": null, "category": null, "topic": null}, "operations": ["prerequisite"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "prerequisite_lookup"], "route_hint": null}
+    },
+    {
+      "id": "nq_009",
+      "question": "IT สหกิจกับไม่สหกิจต่างกันยังไง",
+      "expected": {"entities": {"program": "IT", "plans": ["coop", "no_coop"], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["compare"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["comparison", "plan_aware", "structured_filter"], "route_hint": null}
+    },
+    {
+      "id": "nq_010",
+      "question": "06016465 แผนไหนได้เรียนเร็วกว่า",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016465"], "course_name": null, "category": null, "topic": null}, "operations": ["placement", "earliest", "compare"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "comparison", "plan_aware", "composition"], "route_hint": null}
+    },
+    {
+      "id": "nq_011",
+      "question": "06016414 เรียนเกี่ยวกับอะไร",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414"], "course_name": null, "category": null, "topic": null}, "operations": ["describe"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "semantic_retrieval"], "route_hint": null}
+    },
+    {
+      "id": "nq_012",
+      "question": "วิชา NOSQL เรียนเรื่องอะไรบ้าง",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": "NOSQL", "category": null, "topic": null}, "operations": ["describe"], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["exact_course_name_resolution", "ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_013",
+      "question": "IT มีวิชาเกี่ยวกับ AI อะไรบ้าง",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "AI"}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_014",
+      "question": "มีวิชาเกี่ยวกับ database อะไรบ้างใน IT",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_015",
+      "question": "ถ้าชอบเขียนโปรแกรม IT มีวิชาอะไรน่าสนใจ",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "programming"}, "operations": ["list"], "judgement": "preference", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "composition", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_016",
+      "question": "มีวิชาเกี่ยวกับเว็บไหม",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "เว็บ"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_017",
+      "question": "IT ปี 2 มีวิชาเกี่ยวกับ database อะไรบ้าง",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_018",
+      "question": "ปี 3 ของ IT มีวิชาเกี่ยวกับ AI กี่วิชา",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [3], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "AI"}, "operations": ["count"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "aggregation", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_019",
+      "question": "IT ปี 2 เทอม 1 มีวิชาเกี่ยวกับ programming ไหม",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [1], "course_codes": [], "course_name": null, "category": null, "topic": "programming"}, "operations": ["existence"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_020",
+      "question": "ปี 2 มีวิชาเกี่ยวกับคอมพิวเตอร์เยอะมั้ย",
+      "expected": {"entities": {"program": null, "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "คอมพิวเตอร์"}, "operations": [], "judgement": "quantity", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_021",
+      "question": "IT ปี 2 มีวิชาเกี่ยวกับคอมพิวเตอร์เยอะมั้ย",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "คอมพิวเตอร์"}, "operations": ["count"], "judgement": "quantity", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "aggregation", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_022",
+      "question": "ปีสองของ IT เรียนคอมหนักมั้ย",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "คอม"}, "operations": ["count", "sum_credits"], "judgement": "workload", "blocking_ambiguity": [], "action": "answer", "capabilities": ["normalize_thai", "aggregation", "structured_filter", "semantic_retrieval", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_023",
+      "question": "IT ปี 2 กับปี 3 ปีไหนมีวิชา programming เยอะกว่า",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [2, 3], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "programming"}, "operations": ["count", "compare"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["aggregation", "comparison", "semantic_retrieval", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_024",
+      "question": "เทอมไหนของ IT มีวิชาเกี่ยวกับ database เยอะสุด",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": ["count", "compare"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["aggregation", "comparison", "semantic_retrieval", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_025",
+      "question": "แผนสหกิจมีวิชาเกี่ยวกับ data มากกว่าแผนปกติไหม",
+      "expected": {"entities": {"program": null, "plans": ["coop", "no_coop"], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "data"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_026",
+      "question": "วิชาเลือกของ IT ที่เกี่ยวกับ AI มีอะไรบ้าง",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": "วิชาเลือก", "topic": "AI"}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["semantic_retrieval", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_027",
+      "question": "ปี 3 มีวิชาเลือกเกี่ยวกับเว็บกี่ตัว",
+      "expected": {"entities": {"program": null, "plans": [], "years": [3], "semesters": [], "course_codes": [], "course_name": null, "category": "วิชาเลือก", "topic": "เว็บ"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_028",
+      "question": "ถ้าอยากเรียน AI เริ่มมีวิชาแนวนี้ตั้งแต่ปีไหน",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "AI"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_029",
+      "question": "ถ้าอยากเรียน database ต้องผ่านวิชาอะไรมาก่อนบ้าง",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_030",
+      "question": "06016414 เรียนเรื่องอะไร แล้วเรียนปีไหน",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414"], "course_name": null, "category": null, "topic": null}, "operations": ["describe", "placement"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "semantic_retrieval", "structured_filter", "composition", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_031",
+      "question": "06016414 กับ 06016419 เนื้อหาคล้ายกันไหม",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414", "06016419"], "course_name": null, "category": null, "topic": null}, "operations": ["similarity"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "semantic_retrieval", "comparison"], "route_hint": null}
+    },
+    {
+      "id": "nq_032",
+      "question": "06016414 กับ 06016419 ตัวไหนเรียนก่อน",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06016414", "06016419"], "course_name": null, "category": null, "topic": null}, "operations": ["placement", "compare"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["exact_course_resolution", "structured_filter", "comparison", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_033",
+      "question": "ปี 4 ต้องเรียนอะไรบ้าง",
+      "expected": {"entities": {"program": null, "plans": [], "years": [4], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": [], "judgement": "none", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_034",
+      "question": "IT ปี 4 ต้องเรียนอะไรบ้าง",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [4], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_035",
+      "question": "เทอมสองปีสามมีตัว database เยอะปะ",
+      "expected": {"entities": {"program": null, "plans": [], "years": [3], "semesters": [2], "course_codes": [], "course_name": null, "category": null, "topic": "database"}, "operations": [], "judgement": "quantity", "blocking_ambiguity": ["program"], "action": "clarify_program", "capabilities": ["normalize_thai", "ambiguity_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_036",
+      "question": "IT ปีสามเทอมปลายเรียนหนักไหม",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [3], "semesters": [2], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": ["count", "sum_credits"], "judgement": "workload", "blocking_ambiguity": [], "action": "answer", "capabilities": ["normalize_thai", "aggregation", "structured_filter", "plan_aware"], "route_hint": null}
+    },
+    {
+      "id": "nq_037",
+      "question": "วิชาไหนยากที่สุดใน IT",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": [], "judgement": "unsupported", "blocking_ambiguity": [], "action": "unsupported", "capabilities": ["unsupported_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_038",
+      "question": "เรียนวิชาไหนแล้วเงินเดือนสูงสุด",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": null}, "operations": [], "judgement": "unsupported", "blocking_ambiguity": [], "action": "unsupported", "capabilities": ["unsupported_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_039",
+      "question": "06019999 เรียนอะไร",
+      "expected": {"entities": {"program": null, "plans": [], "years": [], "semesters": [], "course_codes": ["06019999"], "course_name": null, "category": null, "topic": null}, "operations": ["describe"], "judgement": "none", "blocking_ambiguity": [], "action": "no_data", "capabilities": ["exact_course_resolution", "no_data_guard"], "route_hint": null}
+    },
+    {
+      "id": "nq_040",
+      "question": "ตอนปีสามของ IT มีวิชาเกี่ยวกับ network อะไรบ้าง",
+      "expected": {"entities": {"program": "IT", "plans": [], "years": [3], "semesters": [], "course_codes": [], "course_name": null, "category": null, "topic": "network"}, "operations": ["list"], "judgement": "none", "blocking_ambiguity": [], "action": "answer", "capabilities": ["normalize_thai", "semantic_retrieval", "structured_filter", "plan_aware"], "route_hint": null}
+    }
+  ]
+}

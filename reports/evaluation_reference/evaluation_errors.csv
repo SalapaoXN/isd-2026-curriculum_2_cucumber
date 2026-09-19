@@ -1,0 +1,39 @@
+﻿program,plan,alignment_status,code,field,gt_value,pred_value,cer,wer
+DSBA,coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE
+ELECTIVE IN STATISTICAL ANALYSIS 1
+ELECTIVE IN DATA ENGINEERING 1",ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1,0.0222,0.0714
+DSBA,coop,matched,06026259 หรือ 06026260,name_en,"COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS
+OVERSEA COOPERATIVE EDUCATION IN DATA
+SCIENCE AND BUSINESS ANALYTICS","COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS
+OVERSEAS COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",0.0078,0.0588
+DSBA,coop,matched,06026226,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 1,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 1,0.1333,0.2
+DSBA,coop,matched,06026227,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 2,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 2,0.1333,0.2
+DSBA,coop,matched,06026228,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 1,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 1,0.1176,0.2
+DSBA,coop,matched,06026229,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 2,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2,0.1176,0.2
+DSBA,coop,matched,06026230,name_th,อนุกรมเวลาและการพยากรณ์,อนุกรมเวลาและการพยากรณ์เบื้องต้น,0.3913,0.2
+DSBA,coop,matched,06026230,name_en,TIME SERIES AND FORECASTING,INTRODUCTION TO TIME SERIES AND FORECASTING,0.5926,0.5
+DSBA,coop,matched,06026232,name_en,INTRODUCTION TO STOCHASTIC PROCESS,INTRODUCTION TO STOCHASTIC PROCESSES,0.0588,0.25
+DSBA,coop,matched,06026258,name_en,SOCIAL NETWORK ANALYSIS,SOCIAL NETWORK ANALYTICS,0.087,0.3333
+DSBA,coop,matched,06026260,name_th,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง,0.0968,0.1111
+DSBA,no_coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 1
+วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1
+วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1,0.0202,0.0625
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE
+ELECTIVE IN STATISTICAL ANALYSIS 1
+ELECTIVE IN DATA ENGINEERING 1",ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1,0.0222,0.0714
+DSBA,no_coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 4
+วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4
+วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1,0.0404,0.1875
+DSBA,no_coop,matched,06026xxx,name_en,"ELECTIVE IN DATA SCIENCE 4
+ELECTIVE IN STATISTICAL ANALYTICS 4
+ELECTIVE IN DATA ENGINEERING 4",ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS ELECTIVE IN DATA ENGINEERING 1,0.0323,0.1333
+DSBA,no_coop,matched,06026226,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 1,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 1,0.1333,0.2
+DSBA,no_coop,matched,06026227,name_th,หัวข้อพิเศษทางวิทยาการข้อมูล 2,หัวข้อพิเศษทางด้านวิทยาการข้อมูล 2,0.1333,0.2
+DSBA,no_coop,matched,06026228,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 1,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 1,0.1176,0.2
+DSBA,no_coop,matched,06026229,name_th,ปฏิบัติการพิเศษทางวิทยาการข้อมูล 2,ปฏิบัติการพิเศษทางด้านวิทยาการข้อมูล 2,0.1176,0.2
+DSBA,no_coop,matched,06026230,name_th,อนุกรมเวลาและการพยากรณ์,อนุกรมเวลาและการพยากรณ์เบื้องต้น,0.3913,0.2
+DSBA,no_coop,matched,06026230,name_en,TIME SERIES AND FORECASTING,INTRODUCTION TO TIME SERIES AND FORECASTING,0.5926,0.5
+DSBA,no_coop,matched,06026232,name_en,INTRODUCTION TO STOCHASTIC PROCESS,INTRODUCTION TO STOCHASTIC PROCESSES,0.0588,0.25
+DSBA,no_coop,matched,06026258,name_en,SOCIAL NETWORK ANALYSIS,SOCIAL NETWORK ANALYTICS,0.087,0.3333
+DSBA,no_coop,matched,06026260,name_th,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ,สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง,0.0968,0.1111
