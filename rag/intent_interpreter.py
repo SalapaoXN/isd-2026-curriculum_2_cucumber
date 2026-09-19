@@ -524,6 +524,19 @@ def build_intent_prompt(question: str) -> str:
             "Leave missing information as null / [] or list it in unresolved. "
             "Do not output database IDs, SQL, answer text, or provenance. "
             "Do not conclude recommendations, superiority, difficulty, or answers.",
+            "Course-code rule: every course_codes element is ONLY a bare exact "
+            "8-digit ASCII course code. Never include program labels such as "
+            "IT, DSBA, BIT, AIT, or GENED, never include words such as "
+            "วิชา or the English word course, and never include spaces, "
+            "punctuation, or explanatory text. Program and course code are "
+            "separate semantic fields: the program label belongs in "
+            "proposed_program, never inside course_codes. "
+            "Question \"IT 06016414 เรียนช่วงไหน\": CORRECT \"proposed_program\": \"IT\", "
+            "\"course_codes\": [\"06016414\"]; "
+            "INCORRECT \"course_codes\": [\"IT 06016414\"]; "
+            "INCORRECT \"course_codes\": [\"วิชา 06016414\"]. "
+            "Question \"IT 06016414 กับ 06016420 ต่างกันยังไง\": CORRECT \"proposed_program\": \"IT\", "
+            "\"course_codes\": [\"06016414\", \"06016420\"].",
             "program_discovery may leave proposed_program null.",
             "workload_judgement and preference_recommendation_evidence only "
             "identify the requested evidence dimension; they never conclude "

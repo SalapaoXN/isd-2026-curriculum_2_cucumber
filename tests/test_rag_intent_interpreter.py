@@ -532,5 +532,74 @@ class RagIntentInterpreterTest(unittest.TestCase):
         self.assertNotIn("generate SQL", prompt.casefold())
 
 
+    def test_prompt_states_bare_8_digit_course_codes(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        self.assertIn("ONLY a bare exact", prompt)
+        self.assertIn("8-digit ASCII course code", prompt)
+        self.assertIn("never include spaces", prompt.casefold())
+
+    def test_prompt_shows_program_code_separation_example(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        self.assertIn('"proposed_program": "IT"', prompt)
+        self.assertIn('"course_codes": ["06016414"]', prompt)
+        self.assertIn("separate semantic fields", prompt)
+
+    def test_prompt_shows_incorrect_prefixed_code_example(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        self.assertIn('"course_codes": ["IT 06016414"]', prompt)
+        self.assertIn("INCORRECT", prompt)
+
+    def test_prompt_shows_two_course_example(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        self.assertIn('"course_codes": ["06016414", "06016420"]', prompt)
+
+    def test_parser_still_rejects_program_prefixed_code(self):
+        with self.assertRaises(IntentValidationError):
+            parse_intent_payload(
+                payload(
+                    intent="placement_query",
+                    proposed_program="IT",
+                    course_codes=["IT 06016414"],
+                )
+            )
+
+    def test_parser_still_rejects_thai_prefixed_code(self):
+        with self.assertRaises(IntentValidationError):
+            parse_intent_payload(
+                payload(
+                    intent="placement_query",
+                    course_codes=["วิชา 06016414"],
+                )
+            )
+
+    def test_parser_still_accepts_bare_single_code(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="placement_query",
+                proposed_program="IT",
+                course_codes=["06016414"],
+            )
+        )
+
+        self.assertEqual(interpretation.course_codes, ("06016414",))
+
+    def test_parser_still_accepts_bare_code_pair(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="course_comparison",
+                proposed_program="IT",
+                course_codes=["06016414", "06016420"],
+            )
+        )
+
+        self.assertEqual(
+            interpretation.course_codes, ("06016414", "06016420")
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
