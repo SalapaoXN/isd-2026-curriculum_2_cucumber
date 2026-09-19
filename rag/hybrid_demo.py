@@ -63,6 +63,7 @@ def run_hybrid_demo(
     top_k: int = 5,
     answer_model_callable: Callable[[str], str] | None = None,
     source_json_path: str | Path | Iterable[str | Path] | None = None,
+    intent_model_callable: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
     """Run unified curriculum QA and print its grounded final answer."""
     response = answer_question_once(
@@ -72,6 +73,7 @@ def run_hybrid_demo(
         top_k=top_k,
         answer_model_callable=answer_model_callable,
         source_json_path=source_json_path,
+        intent_model_callable=intent_model_callable,
     )
     print(f"Question: {question}")
     result = response.get("result")
@@ -95,6 +97,7 @@ def answer_question_once(
     top_k: int = 5,
     answer_model_callable: Callable[[str], str] | None = None,
     source_json_path: str | Path | Iterable[str | Path] | None = None,
+    intent_model_callable: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
     """Run one QA request without printing or selecting a retrieval route."""
     if source_json_path is not None:
@@ -106,6 +109,7 @@ def answer_question_once(
         structured_model_callable=structured_model_callable,
         top_k=top_k,
         answer_model_callable=answer_model_callable,
+        intent_model_callable=intent_model_callable,
     )
     result = response.get("result")
     if response["route"] is None:
@@ -154,6 +158,7 @@ def main(
     argv: Sequence[str] | None = None,
     structured_model_callable: Callable[[str], str] | None = None,
     answer_model_callable: Callable[[str], str] | None = None,
+    intent_model_callable: Callable[[str], str] | None = None,
 ) -> None:
     load_dotenv()
     args = _parse_args(argv)
@@ -165,10 +170,13 @@ def main(
             structured_model_callable = gemini_callable
         if answer_model_callable is None:
             answer_model_callable = gemini_callable
+        if intent_model_callable is None:
+            intent_model_callable = gemini_callable
     run_kwargs: dict[str, Any] = {
         "structured_model_callable": structured_model_callable,
         "top_k": args.top_k,
         "answer_model_callable": answer_model_callable,
+        "intent_model_callable": intent_model_callable,
     }
     run_hybrid_demo(
         args.db_path,

@@ -83,6 +83,7 @@ class AskCliTests(unittest.TestCase):
             structured_model_callable=self.provider,
             top_k=10,
             answer_model_callable=self.provider,
+            intent_model_callable=self.provider,
         )
         text = output.getvalue()
         self.assertIn("ถาม: IT course question", text)
@@ -153,6 +154,13 @@ class AskCliTests(unittest.TestCase):
 
         self.assertEqual(status, 0)
         self.assertEqual(run_once.call_count, 2)
+        for call in run_once.call_args_list:
+            self.assertEqual(
+                call.kwargs.get("intent_model_callable"), self.provider
+            )
+            self.assertEqual(
+                call.kwargs.get("structured_model_callable"), self.provider
+            )
         self.assertEqual(output.getvalue().count("ตอบ: คำตอบ"), 2)
 
     def test_interactive_exit_and_eof_are_clean(self):

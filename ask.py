@@ -264,6 +264,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 structured_model_callable=provider,
                 top_k=10,
                 answer_model_callable=provider,
+                intent_model_callable=provider,
             )
             _print_result(question, response, show_question=True)
             return 0
@@ -284,6 +285,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 structured_model_callable=provider,
                 top_k=10,
                 answer_model_callable=provider,
+                intent_model_callable=provider,
             )
             _print_result(question, response, show_question=False)
     except Exception as error:

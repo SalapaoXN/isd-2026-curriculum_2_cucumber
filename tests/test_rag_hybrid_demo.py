@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import unittest
 from contextlib import redirect_stdout
@@ -59,6 +60,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=structured_model_callable,
             top_k=2,
             answer_model_callable=answer_model_callable,
+            intent_model_callable=None,
         )
         printed = output.getvalue()
         self.assertIn("Question: How many credits?", printed)
@@ -84,6 +86,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=None,
             top_k=1,
             answer_model_callable=answer_model_callable,
+            intent_model_callable=None,
         )
         printed = output.getvalue()
         self.assertIn("Question: What topics?", printed)
@@ -105,6 +108,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=provider,
             top_k=10,
             answer_model_callable=provider,
+            intent_model_callable=provider,
         )
 
     def test_cli_accepts_question_without_structured_db_path(self):
@@ -126,6 +130,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=structured_model_callable,
             top_k=10,
             answer_model_callable=answer_model_callable,
+            intent_model_callable=None,
         )
 
     def test_answer_question_once_is_non_printing_and_returns_final_answer(self):
@@ -145,6 +150,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=None,
             top_k=3,
             answer_model_callable=None,
+            intent_model_callable=None,
         )
         print_mock.assert_not_called()
 
@@ -192,6 +198,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=structured_model_callable,
             top_k=10,
             answer_model_callable=answer_model_callable,
+            intent_model_callable=None,
         )
         ensure.assert_not_called()
 
@@ -208,6 +215,7 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=provider,
             top_k=10,
             answer_model_callable=provider,
+            intent_model_callable=provider,
         )
 
     def test_cli_fails_clearly_when_gemini_api_key_is_missing(self):
@@ -233,8 +241,8 @@ class RagHybridDemoTest(unittest.TestCase):
             structured_model_callable=structured_model_callable,
             top_k=10,
             answer_model_callable=answer_model_callable,
+            intent_model_callable=None,
         )
-
     def test_explicit_gemini_api_key_is_not_replaced_by_dotenv(self):
         provider = lambda _prompt: "SELECT 1"
         with patch.dict(os.environ, {"GEMINI_API_KEY": "explicit-key"}):
@@ -249,6 +257,172 @@ class RagHybridDemoTest(unittest.TestCase):
                         ]
                     )
             self.assertEqual(os.environ["GEMINI_API_KEY"], "explicit-key")
+
+    def test_answer_question_once_forwards_intent_model_callable(self):
+        intent_model_callable = lambda _prompt: "{}"
+        response = _typed_response()
+        with patch("rag.hybrid_demo.ask", return_value=response) as ask_mock:
+            answer_question_once(
+                "curriculum.db",
+                "คำถาม",
+                structured_model_callable=None,
+                top_k=3,
+                answer_model_callable=None,
+                intent_model_callable=intent_model_callable,
+            )
+
+        ask_mock.assert_called_once_with(
+            "curriculum.db",
+            "คำถาม",
+            structured_model_callable=None,
+            top_k=3,
+            answer_model_callable=None,
+            intent_model_callable=intent_model_callable,
+        )
+
+    def test_run_hybrid_demo_forwards_intent_model_callable(self):
+        intent_model_callable = lambda _prompt: "{}"
+        response = _typed_response()
+        with patch("rag.hybrid_demo.ask", return_value=response) as ask_mock:
+            with redirect_stdout(io.StringIO()):
+                run_hybrid_demo(
+                    "curriculum.db",
+                    "คำถาม",
+                    intent_model_callable=intent_model_callable,
+                )
+
+        ask_mock.assert_called_once_with(
+            "curriculum.db",
+            "คำถาม",
+            structured_model_callable=None,
+            top_k=5,
+            answer_model_callable=None,
+            intent_model_callable=intent_model_callable,
+        )
+
+
+@unittest.skipUnless(
+    DEFAULT_CURRICULUM_DB_PATH.is_file(), "runtime curriculum.db missing"
+)
+class RagHybridDemoIntentCallCountsTest(unittest.TestCase):
+    def test_deterministic_query_invokes_no_intent_or_structured_models(self):
+        intent_calls = []
+        structured_calls = []
+
+        def intent_model(prompt):
+            intent_calls.append(prompt)
+            return "{}"
+
+        def structured_model(prompt):
+            structured_calls.append(prompt)
+            return "SELECT 1"
+
+        result = answer_question_once(
+            DEFAULT_CURRICULUM_DB_PATH,
+            "IT ปี 2 เทอม 1 เรียนอะไรบ้าง",
+            structured_model_callable=structured_model,
+            top_k=5,
+            answer_model_callable=lambda _prompt: "คำตอบ",
+            intent_model_callable=intent_model,
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(intent_calls, [])
+        self.assertEqual(structured_calls, [])
+
+    def test_long_tail_query_uses_intent_once_and_no_structured_call(self):
+        intent_calls = []
+        structured_calls = []
+
+        def intent_model(prompt):
+            intent_calls.append(prompt)
+            return json.dumps(
+                {
+                    "intent": "placement_query",
+                    "proposed_program": "IT",
+                    "course_codes": ["06016414"],
+                    "requested_facts": ["placement"],
+                },
+                ensure_ascii=False,
+            )
+
+        def structured_model(prompt):
+            structured_calls.append(prompt)
+            return "SELECT 1"
+
+        result = answer_question_once(
+            DEFAULT_CURRICULUM_DB_PATH,
+            "IT 06016414",
+            structured_model_callable=structured_model,
+            top_k=5,
+            answer_model_callable=None,
+            intent_model_callable=intent_model,
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(len(intent_calls), 1)
+        self.assertEqual(structured_calls, [])
+        operations = [
+            claim.operation for claim in result["result"].claims
+        ]
+        self.assertIn("placement", operations)
+
+    def test_sql_fallback_uses_structured_only(self):
+        intent_calls = []
+        structured_calls = []
+
+        def intent_model(prompt):
+            intent_calls.append(prompt)
+            return "{}"
+
+        def structured_model(prompt):
+            structured_calls.append(prompt)
+            return (
+                "SELECT DISTINCT p.course_id AS course_id "
+                "FROM v_plan_courses p WHERE p.program = 'IT' "
+                "AND p.year = 2 AND p.semester = 1 LIMIT 3"
+            )
+
+        result = answer_question_once(
+            DEFAULT_CURRICULUM_DB_PATH,
+            "IT ปี 2 เทอม 1 วิชาบังคับมีอะไรบ้าง",
+            structured_model_callable=structured_model,
+            top_k=5,
+            answer_model_callable=None,
+            intent_model_callable=intent_model,
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(len(structured_calls), 1)
+        self.assertEqual(intent_calls, [])
+
+    def test_malformed_and_failing_intent_fail_closed_without_retry(self):
+        for stub, failure in (
+            (lambda _prompt: "{not json", "malformed"),
+            (_failing_intent_model, "provider"),
+        ):
+            with self.subTest(failure=failure):
+                calls = []
+
+                def intent_model(prompt, _stub=stub, _calls=calls):
+                    _calls.append(prompt)
+                    return _stub(prompt)
+
+                result = answer_question_once(
+                    DEFAULT_CURRICULUM_DB_PATH,
+                    "IT 06016414",
+                    structured_model_callable=lambda _prompt: "SELECT 1",
+                    top_k=5,
+                    answer_model_callable=None,
+                    intent_model_callable=intent_model,
+                )
+
+                self.assertEqual(result["status"], "insufficient_evidence")
+                self.assertEqual(len(calls), 1)
+
+
+def _failing_intent_model(prompt):
+    raise RuntimeError("provider unavailable")
 
 
 if __name__ == "__main__":
