@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 from types import MappingProxyType
 from unittest.mock import patch
 
+from rag.aggregation import PlanComparisonAggregation, PlanPlacementDifference
 from rag.answer import (
     EMPTY_ANSWER,
     _critical_facts,
@@ -111,6 +112,108 @@ class RagAnswerTest(unittest.TestCase):
             claim.provenance,
             ({"source_page": 10}, {"source_page": 20}),
         )
+
+    def test_whole_plan_comparison_renders_only_factual_differences(self):
+        difference = PlanPlacementDifference(
+            course_key=("course", ("IT", "06000001")),
+            left_periods=((2, 1),),
+            right_periods=((3, 2),),
+            left_placements=(
+                {
+                    "program": "IT",
+                    "course_code": "06000001",
+                    "name_en": "COURSE ONE",
+                    "provenance": ({"source_page": 10},),
+                },
+            ),
+            right_placements=(
+                {
+                    "program": "IT",
+                    "course_code": "06000001",
+                    "name_en": "COURSE ONE",
+                    "provenance": ({"source_page": 20},),
+                },
+            ),
+            provenance=({"source_page": 10}, {"source_page": 20}),
+        )
+        value = PlanComparisonAggregation(
+            status="complete",
+            left_plan="coop",
+            right_plan="no_coop",
+            placement_differences=(difference,),
+            provenance=({"source_page": 10}, {"source_page": 20}),
+        )
+        claim = GroundedClaim(
+            "plan_compare_001",
+            "compare",
+            value=value,
+            evidence=value,
+            provenance=value.provenance,
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("เปรียบเทียบแผนสหกิจกับแผนไม่สหกิจ", rendered)
+        self.assertIn("06000001 COURSE ONE", rendered)
+        self.assertIn("ปี 2 ภาคเรียนที่ 1", rendered)
+        self.assertIn("ปี 3 ภาคเรียนที่ 2", rendered)
+        self.assertNotIn("course_key", rendered)
+        self.assertNotIn("placement_id", rendered)
+        self.assertNotIn("provenance", rendered)
+
+    def test_identical_whole_plan_comparison_renders_equality(self):
+        value = PlanComparisonAggregation(
+            status="complete",
+            left_plan="coop",
+            right_plan="no_coop",
+            provenance=({"source_page": 10}, {"source_page": 20}),
+        )
+        claim = GroundedClaim(
+            "plan_compare_002",
+            "compare",
+            value=value,
+            evidence=value,
+            provenance=value.provenance,
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("ไม่พบความแตกต่างของรายวิชา", rendered)
+        self.assertIn("ช่วงปี/ภาคการเรียน", rendered)
+
+    def test_whole_plan_comparison_labels_plan_only_courses(self):
+        value = PlanComparisonAggregation(
+            status="complete",
+            left_plan="coop",
+            right_plan="no_coop",
+            only_left=(
+                {
+                    "course_code": "06000002",
+                    "name_en": "COOP ONLY",
+                },
+            ),
+            only_right=(
+                {
+                    "course_code": "06000003",
+                    "name_en": "NO COOP ONLY",
+                },
+            ),
+            provenance=({"source_page": 11}, {"source_page": 12}),
+        )
+        claim = GroundedClaim(
+            "plan_compare_003",
+            "compare",
+            value=value,
+            evidence=value,
+            provenance=value.provenance,
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("วิชาที่มีเฉพาะแผนสหกิจ", rendered)
+        self.assertIn("06000002 COOP ONLY", rendered)
+        self.assertIn("วิชาที่มีเฉพาะแผนไม่สหกิจ", rendered)
+        self.assertIn("06000003 NO COOP ONLY", rendered)
 
     def test_prerequisite_renders_required_course_without_internal_fields(self):
         claim = GroundedClaim(

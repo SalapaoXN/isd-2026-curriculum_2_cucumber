@@ -7,6 +7,7 @@ from rag.aggregation import (
     ComparisonAggregation,
     ComponentAggregation,
     EarliestAggregation,
+    PlanComparisonAggregation,
     aggregate_sum_credits,
     compare_aggregates,
 )
@@ -2038,6 +2039,112 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual([pair.partition["plan"] for pair in evidence.pairs], ["coop", "no_coop"])
         self.assertEqual(
             [item["source_page"] for item in claims[0].provenance], [1, 2, 3, 4]
+        )
+
+    def test_whole_plan_comparison_uses_typed_aggregate_and_preserves_both_plans(self):
+        model = lambda _prompt: self.fail("whole-plan comparison must not use SQL fallback")
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "IT สหกิจกับไม่สหกิจต่างกันยังไง",
+                structured_model_callable=model,
+            )["result"]
+
+        self.assertEqual(result.status, "answer")
+        self.assertEqual(len(result.claims), 1)
+        claim = result.claims[0]
+        self.assertEqual(claim.operation, "compare")
+        self.assertIsInstance(claim.value, PlanComparisonAggregation)
+        self.assertEqual(claim.status, "complete")
+        self.assertTrue(claim.provenance)
+        self.assertIn("สหกิจ", result.final_answer)
+        self.assertIn("ไม่สหกิจ", result.final_answer)
+        fallback.assert_not_called()
+
+    def test_whole_plan_comparison_incomplete_evidence_fails_closed(self):
+        spec = replace(
+            self._spec(("compare",)),
+            plans=("coop", "no_coop"),
+            group_by=("plan",),
+            course_codes=(),
+            course_name=None,
+        )
+        bundle = self._whole_plan_bundle(
+            {
+                "coop": (("00000001", 1, 1, 11),),
+                "no_coop": (("00000001", 1, 1, 22),),
+            },
+            statuses={"no_coop": "insufficient_evidence"},
+        )
+
+        claims = _compose_evidence_claims(spec, bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].operation, "compare")
+        self.assertEqual(claims[0].status, "insufficient_evidence")
+        self.assertIsNone(claims[0].value)
+        self.assertEqual(claims[0].provenance, ())
+
+    def _whole_plan_bundle(self, placements_by_plan, *, statuses=None):
+        statuses = statuses or {}
+        plans = tuple(placements_by_plan)
+        bundle_scope = StructuralScope(
+            program="IT",
+            plans=plans,
+            group_by=("plan",),
+        )
+        requests = []
+        results = []
+        for plan in plans:
+            course_records = []
+            placement_records = []
+            for index, (code, year, semester, page) in enumerate(
+                placements_by_plan[plan], start=1
+            ):
+                course_records.append(
+                    {
+                        "program": "IT",
+                        "course_code": code,
+                        "name_en": f"COURSE {code}",
+                        "course_id": index,
+                        "provenance": ({"source_page": page},),
+                    }
+                )
+                placement_records.append(
+                    {
+                        "program": "IT",
+                        "course_code": code,
+                        "name_en": f"COURSE {code}",
+                        "plan_key": plan,
+                        "year": year,
+                        "semester": semester,
+                        "provenance": ({"source_page": page + 100},),
+                    }
+                )
+            scope = StructuralScope(
+                program="IT",
+                plans=(plan,),
+                group_by=("plan",),
+            )
+            for kind, payload in (
+                ("course_set", {"courses": course_records}),
+                ("placement_facts", {"courses": placement_records}),
+            ):
+                request = EvidenceRequest(f"{kind}_{plan}", kind, scope)
+                requests.append(request)
+                results.append(
+                    EvidenceExecutionResult(
+                        request_id=request.request_id,
+                        kind=kind,
+                        planned_request=request,
+                        effective_scope=scope,
+                        status=statuses.get(plan, "complete"),
+                        payload=payload,
+                    )
+                )
+        return EvidenceBundle(
+            EvidencePlan(bundle_scope, tuple(requests), group_by=("plan",)),
+            tuple(results),
         )
 
     def _bundle(self, requests_and_payloads):

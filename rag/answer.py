@@ -8,7 +8,11 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, is_dataclass
 from typing import Any
 
-from rag.aggregation import ComparisonAggregation, EarliestAggregation
+from rag.aggregation import (
+    ComparisonAggregation,
+    EarliestAggregation,
+    PlanComparisonAggregation,
+)
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.retrieval.retrieve import SimilarityEvidence
 
@@ -1330,6 +1334,80 @@ def _similarity_description_text(value: SimilarityEvidence) -> str | None:
     return "\n".join(sections)
 
 
+def _plan_comparison_course_label(
+    course: Mapping[str, Any] | None,
+    course_key: tuple[Any, ...] | None = None,
+) -> str:
+    code = None
+    name = None
+    if isinstance(course, Mapping):
+        code = course.get("course_code")
+        name = next(
+            (
+                course.get(field)
+                for field in ("name_en", "name_th", "course_name", "name")
+                if course.get(field) not in (None, "")
+            ),
+            None,
+        )
+    if code in (None, "") and isinstance(course_key, tuple) and len(course_key) == 2:
+        identity = course_key[1]
+        if (
+            course_key[0] == "course"
+            and isinstance(identity, tuple)
+            and len(identity) == 2
+        ):
+            code = identity[1]
+    parts = [str(value) for value in (code, name) if value not in (None, "")]
+    return " ".join(parts) if parts else "วิชาที่ไม่ระบุรหัส"
+
+
+def _plan_comparison_periods_text(periods: Sequence[tuple[int, int]]) -> str:
+    return ", ".join(
+        f"ปี {year} ภาคเรียนที่ {semester}" for year, semester in periods
+    )
+
+
+def _plan_comparison_text(value: PlanComparisonAggregation) -> str | None:
+    if value.status != "complete":
+        return None
+    lines: list[str] = []
+    left_plan = _plan_display(value.left_plan)
+    right_plan = _plan_display(value.right_plan)
+    if value.only_left:
+        lines.append(f"วิชาที่มีเฉพาะแผน{left_plan}:")
+        lines.extend(
+            f"- {_plan_comparison_course_label(course)}"
+            for course in value.only_left
+        )
+    if value.only_right:
+        lines.append(f"วิชาที่มีเฉพาะแผน{right_plan}:")
+        lines.extend(
+            f"- {_plan_comparison_course_label(course)}"
+            for course in value.only_right
+        )
+    if value.placement_differences:
+        lines.append("วิชาที่อยู่ต่างช่วงปี/ภาคเรียน:")
+        for difference in value.placement_differences:
+            records = difference.left_placements + difference.right_placements
+            course = records[0] if records else None
+            label = _plan_comparison_course_label(course, difference.course_key)
+            lines.append(
+                f"- {label}: แผน{left_plan}เรียนใน"
+                f"{_plan_comparison_periods_text(difference.left_periods)}; "
+                f"แผน{right_plan}เรียนใน"
+                f"{_plan_comparison_periods_text(difference.right_periods)}"
+            )
+    if not lines:
+        return (
+            "จากข้อมูลที่มี ไม่พบความแตกต่างของรายวิชาและช่วงปี/ภาคการเรียน"
+            "ระหว่างสองแผน"
+        )
+    return "\n".join(
+        [f"เปรียบเทียบแผน{left_plan}กับแผน{right_plan}:", *lines]
+    )
+
+
 def _deterministic_claim_text(
     claim: GroundedClaim,
     *,
@@ -1358,6 +1436,13 @@ def _deterministic_claim_text(
                 default=str,
             )
             )
+
+    if claim.operation == "compare" and isinstance(
+        claim.value, PlanComparisonAggregation
+    ):
+        comparison_text = _plan_comparison_text(claim.value)
+        if comparison_text is not None:
+            return finish(comparison_text)
 
     if claim.operation in {"placement", "earliest", "compare"}:
         placement_text = _placement_text(claim.value)

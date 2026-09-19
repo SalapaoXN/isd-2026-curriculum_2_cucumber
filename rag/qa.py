@@ -13,6 +13,9 @@ from rag.aggregation import (
     ComponentAggregation,
     CourseSetAggregation,
     EarliestAggregation,
+    PlanComparisonAggregation,
+    PlanComparisonInput,
+    aggregate_plan_comparison,
     aggregate_course_set,
     aggregate_earliest,
     aggregate_required_load,
@@ -680,6 +683,8 @@ def _provenance_from_value(value: Any) -> tuple[Any, ...]:
         )
     if isinstance(value, ComparisonAggregation):
         return _provenance_from_value(value.left) + _provenance_from_value(value.right)
+    if isinstance(value, PlanComparisonAggregation):
+        return tuple(value.provenance)
     if isinstance(value, JudgementEvidence):
         return tuple(value.provenance)
     if isinstance(value, Mapping):
@@ -1423,7 +1428,7 @@ def _comparison_claims(
 
 
 def _comparison_claim_from_payload(
-    payload: ComparisonAggregation,
+    payload: ComparisonAggregation | PlanComparisonAggregation,
     *,
     effective_scope: Any = None,
     provenance_required: bool = True,
@@ -1448,6 +1453,74 @@ def _comparison_claim_from_payload(
             provenance=retained_provenance,
         ),
     )
+
+
+def _whole_plan_comparison_payload(
+    query_spec: Any,
+    bundle: EvidenceBundle,
+) -> PlanComparisonAggregation | None:
+    """Build a typed comparison for exactly two complete plan partitions."""
+    operations = tuple(getattr(query_spec, "operations", ()))
+    if "compare" not in operations:
+        return None
+    if tuple(getattr(query_spec, "group_by", ())) != ("plan",):
+        return None
+    if getattr(query_spec, "course_codes", ()) or getattr(query_spec, "course_name", None):
+        return None
+
+    plans = tuple(getattr(query_spec, "plans", ()))
+    if len(plans) != 2 or len(set(plans)) != 2:
+        return None
+
+    def results_by_plan(
+        kind: str,
+    ) -> dict[str, tuple[EvidenceExecutionResult, tuple[Mapping[str, Any], ...]]] | None:
+        grouped: dict[
+            str, tuple[EvidenceExecutionResult, tuple[Mapping[str, Any], ...]]
+        ] = {}
+        for result in _execution_results(bundle, kind):
+            if result.status != "complete":
+                return None
+            scope = result.effective_scope
+            result_plans = tuple(getattr(scope, "plans", ()))
+            if len(result_plans) != 1 or result_plans[0] not in plans:
+                return None
+            plan = result_plans[0]
+            if plan in grouped:
+                return None
+            records = _payload_records(result, "courses")
+            if records is None:
+                return None
+            grouped[plan] = (result, records)
+        if set(grouped) != set(plans):
+            return None
+        return grouped
+
+    course_results = results_by_plan("course_set")
+    placement_results = results_by_plan("placement_facts")
+    if course_results is None or placement_results is None:
+        return None
+
+    inputs: list[PlanComparisonInput] = []
+    for plan in plans:
+        course_result, _course_records = course_results[plan]
+        _placement_result, placement_records = placement_results[plan]
+        course_aggregate = _course_set_aggregate(course_result)
+        if course_aggregate is None or course_aggregate.status != "complete":
+            return None
+        inputs.append(
+            PlanComparisonInput(
+                plan=plan,
+                course_set=course_aggregate,
+                placements=placement_records,
+                placements_complete=True,
+            )
+        )
+
+    try:
+        return aggregate_plan_comparison(inputs[0], inputs[1])
+    except (TypeError, ValueError, OverflowError):
+        return None
 
 
 def _earliest_comparison_payload(
@@ -1884,6 +1957,7 @@ def _compose_evidence_claims(
         if isinstance(result.payload, ComparisonAggregation)
     )
     generated_placement_comparisons: tuple[ComparisonAggregation, ...] = ()
+    generated_plan_comparison: PlanComparisonAggregation | None = None
     generated_comparison = None
     if not comparison_results:
         generated_placement_comparisons = _placement_comparison_payloads(
@@ -1891,6 +1965,15 @@ def _compose_evidence_claims(
             bundle,
         )
     if not comparison_results and not generated_placement_comparisons:
+        generated_plan_comparison = _whole_plan_comparison_payload(
+            query_spec,
+            bundle,
+        )
+    if (
+        not comparison_results
+        and not generated_placement_comparisons
+        and generated_plan_comparison is None
+    ):
         generated_comparison = _earliest_comparison_payload(query_spec, bundle)
     course_cache: dict[int, CourseSetAggregation | None] = {}
     claims: list[GroundedClaim] = []
@@ -1952,6 +2035,13 @@ def _compose_evidence_claims(
                             effective_scope=None,
                         )
                     )
+            elif generated_plan_comparison is not None:
+                claims.extend(
+                    _comparison_claim_from_payload(
+                        generated_plan_comparison,
+                        effective_scope=None,
+                    )
+                )
             elif generated_comparison is not None:
                 claims.extend(
                     _comparison_claim_from_payload(

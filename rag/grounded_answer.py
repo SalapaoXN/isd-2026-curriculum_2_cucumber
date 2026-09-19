@@ -13,6 +13,7 @@ from rag.aggregation import (
     ComponentAggregation,
     CourseSetAggregation,
     EarliestAggregation,
+    PlanComparisonAggregation,
 )
 from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
 from rag.evidence_planner import StructuralScope
@@ -125,6 +126,8 @@ def _provenance_from(value: Any) -> tuple[Any, ...] | None:
         if left is None or right is None:
             return None
         return left + right
+    if isinstance(value, PlanComparisonAggregation):
+        return _provenance_container(value.provenance)
     if isinstance(value, EarliestAggregation):
         nested: list[Any] = []
         for partition in value.partitions:
