@@ -246,6 +246,96 @@ class ComparisonAggregation:
             raise ValueError("valid_empty comparison cannot claim a relation")
 
 
+@dataclass(frozen=True, slots=True)
+class PlanComparisonInput:
+    """One complete, explicitly identified plan partition for comparison."""
+
+    plan: str
+    course_set: CourseSetAggregation
+    placements: tuple[Mapping[str, Any], ...] = ()
+    placements_complete: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.plan, str) or not self.plan.strip():
+            raise ValueError("plan comparison inputs need a non-empty plan")
+        if not isinstance(self.course_set, CourseSetAggregation):
+            raise TypeError("course_set must be a CourseSetAggregation")
+        if not isinstance(self.placements_complete, bool):
+            raise ValueError("placements_complete must be a boolean")
+        placements = tuple(_freeze(placement) for placement in self.placements)
+        if any(not isinstance(placement, Mapping) for placement in placements):
+            raise ValueError("placements must contain mappings")
+        object.__setattr__(self, "placements", placements)
+
+
+@dataclass(frozen=True, slots=True)
+class PlanPlacementDifference:
+    """Canonical placement periods for one shared course that differs."""
+
+    course_key: tuple[str, Any]
+    left_periods: tuple[tuple[int, int], ...]
+    right_periods: tuple[tuple[int, int], ...]
+    left_placements: tuple[Mapping[str, Any], ...] = ()
+    right_placements: tuple[Mapping[str, Any], ...] = ()
+    provenance: tuple[Any, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.course_key, tuple) or len(self.course_key) != 2:
+            raise ValueError("course_key must be a two-part logical identity")
+        left_periods = tuple(self.left_periods)
+        right_periods = tuple(self.right_periods)
+        if (
+            not left_periods
+            or not right_periods
+            or any(not _valid_year_semester(period) for period in left_periods)
+            or any(not _valid_year_semester(period) for period in right_periods)
+        ):
+            raise ValueError("placement differences need valid periods")
+        if left_periods == right_periods:
+            raise ValueError("placement differences need unequal periods")
+        left_placements = tuple(_freeze(placement) for placement in self.left_placements)
+        right_placements = tuple(_freeze(placement) for placement in self.right_placements)
+        if any(not isinstance(placement, Mapping) for placement in left_placements + right_placements):
+            raise ValueError("placement differences need mapping evidence")
+        object.__setattr__(self, "left_periods", left_periods)
+        object.__setattr__(self, "right_periods", right_periods)
+        object.__setattr__(self, "left_placements", left_placements)
+        object.__setattr__(self, "right_placements", right_placements)
+        object.__setattr__(self, "provenance", _freeze(self.provenance))
+
+
+@dataclass(frozen=True, slots=True)
+class PlanComparisonAggregation:
+    """Typed set/placement differences between two explicit plan partitions."""
+
+    status: str
+    left_plan: str
+    right_plan: str
+    only_left: tuple[Mapping[str, Any], ...] = ()
+    only_right: tuple[Mapping[str, Any], ...] = ()
+    placement_differences: tuple[PlanPlacementDifference, ...] = ()
+    provenance: tuple[Any, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.status not in AGGREGATION_STATES:
+            raise ValueError(f"unsupported aggregation status: {self.status!r}")
+        if not isinstance(self.left_plan, str) or not self.left_plan.strip():
+            raise ValueError("left_plan must be non-empty")
+        if not isinstance(self.right_plan, str) or not self.right_plan.strip():
+            raise ValueError("right_plan must be non-empty")
+        only_left = tuple(_freeze(course) for course in self.only_left)
+        only_right = tuple(_freeze(course) for course in self.only_right)
+        differences = tuple(self.placement_differences)
+        if any(not isinstance(course, Mapping) for course in only_left + only_right):
+            raise ValueError("plan differences must contain course mappings")
+        if any(not isinstance(item, PlanPlacementDifference) for item in differences):
+            raise ValueError("placement_differences must contain typed differences")
+        object.__setattr__(self, "only_left", only_left)
+        object.__setattr__(self, "only_right", only_right)
+        object.__setattr__(self, "placement_differences", differences)
+        object.__setattr__(self, "provenance", _freeze(self.provenance))
+
+
 def _numeric_credit(value: Any) -> Decimal | None:
     if isinstance(value, bool) or not isinstance(value, (Real, Decimal)):
         return None
@@ -287,6 +377,198 @@ def _placement_earliest(placement: Mapping[str, Any]) -> tuple[int, int] | None:
         placement.get("year", placement.get("year_number")),
         placement.get("semester", placement.get("semester_number")),
         placement.get("flexible_year_semester_raw"),
+    )
+
+
+def _placement_periods(
+    placement: Mapping[str, Any],
+) -> tuple[tuple[int, int], ...] | None:
+    choices = placement.get("year_semester_choices")
+    if choices is not None:
+        if not isinstance(choices, (list, tuple)) or not choices:
+            return None
+        normalized: set[tuple[int, int]] = set()
+        for choice in choices:
+            if not _valid_year_semester(choice):
+                return None
+            normalized.add(choice)
+        return tuple(sorted(normalized))
+    earliest = _placement_earliest(placement)
+    return (earliest,) if earliest is not None else None
+
+
+def _placement_plan(placement: Mapping[str, Any]) -> str | None:
+    for key in ("plan_key", "plan"):
+        value = placement.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    partition = placement.get("partition")
+    if not isinstance(partition, Mapping):
+        return None
+    for key in ("plan_key", "plan"):
+        value = partition.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    plans = partition.get("plans")
+    if isinstance(plans, (list, tuple)) and len(plans) == 1:
+        value = plans[0]
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _plan_course_map(
+    course_set: CourseSetAggregation,
+) -> dict[tuple[str, Any], Mapping[str, Any]] | None:
+    courses: dict[tuple[str, Any], Mapping[str, Any]] = {}
+    for course in course_set.courses:
+        try:
+            identity = _plan_logical_identity(course)
+        except (TypeError, ValueError):
+            return None
+        if identity in courses:
+            return None
+        courses[identity] = course
+    return courses
+
+
+def _plan_logical_identity(component: Mapping[str, Any]) -> tuple[str, Any]:
+    """Use stable member identities for alternative groups across plans."""
+    alternatives = component.get("alternative_courses")
+    if component.get("alternative_group_id") is not None and alternatives is not None:
+        if not isinstance(alternatives, (list, tuple)) or not alternatives:
+            raise ValueError("alternative groups need complete member identities")
+        members: list[tuple[str, str]] = []
+        for member in alternatives:
+            if not isinstance(member, Mapping):
+                raise ValueError("alternative group members must be mappings")
+            member_data = dict(member)
+            if member_data.get("program") in (None, ""):
+                member_data["program"] = component.get("program")
+            members.append(_identity(member_data))
+        if len(set(members)) != len(members):
+            raise ValueError("alternative group members must be unique")
+        return "alternative_members", tuple(sorted(members))
+    return _course_set_identity(component)
+
+
+def _plan_placement_map(
+    plan: str,
+    placements: Iterable[Mapping[str, Any]],
+) -> dict[
+    tuple[str, Any],
+    tuple[tuple[tuple[int, int], ...], tuple[Mapping[str, Any], ...]],
+] | None:
+    grouped: dict[
+        tuple[str, Any],
+        tuple[set[tuple[int, int]], list[Mapping[str, Any]]],
+    ] = {}
+    for placement in placements:
+        try:
+            identity = _plan_logical_identity(placement)
+        except (TypeError, ValueError):
+            return None
+        record_plan = _placement_plan(placement)
+        if record_plan is not None and record_plan != plan:
+            return None
+        periods = _placement_periods(placement)
+        if periods is None:
+            return None
+        period_set, records = grouped.setdefault(identity, (set(), []))
+        period_set.update(periods)
+        records.append(placement)
+    return {
+        identity: (tuple(sorted(periods)), tuple(sorted(records, key=_stable_key)))
+        for identity, (periods, records) in grouped.items()
+    }
+
+
+def _incomplete_plan_comparison(
+    left_plan: str,
+    right_plan: str,
+) -> PlanComparisonAggregation:
+    return PlanComparisonAggregation(
+        status="insufficient_evidence",
+        left_plan=left_plan,
+        right_plan=right_plan,
+    )
+
+
+def aggregate_plan_comparison(
+    left: PlanComparisonInput,
+    right: PlanComparisonInput,
+) -> PlanComparisonAggregation:
+    """Compare two canonical plan partitions without flattening their identity."""
+    if not isinstance(left, PlanComparisonInput) or not isinstance(right, PlanComparisonInput):
+        raise TypeError("plan comparison inputs must use PlanComparisonInput")
+    if left.plan == right.plan:
+        raise ValueError("plan comparison inputs must identify distinct plans")
+    if (
+        left.course_set.status == "insufficient_evidence"
+        or right.course_set.status == "insufficient_evidence"
+        or not left.placements_complete
+        or not right.placements_complete
+    ):
+        return _incomplete_plan_comparison(left.plan, right.plan)
+
+    left_courses = _plan_course_map(left.course_set)
+    right_courses = _plan_course_map(right.course_set)
+    left_placements = _plan_placement_map(left.plan, left.placements)
+    right_placements = _plan_placement_map(right.plan, right.placements)
+    if (
+        left_courses is None
+        or right_courses is None
+        or left_placements is None
+        or right_placements is None
+        or not set(left_placements).issubset(left_courses)
+        or not set(right_placements).issubset(right_courses)
+    ):
+        return _incomplete_plan_comparison(left.plan, right.plan)
+
+    only_left = tuple(
+        left_courses[key]
+        for key in sorted(set(left_courses) - set(right_courses), key=repr)
+    )
+    only_right = tuple(
+        right_courses[key]
+        for key in sorted(set(right_courses) - set(left_courses), key=repr)
+    )
+    placement_differences: list[PlanPlacementDifference] = []
+    for key in sorted(set(left_courses) & set(right_courses), key=repr):
+        left_placement = left_placements.get(key)
+        right_placement = right_placements.get(key)
+        if (left_placement is None) != (right_placement is None):
+            return _incomplete_plan_comparison(left.plan, right.plan)
+        if left_placement is None or right_placement is None:
+            continue
+        left_periods, left_records = left_placement
+        right_periods, right_records = right_placement
+        if left_periods != right_periods:
+            placement_differences.append(
+                PlanPlacementDifference(
+                    course_key=key,
+                    left_periods=left_periods,
+                    right_periods=right_periods,
+                    left_placements=left_records,
+                    right_placements=right_records,
+                    provenance=_merge_provenance(left_records + right_records),
+                )
+            )
+
+    all_evidence = (
+        tuple(left_courses.values())
+        + tuple(right_courses.values())
+        + tuple(left.placements)
+        + tuple(right.placements)
+    )
+    return PlanComparisonAggregation(
+        status="complete",
+        left_plan=left.plan,
+        right_plan=right.plan,
+        only_left=only_left,
+        only_right=only_right,
+        placement_differences=tuple(placement_differences),
+        provenance=_merge_provenance(all_evidence),
     )
 
 
@@ -682,9 +964,13 @@ __all__ = [
     "CourseSetAggregation",
     "EarliestAggregation",
     "EarliestPartition",
+    "PlanComparisonAggregation",
+    "PlanComparisonInput",
+    "PlanPlacementDifference",
     "aggregate_components",
     "aggregate_course_set",
     "aggregate_earliest",
+    "aggregate_plan_comparison",
     "aggregate_option_count",
     "aggregate_required_load",
     "aggregate_sum_credits",

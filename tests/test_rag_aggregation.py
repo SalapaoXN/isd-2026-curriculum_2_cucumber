@@ -7,10 +7,12 @@ from rag.aggregation import (
     CourseSetAggregation,
     aggregate_earliest,
     aggregate_option_count,
+    aggregate_plan_comparison,
     aggregate_required_load,
     aggregate_sum_credits,
     aggregate_course_set,
     compare_aggregates,
+    PlanComparisonInput,
 )
 
 
@@ -57,12 +59,23 @@ class RagAggregationTest(unittest.TestCase):
     def _placement(self, placement_id, plan="coop", year=2, semester=1, **extra):
         return {
             "placement_id": placement_id,
+            "program": "IT",
+            "course_code": extra.pop("course_code", "00000001"),
             "partition": {"plan": plan},
             "year": year,
             "semester": semester,
             "provenance": [{"placement": placement_id}],
             **extra,
         }
+
+    def _plan_input(self, plan, codes, placements, *, complete=True):
+        courses = [self._course("IT", code, plan) for code in codes]
+        return PlanComparisonInput(
+            plan=plan,
+            course_set=aggregate_course_set(courses),
+            placements=placements,
+            placements_complete=complete,
+        )
 
     def test_duplicate_identity_within_partition_is_one_course_and_merges_provenance(self):
         components = [
@@ -502,6 +515,156 @@ class RagAggregationTest(unittest.TestCase):
         aggregate_earliest(placements)
 
         self.assertEqual(placements[0], original)
+
+    def test_plan_comparison_identical_sets_and_placements_are_complete(self):
+        left = self._plan_input(
+            "coop",
+            ("00000001", "00000002"),
+            [
+                self._placement(1, "coop", 1, 1, course_code="00000001"),
+                self._placement(2, "coop", 2, 1, course_code="00000002"),
+            ],
+        )
+        right = self._plan_input(
+            "no_coop",
+            ("00000001", "00000002"),
+            [
+                self._placement(3, "no_coop", 1, 1, course_code="00000001"),
+                self._placement(4, "no_coop", 2, 1, course_code="00000002"),
+            ],
+        )
+
+        result = aggregate_plan_comparison(left, right)
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.only_left, ())
+        self.assertEqual(result.only_right, ())
+        self.assertEqual(result.placement_differences, ())
+        self.assertTrue(result.provenance)
+
+    def test_plan_comparison_reports_left_and_right_only_courses(self):
+        left = self._plan_input(
+            "coop",
+            ("00000001", "00000002"),
+            [self._placement(1, "coop", course_code="00000001")],
+        )
+        right = self._plan_input(
+            "no_coop",
+            ("00000001", "00000003"),
+            [self._placement(2, "no_coop", course_code="00000001")],
+        )
+
+        result = aggregate_plan_comparison(left, right)
+
+        self.assertEqual(
+            [course["course_code"] for course in result.only_left], ["00000002"]
+        )
+        self.assertEqual(
+            [course["course_code"] for course in result.only_right], ["00000003"]
+        )
+
+    def test_plan_comparison_reports_shared_placement_difference(self):
+        left = self._plan_input(
+            "coop",
+            ("00000001",),
+            [self._placement(1, "coop", 2, 1, course_code="00000001")],
+        )
+        right = self._plan_input(
+            "no_coop",
+            ("00000001",),
+            [self._placement(2, "no_coop", 3, 2, course_code="00000001")],
+        )
+
+        result = aggregate_plan_comparison(left, right)
+
+        self.assertEqual(len(result.placement_differences), 1)
+        difference = result.placement_differences[0]
+        self.assertEqual(difference.course_key, ("course", ("IT", "00000001")))
+        self.assertEqual(difference.left_periods, ((2, 1),))
+        self.assertEqual(difference.right_periods, ((3, 2),))
+        self.assertEqual(
+            [reference["placement"] for reference in difference.provenance], [1, 2]
+        )
+
+    def test_plan_comparison_keeps_multiple_placement_differences_keyed(self):
+        left = self._plan_input(
+            "coop",
+            ("00000001", "00000002"),
+            [
+                self._placement(1, "coop", 1, 1, course_code="00000001"),
+                self._placement(2, "coop", 2, 1, course_code="00000002"),
+            ],
+        )
+        right = self._plan_input(
+            "no_coop",
+            ("00000001", "00000002"),
+            [
+                self._placement(3, "no_coop", 2, 1, course_code="00000001"),
+                self._placement(4, "no_coop", 3, 1, course_code="00000002"),
+            ],
+        )
+
+        result = aggregate_plan_comparison(left, right)
+
+        self.assertEqual(
+            [difference.course_key for difference in result.placement_differences],
+            [
+                ("course", ("IT", "00000001")),
+                ("course", ("IT", "00000002")),
+            ],
+        )
+
+    def test_plan_comparison_incomplete_side_fails_closed(self):
+        complete = self._plan_input(
+            "coop",
+            ("00000001",),
+            [self._placement(1, "coop", course_code="00000001")],
+        )
+        incomplete = self._plan_input(
+            "no_coop",
+            ("00000001",),
+            [self._placement(2, "no_coop", course_code="00000001")],
+            complete=False,
+        )
+
+        result = aggregate_plan_comparison(complete, incomplete)
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.placement_differences, ())
+
+    def test_plan_comparison_ambiguous_duplicate_identity_fails_closed(self):
+        first = self._course("IT", "00000001", "coop")
+        second = self._course("IT", "00000001", "coop")
+        left = PlanComparisonInput(
+            "coop",
+            CourseSetAggregation("complete", (first, second), count=2, exists=True),
+            (self._placement(1, "coop", course_code="00000001"),),
+        )
+        right = self._plan_input(
+            "no_coop",
+            ("00000001",),
+            [self._placement(2, "no_coop", course_code="00000001")],
+        )
+
+        result = aggregate_plan_comparison(left, right)
+
+        self.assertEqual(result.status, "insufficient_evidence")
+
+    def test_plan_comparison_rejects_placement_not_in_course_set(self):
+        left = self._plan_input(
+            "coop",
+            ("00000001",),
+            [self._placement(1, "coop", course_code="00000002")],
+        )
+        right = self._plan_input(
+            "no_coop",
+            ("00000001",),
+            [self._placement(2, "no_coop", course_code="00000001")],
+        )
+
+        result = aggregate_plan_comparison(left, right)
+
+        self.assertEqual(result.status, "insufficient_evidence")
 
 
 if __name__ == "__main__":
