@@ -26,6 +26,7 @@ from rag.qa import (
     _course_set_aggregate,
     _fallback_scope,
     _is_placement_fallback_candidate,
+    _should_use_intent_interpreter,
     ask,
 )
 from rag.query_spec import parse_query_spec
@@ -851,6 +852,110 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(result.classification, "unrecognized_structured")
         self.assertEqual(result.program, "DSBA")
 
+    def test_intent_interpreter_accepts_only_bounded_operation_free_long_tail(self):
+        cases = (
+            ("IT 06016404 เน้น data", True),
+            ("IT 06016404 เรียนเกี่ยวกับอะไรบ้าง", False),
+            ("IT ปี 2 เทอม 1 มีวิชาอะไรบ้าง", False),
+            ("IT 06016404 ยากไหม", False),
+            ("06016404 เน้น data", False),
+        )
+        for question, expected in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                completeness = _classify_structured_parse_completeness(
+                    spec,
+                    resolution,
+                )
+                self.assertEqual(
+                    _should_use_intent_interpreter(
+                        spec,
+                        completeness,
+                        resolution,
+                    ),
+                    expected,
+                )
+
+    def test_intent_interpreter_compiles_and_reaches_planner_once(self):
+        model_calls = []
+        interpreted_payload = (
+            '{"intent":"course_description",'
+            '"proposed_program":null,"proposed_plans":[],'
+            '"proposed_years":[],"proposed_semesters":[],'
+            '"course_codes":[],"topic":null,'
+            '"requested_facts":["course_description"],'
+            '"judgement_dimension":null,"unresolved":[]}'
+        )
+        plan = object()
+
+        def intent_model(prompt):
+            model_calls.append(prompt)
+            return interpreted_payload
+
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=object()
+        ), patch(
+            "rag.qa._compose_evidence_claims", return_value=()
+        ), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ):
+            result = ask(
+                DB_PATH,
+                "IT 06016404 เน้น data",
+                intent_model_callable=intent_model,
+            )
+
+        self.assertEqual(result["result"]["status"], "answer")
+        self.assertEqual(len(model_calls), 1)
+        planner.assert_called_once()
+        compiled_spec = planner.call_args.args[0]
+        self.assertEqual(compiled_spec.program, "IT")
+        self.assertEqual(compiled_spec.course_codes, ("06016404",))
+        self.assertEqual(compiled_spec.operations, ("describe",))
+
+    def test_intent_interpreter_failure_is_fail_closed_without_planner(self):
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("failed intent must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "IT 06016404 เน้น data",
+                intent_model_callable=lambda _prompt: "not json",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        planner.assert_not_called()
+
+    def test_operation_bearing_deterministic_query_never_invokes_intent_model(self):
+        plan = EvidencePlan(
+            StructuralScope(program="IT", years=(2,), semesters=(1,)),
+            (),
+        )
+        with patch(
+            "rag.qa.plan_evidence",
+            return_value=plan,
+        ), patch(
+            "rag.qa.execute_evidence_plan",
+            return_value=EvidenceBundle(plan, ()),
+        ), patch(
+            "rag.qa._compose_evidence_claims",
+            return_value=(),
+        ), patch(
+            "rag.qa.render_grounded_answer",
+            return_value={"status": "answer"},
+        ):
+            result = ask(
+                DB_PATH,
+                "IT ปี 2 เทอม 1 มีวิชาอะไรบ้าง",
+                intent_model_callable=lambda _prompt: self.fail(
+                    "complete deterministic queries must not interpret"
+                ),
+            )
+
+        self.assertEqual(result["result"]["status"], "answer")
+
     @staticmethod
     def fallback_course_record():
         return {
@@ -927,6 +1032,9 @@ class RagQaTest(unittest.TestCase):
                 "DSBA ปี 2 มีวิชา Gen Ed อะไรบ้าง",
                 structured_model_callable=structured_model,
                 answer_model_callable=forbidden_answer_model,
+                intent_model_callable=lambda _prompt: self.fail(
+                    "approved SQL fallback must run before intent interpretation"
+                ),
             )
 
         self.assertEqual(len(structured_calls), 1)

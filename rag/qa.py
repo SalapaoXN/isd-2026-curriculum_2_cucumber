@@ -39,6 +39,8 @@ from rag.grounded_answer import (
     GroundedClaim,
     compose_grounded_answer,
 )
+from rag.intent_compiler import compile_intent_to_query_spec
+from rag.intent_interpreter import interpret_question_intent
 from rag.judgement import (
     JudgementEvidence,
     evaluate_preference,
@@ -257,6 +259,76 @@ def _is_course_credit_fallback_candidate(
                 course_codes.append(code)
 
     return len(resolution.course_references) == 1 and len(course_codes) == 1
+
+
+def _should_use_intent_interpreter(
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+    resolution: ResolutionOutcome,
+    context: QueryContext | None = None,
+) -> bool:
+    """Allow one bounded interpreter attempt for operation-free long-tail input."""
+    if getattr(resolution, "action", None) != "answer":
+        return False
+    if completeness.classification not in {
+        "unrecognized_structured",
+        "not_eligible",
+    }:
+        return False
+    if tuple(getattr(spec, "operations", ())) or getattr(
+        spec, "judgement", None
+    ) == "unsupported":
+        return False
+
+    program = getattr(spec, "program", None) or getattr(context, "program", None)
+    if not isinstance(program, str) or not program.strip():
+        return False
+
+    # These are already bounded deterministic fields.  They make the input a
+    # plausible structured long-tail question without adding a new phrase
+    # catalog or allowing arbitrary prose to invoke a model.
+    return bool(
+        getattr(spec, "topic", None)
+        or getattr(spec, "course_codes", ())
+        or getattr(spec, "course_name", None)
+        or getattr(spec, "plans", ())
+        or getattr(spec, "years", ())
+        or getattr(spec, "semesters", ())
+        or getattr(spec, "judgement", None) in {"workload", "preference"}
+    )
+
+
+def _intent_authoritative_scope(
+    spec: Any,
+    context: QueryContext | None = None,
+) -> dict[str, Any]:
+    """Return only deterministic scope values permitted for intent validation."""
+    plans = list(getattr(spec, "plans", ()))
+    context_plan = getattr(context, "plan", None)
+    if context_plan and context_plan not in plans:
+        plans.append(context_plan)
+    return {
+        "authoritative_program": getattr(spec, "program", None)
+        or getattr(context, "program", None),
+        "authoritative_plans": tuple(plans),
+        "authoritative_years": tuple(getattr(spec, "years", ())),
+        "authoritative_semesters": tuple(getattr(spec, "semesters", ())),
+        "allowed_course_codes": tuple(getattr(spec, "course_codes", ())),
+    }
+
+
+def _intent_failure_result(question: str) -> dict[str, Any]:
+    grounded = compose_grounded_answer(
+        resolution_status="insufficient_evidence",
+    )
+    return {
+        "route": None,
+        "result": render_grounded_answer(
+            grounded,
+            answer_model_callable=None,
+            question=question,
+        ),
+    }
 
 
 def _fallback_scope(
@@ -2135,6 +2207,7 @@ def ask(
     *,
     context: QueryContext | None = None,
     answer_model_callable: Callable[[str], str] | None = None,
+    intent_model_callable: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
     """Run the typed evidence pipeline while retaining the legacy signature."""
     if not isinstance(question, str) or not question.strip():
@@ -2378,6 +2451,71 @@ def ask(
                 ),
             }
 
+    intent_interpreted = False
+    if _should_use_intent_interpreter(
+        spec,
+        completeness,
+        resolution,
+        context,
+    ):
+        if not callable(intent_model_callable):
+            return _intent_failure_result(question)
+
+        try:
+            interpretation = interpret_question_intent(
+                question,
+                intent_model_callable,
+            )
+        except Exception:
+            # The interpreter is an optional proposal boundary.  A model or
+            # validation failure must remain fail closed.
+            return _intent_failure_result(question)
+        try:
+            compiled_spec = compile_intent_to_query_spec(
+                spec,
+                interpretation,
+                **_intent_authoritative_scope(spec, context),
+            )
+        except (TypeError, ValueError):
+            return _intent_failure_result(question)
+
+        try:
+            compiled_resolution = resolve_query_spec(
+                compiled_spec,
+                db_path,
+                context=context,
+            )
+        except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+            return _intent_failure_result(question)
+
+        if compiled_resolution.action != "answer":
+            if compiled_resolution.action in {
+                "clarify_program",
+                "context_conflict",
+                "no_data",
+                "unsupported",
+            }:
+                return {"route": None, "result": _blocked_result(compiled_resolution)}
+            return _intent_failure_result(question)
+
+        compiled_completeness = _classify_structured_parse_completeness(
+            compiled_spec,
+            compiled_resolution,
+            context,
+        )
+        if compiled_completeness.classification in {
+            "partial",
+            "unrecognized_structured",
+        }:
+            return _intent_failure_result(question)
+
+        # Do not let an interpreted proposal re-enter any approved SQL seam.
+        # It proceeds only through the existing deterministic evidence path.
+        spec = compiled_spec
+        resolution = compiled_resolution
+        completeness = compiled_completeness
+        intent_interpreted = True
+
     if completeness.classification in {"partial", "unrecognized_structured"}:
         grounded = compose_grounded_answer(
             resolution_status="insufficient_evidence",
@@ -2439,7 +2577,9 @@ def ask(
         "route": None,
         "result": render_grounded_answer(
             grounded,
-            answer_model_callable=answer_model_callable,
+            answer_model_callable=(
+                None if intent_interpreted else answer_model_callable
+            ),
             question=question,
         ),
     }
