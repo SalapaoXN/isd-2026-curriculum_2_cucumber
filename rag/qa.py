@@ -188,6 +188,8 @@ def _is_course_list_fallback_candidate(
     """Allow only bounded course-list/filter residue into the SQL seam."""
     operations = tuple(getattr(spec, "operations", ()))
     if operations:
+        if operations in {("count",), ("existence",)}:
+            return True
         return "list" in operations and set(operations) <= {
             "list",
             "sum_credits",
@@ -294,18 +296,24 @@ def _fallback_scope(
 def _fallback_course_list_claim(
     grounded: GroundedCourseListResult,
     scope: StructuredFallbackScope,
+    *,
+    operation: str = "list",
 ) -> GroundedClaim:
-    """Adapt canonical fallback list records to the existing list claim shape."""
+    """Adapt canonical course-set facts to the requested relation claim."""
+    if operation not in {"list", "count", "existence"}:
+        raise ValueError(f"unsupported fallback relation operation: {operation!r}")
+
+    effective_scope = StructuralScope(
+        program=scope.program,
+        plans=scope.plans,
+        years=scope.years,
+        semesters=scope.semesters,
+    )
     if grounded.status == "insufficient_evidence":
         return GroundedClaim(
-            claim_id="fallback_list",
-            operation="list",
-            effective_scope=StructuralScope(
-                program=scope.program,
-                plans=scope.plans,
-                years=scope.years,
-                semesters=scope.semesters,
-            ),
+            claim_id=f"fallback_{operation}",
+            operation=operation,
+            effective_scope=effective_scope,
             status="insufficient_evidence",
         )
 
@@ -317,31 +325,41 @@ def _fallback_course_list_claim(
         )
     except (TypeError, ValueError, OverflowError):
         return GroundedClaim(
-            claim_id="fallback_list",
-            operation="list",
-            effective_scope=StructuralScope(
-                program=scope.program,
-                plans=scope.plans,
-                years=scope.years,
-                semesters=scope.semesters,
-            ),
+            claim_id=f"fallback_{operation}",
+            operation=operation,
+            effective_scope=effective_scope,
             status="insufficient_evidence",
         )
 
+    value = {
+        "list": aggregate.courses,
+        "count": aggregate.count,
+        "existence": aggregate.exists,
+    }[operation]
+
     return GroundedClaim(
-        claim_id="fallback_list",
-        operation="list",
-        effective_scope=StructuralScope(
-            program=scope.program,
-            plans=scope.plans,
-            years=scope.years,
-            semesters=scope.semesters,
-        ),
+        claim_id=f"fallback_{operation}",
+        operation=operation,
+        effective_scope=effective_scope,
         status=aggregate.status,
-        value=aggregate.courses,
+        value=value,
         evidence=aggregate,
         provenance=_provenance_from_records(aggregate.courses),
     )
+
+
+def _course_list_fallback_operation(spec: Any) -> str | None:
+    """Return the relation operation selected by deterministic parsing only."""
+    operations = tuple(getattr(spec, "operations", ()))
+    if operations == ("count",):
+        return "count"
+    if operations == ("existence",):
+        return "existence"
+    if "list" in operations and set(operations) <= {"list", "sum_credits"}:
+        return "list"
+    if not operations:
+        return "list"
+    return None
 
 
 def _fallback_placement_claim(
@@ -2018,8 +2036,9 @@ def ask(
         and callable(structured_model_callable)
         and _is_course_list_fallback_candidate(spec, completeness)
     ):
+        fallback_operation = _course_list_fallback_operation(spec)
         fallback_scope = _fallback_scope(completeness, resolution)
-        if fallback_scope is not None:
+        if fallback_scope is not None and fallback_operation is not None:
             fallback_result = run_structured_fallback(
                 db_path,
                 question,
@@ -2031,7 +2050,11 @@ def ask(
                 fallback_result,
                 fallback_scope,
             )
-            claim = _fallback_course_list_claim(grounded_list, fallback_scope)
+            claim = _fallback_course_list_claim(
+                grounded_list,
+                fallback_scope,
+                operation=fallback_operation,
+            )
             grounded = compose_grounded_answer(composed_claims=(claim,))
             return {
                 "route": None,

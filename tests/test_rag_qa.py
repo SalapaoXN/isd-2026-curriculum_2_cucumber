@@ -898,6 +898,145 @@ class RagQaTest(unittest.TestCase):
         ground.assert_called_once()
         self.assertEqual(result["result"].status, "answer")
 
+    def test_partial_count_uses_course_list_fallback_and_count_aggregate(self):
+        grounded_result = GroundedCourseListResult(
+            status="complete",
+            records=(self.fallback_course_record(),),
+        )
+        model_calls = []
+
+        with patch(
+            "rag.qa.ground_course_list", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("partial count must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับกี่วิชา",
+                structured_model_callable=lambda prompt: model_calls.append(prompt)
+                or "SELECT course_id FROM courses",
+                answer_model_callable=lambda prompt: self.fail(
+                    "count fallback must not polish"
+                ),
+            )
+
+        self.assertEqual(len(model_calls), 1)
+        ground.assert_called_once()
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.operation, "count")
+        self.assertEqual(claim.status, "complete")
+        self.assertEqual(claim.value, 1)
+
+    def test_partial_existence_uses_course_list_fallback_and_exists_aggregate(self):
+        grounded_result = GroundedCourseListResult(
+            status="complete",
+            records=(self.fallback_course_record(),),
+        )
+        model_calls = []
+
+        with patch(
+            "rag.qa.ground_course_list", return_value=grounded_result
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("partial existence must bypass planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับไหม",
+                structured_model_callable=lambda prompt: model_calls.append(prompt)
+                or "SELECT course_id FROM courses",
+                answer_model_callable=lambda prompt: self.fail(
+                    "existence fallback must not polish"
+                ),
+            )
+
+        self.assertEqual(len(model_calls), 1)
+        ground.assert_called_once()
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.operation, "existence")
+        self.assertEqual(claim.status, "complete")
+        self.assertTrue(claim.value)
+
+    def test_partial_count_and_existence_preserve_valid_empty_values(self):
+        for question, operation, expected in (
+            ("DSBA ปี 2 มีวิชาบังคับกี่วิชา", "count", 0),
+            ("DSBA ปี 2 มีวิชาบังคับไหม", "existence", False),
+        ):
+            with self.subTest(question=question):
+                with patch(
+                    "rag.qa.run_structured_fallback",
+                    return_value=StructuredFallbackResult(
+                        status="success",
+                        sql="SELECT course_id FROM courses LIMIT 100",
+                        columns=("course_id",),
+                        rows=(),
+                    ),
+                ) as fallback, patch(
+                    "rag.qa.ground_course_list",
+                    return_value=GroundedCourseListResult(status="valid_empty"),
+                ) as ground, patch(
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError("valid empty must bypass planner"),
+                ):
+                    result = ask(
+                        DB_PATH,
+                        question,
+                        structured_model_callable=lambda prompt: "unused",
+                    )
+
+                claim = result["result"].claims[0]
+                self.assertEqual(claim.operation, operation)
+                self.assertEqual(claim.status, "valid_empty")
+                self.assertEqual(claim.value, expected)
+                fallback.assert_called_once()
+                ground.assert_called_once()
+
+    def test_partial_count_grounding_failure_fails_closed(self):
+        with patch(
+            "rag.qa.run_structured_fallback",
+            return_value=StructuredFallbackResult(
+                status="error",
+                error_category="relation_guard",
+                error="disallowed relation",
+            ),
+        ) as fallback, patch(
+            "rag.qa.ground_course_list",
+            return_value=GroundedCourseListResult(status="insufficient_evidence"),
+        ) as ground, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("failed count must not plan broadly"),
+        ):
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับกี่วิชา",
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].claims[0].operation, "count")
+        self.assertNotIn("SELECT", result["result"].final_answer)
+        fallback.assert_called_once()
+        ground.assert_called_once()
+
+    def test_complete_count_and_existence_stay_deterministic(self):
+        for question in (
+            "IT ปี 3 ต้องเรียนกี่วิชา",
+            "IT ปี 2 เทอม 1 มีวิชา 06016414 ไหม",
+        ):
+            with self.subTest(question=question):
+                with patch("rag.qa.run_structured_fallback") as fallback:
+                    result = ask(
+                        DB_PATH,
+                        question,
+                        structured_model_callable=lambda prompt: self.fail(
+                            "complete structured query must not fallback"
+                        ),
+                    )
+
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+                fallback.assert_not_called()
+
     def test_colloquial_single_course_credit_uses_one_fallback(self):
         model_calls = []
         grounded_result = GroundedCourseCreditResult(
