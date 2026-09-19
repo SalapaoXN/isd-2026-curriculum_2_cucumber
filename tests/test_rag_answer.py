@@ -1370,6 +1370,105 @@ class RagAnswerTest(unittest.TestCase):
 
         self.assertEqual(render_grounded_claim(claim), "หลักฐานไม่เพียงพอ")
 
+    @staticmethod
+    def _preference_result():
+        option = {
+            "program": "IT",
+            "course_code": "06016404",
+            "name_en": "DATABASE TECHNOLOGY",
+            "partition": {"plans": ("no_coop",), "years": (3,)},
+            "description_evidence": (
+                {
+                    "chunk_id": "desc-06016404",
+                    "text": "DATABASE DESIGN AND DATA MANAGEMENT",
+                },
+            ),
+            "provenance": ({"source_page": 12},),
+        }
+        claim = GroundedClaim(
+            "preference_001",
+            "preference",
+            effective_scope={
+                "program": "IT",
+                "plans": ("no_coop",),
+                "years": (3,),
+            },
+            status="complete",
+            kind="grounded_summary",
+            value={"options": (option,)},
+            evidence={"options": (option,)},
+            provenance=option["provenance"],
+        )
+        return GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            claims=(claim,),
+            provenance=claim.provenance,
+        )
+
+    def test_preference_advisory_accepts_only_grounded_course_codes(self):
+        prompts = []
+        result = render_grounded_answer(
+            self._preference_result(),
+            lambda prompt: prompts.append(prompt)
+            or "จากเนื้อหาที่มี วิชา 06016404 น่าพิจารณาสำหรับความสนใจนี้",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertIn("06016404", result.final_answer)
+        self.assertIn("USER_QUESTION", prompts[0])
+        self.assertIn("GROUNDED_OPTIONS", prompts[0])
+        self.assertIn("DATABASE DESIGN AND DATA MANAGEMENT", prompts[0])
+        self.assertNotIn("source_page", prompts[0])
+        self.assertEqual(result.provenance, self._preference_result().provenance)
+
+    def test_preference_advisory_rejects_unknown_course_code_without_retry(self):
+        calls = []
+        deterministic = render_grounded_answer(self._preference_result()).final_answer
+        result = render_grounded_answer(
+            self._preference_result(),
+            lambda prompt: calls.append(prompt)
+            or "ควรพิจารณาวิชา 99999999",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(result.final_answer, deterministic)
+
+    def test_preference_advisory_falls_back_on_exception_or_empty_output(self):
+        deterministic = render_grounded_answer(self._preference_result()).final_answer
+        models = (
+            lambda _prompt: (_ for _ in ()).throw(RuntimeError("offline")),
+            lambda _prompt: "   ",
+        )
+        for model in models:
+            with self.subTest(model=model):
+                result = render_grounded_answer(
+                    self._preference_result(),
+                    model,
+                    question="อยากเน้น data",
+                    preference_advisory=True,
+                )
+                self.assertEqual(result.final_answer, deterministic)
+
+    def test_preference_advisory_requires_complete_supported_preference_claim(self):
+        claim = GroundedClaim(
+            "preference_incomplete",
+            "preference",
+            status="insufficient_evidence",
+            kind="grounded_summary",
+            evidence={"options": ()},
+        )
+        result = render_grounded_answer(
+            GroundedAnswerResult("insufficient_evidence", "deterministic", claims=(claim,)),
+            lambda _prompt: self.fail("incomplete preference must not synthesize"),
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+        self.assertEqual(result.final_answer, "หลักฐานไม่เพียงพอ")
+
     def _polish_result(self):
         claim = GroundedClaim(
             "polish_001",

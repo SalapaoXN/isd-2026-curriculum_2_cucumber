@@ -718,6 +718,105 @@ def _summary_synthesis_payload(claim: GroundedClaim) -> tuple[Any, ...]:
     return tuple({"description": text} for text in _description_texts(claim.evidence))
 
 
+_PREFERENCE_ADVISORY_INSTRUCTION = """You are an advisory writer for a university curriculum QA system.
+
+Rewrite the grounded preference evidence into a concise, natural Thai answer.
+You may suggest courses only from the supplied GROUNDED_OPTIONS, based only on
+the user's stated preference and the supplied course descriptions.
+
+STRICT RULES:
+- Do not invent courses, course codes, names, credits, prerequisites, plans,
+  placement, difficulty, salary, career outcomes, or rankings.
+- Do not claim any course is objectively best.
+- Explain a suggestion only with description text supplied in GROUNDED_OPTIONS.
+- Preserve exact course codes and grounded scope values when mentioning them.
+- If the evidence does not support a recommendation, state that limitation.
+- Return only the final user-facing answer in Thai.
+"""
+
+
+def _preference_advisory_payload(
+    claim: GroundedClaim,
+) -> tuple[Mapping[str, Any], ...]:
+    options = _preference_synthesis_options(claim.evidence)
+    if not options:
+        return ()
+    scope = claim.effective_scope
+    scope_payload: dict[str, Any] = {}
+    for field in ("program", "plans", "years", "semesters"):
+        if isinstance(scope, Mapping):
+            value = scope.get(field)
+        else:
+            value = getattr(scope, field, None) if scope is not None else None
+        if value:
+            scope_payload[field] = tuple(value) if isinstance(value, Sequence) else value
+    return tuple(
+        {**dict(option), "scope": scope_payload}
+        for option in options
+    )
+
+
+def _synthesize_preference_advisory(
+    question: str | None,
+    result: GroundedAnswerResult,
+    deterministic_answer: str,
+    answer_model_callable: Callable[[str], str] | None,
+) -> str:
+    """Make one guarded advisory rewrite from complete preference evidence."""
+    if (
+        result.status != "answer"
+        or not isinstance(question, str)
+        or not question.strip()
+        or not callable(answer_model_callable)
+    ):
+        return deterministic_answer
+
+    complete_claims = tuple(
+        claim
+        for claim in result.claims
+        if claim.operation == "preference"
+        and claim.status == "complete"
+        and claim.kind == "grounded_summary"
+    )
+    if len(complete_claims) != 1:
+        return deterministic_answer
+    payload = _preference_advisory_payload(complete_claims[0])
+    if not payload:
+        return deterministic_answer
+
+    grounded_codes = {
+        option.get("course_code")
+        for option in payload
+        if isinstance(option.get("course_code"), str)
+    }
+    if not grounded_codes:
+        return deterministic_answer
+    prompt = "\n".join(
+        (
+            _PREFERENCE_ADVISORY_INSTRUCTION,
+            f"USER_QUESTION:\n{question}",
+            "GROUNDED_OPTIONS:\n"
+            + json.dumps(
+                _plain_typed_value(payload),
+                ensure_ascii=False,
+                separators=(",", ":"),
+                default=str,
+            ),
+        )
+    )
+    try:
+        generated = answer_model_callable(prompt)
+    except Exception:
+        return deterministic_answer
+    if not isinstance(generated, str) or not generated.strip():
+        return deterministic_answer
+    generated = generated.strip()
+    generated_codes = set(re.findall(r"(?<!\d)\d{8}(?!\d)", generated))
+    if not generated_codes.issubset(grounded_codes):
+        return deterministic_answer
+    return generated
+
+
 _SCOPE_DIMENSIONS = (("plan", "plans"), ("year", "years"), ("semester", "semesters"))
 
 
@@ -1892,6 +1991,7 @@ def render_grounded_answer(
     answer_model_callable: Callable[[str], str] | None = None,
     *,
     question: str | None = None,
+    preference_advisory: bool = False,
 ) -> GroundedAnswerResult:
     """Render deterministic evidence, then optionally polish its final text."""
     if not isinstance(result, GroundedAnswerResult):
@@ -1908,9 +2008,17 @@ def render_grounded_answer(
     claimed_segments = _collapse_identical_list_segments(claimed_segments)
     segments = [segment for _, segment in claimed_segments]
     final_answer = "\n".join(segments) if segments else result.final_answer
-    final_answer = _polish_deterministic_answer(
-        question, final_answer, answer_model_callable
-    )
+    if preference_advisory:
+        final_answer = _synthesize_preference_advisory(
+            question,
+            result,
+            final_answer,
+            answer_model_callable,
+        )
+    else:
+        final_answer = _polish_deterministic_answer(
+            question, final_answer, answer_model_callable
+        )
     return GroundedAnswerResult(
         status=result.status,
         answer_mode=result.answer_mode,

@@ -928,6 +928,114 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(result["result"].status, "insufficient_evidence")
         planner.assert_not_called()
 
+    def test_interpreted_preference_uses_one_advisory_answer_call(self):
+        intent_calls = []
+        answer_calls = []
+        option = {
+            "program": "IT",
+            "course_code": "06016404",
+            "name_en": "DATABASE TECHNOLOGY",
+            "partition": {"plans": ("no_coop",)},
+            "description_evidence": (
+                {
+                    "chunk_id": "desc-06016404",
+                    "text": "DATABASE DESIGN AND DATA MANAGEMENT",
+                },
+            ),
+            "provenance": ({"source_page": 12},),
+        }
+        claim = GroundedClaim(
+            "preference_qa_001",
+            "preference",
+            effective_scope={"program": "IT", "plans": ("no_coop",)},
+            status="complete",
+            kind="grounded_summary",
+            value={"options": (option,)},
+            evidence={"options": (option,)},
+            provenance=option["provenance"],
+        )
+        plan = EvidencePlan(StructuralScope(program="IT"), ())
+        preference_payload = (
+            '{"intent":"preference_recommendation_evidence",'
+            '"proposed_program":null,"proposed_plans":[],'
+            '"proposed_years":[],"proposed_semesters":[],'
+            '"course_codes":[],"topic":"data",'
+            '"requested_facts":["course_list"],'
+            '"judgement_dimension":"preference","unresolved":[]}'
+        )
+
+        def intent_model(prompt):
+            intent_calls.append(prompt)
+            return preference_payload
+
+        def answer_model(prompt):
+            answer_calls.append(prompt)
+            return "จากเนื้อหาที่มี วิชา 06016404 น่าพิจารณาสำหรับความสนใจนี้"
+
+        with patch("rag.qa.plan_evidence", return_value=plan), patch(
+            "rag.qa.execute_evidence_plan", return_value=EvidenceBundle(plan, ())
+        ), patch("rag.qa._compose_evidence_claims", return_value=(claim,)):
+            result = ask(
+                DB_PATH,
+                "IT 06016404 เน้น data",
+                intent_model_callable=intent_model,
+                answer_model_callable=answer_model,
+            )
+
+        self.assertEqual(len(intent_calls), 1)
+        self.assertEqual(len(answer_calls), 1)
+        self.assertIn("06016404", result["result"].final_answer)
+        self.assertEqual(result["result"].provenance, claim.provenance)
+
+    def test_interpreted_factual_intents_do_not_use_answer_polish(self):
+        base_question = "IT 06016404 เน้น data"
+        payloads = (
+            ("placement_query", "placement", "placement"),
+            ("prerequisite_query", "prerequisite", "prerequisite"),
+            ("course_description", "describe", "course_description"),
+        )
+        for intent, operation, requested_fact in payloads:
+            with self.subTest(intent=intent):
+                payload = (
+                    '{"intent":"' + intent + '",'
+                    '"proposed_program":null,"proposed_plans":[],'
+                    '"proposed_years":[],"proposed_semesters":[],'
+                    '"course_codes":[],"topic":null,'
+                    '"requested_facts":["' + requested_fact + '"],'
+                    '"judgement_dimension":null,"unresolved":[]}'
+                )
+                claim = GroundedClaim(
+                    f"interpreted_{operation}",
+                    operation,
+                    status="complete",
+                    value={"course_code": "06016404"},
+                    evidence={"course_code": "06016404"},
+                )
+                plan = EvidencePlan(StructuralScope(program="IT"), ())
+                intent_calls = []
+
+                def intent_model(prompt, payload=payload):
+                    intent_calls.append(prompt)
+                    return payload
+
+                with patch("rag.qa.plan_evidence", return_value=plan), patch(
+                    "rag.qa.execute_evidence_plan",
+                    return_value=EvidenceBundle(plan, ()),
+                ), patch(
+                    "rag.qa._compose_evidence_claims", return_value=(claim,)
+                ):
+                    result = ask(
+                        DB_PATH,
+                        base_question,
+                        intent_model_callable=intent_model,
+                        answer_model_callable=lambda _prompt: self.fail(
+                            "factual interpreted queries must not polish"
+                        ),
+                    )
+
+                self.assertEqual(len(intent_calls), 1)
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+
     def test_operation_bearing_deterministic_query_never_invokes_intent_model(self):
         plan = EvidencePlan(
             StructuralScope(program="IT", years=(2,), semesters=(1,)),

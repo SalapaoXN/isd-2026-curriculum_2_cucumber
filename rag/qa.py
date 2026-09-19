@@ -2573,14 +2573,20 @@ def ask(
         ).claims
         claims = (*identity_claims, *claims)
     grounded = compose_grounded_answer(composed_claims=claims)
+    preference_advisory = (
+        intent_interpreted and getattr(spec, "judgement", None) == "preference"
+    )
     return {
         "route": None,
         "result": render_grounded_answer(
             grounded,
             answer_model_callable=(
-                None if intent_interpreted else answer_model_callable
+                answer_model_callable
+                if preference_advisory
+                else (None if intent_interpreted else answer_model_callable)
             ),
             question=question,
+            preference_advisory=preference_advisory,
         ),
     }
 
