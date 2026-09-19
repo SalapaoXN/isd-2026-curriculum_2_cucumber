@@ -2,7 +2,15 @@ import unittest
 from dataclasses import fields
 from unittest.mock import patch
 
-from rag.evidence_executor import build_direct_prerequisite_burden
+from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
+    DirectPrerequisiteBurdenResult,
+    EvidenceExecutionResult,
+    build_direct_prerequisite_burden,
+    execute_evidence_plan,
+)
+from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
+from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult
 
 
 PROVENANCE = ({"provenance_id": 1, "document_category": "description"},)
@@ -284,6 +292,230 @@ class DirectPrerequisiteBurdenTests(unittest.TestCase):
         state.assert_called_once_with("unused", 10)
         burden_fields = {field.name for field in fields(result.burdens[0])}
         self.assertFalse(burden_fields & {"few", "many", "score", "rank", "recommendation"})
+
+
+class TopicPrerequisiteDependencyTests(unittest.TestCase):
+    @staticmethod
+    def _scope():
+        return StructuralScope(
+            program="IT",
+            plans=("coop",),
+            years=(3,),
+            semesters=(),
+        )
+
+    def _plan(self):
+        scope = self._scope()
+        return EvidencePlan(
+            scope=scope,
+            requests=(
+                EvidenceRequest("course_set", "course_set", scope),
+                EvidenceRequest(
+                    "topic_matches",
+                    "topic_matches",
+                    scope,
+                    depends_on=("course_set",),
+                    topic="data",
+                ),
+                EvidenceRequest(
+                    "topic_prerequisite_facts",
+                    "prerequisite_facts",
+                    scope,
+                    depends_on=("topic_matches",),
+                ),
+            ),
+        )
+
+    @staticmethod
+    def _course_set_result(request, scope):
+        candidate = {
+            "program": "IT",
+            "course_code": "C10",
+            "course_id": 10,
+            "provenance": PROVENANCE,
+        }
+        return EvidenceExecutionResult(
+            request_id=request.request_id,
+            kind=request.kind,
+            planned_request=request,
+            effective_scope=scope,
+            status="complete",
+            payload={"courses": (candidate,), "provenance": PROVENANCE},
+        )
+
+    def test_complete_topic_candidates_feed_only_grounded_identity_to_builder(self):
+        plan = self._plan()
+        scope = self._scope()
+        candidates = (
+            {"program": "IT", "course_code": "C10", "course_id": 10, "score": 0.9},
+            {"program": "IT", "course_code": "C11", "course_id": 11, "score": 0.8},
+        )
+        retrieval = ConstrainedTopicRetrievalResult(
+            status="scored",
+            candidates=candidates,
+            scored_candidates=candidates,
+        )
+        burden = DirectPrerequisiteBurden(
+            program="IT",
+            course_id=10,
+            course_code="C10",
+            status="complete",
+            required_course_count=0,
+            alternative_group_count=0,
+            alternative_member_counts=(),
+            ordered_requirement_groups=(),
+            provenance=PROVENANCE,
+        )
+
+        def execute(_db_path, request, effective_scope):
+            return self._course_set_result(request, effective_scope)
+
+        with patch("rag.evidence_executor._execute_request", side_effect=execute), patch(
+            "rag.evidence_executor.retrieve_constrained_topic_evidence",
+            return_value=retrieval,
+        ), patch(
+            "rag.evidence_executor.build_direct_prerequisite_burden",
+            return_value=DirectPrerequisiteBurdenResult(
+                status="complete",
+                burdens=(burden,),
+                provenance=PROVENANCE,
+            ),
+        ) as build:
+            results = execute_evidence_plan("unused", plan).results
+
+        build.assert_called_once_with(
+            "unused",
+            (
+                {"program": "IT", "course_code": "C10", "course_id": 10},
+                {"program": "IT", "course_code": "C11", "course_id": 11},
+            ),
+        )
+        self.assertEqual(results[-1].status, "complete")
+        self.assertEqual(results[-1].effective_scope, scope)
+        self.assertEqual(results[-1].payload[0].required_course_count, 0)
+
+    def test_topic_dependency_builds_complete_canonical_burdens(self):
+        plan = self._plan()
+        candidates = (
+            {"program": "IT", "course_code": "C10", "course_id": 10},
+            {"program": "IT", "course_code": "C11", "course_id": 11},
+        )
+        retrieval = ConstrainedTopicRetrievalResult(
+            status="scored",
+            candidates=candidates,
+            scored_candidates=candidates,
+        )
+        states = {
+            10: {
+                "state": "explicit_none",
+                "records": (),
+                "prerequisite_text": "ไม่มี",
+                "provenance": PROVENANCE,
+            },
+            11: {
+                "state": "required",
+                "records": (direct_record(),),
+                "prerequisite_text": None,
+                "provenance": PROVENANCE,
+            },
+        }
+
+        def execute(_db_path, request, effective_scope):
+            return self._course_set_result(request, effective_scope)
+
+        with patch("rag.evidence_executor._execute_request", side_effect=execute), patch(
+            "rag.evidence_executor.retrieve_constrained_topic_evidence",
+            return_value=retrieval,
+        ), patch(
+            "rag.evidence_executor.prerequisite_state",
+            side_effect=lambda _db, course_id: states[course_id],
+        ):
+            result = execute_evidence_plan("unused", plan).results[-1]
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(
+            [(burden.course_id, burden.required_course_count) for burden in result.payload],
+            [(10, 0), (11, 1)],
+        )
+
+    def test_dependency_failure_and_empty_do_not_call_burden_builder(self):
+        for retrieval_status, expected_status in (
+            ("description_missing", "insufficient_evidence"),
+            ("no_threshold_matches", "valid_empty"),
+        ):
+            with self.subTest(retrieval_status=retrieval_status):
+                plan = self._plan()
+                scope = self._scope()
+                retrieval = ConstrainedTopicRetrievalResult(
+                    status=retrieval_status,
+                    candidates=(),
+                    scored_candidates=(),
+                )
+
+                def execute(_db_path, request, effective_scope):
+                    return self._course_set_result(request, effective_scope)
+
+                with patch(
+                    "rag.evidence_executor._execute_request", side_effect=execute
+                ), patch(
+                    "rag.evidence_executor.retrieve_constrained_topic_evidence",
+                    return_value=retrieval,
+                ), patch(
+                    "rag.evidence_executor.build_direct_prerequisite_burden"
+                ) as build:
+                    result = execute_evidence_plan("unused", plan).results[-1]
+
+                self.assertEqual(result.status, expected_status)
+                build.assert_not_called()
+
+    def test_malformed_topic_candidate_fails_closed_before_builder(self):
+        plan = self._plan()
+        retrieval = ConstrainedTopicRetrievalResult(
+            status="scored",
+            candidates=({"program": "IT", "course_code": "C10"},),
+            scored_candidates=({"program": "IT", "course_code": "C10"},),
+        )
+
+        def execute(_db_path, request, effective_scope):
+            return self._course_set_result(request, effective_scope)
+
+        with patch("rag.evidence_executor._execute_request", side_effect=execute), patch(
+            "rag.evidence_executor.retrieve_constrained_topic_evidence",
+            return_value=retrieval,
+        ), patch(
+            "rag.evidence_executor.build_direct_prerequisite_burden"
+        ) as build:
+            result = execute_evidence_plan("unused", plan).results[-1]
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.primitive_state, "malformed_topic_dependency")
+        build.assert_not_called()
+
+    def test_builder_insufficient_candidate_pack_propagates(self):
+        plan = self._plan()
+        retrieval = ConstrainedTopicRetrievalResult(
+            status="scored",
+            candidates=({"program": "IT", "course_code": "C10", "course_id": 10},),
+            scored_candidates=({"program": "IT", "course_code": "C10", "course_id": 10},),
+        )
+
+        def execute(_db_path, request, effective_scope):
+            return self._course_set_result(request, effective_scope)
+
+        with patch("rag.evidence_executor._execute_request", side_effect=execute), patch(
+            "rag.evidence_executor.retrieve_constrained_topic_evidence",
+            return_value=retrieval,
+        ), patch(
+            "rag.evidence_executor.build_direct_prerequisite_burden",
+            return_value=DirectPrerequisiteBurdenResult(
+                status="insufficient_evidence",
+                primitive_state="prerequisite_burden_incomplete",
+            ),
+        ):
+            result = execute_evidence_plan("unused", plan).results[-1]
+
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertEqual(result.primitive_state, "prerequisite_burden_incomplete")
 
 
 if __name__ == "__main__":

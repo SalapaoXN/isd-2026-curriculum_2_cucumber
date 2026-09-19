@@ -379,6 +379,20 @@ def plan_evidence(
     elif needs_collection:
         add(_request("course_set", "course_set", scope))
 
+    if (
+        topic_target_id is not None
+        and "prerequisite" in query_spec.operations
+        and not exact_targets
+    ):
+        add(
+            _request(
+                "topic_prerequisite_facts",
+                "prerequisite_facts",
+                scope,
+                depends_on=(topic_target_id,),
+            )
+        )
+
     target_relation_id = topic_target_id or (
         "course_set" if "course_set" in by_kind else None
     )

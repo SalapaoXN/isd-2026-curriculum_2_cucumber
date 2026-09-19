@@ -11,6 +11,7 @@ from typing import Any
 
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.retrieval.retrieve import (
+    ConstrainedTopicRetrievalResult,
     SimilarityEvidence,
     aggregate_exact_course_similarity,
     fetch_course_description_evidence,
@@ -334,7 +335,6 @@ def _build_candidate_burden(
 
     groups: list[DirectPrerequisiteRequirement] = []
     alternative_signatures: dict[int, tuple[Any, ...]] = {}
-    alternative_positions: dict[int, int] = {}
     required_course_count = 0
     for record in records:
         if not isinstance(record, Mapping):
@@ -356,7 +356,6 @@ def _build_candidate_burden(
                 return None
             continue
         alternative_signatures[group_id] = signature
-        alternative_positions[group_id] = len(groups)
         groups.append(requirement)
 
     return DirectPrerequisiteBurden(
@@ -1256,6 +1255,79 @@ def _execute_topic_dependent_credit(
     )
 
 
+def _topic_prerequisite_targets(
+    payload: Any,
+) -> tuple[Mapping[str, Any], ...] | None:
+    if not isinstance(payload, ConstrainedTopicRetrievalResult):
+        return None
+    candidates = payload.scored_candidates
+    if not isinstance(candidates, (list, tuple)):
+        return None
+    targets: list[Mapping[str, Any]] = []
+    for candidate in candidates:
+        if not isinstance(candidate, Mapping):
+            return None
+        program = candidate.get("program")
+        course_code = candidate.get("course_code")
+        course_id = candidate.get("course_id")
+        if (
+            not isinstance(program, str)
+            or not program.strip()
+            or not isinstance(course_code, str)
+            or not course_code.strip()
+            or isinstance(course_id, bool)
+            or not isinstance(course_id, int)
+        ):
+            return None
+        targets.append(
+            {
+                "program": program.strip(),
+                "course_code": course_code.strip(),
+                "course_id": course_id,
+            }
+        )
+    return tuple(targets)
+
+
+def _execute_topic_dependent_prerequisites(
+    db_path: str,
+    request: EvidenceRequest,
+    dependency: EvidenceExecutionResult,
+) -> EvidenceExecutionResult:
+    scope = dependency.effective_scope
+    if dependency.status == "insufficient_evidence":
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state=dependency.primitive_state or "dependency_insufficient",
+        )
+    if dependency.status == "valid_empty":
+        return _result(
+            request,
+            scope,
+            "valid_empty",
+            (),
+            "empty_topic_candidates",
+        )
+    targets = _topic_prerequisite_targets(dependency.payload)
+    if targets is None:
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="malformed_topic_dependency",
+        )
+    burden = build_direct_prerequisite_burden(db_path, targets)
+    return _result(
+        request,
+        scope,
+        burden.status,
+        burden.burdens,
+        burden.primitive_state,
+    )
+
+
 def execute_evidence_plan(
     db_path: str,
     plan: EvidencePlan,
@@ -1379,6 +1451,57 @@ def execute_evidence_plan(
                         else:
                             request_results.append(
                                 _execute_topic_dependent_credit(
+                                    db_path,
+                                    request,
+                                    dependency,
+                                )
+                            )
+        elif request.kind == "prerequisite_facts" and any(
+            request_by_id.get(dependency_id, None) is not None
+            and request_by_id[dependency_id].kind == "topic_matches"
+            for dependency_id in request.depends_on
+        ):
+            topic_dependency_ids = tuple(
+                dependency_id
+                for dependency_id in request.depends_on
+                if request_by_id.get(dependency_id, None) is not None
+                and request_by_id[dependency_id].kind == "topic_matches"
+            )
+            if len(request.depends_on) != 1 or len(topic_dependency_ids) != 1:
+                request_results = [
+                    _result(
+                        request,
+                        request.scope,
+                        "insufficient_evidence",
+                        primitive_state="invalid_topic_dependency",
+                    )
+                ]
+            else:
+                dependency_results = by_request.get(topic_dependency_ids[0], ())
+                if not dependency_results:
+                    request_results = [
+                        _result(
+                            request,
+                            request.scope,
+                            "insufficient_evidence",
+                            primitive_state="missing_topic_dependency",
+                        )
+                    ]
+                else:
+                    request_results = []
+                    for dependency in dependency_results:
+                        if dependency.planned_request.scope != request.scope:
+                            request_results.append(
+                                _result(
+                                    request,
+                                    dependency.effective_scope,
+                                    "insufficient_evidence",
+                                    primitive_state="incompatible_topic_scope",
+                                )
+                            )
+                        else:
+                            request_results.append(
+                                _execute_topic_dependent_prerequisites(
                                     db_path,
                                     request,
                                     dependency,
