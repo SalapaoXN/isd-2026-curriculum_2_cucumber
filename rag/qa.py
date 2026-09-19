@@ -268,7 +268,7 @@ def _should_use_intent_interpreter(
     resolution: ResolutionOutcome,
     context: QueryContext | None = None,
 ) -> bool:
-    """Allow one bounded interpreter attempt for operation-free long-tail input."""
+    """Allow bounded operation-free and preference evidence interpretation."""
     if getattr(resolution, "action", None) != "answer":
         return False
     if completeness.classification not in {
@@ -276,7 +276,20 @@ def _should_use_intent_interpreter(
         "not_eligible",
     }:
         return False
-    if tuple(getattr(spec, "operations", ())) or getattr(
+    operations = tuple(getattr(spec, "operations", ()))
+    bounded_preference_operations = {
+        ("list",),
+        ("prerequisite",),
+        ("list", "prerequisite"),
+    }
+    operation_bearing_preference = (
+        getattr(spec, "judgement", None) == "preference"
+        and getattr(spec, "topic", None) is not None
+        and not getattr(spec, "course_codes", ())
+        and getattr(spec, "course_name", None) is None
+        and operations in bounded_preference_operations
+    )
+    if (operations and not operation_bearing_preference) or getattr(
         spec, "judgement", None
     ) == "unsupported":
         return False

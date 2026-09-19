@@ -168,7 +168,10 @@ _IDENTITY_CODE_TO_NAME_PATTERN = re.compile(
 )
 _WORKLOAD_PATTERN = re.compile(r"หนัก(?:ไหม|มั้ย|หรือไม่)", re.IGNORECASE)
 _QUANTITY_PATTERN = re.compile(r"เยอะ(?:ไหม|มั้ย|หรือไม่|ปะ)", re.IGNORECASE)
-_PREFERENCE_PATTERN = re.compile(r"ชอบ|น่าสนใจ|แนะนำ|เหมาะ|\bprefer(?:ence)?\b", re.IGNORECASE)
+_PREFERENCE_PATTERN = re.compile(
+    r"ชอบ|น่าสนใจ|แนะนำ|เหมาะ|อยาก\s*เน้น|\bprefer(?:ence)?\b",
+    re.IGNORECASE,
+)
 _UNSUPPORTED_PATTERN = re.compile(
     r"(?<!อ)ยาก|ง่าย|เงินเดือน|รายได้|\b(?:difficulty|salary|hardest|easiest)\b",
     re.IGNORECASE,
@@ -181,6 +184,11 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
 _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
     r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
+    re.IGNORECASE,
+)
+_PREREQUISITE_BURDEN_PREFERENCE_PATTERN = re.compile(
+    r"(?:วิชาบังคับก่อน|prerequisite)[^?\n]{0,40}"
+    r"(?:ไม่\s*(?:เยอะ|มาก)|น้อย|ไม่กี่)",
     re.IGNORECASE,
 )
 
@@ -327,6 +335,10 @@ def _extract_operations(
         or re.search(r"เรียน(?:เกี่ยวกับ|เรื่อง)?อะไร(?:อะ|บ้าง)?", question)
     )
     prerequisite_object_request = bool(_PREREQUISITE_OBJECT_PATTERN.search(question))
+    prerequisite_burden_preference = (
+        judgement == "preference"
+        and bool(_PREREQUISITE_BURDEN_PREFERENCE_PATTERN.search(question))
+    )
     course_targeted_detail = bool(course_codes or course_name) and not identity_request
     course_content_comparison = (
         len(course_codes) > 1
@@ -334,6 +346,8 @@ def _extract_operations(
     )
     for operation, pattern in _OPERATION_PATTERNS:
         if operation in {"list", "describe"} and prerequisite_object_request:
+            continue
+        if operation == "count" and prerequisite_burden_preference:
             continue
         if operation == "describe" and identity_request and not explicit_describe_request:
             continue

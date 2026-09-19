@@ -1095,6 +1095,65 @@ class RagQaTest(unittest.TestCase):
 
         self.assertEqual(result["result"]["status"], "answer")
 
+    def test_prerequisite_preference_operation_shape_enters_intent_once(self):
+        intent_calls = []
+        structured_calls = []
+        interpreted_payload = (
+            '{"intent":"preference_recommendation_evidence",'
+            '"proposed_program":null,"proposed_plans":[], '
+            '"proposed_years":[],"proposed_semesters":[], '
+            '"course_codes":[],"topic":"data",'
+            '"requested_facts":["course_list","prerequisite"],'
+            '"judgement_dimension":"preference","unresolved":[]}'
+        )
+        plan = EvidencePlan(
+            StructuralScope(program="IT", years=(3,)),
+            (),
+        )
+
+        def intent_model(prompt):
+            intent_calls.append(prompt)
+            return interpreted_payload
+
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            return_value=EvidenceBundle(plan, ()),
+        ), patch("rag.qa._compose_evidence_claims", return_value=()), patch(
+            "rag.qa.render_grounded_answer",
+            return_value={"status": "answer"},
+        ):
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง",
+                structured_model_callable=lambda prompt: structured_calls.append(prompt),
+                intent_model_callable=intent_model,
+            )
+
+        self.assertEqual(result["result"]["status"], "answer")
+        self.assertEqual(len(intent_calls), 1)
+        self.assertEqual(structured_calls, [])
+        planner.assert_called_once()
+        compiled_spec = planner.call_args.args[0]
+        self.assertEqual(compiled_spec.operations, ("list", "prerequisite"))
+        self.assertEqual(compiled_spec.judgement, "preference")
+        self.assertEqual(compiled_spec.program, "IT")
+        self.assertEqual(compiled_spec.years, (3,))
+        self.assertEqual(compiled_spec.topic, "data")
+
+    def test_prerequisite_preference_malformed_intent_fails_before_planning(self):
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("malformed intent must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง",
+                intent_model_callable=lambda _prompt: "not json",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        planner.assert_not_called()
+
     @staticmethod
     def fallback_course_record():
         return {

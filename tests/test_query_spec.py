@@ -450,6 +450,27 @@ class QuerySpecEntityTests(unittest.TestCase):
         )
         self.assertNotIn("prerequisite", parse_query_spec("วิชาบังคับมีอะไรบ้าง").operations)
 
+    def test_prerequisite_burden_preference_has_only_prerequisite_operation(self):
+        spec = parse_query_spec(
+            "IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง"
+        )
+
+        self.assertEqual(spec.program, "IT")
+        self.assertEqual(spec.years, (3,))
+        self.assertEqual(spec.topic, "data")
+        self.assertEqual(spec.judgement, "preference")
+        self.assertEqual(spec.operations, ("prerequisite",))
+        self.assertNotIn("count", spec.operations)
+
+    def test_preference_burden_count_guard_does_not_disable_quantity_or_factual_prerequisite(self):
+        quantity = parse_query_spec("IT ปี 3 มีวิชา data เยอะไหม")
+        factual = parse_query_spec("IT 06016414 มีวิชาบังคับก่อนอะไรบ้าง")
+
+        self.assertEqual(quantity.judgement, "quantity")
+        self.assertIn("count", quantity.operations)
+        self.assertEqual(factual.judgement, "none")
+        self.assertEqual(factual.operations, ("prerequisite",))
+
     def test_bare_english_course_names_support_prerequisite_directions(self):
         prerequisite = parse_query_spec("Calculus 2 มีวิชาบังคับก่อนคืออะไร")
         self.assertEqual(prerequisite.course_name, "Calculus 2")
