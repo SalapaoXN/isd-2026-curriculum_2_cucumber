@@ -168,6 +168,20 @@ def _mapped_operations(
     base_operations: tuple[str, ...],
 ) -> tuple[str, ...]:
     intent = interpretation.intent
+    if intent == "preference_recommendation_evidence":
+        if interpretation.judgement_dimension != "preference":
+            raise IntentCompilerError(
+                "preference evidence requires the preference dimension"
+            )
+        if tuple(interpretation.requested_facts) != ("course_list",):
+            raise IntentCompilerError(
+                "preference evidence requires course_list evidence"
+            )
+        if base_operations and tuple(base_operations) != ("list",):
+            raise IntentCompilerError(
+                "preference evidence cannot combine with other operations"
+            )
+        return ("list",)
     if intent in _INTENT_OPERATION:
         expected_facts = _INTENT_FACTS[intent]
         facts = set(interpretation.requested_facts)
@@ -282,6 +296,8 @@ def compile_intent_to_query_spec(
         if topic and topic.casefold() != interpretation.topic.casefold():
             raise IntentCompilerError("topic interpretation conflicts")
         topic = topic or interpretation.topic
+    if interpretation.intent == "preference_recommendation_evidence" and not topic:
+        raise IntentCompilerError("preference evidence requires a non-empty topic")
 
     if base_spec.category is not None and not isinstance(base_spec.category, str):
         raise IntentCompilerError("base category is malformed")

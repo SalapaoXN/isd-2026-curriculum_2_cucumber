@@ -95,6 +95,118 @@ class IntentCompilerTest(unittest.TestCase):
 
         self.assertEqual(result.operations, ("prerequisite",))
 
+    def test_preference_evidence_maps_to_grounded_topic_list(self):
+        base = replace(
+            parse_query_spec("IT ปี 3 อยากเน้น data"),
+            operations=(),
+            topic=None,
+        )
+        result = compile_intent_to_query_spec(
+            base,
+            self.interpretation(
+                "preference_recommendation_evidence",
+                topic="data",
+                requested_facts=("course_list",),
+                judgement_dimension="preference",
+            ),
+            authoritative_program="IT",
+            authoritative_years=(3,),
+        )
+
+        self.assertEqual(result.operations, ("list",))
+        self.assertEqual(result.judgement, "preference")
+        self.assertEqual(result.topic, "data")
+        self.assertEqual(result.years, (3,))
+
+    def test_preference_evidence_requires_topic(self):
+        base = replace(parse_query_spec("IT ปี 3 อยากเลือกวิชา"), operations=())
+        with self.assertRaises(IntentCompilerError):
+            compile_intent_to_query_spec(
+                base,
+                self.interpretation(
+                    "preference_recommendation_evidence",
+                    requested_facts=("course_list",),
+                    judgement_dimension="preference",
+                ),
+                authoritative_program="IT",
+                authoritative_years=(3,),
+            )
+
+    def test_preference_evidence_rejects_conflicting_topic(self):
+        base = replace(
+            parse_query_spec("IT มีวิชาเกี่ยวกับ network อะไรบ้าง"),
+            operations=(),
+        )
+        with self.assertRaises(IntentCompilerError):
+            compile_intent_to_query_spec(
+                base,
+                self.interpretation(
+                    "preference_recommendation_evidence",
+                    topic="data",
+                    requested_facts=("course_list",),
+                    judgement_dimension="preference",
+                ),
+                authoritative_program="IT",
+            )
+
+    def test_preference_evidence_rejects_non_list_facts(self):
+        base = replace(parse_query_spec("IT อยากเน้น data"), operations=())
+        with self.assertRaises(IntentCompilerError):
+            compile_intent_to_query_spec(
+                base,
+                self.interpretation(
+                    "preference_recommendation_evidence",
+                    topic="data",
+                    requested_facts=("course_description",),
+                    judgement_dimension="preference",
+                ),
+                authoritative_program="IT",
+            )
+
+    def test_preference_evidence_preserves_authoritative_plan_and_scope(self):
+        base = replace(
+            parse_query_spec("IT แผนสหกิจ ปี 3 เทอม 1 อยากเน้น data"),
+            operations=(),
+            topic=None,
+        )
+        result = compile_intent_to_query_spec(
+            base,
+            self.interpretation(
+                "preference_recommendation_evidence",
+                topic="data",
+                requested_facts=("course_list",),
+                judgement_dimension="preference",
+            ),
+            authoritative_program="IT",
+            authoritative_plans=("coop",),
+            authoritative_years=(3,),
+            authoritative_semesters=(1,),
+        )
+
+        self.assertEqual(result.program, "IT")
+        self.assertEqual(result.plans, ("coop",))
+        self.assertEqual(result.years, (3,))
+        self.assertEqual(result.semesters, (1,))
+        self.assertEqual(result.operations, ("list",))
+        self.assertEqual(result.judgement, "preference")
+
+    def test_preference_evidence_does_not_create_ranking_or_new_operation(self):
+        base = replace(parse_query_spec("IT อยากเน้น data"), operations=())
+        result = compile_intent_to_query_spec(
+            base,
+            self.interpretation(
+                "preference_recommendation_evidence",
+                topic="data",
+                requested_facts=("course_list",),
+                judgement_dimension="preference",
+            ),
+            authoritative_program="IT",
+        )
+
+        self.assertEqual(result.operations, ("list",))
+        self.assertNotEqual(result.judgement, "recommendation")
+        self.assertNotIn("rank", result.__class__.__annotations__)
+
     def test_similarity_requires_two_codes_and_course_group(self):
         base = replace(
             parse_query_spec("IT 06016420 กับ 06016421 ถามเนื้อหา"),
