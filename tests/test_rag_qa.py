@@ -1135,6 +1135,58 @@ class RagQaTest(unittest.TestCase):
                 fallback.assert_called_once()
                 ground.assert_called_once()
 
+    def test_incomplete_structured_queries_without_model_fail_closed_before_planner(self):
+        questions = (
+            "DSBA ปี 2 มีวิชา Gen Ed อะไรบ้าง",
+            "DSBA ปี 2 มีวิชาบังคับกี่วิชา",
+            "DSBA ปี 2 มีวิชาบังคับไหม",
+        )
+        for question in questions:
+            with self.subTest(question=question):
+                with patch(
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError(
+                        "incomplete structured query must not reach planner"
+                    ),
+                ) as planner:
+                    result = ask(DB_PATH, question)
+
+                self.assertEqual(result["result"].status, "insufficient_evidence")
+                planner.assert_not_called()
+
+    def test_unrecognized_structured_queries_without_model_fail_closed_before_planner(self):
+        for question in (
+            "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+            "DSBA 06026212 กี่หน่วย",
+        ):
+            with self.subTest(question=question):
+                with patch(
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError(
+                        "unrecognized structured query must not reach planner"
+                    ),
+                ) as planner:
+                    result = ask(DB_PATH, question)
+
+                self.assertEqual(result["result"].status, "insufficient_evidence")
+                planner.assert_not_called()
+
+    def test_incomplete_fallback_scope_failure_fails_closed_before_planner(self):
+        with patch(
+            "rag.qa._fallback_scope", return_value=None
+        ), patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("fallback preparation failure must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับกี่วิชา",
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        planner.assert_not_called()
+
     def test_partial_count_grounding_failure_fails_closed(self):
         with patch(
             "rag.qa.run_structured_fallback",

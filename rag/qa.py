@@ -2286,6 +2286,19 @@ def ask(
                 ),
             }
 
+    if completeness.classification in {"partial", "unrecognized_structured"}:
+        grounded = compose_grounded_answer(
+            resolution_status="insufficient_evidence",
+        )
+        return {
+            "route": None,
+            "result": render_grounded_answer(
+                grounded,
+                answer_model_callable=None,
+                question=question,
+            ),
+        }
+
     try:
         plan = plan_evidence(spec, resolution)
         bundle = execute_evidence_plan(db_path, plan)
