@@ -25,7 +25,13 @@ from rag.evidence_executor import (
     execute_evidence_plan,
     execute_exact_similarity_from_bundle,
 )
-from rag.evidence_planner import StructuralScope, plan_evidence
+from rag.evidence_planner import (
+    EvidencePlan,
+    EvidenceRequest,
+    StructuralScope,
+    build_structural_scope,
+    plan_evidence,
+)
 from rag.grounded_answer import (
     GroundedClaim,
     compose_grounded_answer,
@@ -360,6 +366,68 @@ def _course_list_fallback_operation(spec: Any) -> str | None:
     if not operations:
         return "list"
     return None
+
+
+def _is_filtered_sum_credits_fallback_candidate(
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+) -> bool:
+    """Allow only bounded partial credit filters into the list selector."""
+    return (
+        completeness.classification == "partial"
+        and tuple(getattr(spec, "operations", ())) == ("sum_credits",)
+        and bool(completeness.missing_filters)
+        and set(completeness.missing_filters)
+        <= {"category", "requirement_type", "credit_units"}
+        and getattr(spec, "topic", None) is None
+    )
+
+
+def _filtered_credit_plan(
+    spec: Any,
+    resolution: ResolutionOutcome,
+    selected_targets: tuple[Mapping[str, Any], ...],
+) -> EvidencePlan:
+    """Build only the filtered credit request after selector grounding."""
+    scope = replace(
+        build_structural_scope(spec, resolution),
+        course_targets=selected_targets,
+    )
+    request = EvidenceRequest(
+        request_id="credit_facts",
+        kind="credit_facts",
+        scope=scope,
+        course_targets=selected_targets,
+        provenance_required=True,
+    )
+    return EvidencePlan(scope=scope, requests=(request,), group_by=scope.group_by)
+
+
+def _filtered_credit_status_claim(
+    scope: StructuralScope,
+    status: str,
+) -> GroundedClaim:
+    """Represent selector-empty/failure states without executing broad credit facts."""
+    if status == "valid_empty":
+        aggregate = ComponentAggregation(
+            operation="sum_credits",
+            status="valid_empty",
+            value=0,
+        )
+        return GroundedClaim(
+            claim_id="fallback_sum_credits",
+            operation="sum_credits",
+            effective_scope=scope,
+            status="valid_empty",
+            value=0,
+            evidence=aggregate,
+        )
+    return GroundedClaim(
+        claim_id="fallback_sum_credits",
+        operation="sum_credits",
+        effective_scope=scope,
+        status="insufficient_evidence",
+    )
 
 
 def _fallback_placement_claim(
@@ -2031,6 +2099,85 @@ def ask(
         resolution,
         context,
     )
+    filtered_credit_candidate = _is_filtered_sum_credits_fallback_candidate(
+        spec,
+        completeness,
+    )
+    if filtered_credit_candidate:
+        filtered_scope = build_structural_scope(spec, resolution)
+        if not callable(structured_model_callable):
+            claim = _filtered_credit_status_claim(
+                filtered_scope,
+                "insufficient_evidence",
+            )
+        else:
+            fallback_scope = _fallback_scope(completeness, resolution)
+            if fallback_scope is None:
+                claim = _filtered_credit_status_claim(
+                    filtered_scope,
+                    "insufficient_evidence",
+                )
+            else:
+                fallback_result = run_structured_fallback(
+                    db_path,
+                    question,
+                    fallback_scope,
+                    structured_model_callable,
+                )
+                grounded_list = ground_course_list(
+                    db_path,
+                    fallback_result,
+                    fallback_scope,
+                )
+                if grounded_list.status != "complete":
+                    claim = _filtered_credit_status_claim(
+                        filtered_scope,
+                        grounded_list.status,
+                    )
+                elif not grounded_list.selected_targets:
+                    claim = _filtered_credit_status_claim(
+                        filtered_scope,
+                        "insufficient_evidence",
+                    )
+                else:
+                    filtered_plan = _filtered_credit_plan(
+                        spec,
+                        resolution,
+                        grounded_list.selected_targets,
+                    )
+                    credit_bundle = execute_evidence_plan(
+                        db_path,
+                        filtered_plan,
+                    )
+                    claims = _compose_evidence_claims(spec, credit_bundle)
+                    if not claims or any(
+                        claim.operation != "sum_credits" for claim in claims
+                    ):
+                        claim = _filtered_credit_status_claim(
+                            filtered_scope,
+                            "insufficient_evidence",
+                        )
+                    else:
+                        grounded = compose_grounded_answer(
+                            composed_claims=claims,
+                        )
+                        return {
+                            "route": None,
+                            "result": render_grounded_answer(
+                                grounded,
+                                answer_model_callable=None,
+                                question=question,
+                            ),
+                        }
+        grounded = compose_grounded_answer(composed_claims=(claim,))
+        return {
+            "route": None,
+            "result": render_grounded_answer(
+                grounded,
+                answer_model_callable=None,
+                question=question,
+            ),
+        }
     if (
         completeness.classification in {"partial", "unrecognized_structured"}
         and callable(structured_model_callable)

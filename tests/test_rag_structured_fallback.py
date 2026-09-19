@@ -363,6 +363,34 @@ class RagStructuredFallbackTest(unittest.TestCase):
         self.assertEqual(grounded.records[0]["course_id"], 1)
         scoped.assert_called_once()
 
+    def test_grounding_exposes_only_selected_canonical_targets(self):
+        selector = self.successful_selector((1,))
+        alternative_record = self.canonical_record(course_id=None)
+        alternative_record.update(
+            {
+                "program": "IT",
+                "catalog_id": 4,
+                "alternative_courses": (
+                    {"course_id": 1, "course_code": "06016420"},
+                    {"course_id": 2, "course_code": "06016421"},
+                ),
+            }
+        )
+
+        grounded, _, _ = self.ground(selector, [alternative_record])
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(len(grounded.selected_targets), 1)
+        self.assertEqual(
+            dict(grounded.selected_targets[0]),
+            {
+                "program": "IT",
+                "course_id": 1,
+                "course_code": "06016420",
+                "catalog_id": 4,
+            },
+        )
+
     def test_course_credit_grounding_returns_canonical_fact_and_provenance(self):
         selector = self.successful_selector((1,))
         fact = self.canonical_credit_record()

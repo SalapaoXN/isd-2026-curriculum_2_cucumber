@@ -898,6 +898,149 @@ class RagQaTest(unittest.TestCase):
         ground.assert_called_once()
         self.assertEqual(result["result"].status, "answer")
 
+    def test_partial_sum_credits_uses_selected_targets_with_existing_credit_executor(self):
+        model_calls = []
+        selected_targets = (
+            {
+                "program": "IT",
+                "course_id": 101,
+                "course_code": "06016414",
+                "catalog_id": 4,
+            },
+        )
+        grounded_result = GroundedCourseListResult(
+            status="complete",
+            selected_targets=selected_targets,
+            records=(self.fallback_course_record(),),
+        )
+
+        def execute_filtered_credit(_db_path, plan):
+            request = plan.requests[0]
+            self.assertEqual(request.kind, "credit_facts")
+            self.assertEqual(request.course_targets, selected_targets)
+            self.assertEqual(request.scope.course_targets, selected_targets)
+            effective_scope = replace(
+                request.scope,
+                plans=("no_coop",),
+                expand_applicable=(),
+                unconstrained=tuple(
+                    axis for axis in request.scope.unconstrained if axis != "plan"
+                ),
+            )
+            component = {
+                "program": "IT",
+                "plan_key": "no_coop",
+                "year": 2,
+                "semester": 1,
+                "course_id": 101,
+                "course_code": "06016414",
+                "counted_credit_units": 3,
+                "provenance": ({"source_page": 11},),
+            }
+            return EvidenceBundle(
+                plan,
+                (
+                    EvidenceExecutionResult(
+                        "credit_facts",
+                        "credit_facts",
+                        request,
+                        effective_scope,
+                        "complete",
+                        {
+                            "status": "ok",
+                            "components": (component,),
+                            "provenance": component["provenance"],
+                        },
+                    ),
+                ),
+            )
+
+        def run_selector(_db_path, _question, _scope, model):
+            model("selector prompt")
+            return StructuredFallbackResult(
+                status="success",
+                columns=("course_id",),
+                rows=((101,),),
+            )
+
+        with patch(
+            "rag.qa.run_structured_fallback", side_effect=run_selector
+        ) as fallback, patch(
+            "rag.qa.ground_course_list", return_value=grounded_result
+        ), patch(
+            "rag.qa.execute_evidence_plan", side_effect=execute_filtered_credit
+        ) as executor, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("filtered credit must not use broad planner"),
+        ):
+            result = ask(
+                DB_PATH,
+                "IT ปี 2 เทอม 1 มีวิชาบังคับรวมกี่หน่วยกิต",
+                structured_model_callable=lambda prompt: model_calls.append(prompt)
+                or "SELECT course_id FROM courses",
+                answer_model_callable=lambda prompt: self.fail(
+                    "filtered credit fallback must not polish"
+                ),
+            )
+
+        fallback.assert_called_once()
+        self.assertEqual(len(model_calls), 1)
+        executor.assert_called_once()
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.operation, "sum_credits")
+        self.assertEqual(claim.status, "complete")
+        self.assertEqual(claim.value, 3)
+
+    def test_partial_sum_credits_valid_empty_does_not_execute_unfiltered_credit(self):
+        with patch(
+            "rag.qa.run_structured_fallback",
+            return_value=StructuredFallbackResult(
+                status="success",
+                columns=("course_id",),
+                rows=(),
+            ),
+        ) as fallback, patch(
+            "rag.qa.ground_course_list",
+            return_value=GroundedCourseListResult(status="valid_empty"),
+        ), patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("empty selector must not execute credit facts"),
+        ) as executor:
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับรวมกี่หน่วยกิต",
+                structured_model_callable=lambda prompt: "SELECT course_id FROM courses",
+            )
+
+        fallback.assert_called_once()
+        executor.assert_not_called()
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.operation, "sum_credits")
+        self.assertEqual(claim.status, "valid_empty")
+        self.assertEqual(claim.value, 0)
+
+    def test_partial_sum_credits_grounding_failure_does_not_plan_broad_scope(self):
+        with patch(
+            "rag.qa.run_structured_fallback",
+            return_value=StructuredFallbackResult(status="error"),
+        ) as fallback, patch(
+            "rag.qa.ground_course_list",
+            return_value=GroundedCourseListResult(status="insufficient_evidence"),
+        ), patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("failed filtered credit must not plan broadly"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "DSBA ปี 2 มีวิชาบังคับรวมกี่หน่วยกิต",
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        fallback.assert_called_once()
+        planner.assert_not_called()
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].claims[0].operation, "sum_credits")
+
     def test_partial_count_uses_course_list_fallback_and_count_aggregate(self):
         grounded_result = GroundedCourseListResult(
             status="complete",

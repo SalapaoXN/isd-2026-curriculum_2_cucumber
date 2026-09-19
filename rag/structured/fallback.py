@@ -144,6 +144,7 @@ class GroundedCourseListResult:
     status: Literal["complete", "valid_empty", "insufficient_evidence"]
     records: tuple[Mapping[str, Any], ...] = ()
     error: str | None = None
+    selected_targets: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -242,6 +243,43 @@ def _record_fingerprint(record: Mapping[str, Any]) -> tuple[Any, ...]:
     )
 
 
+def _selected_targets_from_record(
+    record: Mapping[str, Any],
+    selected_ids: set[int],
+) -> tuple[Mapping[str, Any], ...]:
+    """Return only canonical target identities selected by the SQL result."""
+    targets: list[Mapping[str, Any]] = []
+
+    def add_target(course_id: Any, source: Mapping[str, Any]) -> None:
+        if (
+            isinstance(course_id, bool)
+            or not isinstance(course_id, int)
+            or course_id not in selected_ids
+            or any(target.get("course_id") == course_id for target in targets)
+        ):
+            return
+        target: dict[str, Any] = {"course_id": course_id}
+        for field in ("program", "course_code", "catalog_id"):
+            value = source.get(field)
+            if field == "program" and isinstance(value, str) and value.strip():
+                target[field] = value
+            elif field == "course_code" and isinstance(value, str) and value.strip():
+                target[field] = value
+            elif field == "catalog_id" and isinstance(value, int) and not isinstance(
+                value, bool
+            ):
+                target[field] = value
+        targets.append(target)
+
+    add_target(record.get("course_id"), record)
+    members = record.get("alternative_courses", ())
+    if isinstance(members, (list, tuple)):
+        for member in members:
+            if isinstance(member, Mapping):
+                add_target(member.get("course_id"), {**record, **member})
+    return tuple(targets)
+
+
 def ground_course_list(
     db_path: str | Path,
     sql_result: StructuredFallbackResult,
@@ -330,6 +368,7 @@ def ground_course_list(
     found_codes: set[str] = set()
     selected_id_set = set(selected_ids)
     ordered_records: list[Mapping[str, Any]] = []
+    selected_targets: list[Mapping[str, Any]] = []
     seen_records: set[tuple[Any, ...]] = set()
     for record in records:
         if not isinstance(record, Mapping):
@@ -348,6 +387,9 @@ def ground_course_list(
             )
         found_ids.update(record_ids & selected_id_set)
         found_codes.update(_canonical_course_codes(record))
+        for target in _selected_targets_from_record(record, selected_id_set):
+            if target not in selected_targets:
+                selected_targets.append(target)
         fingerprint = _record_fingerprint(record)
         if fingerprint not in seen_records:
             seen_records.add(fingerprint)
@@ -357,6 +399,13 @@ def ground_course_list(
         return GroundedCourseListResult(
             status="insufficient_evidence",
             error="SQL-selected course_id is outside canonical scope or unknown",
+        )
+    if {
+        target.get("course_id") for target in selected_targets
+    } != selected_id_set:
+        return GroundedCourseListResult(
+            status="insufficient_evidence",
+            error="canonical grounding did not expose every selected course target",
         )
 
     known_ids = set(scope.course_ids)
@@ -375,6 +424,7 @@ def ground_course_list(
     return GroundedCourseListResult(
         status="complete",
         records=tuple(ordered_records),
+        selected_targets=tuple(selected_targets),
     )
 
 
