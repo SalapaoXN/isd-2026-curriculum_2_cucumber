@@ -750,6 +750,70 @@ class RagQaTest(unittest.TestCase):
                 self.assertEqual(result.missing_filters, missing_filters)
                 self.assertEqual(result.program, "DSBA")
 
+    def test_structured_residue_is_detected_before_ineligible_operation_checks(self):
+        cases = (
+            (
+                "IT แผนสหกิจกับไม่สหกิจ วิชาบังคับต่างกันยังไง",
+                ("requirement_type",),
+            ),
+            (
+                "IT ปี 2 แผนสหกิจกับไม่สหกิจ 3 หน่วยกิตต่างกันยังไง",
+                ("credit_units",),
+            ),
+            (
+                "IT วิชาบังคับมีวิชาอะไรเกี่ยวกับ database บ้าง",
+                ("requirement_type",),
+            ),
+        )
+        for question, missing_filters in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                result = _classify_structured_parse_completeness(spec, resolution)
+                self.assertEqual(result.classification, "partial")
+                self.assertEqual(result.missing_filters, missing_filters)
+
+                with patch(
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError(
+                        "unresolved structured residue must not reach planner"
+                    ),
+                ) as planner:
+                    answer = ask(DB_PATH, question)
+
+                self.assertEqual(answer["result"].status, "insufficient_evidence")
+                planner.assert_not_called()
+
+    def test_structured_residue_free_ineligible_queries_keep_existing_classification(self):
+        cases = (
+            ("IT แผนสหกิจกับไม่สหกิจต่างกันยังไง", ("compare",)),
+            ("IT มีวิชาอะไรเกี่ยวกับ database บ้าง", ("list",)),
+            (
+                "IT วิชา 06016402 กับ 06026207 เนื้อหาต่างกันอย่างไร",
+                ("similarity", "describe"),
+            ),
+        )
+        for question, operations in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                result = _classify_structured_parse_completeness(spec, resolution)
+                self.assertEqual(tuple(spec.operations), operations)
+                self.assertEqual(result.classification, "not_eligible")
+                self.assertEqual(result.missing_filters, ())
+
+    def test_parsed_categories_are_not_treated_as_unresolved_residue(self):
+        for question in (
+            "DSBA ปี 2 มีวิชาศึกษาทั่วไปอะไรบ้าง",
+            "DSBA ปี 2 มีวิชาเลือกอะไรบ้าง",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                result = _classify_structured_parse_completeness(spec, resolution)
+                self.assertIsNotNone(spec.category)
+                self.assertNotIn("category", result.missing_filters)
+
     def test_structured_parse_completeness_uses_ui_program_for_partial_query(self):
         spec = parse_query_spec("ปี 2 มีวิชา Gen Ed อะไรบ้าง")
         context = QueryContext(program="DSBA")

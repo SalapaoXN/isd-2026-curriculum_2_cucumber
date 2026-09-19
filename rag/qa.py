@@ -140,12 +140,6 @@ def _classify_structured_parse_completeness(
     if getattr(spec, "judgement", None) == "unsupported":
         return not_eligible
 
-    operations = tuple(getattr(spec, "operations", ()))
-    if any(operation not in _STRUCTURED_FALLBACK_OPERATIONS for operation in operations):
-        return not_eligible
-    if getattr(spec, "topic", None) is not None:
-        return not_eligible
-
     question = getattr(spec, "normalized_question", "")
     missing_filters: list[str] = []
     if (
@@ -164,6 +158,12 @@ def _classify_structured_parse_completeness(
             missing_filters=tuple(missing_filters),
             **common,
         )
+
+    operations = tuple(getattr(spec, "operations", ()))
+    if any(operation not in _STRUCTURED_FALLBACK_OPERATIONS for operation in operations):
+        return not_eligible
+    if getattr(spec, "topic", None) is not None:
+        return not_eligible
 
     if operations:
         return StructuredParseCompleteness("complete", **common)
