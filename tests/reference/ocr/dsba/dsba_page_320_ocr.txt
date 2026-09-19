@@ -1,0 +1,51 @@
+315
+มคอ
+2
+06066100
+การบริหารโครงการเทคโนโลยีสารสนเทศ
+3(3-0-6)
+INFORMATION TECHNOLOGY PROJECT MANAGEMENT
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ธรรมชาติและวงจรชีวิตของโครงการ การศึกษาความเป็นไปได้ของโครงการ เทคนิค
+การเลือกโครงการ องค์ความรู้สำหรับการบริหารโครงการ กลุ่มกระบวนการบริหารโครงการ การ
+จัดการขอบเขตของโครงการ การจัดการตารางเวลา การจัดการค่าใช้จ่ายโครงการ การจัดการ
+ณภาพ การจัดทึมงานและทรัพยากร การจัดการงานสือสาร การจัดการความเสียง การควบคุม
+โครงการ และประเมินผลโครงการ
+NATURE AND LIFE CYCLE OF INFORMATION TECHNOLOGY (IT) PROJECTS, PROJECT
+FEASIBILITY, PROJECT SELECTION TECHNIQUES, PROJECT MANAGEMENT BODY OF KNOWLEDGE, PM
+PROCESS GROUPS, PROJECT SCOPE MANAGEMENT, PROJECT COST, PROJECT SCHEDULING, QUALITY
+MANAGEMENT, TEAM AND RESOURCES MANAGEMENT, COMMUNICATION MANAGEMENT, RISK
+MANAGEMENT., PROJECT CONTROLLING, PROJECT EVALUATION.
+06066101
+พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ
+3(3-0-6)
+BUSINESS FUNDAMETALS FOR IFORMATION
+TECHNOLOGY
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+สภาพแวดล้อมทางธุรกิจและระบบเศรษฐกิจ พืนฐานของการบริหารการเงิน มูลค่า
+ของเงินและต้นทุนของเงินทุน งบการเงิน การบริหารการผลิต
+การควบคุมสินค้าคงคลัง การตลาด
+พื้นฐานการจัดการ การจัดองค์กรการบริหารงานบุคคล จริยธรรมทางธุรกิจและความรับผิดชอบต่อ
+BUSINESS ENVIRONMENT AND ECONOMIC SYSTEM, FOUNDATIONS OF FINANCIAL
+MANAGEMENT,
+VALUATION
+AND
+COST
+OF
+CAPITAL,
+FINANCIAL
+STATEMENT,
+PRODUCTION
+MANAGEMENT, INVENTORY CONTROL, MARKETING CONCEPT AND MANAGEMENT, MANAGEMENT
+PERSPECTIVES AND PROCESSES, ORGANIZATION MANAGEMENT., HUMAN RESOURCE MANAGEMENT,
+BUSINESS ETHICS AND SOCIAL RESPONSIBILITY.
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+สังคม

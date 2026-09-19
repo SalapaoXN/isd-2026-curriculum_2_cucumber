@@ -1,0 +1,69 @@
+354
+มคอ.
+2
+06016463
+เทคโนโลยีการคำนวณด้วยคอมพิวเตอร์แบบผสมผสาน
+3(3-0-6)
+HYBRLD COMPUTIG TECHOLOGY
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+เนฐานของการคำนวณด้วยคอมพิวเตอร์ วิวัฒนาการของการคำนวณด้วยคอมพิวเตอร์
+ประเภทของเทคโนโลยีการคำนวณด้วยคอมพิวเตอร์ ได้แก่ การคำนวณด้วยหน่วยประมวลผลกลาง
+(CPU) การคำนวณด้วยหน่วยประมวลผลกราฟฟิก (GPU)
+(TPU) และการคำนวณด้วยวงจรดิจิตอลที่โปรแกรมได้ (FPGA)
+กลาง หน่วยประมวลผลกราฟฟึก หน่วยประมวลผลเทนเซอร์ และวงจรดิจิตอลที่โปรแกรมได้ การ
+พัฒนาซอฟท์แวร์สำหรับการคำนวณด้วยหน่วยประมวลผลแบบต่าง
+ภาษาการโปรแกรมสำหรับการ
+คำนวณด้วยคอมพิวเตอร์แบบผสมผสาน ได้แก่ CUDA และ OPENCL
+แบบต่าง
+ทั้งข้อดี-ข้อเสีย รวมถึงพลังงานที่ใช้และประสิทธิภาพการคำนวณด้วยคอมพิวเตอร์ของ
+เทคโนโลยีแบบต่าง
+การประยุกต์ใช้งานการคำนวณด้วยคอมพิวเตอร์แบบผสมผสาน เช่น การ
+ประยุกต์ใช้ในงานด้านปัญญาประดิษฐ์ การคำนวณด้วยคอมพิวเตอร์ประสิทธิภาพสูง (HPC)
+FUNDAMENTAL
+OF
+COMPUTER
+PROCESSING
+AND
+COMPUTATION,
+EVOLUTION
+OF
+COMPUTING TECHNOLOGY., COMPUTING TECHNOLOGY OF CPU (CENTRAL PROCESSING UNIT),
+GPU
+(GRAPHICS PROCESSING UNIT), TPU (TENSOR PROCESSING UNIT) AND FPGA (FIELD PROGRAMMABLE
+GATE
+ARRAY),
+SOFTWARE
+DEVELOPMENT
+FOR
+HYBRID
+COMPUTING,
+HYBRID
+COMPUTING
+PROGRAMMING  ARCHITECTURE
+AND  LANGUAGES,
+SUCH
+AS
+CUDA
+AND
+OPENCL,  COMPUTING
+TECHNOLOGY  COMPARISONS INCLUDING ADVANTAGES  AND  DISADVANTAGES,  PERFORMANCE
+AND
+POWER CONSUMPTION, HYBRID COMPUTING APPLICATIONS, SUCH AS ARTIFICIAL INTELLIGENCE, HIGH
+PERFORMANCE COMPUTING AND OTHERS.
+06016464
+ความมั่นคงปลอดภัยไซเบอร์ทางปฏิบัติ
+3(2-2-5)
+PRACTICAL CYBER SECURIT
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+การเรียนรู้ภาคทฤษฎีและภาคปฏิบัติในความมันคงปลอดภัยไซเบอร์ ความมันคงปลอดภัย
+เครือข่ายเบื้องต้น ฺปัญหาพื้นฐานของความมั่นคงปลอดภัย การป้องกันความปลอดภัยในการสื่อสาร
+การทำงานของชั้นความปปลอดภัยการรับรองความมั่นคงปลอดภัย ลายเซ็นดิจิทัล โพรโตคอลการใช้
+งานที่ปลอดภัยเบื้องต้น การรักษาความมั่นคงปลอดภัยในบริการจดหมายอิเล็กทรอนิกส์ การรักษา
+ความมันคงปลอดภัยในจดหมายอิเล็กทรอนิกส์ปลายทาง ความมันคงปลอดภัยของเว็บ ความมันคง
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

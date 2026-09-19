@@ -1,0 +1,51 @@
+352
+มคอ.
+2
+MAINTAINING TABLES, MAINTAINING INDEXES, MANAGING USERS, PRIVILEGES AND ROLES, LOADING
+DATA INTO
+DATABASE, DATABASE BACKUP AND RECOVERY., IMPORT AND EXPORT UTILITY.
+06016459
+การรับรองมาตรฐานและคุณภาพซอฟต์แวร์
+3(3-0-6)
+SOFTWARE STANDARD AND QUALTV ASSURANCE
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+ความ รู้เบื้องต้นเกี่ยวกับการประกันคุณภาพซอฟต์แวร์ คำจำกัดความกระบวนการพัฒนา
+ซอฟต์แวร์ การปรับปรุงกระบวนการและผลิตภัณฑ์ การจัดการคุณภาพโครงการ มาตรฐานการประกัน
+ณภาพซอฟต์แวร์ ขันตอนของวงจรชีวิตกระบวนการ แบบจำลองวงจรชีวิต การทบทวนรายละเอียด
+การตรวจสอบคุณภาพ ตัว
+เชี้วัดการประกันคุณภาพ บทบาทของทีมประกันคุณภาพซอฟต์แวร์
+INTRODUCTION
+TO  SOFTWARE  QUALITY ASSURANCE,
+PROCESS  DEFINITION.,  PROCESS  AND
+PRODUCT IMPROVEMENT, PROJECT QUALITY MANAGEMENT, SOA STANDARDS, PROCESS LIFE
+PHASES, LIFE
+MODELS, INSPECTIONS, AUDITS, METRICS, SOA TEAM AND ROLES
+06016460
+ปัญญา ประดิษฐ์
+3(3-0-6)
+ARTIFICIAL ITELLIGENCE
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+นิยามของปัญญาประดิษฐ์และศาสตร์ที่เกี่ยวข้อง การแก้ปัญหาโดยใช้บัญญาประดิษฐ์ ปริภูมิ
+ปัญหาและปริภูมิคาตอบ การค้นหาและเกม ฺงานประยุกต์ปัญญาประดิษฐ์ด้านต่าง
+โอกาสและความ
+น่าจะเป็น กฎของเบส การแบ่งกลุ่มด้วยนาอีฟเบส์ การเรียนรู้ด้วยเครื่องจักร ตัวแบ่งกลุ่มแบบเคเพื่อน
+บ้านใกล้สุด โครงข่ายประสาทเทียม อัลกอริทึมการเคลือนลงตามความชัน กลไกการทำนายอนาคต
+ผลกระทบของปัญญาประดิษฐ์
+AL DEFINITION AND RELATED FIELDS, PROBLEM SOLVING WITH AL, PROBLEM SPACE AND
+SOLUTION  SPACE, SEARCH
+AND  GAME,
+AL
+APPLICATIONS,
+ODD
+AND  PROBABILITY.,  BAYES RULE,
+NAIVE BAYES CLASSIFICATION., MACHINE LEARNING, NEAREST NEIGHBOR CLASSIFIER., ARTIFICIAL NEURAL
+NETWORKS, GRADIENT DESCENT ALGORITHM., PREDICTING THE FUTURE, AL'S IMPLICATIONS
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+CYCLE
+CYCLE

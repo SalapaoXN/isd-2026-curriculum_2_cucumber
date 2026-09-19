@@ -1,0 +1,62 @@
+322
+มคอ
+2
+CHARACTERISTICS OF DATA WAREHOUSE (DW), DW LIFECYCLE, DW ARCHITECTURE,
+GATHERING REQUIREMENTS, DESIGNING STAR  SCHEMA  AND
+SNOWFLAKE SCHEMA,
+DESIGNING
+SLOWLY  CHANGING DIMENSIONS,
+EXTRACTION
+TRANSFORMATION  AND  LOADING (ETL),
+CLOUD-
+BASED DATA WARENOUSES CONCEPTS, CLOUD BASED DATA WAREHOUSE ARCHITECTURE.
+06026213
+ระบบข้อมูลมหัต
+3(2-2-5)
+BIG DATA SSTEMS
+วิชาบังคับก่อน
+06066300 แนวคิดระบบฐานข้อมูล
+PRERECUISITE
+06066300 DATABASE SVSTEM
+CONCEPTS
+การติดตั้ง การพัฒนาการซ่อมบำรุง และการจัดการข้อมูลขนาดใหญ่ พื้นฐานการ
+เขียนโปรแกรมเพื่อวิเคราะห์ข้อมูลด้วยภาษา SOL การประมวลผลแบบแมบรีจิ้ว
+ข้อมูลบนหน่วยความจำบนคลัสเตอร์ การวิเคราะห์ข้อมูลจากระบบฐานข้อมูลแบบมีโครงสร้าง และ
+ฐานข้อมูลแบบไม่มีโครงสร้าง และการใช้งานระบบฐานข้อมูลขนาดใหญ่บน CLOUD
+INSTALLATION., DEVELOPMENT, MAINTENANCE AND MANAGEMENT OF BIG DATA.
+BASIC DATA ANALYSIS USING SOL, MAPREDUCE, AND IN-MEMORY PROCESSING ON CLUSTER. DATA
+ANALYSIS ON STRUCTUED DATA AND UNSTRUCUTURED DATA. BIG DATA ON CLOUD COMPUTING.
+06026214
+โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+1
+3(0-9-0)
+PROJECT IN DATA SCIENCE AND BUSIESS
+ANALTIC
+1
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ศึกษาค้นคว้าหรือวิจัยในหัวข้อบัจจุบันที่น่าสนใจทางวิทยาการข้อมูลในรูปแบบ
+โครงการ
+ที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การ
+ดูแลและแนะนำของอาจารย์ที่ปรึกษา สามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จาก
+การแก้ปัญหาเชิงปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ
+STUDY
+OR  RESEARCH
+OF INTERESTING  CURRENT TOPICS  IN
+DATA
+SCIENCE
+AND
+BUSINESS  ANALYTICS  UNDERTAKING
+A
+WORK  PROJECT  BASED  BY  APPLYING
+THE  THEORETICAL
+ASPECTS OF THE INFORMATION TECHNOLOGY UNDER THE SUPERVISION OF A FACULTY MEMBER., BE
+ABLE TO PRESENT
+A
+PROJECT PROPOSAL AND PRELIMINAR/ RESULT FROM  PRACTICAL SOLVING OR
+ACADEMIC ANALYSIS.
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

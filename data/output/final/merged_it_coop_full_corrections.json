@@ -1,0 +1,482 @@
+[
+    {
+        "course_code": "06016401",
+        "field": "name_en",
+        "before": "MATHEMATICS FOR INFORMATION TECHNOLOCY",
+        "after": "MATHEMATICS FOR INFORMATION TECHNOLOGY"
+    },
+    {
+        "course_code": "06016402",
+        "field": "name_en",
+        "before": "IFORMATION TECHNOLOGY FUNDAMENTALS",
+        "after": "INFORMATION TECHNOLOGY FUNDAMENTALS"
+    },
+    {
+        "course_code": "06016411",
+        "field": "name_en",
+        "before": "INTRODUCTION TO COMPUTER SVSTEMS",
+        "after": "INTRODUCTION TO COMPUTER SYSTEMS"
+    },
+    {
+        "course_code": "06066303",
+        "field": "name_en",
+        "before": "PROBLEM SOLVING AND COMPUTER PROCRAMMNG",
+        "after": "PROBLEM SOLVING AND COMPUTER PROGRAMMING"
+    },
+    {
+        "course_code": "90641003",
+        "field": "name_en",
+        "before": "SPORTS AND RECREATIONAL ACTMITIES",
+        "after": "SPORTS AND RECREATIONAL ACTIVITIES"
+    },
+    {
+        "course_code": "90644007",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษพืนฐาน 1",
+        "after": "ภาษาอังกฤษพื้นฐาน 1"
+    },
+    {
+        "course_code": "06016408",
+        "field": "name_en",
+        "before": "OBECT ORIENTED PROCRAMMNG",
+        "after": "OBJECT ORIENTED PROGRAMMING"
+    },
+    {
+        "course_code": "06066001",
+        "field": "name_th",
+        "before": "ความน่าจะเป็นและสถิ",
+        "after": "ความน่าจะเป็นและสถิติ"
+    },
+    {
+        "course_code": "06066001",
+        "field": "name_en",
+        "before": "PROBABILTV AND STATISTICS",
+        "after": "PROBABILITY AND STATISTICS"
+    },
+    {
+        "course_code": "06066101",
+        "field": "name_en",
+        "before": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOCY",
+        "after": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
+    },
+    {
+        "course_code": "06016403",
+        "field": "name_th",
+        "before": "เทคโนโลยีสือประสม",
+        "after": "เทคโนโลยีสื่อประสม"
+    },
+    {
+        "course_code": "06016403",
+        "field": "name_en",
+        "before": "MULTMMEDLA TECHNOLOCY",
+        "after": "MULTIMEDIA TECHNOLOGY"
+    },
+    {
+        "course_code": "06016409",
+        "field": "name_th",
+        "before": "การประมวลทางกายภาพ",
+        "after": "การประมวลผลทางกายภาพ"
+    },
+    {
+        "course_code": "06016409",
+        "field": "name_en",
+        "before": "PHVSICAL COMPUTIG",
+        "after": "PHYSICAL COMPUTING"
+    },
+    {
+        "course_code": "06016413",
+        "field": "name_en",
+        "before": "ITRODUCTION TO NETWORK SSTEMS",
+        "after": "INTRODUCTION TO NETWORK SYSTEMS"
+    },
+    {
+        "course_code": "06066300",
+        "field": "name_en",
+        "before": "DATABASE SVSTEM CONCEPTS",
+        "after": "DATABASE SYSTEM CONCEPTS"
+    },
+    {
+        "course_code": "06066304",
+        "field": "name_en",
+        "before": "INFORMATION SVSTEM ANALSIS AND DESIGN",
+        "after": "INFORMATION SYSTEM ANALYSIS AND DESIGN"
+    },
+    {
+        "course_code": "06016405",
+        "field": "name_th",
+        "before": "พืนฐานความมันคงปลอดภัยไซเบอร์",
+        "after": "พื้นฐานความมั่นคงปลอดภัยไซเบอร์"
+    },
+    {
+        "course_code": "06016405",
+        "field": "name_en",
+        "before": "CYBERSECURITV FUNDAMENTALS",
+        "after": "CYBERSECURITY FUNDAMENTALS"
+    },
+    {
+        "course_code": "06016410",
+        "field": "name_en",
+        "before": "SOFTWARE ENGINEERNG",
+        "after": "SOFTWARE ENGINEERING"
+    },
+    {
+        "course_code": "06016412",
+        "field": "name_th",
+        "before": "โครงสร้างระบบคอมพิวเตอร์และ ระบบปฏิบัติการ",
+        "after": "โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ"
+    },
+    {
+        "course_code": "06016412",
+        "field": "name_en",
+        "before": "COMPUTER ORCANIZATON AND OPERATING SSTEM",
+        "after": "COMPUTER ORGANIZATION AND OPERATING SYSTEM"
+    },
+    {
+        "course_code": "06066302",
+        "field": "name_th",
+        "before": "การเขียนโปรแกรมเจ็",
+        "after": "การเขียนโปรแกรมเว็บ"
+    },
+    {
+        "course_code": "06066302",
+        "field": "name_en",
+        "before": "FUNDAMENTAL WEB PROCRAMMNG",
+        "after": "FUNDAMENTAL WEB PROGRAMMING"
+    },
+    {
+        "course_code": "06016414",
+        "field": "name_en",
+        "before": "NOSOL DATABASE SYSTEMS",
+        "after": "NOSQL DATABASE SYSTEMS"
+    },
+    {
+        "course_code": "06016415",
+        "field": "name_en",
+        "before": "FUNCTLONAL PROCRAMMNG",
+        "after": "FUNCTIONAL PROGRAMMING"
+    },
+    {
+        "course_code": "06016424",
+        "field": "name_en",
+        "before": "HUMAN ITERFACE DESIGN",
+        "after": "HUMAN INTERFACE DESIGN"
+    },
+    {
+        "course_code": "06016425",
+        "field": "name_en",
+        "before": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDLA",
+        "after": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA"
+    },
+    {
+        "course_code": "06066102",
+        "field": "name_th",
+        "before": "ระบบสารสนเทศเพือการจัดการ",
+        "after": "ระบบสารสนเทศเพื่อการจัดการ"
+    },
+    {
+        "course_code": "90644xxx",
+        "field": "name_th",
+        "before": "วิชาเลือกหมวดภาษาและการสือสาร",
+        "after": "วิชาเลือกหมวดภาษาและการสื่อสาร"
+    },
+    {
+        "course_code": "90644xxx",
+        "field": "name_en",
+        "before": "ELECTIVE COURSE IN LANCUAGE AND COMMUNICATION",
+        "after": "ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION"
+    },
+    {
+        "course_code": "06016416",
+        "field": "name_en",
+        "before": "REOUIREMENT ENGINEERING",
+        "after": "REQUIREMENT ENGINEERING"
+    },
+    {
+        "course_code": "06016417",
+        "field": "name_en",
+        "before": "SOFTARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
+        "after": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS"
+    },
+    {
+        "course_code": "06016418",
+        "field": "name_th",
+        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
+    },
+    {
+        "course_code": "06016421",
+        "field": "name_en",
+        "before": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITV",
+        "after": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY"
+    },
+    {
+        "course_code": "06016422",
+        "field": "name_th",
+        "before": "อินเทอร์เน็ตของสรรพสิง",
+        "after": "อินเทอร์เน็ตของสรรพสิ่ง"
+    },
+    {
+        "course_code": "06016422",
+        "field": "name_en",
+        "before": "ITERNET OF THINGS",
+        "after": "INTERNET OF THINGS"
+    },
+    {
+        "course_code": "06016423",
+        "field": "name_th",
+        "before": "การออโตเมชันและโครงสร้างพื้นฐานทีสามารถโปรแกรมได้",
+        "after": "การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้"
+    },
+    {
+        "course_code": "06016423",
+        "field": "name_en",
+        "before": "INFRASTRUCTURE PROGRAMMABILITV AND AUTOMATION",
+        "after": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION"
+    },
+    {
+        "course_code": "06016426",
+        "field": "name_en",
+        "before": "COMPUTER GRAPHICS AND ANMMATION",
+        "after": "COMPUTER GRAPHICS AND ANIMATION"
+    },
+    {
+        "course_code": "06016427",
+        "field": "name_th",
+        "before": "การออกแบบและพัฒนาเกมเบืองต้น",
+        "after": "การออกแบบและพัฒนาเกมเบื้องต้น"
+    },
+    {
+        "course_code": "06016418",
+        "field": "name_th",
+        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
+    },
+    {
+        "course_code": "06016406",
+        "field": "name_th",
+        "before": "ไม่ระบุ 1",
+        "after": "โครงงาน 1"
+    },
+    {
+        "course_code": "06016406",
+        "field": "name_en",
+        "before": "PROECT 1",
+        "after": "PROJECT 1"
+    },
+    {
+        "course_code": "060164xx",
+        "field": "name_en",
+        "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 1",
+        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_th",
+        "before": "วิชาเลือก หมวดศึกษาทัวไป 1",
+        "after": "วิชาเลือก หมวดศึกษาทั่วไป 1"
+    },
+    {
+        "course_code": "06016407",
+        "field": "name_th",
+        "before": "ไม่ระบุ 2",
+        "after": "โครงงาน 2"
+    },
+    {
+        "course_code": "90642033",
+        "field": "name_en",
+        "before": "LAW FOR NEW GENERATLON",
+        "after": "LAW FOR NEW GENERATION"
+    },
+    {
+        "course_code": "06016428",
+        "field": "name_en",
+        "before": "MICROSERVICE DESIGI AND DEVELOPMENT",
+        "after": "MICROSERVICE DESIGN AND DEVELOPMENT"
+    },
+    {
+        "course_code": "06016432",
+        "field": "name_en",
+        "before": "SOFTWARE VERIFICATION AND VALLDATION",
+        "after": "SOFTWARE VERIFICATION AND VALIDATION"
+    },
+    {
+        "course_code": "06016433",
+        "field": "name_en",
+        "before": "AUTOMATIOM TESTWG IN AGILE",
+        "after": "AUTOMATION TESTING IN AGILE"
+    },
+    {
+        "course_code": "06016436",
+        "field": "name_en",
+        "before": "DATA VISUALLZATION",
+        "after": "DATA VISUALIZATION"
+    },
+    {
+        "course_code": "06016438",
+        "field": "name_en",
+        "before": "CLOUD SECURITV",
+        "after": "CLOUD SECURITY"
+    },
+    {
+        "course_code": "06016440",
+        "field": "name_en",
+        "before": "INFORMATION NETWORK DESIGI",
+        "after": "INFORMATION NETWORK DESIGN"
+    },
+    {
+        "course_code": "06016442",
+        "field": "name_th",
+        "before": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+        "after": "การออกแบบฮาร์ดแวร์สำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง"
+    },
+    {
+        "course_code": "06016442",
+        "field": "name_en",
+        "before": "ITERNET OF THIGS HARDWARE DESIGI",
+        "after": "INTERNET OF THINGS HARDWARE DESIGN"
+    },
+    {
+        "course_code": "06016443",
+        "field": "name_th",
+        "before": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิง",
+        "after": "การวิเคราะห์ข้อมูลและแอปพลิเคชันสำหรับอินเทอร์เน็ตแห่งสรรพสิ่ง"
+    },
+    {
+        "course_code": "06016443",
+        "field": "name_en",
+        "before": "ITERNET OF THIGS DATA ANALTICS AND APPLICATIONS",
+        "after": "INTERNET OF THINGS DATA ANALYTICS AND APPLICATIONS"
+    },
+    {
+        "course_code": "06016444",
+        "field": "name_en",
+        "before": "WEB DESIGI",
+        "after": "WEB DESIGN"
+    },
+    {
+        "course_code": "06016445",
+        "field": "name_en",
+        "before": "ADVANCED SCRIPTING FOR DESIGI",
+        "after": "ADVANCED SCRIPTING FOR DESIGN"
+    },
+    {
+        "course_code": "06016450",
+        "field": "name_en",
+        "before": "GAME DEVELOPMENT WTH REALTV TECHNOLOGY",
+        "after": "GAME DEVELOPMENT WITH REALITY TECHNOLOGY"
+    },
+    {
+        "course_code": "06016453",
+        "field": "name_en",
+        "before": "CUSTOMER RELATIONSH|P MANAGEMENT",
+        "after": "CUSTOMER RELATIONSHIP MANAGEMENT"
+    },
+    {
+        "course_code": "06016457",
+        "field": "name_th",
+        "before": "ระบบฐานข้อมูลขันสูง",
+        "after": "ระบบฐานข้อมูลขั้นสูง"
+    },
+    {
+        "course_code": "06016458",
+        "field": "name_en",
+        "before": "DATABASE SYSTEM MAITENANCE AND ADMINISTRATION",
+        "after": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
+    },
+    {
+        "course_code": "06016459",
+        "field": "name_en",
+        "before": "SOFTWARE STANDARD AND QUALTV ASSURANCE",
+        "after": "SOFTWARE STANDARD AND QUALITY ASSURANCE"
+    },
+    {
+        "course_code": "06016460",
+        "field": "name_en",
+        "before": "ARTIFICIAL ITELLIGENCE",
+        "after": "ARTIFICIAL INTELLIGENCE"
+    },
+    {
+        "course_code": "06016463",
+        "field": "name_en",
+        "before": "HYBRLD COMPUTIG TECHOLOGY",
+        "after": "HYBRID COMPUTING TECHNOLOGY"
+    },
+    {
+        "course_code": "06016464",
+        "field": "name_en",
+        "before": "PRACTICAL CYBER SECURIT",
+        "after": "PRACTICAL CYBER SECURITY"
+    },
+    {
+        "course_code": "06016465",
+        "field": "name_th",
+        "before": "การออกแบบศูนย์",
+        "after": "การออกแบบศูนย์ข้อมูล"
+    },
+    {
+        "course_code": "06016465",
+        "field": "name_en",
+        "before": "DATA CENTER DESIGI",
+        "after": "DATA CENTER DESIGN"
+    },
+    {
+        "course_code": "06016466",
+        "field": "name_en",
+        "before": "NETWORK AND SYSTEM TROUBLE SHOOTNG",
+        "after": "NETWORK AND SYSTEM TROUBLE SHOOTING"
+    },
+    {
+        "course_code": "06016467",
+        "field": "name_en",
+        "before": "IMAGE TRANSFORMATION AND RECOGIITION",
+        "after": "IMAGE TRANSFORMATION AND RECOGNITION"
+    },
+    {
+        "course_code": "06016468",
+        "field": "name_en",
+        "before": "DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS",
+        "after": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS"
+    },
+    {
+        "course_code": "06016470",
+        "field": "name_en",
+        "before": "CLINICAL DATA ACOUSITION AND MANAGEMENT",
+        "after": "CLINICAL DATA ACQUISITION AND MANAGEMENT"
+    },
+    {
+        "course_code": "06016475",
+        "field": "name_en",
+        "before": "SPECAL TOPICS II INFORMATIOM TECHNOLOGY 3",
+        "after": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 3"
+    },
+    {
+        "course_code": "06016476",
+        "field": "name_en",
+        "before": "SPECAL TOPICS II INFORMATION TECHNOLOGY 4",
+        "after": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 4"
+    },
+    {
+        "course_code": "06016477",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP II INFORMATIOM TECHOLOGY 1",
+        "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 1"
+    },
+    {
+        "course_code": "06016478",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 2",
+        "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 2"
+    },
+    {
+        "course_code": "06016479",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 3",
+        "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 3"
+    },
+    {
+        "course_code": "06016480",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP II INFORMATIOM TECHNOLOGV 4",
+        "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 4"
+    }
+]

@@ -1,0 +1,74 @@
+351
+มคอ.
+2
+06016457
+ระบบฐานข้อมูลขันสูง
+3(3-0-6)
+ADVANCED DATABASE SYSTEMS
+วิชาบังคับก่อน
+06066300  แนวคิดระบบฐานข้อมูล
+PRERECUSITE
+06066300
+DATABASE SSTEM CONCEPTS
+การจัดการรายการเปลียนแปลง
+การกู้คืนโดยใช้เทคนิคลงบันทึกและการใช้แซโดว์เพจจิ้ง การ
+จัดการบัฟเฟอร์ เทคนิคการควบคุมภาวะพร้อมกันแบบต่าง
+การกู้คืนจากความขัดข้องของรายการ
+เปลี่ยนแปลง การแก้บัญหาภาวะติดตาย การประมวลผลข้อคำถาม ฺการปรับข้อคำถามให้เหมาะที่สุด
+ฐานข้อมูลแบบกระจาย ฐานข้อมูลเซิงอ็อบเจกต์ หรือหัวข้ออื่นที่ผู้สอนเลือกตามความเหมาะสมกับ
+เทคโนโลยีบัจจุบัน
+TRANSACTION  MANAGEMENT, CRASH  RECOVERY USING VARIOUS  LOG BASED  TECHNIQUES
+AND
+SHADOW  PAGING,
+BUFFER  MANAGEMENT,
+VARIOUS  CONCURRENCY  CONTROL  TECHNIQUES,
+TRANSACTION FAILURE RECOVERY., DEADLOCK HANDLING, QUERY PROCESSING, QUERY OPTIMIZATION.,
+DISTRIBUTED DATABASE, OBJECT ORIENTED DATABASES, TOPICS SELECTED BY INSTRUCTORS  BASED
+ON CURRENT
+TECHNOLOGY.
+06016458
+การ
+ดูแลและบำรุงรักษาระบบฐานข้อมูล
+3(2-2-5)
+DATABASE SYSTEM MAITENANCE AND ADMINISTRATION
+วิชาบังคับก่อน
+06066300  แนวคิดระบบฐานข้อมูล
+PREREOUSITE
+06066300
+DATABASE SYSTEM CONCEPTS
+การสร้างวิวและลำดับ ตัวดำเนินการของเซ็ต การสร้างพีแอล/เอสคิวแอล การจัดการกับสิ่ง
+ผิดปรกติ กระบวนงานและฟังก์ชัน การจัดการกับโปรแกรมย่อย แพ็คเก็จ การจัดการกับอ็อบเจกต์
+ขนาดใหญ่ ทริกเกอร์ สถาปัตยกรรมตัวบริการฐานข้อมูล การจัดการฐานข้อมูล ฺที่เครื่องรับบริการ การ
+สร้างฐานข้อมูล ฺพจนานุกรมข้อมูลและวิวแสดงการปฏิบัติการแบบพลวัตแฟ้มควบคุม แฟ้มรายการ
+ทำซำการบำรุงรักษาเทเบิลสเปซและแฟ้มข้อมูล โครงสร้างหน่วยเก็บ ข้อมูลทำกลับ การบำรุงรักษา
+ตาราง
+การบำรุงรักษาดรรชนี บูรณภาพของข้อมูล การจัดการผู้ใช้งาน สิทธิการใช้งานและบทบาท การ
+นำข้อมูลเข้าฐานข้อมูล ฺการสำรองและการกู้ฐานข้อมูล โปรแกรมอรรถประโยชน์สำหรับการนำเข้า และ
+ส่งออกข้อมูล
+CREATING
+VIEWS
+AND
+SEQUENCE,
+SET
+OPERATORS,
+CREATING
+PL/SOL,  HANALING
+EXCEPTIONS, PROCEDURES AND FUNCTIONS, MANAGING SUBPROGRAMS, PACKAGES, MANIPULATING
+LARGE  OBJECTS,
+TRIGGERS,  DATABASE
+SERVER
+ARCHITECTURE,
+CLIENT
+DATABASE
+MANAGEMENT,
+CREATING DATABASES, DATA DICTIONARY AND DYNAMIC PERFORMANCE VIEWS, CONTROL FILES, REDO
+FILES,
+MAINTAINING  TABLESPACES
+AND
+DATA
+FILES,  STORAGE
+STRUCTURES,
+UNDO
+DATA,
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+LOS

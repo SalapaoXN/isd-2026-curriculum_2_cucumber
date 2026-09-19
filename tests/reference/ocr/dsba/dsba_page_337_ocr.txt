@@ -1,0 +1,76 @@
+332
+มคอ
+2
+06026240
+การพัฒนาระบบอัจฉริยะ
+3(2-2-5)
+INTELLIGENT SVSTEM DEVELOPMENT
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+การพัฒนาระบบสารสนเทศที่มีการทำงานร่วมกับระบบปัญญาประดิษฐ์ในรูปแบบ
+ต่างๆ การประยุกต์ใช้งานการเรียนรู้ของเครื่องในแอปพลิเคชัน การสร้างและออกแบบ
+APL
+การเรียนรู้ของเครื่อง
+IINTELLIGENT  SYSTEM
+DEVELOPMENT,
+APPLY
+ARTIFICIAL  INTELLIGENCE
+AND
+MACHINE LEARNING MODEL TO APPLICATION. DESIGN., CREATE AND DEPLOY MACHINE LEARNING
+MODEL TO
+APPLICATION PROGRAMMING INTERFACE (API)
+06026241
+การดำเนินงานการเรียนรู้ของเครื่อง
+3(3-0-6)
+MACHINE LEARNNG OPERATIONS
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+กระบวนการทำเอ็มแอลอือพ กระบวนการสร้างแบบจำลอง เช่น
+การนำเข้าข้อมูล
+การสอนแบบจำลอง การเตรียมแบบจำลองเพือสำหรับนำไปใช้งาน กระบวนการสำหรับการนำ
+แบบจำลองไปใช้งาน เช่น การทดสอบโปรแกรม กระบวนการตรวจสอบแบบจำลอง เช่น การ
+ตรวจสอบแบบจำลอง การวิเคราะห์ประสิทภาพของแบบจำลอง การกำกับควบคุมการใช้แบบจำลอง
+MLOPS LIFECYCLE, BUILD PIPELINE: DATA INGESTION, MODEL TRAINING, MODEL
+TESTING,
+MODEL
+PACKAGING
+AND
+REGISTERING,
+DEPLOY
+PIPELINE:
+APPLICATION
+TESTING,
+MONITORING PIPELINE: MONITORING, ANALYSIS, GOVERNANCE.
+06026242
+โครงสร้างพื้นฐานด้านเทคโนโลยีกลุ่มเมฆ
+3(3-0-6)
+CLOUD TECHNOLOGV INFRASTRUCTURE
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ณลักษณะที่สำคัญของระบบคลาวด์., ภรูปแบบการให้บริการของระบบคลาวด์,
+รูปแบบการประมวลผลบนระบบคลาวด์, รูปแบบการจัดเก็บข้อมูลบนระบบคลาวด์., รูปแบบของ
+ฐานข้อมูลบนระบบคลาวด์., การจัดการระบบเครือข่ายบนระบบคลาวด์., ความปลอดภัยสำหรับระบบ
+คลาวด์,
+การติดตั้งระบบการทำงานในขั้นพื้นฐานบนระบบคลาวด์,การบริหารจัดการการทำงานและ
+การจัดการเกี่ยวกับค่าใช้จ่ายบนระบบคลาวด์
+KEY
+CHARACTERISTICS
+OF
+CLOUD
+COMPUTING,
+CLOUD
+DELIVER
+MODELS,
+COMPUTE SERVICES IN THE CLOUD., STORAGE SERICES IN THE CLOUD, DATABASE SERVICES IN THE
+CLOUD., NETWORKING SERVICES IN THE CLOUD, SECURITY SERVICES IN THE CLOUD., IMPLEMENTING
+BASIC SYSTEM ON PUBLIC CLOUD ENVIRONMENT, OPERATION AND COST MANAGEMENT IN THE
+CLOUD
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

@@ -1,0 +1,30 @@
+# Explicit program scopes (mirrors prepare_data.PROGRAM_CONFIG; single source of truth is code).
+ait:
+  program: AIT
+  prefix: ait
+  scopes: [{plan: null, pages: null, description_pages: 287-302}]
+bit:
+  program: BIT
+  prefix: bit
+  scopes:
+    - {plan: no_coop, pages: 26-30, description_pages: 238-257}
+    - {plan: coop, pages: 31-35, description_pages: 238-257}
+  shared_description: {plan: coop, pages: 238-257}
+dsba:
+  program: DSBA
+  prefix: dsba
+  scopes:
+    - {plan: no_coop, pages: 26-32, description_pages: 317-344}
+    - {plan: coop, pages: 33-39, description_pages: 317-344}
+  shared_description: {plan: coop, pages: 317-344}
+gened:
+  program: GENED
+  prefix: gened
+  scopes: [{plan: gened, pages: 16-30,44-117, description_pages: 44-117}]
+it:
+  program: IT
+  prefix: it
+  scopes:
+    - {plan: no_coop, pages: 32-38, description_pages: 328-371}
+    - {plan: coop, pages: 39-45, description_pages: 328-371}
+  shared_description: {plan: coop, pages: 328-371}

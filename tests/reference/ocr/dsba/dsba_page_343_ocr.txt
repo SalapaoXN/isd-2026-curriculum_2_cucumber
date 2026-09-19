@@ -1,0 +1,64 @@
+338
+มคอ
+2
+การวิเคราะห์จากโซเชียลมีเดีย การใช้
+`ไแเทคนิคเรียนรู้เชิงลึกสำหรับการสร้างแบบจำลองการทำนาย
+ทางคลินิก ระบบสนับสนุนการตัดสินใจทางคลินิก
+STANDARD OF HEALTH DATA AND STRUCTURE, HEALTH SCIENCE DATA ANALYTICS,
+HUMAN ASPECT OFTHE SYSTEM, DATA TYPE OF HEALTH DATA IN ELECTRONIC HEALTHCARE RECORD
+AND HEALTHCARE INFORMATION EXCHANGE, CLINICAL DATA ACQUISITION AND PREPARATION., X-RAY
+SEGMENTATION TECHNIQUE, MEDICAL IMAGE PREPARATION AND CORRECTION., WAVE FORM DATA
+PREPARATION
+AND
+OTHERS
+MEDICAL
+DATA
+EXAMPLE,
+NATURAL  LANGUAGE  PROCESSING
+IN
+MEDICINE, SOCIAL MEDIA ANALYTICS, DEEP LEARNING IN CLINICAL PREDICTION MODELS, CLINICAL
+DECISION SUPPORT SYSTEM
+06026256
+การจัดการการปฏิบัติการ
+3(3-0-6)
+OPERATIONS MANAGEMENT
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ภาพรวมของการจัดการการปฏิบัติการ โปรแกรมเชิงเส้น โปรแกรมเชิงจำนวนเต็ม
+การเลือกทำเลที่ตั้ง การวางแผนผังสถานที่ประกอบการ การจัดการสินค้าคงคลัง การควบคุมคุณภาพ
+การจัดการโครงการ การพยากรณ์
+OVERVIEW
+OF
+OPERATIONS
+MANAGEMENT,  LINEAR
+PROGRAMMING,  INTEGER
+PROGRAMMING,
+LOCATION  PLANNING,  FACILITY  LAYOUT,  INVENTOR
+MANAGEMENT,
+QUALITY
+MANAGEMENT, PROJECT MANAGEMENT, FORECASTING.
+06026257
+การบริหารเชิงกลยุทธ์และสมรรถะของธุรกิจ
+3(3-0-6)
+BUSINESS STRATEGIC AND PERFORMANCE
+MANAGEMENT
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+แนะนำการวางแผนเชิงกลยุทธ์ของธุรกิจ การกำหนดสมรรถนะของธุรกิจและการ
+เลือกหลักการวัดสมรรถนะ กระบวนการบริหารสมรรถนะของธุรกิจ ฺการวางแผนสมรรถนะ การนำ
+แผนไปสู่การปฏิบัติการประเมินสมรรถนะ และการพิจารณาทบทวนสมรรถนะ การแนะนำระบบการ
+บริหารสมรรถนะของธุรกิจ และแนวทางปฏิบัติทีดีของการบริหารสมรรถนะของธุรกิจ
+STRATEGIC  PLANNING,  DEFINING
+BUSINESS  PERFORMANCE
+AND  CHOOSING
+A
+MEASUREMENT APPROACH., PERFORMANCE MANAGEMENT PROCESS, PERFORMANCE PLANNING,
+PERFORMANCE EXECUTION., PERFORMANCE ASSESSMENT, PERFORMANCE REVIEW, INTRODUCTION
+OF PERFORMANCE MANAGEMENT SYSTEM, PERFORMANCE MANAGEMENT BEST PRACTICES.
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

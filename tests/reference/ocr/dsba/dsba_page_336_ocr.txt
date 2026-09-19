@@ -1,0 +1,72 @@
+331
+มคอ
+2
+THIS
+COURSE
+WILL  COVER  RECENT ADVANCES AND OTHER TOPICS  OF INTEREST
+SELECTED BY THE INSTRUCTORS IN THE FIELD OF STATISTICAL DATA ANALYSIS.
+06026237
+ปฏิบัติการพิเศษทางการวิเคราะห์เชิงสถิติ
+1
+3(2-2-5)
+SPECIAL WORKSHOP IN STATISTICAL ANALYTICS
+1
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย
+อาจารย์ ผู้สอนทางด้านการวิเคราะห์เชิงสถิติเป็นผู้คัดเลือก
+THIS
+COURSE
+FOCUSES
+ON
+SELECTED  TOPICS
+AND  PRACTICAL.  WORKSHOP
+IN
+STATISTICAL DATA ANALYSIS, WHICH SELECTED BY A LECTURER.
+06026238
+ปฏิบัติการพิเศษทางการวิเคราะห์เชิงสถิติ 2
+3(2-2-5)
+SPECIAL WORKSHOP IN STATISTICAL ANALTICS 2
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย
+อาจารย์ผู้สอนทางด้านการวิเคราะห์เชิงสถิติเป็นผู้คัดเลือก
+THIS
+COURSE  FOCUSES
+ON  SELECTED  TOPICS
+AND  PRACTICAL.  WORKSHOP
+IN
+STATISTICAL DATA ANALYSIS, WHICH SELECTED BY A LECTURER.
+กลุ่ม| วิชาชีพเฉพาะด้าน
+กลุ่ม วิศวกรรมข้อมูล
+เลือก
+12 หน่วยกิต
+06026239
+สถาปัตยกรรมข้อมูลแบบไปป์ไลน์
+3(3-0-6)
+DATA PLPELINE ARCHITECTURE
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+สถาปัตยกรรมข้อมูลแบบไปป์ไลน์คือการออกแบบขันตอนในการ ย้ายข้อมูลจากต้น
+ทาง
+ไปยังปลายทางที่อยู่ในรูปแบบที่พร้อมใช้งาน โดยมี
+4
+ขั้นตอนหลักได้แก่ การนำเข้าข้อมูล, เก็บ
+จัดการข้อมูลและ นำข้อมูลไปใช้ รวมถึงการสร้างดาต้าเลค การจัดการข้อมูลด้วย ETL
+สร้าง DATA WAREHOUSE, DATA MART
+DATA  PIPELINE  ARCHITECTURE IS  THE  DESIGN  AND
+STRUCTURE  OF CODE
+AND
+SYSTEMS THAT CAN DRIVE DATA FROM DATA SOURCE TO DESTINATION (READY-TO USE FORMAT). THIS
+INCLUDED DATA INGEST, DATA STORE, DATA  PROCESS AND DATA CONSUME. DEVELOPMENT OF
+DATA LAKE, CREATE DATA WAREHOUSE AND DATA MART USING ETL
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+ข้อมูล,

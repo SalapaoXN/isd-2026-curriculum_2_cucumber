@@ -1,5 +1,0 @@
-transformers
-sentencepiece
-sqlite-vec
-google-genai
-python-dotenv

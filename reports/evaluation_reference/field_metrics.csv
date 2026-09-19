@@ -1,0 +1,11 @@
+﻿program,plan,field,sample_count,cer,character_accuracy_percent,wer,word_accuracy_percent
+DSBA,coop,code,89,0.0,100.0,,
+DSBA,coop,name_th,89,0.0111,98.89,0.0125,98.75
+DSBA,coop,name_en,89,0.0086,99.14,0.0136,98.64
+DSBA,coop,credits,89,0.0,100.0,,
+DSBA,coop,prerequisite,89,0.0,100.0,0.0,100.0
+DSBA,no_coop,code,90,0.0,100.0,,
+DSBA,no_coop,name_th,90,0.0117,98.83,0.0151,98.49
+DSBA,no_coop,name_en,90,0.0088,99.12,0.0143,98.57
+DSBA,no_coop,credits,90,0.0,100.0,,
+DSBA,no_coop,prerequisite,90,0.0,100.0,0.0,100.0

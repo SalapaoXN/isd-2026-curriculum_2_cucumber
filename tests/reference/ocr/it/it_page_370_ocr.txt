@@ -1,0 +1,78 @@
+365
+มคอ.
+2
+และการออกแบบ
+ปฏิบัติการด้านการจำลองข้อมูลและภาษาฐานข้อมูล
+INTRODUCTION
+TO
+THE
+DATABASE
+SYSTEM
+AND
+DBMS,
+DATABASE
+SYSTEMS
+AND
+ENVIRONMENT,
+DATABASE
+MANAGEMENT  SYSTEMS,
+TYPES
+OF  DATABASES,
+DATA
+MODELS,
+RELATIONAL
+MODEL,
+SCHEMAS, INSTANCES,  RELATIONSHIPS,  INTEGRITY  RULES,
+DATA  DICTIONARY,
+RELATIONAL
+DATABASE  MODELING,  ENTITY  RELATIONSHIP
+MODEL,
+LOGICAL  DESIGN,
+FUNCTIONAL
+DEPENDENCIES,
+NORMALIZATION,
+RELATIONAL
+ALGEBRA,
+SQL,
+TRANSACTION
+PROCESSING,
+DATA
+WARENOUSE CONCEPTS AND DESIGN, DATA MODELING AND DATABASE LANGUAGE LABORATORY.
+06066301
+โครงสร้างข้อมูลและอัลกอริทึม
+3(2-2-5)
+DATA STRUCTURES AND ALGORITHMS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ชนิดของข้อมูล โครงสร้างข้อมูลและชนิดข้อมูลแบบนามธรรม โครงสร้างข้อมูลพื้นฐาน
+เช่น ลิสท์. สเต็ก และคิว โครงสร้างข้อมูลแบบพลวัต คำศัพท์[ำเฉพาะเกี่ยวกับทรีไบนารีทรี ไบนารีเสิร์ชท
+รี เอวีแอลทรี กราฟ การวิเคราะห์โปรแกรมเชิงเวลาและพื้นที่ อัลกอริทึมการเรียงลำดับและการค้นหา
+อัลกอริทึมแบบละโมบ อัลกอริทึมแบบแบ่งเพื่อเอาชนะ อัลกอริทึมเกี่ยวกับกราฟ และการเขียน
+โปรแกรมพลวัต
+DATA TYPES, DATA STRUCTURES AND ABSTRACT DATA TYPES, BASIC DATA STRUCTURES
+E.S.
+STACK, AND QUEUE, DYNAMIC DATA STRUCTURES, TERMINOLOGY OF TREES, BINARY TREES,
+BINARY SEARCH TREES, AVL TREES, GRAPH, TIME AND SPACE ANALYSIS OF PROGRAMS, SORTING AND
+SEARCHING ALGORITHMS, GREEDY ALGORITHM, DIVIDE AND CONQUER ALGORITHM, GRAPH ALGORITHMS,
+AND DYNAMIC PROGRAMMING.
+06066302
+การเขียนโปรแกรมเว็บพื้นฐาน
+3(2-2-5)
+FUNDAMENTAL WEB PROCRAMMIG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+แนวคิดพื้นฐานและหลักการทำงานของระบบเว็บ เครื่องมือสำหรับการออกแบบและพัฒนาเว็บ
+การเขียนโปรแกรมเว็บฝั่งไคลแอนท์ HTML CSS JAVASCRIPT
+ช.
+การจัดการกับ EVENTS
+ร้างเอกสารและ DOM
+เซิร์ฟเวอร์ PHP การจัดการและการใช้งานฐานข้อมูล
+CONCEPTS OF WEB SYSTEM AND WEB DEVELOPMENT, WEB DEVELOPMENT AND DESIGN
+TOOLS, CLIENT-SIDE SCRIPTING, HTML, CSS, JAVASCRIPT, USER INTERFACE DESIGN  PROCESS, EVENT
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล
+ข้อมูล
+LIST,

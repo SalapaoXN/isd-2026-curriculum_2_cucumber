@@ -24,8 +24,10 @@ DEFAULT_INDEX_NAME = "curriculum.db"
 _METADATA_TABLE = "semantic_index_metadata"
 _SOURCES_TABLE = "semantic_index_sources"
 _CHUNKS_TABLE = "semantic_chunks"
-_CONSOLIDATED_DIR = _PROJECT_ROOT / "outputs" / "consolidated"
-_LLM_DIR = _PROJECT_ROOT / "outputs" / "llm"
+_CONSOLIDATED_DIR = _PROJECT_ROOT / "data" / "output" / "consolidated"
+_LLM_DIR = _PROJECT_ROOT / "data" / "output" / "final"
+_LEGACY_CONSOLIDATED_DIR = _PROJECT_ROOT / "outputs" / "consolidated"
+_LEGACY_LLM_DIR = _PROJECT_ROOT / "outputs" / "llm"
 _SOURCE_IDENTITY_FIELDS = (
     "source_document_key",
     "document_key",
@@ -56,6 +58,8 @@ def canonical_source_paths() -> list[Path]:
     """Return every canonical consolidated curriculum document in the repository."""
     paths = sorted(_CONSOLIDATED_DIR.rglob("merged_*_full.json"))
     if not paths:
+        paths = sorted(_LEGACY_CONSOLIDATED_DIR.rglob("merged_*_full.json"))
+    if not paths:
         raise FileNotFoundError(
             "no canonical consolidated curriculum JSON files found in "
             f"{_CONSOLIDATED_DIR}"
@@ -66,6 +70,8 @@ def canonical_source_paths() -> list[Path]:
 def llm_source_paths() -> list[Path]:
     """Return reviewed LLM-corrected curriculum documents only."""
     paths = sorted(_LLM_DIR.glob("*_corrected.json"))
+    if not paths:
+        paths = sorted(_LEGACY_LLM_DIR.glob("*_corrected.json"))
     if not paths:
         raise FileNotFoundError(
             "no LLM-corrected curriculum JSON files found in "

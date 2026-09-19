@@ -1,0 +1,62 @@
+323
+มคอ
+2
+06026215
+โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2
+3(0-9-0)
+PROJECT IN DATA SCIENCE AND BUSIESS
+ANALYTIC 2
+วิชาบังคับก่อน
+06026214
+โครงงานวิทยาการข้อมูลและการ
+วิเคราะห์เชิงธุรกิจ
+1
+PREREOUISITE
+06026214 PROECT IN DATA SCIENCE
+AND BUSINESS ANAL TIC
+L
+ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางวิทยาการข้อมูลในรูปแบบ
+โครงการ ที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การ
+ดูแลและแนะนำของอาจารย์ที่ปรึกษา สามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอ
+และศึกษาต่อเนื่องมาจากวิชาโครงงานวิทยาการข้อมูล
+1
+STUDY
+OR  RESEARCH
+OF INTERESTING  CURRENT TOPICS IN
+DATA
+SCIENCE
+AND
+BUSINESS  ANALYTICS  UNDERTAKING
+A
+WORK  PROJECT  BASED  BY  APPLYING
+THE  THEORETICAL
+ASPECTS OF THE INFORMATION TECHNOLOGY UNDER THE SUPERVISION OF A FACULTY MEMBER., BE
+ABLE TO PRESENT A COMPLETE RESULT OFTHE PROPOSED TOPIC AS CONTINUED FROM THE PROJECT
+IN DATA SCIENCE AND BUSINESS ANALYTICS 1.
+กลุ่ม วิชาชีพเฉพาะด้าน
+กลุ่ม วิทยาการข้อมูล
+เลือก 12 หน่วยกิต
+06026216
+ปัญญาประดิษฐ์
+3(3-0-6)
+ARTIFICIAL INTELLIGENCE
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+นิยามของปัญญาประดิษฐ์และศาสตร์ที่ เกี่ยวข้อง
+การแก้ปัญหาโดยใช้
+ปัญญา ประดิษฐ์ การค้นหาและเกม ปริภูมิปัญหาและปริภูมิคาตอบ การแทนความรู้ กลไกการอนุมาน
+โอกาสและความน่าจะเป็น กฎของเบสการแบ่งกลุ่มด้วยนาอีฟเบส์ การเรียนรู้ด้วยเครื่องจักร ตัว
+แบ่งกลุ่มแบบเคเพื่อนบ้านใกล้สุด โครงข่ายประสาทเทียม อัลกอริทึมการเคลื่อนลงตามความชัน
+ตรรกศาสตร์คลุมเครือ ต้นไม้ตัดสินใจ
+AL DEFINITION AND RELATED FIELDS, PROBLEM SOLVING WITH AL, SEARCH
+AND
+GAME, PROBLEM SPACE AND SOLUTION SPACE, KNOWLEDGE REPRESENTATION., INFERENCE ENGINE,
+ODD AND PROBABILITY, BAYES RULE,
+NAIVE BAYES CLASSIFICATION., MACHINE LEARNING., NEAREST
+NEIGHBOR CLASSIFIER, ARTIFICIAL NEURAL NETWORKS, GRADIENT DESCENT ALGORITHM, FUZZY LOGIC,
+DECISION TREE
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

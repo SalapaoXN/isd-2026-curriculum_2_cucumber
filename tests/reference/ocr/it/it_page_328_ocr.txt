@@ -1,0 +1,48 @@
+323
+มคอ.
+2
+คำอธิบายรายวิชาเฉพาะ
+06016401
+คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ
+3(3-0-6)
+MATHEMATICS FOR INFORMATION TECHNOLOCY
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ลิมิตและความต่อเนื่องอนุพันธ์ของพังก์ชันอนุพันธ์อันดับสูงการประยุกต์ของอนุพันธ์ปัญหา
+ค่าสูงสุดและต่ำสุดของฟังก์ชัน การอินทิเกรตและเทคนิคของการอินทเกรต การประยุกต์ของการ
+อินทิเกรตฟังก์ชันสองตัวแปร อนุพันธ์ย่อยพีชคณิตเชิงเส้น เมทริกซ์และดีเทอร์มิเนนท์ ระบบสมการเชิง
+เส้นและการหาผลเฉลยของระบบสมการเชิงเส้น เวกเตอร์สเปซ การแปลงเชิงเส้น การแปลงเมทริกซ์
+เมทริกซ์เชิงตั้งฉาก
+LIMIT AND CONTINUITY., DERIVATIVE OF FUNCTIONS, HIGHER DERIVATIVES, APPLICATIONS OF
+DERIVATIVE,
+MAXIMA AND MINIMA OF FUNCTIONS, INTEGRATION AND TECHNIQUES OF INTEGRATION.,
+APPLICATIONS OF INTEGRATION., FUNCTIONS OF TWO VARIABLES, PARTIAL DERIVATIVES, LINEAR ALGEBRA,
+MATRICES AND DETERMINANTS, SYSTEM OF LINEAR EQUATIONS AND ITS SOLUTIONS, VECTOR SPACES,
+LINEAR TRANSFORMATIONS, MATRIX TRANSFORMATION, ORTHOGONAL MATRIX.
+06016402
+พื้นฐานทางด้านเทคโนโลยีสารสนเทศ
+3(2-2-5)
+INFORMATIOM TECHNOLOGY FUNDAMETALS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+วิวัฒนาการของเทคโนโลยีสารสนเทศ องค์ประกอบของระบบคอมพิวเตอร์ ระบบประมวลผล
+ข้อมูล ฺฮาร์ดแวร์และซอฟต์แวร์ภาพรวมการทำงานของระบบปฏิบัติการ ข้อมูลและการแทนค่าข้อมูล
+การจัดการข้อมูล แนวคิดพื้นฐานสำหรับการสร้างโปรแกรมเทคโนโลยีฐานข้อมูล การสื่อสารข้อมูล
+ระบบเครือข่ายคอมพิวเตอร์และอินเทอร์เน็ต ประเด็นทางด้านจริยธรรมและสังคมกับเทคโนโลยี
+สารสนเทศ
+EVOLUTION OF INFORMATION TECHNOLOGY., COMPONENTS OF COMPUTER SYSTEMS, DATA
+PROCESSING SYSTEMS, HARDWARE
+AND SOFTWARE, OVERVIEW OF OPERATING SYSTEM, DATA
+AND
+DATA  REPRESENTATION,
+DATA  MANAGEMENT,
+BASIC  CONCEPTS
+FOR  PROGRAMMING,
+DATABASE
+TECHNOLOGY., DATA COMMUNICATION, COMPUTER NETWORK SYSTEMS AND THE INTERNET, ETHICAL
+AND SOCIAL ISSUES IN INFORMATION TECHNOLOGY
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

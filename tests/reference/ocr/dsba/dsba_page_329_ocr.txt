@@ -1,0 +1,82 @@
+324
+มคอ
+2
+06026217
+การเรียนรู้ของเครื่อง
+3(3-0-6)
+MACHINE LEARNNG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ความูรู้พื้นฐานของการเรียนรู้ของเครื่อง การเรียนรู้แเบบมีผู้สอน การถดถอยเชิงเส้น
+วิธีกำลังสองน้อยที่สุด การถดถอยโลจิสติก อัลกอริทึมเพื่อนบ้านที่ใกล้ที่สุด โครงข่ายประสาทเทียม
+ซัพพอร์ทเวกเตอร์แมชชีน ธการเรียนรู้แบบไม่มีผู้สอน การจัดกลุ่มแบบเคมีน อัลกอริทึมการหาค่า
+ความคาดหวังสูงสุด การลดมิติข้อมูล การวิเคราะห์องค์ประกอบหลักการตรวจสอบไขว้ การประเมิน
+ประสิทธิภาพของแบบจำลอง การประยุกต์ใช้ของการเรียนรู้ของเครื่อง
+BASIC OF MACHINE LEARNING, SUPERVISED LEARNING, LINEAR REGRESSION., LEAST
+SQUARES,
+LOGISTIC  REGRESSION,
+K-NEAREST  NEIGHBOUR,
+NEURAL
+NETWORK.,  SUPPORT
+VECTOR
+MACHINE,
+UNSUPERVISED
+LEARNING,
+K-MEAN
+CLUSTERING,
+EXPECTATION MAXIMIZATION
+ALGORITHM, DIMENSIONALITY REDUCTION., PRINCIPAL  COMPONENT ANALYSIS, CROSS VALIDATION,
+EVALUATING MODEL PERFORMANCE, MACHINE LEARNING APPLICATIONS.
+06026218
+การเรียนรู้เชิงลึก
+3(2-2-5)
+DEEP LEARNNG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+คณิตศาสตร์ที่จำเป็นสำหรับการเรียนรู้เชิงลึก, การคำนวเวกเตอร์,การสลายตัวของ
+เมทริกซ์, เข้าใจแนวคิดเกี่ยวกับความน่าจะเป็น, โครงข่ายประสาทเทียม, โครงข่ายประสาทเทียม
+แบบป้อนไปข้างหน้า, โครงข่ายประสาทเทียมที่มีโครงสร้างหลายขชั้น, ฟังก์ชันคำนวณค่าผิดพลาด,
+โครงข่ายประสาทเทียมแบบคอนโวลูชัน, โครงข่ายประสาทเทียมแบบวนซ้ำ
+ESSENTIAL
+MATHEMATICS
+FOR
+LEARNING,
+VECTOR
+CALCULUS,
+MATRIX
+DECOMPOSITION, UNDERSTANDING THE CONCEPTS
+IN  PROBABILITY,
+NEURAL
+NETWORK,
+FEED-
+FORWARD
+NEURAL
+NETWORK.,
+MULTIPLAYER PERCEPTRON
+NEURAL
+NETWORK,
+LOSS
+FUNCTION,
+CONVOLUTION NEURAL NETWORK., RECURRENT NEURAL NETWORK
+06026219
+การประมวลผลภาษาธรรมชาติ
+3(3-0-6)
+NATURAL LANGUAGE PROCESSIG
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ภาพรวมโมดูลการประมวลผลภาษาธรรมชาติ งานด้านการแบ่งกลุ่มข้อความ เช่น
+การจัดกลุ่มข่าว การจำแนกอารมณ์ การกรองสแปม
+ตัวแบ่งกลุ่มแบบดั้งเดิม ฺเทคนิคการเรียนรู้เชิงลึก
+แบบจำลองภาษาและการกำกับข้อความที่มีลำดับ การแทนข้อความในแบบจำลองเวคเตอร์ งานด้าน
+การสร้างแบ
+เบบรูปของงานที่มีลำดับ เช่น การแปลภาษาด้วยเครื่องการย่อความ ฺการตอบคำถาม
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+DEEP
