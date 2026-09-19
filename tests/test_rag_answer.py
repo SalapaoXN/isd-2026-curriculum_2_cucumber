@@ -12,6 +12,10 @@ from rag.answer import (
     render_grounded_answer,
     render_grounded_claim,
 )
+from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
+    DirectPrerequisiteRequirement,
+)
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.hybrid_demo import run_hybrid_demo
 from rag.retrieval.retrieve import SimilarityEvidence, SimilarityPair
@@ -1405,6 +1409,178 @@ class RagAnswerTest(unittest.TestCase):
             claims=(claim,),
             provenance=claim.provenance,
         )
+
+    @staticmethod
+    def _preference_burden(*, alternatives=(), required_count=0):
+        groups = tuple(alternatives)
+        return DirectPrerequisiteBurden(
+            program="IT",
+            course_id=101,
+            course_code="06016404",
+            status="complete",
+            required_course_count=required_count,
+            alternative_group_count=len(groups),
+            alternative_member_counts=tuple(
+                len(group.alternative_members) for group in groups
+            ),
+            ordered_requirement_groups=groups,
+            provenance=({"source_page": 21},),
+        )
+
+    @classmethod
+    def _preference_result_with_burden(cls, burden):
+        option = {
+            "program": "IT",
+            "course_code": "06016404",
+            "course_id": 101,
+            "name_en": "DATABASE TECHNOLOGY",
+            "description_evidence": (
+                {"chunk_id": "desc-06016404", "text": "DATABASE DESIGN"},
+            ),
+            "direct_prerequisite_burden": burden,
+            "provenance": ({"source_page": 12},),
+        }
+        claim = GroundedClaim(
+            "preference_burden_001",
+            "preference",
+            effective_scope={"program": "IT", "plans": ("no_coop",)},
+            status="complete",
+            kind="grounded_summary",
+            value={"options": (option,)},
+            evidence={"options": (option,)},
+            provenance=option["provenance"],
+        )
+        return GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            claims=(claim,),
+            provenance=claim.provenance,
+        )
+
+    def test_preference_advisory_projects_direct_burden_without_internal_fields(self):
+        burden = self._preference_burden()
+        prompts = []
+        result = render_grounded_answer(
+            self._preference_result_with_burden(burden),
+            lambda prompt: prompts.append(prompt) or "พิจารณาวิชา 06016404",
+            question="อยากเน้น data และไม่อยากมีวิชาบังคับก่อนเยอะ",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        prompt = prompts[0]
+        self.assertIn("direct_prerequisite_burden", prompt)
+        self.assertIn("required_course_count", prompt)
+        self.assertIn("alternative_group_count", prompt)
+        self.assertIn("alternative_groups", prompt)
+        self.assertIn('"required_course_count":0', prompt)
+        self.assertIn('"alternative_group_count":0', prompt)
+        self.assertIn('"alternative_groups":[]', prompt)
+        for excluded in (
+            "course_id",
+            "prerequisite_course_id",
+            "alternative_group_id",
+            "source_page",
+            "chunk_id",
+            "provenance",
+            "distance",
+            "similarity",
+            "DirectPrerequisiteBurden(",
+        ):
+            self.assertNotIn(excluded, prompt)
+        self.assertIn("Do not define a fixed threshold", prompt)
+        self.assertIn("objective difficulty", prompt)
+        self.assertIn("objectively best", prompt)
+        self.assertEqual(result.provenance, self._preference_result_with_burden(burden).provenance)
+
+    def test_preference_advisory_projects_alternative_burden_in_order(self):
+        first = DirectPrerequisiteRequirement(
+            kind="alternative_group",
+            requirement_type="required",
+            prerequisite_course_id=None,
+            prerequisite_code=None,
+            prerequisite_name_th=None,
+            prerequisite_name_en=None,
+            alternative_group_id=7,
+            minimum_choices=1,
+            maximum_choices=1,
+            alternative_members=(
+                {
+                    "course_id": 201,
+                    "course_code": "06010001",
+                    "provenance": ({"source_page": 31},),
+                },
+            ),
+            provenance=({"source_page": 32},),
+        )
+        second = DirectPrerequisiteRequirement(
+            kind="alternative_group",
+            requirement_type="required",
+            prerequisite_course_id=None,
+            prerequisite_code=None,
+            prerequisite_name_th=None,
+            prerequisite_name_en=None,
+            alternative_group_id=8,
+            minimum_choices=2,
+            maximum_choices=3,
+            alternative_members=(
+                {
+                    "course_id": 202,
+                    "course_code": "06010002",
+                    "provenance": ({"source_page": 33},),
+                },
+                {
+                    "course_id": 203,
+                    "course_code": "06010003",
+                    "provenance": ({"source_page": 34},),
+                },
+            ),
+            provenance=({"source_page": 35},),
+        )
+        prompts = []
+        render_grounded_answer(
+            self._preference_result_with_burden(
+                self._preference_burden(alternatives=(first, second))
+            ),
+            lambda prompt: prompts.append(prompt) or "พิจารณาวิชา 06016404",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        prompt = prompts[0]
+        self.assertIn(
+            '"alternative_groups":[{"minimum_choices":1,"maximum_choices":1,"member_count":1},{"minimum_choices":2,"maximum_choices":3,"member_count":2}]',
+            prompt,
+        )
+
+    def test_preference_advisory_rejects_malformed_burden_before_model_call(self):
+        result = self._preference_result_with_burden(
+            self._preference_burden()
+        )
+        option = dict(result.claims[0].evidence["options"][0])
+        option["direct_prerequisite_burden"] = {"status": "complete"}
+        claim = GroundedClaim(
+            "preference_burden_malformed",
+            "preference",
+            status="complete",
+            kind="grounded_summary",
+            evidence={"options": (option,)},
+        )
+        malformed = GroundedAnswerResult(
+            "answer", "deterministic", claims=(claim,)
+        )
+        calls = []
+        deterministic = render_grounded_answer(malformed).final_answer
+        rendered = render_grounded_answer(
+            malformed,
+            lambda prompt: calls.append(prompt) or "ไม่ควรเรียก",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(calls, [])
+        self.assertEqual(rendered.final_answer, deterministic)
 
     def test_preference_advisory_accepts_only_grounded_course_codes(self):
         prompts = []

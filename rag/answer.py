@@ -13,6 +13,10 @@ from rag.aggregation import (
     EarliestAggregation,
     PlanComparisonAggregation,
 )
+from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
+    DirectPrerequisiteRequirement,
+)
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.retrieval.retrieve import SimilarityEvidence
 
@@ -683,6 +687,112 @@ def _description_texts(value: Any) -> tuple[str, ...]:
     return ()
 
 
+def _preference_burden_payload(
+    option: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    burden = option.get("direct_prerequisite_burden")
+    if not isinstance(burden, DirectPrerequisiteBurden):
+        return None
+    if (
+        burden.status != "complete"
+        or type(burden.course_id) is not int
+        or not isinstance(burden.program, str)
+        or not burden.program.strip()
+        or not isinstance(burden.course_code, str)
+        or not burden.course_code.strip()
+        or option.get("program") != burden.program
+        or option.get("course_code") != burden.course_code
+        or option.get("course_id") != burden.course_id
+        or not _preference_provenance_present(burden.provenance)
+        or type(burden.required_course_count) is not int
+        or burden.required_course_count < 0
+        or type(burden.alternative_group_count) is not int
+        or burden.alternative_group_count < 0
+        or not isinstance(burden.alternative_member_counts, tuple)
+        or len(burden.alternative_member_counts) != burden.alternative_group_count
+        or any(
+            type(count) is not int or count < 0
+            for count in burden.alternative_member_counts
+        )
+        or not isinstance(burden.ordered_requirement_groups, tuple)
+        or len(burden.ordered_requirement_groups)
+        != burden.required_course_count + burden.alternative_group_count
+    ):
+        return None
+
+    alternative_groups: list[Mapping[str, int]] = []
+    required_count = 0
+    alternative_count = 0
+    for group in burden.ordered_requirement_groups:
+        if not isinstance(group, DirectPrerequisiteRequirement):
+            return None
+        if not _preference_provenance_present(group.provenance):
+            return None
+        if group.kind == "required_course":
+            required_count += 1
+            if (
+                type(group.prerequisite_course_id) is not int
+                or not isinstance(group.prerequisite_code, str)
+                or not group.prerequisite_code.strip()
+                or group.alternative_group_id is not None
+                or group.minimum_choices is not None
+                or group.maximum_choices is not None
+                or group.alternative_members != ()
+            ):
+                return None
+        elif group.kind == "alternative_group":
+            alternative_count += 1
+            members = group.alternative_members
+            if (
+                type(group.alternative_group_id) is not int
+                or type(group.minimum_choices) is not int
+                or type(group.maximum_choices) is not int
+                or group.minimum_choices < 1
+                or group.maximum_choices < group.minimum_choices
+                or not isinstance(members, tuple)
+                or not members
+                or len(members) != burden.alternative_member_counts[alternative_count - 1]
+            ):
+                return None
+            for member in members:
+                if (
+                    not isinstance(member, Mapping)
+                    or type(member.get("course_id")) is not int
+                    or not isinstance(member.get("course_code"), str)
+                    or not member.get("course_code", "").strip()
+                    or not _preference_provenance_present(member.get("provenance"))
+                ):
+                    return None
+            alternative_groups.append(
+                {
+                    "minimum_choices": group.minimum_choices,
+                    "maximum_choices": group.maximum_choices,
+                    "member_count": len(members),
+                }
+            )
+        else:
+            return None
+
+    if (
+        required_count != burden.required_course_count
+        or alternative_count != burden.alternative_group_count
+    ):
+        return None
+    return {
+        "required_course_count": burden.required_course_count,
+        "alternative_group_count": burden.alternative_group_count,
+        "alternative_groups": tuple(alternative_groups),
+    }
+
+
+def _preference_provenance_present(value: Any) -> bool:
+    return (
+        isinstance(value, (tuple, list))
+        and bool(value)
+        and all(isinstance(reference, Mapping) for reference in value)
+    )
+
+
 def _preference_synthesis_options(value: Any) -> tuple[Mapping[str, Any], ...]:
     options = getattr(value, "options", None)
     if options is None and isinstance(value, Mapping):
@@ -701,14 +811,18 @@ def _preference_synthesis_options(value: Any) -> tuple[Mapping[str, Any], ...]:
             {"text": text}
             for text in _description_texts(option)
         )
-        result.append(
-            {
-                key: option[key]
-                for key in ("program", "course_code", "course_name", "name_th", "name_en")
-                if key in option
-            }
-            | {"descriptions": descriptions}
-        )
+        projected = {
+            key: option[key]
+            for key in ("program", "course_code", "course_name", "name_th", "name_en")
+            if key in option
+        }
+        if "direct_prerequisite_burden" in option:
+            burden_payload = _preference_burden_payload(option)
+            if burden_payload is None:
+                return ()
+            projected["direct_prerequisite_burden"] = burden_payload
+        projected["descriptions"] = descriptions
+        result.append(projected)
     return tuple(result)
 
 
@@ -722,13 +836,18 @@ _PREFERENCE_ADVISORY_INSTRUCTION = """You are an advisory writer for a universit
 
 Rewrite the grounded preference evidence into a concise, natural Thai answer.
 You may suggest courses only from the supplied GROUNDED_OPTIONS, based only on
-the user's stated preference and the supplied course descriptions.
+the user's stated preference, supplied course descriptions, and supplied direct
+prerequisite burden facts.
 
 STRICT RULES:
 - Do not invent courses, course codes, names, credits, prerequisites, plans,
   placement, difficulty, salary, career outcomes, or rankings.
 - Do not claim any course is objectively best.
-- Explain a suggestion only with description text supplied in GROUNDED_OPTIONS.
+- For prerequisite-burden preferences, explain suggestions only with supplied
+  required-course counts and alternative-choice facts.
+- Do not define a fixed threshold for "few" or "many", invent counts, treat
+  prerequisite burden as objective difficulty, or invent prerequisite identities.
+- Explain suggestions only with content supplied in GROUNDED_OPTIONS.
 - Preserve exact course codes and grounded scope values when mentioning them.
 - If the evidence does not support a recommendation, state that limitation.
 - Return only the final user-facing answer in Thai.
@@ -817,7 +936,6 @@ def _synthesize_preference_advisory(
                 _plain_typed_value(payload),
                 ensure_ascii=False,
                 separators=(",", ":"),
-                default=str,
             ),
         )
     )
