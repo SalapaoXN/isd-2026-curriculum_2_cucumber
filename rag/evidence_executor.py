@@ -91,6 +91,345 @@ def _status_for_payload(payload: Any, *, empty: bool = False) -> str:
 
 
 @dataclass(frozen=True, slots=True)
+class DirectPrerequisiteRequirement:
+    """One canonical direct prerequisite requirement group."""
+
+    kind: str
+    requirement_type: str | None
+    prerequisite_course_id: int | None
+    prerequisite_code: str | None
+    prerequisite_name_th: str | None
+    prerequisite_name_en: str | None
+    alternative_group_id: int | None
+    minimum_choices: int | None
+    maximum_choices: int | None
+    alternative_members: tuple[Mapping[str, Any], ...]
+    provenance: tuple[Mapping[str, Any], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class DirectPrerequisiteBurden:
+    """Canonical direct-prerequisite facts for one grounded candidate."""
+
+    program: str
+    course_id: int
+    course_code: str
+    status: str
+    required_course_count: int
+    alternative_group_count: int
+    alternative_member_counts: tuple[int, ...]
+    ordered_requirement_groups: tuple[DirectPrerequisiteRequirement, ...]
+    provenance: tuple[Mapping[str, Any], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class DirectPrerequisiteBurdenResult:
+    """Typed candidate-set result; incomplete candidates fail the whole pack."""
+
+    status: str
+    burdens: tuple[DirectPrerequisiteBurden, ...] = ()
+    provenance: tuple[Mapping[str, Any], ...] = ()
+    primitive_state: str | None = None
+
+
+def _burden_provenance(value: Any) -> tuple[Mapping[str, Any], ...] | None:
+    if not isinstance(value, (list, tuple)) or not value:
+        return None
+    if any(not isinstance(reference, Mapping) for reference in value):
+        return None
+    references = tuple(_freeze(reference) for reference in value)
+    if not _valid_provenance({"provenance": references}):
+        return None
+    return references
+
+
+def _merge_burden_provenance(
+    *values: Iterable[Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], ...]:
+    merged: list[Mapping[str, Any]] = []
+    for value in values:
+        for reference in value:
+            frozen = _freeze(reference)
+            if frozen not in merged:
+                merged.append(frozen)
+    return tuple(merged)
+
+
+def _alternative_group_signature(
+    record: Mapping[str, Any],
+    group: Mapping[str, Any],
+    members: tuple[Mapping[str, Any], ...],
+) -> tuple[Any, ...]:
+    return (
+        record.get("requirement_type"),
+        group.get("group_key"),
+        group.get("label"),
+        group.get("minimum_choices"),
+        group.get("maximum_choices"),
+        group.get("notes"),
+        tuple(
+            (
+                member.get("course_id"),
+                member.get("course_code"),
+                member.get("name_th"),
+                member.get("name_en"),
+                member.get("requirement_type"),
+            )
+            for member in members
+        ),
+    )
+
+
+def _normalize_direct_prerequisite_record(
+    record: Mapping[str, Any],
+) -> tuple[DirectPrerequisiteRequirement, tuple[Any, ...] | None] | None:
+    record_provenance = _burden_provenance(record.get("provenance"))
+    if record_provenance is None:
+        return None
+
+    group_id = record.get("alternative_group_id")
+    if group_id is None:
+        if record.get("is_alternative"):
+            return None
+        prerequisite_course_id = record.get("prerequisite_course_id")
+        prerequisite_code = record.get("prerequisite_code")
+        if (
+            isinstance(prerequisite_course_id, bool)
+            or not isinstance(prerequisite_course_id, int)
+            or not isinstance(prerequisite_code, str)
+            or not prerequisite_code.strip()
+        ):
+            return None
+        return (
+            DirectPrerequisiteRequirement(
+                kind="required_course",
+                requirement_type=record.get("requirement_type"),
+                prerequisite_course_id=prerequisite_course_id,
+                prerequisite_code=prerequisite_code,
+                prerequisite_name_th=record.get("prerequisite_name_th"),
+                prerequisite_name_en=record.get("prerequisite_name_en"),
+                alternative_group_id=None,
+                minimum_choices=None,
+                maximum_choices=None,
+                alternative_members=(),
+                provenance=record_provenance,
+            ),
+            None,
+        )
+
+    if (
+        isinstance(group_id, bool)
+        or not isinstance(group_id, int)
+        or not record.get("is_alternative")
+    ):
+        return None
+    group = record.get("alternative_group")
+    members = record.get("alternative_courses")
+    if not isinstance(group, Mapping) or not isinstance(members, (list, tuple)):
+        return None
+    if group.get("alternative_group_id") != group_id or not members:
+        return None
+    minimum_choices = group.get("minimum_choices")
+    maximum_choices = group.get("maximum_choices")
+    if (
+        isinstance(minimum_choices, bool)
+        or not isinstance(minimum_choices, int)
+        or isinstance(maximum_choices, bool)
+        or not isinstance(maximum_choices, int)
+        or minimum_choices < 1
+        or maximum_choices < minimum_choices
+    ):
+        return None
+
+    normalized_members: list[Mapping[str, Any]] = []
+    member_ids: set[int] = set()
+    for member in members:
+        if not isinstance(member, Mapping):
+            return None
+        member_id = member.get("course_id")
+        member_code = member.get("course_code")
+        if (
+            isinstance(member_id, bool)
+            or not isinstance(member_id, int)
+            or member_id in member_ids
+            or not isinstance(member_code, str)
+            or not member_code.strip()
+            or _burden_provenance(member.get("provenance")) is None
+        ):
+            return None
+        member_ids.add(member_id)
+        normalized_members.append(_freeze(member))
+    normalized_members_tuple = tuple(normalized_members)
+    signature = _alternative_group_signature(
+        record,
+        group,
+        normalized_members_tuple,
+    )
+    return (
+        DirectPrerequisiteRequirement(
+            kind="alternative_group",
+            requirement_type=record.get("requirement_type"),
+            prerequisite_course_id=None,
+            prerequisite_code=None,
+            prerequisite_name_th=None,
+            prerequisite_name_en=None,
+            alternative_group_id=group_id,
+            minimum_choices=minimum_choices,
+            maximum_choices=maximum_choices,
+            alternative_members=normalized_members_tuple,
+            provenance=record_provenance,
+        ),
+        signature,
+    )
+
+
+def _candidate_identity(candidate: Mapping[str, Any]) -> tuple[str, int, str] | None:
+    program = candidate.get("program")
+    course_id = candidate.get("course_id")
+    course_code = candidate.get("course_code")
+    if (
+        not isinstance(program, str)
+        or not program.strip()
+        or isinstance(course_id, bool)
+        or not isinstance(course_id, int)
+        or not isinstance(course_code, str)
+        or not course_code.strip()
+    ):
+        return None
+    return (program.strip(), course_id, course_code.strip())
+
+
+def _build_candidate_burden(
+    db_path: str,
+    candidate: Mapping[str, Any],
+) -> DirectPrerequisiteBurden | None:
+    identity = _candidate_identity(candidate)
+    if identity is None:
+        return None
+    program, course_id, course_code = identity
+    state = prerequisite_state(db_path, course_id)
+    if not isinstance(state, Mapping):
+        return None
+    state_provenance = _burden_provenance(state.get("provenance"))
+    if state_provenance is None:
+        return None
+    state_name = state.get("state")
+    if state_name == "explicit_none":
+        return DirectPrerequisiteBurden(
+            program=program,
+            course_id=course_id,
+            course_code=course_code,
+            status="complete",
+            required_course_count=0,
+            alternative_group_count=0,
+            alternative_member_counts=(),
+            ordered_requirement_groups=(),
+            provenance=state_provenance,
+        )
+    if state_name != "required":
+        return None
+    records = state.get("records")
+    if not isinstance(records, (list, tuple)) or not records:
+        return None
+
+    groups: list[DirectPrerequisiteRequirement] = []
+    alternative_signatures: dict[int, tuple[Any, ...]] = {}
+    alternative_positions: dict[int, int] = {}
+    required_course_count = 0
+    for record in records:
+        if not isinstance(record, Mapping):
+            return None
+        normalized = _normalize_direct_prerequisite_record(record)
+        if normalized is None:
+            return None
+        requirement, signature = normalized
+        if requirement.kind == "required_course":
+            required_course_count += 1
+            groups.append(requirement)
+            continue
+        group_id = requirement.alternative_group_id
+        if group_id is None or signature is None:
+            return None
+        previous_signature = alternative_signatures.get(group_id)
+        if previous_signature is not None:
+            if previous_signature != signature:
+                return None
+            continue
+        alternative_signatures[group_id] = signature
+        alternative_positions[group_id] = len(groups)
+        groups.append(requirement)
+
+    return DirectPrerequisiteBurden(
+        program=program,
+        course_id=course_id,
+        course_code=course_code,
+        status="complete",
+        required_course_count=required_course_count,
+        alternative_group_count=len(alternative_signatures),
+        alternative_member_counts=tuple(
+            len(requirement.alternative_members)
+            for requirement in groups
+            if requirement.kind == "alternative_group"
+        ),
+        ordered_requirement_groups=tuple(groups),
+        provenance=_merge_burden_provenance(
+            state_provenance,
+            *(requirement.provenance for requirement in groups),
+        ),
+    )
+
+
+def build_direct_prerequisite_burden(
+    db_path: str,
+    candidates: Iterable[Mapping[str, Any]],
+) -> DirectPrerequisiteBurdenResult:
+    """Build canonical direct-prerequisite burden facts for grounded candidates.
+
+    This helper deliberately does not traverse prerequisites transitively, rank
+    candidates, or classify a burden as ``few`` or ``many``.  It is an internal
+    evidence builder; every candidate must be complete for the pack to pass.
+    """
+    candidate_list = tuple(candidates)
+    if not candidate_list:
+        return DirectPrerequisiteBurdenResult(status="valid_empty")
+
+    unique_candidates: list[Mapping[str, Any]] = []
+    seen_identities: set[tuple[str, int, str]] = set()
+    for candidate in candidate_list:
+        if not isinstance(candidate, Mapping):
+            return DirectPrerequisiteBurdenResult(
+                status="insufficient_evidence",
+                primitive_state="invalid_candidate",
+            )
+        identity = _candidate_identity(candidate)
+        if identity is None:
+            return DirectPrerequisiteBurdenResult(
+                status="insufficient_evidence",
+                primitive_state="invalid_candidate",
+            )
+        if identity in seen_identities:
+            continue
+        seen_identities.add(identity)
+        unique_candidates.append(candidate)
+
+    burdens: list[DirectPrerequisiteBurden] = []
+    for candidate in unique_candidates:
+        burden = _build_candidate_burden(db_path, candidate)
+        if burden is None:
+            return DirectPrerequisiteBurdenResult(
+                status="insufficient_evidence",
+                primitive_state="prerequisite_burden_incomplete",
+            )
+        burdens.append(burden)
+    provenance = _merge_burden_provenance(*(burden.provenance for burden in burdens))
+    return DirectPrerequisiteBurdenResult(
+        status="complete",
+        burdens=tuple(burdens),
+        provenance=provenance,
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class EvidenceExecutionResult:
     """One typed primitive result for one planned/effective scope."""
 
@@ -1322,8 +1661,12 @@ def execute_exact_similarity_from_bundle(
 __all__ = [
     "DIRECT_PRIMITIVES",
     "EXECUTION_STATES",
+    "DirectPrerequisiteBurden",
+    "DirectPrerequisiteBurdenResult",
+    "DirectPrerequisiteRequirement",
     "EvidenceBundle",
     "EvidenceExecutionResult",
+    "build_direct_prerequisite_burden",
     "execute_exact_similarity_from_bundle",
     "execute_evidence_plan",
 ]
