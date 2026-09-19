@@ -954,6 +954,26 @@ class RagQaTest(unittest.TestCase):
             evidence={"options": (option,)},
             provenance=option["provenance"],
         )
+        second_option = {
+            "program": "IT",
+            "course_code": "06016405",
+            "name_en": "DATA MANAGEMENT",
+            "partition": {"plans": ("coop",)},
+            "description_evidence": (
+                {"chunk_id": "desc-06016405", "text": "DATA ANALYTICS"},
+            ),
+            "provenance": ({"source_page": 13},),
+        }
+        second_claim = GroundedClaim(
+            "preference_qa_002",
+            "preference",
+            effective_scope={"program": "IT", "plans": ("coop",)},
+            status="complete",
+            kind="grounded_summary",
+            value={"options": (second_option,)},
+            evidence={"options": (second_option,)},
+            provenance=second_option["provenance"],
+        )
         plan = EvidencePlan(StructuralScope(program="IT"), ())
         preference_payload = (
             '{"intent":"preference_recommendation_evidence",'
@@ -970,11 +990,14 @@ class RagQaTest(unittest.TestCase):
 
         def answer_model(prompt):
             answer_calls.append(prompt)
-            return "จากเนื้อหาที่มี วิชา 06016404 น่าพิจารณาสำหรับความสนใจนี้"
+            return "จากเนื้อหาที่มี วิชา 06016404 และ 06016405 น่าพิจารณา"
 
         with patch("rag.qa.plan_evidence", return_value=plan), patch(
             "rag.qa.execute_evidence_plan", return_value=EvidenceBundle(plan, ())
-        ), patch("rag.qa._compose_evidence_claims", return_value=(claim,)):
+        ), patch(
+            "rag.qa._compose_evidence_claims",
+            return_value=(claim, second_claim),
+        ):
             result = ask(
                 DB_PATH,
                 "IT 06016404 เน้น data",
@@ -985,7 +1008,11 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(len(intent_calls), 1)
         self.assertEqual(len(answer_calls), 1)
         self.assertIn("06016404", result["result"].final_answer)
-        self.assertEqual(result["result"].provenance, claim.provenance)
+        self.assertIn("06016405", result["result"].final_answer)
+        self.assertEqual(
+            result["result"].provenance,
+            claim.provenance + second_claim.provenance,
+        )
 
     def test_interpreted_factual_intents_do_not_use_answer_polish(self):
         base_question = "IT 06016404 เน้น data"

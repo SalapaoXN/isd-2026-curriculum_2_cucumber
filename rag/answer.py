@@ -739,7 +739,9 @@ def _preference_advisory_payload(
     claim: GroundedClaim,
 ) -> tuple[Mapping[str, Any], ...]:
     options = _preference_synthesis_options(claim.evidence)
-    if not options:
+    if not options or any(
+        not option.get("descriptions") for option in options
+    ):
         return ()
     scope = claim.effective_scope
     scope_payload: dict[str, Any] = {}
@@ -749,7 +751,11 @@ def _preference_advisory_payload(
         else:
             value = getattr(scope, field, None) if scope is not None else None
         if value:
-            scope_payload[field] = tuple(value) if isinstance(value, Sequence) else value
+            scope_payload[field] = (
+                tuple(value)
+                if isinstance(value, (list, tuple))
+                else value
+            )
     return tuple(
         {**dict(option), "scope": scope_payload}
         for option in options
@@ -771,16 +777,27 @@ def _synthesize_preference_advisory(
     ):
         return deterministic_answer
 
-    complete_claims = tuple(
+    preference_claims = tuple(
         claim
         for claim in result.claims
         if claim.operation == "preference"
-        and claim.status == "complete"
-        and claim.kind == "grounded_summary"
     )
-    if len(complete_claims) != 1:
+    if not preference_claims:
         return deterministic_answer
-    payload = _preference_advisory_payload(complete_claims[0])
+    payload_parts: list[Mapping[str, Any]] = []
+    for claim in preference_claims:
+        evidence_status = getattr(claim.evidence, "status", None)
+        if (
+            claim.status != "complete"
+            or claim.kind != "grounded_summary"
+            or evidence_status not in (None, "supported")
+        ):
+            return deterministic_answer
+        claim_payload = _preference_advisory_payload(claim)
+        if not claim_payload:
+            return deterministic_answer
+        payload_parts.extend(claim_payload)
+    payload = tuple(payload_parts)
     if not payload:
         return deterministic_answer
 

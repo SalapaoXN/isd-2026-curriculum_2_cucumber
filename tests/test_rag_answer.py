@@ -1423,6 +1423,166 @@ class RagAnswerTest(unittest.TestCase):
         self.assertNotIn("source_page", prompts[0])
         self.assertEqual(result.provenance, self._preference_result().provenance)
 
+    def test_preference_advisory_combines_complete_plan_claims_once(self):
+        first = self._preference_result()
+        second_option = {
+            "program": "IT",
+            "course_code": "06016405",
+            "name_en": "DATA MANAGEMENT",
+            "description_evidence": (
+                {"chunk_id": "desc-06016405", "text": "DATA ANALYTICS"},
+            ),
+            "provenance": ({"source_page": 13},),
+        }
+        second_claim = GroundedClaim(
+            "preference_002",
+            "preference",
+            effective_scope={"program": "IT", "plans": ("coop",)},
+            status="complete",
+            kind="grounded_summary",
+            evidence={"options": (second_option,)},
+            provenance=second_option["provenance"],
+        )
+        combined = GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            claims=(first.claims[0], second_claim),
+            provenance=first.provenance + second_claim.provenance,
+        )
+        prompts = []
+        result = render_grounded_answer(
+            combined,
+            lambda prompt: prompts.append(prompt)
+            or "พิจารณาวิชา 06016404 และ 06016405 จากเนื้อหาที่ให้มา",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(len(prompts), 1)
+        self.assertIn("06016404", prompts[0])
+        self.assertIn("06016405", prompts[0])
+        self.assertIn("06016404", result.final_answer)
+        self.assertIn("06016405", result.final_answer)
+        self.assertEqual(result.claims, combined.claims)
+        self.assertEqual(result.provenance, combined.provenance)
+
+    def test_preference_advisory_allows_duplicate_code_across_plan_claims(self):
+        first = self._preference_result()
+        duplicate_option = {
+            "program": "IT",
+            "course_code": "06016404",
+            "name_en": "DATABASE TECHNOLOGY",
+            "description_evidence": (
+                {"chunk_id": "desc-06016404-coop", "text": "DATABASE DESIGN"},
+            ),
+            "provenance": ({"source_page": 14},),
+        }
+        duplicate_claim = GroundedClaim(
+            "preference_003",
+            "preference",
+            effective_scope={"program": "IT", "plans": ("coop",)},
+            status="complete",
+            kind="grounded_summary",
+            evidence={"options": (duplicate_option,)},
+            provenance=duplicate_option["provenance"],
+        )
+        combined = GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            claims=(first.claims[0], duplicate_claim),
+            provenance=first.provenance + duplicate_claim.provenance,
+        )
+        calls = []
+        result = render_grounded_answer(
+            combined,
+            lambda prompt: calls.append(prompt) or "พิจารณาวิชา 06016404",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(len(calls), 1)
+        self.assertIn("06016404", result.final_answer)
+
+    def test_preference_advisory_rejects_unknown_code_from_combined_claims(self):
+        first = self._preference_result()
+        second = GroundedClaim(
+            "preference_004",
+            "preference",
+            effective_scope={"program": "IT", "plans": ("coop",)},
+            status="complete",
+            kind="grounded_summary",
+            evidence={
+                "options": (
+                    {
+                        "program": "IT",
+                        "course_code": "06016405",
+                        "description_evidence": ({"text": "DATA"},),
+                        "provenance": ({"source_page": 15},),
+                    },
+                )
+            },
+            provenance=({"source_page": 15},),
+        )
+        combined = GroundedAnswerResult(
+            "answer",
+            "deterministic",
+            claims=(first.claims[0], second),
+            provenance=first.provenance + second.provenance,
+        )
+        deterministic = render_grounded_answer(combined).final_answer
+        calls = []
+        result = render_grounded_answer(
+            combined,
+            lambda prompt: calls.append(prompt) or "พิจารณาวิชา 99999999",
+            question="อยากเน้น data",
+            preference_advisory=True,
+        )
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(result.final_answer, deterministic)
+
+    def test_preference_advisory_rejects_incomplete_or_malformed_claim_set(self):
+        first = self._preference_result()
+        incomplete = GroundedClaim(
+            "preference_incomplete_002",
+            "preference",
+            status="insufficient_evidence",
+            kind="grounded_summary",
+            evidence={"options": ()},
+        )
+        malformed = GroundedClaim(
+            "preference_malformed_002",
+            "preference",
+            status="complete",
+            kind="grounded_summary",
+            evidence={
+                "options": (
+                    {
+                        "course_code": "06016405",
+                        "provenance": ({"source_page": 15},),
+                    },
+                )
+            },
+        )
+        for extra_claim in (incomplete, malformed):
+            with self.subTest(claim=extra_claim.claim_id):
+                combined = GroundedAnswerResult(
+                    "answer",
+                    "deterministic",
+                    claims=(first.claims[0], extra_claim),
+                    provenance=first.provenance,
+                )
+                calls = []
+                deterministic = render_grounded_answer(combined).final_answer
+                result = render_grounded_answer(
+                    combined,
+                    lambda prompt: calls.append(prompt) or "พิจารณาวิชา 06016404",
+                    question="อยากเน้น data",
+                    preference_advisory=True,
+                )
+                self.assertEqual(calls, [])
+                self.assertEqual(result.final_answer, deterministic)
+
     def test_preference_advisory_rejects_unknown_course_code_without_retry(self):
         calls = []
         deterministic = render_grounded_answer(self._preference_result()).final_answer
