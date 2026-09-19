@@ -85,7 +85,7 @@ _LIST_FILTER_FALLBACK_CUE = re.compile(
 )
 _PLACEMENT_FALLBACK_CUE = re.compile(
     r"สามารถลงได้[^?\n]{0,50}(?:ช่วงไหน|ตอนไหน|ปีไหน|เทอมไหน)|"
-    r"(?:อยู่ช่วงไหน|เรียนตอนไหน|ลงตอนไหน|เรียนปีไหน|เทอมไหน)",
+    r"(?:อยู่ช่วงไหน|เรียนตอนไหน|ลงตอนไหน|ลงเรียนช่วงไหน|ลงเรียนตอนไหน|เรียนปีไหน|เทอมไหน)",
     re.IGNORECASE,
 )
 _COURSE_CREDIT_FALLBACK_CUE = re.compile(

@@ -24,6 +24,7 @@ from rag.qa import (
     _compose_evidence_claims,
     _course_set_aggregate,
     _fallback_scope,
+    _is_placement_fallback_candidate,
     ask,
 )
 from rag.query_spec import parse_query_spec
@@ -1542,6 +1543,133 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(answer_calls, [])
         self.assertEqual(ground.call_args.args[2].program, "DSBA")
         self.assertEqual(ground.call_args.args[2].course_codes, ("06026212",))
+
+    def test_colloquial_long_rien_placement_uses_one_fallback(self):
+        grounded_result = GroundedPlacementResult(
+            status="complete",
+            records=(self.fallback_placement_record(),),
+        )
+        for question in (
+            "DSBA 06026212 ลงเรียนช่วงไหนบ้าง",
+            "DSBA 06026212 ลงเรียนช่วงไหน",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                completeness = _classify_structured_parse_completeness(
+                    spec, resolution
+                )
+                self.assertEqual(spec.operations, ())
+                self.assertEqual(
+                    completeness.classification, "unrecognized_structured"
+                )
+                self.assertTrue(
+                    _is_placement_fallback_candidate(spec, completeness)
+                )
+                structured_calls = []
+
+                def structured_model(prompt):
+                    structured_calls.append(prompt)
+                    return "SELECT 401 AS placement_id"
+
+                def forbidden_answer_model(prompt):
+                    self.fail(
+                        "SQL placement fallback must not invoke answer polishing"
+                    )
+
+                with patch(
+                    "rag.qa.ground_placement", return_value=grounded_result
+                ) as ground, patch(
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError(
+                        "placement fallback must bypass planner"
+                    ),
+                ):
+                    result = ask(
+                        DB_PATH,
+                        question,
+                        structured_model_callable=structured_model,
+                        answer_model_callable=forbidden_answer_model,
+                    )
+
+                self.assertEqual(len(structured_calls), 1)
+                ground.assert_called_once()
+                self.assertEqual(result["result"].status, "answer")
+                self.assertEqual(
+                    result["result"].claims[0].operation, "placement"
+                )
+                self.assertEqual(result["result"].claims[0].status, "complete")
+                self.assertEqual(ground.call_args.args[2].program, "DSBA")
+                self.assertEqual(
+                    ground.call_args.args[2].course_codes, ("06026212",)
+                )
+
+    def test_long_rien_ton_nai_stays_on_deterministic_placement(self):
+        model = lambda prompt: self.fail(
+            "complete placement must not call SQL model"
+        )
+        with patch("rag.qa.run_structured_fallback") as fallback:
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 ลงเรียนตอนไหน",
+                structured_model_callable=model,
+            )
+
+        self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "answer")
+        self.assertTrue(
+            all(
+                claim.operation == "placement"
+                for claim in result["result"].claims
+            )
+        )
+        self.assertTrue(
+            all(
+                claim.status == "complete"
+                for claim in result["result"].claims
+            )
+        )
+        fallback.assert_not_called()
+
+    def test_non_placement_wording_does_not_take_placement_seam(self):
+        for question in (
+            "DSBA 06026212 กี่หน่วย",
+            "DSBA ปี 2 มีวิชาบังคับกี่วิชา",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                resolution = resolve_query_spec(spec, DB_PATH)
+                completeness = _classify_structured_parse_completeness(
+                    spec, resolution
+                )
+                self.assertFalse(
+                    _is_placement_fallback_candidate(spec, completeness)
+                )
+
+    def test_program_free_long_rien_placement_never_reaches_fallback(self):
+        cases = (
+            ("06026212 เรียนปีไหน", "clarify_program"),
+            ("06026212 ลงเรียนช่วงไหนบ้าง", "insufficient_evidence"),
+        )
+        for question, expected_status in cases:
+            with self.subTest(question=question):
+                with patch("rag.qa.run_structured_fallback") as fallback:
+                    result = ask(
+                        DB_PATH,
+                        question,
+                        structured_model_callable=lambda prompt: self.fail(
+                            "program-free placement must not use SQL fallback"
+                        ),
+                    )
+
+                fallback.assert_not_called()
+                outcome = result["result"]
+                status = (
+                    outcome["status"]
+                    if isinstance(outcome, dict)
+                    else outcome.status
+                )
+                self.assertEqual(status, expected_status)
 
     def test_unconstrained_placement_scope_preserves_code_across_catalogs(self):
         question = "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง"
