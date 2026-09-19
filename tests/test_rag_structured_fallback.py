@@ -7,9 +7,13 @@ from unittest.mock import patch
 
 from rag.structured.fallback import (
     GroundedCourseListResult,
+    GroundedCourseCreditResult,
+    GroundedPlacementResult,
     StructuredFallbackResult,
     StructuredFallbackScope,
     ground_course_list,
+    ground_course_credit,
+    ground_placement,
     run_structured_fallback,
 )
 
@@ -68,6 +72,38 @@ class RagStructuredFallbackTest(unittest.TestCase):
         )
         return result, calls
 
+    def run_with_placement_sql(self, sql):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return sql
+
+        result = run_structured_fallback(
+            self.db_path,
+            "วิชา 06016420 อยู่ช่วงไหนของหลักสูตร?",
+            self.scope(),
+            fake_model,
+            selector_mode="placement",
+        )
+        return result, calls
+
+    def run_with_credit_sql(self, sql):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return sql
+
+        result = run_structured_fallback(
+            self.db_path,
+            "วิชา 06016420 มีกี่หน่วยกิต?",
+            self.scope(),
+            fake_model,
+            selector_mode="course_credit",
+        )
+        return result, calls
+
     def test_success_uses_one_model_call_and_executes_allowed_select(self):
         result, calls = self.run_with_sql(
             "SELECT DISTINCT course_id AS course_id FROM courses WHERE course_id = 1"
@@ -101,6 +137,36 @@ class RagStructuredFallbackTest(unittest.TestCase):
         self.assertIn("SELECT DISTINCT p.course_id AS course_id", prompt)
         self.assertIn("candidate selector, not a presentation query", prompt)
         self.assertIn("do not return course_code, names, credits, or provenance", prompt)
+
+    def test_placement_prompt_requires_canonical_placement_id_selector(self):
+        result, calls = self.run_with_placement_sql(
+            "SELECT 11 AS placement_id"
+        )
+
+        self.assertEqual(result.status, "success")
+        self.assertEqual(result.columns, ("placement_id",))
+        self.assertEqual(result.rows, ((11,),))
+        self.assertEqual(len(calls), 1)
+        prompt = calls[0]
+        self.assertIn("PLACEMENT FALLBACK CONTRACT", prompt)
+        self.assertIn("MUST contain the canonical placement_id column", prompt)
+        self.assertIn("SELECT DISTINCT p.placement_id AS placement_id", prompt)
+        self.assertIn("do not return course names, credits, year, semester", prompt)
+
+    def test_course_credit_prompt_requires_canonical_course_id_selector(self):
+        result, calls = self.run_with_credit_sql(
+            "SELECT DISTINCT course_id AS course_id FROM courses WHERE course_id = 1"
+        )
+
+        self.assertEqual(result.status, "success")
+        self.assertEqual(result.columns, ("course_id",))
+        self.assertEqual(result.rows, ((1,),))
+        self.assertEqual(len(calls), 1)
+        prompt = calls[0]
+        self.assertIn("COURSE CREDIT FALLBACK CONTRACT", prompt)
+        self.assertIn("MUST contain the canonical course_id column", prompt)
+        self.assertIn("not a presentation query", prompt)
+        self.assertIn("do not return course names, credits, or provenance", prompt)
 
     def test_prompt_marks_all_scope_values_authoritative(self):
         result, calls = self.run_with_sql("SELECT course_code FROM courses")
@@ -204,6 +270,57 @@ class RagStructuredFallbackTest(unittest.TestCase):
             "is_alternative": False,
         }
 
+    @staticmethod
+    def canonical_credit_record(
+        course_id=1,
+        *,
+        plan_key="no_coop",
+        credit_units=3,
+        credits="3(3-0-6)",
+        provenance=None,
+    ):
+        return {
+            "course_id": course_id,
+            "course_code": "06016420",
+            "credit_units": credit_units,
+            "credits": credits,
+            "credits_raw": credits,
+            "programs": ["IT"],
+            "placements": [
+                {
+                    "plan_key": plan_key,
+                    "year": 2,
+                    "semester": 2,
+                    "flexible_year_semester_raw": None,
+                }
+            ],
+            "provenance": (
+                ({"provenance_id": course_id + 100},)
+                if provenance is None
+                else provenance
+            ),
+        }
+
+    @staticmethod
+    def canonical_placement_record(**overrides):
+        record = {
+            "placement_id": 11,
+            "program": "IT",
+            "plan_key": "no_coop",
+            "year_number": 2,
+            "semester_number": 2,
+            "year_semester_choices": ((2, 2),),
+            "course_id": 1,
+            "course_code": "06016420",
+            "name_en": "CANONICAL NAME",
+            "credits": "3(3-0-6)",
+            "provenance": ({"provenance_id": 7},),
+            "alternative_group_id": None,
+            "is_alternative": False,
+        }
+        record.update(overrides)
+        return record
+
     def ground(self, selector, canonical_records, *, scope=None):
         with patch(
             "rag.structured.fallback.applicable_plan_keys",
@@ -213,6 +330,21 @@ class RagStructuredFallbackTest(unittest.TestCase):
             return_value={"status": "ok", "courses": canonical_records},
         ) as scoped:
             grounded = ground_course_list(
+                self.db_path,
+                selector,
+                scope or self.scope(),
+            )
+        return grounded, plans, scoped
+
+    def ground_placements(self, selector, canonical_records, *, scope=None):
+        with patch(
+            "rag.structured.fallback.applicable_plan_keys",
+            return_value=("no_coop",),
+        ) as plans, patch(
+            "rag.structured.fallback.scoped_course_set",
+            return_value={"status": "ok", "courses": canonical_records},
+        ) as scoped:
+            grounded = ground_placement(
                 self.db_path,
                 selector,
                 scope or self.scope(),
@@ -230,6 +362,180 @@ class RagStructuredFallbackTest(unittest.TestCase):
         self.assertEqual(grounded.status, "complete")
         self.assertEqual(grounded.records[0]["course_id"], 1)
         scoped.assert_called_once()
+
+    def test_course_credit_grounding_returns_canonical_fact_and_provenance(self):
+        selector = self.successful_selector((1,))
+        fact = self.canonical_credit_record()
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "ok", "courses": [fact]},
+        ) as facts:
+            grounded = ground_course_credit(
+                self.db_path,
+                selector,
+                self.scope(),
+            )
+
+        self.assertIsInstance(grounded, GroundedCourseCreditResult)
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(grounded.credit_units, 3)
+        self.assertEqual(grounded.credits, "3(3-0-6)")
+        self.assertEqual(grounded.records, (fact,))
+        self.assertEqual(grounded.provenance, ({"provenance_id": 101},))
+        facts.assert_called_once_with(self.db_path, "06016420", "IT")
+
+    def test_course_credit_ignores_misleading_sql_credit_columns(self):
+        selector = self.successful_selector(
+            (1, "99(9-9-9)"),
+            columns=("course_id", "credits"),
+        )
+        fact = self.canonical_credit_record()
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "ok", "courses": [fact]},
+        ):
+            grounded = ground_course_credit(
+                self.db_path,
+                selector,
+                self.scope(),
+            )
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(grounded.credit_units, 3)
+        self.assertEqual(grounded.credits, "3(3-0-6)")
+
+    def test_course_credit_same_code_across_catalogs_is_resolved_together(self):
+        scope = StructuredFallbackScope(
+            program="IT",
+            course_codes=("06016420",),
+        )
+        selector = self.successful_selector((1,))
+        facts = [
+            self.canonical_credit_record(course_id=1, plan_key="coop"),
+            self.canonical_credit_record(course_id=2, plan_key="no_coop"),
+        ]
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "ok", "courses": facts},
+        ):
+            grounded = ground_course_credit(self.db_path, selector, scope)
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(
+            [record["course_id"] for record in grounded.records],
+            [1, 2],
+        )
+
+    def test_course_credit_conflicting_canonical_values_fail_closed(self):
+        scope = StructuredFallbackScope(
+            program="IT",
+            course_codes=("06016420",),
+        )
+        selector = self.successful_selector((1,))
+        facts = [
+            self.canonical_credit_record(course_id=1, plan_key="coop"),
+            self.canonical_credit_record(
+                course_id=2,
+                plan_key="no_coop",
+                credit_units=4,
+                credits="4(4-0-8)",
+            ),
+        ]
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "ok", "courses": facts},
+        ):
+            grounded = ground_course_credit(self.db_path, selector, scope)
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_course_credit_explicit_plan_restricts_canonical_identity(self):
+        scope = StructuredFallbackScope(
+            program="IT",
+            plans=("no_coop",),
+            course_codes=("06016420",),
+        )
+        selector = self.successful_selector((2,))
+        facts = [
+            self.canonical_credit_record(course_id=1, plan_key="coop"),
+            self.canonical_credit_record(course_id=2, plan_key="no_coop"),
+        ]
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "ok", "courses": facts},
+        ):
+            grounded = ground_course_credit(self.db_path, selector, scope)
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual([r["course_id"] for r in grounded.records], [2])
+
+    def test_course_credit_empty_selector_is_valid_empty_only_without_canonical_match(self):
+        selector = self.successful_selector()
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "no_data", "courses": []},
+        ):
+            grounded = ground_course_credit(
+                self.db_path,
+                selector,
+                self.scope(),
+            )
+
+        self.assertEqual(grounded.status, "valid_empty")
+
+    def test_course_credit_empty_selector_with_canonical_match_fails_closed(self):
+        selector = self.successful_selector()
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={
+                "status": "ok",
+                "courses": [self.canonical_credit_record()],
+            },
+        ):
+            grounded = ground_course_credit(
+                self.db_path,
+                selector,
+                self.scope(),
+            )
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_course_credit_duplicate_ids_are_deduplicated(self):
+        selector = self.successful_selector((1,), (1,))
+        fact = self.canonical_credit_record()
+        with patch(
+            "rag.structured.fallback.course_facts",
+            return_value={"status": "ok", "courses": [fact]},
+        ):
+            grounded = ground_course_credit(
+                self.db_path,
+                selector,
+                self.scope(),
+            )
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(len(grounded.records), 1)
+
+    def test_course_credit_missing_unknown_or_out_of_scope_id_fails_closed(self):
+        cases = (
+            ((1,), ("name_en",)),
+            ((99,), ("course_id",)),
+            ((2,), ("course_id",)),
+        )
+        fact = self.canonical_credit_record()
+        for row, columns in cases:
+            with self.subTest(row=row, columns=columns):
+                selector = self.successful_selector(row, columns=columns)
+                with patch(
+                    "rag.structured.fallback.course_facts",
+                    return_value={"status": "ok", "courses": [fact]},
+                ):
+                    grounded = ground_course_credit(
+                        self.db_path,
+                        selector,
+                        self.scope(),
+                    )
+                self.assertEqual(grounded.status, "insufficient_evidence")
 
     def test_grounding_ignores_misleading_sql_fields(self):
         selector = self.successful_selector(
@@ -321,6 +627,147 @@ class RagStructuredFallbackTest(unittest.TestCase):
             ("coop",),
             years=(3,),
             semesters=(1,),
+            course_targets=[{"course_id": 1}],
+        )
+
+    def test_placement_grounding_returns_canonical_in_scope_record(self):
+        selector = self.successful_selector((11,), columns=("placement_id",))
+        grounded, _, scoped = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertIsInstance(grounded, GroundedPlacementResult)
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(grounded.records[0]["year_number"], 2)
+        self.assertEqual(grounded.records[0]["placement_id"], 11)
+        scoped.assert_called_once()
+
+    def test_placement_grounding_ignores_misleading_sql_fields(self):
+        selector = self.successful_selector(
+            (11, 99, "SQL FALSE NAME"),
+            columns=("placement_id", "year", "name_en"),
+        )
+        grounded, _, _ = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(grounded.records[0]["year_number"], 2)
+        self.assertEqual(grounded.records[0]["name_en"], "CANONICAL NAME")
+
+    def test_missing_placement_id_column_fails_closed(self):
+        selector = self.successful_selector((11,), columns=("course_id",))
+        grounded, _, scoped = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+        scoped.assert_not_called()
+
+    def test_malformed_placement_id_fails_closed(self):
+        selector = self.successful_selector(("11",), columns=("placement_id",))
+        grounded, _, scoped = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+        scoped.assert_not_called()
+
+    def test_unknown_placement_id_fails_closed(self):
+        selector = self.successful_selector((99,), columns=("placement_id",))
+        grounded, _, _ = self.ground_placements(selector, [])
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_out_of_program_placement_fails_closed(self):
+        selector = self.successful_selector((11,), columns=("placement_id",))
+        grounded, _, _ = self.ground_placements(
+            selector,
+            [self.canonical_placement_record(program="DSBA")],
+        )
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_out_of_plan_placement_fails_closed(self):
+        selector = self.successful_selector((11,), columns=("placement_id",))
+        grounded, _, _ = self.ground_placements(
+            selector,
+            [self.canonical_placement_record(plan_key="coop")],
+        )
+
+        self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_out_of_year_or_semester_placement_fails_closed(self):
+        for field, value in (("year_number", 3), ("semester_number", 1)):
+            with self.subTest(field=field):
+                selector = self.successful_selector(
+                    (11,), columns=("placement_id",)
+                )
+                record = self.canonical_placement_record(
+                    **{field: value},
+                    year_semester_choices=((value, 2),)
+                    if field == "year_number"
+                    else ((2, value),),
+                )
+                grounded, _, _ = self.ground_placements(selector, [record])
+
+                self.assertEqual(grounded.status, "insufficient_evidence")
+
+    def test_duplicate_placement_ids_are_deduplicated(self):
+        selector = self.successful_selector(
+            (11,), (11,), columns=("placement_id",)
+        )
+        grounded, _, scoped = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(len(grounded.records), 1)
+        self.assertEqual(
+            scoped.call_args.kwargs["course_targets"],
+            [{"course_id": 1}],
+        )
+
+    def test_empty_placement_selector_is_valid_empty(self):
+        selector = self.successful_selector(columns=("placement_id",))
+        grounded, _, scoped = self.ground_placements(selector, [])
+
+        self.assertEqual(grounded.status, "valid_empty")
+        self.assertEqual(grounded.records, ())
+        scoped.assert_called_once()
+
+    def test_placement_grounding_uses_canonical_provenance_only(self):
+        selector = self.successful_selector(
+            (11, {"provenance_id": "raw-sql"}),
+            columns=("placement_id", "provenance"),
+        )
+        grounded, _, _ = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertEqual(grounded.status, "complete")
+        self.assertEqual(grounded.records[0]["provenance"], ({"provenance_id": 7},))
+
+    def test_placement_scope_is_forwarded_without_widening(self):
+        selector = self.successful_selector((11,), columns=("placement_id",))
+        grounded, _, scoped = self.ground_placements(
+            selector,
+            [self.canonical_placement_record()],
+        )
+
+        self.assertEqual(grounded.status, "complete")
+        scoped.assert_called_once_with(
+            self.db_path,
+            "IT",
+            ("no_coop",),
+            years=(2,),
+            semesters=(2,),
             course_targets=[{"course_id": 1}],
         )
 
