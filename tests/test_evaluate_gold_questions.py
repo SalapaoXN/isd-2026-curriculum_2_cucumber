@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 import tempfile
@@ -57,12 +58,41 @@ def _result(
 
 class GoldEvaluationTest(unittest.TestCase):
     def test_unseen_root_object_unwraps_items(self):
-        path = Path(__file__).resolve().parents[1] / "ground_truth" / "rag" / "unseen_factual_v1.json"
+        payload = {
+            "items": [
+                {
+                    "id": "syn_unwrap_01",
+                    "difficulty": "easy",
+                    "question": "วิชา 06000001 อยู่ในหลักสูตรใด?",
+                    "ground_truth_status": "complete",
+                    "canonical_answer": "IT",
+                    "atomic_expected_facts": ["Program: IT"],
+                    "accepted_answer_variants": [],
+                    "provenance": [],
+                },
+                {
+                    "id": "syn_unwrap_02",
+                    "difficulty": "easy",
+                    "question": "วิชา 06000002 อยู่ในหลักสูตรใด?",
+                    "ground_truth_status": "complete",
+                    "canonical_answer": "BIT",
+                    "atomic_expected_facts": ["Program: BIT"],
+                    "accepted_answer_variants": [],
+                    "provenance": [],
+                },
+            ]
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "synthetic_unseen.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
 
-        projected = _load_gold_questions(path)
+            projected = _load_gold_questions(path)
 
-        self.assertEqual(len(projected), 30)
-        self.assertEqual([item["id"] for item in projected], [f"U{index:02d}" for index in range(1, 31)])
+        self.assertEqual(len(projected), 2)
+        self.assertEqual(
+            [item["id"] for item in projected],
+            ["syn_unwrap_01", "syn_unwrap_02"],
+        )
 
     def test_unseen_scalar_projection_uses_native_predicates(self):
         projected = _project_unseen_item(
@@ -227,17 +257,82 @@ class GoldEvaluationTest(unittest.TestCase):
         self.assertTrue(details["typed_valid_empty"])
 
     def test_unseen_comparison_items_project_to_native_shapes(self):
-        path = Path(__file__).resolve().parents[1] / "ground_truth" / "rag" / "unseen_factual_v1.json"
-        projected = {item["id"]: item for item in _load_gold_questions(path)}
+        earliest_no_coop = _project_unseen_item(
+            {
+                "id": "syn_earliest_no_coop",
+                "difficulty": "hard",
+                "question": "วิชา 06000001 เรียนเร็วกว่าในแผนใด?",
+                "ground_truth_status": "complete",
+                "canonical_answer": "no_coop",
+                "atomic_expected_facts": [
+                    "Program: IT",
+                    "coop: year 4, semester 2",
+                    "no_coop: year 3, semester 2",
+                    "Earlier operand: no_coop",
+                ],
+                "accepted_answer_variants": [],
+                "provenance": [],
+            }
+        )
+        maximum_tied = _project_unseen_item(
+            {
+                "id": "syn_maximum_tied",
+                "difficulty": "hard",
+                "question": "เทอมใดมีหน่วยกิตรวมสูงสุด?",
+                "ground_truth_status": "complete",
+                "canonical_answer": "19 หน่วยกิต",
+                "atomic_expected_facts": [
+                    "Maximum: 19",
+                    "Winners: year 3 semester 1 and year 2 semester 2",
+                ],
+                "accepted_answer_variants": [],
+                "provenance": [],
+            }
+        )
+        earliest_coop = _project_unseen_item(
+            {
+                "id": "syn_earliest_coop",
+                "difficulty": "hard",
+                "question": "วิชา 06000002 เรียนเร็วกว่าในแผนใด?",
+                "ground_truth_status": "complete",
+                "canonical_answer": "coop",
+                "atomic_expected_facts": [
+                    "Program: IT",
+                    "coop: year 3, semester 1",
+                    "no_coop: year 4, semester 1",
+                    "Earlier operand: coop",
+                ],
+                "accepted_answer_variants": [],
+                "provenance": [],
+            }
+        )
 
-        self.assertEqual(projected["U26"]["type"], "structured")
-        self.assertEqual(projected["U26"]["expected"]["comparison"]["kind"], "earliest_comparison")
-        self.assertEqual(projected["U26"]["expected"]["comparison"]["winner_plan"], "no_coop")
-        self.assertEqual(projected["U27"]["type"], "structured")
-        self.assertEqual(projected["U27"]["expected"]["comparison"]["kind"], "maximum_with_ties")
-        self.assertEqual(projected["U27"]["expected"]["comparison"]["maximum"], 19)
-        self.assertEqual(projected["U30"]["type"], "structured")
-        self.assertEqual(projected["U30"]["expected"]["comparison"]["kind"], "earliest_comparison")
+        self.assertEqual(earliest_no_coop["type"], "structured")
+        self.assertEqual(
+            earliest_no_coop["expected"]["comparison"]["kind"],
+            "earliest_comparison",
+        )
+        self.assertEqual(
+            earliest_no_coop["expected"]["comparison"]["winner_plan"],
+            "no_coop",
+        )
+        self.assertEqual(maximum_tied["type"], "structured")
+        self.assertEqual(
+            maximum_tied["expected"]["comparison"]["kind"],
+            "maximum_with_ties",
+        )
+        self.assertEqual(
+            maximum_tied["expected"]["comparison"]["maximum"], 19
+        )
+        self.assertEqual(earliest_coop["type"], "structured")
+        self.assertEqual(
+            earliest_coop["expected"]["comparison"]["kind"],
+            "earliest_comparison",
+        )
+        self.assertEqual(
+            earliest_coop["expected"]["comparison"]["winner_plan"],
+            "coop",
+        )
 
     def _earliest_gold(self, *, tie=False):
         operands = [
