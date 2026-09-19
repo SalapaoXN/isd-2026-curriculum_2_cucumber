@@ -23,6 +23,7 @@ from rag.aggregation import (
     compare_aggregates,
 )
 from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
     EvidenceBundle,
     EvidenceExecutionResult,
     execute_evidence_plan,
@@ -826,6 +827,57 @@ def _topic_candidates(
     return candidates
 
 
+def _preference_options_with_prerequisites(
+    topic_result: EvidenceExecutionResult,
+    prerequisite_results: tuple[EvidenceExecutionResult, ...],
+) -> tuple[Mapping[str, Any], ...] | None:
+    """Join one topic result with its topic-dependent burden result."""
+    candidates = _topic_candidates(topic_result)
+    if candidates is None or topic_result.status != "complete":
+        return None
+    matching = tuple(
+        result
+        for result in prerequisite_results
+        if result.kind == "prerequisite_facts"
+        and result.planned_request.depends_on == (topic_result.request_id,)
+        and result.effective_scope == topic_result.effective_scope
+    )
+    if len(matching) != 1 or matching[0].status != "complete":
+        return None
+    payload = matching[0].payload
+    if not isinstance(payload, (list, tuple)):
+        return None
+    burdens = tuple(payload)
+    if any(not isinstance(burden, DirectPrerequisiteBurden) for burden in burdens):
+        return None
+
+    burdens_by_identity: dict[tuple[Any, Any, Any], list[DirectPrerequisiteBurden]] = {}
+    for burden in burdens:
+        identity = (burden.program, burden.course_code, burden.course_id)
+        burdens_by_identity.setdefault(identity, []).append(burden)
+
+    enriched: list[Mapping[str, Any]] = []
+    for candidate in candidates:
+        if not isinstance(candidate, Mapping):
+            return None
+        identity = (
+            candidate.get("program"),
+            candidate.get("course_code"),
+            candidate.get("course_id"),
+        )
+        matching_burdens = burdens_by_identity.get(identity)
+        if not matching_burdens:
+            return None
+        burden = matching_burdens.pop(0)
+        option = dict(candidate)
+        option["direct_prerequisite_burden"] = burden
+        enriched.append(option)
+
+    if any(burdens_by_identity.values()):
+        return None
+    return tuple(enriched)
+
+
 def _claim_for_relation_operation(
     operation: str,
     result: EvidenceExecutionResult,
@@ -1415,6 +1467,8 @@ def _claim_for_judgement_operation(
     result: EvidenceExecutionResult,
     relation_results: tuple[EvidenceExecutionResult, ...],
     credit_results: tuple[EvidenceExecutionResult, ...],
+    prerequisite_results: tuple[EvidenceExecutionResult, ...] = (),
+    require_prerequisite: bool = False,
 ) -> GroundedClaim:
     if operation == "preference":
         if result.status != "complete":
@@ -1425,6 +1479,18 @@ def _claim_for_judgement_operation(
         candidates = _topic_candidates(result)
         if candidates is None:
             return _claim(operation, result, status="insufficient_evidence", kind="grounded_summary")
+        if require_prerequisite:
+            candidates = _preference_options_with_prerequisites(
+                result,
+                prerequisite_results,
+            )
+            if candidates is None:
+                return _claim(
+                    operation,
+                    result,
+                    status="insufficient_evidence",
+                    kind="grounded_summary",
+                )
         evidence = evaluate_preference(candidates)
         claim_status = (
             "complete" if evidence.status == "supported" else evidence.status
@@ -2049,6 +2115,11 @@ def _compose_evidence_claims(
         generated_comparison = _earliest_comparison_payload(query_spec, bundle)
     course_cache: dict[int, CourseSetAggregation | None] = {}
     claims: list[GroundedClaim] = []
+    preference_requires_prerequisite = (
+        judgement == "preference"
+        and "prerequisite" in operations
+        and getattr(query_spec, "topic", None) is not None
+    )
     for operation in operations:
         if operation in {"list", "count", "existence"}:
             for result in relation_results:
@@ -2071,6 +2142,8 @@ def _compose_evidence_claims(
                 for result in placement_results
             )
         elif operation == "prerequisite":
+            if preference_requires_prerequisite:
+                continue
             claims.extend(
                 _claim_for_prerequisite_operation(operation, result)
                 for result in prerequisite_results
@@ -2093,6 +2166,8 @@ def _compose_evidence_claims(
                         result,
                         relation_results,
                         credit_results,
+                        prerequisite_results,
+                        preference_requires_prerequisite,
                     )
                 )
         elif operation == "compare":

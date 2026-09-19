@@ -11,7 +11,11 @@ from rag.aggregation import (
     aggregate_sum_credits,
     compare_aggregates,
 )
-from rag.evidence_executor import EvidenceBundle, EvidenceExecutionResult
+from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
+    EvidenceBundle,
+    EvidenceExecutionResult,
+)
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.structured.fallback import (
@@ -2415,6 +2419,83 @@ class RagQaTest(unittest.TestCase):
         spec = parse_query_spec("IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
         return replace(spec, operations=tuple(operations), topic=topic, judgement=judgement)
 
+    def _preference_burden(self, candidate):
+        return DirectPrerequisiteBurden(
+            program=candidate["program"],
+            course_id=candidate["course_id"],
+            course_code=candidate["course_code"],
+            status="complete",
+            required_course_count=0,
+            alternative_group_count=0,
+            alternative_member_counts=(),
+            ordered_requirement_groups=(),
+            provenance=({"burden_page": candidate["course_id"]},),
+        )
+
+    def _preference_dependency_bundle(
+        self,
+        candidates,
+        burdens,
+        *,
+        prerequisite_status="complete",
+        prerequisite_scope=None,
+    ):
+        scope = StructuralScope(
+            program="IT",
+            plans=("coop",),
+            years=(3,),
+        )
+        prerequisite_scope = prerequisite_scope or scope
+        course_request = EvidenceRequest("course_set", "course_set", scope)
+        topic_request = EvidenceRequest(
+            "topic_matches",
+            "topic_matches",
+            scope,
+            depends_on=("course_set",),
+            topic="data",
+        )
+        prerequisite_request = EvidenceRequest(
+            "topic_prerequisite_facts",
+            "prerequisite_facts",
+            prerequisite_scope,
+            depends_on=("topic_matches",),
+        )
+        topic_payload = ConstrainedTopicRetrievalResult(
+            status="scored",
+            candidates=tuple(candidates),
+            scored_candidates=tuple(candidates),
+        )
+        results = (
+            EvidenceExecutionResult(
+                "course_set",
+                "course_set",
+                course_request,
+                scope,
+                "complete",
+                {"courses": tuple(candidates), "provenance": ({"page": 1},)},
+            ),
+            EvidenceExecutionResult(
+                "topic_matches",
+                "topic_matches",
+                topic_request,
+                scope,
+                "complete",
+                topic_payload,
+            ),
+            EvidenceExecutionResult(
+                "topic_prerequisite_facts",
+                "prerequisite_facts",
+                prerequisite_request,
+                prerequisite_scope,
+                prerequisite_status,
+                tuple(burdens),
+            ),
+        )
+        return EvidenceBundle(
+            EvidencePlan(scope, (course_request, topic_request, prerequisite_request)),
+            results,
+        )
+
     def _earliest_spec(self, course_code="06016465"):
         return replace(
             self._spec(("placement", "earliest", "compare")),
@@ -2823,6 +2904,112 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(claims[1].value, 1)
         self.assertEqual(claims[2].status, "complete")
         self.assertEqual(claims[2].value.options[0]["course_code"], "06016414")
+
+    def test_preference_joins_topic_candidates_to_matching_burdens(self):
+        candidate = {
+            **self._course("06016414", 7),
+            "course_id": 7,
+            "description_evidence": (
+                {
+                    "chunk_id": "06016414-description",
+                    "text": "Database systems",
+                    "provenance": ({"source_page": 7},),
+                },
+            ),
+        }
+        burden = self._preference_burden(candidate)
+        bundle = self._preference_dependency_bundle([candidate], [burden])
+
+        claims = _compose_evidence_claims(
+            self._spec(
+                ("list", "prerequisite"),
+                topic="data",
+                judgement="preference",
+            ),
+            bundle,
+        )
+
+        self.assertEqual([claim.operation for claim in claims], ["list", "preference"])
+        preference = claims[-1]
+        self.assertEqual(preference.status, "complete")
+        option = preference.value.options[0]
+        self.assertIs(option["direct_prerequisite_burden"], burden)
+        self.assertNotIn("prerequisite", [claim.operation for claim in claims])
+        self.assertIn({"burden_page": 7}, preference.provenance)
+
+    def test_preference_burden_join_preserves_topic_order_and_multiplicity(self):
+        first = {
+            **self._course("00000001", 1),
+            "course_id": 1,
+            "description_evidence": (
+                {"chunk_id": "first", "text": "data", "provenance": ({"p": 1},)},
+            ),
+        }
+        second = {
+            **self._course("00000002", 2),
+            "course_id": 2,
+            "description_evidence": (
+                {"chunk_id": "second", "text": "data", "provenance": ({"p": 2},)},
+            ),
+        }
+        burdens = [self._preference_burden(first), self._preference_burden(second)]
+        bundle = self._preference_dependency_bundle([first, second], burdens)
+
+        claims = _compose_evidence_claims(
+            self._spec(("list", "prerequisite"), topic="data", judgement="preference"),
+            bundle,
+        )
+
+        options = claims[-1].value.options
+        self.assertEqual([option["course_code"] for option in options], ["00000001", "00000002"])
+        self.assertEqual([option["course_id"] for option in options], [1, 2])
+
+    def test_preference_missing_or_extra_burden_fails_closed_without_standalone_claim(self):
+        candidate = {
+            **self._course("06016414", 7),
+            "course_id": 7,
+            "description_evidence": (
+                {"chunk_id": "desc", "text": "data", "provenance": ({"p": 1},)},
+            ),
+        }
+        for burdens in ([], [self._preference_burden(candidate), self._preference_burden({**candidate, "course_id": 8})]):
+            with self.subTest(burden_count=len(burdens)):
+                bundle = self._preference_dependency_bundle([candidate], burdens)
+                claims = _compose_evidence_claims(
+                    self._spec(("list", "prerequisite"), topic="data", judgement="preference"),
+                    bundle,
+                )
+                self.assertEqual([claim.operation for claim in claims], ["list", "preference"])
+                self.assertEqual(claims[-1].status, "insufficient_evidence")
+
+    def test_preference_incompatible_or_insufficient_dependency_fails_closed(self):
+        candidate = {
+            **self._course("06016414", 7),
+            "course_id": 7,
+            "description_evidence": (
+                {"chunk_id": "desc", "text": "data", "provenance": ({"p": 1},)},
+            ),
+        }
+        burden = self._preference_burden(candidate)
+        for status, prerequisite_scope in (
+            ("insufficient_evidence", None),
+            (
+                "complete",
+                StructuralScope(program="IT", plans=("no_coop",), years=(3,)),
+            ),
+        ):
+            with self.subTest(status=status):
+                bundle = self._preference_dependency_bundle(
+                    [candidate],
+                    [burden],
+                    prerequisite_status=status,
+                    prerequisite_scope=prerequisite_scope,
+                )
+                claims = _compose_evidence_claims(
+                    self._spec(("list", "prerequisite"), topic="data", judgement="preference"),
+                    bundle,
+                )
+                self.assertEqual(claims[-1].status, "insufficient_evidence")
 
     def test_direct_adapters_preserve_partition_and_typed_provenance(self):
         scope = StructuralScope(program="IT", plans=("coop",), years=(2,), semesters=(1,))

@@ -22,6 +22,10 @@ from rag.aggregation import (
     ComponentAggregation,
     CourseSetAggregation,
 )
+from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
+    DirectPrerequisiteRequirement,
+)
 
 
 JUDGEMENT_EVIDENCE_STATES = (
@@ -101,6 +105,9 @@ def _provenance(value: Any) -> tuple[Any, ...]:
         for evidence in value.get("description_evidence", ()):
             if isinstance(evidence, Mapping):
                 references.extend(_direct_provenance(evidence))
+        burden = value.get("direct_prerequisite_burden")
+        if isinstance(burden, DirectPrerequisiteBurden):
+            references.extend(burden.provenance)
         return tuple(references)
     return ()
 
@@ -372,6 +379,11 @@ def _valid_preference_option(option: Mapping[str, Any]) -> bool:
     ):
         return False
 
+    if "direct_prerequisite_burden" in option and not _valid_preference_burden(
+        option
+    ):
+        return False
+
     descriptions = option.get("description_evidence")
     if isinstance(descriptions, (str, bytes)) or descriptions is None:
         return False
@@ -413,6 +425,83 @@ def _valid_preference_option(option: Mapping[str, Any]) -> bool:
         ):
             return False
     return True
+
+
+def _valid_preference_burden(option: Mapping[str, Any]) -> bool:
+    burden = option.get("direct_prerequisite_burden")
+    if not isinstance(burden, DirectPrerequisiteBurden):
+        return False
+    course_id = option.get("course_id")
+    if (
+        burden.status != "complete"
+        or isinstance(course_id, bool)
+        or not isinstance(course_id, int)
+        or burden.program != option.get("program")
+        or burden.course_code != option.get("course_code")
+        or burden.course_id != course_id
+        or not _valid_preference_provenance({"provenance": burden.provenance})
+        or type(burden.required_course_count) is not int
+        or burden.required_course_count < 0
+        or type(burden.alternative_group_count) is not int
+        or burden.alternative_group_count < 0
+    ):
+        return False
+    groups = burden.ordered_requirement_groups
+    if not isinstance(groups, tuple):
+        return False
+    if len(groups) != burden.required_course_count + burden.alternative_group_count:
+        return False
+    if not isinstance(burden.alternative_member_counts, tuple):
+        return False
+    if len(burden.alternative_member_counts) != burden.alternative_group_count:
+        return False
+    if any(type(count) is not int or count < 0 for count in burden.alternative_member_counts):
+        return False
+
+    alternative_count = 0
+    required_count = 0
+    for group in groups:
+        if not isinstance(group, DirectPrerequisiteRequirement):
+            return False
+        if not _valid_preference_provenance({"provenance": group.provenance}):
+            return False
+        if group.kind == "required_course":
+            required_count += 1
+            if (
+                isinstance(group.prerequisite_course_id, bool)
+                or not isinstance(group.prerequisite_course_id, int)
+                or not isinstance(group.prerequisite_code, str)
+                or not group.prerequisite_code.strip()
+                or group.alternative_group_id is not None
+                or group.alternative_members != ()
+            ):
+                return False
+        elif group.kind == "alternative_group":
+            alternative_count += 1
+            if (
+                isinstance(group.alternative_group_id, bool)
+                or not isinstance(group.alternative_group_id, int)
+                or type(group.minimum_choices) is not int
+                or type(group.maximum_choices) is not int
+                or group.minimum_choices < 1
+                or group.maximum_choices < group.minimum_choices
+                or not isinstance(group.alternative_members, tuple)
+                or not group.alternative_members
+            ):
+                return False
+            for member in group.alternative_members:
+                if (
+                    not isinstance(member, Mapping)
+                    or isinstance(member.get("course_id"), bool)
+                    or not isinstance(member.get("course_id"), int)
+                    or not isinstance(member.get("course_code"), str)
+                    or not member.get("course_code", "").strip()
+                    or not _valid_preference_provenance(member)
+                ):
+                    return False
+        else:
+            return False
+    return required_count == burden.required_course_count and alternative_count == burden.alternative_group_count
 
 
 def _valid_preference_provenance(value: Mapping[str, Any]) -> bool:

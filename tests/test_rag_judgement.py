@@ -9,6 +9,10 @@ from rag.aggregation import (
     aggregate_sum_credits,
     compare_aggregates,
 )
+from rag.evidence_executor import (
+    DirectPrerequisiteBurden,
+    DirectPrerequisiteRequirement,
+)
 from rag.judgement import (
     JUDGEMENT_EVIDENCE_STATES,
     evaluate_preference,
@@ -37,6 +41,143 @@ class RagJudgementTest(unittest.TestCase):
             "partition": {"plan": "coop", "year": 2, "semester": 1},
             "provenance": [{"group": 7}],
         }
+
+    @staticmethod
+    def _burden(
+        course_id=1,
+        course_code="00000001",
+        *,
+        required=(),
+        alternatives=(),
+        provenance=None,
+    ):
+        groups = []
+        for prerequisite_id, prerequisite_code in required:
+            groups.append(
+                DirectPrerequisiteRequirement(
+                    kind="required_course",
+                    requirement_type="required",
+                    prerequisite_course_id=prerequisite_id,
+                    prerequisite_code=prerequisite_code,
+                    prerequisite_name_th=None,
+                    prerequisite_name_en=prerequisite_code,
+                    alternative_group_id=None,
+                    minimum_choices=None,
+                    maximum_choices=None,
+                    alternative_members=(),
+                    provenance=({"source_page": 20},),
+                )
+            )
+        groups.extend(alternatives)
+        return DirectPrerequisiteBurden(
+            program="IT",
+            course_id=course_id,
+            course_code=course_code,
+            status="complete",
+            required_course_count=len(required),
+            alternative_group_count=len(alternatives),
+            alternative_member_counts=tuple(
+                len(group.alternative_members) for group in alternatives
+            ),
+            ordered_requirement_groups=tuple(groups),
+            provenance=tuple(provenance or ({"source_page": 10},)),
+        )
+
+    def _preference_option(self, code="00000001", course_id=1, burden=None):
+        option = {
+            **self._course(code, [{"source_page": 10}]),
+            "course_id": course_id,
+            "description_evidence": (
+                {
+                    "chunk_id": f"desc-{code}",
+                    "text": "topic",
+                    "provenance": ({"source_page": 10},),
+                },
+            ),
+        }
+        if burden is not None:
+            option["direct_prerequisite_burden"] = burden
+        return option
+
+    def test_preference_preserves_explicit_none_burden(self):
+        option = self._preference_option(
+            burden=self._burden(),
+        )
+        result = evaluate_preference([option])
+
+        self.assertEqual(result.status, "supported")
+        self.assertEqual(result.options[0]["direct_prerequisite_burden"].required_course_count, 0)
+        self.assertIn({"source_page": 10}, result.provenance)
+
+    def test_preference_preserves_direct_and_alternative_burden(self):
+        alternative = DirectPrerequisiteRequirement(
+            kind="alternative_group",
+            requirement_type="required",
+            prerequisite_course_id=None,
+            prerequisite_code=None,
+            prerequisite_name_th=None,
+            prerequisite_name_en=None,
+            alternative_group_id=7,
+            minimum_choices=1,
+            maximum_choices=1,
+            alternative_members=(
+                {
+                    "course_id": 2,
+                    "course_code": "00000002",
+                    "provenance": ({"source_page": 21},),
+                },
+            ),
+            provenance=({"source_page": 22},),
+        )
+        burden = self._burden(
+            required=((2, "00000002"),),
+            alternatives=(alternative,),
+            provenance=({"source_page": 22},),
+        )
+        result = evaluate_preference(
+            [self._preference_option(burden=burden)]
+        )
+
+        self.assertEqual(result.status, "supported")
+        retained = result.options[0]["direct_prerequisite_burden"]
+        self.assertEqual(retained.required_course_count, 1)
+        self.assertEqual(retained.alternative_group_count, 1)
+        self.assertEqual(retained.alternative_member_counts, (1,))
+        self.assertIn({"source_page": 22}, result.provenance)
+
+    def test_preference_burden_identity_and_completeness_fail_closed(self):
+        option = self._preference_option(
+            burden=self._burden(course_id=2, course_code="00000002")
+        )
+        self.assertEqual(evaluate_preference([option]).status, "insufficient_evidence")
+
+        malformed = self._preference_option(
+            burden=DirectPrerequisiteBurden(
+                program="IT",
+                course_id=1,
+                course_code="00000001",
+                status="insufficient_evidence",
+                required_course_count=0,
+                alternative_group_count=0,
+                alternative_member_counts=(),
+                ordered_requirement_groups=(),
+                provenance=({"source_page": 10},),
+            )
+        )
+        self.assertEqual(evaluate_preference([malformed]).status, "insufficient_evidence")
+
+    def test_preference_keeps_duplicate_option_identity_multiplicity_without_ranking(self):
+        burden = self._burden()
+        options = [
+            self._preference_option("00000001", 1, burden),
+            self._preference_option("00000001", 1, burden),
+        ]
+        result = evaluate_preference(options)
+
+        self.assertEqual(result.status, "supported")
+        self.assertEqual(len(result.options), 2)
+        self.assertNotIn("rank", result.options[0])
+        self.assertNotIn("few", result.options[0])
 
     def test_standalone_quantity_is_descriptive_only_and_exposes_facts(self):
         count = aggregate_course_set([self._course()])
