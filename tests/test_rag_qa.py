@@ -1684,6 +1684,30 @@ class RagQaTest(unittest.TestCase):
                     )
                 fallback.assert_not_called()
 
+    def test_topic_with_unresolved_filter_fails_closed_before_sql_or_planner(self):
+        question = "IT วิชาบังคับมีวิชาอะไรเกี่ยวกับ database บ้าง"
+        spec = parse_query_spec(question)
+        resolution = resolve_query_spec(spec, DB_PATH)
+        completeness = _classify_structured_parse_completeness(spec, resolution)
+        self.assertEqual(completeness.classification, "partial")
+        self.assertEqual(completeness.missing_filters, ("requirement_type",))
+
+        with patch("rag.qa.run_structured_fallback") as fallback, patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError(
+                "topic-bearing partial query must not reach planner"
+            ),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                question,
+                structured_model_callable=lambda prompt: "unused",
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        fallback.assert_not_called()
+        planner.assert_not_called()
+
     def test_fallback_grounding_failure_returns_insufficient_evidence(self):
         sql_result, _ = self._patch_list_fallback()
         failed = GroundedCourseListResult(status="insufficient_evidence")

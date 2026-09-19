@@ -192,6 +192,8 @@ def _is_course_list_fallback_candidate(
     completeness: StructuredParseCompleteness,
 ) -> bool:
     """Allow only bounded course-list/filter residue into the SQL seam."""
+    if getattr(spec, "topic", None) is not None:
+        return False
     operations = tuple(getattr(spec, "operations", ()))
     if operations:
         if operations in {("count",), ("existence",)}:
