@@ -388,6 +388,19 @@ submission/                     separate frozen submission package
 
 ---
 
+## Project Structure
+
+See `docs/project_structure.md` for the intentional repository layout.
+
+Root Python files such as `ocr.py`, `prepare_data.py`,
+`llm_spell_corrector.py`, `merge_consecutive.py`, `extract.py`,
+`extract_rules.py`, `evaluate.py`, `evaluate_curriculum_layers.py`,
+`ask.py`, and `config.py` are deliberate CLI/library compatibility
+surfaces. Existing commands, imports, tests, subprocess calls, and
+file-relative paths depend on them remaining at the repository root.
+
+---
+
 ## Optional Debugging / Replay
 
 ถ้าต้องการ debug เป็นบางขั้นตอน สามารถรันคำสั่งแยกได้
