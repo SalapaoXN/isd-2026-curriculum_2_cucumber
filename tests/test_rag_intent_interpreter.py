@@ -601,5 +601,109 @@ class RagIntentInterpreterTest(unittest.TestCase):
         )
 
 
+    def test_prompt_requires_course_list_for_preference_intent(self):
+        prompt = build_intent_prompt("IT ปี 3 อยากเรียน data")
+
+        self.assertIn("preference_recommendation_evidence", prompt)
+        self.assertIn('MUST be exactly ["course_list"]', prompt)
+
+    def test_prompt_forbids_preference_evidence_fact_for_preference(self):
+        prompt = build_intent_prompt("IT ปี 3 อยากเรียน data")
+
+        self.assertIn('Do NOT emit ["preference_evidence"]', prompt)
+
+    def test_prompt_contains_preference_worked_example(self):
+        prompt = build_intent_prompt("IT ปี 3 อยากเรียน data")
+
+        self.assertIn("ถ้าอยากปูทางไป data", prompt)
+        self.assertIn('"topic": "data"', prompt)
+        self.assertIn('"requested_facts": ["course_list"]', prompt)
+        self.assertIn('WRONG "requested_facts": ["preference_evidence"]', prompt)
+
+    def test_prompt_preserves_preference_dimension_rule(self):
+        prompt = build_intent_prompt("IT ปี 3 อยากเรียน data")
+
+        self.assertIn("judgement_dimension MUST be preference", prompt)
+
+    def test_parser_still_accepts_preference_evidence_fact_shape(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="preference_recommendation_evidence",
+                proposed_program="IT",
+                topic="data",
+                requested_facts=["preference_evidence"],
+                judgement_dimension="preference",
+            )
+        )
+
+        self.assertEqual(
+            interpretation.requested_facts, ("preference_evidence",)
+        )
+
+    def test_parser_accepts_course_list_preference_shape(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="preference_recommendation_evidence",
+                proposed_program="IT",
+                proposed_years=[3],
+                topic="data",
+                requested_facts=["course_list"],
+                judgement_dimension="preference",
+            )
+        )
+
+        self.assertEqual(interpretation.requested_facts, ("course_list",))
+        self.assertEqual(
+            validate_execution_scope(
+                interpretation, program="IT", allowed_years=(3,)
+            ),
+            ExecutionEligibility(True, "ok"),
+        )
+
+
+    def test_compiler_behavior_untouched_for_preference_shapes(self):
+        from rag.intent_compiler import (
+            IntentCompilerError,
+            compile_intent_to_query_spec,
+        )
+        from rag.query_spec import parse_query_spec
+
+        base = parse_query_spec("IT ปี 3 ถ้าอยากปูทางไป data")
+        course_list_shape = parse_intent_payload(
+            payload(
+                intent="preference_recommendation_evidence",
+                proposed_program="IT",
+                proposed_years=[3],
+                topic="data",
+                requested_facts=["course_list"],
+                judgement_dimension="preference",
+            )
+        )
+        compiled = compile_intent_to_query_spec(
+            base,
+            course_list_shape,
+            authoritative_program="IT",
+            authoritative_years=(3,),
+        )
+        self.assertEqual(compiled.operations, ("list",))
+        self.assertEqual(compiled.judgement, "preference")
+
+        evidence_only_shape = parse_intent_payload(
+            payload(
+                intent="preference_recommendation_evidence",
+                proposed_program="IT",
+                topic="data",
+                requested_facts=["preference_evidence"],
+                judgement_dimension="preference",
+            )
+        )
+        with self.assertRaises(IntentCompilerError):
+            compile_intent_to_query_spec(
+                base,
+                evidence_only_shape,
+                authoritative_program="IT",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
