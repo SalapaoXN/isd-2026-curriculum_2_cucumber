@@ -184,6 +184,8 @@ class ResolutionTest(unittest.TestCase):
             "06016420 ต้องผ่านวิชาอะไรมาก่อน?",
             "06016481 ลงได้ตอนไหนบ้าง?",
             "06016414 กับ 06016419 วิชาไหนเรียนก่อน?",
+            "Calculus 2 มีวิชาบังคับก่อนคืออะไร",
+            "calculus 1 ต้องเรียนอะไรต่อไหม",
         ):
             with self.subTest(question=question):
                 outcome = resolve_query_spec(parse_query_spec(question), DB_PATH)
