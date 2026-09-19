@@ -543,17 +543,30 @@ def build_intent_prompt(question: str) -> str:
             "whether something is heavy, easy, good, better, or recommended.",
             "Preference rule: for intent preference_recommendation_evidence, "
             "judgement_dimension MUST be preference, topic MUST carry the "
-            "user stated area of interest when present, and requested_facts "
-            "MUST be exactly [\"course_list\"]. Do NOT emit "
-            "[\"preference_evidence\"], and do NOT add recommendation, "
-            "ranking, best, or difficulty facts. The model only requests "
-            "grounded candidate-course evidence; recommendation happens later "
-            "from retrieved evidence. Example question \"IT ปี 3 ถ้าอยากปูทางไป data มีตัวไหนที่ควรจับตาไว้\": CORRECT "
+            "user stated area of interest when present. For a simple topic "
+            "preference, requested_facts MUST be exactly [\"course_list\"]. "
+            "When the preference explicitly refers to prerequisites, "
+            "required prior courses, วิชาบังคับก่อน, or prerequisite burden, "
+            "requested_facts MUST be exactly [\"course_list\", "
+            "\"prerequisite\"]. Do NOT emit [\"preference_evidence\"], "
+            "[\"prerequisite\"] alone, or unrelated/extra facts. Do not "
+            "encode any few/many threshold or prerequisite count policy. "
+            "Do NOT add recommendation, ranking, best, or difficulty facts. "
+            "The model only requests grounded candidate-course evidence; "
+            "recommendation happens later from retrieved evidence. Example "
+            "question \"IT ปี 3 ถ้าอยากปูทางไป data มีตัวไหนที่ควรจับตาไว้\": CORRECT "
             "\"intent\": \"preference_recommendation_evidence\", "
             "\"proposed_program\": \"IT\", \"proposed_years\": [3], "
             "\"topic\": \"data\", \"requested_facts\": [\"course_list\"], "
             "\"judgement_dimension\": \"preference\", \"unresolved\": []. "
-            "WRONG \"requested_facts\": [\"preference_evidence\"].",
+            "For question \"IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง\": "
+            "CORRECT \"intent\": \"preference_recommendation_evidence\", "
+            "\"proposed_program\": \"IT\", \"proposed_years\": [3], "
+            "\"topic\": \"data\", \"requested_facts\": [\"course_list\", "
+            "\"prerequisite\"], \"judgement_dimension\": \"preference\", "
+            "\"unresolved\": []. WRONG: add a few-prerequisite threshold, "
+            "ranking, or recommendation. WRONG \"requested_facts\": "
+            "[\"preference_evidence\"].",
             "USER QUESTION:",
             question.strip(),
         )

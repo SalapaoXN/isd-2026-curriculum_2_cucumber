@@ -118,6 +118,83 @@ class IntentCompilerTest(unittest.TestCase):
         self.assertEqual(result.topic, "data")
         self.assertEqual(result.years, (3,))
 
+    def test_preference_evidence_with_prerequisite_maps_to_two_operations(self):
+        base = replace(
+            parse_query_spec("IT ปี 3 อยากเน้น data"),
+            operations=(),
+            topic=None,
+        )
+        result = compile_intent_to_query_spec(
+            base,
+            self.interpretation(
+                "preference_recommendation_evidence",
+                topic="data",
+                requested_facts=("course_list", "prerequisite"),
+                judgement_dimension="preference",
+            ),
+            authoritative_program="IT",
+            authoritative_years=(3,),
+        )
+
+        self.assertEqual(result.operations, ("list", "prerequisite"))
+        self.assertEqual(result.judgement, "preference")
+        self.assertEqual(result.topic, "data")
+        self.assertEqual(result.program, "IT")
+        self.assertEqual(result.years, (3,))
+
+    def test_preference_evidence_rejects_noncanonical_fact_shapes(self):
+        base = replace(parse_query_spec("IT อยากเน้น data"), operations=())
+        for facts in (
+            ("prerequisite",),
+            ("prerequisite", "course_list"),
+            ("course_list", "prerequisite", "placement"),
+            ("course_list", "preference_evidence"),
+        ):
+            with self.subTest(facts=facts), self.assertRaises(IntentCompilerError):
+                compile_intent_to_query_spec(
+                    base,
+                    self.interpretation(
+                        "preference_recommendation_evidence",
+                        topic="data",
+                        requested_facts=facts,
+                        judgement_dimension="preference",
+                    ),
+                    authoritative_program="IT",
+                )
+
+    def test_preference_evidence_merges_only_allowed_base_operations(self):
+        for base_operations in ((), ("list",), ("prerequisite",), ("list", "prerequisite")):
+            with self.subTest(base_operations=base_operations):
+                base = replace(
+                    parse_query_spec("IT อยากเน้น data"),
+                    operations=base_operations,
+                )
+                result = compile_intent_to_query_spec(
+                    base,
+                    self.interpretation(
+                        "preference_recommendation_evidence",
+                        topic="data",
+                        requested_facts=("course_list", "prerequisite"),
+                        judgement_dimension="preference",
+                    ),
+                    authoritative_program="IT",
+                )
+                self.assertEqual(result.operations, ("list", "prerequisite"))
+
+    def test_preference_evidence_rejects_unrelated_base_operation(self):
+        base = replace(parse_query_spec("IT อยากเน้น data"), operations=("describe",))
+        with self.assertRaises(IntentCompilerError):
+            compile_intent_to_query_spec(
+                base,
+                self.interpretation(
+                    "preference_recommendation_evidence",
+                    topic="data",
+                    requested_facts=("course_list",),
+                    judgement_dimension="preference",
+                ),
+                authoritative_program="IT",
+            )
+
     def test_preference_evidence_requires_topic(self):
         base = replace(parse_query_spec("IT ปี 3 อยากเลือกวิชา"), operations=())
         with self.assertRaises(IntentCompilerError):

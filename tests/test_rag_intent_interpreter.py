@@ -606,6 +606,7 @@ class RagIntentInterpreterTest(unittest.TestCase):
 
         self.assertIn("preference_recommendation_evidence", prompt)
         self.assertIn('MUST be exactly ["course_list"]', prompt)
+        self.assertIn('MUST be exactly ["course_list", "prerequisite"]', prompt)
 
     def test_prompt_forbids_preference_evidence_fact_for_preference(self):
         prompt = build_intent_prompt("IT ปี 3 อยากเรียน data")
@@ -624,6 +625,32 @@ class RagIntentInterpreterTest(unittest.TestCase):
         prompt = build_intent_prompt("IT ปี 3 อยากเรียน data")
 
         self.assertIn("judgement_dimension MUST be preference", prompt)
+
+    def test_prompt_contains_prerequisite_preference_contract(self):
+        prompt = build_intent_prompt(
+            "IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง"
+        )
+
+        self.assertIn("วิชาบังคับก่อน", prompt)
+        self.assertIn('"requested_facts": ["course_list", "prerequisite"]', prompt)
+        self.assertIn("few/many threshold", prompt)
+
+    def test_parser_accepts_course_list_and_prerequisite_preference_shape(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="preference_recommendation_evidence",
+                proposed_program="IT",
+                proposed_years=[3],
+                topic="data",
+                requested_facts=["course_list", "prerequisite"],
+                judgement_dimension="preference",
+            )
+        )
+
+        self.assertEqual(
+            interpretation.requested_facts,
+            ("course_list", "prerequisite"),
+        )
 
     def test_parser_still_accepts_preference_evidence_fact_shape(self):
         interpretation = parse_intent_payload(

@@ -57,6 +57,18 @@ _GROUP_BY_FOR_INTENT = {
 }
 
 _SUPPORTED_GROUP_BY = frozenset({"course", "plan", "year"})
+_PREFERENCE_FACT_SHAPES = (
+    ("course_list",),
+    ("course_list", "prerequisite"),
+)
+_PREFERENCE_BASE_OPERATION_SHAPES = frozenset(
+    {
+        (),
+        ("list",),
+        ("prerequisite",),
+        ("list", "prerequisite"),
+    }
+)
 
 
 def _clean_text(value: Any, field: str) -> str | None:
@@ -173,15 +185,25 @@ def _mapped_operations(
             raise IntentCompilerError(
                 "preference evidence requires the preference dimension"
             )
-        if tuple(interpretation.requested_facts) != ("course_list",):
+        requested_facts = tuple(interpretation.requested_facts)
+        if requested_facts not in _PREFERENCE_FACT_SHAPES:
             raise IntentCompilerError(
-                "preference evidence requires course_list evidence"
+                "preference evidence has an unsupported requested_facts shape"
             )
-        if base_operations and tuple(base_operations) != ("list",):
+        if tuple(base_operations) not in _PREFERENCE_BASE_OPERATION_SHAPES:
             raise IntentCompilerError(
-                "preference evidence cannot combine with other operations"
+                "preference evidence cannot combine with unsupported operations"
             )
-        return ("list",)
+        mapped = tuple(
+            _FACT_TO_OPERATION[fact]
+            for fact in requested_facts
+        )
+        merged = set(base_operations) | set(mapped)
+        return tuple(
+            operation
+            for operation in ("list", "prerequisite")
+            if operation in merged
+        )
     if intent in _INTENT_OPERATION:
         expected_facts = _INTENT_FACTS[intent]
         facts = set(interpretation.requested_facts)
