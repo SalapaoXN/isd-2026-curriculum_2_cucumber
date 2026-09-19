@@ -1,11 +1,15 @@
 import dataclasses
 import json
 import unittest
+from unittest.mock import patch
 
 from rag.intent_interpreter import (
+    INTENTS,
     ExecutionEligibility,
     IntentInterpretation,
     IntentValidationError,
+    build_intent_prompt,
+    interpret_question_intent,
     parse_intent_payload,
     validate_execution_scope,
 )
@@ -347,6 +351,185 @@ class RagIntentInterpreterTest(unittest.TestCase):
                     requested_facts=["best_courses"],
                 )
             )
+
+
+    def test_interpret_valid_topic_json(self):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return payload(
+                intent="topic_course_search",
+                proposed_program="IT",
+                topic="database",
+                requested_facts=["course_list"],
+            )
+
+        with patch(
+            "rag.intent_interpreter.validate_execution_scope",
+            side_effect=AssertionError("scope validation belongs elsewhere"),
+        ):
+            interpretation = interpret_question_intent(
+                "IT มีวิชาเกี่ยวกับ database อะไรบ้าง", fake_model
+            )
+
+        self.assertEqual(interpretation.intent, "topic_course_search")
+        self.assertEqual(interpretation.proposed_program, "IT")
+        self.assertEqual(interpretation.topic, "database")
+        self.assertEqual(len(calls), 1)
+
+    def test_interpret_valid_placement_json(self):
+        def fake_model(prompt):
+            return payload(
+                intent="placement_query",
+                proposed_program="IT",
+                course_codes=["06016414"],
+                requested_facts=["placement"],
+            )
+
+        interpretation = interpret_question_intent(
+            "IT 06016414 เรียนปีไหน", fake_model
+        )
+
+        self.assertEqual(interpretation.intent, "placement_query")
+        self.assertEqual(interpretation.course_codes, ("06016414",))
+
+    def test_interpret_valid_program_discovery_without_program(self):
+        def fake_model(prompt):
+            return payload(
+                intent="program_discovery",
+                course_codes=["06016414"],
+                requested_facts=["program_identity"],
+            )
+
+        interpretation = interpret_question_intent(
+            "06016414 อยู่ในหลักสูตรไหน", fake_model
+        )
+
+        self.assertIsNone(interpretation.proposed_program)
+        self.assertEqual(
+            validate_execution_scope(
+                interpretation, allowed_course_codes=("06016414",)
+            ),
+            ExecutionEligibility(True, "ok"),
+        )
+
+    def test_prompt_states_json_only_no_answer_no_sql_no_inference(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        self.assertIn("JSON object", prompt)
+        self.assertIn("No Markdown", prompt)
+        self.assertIn("code fence", prompt.casefold())
+        self.assertIn("do not answer", prompt.casefold())
+        self.assertIn("SQL", prompt)
+        self.assertIn("Never infer", prompt)
+        self.assertIn("course-code prefixes", prompt)
+
+    def test_prompt_contains_exact_wire_keys(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        for key in (
+            "intent",
+            "proposed_program",
+            "proposed_plans",
+            "proposed_years",
+            "proposed_semesters",
+            "course_codes",
+            "topic",
+            "requested_facts",
+            "judgement_dimension",
+            "unresolved",
+        ):
+            self.assertIn(key, prompt)
+
+    def test_prompt_exposes_bounded_intent_allowlist(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        for intent in INTENTS:
+            self.assertIn(intent, prompt)
+
+    def test_model_called_exactly_once(self):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return payload(intent="program_discovery")
+
+        interpret_question_intent("06016414 อยู่ในหลักสูตรไหน", fake_model)
+
+        self.assertEqual(len(calls), 1)
+
+    def test_malformed_json_fails_after_single_call(self):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return "{not json"
+
+        with self.assertRaises(IntentValidationError):
+            interpret_question_intent("IT 06016414 เรียนปีไหน", fake_model)
+        self.assertEqual(len(calls), 1)
+
+    def test_fenced_json_rejected_without_stripping(self):
+        def fake_model(prompt):
+            return (
+                "```json\n"
+                + payload(intent="program_discovery")
+                + "\n```"
+            )
+
+        with self.assertRaises(IntentValidationError):
+            interpret_question_intent("06016414 อยู่ในหลักสูตรไหน", fake_model)
+
+    def test_unknown_field_rejected_via_interpret(self):
+        def fake_model(prompt):
+            return payload(intent="program_discovery", extra="x")
+
+        with self.assertRaises(IntentValidationError):
+            interpret_question_intent("06016414 อยู่ในหลักสูตรไหน", fake_model)
+
+    def test_model_non_string_output_rejected(self):
+        with self.assertRaises(TypeError):
+            interpret_question_intent(
+                "IT 06016414 เรียนปีไหน", lambda prompt: {"intent": "x"}
+            )
+
+    def test_empty_question_rejected_before_model_call(self):
+        calls = []
+
+        def fake_model(prompt):
+            calls.append(prompt)
+            return payload(intent="program_discovery")
+
+        for bad in ("", "   ", None, 42):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    interpret_question_intent(bad, fake_model)
+        self.assertEqual(calls, [])
+
+    def test_non_callable_model_rejected(self):
+        with self.assertRaises(TypeError):
+            interpret_question_intent("IT 06016414 เรียนปีไหน", "not callable")
+
+    def test_model_exception_propagates_without_retry(self):
+        calls = []
+
+        def failing_model(prompt):
+            calls.append(prompt)
+            raise RuntimeError("provider unavailable")
+
+        with self.assertRaises(RuntimeError):
+            interpret_question_intent("IT 06016414 เรียนปีไหน", failing_model)
+        self.assertEqual(len(calls), 1)
+
+    def test_prompt_has_no_schema_or_sql_generation(self):
+        prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")
+
+        self.assertNotIn("SELECT", prompt)
+        self.assertNotIn("CREATE TABLE", prompt)
+        self.assertNotIn("course_id", prompt)
+        self.assertNotIn("schema", prompt.casefold())
+        self.assertNotIn("generate SQL", prompt.casefold())
 
 
 if __name__ == "__main__":

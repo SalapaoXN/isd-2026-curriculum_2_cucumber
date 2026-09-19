@@ -1,8 +1,10 @@
 """Standalone v1 Intent Interpreter contract and validation boundary.
 
 This module is a pure, model-agnostic typed boundary for future LLM intent
-interpretation. It is NOT wired into QA routing. No model calls, no prompts,
-no SQL, no retrieval, no retries, and no imports from ``rag.qa`` exist here.
+interpretation. It is NOT wired into QA routing. No SQL, no retrieval, no
+retries, and no imports from ``rag.qa`` exist here. The only model contact
+is :func:`interpret_question_intent`, which makes exactly one caller-provided
+model call to obtain a JSON proposal and validates it.
 
 Core semantic: model output is PROPOSED interpretation only. It is never
 authoritative curriculum evidence. Authoritative scope is always supplied by
@@ -14,6 +16,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -485,6 +488,76 @@ def validate_execution_scope(
     return ExecutionEligibility(True, "ok")
 
 
+def build_intent_prompt(question: str) -> str:
+    """Build the bounded one-shot interpreter prompt for a question.
+
+    The prompt states the interpreter role, the exact JSON wire format, the
+    bounded vocabularies (taken from this module's constants), and the
+    no-inference extraction rules. It contains no database schema and no
+    curriculum facts. Pure string construction; no model contact.
+    """
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("question must be a non-empty string")
+    intents = ", ".join(sorted(INTENTS))
+    facts = ", ".join(sorted(REQUESTED_FACTS))
+    dimensions = ", ".join(sorted(JUDGEMENT_DIMENSIONS))
+    return "\n".join(
+        (
+            "ROLE: You interpret Thai university curriculum questions into a "
+            "bounded JSON proposal. You are an interpreter only. "
+            "You do not answer the question.",
+            "OUTPUT: Return exactly one JSON object and nothing else. "
+            "No Markdown. No code fences. No explanation.",
+            "Use exactly these keys: intent, proposed_program, proposed_plans, "
+            "proposed_years, proposed_semesters, course_codes, topic, "
+            "requested_facts, judgement_dimension, unresolved.",
+            f"Allowed intent values: {intents}.",
+            f"Allowed requested_facts values: {facts}.",
+            "Allowed judgement_dimension values: "
+            f"{dimensions} (or null when the intent is not a judgement).",
+            "Extraction rules: record only information actually stated or "
+            "reasonably paraphrased in the user question. "
+            "Never infer a program from course-code prefixes. "
+            "Never infer a missing program from uniqueness. "
+            "Never invent course codes, plans, years, semesters, "
+            "prerequisites, credits, placements, facts, or provenance. "
+            "Leave missing information as null / [] or list it in unresolved. "
+            "Do not output database IDs, SQL, answer text, or provenance. "
+            "Do not conclude recommendations, superiority, difficulty, or answers.",
+            "program_discovery may leave proposed_program null.",
+            "workload_judgement and preference_recommendation_evidence only "
+            "identify the requested evidence dimension; they never conclude "
+            "whether something is heavy, easy, good, better, or recommended.",
+            "USER QUESTION:",
+            question.strip(),
+        )
+    )
+
+
+def interpret_question_intent(
+    question: str,
+    model_callable: Callable[[str], str],
+) -> IntentInterpretation:
+    """Convert one question into a validated IntentInterpretation.
+
+    Makes exactly one call to ``model_callable`` with the bounded prompt,
+    then passes the raw model text directly through
+    :func:`parse_intent_payload`. No retry, no repair, no fallback model, no
+    SQL generation, and no answer polishing. Malformed output propagates
+    :class:`IntentValidationError`; a model exception propagates unchanged.
+    Execution-scope validation is deliberately NOT performed here; it belongs
+    to the later routing/compiler layer.
+    """
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("question must be a non-empty string")
+    if not callable(model_callable):
+        raise TypeError("model_callable must be callable")
+    output = model_callable(build_intent_prompt(question))
+    if not isinstance(output, str):
+        raise TypeError("model output must be a string")
+    return parse_intent_payload(output)
+
+
 __all__ = [
     "INTENTS",
     "REQUESTED_FACTS",
@@ -512,4 +585,6 @@ __all__ = [
     "ExecutionEligibility",
     "parse_intent_payload",
     "validate_execution_scope",
+    "build_intent_prompt",
+    "interpret_question_intent",
 ]
