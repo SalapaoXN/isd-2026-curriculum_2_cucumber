@@ -10,6 +10,7 @@ from rag.evidence_executor import (
 )
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
 from rag.retrieval.retrieve import ConstrainedTopicRetrievalResult, SimilarityEvidence
+from rag.structured.queries import scoped_course_set
 
 
 DB_PATH = (
@@ -88,6 +89,114 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertEqual(result.effective_scope.plans, ("coop",))
         self.assertTrue(result.payload["courses"])
         self.assertTrue(result.payload["courses"][0]["provenance"])
+
+    def test_plain_exact_term_schedule_excludes_flexible_only_courses(self):
+        scope = self._scope(
+            plans=("no_coop",),
+            years=(3,),
+            semesters=(1,),
+            category=None,
+        )
+        request = EvidenceRequest("courses", "course_set", scope)
+
+        result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
+
+        self.assertEqual(result.status, "complete")
+        courses = result.payload["courses"]
+        course_codes = {
+            course["course_code"]
+            for course in courses
+            if course.get("course_code") is not None
+        }
+        self.assertIn("06016404", course_codes)
+        self.assertNotIn("06016428", course_codes)
+        self.assertNotIn("06016480", course_codes)
+
+    def test_default_course_set_keeps_flexible_candidates_for_availability_queries(self):
+        result = scoped_course_set(
+            DB_PATH,
+            "IT",
+            "no_coop",
+            years=(3,),
+            semesters=(1,),
+        )
+
+        course_codes = {
+            course["course_code"]
+            for course in result["courses"]
+            if course.get("course_code") is not None
+        }
+        self.assertIn("06016428", course_codes)
+        self.assertIn("06016480", course_codes)
+        alternative_slots = [
+            course for course in result["courses"] if course.get("is_alternative")
+        ]
+        self.assertEqual(len(alternative_slots), 1)
+        self.assertEqual(alternative_slots[0]["minimum_choices"], 1)
+
+    def test_elective_category_filters_course_type_and_keeps_flexible_candidates(self):
+        result = scoped_course_set(
+            DB_PATH,
+            "IT",
+            "no_coop",
+            years=(3,),
+            semesters=(1,),
+            category="วิชาเลือก",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        courses = result["courses"]
+        course_codes = {
+            course["course_code"]
+            for course in courses
+            if course.get("course_code") is not None
+        }
+        self.assertIn("06016428", course_codes)
+        self.assertIn("06016480", course_codes)
+        individual_courses = [
+            course for course in courses if not course.get("is_alternative")
+        ]
+        self.assertTrue(individual_courses)
+        self.assertTrue(
+            all(course.get("course_type") == "เลือก" for course in individual_courses)
+        )
+        self.assertTrue(
+            all(
+                (3, 1) in tuple(course.get("year_semester_choices", ()))
+                for course in individual_courses
+            )
+        )
+
+    def test_non_elective_category_filter_remains_placement_category_filter(self):
+        unfiltered = scoped_course_set(
+            DB_PATH,
+            "IT",
+            "no_coop",
+            years=(3,),
+            semesters=(1,),
+        )
+        categories = {
+            course.get("category")
+            for course in unfiltered["courses"]
+            if isinstance(course.get("category"), str) and course.get("category")
+        }
+        self.assertTrue(categories)
+        category = sorted(categories)[0]
+
+        result = scoped_course_set(
+            DB_PATH,
+            "IT",
+            "no_coop",
+            years=(3,),
+            semesters=(1,),
+            category=category,
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(result["courses"])
+        self.assertTrue(
+            all(course.get("category") == category for course in result["courses"])
+        )
 
     def test_applicable_plans_are_separate_results(self):
         scope = self._scope(
@@ -970,7 +1079,7 @@ class EvidenceExecutorTests(unittest.TestCase):
         placement = EvidenceRequest("placements", "placement_facts", scope)
         plan = self._plan(courses, placement, scope=scope)
 
-        def execute(_db_path, request, effective_scope):
+        def execute(_db_path, request, effective_scope, **_kwargs):
             if (
                 request.request_id == "courses"
                 and effective_scope.plans == ("no_coop",)

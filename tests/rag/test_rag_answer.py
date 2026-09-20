@@ -722,6 +722,51 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("- 06016414 (NOSQL DATABASE SYSTEMS)", rendered)
         self.assertNotIn("plan=", rendered)
 
+    def test_individual_elective_is_labeled_as_selectable_not_mandatory(self):
+        claim = GroundedClaim(
+            "list_elective_001",
+            "list",
+            effective_scope={
+                "program": "IT",
+                "plans": ("no_coop",),
+                "years": (3,),
+                "semesters": (1,),
+            },
+            value=(
+                {
+                    "course_code": "06016499",
+                    "name_en": "ELECTIVE TOPICS",
+                    "course_type": "เลือก",
+                    "credits": "3(3-0-6)",
+                },
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("วิชาเลือกที่สามารถเลือกได้", rendered)
+        self.assertIn("06016499 (ELECTIVE TOPICS)", rendered)
+        self.assertNotIn("- 06016499 (ELECTIVE TOPICS) —", rendered)
+
+    def test_required_course_list_entry_remains_normal(self):
+        claim = GroundedClaim(
+            "list_required_001",
+            "list",
+            effective_scope={"program": "IT"},
+            value=(
+                {
+                    "course_code": "06016404",
+                    "name_en": "CLOUD COMPUTING",
+                    "course_type": "บังคับ",
+                },
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("- 06016404 (CLOUD COMPUTING)", rendered)
+        self.assertNotIn("วิชาเลือกที่สามารถเลือกได้", rendered)
+
     def test_list_plan_claims_remain_distinguishable(self):
         claims = tuple(
             GroundedClaim(
@@ -1309,7 +1354,8 @@ class RagAnswerTest(unittest.TestCase):
 
         rendered = render_grounded_claim(claim)
 
-        self.assertIn("สามารถเรียนได้ในปี 3 ภาคเรียนที่ 1 หรือ ปี 3 ภาคเรียนที่ 2 หรือ ปี 4 ภาคเรียนที่ 1", rendered)
+        self.assertIn("สามารถเลือกจัดเรียนได้ในปี 3 ภาคเรียนที่ 1 หรือ ปี 3 ภาคเรียนที่ 2 หรือ ปี 4 ภาคเรียนที่ 1", rendered)
+        self.assertNotIn("เรียนในปี 3", rendered)
         self.assertNotIn("year_semester_choices", rendered)
 
     def test_hybrid_rendering_keeps_placement_and_description_grounded(self):
@@ -1856,6 +1902,75 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("วิชา 06016420", result.final_answer)
         self.assertIn("GROUNDED_CONTENT", prompts[0])
         self.assertIn("USER_QUESTION", prompts[0])
+
+    def test_generic_polish_cannot_erase_elective_list_semantics(self):
+        claim = GroundedClaim(
+            "polish_elective_001",
+            "list",
+            effective_scope={"program": "IT", "years": (3,), "semesters": (1,)},
+            value=(
+                {
+                    "course_code": "06016499",
+                    "name_en": "ELECTIVE TOPICS",
+                    "course_type": "เลือก",
+                },
+            ),
+        )
+        calls = []
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult("answer", "deterministic", claims=(claim,)),
+            lambda prompt: calls.append(prompt) or "rewritten as mandatory",
+            question="มีวิชาอะไรบ้าง",
+        )
+
+        self.assertIn("วิชาเลือกที่สามารถเลือกได้", rendered.final_answer)
+        self.assertNotIn("rewritten as mandatory", rendered.final_answer)
+        self.assertEqual(calls, [])
+
+    def test_generic_polish_cannot_erase_flexible_plan_comparison_semantics(self):
+        difference = PlanPlacementDifference(
+            course_key=("course", ("IT", "06000001")),
+            left_periods=((3, 1), (3, 2), (4, 1)),
+            right_periods=((4, 1),),
+            left_placements=(
+                {
+                    "course_code": "06000001",
+                    "name_en": "COURSE ONE",
+                    "year_semester_choices": ((3, 1), (3, 2), (4, 1)),
+                },
+            ),
+            right_placements=(
+                {
+                    "course_code": "06000001",
+                    "name_en": "COURSE ONE",
+                    "year_semester_choices": ((4, 1),),
+                },
+            ),
+        )
+        value = PlanComparisonAggregation(
+            status="complete",
+            left_plan="coop",
+            right_plan="no_coop",
+            placement_differences=(difference,),
+        )
+        claim = GroundedClaim(
+            "polish_plan_comparison_001",
+            "compare",
+            value=value,
+            evidence=value,
+        )
+        calls = []
+
+        rendered = render_grounded_answer(
+            GroundedAnswerResult("answer", "deterministic", claims=(claim,)),
+            lambda prompt: calls.append(prompt) or "rewritten comparison",
+            question="สองแผนต่างกันอย่างไร",
+        )
+
+        self.assertIn("สามารถเลือกจัดเรียนได้ในปี 3 ภาคเรียนที่ 1", rendered.final_answer)
+        self.assertNotIn("rewritten comparison", rendered.final_answer)
+        self.assertEqual(calls, [])
 
     def test_polish_that_drops_or_changes_critical_facts_is_rejected(self):
         outputs = (

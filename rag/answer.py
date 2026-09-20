@@ -1128,7 +1128,7 @@ def _placement_sentence(entry: Mapping[str, Any]) -> str | None:
         options = " หรือ ".join(
             f"ปี {year} ภาคเรียนที่ {semester}" for year, semester in choices
         )
-        timing = f"สามารถเรียนได้ใน{options}"
+        timing = f"สามารถเลือกจัดเรียนได้ใน{options}"
     credits = entry.get("placement_credits", entry.get("credits"))
     suffix = f" และมี {credits} หน่วยกิต" if credits not in (None, "") else ""
     return f"{prefix}{timing}{suffix}"
@@ -1149,10 +1149,14 @@ def _placement_text(value: Any) -> str | None:
                 f"ปี {year} ภาคเรียนที่ {semester}"
                 for year, semester in left_choices
             )
-            timing = f"{timing}" if len(left_choices) > 1 else timing
+            timing = (
+                f"สามารถเลือกจัดเรียนได้ใน{timing}"
+                if len(left_choices) > 1
+                else f"เรียนใน{timing}"
+            )
             return (
                 f"ทั้งแผน{_plan_display(left_plan)}และแผน{_plan_display(right_plan)}"
-                f"เรียนใน{timing} จึงไม่ต่างกันด้านช่วงเรียน"
+                f"{timing} จึงไม่ต่างกันด้านช่วงเรียน"
             )
         if left_plan == right_plan and left_choices == right_choices:
             left_code = left.get("course_code")
@@ -1162,12 +1166,17 @@ def _placement_text(value: Any) -> str | None:
                     f"ปี {year} ภาคเรียนที่ {semester}"
                     for year, semester in left_choices
                 )
+                timing = (
+                    f"สามารถเลือกจัดเรียนได้ใน{timing}"
+                    if len(left_choices) > 1
+                    else f"เรียนใน{timing}"
+                )
                 program = left.get("program")
                 program_text = f"ในหลักสูตร {program}" if program not in (None, "") else ""
                 plan_text = f" แผน{_plan_display(left_plan)}" if left_plan else ""
                 return (
                     f"วิชา {left_code} และวิชา {right_code} {program_text}{plan_text}"
-                    f"เรียนใน{timing} จึงอยู่ช่วงเดียวกัน"
+                    f"{timing} จึงอยู่ช่วงเดียวกัน"
                 )
     sentences = [_placement_sentence(entry) for entry in entries]
     rendered = [sentence for sentence in sentences if sentence]
@@ -1492,7 +1501,12 @@ def _course_list_entry_text(entry: Any) -> str | None:
         alternative_text = _course_list_alternative_text(entry)
         if alternative_text is not None:
             return alternative_text
-    return _course_list_course_text(entry)
+    course_text = _course_list_course_text(entry)
+    if course_text is None:
+        return None
+    if entry.get("course_type") == "เลือก":
+        return f"วิชาเลือกที่สามารถเลือกได้: {course_text}"
+    return course_text
 
 
 def _course_list_text(claim: GroundedClaim) -> str | None:
@@ -1602,6 +1616,16 @@ def _plan_comparison_periods_text(periods: Sequence[tuple[int, int]]) -> str:
     )
 
 
+def _plan_comparison_period_text(
+    plan: str,
+    periods: Sequence[tuple[int, int]],
+    placements: Sequence[Mapping[str, Any]],
+) -> str:
+    flexible = any(len(_placement_choices(placement)) > 1 for placement in placements)
+    wording = "สามารถเลือกจัดเรียนได้ใน" if flexible else "เรียนใน"
+    return f"แผน{plan}{wording}{_plan_comparison_periods_text(periods)}"
+
+
 def _plan_comparison_text(value: PlanComparisonAggregation) -> str | None:
     if value.status != "complete":
         return None
@@ -1627,10 +1651,9 @@ def _plan_comparison_text(value: PlanComparisonAggregation) -> str | None:
             course = records[0] if records else None
             label = _plan_comparison_course_label(course, difference.course_key)
             lines.append(
-                f"- {label}: แผน{left_plan}เรียนใน"
-                f"{_plan_comparison_periods_text(difference.left_periods)}; "
-                f"แผน{right_plan}เรียนใน"
-                f"{_plan_comparison_periods_text(difference.right_periods)}"
+                f"- {label}: "
+                f"{_plan_comparison_period_text(left_plan, difference.left_periods, difference.left_placements)}; "
+                f"{_plan_comparison_period_text(right_plan, difference.right_periods, difference.right_placements)}"
             )
     if not lines:
         return (
@@ -2150,6 +2173,14 @@ def render_grounded_answer(
             final_answer,
             answer_model_callable,
         )
+    elif any(
+        claim.operation == "list"
+        or isinstance(claim.value, PlanComparisonAggregation)
+        for claim in result.claims
+    ):
+        # Structural list/comparison wording is authoritative.  Generic
+        # polishing can erase elective and flexible-placement semantics.
+        pass
     else:
         final_answer = _polish_deterministic_answer(
             question, final_answer, answer_model_callable

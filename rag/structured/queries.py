@@ -1488,6 +1488,7 @@ def scoped_course_set(
     semesters: Iterable[int] = (),
     category: str | None = None,
     course_targets: Iterable[Mapping[str, Any]] = (),
+    exact_term_placements: bool = False,
 ) -> dict[str, Any]:
     """Return one deterministic, structurally scoped course-set relation.
 
@@ -1530,6 +1531,7 @@ def scoped_course_set(
         if isinstance(category, str) and category.strip()
         else None
     )
+    is_elective_category = normalized_category == "วิชาเลือก"
 
     targets = tuple(course_targets)
     target_ids = {
@@ -1598,20 +1600,26 @@ def scoped_course_set(
                 row["semester_number"],
                 row["flexible_year_semester_raw"],
             )
-            if normalized_years and not any(
-                choice[0] in normalized_years for choice in choices
-            ):
-                continue
-            if normalized_semesters and not any(
-                choice[1] in normalized_semesters for choice in choices
-            ):
-                continue
-            if normalized_years and normalized_semesters and not any(
-                choice[0] in normalized_years and choice[1] in normalized_semesters
-                for choice in choices
-            ):
-                continue
-            if normalized_category is not None and (
+            if exact_term_placements:
+                if normalized_years and row["year_number"] not in normalized_years:
+                    continue
+                if normalized_semesters and row["semester_number"] not in normalized_semesters:
+                    continue
+            else:
+                if normalized_years and not any(
+                    choice[0] in normalized_years for choice in choices
+                ):
+                    continue
+                if normalized_semesters and not any(
+                    choice[1] in normalized_semesters for choice in choices
+                ):
+                    continue
+                if normalized_years and normalized_semesters and not any(
+                    choice[0] in normalized_years and choice[1] in normalized_semesters
+                    for choice in choices
+                ):
+                    continue
+            if normalized_category is not None and not is_elective_category and (
                 not isinstance(row["category"], str)
                 or row["category"].strip().casefold() != normalized_category
             ):
@@ -1621,17 +1629,29 @@ def scoped_course_set(
             members: list[dict[str, Any]] = []
             if alternative_group_id is not None:
                 members = _alternative_members(connection, int(alternative_group_id))
+                if is_elective_category and not any(
+                    isinstance(member.get("course_type"), str)
+                    and member["course_type"].strip() == "เลือก"
+                    for member in members
+                ):
+                    continue
                 if targets and not any(
                     member.get("course_id") in target_ids
                     or member.get("course_code") in target_codes
                     for member in members
                 ):
                     continue
-            elif targets and (
-                row["course_id"] not in target_ids
-                and row["course_code"] not in target_codes
-            ):
-                continue
+            else:
+                if is_elective_category and not (
+                    isinstance(row["course_type"], str)
+                    and row["course_type"].strip() == "เลือก"
+                ):
+                    continue
+                if targets and (
+                    row["course_id"] not in target_ids
+                    and row["course_code"] not in target_codes
+                ):
+                    continue
 
             placement_id = int(row["placement_id"])
             placement_references = _provenance_for(
@@ -1669,6 +1689,7 @@ def scoped_course_set(
                     "course_code": row["course_code"],
                     "name_th": row["name_th"],
                     "name_en": row["name_en"],
+                    "course_type": row["course_type"],
                     "credits": row["credits"],
                     "placement_credits": row["credits_override"] or row["credits"],
                     "provenance": references,

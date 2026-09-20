@@ -748,6 +748,8 @@ def _execute_course_set(
     db_path: str,
     request: EvidenceRequest,
     scope: StructuralScope,
+    *,
+    exact_term_placements: bool = False,
 ) -> EvidenceExecutionResult:
     result = scoped_course_set(
         db_path,
@@ -757,6 +759,7 @@ def _execute_course_set(
         semesters=scope.semesters,
         category=scope.category,
         course_targets=scope.course_targets,
+        exact_term_placements=exact_term_placements,
     )
     courses = tuple(result.get("courses", ()))
     if result.get("status") == "no_data":
@@ -1144,11 +1147,17 @@ def _execute_request(
     scope: StructuralScope,
     *,
     credit_targets: Iterable[Mapping[str, Any]] | None = None,
+    exact_term_placements: bool = False,
 ) -> EvidenceExecutionResult:
     if request.provenance_required is not True:
         return _result(request, scope, "insufficient_evidence", primitive_state="provenance_required")
     if request.kind == "course_set":
-        return _execute_course_set(db_path, request, scope)
+        return _execute_course_set(
+            db_path,
+            request,
+            scope,
+            exact_term_placements=exact_term_placements,
+        )
     if request.kind == "placement_facts":
         return _execute_placement(db_path, request, scope)
     if request.kind == "credit_facts":
@@ -1173,17 +1182,16 @@ def _execute_materialized_request(
     scope: StructuralScope,
     *,
     credit_targets: Iterable[Mapping[str, Any]] | None = None,
+    exact_term_placements: bool = False,
 ) -> EvidenceExecutionResult:
     """Execute one concrete scope without affecting sibling partitions."""
     try:
-        if credit_targets is None:
-            return _execute_request(db_path, request, scope)
-        return _execute_request(
-            db_path,
-            request,
-            scope,
-            credit_targets=credit_targets,
-        )
+        kwargs: dict[str, Any] = {}
+        if credit_targets is not None:
+            kwargs["credit_targets"] = credit_targets
+        if exact_term_placements:
+            kwargs["exact_term_placements"] = True
+        return _execute_request(db_path, request, scope, **kwargs)
     except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError, KeyError):
         return _result(
             request,
@@ -1534,12 +1542,25 @@ def execute_evidence_plan(
                     if request.kind == "credit_facts" and request.course_targets
                     else None
                 )
+                exact_term_placements = (
+                    request.kind == "course_set"
+                    and request.scope.category is None
+                    and bool(request.scope.years)
+                    and bool(request.scope.semesters)
+                    and not request.scope.course_targets
+                    and not any(
+                        dependent.kind == "topic_matches"
+                        and request.request_id in dependent.depends_on
+                        for dependent in plan.requests
+                    )
+                )
                 request_results = [
                     _execute_materialized_request(
                         db_path,
                         request,
                         scope,
                         credit_targets=credit_targets,
+                        exact_term_placements=exact_term_placements,
                     )
                     for scope in scopes
                 ]
