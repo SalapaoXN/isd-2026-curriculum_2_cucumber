@@ -505,6 +505,13 @@ New refactor regressions: 0
 
 จึงไม่ควรตีความว่า test suite ปัจจุบัน clean 100% แต่ checkpoint restructure ไม่ได้เพิ่ม regression ใหม่
 
+Post-fix validation (final semester/elective work, code commit `2f7a0f2`):
+focused executor + QA + answer validation passes 273/273 with no new focused
+regression observed. Live smoke confirmed a plain exact-term query returns only
+the curriculum table placements, while an explicit elective query retains
+flexible elective candidates. The full suite was not rerun after these fixes,
+so the snapshot above (17 known failures, not all green) still stands.
+
 ---
 
 ## 15. ข้อจำกัดปัจจุบัน

@@ -80,7 +80,7 @@ identical similarity evidence rows.
 ## Final frozen / validated state
 
 - **Runtime DB** (`cucumber_outputs/runtime/curriculum.db`, built by
-  `python -m rag.build_index` from `outputs/llm/*_corrected.json`,
+  `python -m rag.build_index` from `data/output/final/*_corrected.json`,
   8 documents): 841 placements = 841 corrected records,
   provenance complete (841/841 placements, 816/816 courses),
   57 prerequisites (52 resolved, 3 group-based, 2 raw-only).
@@ -101,9 +101,10 @@ identical similarity evidence rows.
 
 ## Relationship to the submission and runtime inputs
 
-- `outputs/llm/*_corrected.json` is the corrected downstream corpus
+- `data/output/final/*_corrected.json` is the corrected downstream corpus
   and the RAG source of truth; `cucumber_outputs/runtime/curriculum.db`
-  is generated from it deterministically.
+  is generated from it deterministically. (`outputs/llm/` retains only
+  legacy/historical copies and is not production authority.)
 - `submission/` is a separate historical IT-only package
   (212 placements) and is intentionally **not** synchronized to the
   current corrected/runtime layer — no supported propagation path
