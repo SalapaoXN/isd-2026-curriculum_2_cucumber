@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Union
+from typing import Any, Dict, List, Union
 import easyocr
 
 class OCREngine:
@@ -25,4 +25,30 @@ class OCREngine:
         if detail == 0:
             return [text.upper() for text in results]
 
+        if detail == 1:
+            return [self._normalize_detection(result) for result in results]
+
         return results
+
+    @classmethod
+    def _normalize_detection(cls, result: Any) -> Dict[str, Any]:
+        """Normalize EasyOCR detail-1 output without changing its order."""
+        bbox, text, confidence = result
+        return {
+            "text": str(cls._to_builtin(text)),
+            "confidence": cls._to_builtin(confidence),
+            "bbox": cls._to_builtin(bbox),
+        }
+
+    @classmethod
+    def _to_builtin(cls, value: Any) -> Any:
+        """Convert numpy-like EasyOCR values into JSON-safe Python values."""
+        if hasattr(value, "tolist"):
+            value = value.tolist()
+        elif hasattr(value, "item"):
+            value = value.item()
+        if isinstance(value, (list, tuple)):
+            return [cls._to_builtin(item) for item in value]
+        if isinstance(value, dict):
+            return {str(key): cls._to_builtin(item) for key, item in value.items()}
+        return value

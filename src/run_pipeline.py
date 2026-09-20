@@ -2,6 +2,8 @@ import argparse
 from pathlib import Path
 from typing import List
 
+from PIL import Image
+
 from .file_handler import save_ocr_results
 from .ocr_engine import OCREngine
 from .page_metadata import resolve_document_page
@@ -150,9 +152,13 @@ def run_ocr(
         print(f" Processing: {img_file.name}")
         print(f"========================================")
 
-        # Step 1: OCR
-        lines = engine.extract_text(img_file, detail=0)
+        # Step 1: OCR; retain EasyOCR geometry while preserving its order.
+        detections = engine.extract_text(img_file, detail=1)
+        lines = [detection["text"].upper() for detection in detections]
         print(f"   ├─ OCR read {len(lines)} lines")
+
+        with Image.open(img_file) as image:
+            image_width, image_height = image.size
 
         lines = [line.upper() for line in lines]
 
@@ -179,6 +185,9 @@ def run_ocr(
             source_page=page_num,
             program=program,
             document_page=document_page,
+            detections=detections,
+            image_width=image_width,
+            image_height=image_height,
         )
 
     print(f"\n Finished OCR stage! Files saved at: {ocr_output_dir.resolve()}")
