@@ -1,245 +1,574 @@
 # CUCUMBER — System Review
 
-CUCUMBER คือระบบถาม-ตอบข้อมูลหลักสูตรที่เริ่มจากเอกสารต้นฉบับ แล้วค่อย ๆ แปลงข้อมูลให้เป็นโครงสร้างที่ค้นหา ตรวจสอบ และอ้างอิงกลับไปยังแหล่งข้อมูลได้ เป้าหมายของระบบไม่ใช่ให้ LLM อ่าน PDF แล้วตอบเองโดยตรง แต่ให้แต่ละส่วนทำหน้าที่ที่เหมาะสม เช่น OCR ใช้อ่านเอกสาร ฐานข้อมูลใช้เก็บข้อเท็จจริง และ LLM ช่วยทำความเข้าใจคำถามหรือเรียบเรียงคำตอบจากหลักฐานที่ระบบหาได้แล้ว
-
-ระบบปัจจุบันรองรับข้อมูลหลักสูตร AIT, BIT, DSBA, GENED และ IT โดยหลักสูตรที่มีทั้งแผนสหกิจและไม่สหกิจจะรักษาข้อมูลของแต่ละแผนแยกจากกันตลอด pipeline
+เอกสารนี้สรุป architecture และสถานะของระบบบน branch `project_restart` หลัง restructure โดยเน้นสิ่งที่ระบบทำจริงและขอบเขตที่ต้องรักษา
 
 ---
 
-## 1. ภาพรวมการทำงานของระบบ
+## 1. เป้าหมายของระบบ
 
-ระบบแบ่งออกเป็น 3 ช่วงหลัก
+CUCUMBER เป็นระบบถาม-ตอบหลักสูตรที่แยกหน้าที่ออกเป็นชั้นชัดเจน:
+
+```text
+Document
+→ OCR
+→ Structured Curriculum Data
+→ Corrected Canonical Corpus
+→ SQLite + Semantic Index
+→ Query Understanding
+→ Evidence Retrieval
+→ Deterministic Aggregation
+→ Grounded Answer
+→ Provenance
+```
+
+เป้าหมายไม่ใช่ให้ LLM อ่านเอกสารแล้วตอบเอง แต่ให้ LLM ช่วยเฉพาะส่วนที่เหมาะกับภาษา ส่วนข้อเท็จจริงต้องมาจากหลักฐานที่ระบบควบคุมได้
+
+ข้อมูลปัจจุบันครอบคลุม 8 partition:
+
+```text
+AIT/default
+BIT/coop
+BIT/no_coop
+DSBA/coop
+DSBA/no_coop
+GENED/gened
+IT/coop
+IT/no_coop
+```
+
+---
+
+## 2. Source of truth
+
+ลำดับ authority ของข้อมูล production:
 
 ```text
 เอกสารหลักสูตร
-    ↓
-OCR
-    ↓
-Extraction / Consolidation / Correction
-    ↓
-Structured Curriculum Data
-    ↓
-SQLite + Semantic Index
-    ↓
-Question Understanding
-    ↓
-Structured / Semantic / Hybrid Retrieval
-    ↓
-Grounded Answer
-    ↓
-คำตอบภาษาไทย + แหล่งข้อมูล
+→ OCR / extracted evidence
+→ data/output/final/*_corrected.json
+→ cucumber_outputs/runtime/curriculum.db
+→ QA evidence
 ```
 
-แนวคิดสำคัญคือข้อมูลจะถูกสร้างเป็น artifact ในแต่ละขั้น ทำให้ไม่ต้องรัน OCR ใหม่ทุกครั้ง และสามารถตรวจย้อนกลับได้ว่าข้อมูลในขั้นถัดไปมาจากขั้นใด
+ขอบเขตสำคัญ:
+
+- `data/output/final/` คือ canonical final corpus ของ layout ปัจจุบัน
+- `cucumber_outputs/runtime/curriculum.db` เป็น generated runtime artifact
+- `ground_truth/` ใช้สำหรับ evaluation/test ไม่ใช่แหล่งเติมข้อเท็จจริงใน production
+- `tests/reference/ocr/` ใช้ regression test OCR/reference behavior
+- `submission/` เป็น historical submission package และไม่ใช่ runtime source
+
+ระบบต้องไม่ใช้ test fixture หรือ ground truth เพื่อแต่ง factual answer
 
 ---
 
-## 2. OCR และการเตรียมข้อมูล
+## 3. Data pipeline
 
-### OCR
+entry point หลัก:
 
-เอกสารหลักสูตรถูกแปลงเป็นข้อความก่อน โดยระบบเก็บข้อมูลที่เกี่ยวข้องกับไฟล์และหน้าต้นทางไว้ด้วย เพื่อใช้เป็น provenance ในภายหลัง
+```powershell
+python -m src.pipeline.run --program <program>
+```
 
-ผล OCR จะถูกเก็บใน `outputs/ocr/` และสามารถเลือก OCR เฉพาะบางหลักสูตรหรือบางหน้าได้
+stage:
 
-### Extraction และ Consolidation
+```text
+OCR
+→ Extract
+→ Merge
+→ Correct
+→ Evaluate
+→ Build Index (optional)
+```
 
-ข้อความ OCR จะถูกแยกออกเป็นข้อมูลที่มีโครงสร้าง เช่น
+### 3.1 OCR
 
-- รหัสวิชา
-- ชื่อภาษาไทย / ภาษาอังกฤษ
-- หน่วยกิต
-- ปีและภาคเรียน
-- หมวดวิชาและประเภทวิชา
+source image:
+
+```text
+data/input/<program>/
+```
+
+OCR output:
+
+```text
+data/output/ocr/<program>/
+```
+
+OCR เก็บ text พร้อม metadata/provenance ที่ใช้ต่อใน extraction และ QA
+
+### 3.2 Extraction / Merge
+
+ทำหน้าที่แปลง OCR เป็น record เช่น:
+
+- course code
+- ชื่อไทย / อังกฤษ
+- credits
+- category / requirement type
+- year / semester
 - prerequisite
-- คำอธิบายรายวิชา
+- description
 - program / plan
-- provenance ของเอกสารต้นทาง
+- source provenance
 
-จากนั้นข้อมูลจากหลายหน้าจะถูกนำมารวมกันแบบระมัดระวัง โดยพยายามรักษา program, plan, year และ semester เดิมไว้ ไม่รวมข้อมูลข้ามแผนหรือข้ามหลักสูตรโดยอัตโนมัติ
+การ merge ต้องรักษา identity ของ program, plan, year, semester และ course ไม่ให้ปนข้าม partition
 
-### Correction และ Evaluation
+intermediate data จะใช้ temporary directory โดย default ถ้าต้องการ inspect ให้ใช้:
 
-หลัง extraction ระบบมีขั้นตอน correction สำหรับแก้ข้อความบางส่วน โดยยังรักษาข้อมูลต้นทางและบันทึกการแก้ไขไว้ ข้อมูลที่ผ่านขั้นตอนนี้จะอยู่ใน `outputs/llm/*_corrected.json`
+```powershell
+python -m src.pipeline.run --program it --keep-intermediates
+```
 
-ไฟล์ corrected เหล่านี้คือข้อมูลต้นทางหลักของระบบ RAG/QA และสามารถประเมินเทียบกับ Ground Truth ด้วย metric เช่น CER, WER และ course-record coverage
+### 3.3 Correction
 
----
+LLM correction ทำงานหลัง consolidate แล้ว และเขียน final data ไปที่:
 
-## 3. Runtime Database และ RAG
+```text
+data/output/final/
+```
 
-เมื่อข้อมูลหลักสูตรพร้อมแล้ว จะสร้าง runtime database ด้วย
+ผลหลัก:
+
+```text
+*_corrected.json
+*_corrections.json
+```
+
+### 3.4 Evaluation
+
+pipeline เปิด evaluation โดย default และสามารถปิดด้วย:
+
+```text
+--skip-eval
+```
+
+reports อยู่ใต้ `reports/`
+
+### 3.5 Index
+
+สร้าง runtime DB ด้วย:
 
 ```powershell
 python -m rag.build_index
 ```
 
-ผลลัพธ์คือ
+หรือให้ end-to-end pipeline ต่อถึง index:
+
+```powershell
+python -m src.pipeline.run --program it --with-index
+```
+
+---
+
+## 4. Runtime data model
+
+runtime ใช้ฐานข้อมูลเดียว:
 
 ```text
 cucumber_outputs/runtime/curriculum.db
 ```
 
-ฐานข้อมูลนี้ไม่ได้มีแค่ข้อมูลรายวิชาแบบตาราง แต่ยังเก็บข้อมูลที่ใช้กับ semantic retrieval ด้วย ทำให้ระบบสามารถตอบได้ทั้งคำถามที่ต้องการข้อเท็จจริงตรง ๆ และคำถามที่ต้องค้นจากความหมายของเนื้อหารายวิชา
+ภายในมี relational curriculum data และ semantic chunks
 
-### Structured Retrieval
+validated snapshot ล่าสุด:
 
-เหมาะกับคำถามที่มีโครงสร้างชัด เช่น
+- programs / plan partitions: 8
+- courses: 816
+- plan placements: 841
+- prerequisites: 57
+- semantic chunks: 1667
 
-- วิชานี้ชื่ออะไร
-- มีกี่หน่วยกิต
-- เรียนปีไหน / เทอมไหน
-- ปี 2 เทอม 1 มีวิชาอะไรบ้าง
-- ต้องเรียนวิชาอะไรมาก่อน
-- วิชานี้อยู่ในหลักสูตรอะไร
+identity ที่ต้องรักษา:
 
-คำตอบประเภทนี้พยายามใช้ข้อมูลจาก SQLite แบบ deterministic ก่อน เพื่อไม่ให้ LLM เดาข้อเท็จจริงเอง
+```text
+program
+plan
+year
+semester
+course
+placement
+source provenance
+```
 
-### Semantic Retrieval
-
-ใช้กับคำถามที่ต้องดูความหมายของเนื้อหารายวิชา เช่น
-
-- วิชานี้เรียนเกี่ยวกับอะไร
-- มีวิชาเกี่ยวกับ database อะไรบ้าง
-- มีรายวิชาที่เกี่ยวข้องกับ network หรือ machine learning หรือไม่
-
-ระบบจะจำกัด candidate จากโครงสร้างก่อน แล้วค่อยใช้ vector similarity กับคำอธิบายรายวิชาภายใน scope ที่เกี่ยวข้อง แทนการค้นทั้งฐานข้อมูลแล้วค่อยกรองภายหลัง
-
-### Hybrid QA
-
-คำถามหนึ่งข้ออาจต้องใช้ทั้ง structured และ semantic evidence เช่น ขอทั้งช่วงที่เรียนและเนื้อหารายวิชา ระบบจึงสามารถรวมผลจากหลาย operation แล้วสร้างคำตอบเดียวได้
-
-ผู้ใช้ไม่ต้องเลือกเองว่าจะใช้ structured, semantic หรือ hybrid
+course หนึ่งตัวสามารถมีหลาย placement ได้ จึงห้ามถือว่า course identity เท่ากับตำแหน่งในแผนเรียน
 
 ---
 
-## 4. การเข้าใจคำถามและ Grounding
+## 5. QA architecture
 
-ก่อนค้นข้อมูล ระบบจะวิเคราะห์คำถามเพื่อหาองค์ประกอบ เช่น
+user-facing entry point:
+
+```powershell
+python scripts/ask.py
+```
+
+หรือ:
+
+```powershell
+python scripts/ask.py "<question>"
+```
+
+flow หลัก:
+
+```text
+Question
+  ↓
+Deterministic Query Parse
+  ↓
+Scope Resolution
+  ↓
+Intent Interpretation (เมื่อจำเป็น)
+  ↓
+Evidence Plan
+  ↓
+Evidence Executor
+  ├─ Structured / SQLite
+  ├─ Constrained Semantic Retrieval
+  └─ Guarded SQL Fallback
+  ↓
+Deterministic Aggregation / Judgement Evidence
+  ↓
+Grounded Claims
+  ↓
+Natural-language Answer
+  ↓
+Critical-fact validation / deterministic fallback
+  ↓
+Provenance
+```
+
+---
+
+## 6. Deterministic parse และ scope resolution
+
+ระบบพยายามแยกสิ่งต่อไปนี้จากคำถาม:
 
 - program
 - plan
+- year
+- semester
 - course code / course name
-- year / semester
-- operation ที่ผู้ใช้ต้องการ
-- topic สำหรับ semantic search
+- operation
+- topic
+- comparison / judgement intent
 
-ระบบไม่พยายามเดา program จาก prefix ของรหัสวิชา และถ้าคำถามต้องใช้บริบทของหลักสูตรแต่ยังระบุไม่พอ ระบบจะขอให้ผู้ใช้ระบุเพิ่มแทนการเลือกให้เอง
+หลักสำคัญคือ scope ต้องมาจากข้อมูลที่พิสูจน์ได้
 
-หลัง retrieval ข้อมูลจะถูกแปลงเป็น `GroundedClaim` ก่อนสร้างคำตอบ ทำให้ชั้น answer ไม่ควรสร้างข้อเท็จจริงใหม่เอง แต่ทำหน้าที่เรียบเรียงข้อมูลที่ผ่านการ resolve, retrieve และ aggregate มาแล้ว
+ระบบไม่ควร:
 
-กรณีไม่มีข้อมูล หลักฐานไม่พอ หรือ scope ขัดแย้ง ระบบจะ fail closed เช่นตอบว่าไม่พบข้อมูลหรือขอให้ระบุหลักสูตร/แผนให้ชัดเจนขึ้น แทนการให้ LLM แต่งคำตอบขึ้นมา
+- เดา program จาก prefix ของ course code
+- เลือก plan ให้เองเมื่อมีหลายแผนและคำถามต้องแยกแผน
+- ขยาย year/semester นอกคำถามโดยไม่มี evidence contract รองรับ
+- ใช้ candidate unanimity เป็นเหตุผลสร้าง program fact
+
+ถ้า scope ยังไม่ชัด ระบบต้อง clarify หรือ fail closed
 
 ---
 
-## 5. การสร้างคำตอบให้ผู้ใช้
+## 7. Intent Interpreter
 
-interface หลักคือ
+สำหรับ wording ที่ deterministic parser เข้าใจไม่ครบ ระบบมี intent layer ช่วยตีความภาษาธรรมชาติ
 
-```powershell
-python ask.py
-```
+intent ที่รองรับครอบคลุมเช่น:
 
-หรือถามครั้งเดียวด้วย
+- topic course search
+- course description
+- placement
+- prerequisite
+- similarity
+- course / plan comparison
+- workload evidence
+- preference / recommendation evidence
 
-```powershell
-python ask.py "DSBA ปี 1 เทอม 1 ลงเรียนอะไรบ้าง"
-```
+ข้อจำกัดของ intent model:
 
-flow โดยสรุปคือ
+- output เป็น **proposal** เท่านั้น
+- ไม่ใช่ factual curriculum evidence
+- ห้ามสร้าง SQL
+- ห้ามสร้าง database ID
+- ห้ามสร้าง credits / placements / prerequisites เป็นข้อเท็จจริง
+- ห้ามสร้าง final answer หรือ recommendation conclusion
+- authoritative scope ต้องผ่าน deterministic validation ก่อน execution
+
+ดังนั้น LLM ช่วยเข้าใจภาษา แต่ไม่ได้มีสิทธิ์เปลี่ยน facts ของหลักสูตร
+
+---
+
+## 8. Evidence planning และ retrieval
+
+### 8.1 Structured evidence
+
+เหมาะกับ:
+
+- list / count
+- existence
+- credits / sum credits
+- placement / earliest placement
+- prerequisite
+- plan comparison
+
+ข้อเท็จจริงอ่านจาก canonical SQLite records
+
+### 8.2 Semantic evidence
+
+ใช้เมื่อคำถามเกี่ยวกับความหมายหรือเนื้อหารายวิชา เช่น:
 
 ```text
-คำถาม
-→ resolve ขอบเขตและสิ่งที่ต้องหา
-→ ดึงข้อมูลจากฐานข้อมูล / semantic index
-→ aggregate หลักฐาน
-→ สร้าง deterministic grounded answer
-→ LLM ช่วยเรียบเรียงภาษาไทยเมื่อเหมาะสม
-→ ตรวจ critical facts
-→ แสดงคำตอบพร้อมแหล่งข้อมูล
+มีวิชาเกี่ยวกับ data engineering ไหม
+วิชาไหนเรียนคล้าย machine learning
 ```
 
-LLM ในขั้นสุดท้ายมีหน้าที่ช่วยให้คำตอบอ่านเป็นธรรมชาติขึ้น แต่ข้อเท็จจริงสำคัญ เช่น รหัสวิชา หลักสูตร แผน ปี เทอม หน่วยกิต และ prerequisite จะถูกตรวจเทียบกับ grounded content หากผลจาก LLM ไม่ผ่าน ระบบสามารถกลับไปใช้ deterministic answer ได้
+embedding model:
 
-ผลลัพธ์ใน terminal จะแสดงทั้งคำตอบและ provenance เช่น
+```text
+sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+```
+
+semantic search ต้องจำกัด structural identity ก่อน ไม่ควรค้นทั้งฐานแล้วค่อยพยายามแก้ scope ภายหลัง
+
+### 8.3 Guarded SQL fallback
+
+SQL fallback ใช้เฉพาะเมื่อ structured intent เหมาะสมแต่ wording ไม่เข้า deterministic rule เดิม
+
+contract สำคัญ:
+
+- read-only
+- table/view allowlist
+- deterministic scope เป็น authoritative constraint
+- SQL เลือก candidate identity เท่านั้น
+- course query ควรคืน `course_id`
+- placement query ควรคืน `placement_id`
+- ห้ามให้ SQL ตัดสิน COUNT / SUM / AVG / MIN / MAX เป็น final fact
+
+หลัง SQL เลือก candidate แล้ว ระบบ hydrate canonical record และคำนวณ aggregate แบบ deterministic
+
+---
+
+## 9. Aggregation และ judgement
+
+ค่าที่คำนวณได้ เช่น:
+
+- จำนวนวิชา
+- existence
+- total credits
+- earliest placement
+- plan comparison
+- workload evidence
+- preference evidence
+- direct prerequisite burden
+
+ต้องคำนวณจาก evidence ที่ canonical แล้ว
+
+ตัวอย่างคำถาม:
+
+```text
+IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง
+```
+
+ระบบใช้ topic evidence + direct prerequisite evidence แล้วให้ answer layer อธิบายเชิงคุณภาพจากข้อมูลที่มี ไม่กำหนด threshold ว่า "น้อย" ด้วยการเดา และไม่ใช้ transitive prerequisite depth แทน direct burden
+
+---
+
+## 10. Grounded answer
+
+retrieval result ไม่ถูกส่งตรงให้ผู้ใช้ทันที แต่ถูกแปลงเป็น grounded claims ก่อน
+
+สถานะหลัก:
+
+```text
+complete
+valid_empty
+insufficient_evidence
+```
+
+หลักการ:
+
+- `complete` — evidence ครบพอสำหรับ claim
+- `valid_empty` — query ถูกต้องแต่ไม่มี record ตามเงื่อนไข
+- `insufficient_evidence` — หลักฐานไม่พอสำหรับข้อสรุป
+
+empty ไม่ได้แปลว่า "ทั้งหมด" และห้ามใช้ missing evidence เป็นข้อสรุปเชิงลบ
+
+answer model มีหน้าที่เรียบเรียง grounded facts ให้เป็นภาษาไทยอ่านง่าย เมื่อผลจาก LLM ไม่ผ่าน critical-fact validation ระบบสามารถใช้ deterministic answer แทน
+
+---
+
+## 11. LLM ใช้ตรงไหน
+
+ระบบเป็น **deterministic-first, LLM-assisted**
+
+LLM มีสาม seam หลัก:
+
+1. Intent interpretation — ช่วยแปล wording แปลกให้เป็น intent proposal
+2. Structured fallback — ช่วยเขียน bounded candidate-selector SQL
+3. Answer rendering — ช่วยเรียบเรียง grounded evidence
+
+ส่วนที่ LLM ไม่ควรเป็น authority:
+
+- จำนวนวิชา
+- ผลรวมหน่วยกิต
+- course identity
+- program / plan identity
+- year / semester
+- prerequisite facts
+- provenance
+
+ภายใน QA engine คำถามง่ายบางประเภทสามารถใช้ deterministic path โดยไม่จำเป็นต้องเรียก model แต่ CLI `scripts/ask.py` ปัจจุบันยัง initialize Gemini provider ตอนเริ่ม จึงต้องมี `GEMINI_API_KEY`
+
+---
+
+## 12. Provenance และ fail-closed behavior
+
+คำตอบควรตรวจย้อนกลับถึงหลักสูตรและหน้า source ได้
+
+CLI แสดงรูปแบบ:
 
 ```text
 ตอบ: ...
-
 แหล่งข้อมูล:
-เล่มหลักสูตร: DSBA
-หน้า: 26, 33, ...
+เล่มหลักสูตร: IT
+หน้า: ...
 ```
 
-จึงสามารถตรวจย้อนกลับได้ว่าคำตอบอ้างอิงจากเอกสารส่วนใด
+กรณีที่ไม่ควรตอบแบบเดา:
+
+- program ไม่ชัด
+- plan ไม่ชัดและมีผลต่อคำตอบ
+- scope ขัดแย้ง
+- candidate ไม่ครบ
+- evidence หาย
+- query อยู่นอก domain
+
+ระบบจะคืน clarification, `valid_empty`, `insufficient_evidence` หรือ unsupported state ตามกรณี
 
 ---
 
-## 6. จุดเด่นของการออกแบบ
+## 13. ความสามารถที่ระบบรองรับปัจจุบัน
 
-### Deterministic-first, LLM-assisted
+### Factual
 
-ระบบใช้ฐานข้อมูลและกฎ deterministic เป็นแหล่งตัดสินข้อเท็จจริงหลัก ส่วน LLM ถูกใช้เฉพาะจุดที่เหมาะสม เช่น เข้าใจภาษาธรรมชาติ ช่วย semantic retrieval หรือเรียบเรียงคำตอบ
+```text
+06016414 กี่หน่วยกิต
+IT ปี 2 เทอม 1 มีวิชาอะไรบ้าง
+06016414 เรียนช่วงไหน
+06016414 ต้องเรียนอะไรมาก่อน
+```
 
-### รักษา Scope ของหลักสูตร
+### Semantic
 
-program, plan, year และ semester ถูกเก็บเป็นส่วนหนึ่งของ identity ของข้อมูล ทำให้ลดโอกาสนำข้อมูลจากคนละแผนหรือคนละหลักสูตรมาปนกัน
+```text
+IT มีวิชาเกี่ยวกับ database อะไรบ้าง
+มีวิชาไหนเนื้อหาคล้าย data mining
+```
 
-### Grounding และ Provenance
+### Comparison
 
-คำตอบถูกสร้างจาก evidence ที่ระบบหาได้จริง และเก็บความสัมพันธ์กลับไปยัง source page เพื่อให้ตรวจสอบได้
+```text
+06016414 กับ 06016465 ต่างกันตรงไหน
+แผน IT coop กับ no_coop ปี 4 ต่างกันยังไง
+```
 
-### Fail Closed
+### Advisory / preference evidence
 
-ถ้าหลักฐานไม่พอ ระบบจะไม่เดา เช่น ถ้าคำถามกำกวมระหว่างหลายหลักสูตร หรือไม่มีข้อมูลตามเงื่อนไข ระบบจะคืนสถานะที่เหมาะสมแทนการสร้างคำตอบที่ดูน่าเชื่อถือแต่ไม่มีหลักฐาน
+```text
+ถ้าอยากเน้น data มีวิชาไหนที่ prereq ไม่เยอะบ้าง
+ปีไหนเทอมไหน workload สูงกว่า
+```
+
+คำถาม advisory ยังต้อง grounded กับ evidence จริง ระบบไม่ได้มี authority ให้ LLM สร้าง ranking หรือ curriculum fact เอง
 
 ---
 
-## 7. Evaluation และ Testing
+## 14. Validation snapshot
 
-โปรเจกต์มีการทดสอบหลายระดับ ได้แก่
+checkpoint หลัง restructure และ OCR reference restoration:
 
-- OCR / extraction regression tests
-- structured query tests
-- query parsing และ resolution tests
-- semantic retrieval tests
-- aggregation และ grounded-answer tests
-- hybrid QA tests
-- CLI tests
-- Gold Questions สำหรับวัดคำตอบแบบ end-to-end
+```text
+Full unittest suite: 1302
+PASS:                1285
+Known FAIL:             17
+ERROR:                   0
 
-การประเมินไม่ได้ดูเฉพาะว่าคำตอบสุดท้ายดูดีหรือไม่ แต่พยายามแยกว่า error เกิดที่ข้อมูล, retrieval, aggregation หรือ answer layer เพื่อให้แก้ปัญหาได้ตรงจุด
+V6 focused gate:      304/304 PASS
+OCR gate:              15/15 PASS
+OCR reference gate:    19/19 PASS
+New refactor regressions: 0
+```
+
+17 failures ที่เหลือเป็น known pre-existing/frozen expectations ไม่ใช่ regression จาก restructure:
+
+- query-spec frozen fixtures: `nq_016`, `nq_020`, `nq_025`, `nq_028`, `nq_029`
+- answer-rendering expectations
+- context-program-topic expectation
+- course-placement integration expectations
+- exact-course-candidate expectations
+
+จึงไม่ควรตีความว่า test suite ปัจจุบัน clean 100% แต่ checkpoint restructure ไม่ได้เพิ่ม regression ใหม่
 
 ---
 
-## 8. ข้อจำกัดปัจจุบัน
+## 15. ข้อจำกัดปัจจุบัน
 
-ระบบยังเป็น prototype สำหรับงานหลักสูตรและใช้งานผ่าน terminal เป็นหลัก ยังไม่มี web UI สำหรับผู้ใช้ทั่วไป
+1. ระบบยังเป็น terminal prototype ไม่มี web UI
+2. ความสามารถถูกจำกัดด้วยข้อมูลที่อยู่ใน canonical corpus
+3. semantic retrieval ขึ้นกับคุณภาพ course description และ similarity behavior
+4. CLI ต้องใช้ Gemini API key
+5. interactive CLI เป็น loop ของคำถามแต่ละข้อ ไม่ใช่ conversation-memory layer เต็มรูปแบบ
+6. คำถามที่กำกวมมากยังอาจต้องระบุ program/plan/course เพิ่ม
+7. LLM wording อาจเปลี่ยนระหว่าง run แต่ critical facts ต้องยัง grounded
+8. cold semantic path อาจช้าครั้งแรกเพราะต้องโหลด embedding model
 
-ความสามารถของระบบขึ้นอยู่กับหน้าหลักสูตรที่ถูกนำเข้า pipeline ถ้าข้อมูลบางส่วนไม่ได้อยู่ใน source scope ระบบก็จะไม่สามารถตอบข้อมูลส่วนนั้นได้
+---
 
-semantic search ยังขึ้นอยู่กับคุณภาพของคำอธิบายรายวิชาและ threshold ของ similarity ดังนั้นคำถาม topic ที่กว้างมากอาจได้ candidate มากหรือน้อยเกินไปได้ ส่วนคำถามที่เป็น structured fact จะมีความแน่นอนสูงกว่าเพราะอ่านจากฐานข้อมูลโดยตรง
+## 16. วิธีใช้ที่แนะนำ
 
-นอกจากนี้ LLM final polish อาจเรียบเรียงรูปประโยคต่างกันในแต่ละครั้ง แม้ grounded facts จะเหมือนเดิม ซึ่งเป็นส่วน presentation ไม่ใช่แหล่งข้อเท็จจริงของระบบ
+ถ้าต้องการแค่ถามระบบ:
+
+```powershell
+python scripts/ask.py
+```
+
+ถ้าแก้ canonical final JSON:
+
+```powershell
+python -m rag.build_index
+python scripts/ask.py
+```
+
+ถ้าจะทดสอบ pipeline ก่อนรันจริง:
+
+```powershell
+python -m src.pipeline.run --program it --dry-run
+```
+
+ถ้าจะสร้างข้อมูลใหม่ตั้งแต่ OCR จนถึง index:
+
+```powershell
+python -m src.pipeline.run --program it --with-index
+```
+
+ถ้าจะรัน regression suite:
+
+```powershell
+python -m unittest discover -s tests -t .
+```
 
 ---
 
 ## สรุป
 
-CUCUMBER ไม่ได้เป็นเพียง chatbot ที่ส่งเอกสารให้ LLM แล้วถามตอบ แต่เป็น pipeline ที่แยกหน้าที่ของ OCR, structured data, database, semantic retrieval, deterministic logic และ LLM ออกจากกันอย่างชัดเจน
+CUCUMBER เป็น curriculum QA pipeline ที่ใช้ LLM เป็นผู้ช่วยด้านภาษา ไม่ใช่แหล่งข้อเท็จจริง
 
-โครงสร้างหลักของระบบคือ
+แกนของระบบคือ:
 
 ```text
-Document
-→ OCR
-→ Structured & Corrected Data
-→ SQLite / Semantic Index
-→ Query Understanding
-→ Scoped Retrieval
-→ Grounded Claims
-→ Verified Natural-language Answer
-→ Provenance
+canonical curriculum data
++ deterministic scope
++ bounded retrieval
++ explicit evidence
++ grounded claims
++ provenance
++ fail-closed behavior
 ```
 
-จุดสำคัญที่สุดของระบบคือ **คำตอบต้องอ้างอิงจากข้อมูลหลักสูตรที่ระบบมีจริง ตรวจย้อนกลับได้ และไม่เดาข้อเท็จจริงเมื่อหลักฐานไม่เพียงพอ**
+เมื่อแก้หรือเพิ่มความสามารถใหม่ ควรรักษา invariant เหล่านี้ก่อนเพิ่มความฉลาดของ model เสมอ

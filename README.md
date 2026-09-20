@@ -1,514 +1,502 @@
-# isd-2026-curriculum_2_cucumber
+# CUCUMBER
 
-We do OCR curriculum and some LLM with model name **CUCUMBER**
+**P2 LLM ถาม-ตอบหลักสูตร**
 
-Project: **P2 LLM ถาม-ตอบหลักสูตร**
+CUCUMBER คือระบบแปลงเอกสารหลักสูตรเป็นข้อมูลที่มีโครงสร้าง แล้วนำไปสร้างระบบถาม-ตอบภาษาไทยที่ตรวจย้อนกลับถึงแหล่งข้อมูลได้
 
 Member:
-1. 67070049 Nattachai Kaewchum >> Discord: GoodDee
-2. 67070063 Thanachin Chukiatchai >> Discord: วันลพ มีงบมาก
-3. 67070103 Pongsakorn Panyacom >> Discord: เบบี๋คือดวงใจ
-
-## CUCUMBER
-
-CUCUMBER คือระบบที่นำเอกสารหลักสูตรมาแปลงเป็นข้อมูลที่มีโครงสร้าง และใช้ข้อมูลนั้นตอบคำถามเกี่ยวกับหลักสูตรเป็นภาษาไทย
-
-เป้าหมายหลักคือให้คำตอบอ้างอิงกลับไปยังข้อมูลต้นทางได้ เพื่อให้ตรวจสอบได้ว่าคำตอบมาจากหน้าใดหรือไฟล์ใดของหลักสูตร
+1. 67070049 Nattachai Kaewchum — Discord: GoodDee
+2. 67070063 Thanachin Chukiatchai — Discord: วันลพ มีงบมาก
+3. 67070103 Pongsakorn Panyacom — Discord: เบบี๋คือดวงใจ
 
 ---
 
-## Architecture
+## 1. ระบบทำอะไร
 
-ระบบแบ่งการทำงานออกเป็นหลายช่วง โดยแต่ละช่วงจะสร้างไฟล์ผลลัพธ์เก็บไว้
-
-ข้อดีคือ ถ้าทำขั้นตอนหนึ่งเสร็จแล้ว สามารถเริ่มทำต่อจากไฟล์ที่มีอยู่ได้ โดยไม่ต้องรัน OCR ใหม่ทุกครั้ง
+ภาพรวมการทำงาน:
 
 ```text
-Part 1 — OCR
-data/input/
-  -> python -m src.pipeline.tools.ocr.cli --prefix <program>
-  -> data/output/ocr/
-
-Part 2 — Data preparation
-data/output/ocr/
-  -> python -m src.pipeline.tools.preparation.tool
-  -> data/output/extracted/
-  -> data/output/consolidated/
-  -> python -m src.pipeline.tools.correction.corrector
-  -> data/output/final/
-  -> python -m src.pipeline.tools.evaluation.evaluate
-  -> reports/evaluation/
-
-Part 3 — RAG / QA
-data/output/final/*_corrected.json
-  -> python -m rag.build_index
-  -> cucumber_outputs/runtime/curriculum.db
-  -> python scripts/ask.py
+เอกสารหลักสูตร
+→ OCR
+→ Extraction / Merge
+→ LLM Correction
+→ Canonical JSON
+→ SQLite + Semantic Index
+→ Natural-language QA
+→ Grounded Answer + Provenance
 ```
 
-สรุปง่าย ๆ คือ
+แนวคิดหลักคือ **ข้อเท็จจริงมาจากข้อมูลหลักสูตรและฐานข้อมูล ไม่ใช่ให้ LLM เดาเอง**
 
-```text
-เอกสารภาพ
-→ OCR อ่านข้อความ
-→ จัดข้อมูลหลักสูตร
-→ แก้ข้อความบางส่วน
-→ ตรวจผล
-→ สร้างฐานข้อมูล
-→ ถามคำถามกับระบบ
-```
+ระบบรองรับข้อมูล:
+
+- AIT
+- BIT — `coop`, `no_coop`
+- DSBA — `coop`, `no_coop`
+- GENED — `gened`
+- IT — `coop`, `no_coop`
+
+แต่ละ program/plan ถูกแยก identity ออกจากกันตลอด pipeline เพื่อลดการปนข้อมูลข้ามหลักสูตรหรือข้ามแผน
 
 ---
 
-## Installation
+## 2. ใช้งานเร็วที่สุด
 
-ให้รันคำสั่งจาก root ของ repository
+### 2.1 สร้าง environment
 
-สร้าง virtual environment และติดตั้ง dependency:
+ต้องใช้ Python **3.10 ขึ้นไป**
+
+PowerShell:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt -r requirements-rag.txt
+python -m pip install -r requirements.txt
 ```
 
-สำหรับ macOS/Linux ใช้:
+macOS/Linux:
 
 ```bash
+python -m venv .venv
 source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-ถ้าจะใช้ขั้นตอนที่เรียก Gemini ให้สร้างไฟล์ `.env` ในเครื่อง:
+### 2.2 ตั้งค่า Gemini
+
+สร้างไฟล์ `.env` ที่ root ของ repository:
 
 ```dotenv
-GEMINI_API_KEY=...
-HF_TOKEN=...
+GEMINI_API_KEY=your_key_here
 ```
 
-ความหมายของแต่ละตัว:
+`scripts/ask.py` สร้าง Gemini provider ตอนเริ่มโปรแกรม จึงต้องมี `GEMINI_API_KEY`
 
-- `GEMINI_API_KEY` ใช้ในขั้นตอนแก้ข้อความด้วย LLM และการสร้างคำตอบใน `scripts/ask.py`
-- `HF_TOKEN` ไม่จำเป็นเสมอไป และใช้เฉพาะบางกรณีที่เกี่ยวข้องกับโมเดลจาก Hugging Face
-
-ห้าม commit ไฟล์ `.env` หรือเผยแพร่ API key
-
-บางโมเดลที่ใช้กับ OCR หรือ RAG อาจถูกดาวน์โหลดอัตโนมัติในครั้งแรกที่ใช้งาน
-
----
-
-## Part 1: OCR
-
-OCR เป็นขั้นตอนที่ใช้เวลาและทรัพยากรค่อนข้างมาก จึงแยกออกมาเป็นขั้นตอนของตัวเอง
-
-ระบบจะอ่านภาพจาก:
+ปัจจุบัน provider ใช้โมเดล:
 
 ```text
-data/input/<program>/
+gemini-3.5-flash-lite
 ```
 
-แล้วบันทึกผล OCR ลงที่:
+ห้าม commit `.env` หรือ API key
 
-```text
-data/output/ocr/<program>/
-```
+### 2.3 ถามคำถาม
 
-คำสั่งปกติ:
+> หลัง restructure ไม่มี `ask.py` ที่ root แล้ว
 
-```powershell
-python -m src.pipeline.tools.ocr.cli --prefix it
-```
-
-ถ้าต้องการเลือกเฉพาะบางหน้า:
-
-```powershell
-python -m src.pipeline.tools.ocr.cli --prefix it --pages 32-38
-```
-
-ตัวอย่าง:
-
-```text
---prefix it
-```
-
-หมายถึง
-
-```text
-data/input/it/
-→ data/output/ocr/it/
-```
-
-prefix ที่รองรับ:
-
-- `ait`
-- `bit`
-- `dsba`
-- `gened`
-- `it`
-
-ถ้าไม่ใส่ `--pages` ระบบจะ OCR ทุกภาพที่มีใน program นั้น
-
-ถ้าต้องการใช้ CPU แทน GPU:
-
-```powershell
-python -m src.pipeline.tools.ocr.cli --prefix it --no-gpu
-```
-
-การเลือก program และ plan สำหรับการเตรียมข้อมูลจะทำใน `prepare_data.py` ไม่ได้ทำในคำสั่ง OCR ปกติ
-
-คำสั่งเดิม:
-
-```powershell
-python -m src.pipeline.run ...
-```
-
-ยังสามารถใช้ได้สำหรับ replay หรือ debug โดยเฉพาะ
-
----
-
-## Part 2: Data Preparation
-
-หลังจากมีผล OCR แล้ว ให้รันตามลำดับนี้:
-
-```powershell
-python -m src.pipeline.tools.preparation.tool
-python -m src.pipeline.tools.correction.corrector
-python -m src.pipeline.tools.evaluation.evaluate
-```
-
-### `prepare_data.py`
-
-ไฟล์นี้มีหน้าที่นำผล OCR มาจัดเป็นข้อมูลหลักสูตรที่มีโครงสร้าง
-
-ระบบจะค้นหาโฟลเดอร์ OCR ที่รองรับและมีข้อมูลอยู่จริง แล้วทำขั้นตอน extraction และ merge ตาม program, plan และช่วงหน้าที่กำหนดไว้
-
-ถ้า program ใดไม่มีข้อมูล ระบบจะข้าม program นั้น
-
-ถ้ามีโฟลเดอร์ที่ชื่อไม่ตรงกับ program ที่รองรับ ระบบจะแจ้งให้ทราบ
-
-ขั้นตอนนี้ไม่ทำ:
-
-- OCR
-- LLM correction
-- evaluation
-- RAG
-
-ผลลัพธ์จะถูกเก็บไว้หลัก ๆ ที่:
-
-```text
-data/output/extracted/
-data/output/consolidated/
-```
-
-### `llm_spell_corrector.py`
-
-ขั้นตอนนี้ใช้ LLM ช่วยแก้ข้อความบางส่วนหลังจาก extraction แล้ว
-
-ระบบจะค้นหาไฟล์รูปแบบ:
-
-```text
-data/output/consolidated/**/full/merged_*_full.json
-```
-
-จากนั้นสร้างไฟล์ที่แก้แล้วไว้ที่:
-
-```text
-data/output/final/
-```
-
-ไฟล์สำคัญที่ได้ เช่น:
-
-```text
-*_corrected.json
-*_corrections.json
-```
-
-`*_corrected.json` คือข้อมูลที่แก้แล้ว
-
-`*_corrections.json` คือบันทึกว่ามีการแก้อะไรบ้าง
-
-### `evaluate.py`
-
-ใช้ตรวจคุณภาพของข้อมูลหลังการแก้
-
-ระบบจะอ่าน:
-
-```text
-data/output/final/*_corrected.json
-```
-
-แล้วเปรียบเทียบกับ ground truth ที่กำหนดไว้สำหรับ program/plan นั้น
-
-รายงานจะถูกเก็บที่:
-
-```text
-reports/evaluation/
-```
-
-ตัวอย่าง metric ที่มี:
-
-- CER
-- WER
-- Course-record Coverage Precision
-- Course-record Coverage Recall
-- Course-record Coverage F1
-
-ความหมายแบบง่าย:
-
-- CER/WER ใช้วัดความผิดพลาดของข้อความ
-- Coverage ใช้วัดว่าระบบเก็บ record รายวิชาได้ครบแค่ไหน
-
-Coverage ไม่ได้ใช้วัดว่าคำสะกดถูกหรือผิด
-
----
-
-## Part 3: RAG / QA
-
-ขั้นตอนนี้ใช้ข้อมูลที่ผ่านการแก้แล้วมาสร้างฐานข้อมูลสำหรับระบบถาม-ตอบ
-
-สร้างหรือสร้างใหม่ runtime database:
-
-```powershell
-python -m rag.build_index
-```
-
-ข้อมูลต้นทางของ RAG คือ:
-
-```text
-data/output/final/*_corrected.json
-```
-
-ฐานข้อมูลที่สร้างขึ้นจะอยู่ที่:
-
-```text
-cucumber_outputs/runtime/curriculum.db
-```
-
-`data/output/consolidated/` ไม่ใช่ข้อมูลที่ RAG อ่านโดยตรงในขั้นตอนนี้
-
-### ถามคำถามหนึ่งข้อ
+ถามหนึ่งข้อ:
 
 ```powershell
 python scripts/ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
 ```
 
-### เปิดโหมดถามต่อเนื่อง
+โหมดถามต่อเนื่อง:
 
 ```powershell
 python scripts/ask.py
 ```
 
-ออกจากโหมดถามต่อเนื่องได้ด้วย:
+ออกด้วย:
 
 ```text
 exit
 quit
 ```
 
-หรือ EOF
+ตัวอย่างคำถาม:
 
-ระบบจะเลือกวิธีค้นหาให้อัตโนมัติระหว่าง:
+```text
+IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง
+06016414 กี่หน่วยกิต
+06016414 เรียนปีไหนเทอมไหน
+06016414 ต้องผ่านวิชาอะไรมาก่อน
+มีวิชาเกี่ยวกับ data หรือ database อะไรบ้าง
+แผนสหกิจกับไม่สหกิจของ IT ปี 4 ต่างกันยังไง
+IT ปี 3 อยากเน้น data มีวิชาไหนที่วิชาบังคับก่อนไม่เยอะบ้าง
+```
 
-- `structured`
-- `semantic`
-- `hybrid`
+ผลลัพธ์ปกติ:
 
-ผู้ใช้ไม่ต้องเลือกเอง
+```text
+ถาม: ...
+ตอบ: ...
+แหล่งข้อมูล:
+เล่มหลักสูตร: ...
+หน้า: ...
+```
 
-ความหมายแบบง่าย:
+ถ้าหลักฐานไม่พอ ระบบจะขอให้ระบุ program/plan เพิ่ม หรือคืนสถานะไม่พบข้อมูลแทนการเดา
 
-- **structured** ใช้กับข้อมูลที่เป็นช่องชัดเจน เช่น รหัสวิชา ปี เทอม หน่วยกิต หรือ prerequisite
-- **semantic** ใช้ค้นหาจากความหมายของเนื้อหารายวิชา เช่น ถามว่าเรียนเกี่ยวกับอะไร
-- **hybrid** ใช้ทั้งสองแบบร่วมกัน
+---
 
-ก่อนใช้ `scripts/ask.py` ต้องมี runtime database อยู่ก่อน
+## 3. Runtime database
 
-ถ้ายังไม่มี ให้รัน:
+QA ใช้ฐานข้อมูล:
+
+```text
+cucumber_outputs/runtime/curriculum.db
+```
+
+repository ปัจจุบันมี runtime database อยู่แล้ว จึงถามระบบได้ทันทีหลังติดตั้ง dependency และตั้งค่า `.env`
+
+ถ้าแก้ข้อมูลใน `data/output/final/` หรือไม่มี database ให้สร้างใหม่ด้วย:
 
 ```powershell
 python -m rag.build_index
 ```
 
-`scripts/ask.py` จะไม่สร้างฐานข้อมูลให้เองโดยอัตโนมัติ
-
-รูปแบบ output ปกติ:
+RAG จะอ่านไฟล์:
 
 ```text
-ถาม: <question>
-ตอบ: <final answer>
-แหล่งข้อมูล: <existing provenance/evidence>
+data/output/final/*_corrected.json
 ```
 
-ถ้าหลักสูตรไม่มีข้อมูลที่ถาม ระบบจะตอบข้อความนี้:
-
-```text
-ไม่พบข้อมูลนี้ในเล่มหลักสูตร
-```
+แล้วสร้าง relational data + semantic chunks ไว้ใน database เดียวกัน
 
 ---
 
-## Artifact Boundaries / Repository Structure
-
-โฟลเดอร์สำคัญของโปรเจกต์:
-
-```text
-data/input/                         source images
-data/output/ocr/                    persistent OCR artifacts
-data/output/extracted/              extraction artifacts
-data/output/consolidated/           merged curriculum artifacts
-data/output/final/                    corrected downstream corpus and logs
-reports/evaluation/             evaluation reports
-ground_truth/                   accepted evaluation references
-cucumber_data/output/runtime/       generated RAG database
-src/                            OCR implementation
-rag/                            indexing, routing, retrieval, and QA
-tests/                          focused and regression tests
-submission/                     separate frozen submission package
-```
-
-อธิบายแบบง่าย:
-
-- `data/input/` — ภาพเอกสารต้นฉบับ
-- `data/output/ocr/` — ข้อความที่อ่านจาก OCR
-- `data/output/extracted/` — ข้อมูลที่แยกออกจากผล OCR
-- `data/output/consolidated/` — ข้อมูลที่รวมและจัดให้อยู่ในรูปเดียวกัน
-- `data/output/final/` — ข้อมูลหลังผ่านการแก้ข้อความ
-- `reports/evaluation/` — ผลการประเมินคุณภาพข้อมูล
-- `ground_truth/` — ข้อมูลอ้างอิงที่ใช้ตรวจผล
-- `cucumber_data/output/runtime/` — ฐานข้อมูลที่ใช้ตอนถาม-ตอบ
-- `src/` — โค้ด OCR
-- `rag/` — โค้ด RAG และระบบถาม-ตอบ
-- `tests/` — ชุดทดสอบ
-- `submission/` — ชุดไฟล์สำหรับส่งงาน
-
-ไฟล์ใน `data/output/`, `reports/` และ runtime database เป็นไฟล์ที่สามารถสร้างใหม่ได้จาก pipeline
-
-`data/output/final/` เป็นข้อมูลปลายทางที่ใช้สำหรับสร้าง RAG และสามารถเก็บไว้เพื่อให้คนอื่นสร้างฐานข้อมูลหรือทดสอบระบบได้โดยไม่ต้องรัน OCR และ LLM correction ใหม่
-
-`submission/` เป็นชุดไฟล์สำหรับส่งงานโดยเฉพาะ และไม่ใช่ input ปกติของ runtime pipeline
-
----
-
-## Optional Debugging / Replay
-
-ถ้าต้องการ debug เป็นบางขั้นตอน สามารถรันคำสั่งแยกได้
-
-ตัวอย่าง extraction:
-
-```powershell
-python -m src.pipeline.tools.extraction.tool data/output/ocr/it --output-dir data/output/extracted --program IT --plan no_coop
-```
-
-ตัวอย่าง merge:
-
-```powershell
-python -m src.pipeline.tools.merge.consolidator --prefix it --plan no_coop -p 32-38,328-371 -d 328-371
-```
-
-คำสั่งเหล่านี้มีไว้สำหรับ debug หรือ replay บางขั้นตอน และไม่จำเป็นสำหรับ workflow ปกติ
-
-โมดูล:
-
-```text
-rag.hybrid_demo
-```
-
-ยังมีไว้สำหรับ development/demo
-
-ส่วน interface ปกติสำหรับผู้ใช้คือ:
-
-```text
-scripts/ask.py
-```
-
----
-
-## Evaluation
-
-ระบบ evaluation ใช้ตรวจคุณภาพข้อมูลที่ได้จาก OCR และขั้นตอน extraction/correction
-
-metric หลักที่ใช้ เช่น:
-
-- CER
-- WER
-- Coverage Precision
-- Coverage Recall
-- Coverage F1
-
-CER/WER เน้นวัดความผิดพลาดของข้อความ
-
-Coverage เน้นวัดว่าระบบเก็บข้อมูลรายวิชาครบหรือไม่
-
-ค่าผลลัพธ์ปัจจุบันจะอยู่ใน:
-
-```text
-reports/evaluation/
-```
-
-README จะไม่เขียนตัวเลขผลลัพธ์ตายตัว เพราะค่าอาจเปลี่ยนเมื่อมีการรันข้อมูลใหม่
-
----
-
-## Testing
-
-ตัวอย่างการรัน test เฉพาะส่วน:
-
-```powershell
-python -m unittest tests.test_ask
-python -m unittest tests.test_prepare_data
-python -m unittest tests.test_llm_spell_corrector
-python -m unittest tests.test_rag_qa tests.test_rag_hybrid_demo
-python -m unittest tests.test_evaluate tests.test_evaluate_gold_questions
-```
-
-ถ้าต้องการรัน test ทั้งหมด:
-
-```powershell
-python -m unittest discover -s tests -p "test_*.py" -v
-```
-
----
-
-## Supported Programs / Plans
-
-ขอบเขตข้อมูลที่ระบบ preparation รองรับในปัจจุบัน:
-
-- AIT
-- BIT: `coop`, `no_coop`
-- DSBA: `coop`, `no_coop`
-- GENED
-- IT: `coop`, `no_coop`
-
-ความหมายของ plan:
-
-- `coop` = แผนสหกิจ
-- `no_coop` = แผนไม่สหกิจ
-
-
-## Current clean-layout paths
-
-The current working tree keeps the HEART workflow semantics while organizing implementation files under the clean pipeline layout:
+## 4. โครงสร้าง repository
 
 ```text
 config/
-data/input/
-data/output/{ocr,extracted,consolidated,final}/
+  pipeline.yaml
+  programs.yaml
+
+data/
+  input/
+  output/
+    final/
+
 ground_truth/
 rag/
 reports/
 scripts/
-src/pipeline/
+  ask.py
+src/
+  pipeline/
+    run.py
+    config.py
+    models.py
+    tools/
+      ocr/
+      extraction/
+      correction/
+      merge/
+      preparation/
+      evaluation/
+      indexing/
+    utils/
 submission/
 tests/
+  pipeline/
+  rag/
+  tools/
+  reference/
+cucumber_outputs/
+  runtime/
+    curriculum.db
 ```
 
-For the user-facing QA interface, run:
+หน้าที่สำคัญ:
+
+- `data/input/` — ภาพหน้าหลักสูตรสำหรับ OCR
+- `data/output/final/` — **canonical final corpus** ที่ RAG ใช้จริง
+- `src/pipeline/` — pipeline ตั้งแต่ OCR ถึง index
+- `rag/` — query parsing, intent, retrieval, aggregation, grounding และ answer
+- `scripts/ask.py` — CLI สำหรับผู้ใช้
+- `ground_truth/` — reference สำหรับ evaluation ไม่ใช่ production factual authority
+- `tests/reference/ocr/` — OCR fixtures สำหรับ regression test
+- `submission/` — ชุดส่งงานเดิม แยกจาก runtime ปัจจุบัน
+- `cucumber_outputs/runtime/curriculum.db` — database ที่ QA ใช้
+
+---
+
+## 5. Pipeline เต็ม
+
+entry point หลักหลัง restructure คือ:
 
 ```powershell
-python scripts/ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
+python -m src.pipeline.run
 ```
 
-The one-entry pipeline command is:
+ลำดับ stage:
+
+```text
+ocr
+→ extract
+→ merge
+→ correct
+→ evaluate
+→ build_index (เปิดเพิ่มด้วย --with-index)
+```
+
+### 5.1 เช็กก่อนรันจริง
+
+```powershell
+python -m src.pipeline.run --program it --dry-run
+```
+
+`--dry-run` แสดง config/stage แต่ไม่รัน OCR หรือ LLM
+
+### 5.2 รันตั้งแต่ OCR จนถึง database
 
 ```powershell
 python -m src.pipeline.run --program it --with-index
 ```
+
+โดยปกติ evaluation เปิดอยู่ แต่ build index ปิดอยู่ จึงต้องใส่ `--with-index` ถ้าต้องการต่อถึง `curriculum.db`
+
+### 5.3 เลือกหน้า OCR
+
+```powershell
+python -m src.pipeline.run --program it --pages 32-38
+```
+
+หลายช่วง:
+
+```powershell
+python -m src.pipeline.run --program it --pages 32-38,328-371
+```
+
+### 5.4 ใช้ CPU
+
+```powershell
+python -m src.pipeline.run --program it --no-gpu
+```
+
+### 5.5 เริ่มต่อจาก stage เดิม
+
+```powershell
+python -m src.pipeline.run --program it --from extracted
+python -m src.pipeline.run --program it --from consolidated
+python -m src.pipeline.run --program it --from corrected --with-index
+```
+
+ค่า `--from` ที่รองรับ:
+
+```text
+ocr
+extracted
+consolidated
+corrected
+```
+
+### 5.6 เก็บ intermediate files สำหรับ debug
+
+ปกติ extracted/consolidated working data บางส่วนใช้ temp directory แล้วลบทิ้งอัตโนมัติ
+
+ถ้าต้องการเก็บไว้:
+
+```powershell
+python -m src.pipeline.run --program it --keep-intermediates
+```
+
+### 5.7 สร้าง index อย่างเดียว
+
+จาก pipeline:
+
+```powershell
+python -m src.pipeline.run --program it --only-index
+```
+
+หรือสร้าง database จาก canonical final corpus ทั้งหมด:
+
+```powershell
+python -m rag.build_index
+```
+
+---
+
+## 6. Data flow และ artifact
+
+### Input
+
+ใส่ภาพตาม program เช่น:
+
+```text
+data/input/it/it_page_032.png
+data/input/it/it_page_033.png
+...
+```
+
+program key ที่รองรับ:
+
+```text
+ait
+bit
+dsba
+gened
+it
+```
+
+### OCR
+
+ผล OCR อยู่ใต้:
+
+```text
+data/output/ocr/<program>/
+```
+
+### Extraction / Merge
+
+เมื่อ debug ด้วย `--keep-intermediates` จะเห็น:
+
+```text
+data/output/extracted/
+data/output/consolidated/
+```
+
+### Corrected final data
+
+ข้อมูลปลายทางอยู่ที่:
+
+```text
+data/output/final/
+```
+
+ไฟล์หลักมีสองแบบ:
+
+```text
+*_corrected.json
+*_corrections.json
+```
+
+- `*_corrected.json` — ข้อมูลที่ใช้สร้าง runtime database
+- `*_corrections.json` — log การแก้ข้อความ
+
+`data/output/final/` คือ source หลักของ RAG ใน layout ปัจจุบัน ส่วน path เก่า `outputs/llm/` มีไว้เป็น legacy fallback ในบางโมดูลเท่านั้น
+
+---
+
+## 7. QA ทำงานอย่างไร
+
+ระบบไม่ได้ส่งคำถามให้ LLM แล้วเชื่อคำตอบทันที
+
+flow โดยย่อ:
+
+```text
+Question
+→ deterministic parse / scope resolution
+→ optional intent interpretation
+→ evidence planning
+→ structured / semantic retrieval
+→ deterministic aggregation
+→ grounded claims
+→ answer rendering
+→ provenance
+```
+
+### Structured
+
+ใช้กับข้อเท็จจริง เช่น:
+
+- รายชื่อวิชา
+- จำนวนวิชา
+- หน่วยกิต
+- ปี / เทอม
+- prerequisite
+- plan comparison
+
+### Semantic
+
+ใช้กับคำถามด้านความหมาย เช่น:
+
+```text
+มีวิชาเกี่ยวกับ machine learning ไหม
+มีวิชาแนว database อะไรบ้าง
+```
+
+embedding model ปัจจุบัน:
+
+```text
+sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+```
+
+โมเดลจะถูกโหลดเมื่อ semantic embedding ถูกใช้งานครั้งแรก
+
+### Natural / advisory query
+
+ระบบมี intent layer สำหรับคำถามที่เขียนไม่ตรง template เช่น:
+
+```text
+IT ปี 3 อยากไปสาย data แต่ไม่อยากเจอ prereq เยอะ มีตัวไหนบ้าง
+```
+
+LLM ที่ intent layer ให้ได้เพียง **proposal ของความหมายคำถาม** ไม่ใช่ข้อเท็จจริงของหลักสูตร จากนั้น deterministic scope/evidence layer จะตรวจอีกครั้งก่อนใช้
+
+### SQL fallback
+
+กรณี structured wording แปลกกว่ากฎปกติ ระบบมี guarded SQL fallback แต่ SQL ใช้เพียงเลือก candidate เช่น `course_id` หรือ `placement_id`
+
+COUNT / SUM / existence / credit totals และ factual fields จะคำนวณหรือ hydrate จาก canonical data แบบ deterministic หลังจากนั้น
+
+---
+
+## 8. หลักการความถูกต้อง
+
+ระบบใช้แนวทาง:
+
+### Deterministic-first
+
+ข้อเท็จจริงหลักสูตรมาจาก SQLite/canonical data ก่อน
+
+### Scope isolation
+
+ไม่ขยาย program/plan/year/semester เอง และไม่เดา program จาก prefix ของ course code
+
+### Grounding
+
+คำตอบสร้างจาก evidence ที่หาได้จริง
+
+### Provenance
+
+พยายามแนบ program และ source page กลับไปกับคำตอบ
+
+### Fail closed
+
+ถ้าหลักฐานไม่พอหรือ scope ขัดแย้ง ระบบคืน `insufficient_evidence`, `valid_empty`, clarification หรือข้อความไม่พบข้อมูล แทนการแต่งข้อเท็จจริง
+
+---
+
+## 9. Testing
+
+รัน test ทั้งหมด:
+
+```powershell
+python -m unittest discover -s tests -t .
+```
+
+OCR:
+
+```powershell
+python -m unittest tests.pipeline.test_ocr -v
+```
+
+OCR reference / description:
+
+```powershell
+python -m unittest tests.tools.test_descriptions tests.tools.test_course_code_validation -v
+```
+
+RAG ตัวอย่าง:
+
+```powershell
+python -m unittest tests.rag.test_rag_qa tests.rag.test_rag_answer -v
+```
+
+รายละเอียด architecture และสถานะ validation ปัจจุบันดูที่:
+
+```text
+docs/review.md
+```
+
+---
+
+## 10. สิ่งที่ควรจำ
+
+1. ใช้ `python scripts/ask.py` ไม่ใช่ `python ask.py`
+2. RAG source ปัจจุบันคือ `data/output/final/`
+3. Runtime DB คือ `cucumber_outputs/runtime/curriculum.db`
+4. `ground_truth/` ใช้ตรวจผล ไม่ใช่ production authority
+5. `submission/` เป็น artifact แยกจาก runtime ปัจจุบัน
+6. ถ้าแก้ canonical JSON ให้รัน `python -m rag.build_index` ใหม่ก่อนทดสอบ QA
