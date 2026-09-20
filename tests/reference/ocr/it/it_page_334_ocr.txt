@@ -1,0 +1,72 @@
+329
+มคอ.
+2
+ระดับดาตาลิงก์ ระบบหมายเลขที่อยู่บนเครือข่าย การควบคุมการเข้าถึงสื่อ เทคโนโลยีอีเธอร์เน็ต
+เครือข่ายท้องถิ่น เครือข่ายท้องถิ่นเสมือน เครือข่ายท้องถิ่นแบบไร้สาย เครือข่ายพื้นที่กว้าง ฟังก์ชั่น
+การทำงานระดับกายภาพ การจัดการและการแก้ปัญหาเครือข่าย
+BASIC  CONCEPTS  OF  COMPUTER
+NETWORKS
+AND
+DATA
+COMMUNICATIONS,
+NETWORK
+ARCHITECTURE AND LAYERING MODEL, APPLICATION LAYER PROTOCOLS, APPLICATION ARCHITECTURE,
+TRANSPORT LAYER  PROTOCOLS, RELIABLE  DATA  TRANSFER., CONGESTION  CONTROL,
+NETWORK LAYER
+PROTOCOLS, CIRCUIT AND PACKET SWITCHING NETWORKS, ROUTING, INTERNET PROTOCOL., DATA LINK
+LAYER
+PROTOCOLS,
+NETWORK  ADDRESSING  SYSTEMS,
+MEDIUM
+ACCESS
+CONTROL,
+ETHERNET
+TECHNOLOGY., LOCAL  AREA
+NETWORK (LAN), VIRTUAL LAN (VLAN), WIRELESS LAN (WLAN), AND
+WIDE
+AREA
+NETWORK  (WAN),
+PHYSICAL  LAYER  FUNCTIONS,
+NETWORK
+MANAGEMENT
+AND
+TROUBLESHOOTING.
+06016414
+ระบบฐานข้อมูลแบบโนเอสคิวแอล
+3(2-2-5)
+NOSOL DATABASE SYSTEMS
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+แนะ
+นำระบบฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ความแตกต่างจากระบบฐานข้อมูลเชิงสัมพันธ์
+ข้อดีและข้อเสียของฐานข้อมูลแบบไม่ใช่เชิงสัมพันธ์ชนิดและโครงสร้างฐานข้อมูลแบบไมใช่เชิงสัมพันธ์
+แบบคอลัมน์ แบบคีย์แวลยู แบบเอกสาร และแบบกราฟ ตัวอย่างการออกแบบฐานข้อมูลแบบไม่ใช่เชิง
+สัมพันธ์ การใช้ภาษาเจสันกับฐานข้อมูลแบบไมใช่เชิงสัมพันธ์ แนะนำภาษาเจสันไวยากรณ์ของเจสัน
+ชนิดข้อมูลของเจสัน
+INTRODUCTION TO NOSOL DATABASE SYSTEM, DIFFERENCES BETWEEN NOSOL DATABASE
+SYSTEM
+AND
+RELATIONAL
+DATABASE
+SYSTEM,  ADVANTAGES
+AND  DISADVANTAGES
+OF
+NOSOL
+DATABASE
+SYSTEM,
+TYPES
+OF
+NOSOL
+DATABASE
+SYSTEM,
+COLUMN ORIENTED
+KEY VALUE,
+DOCUMENT AND
+EXAMPLE OF NOSOL  DATABASE DESIGN., JSON
+NOSOL DATABASE,
+INTRODUCTION TO JAVASCRIPT OBJECT NOTATION USON)
+JSON SYNTAX, JSON DATA TYPES.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+GRAPH,

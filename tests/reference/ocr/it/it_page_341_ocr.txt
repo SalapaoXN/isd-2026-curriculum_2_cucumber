@@ -1,0 +1,48 @@
+336
+มคอ.
+2
+06016425
+พื้นฐานการออกแบบทัศนศิลป์สำหรับสือปฏิสัมพันธ์
+3(2-2-5)
+VISUAL DESIGI FUNDAMENTALS FOR ITERACTIE MEDLA
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+องค์ประกอบของการออกแบบทัศนศิลป์ หลักการออกแบบทัศนศิลป์ ลำดับชันของ
+องค์ประกอบเชิงทัศน์ การจัดวางองค์ประกอบ แบบอักษรและการเลือกใช้ ข้อเนะนำในการใช้สี การ
+ออกแบบและ
+ะใช้งานไอคอน พื้นฐานการนำเสนอข้อมูลด้วยภาพ กระบวนการออกแบบทัศนศิลป์ การ
+ประยุกต์ ใช้การออกแบบทัศนศิลป์สำหรับเว็บและสื่อปฏิสัมพันธ์ เครื่องมือและแหล่งทรัพยากรสำหรับ
+การออกแบบทัศนศิลป์
+ELEMENTS  OF VISUAL  DESIGN., PRINCIPLES  OF VISUAL  DESIGN, VISUAL HIERARCHY., LAYOUT
+COMPOSITION., TYPEFACES AND USAGES, COLOR USAGE GUIDELINES, ICON DESIGN AND USAGE, DATA
+VISUALIZATION  BASICS,
+VISUAL  DESIGN  PROCESS,  APPLICATION
+OF VISUAL  DESIGN
+IN
+WEB
+AND
+INTERACTIVE MEDIA, VISUAL DESIGN TOOLS AND RESOURCES.
+06016426
+คอมพิวเตอร์กราฟิกส์และแอนิเมชัน
+3(2-2-5)
+COMPUTER GRAPHICS AND ANIMATION
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+กราฟิกแบบราสเตอร์และแบบเวกเตอร์
+การจัดเก็บข้อมูลรูปทรงวัตถุแบบสองและสามมิติ
+เทคนิคการฉายภาพและการแปลง เทคนิคด้านแสงและแสงเงาสามมิติ เทคนิคการสร้างลวดลายของ
+พื้นผิวสามมิติ เทคนิคการเรนเดอร์ภาพสามมิติ แนวคิดพื้นฐานการสร้างภาพเคลื่อนไหวด้วยคอมพิวเตอร์
+แบบสามมิติ การใช้งานซอฟต์แวร์สร้างภาพกราฟิกสามมิติและการสร้างภาพเคลื่อนไหวสามมิติเบื้องต้น
+RASTER AND VECTOR GRAPHICS, 2D AND 3D OBJECT REPRESENTATIONS, 3D PROJECTION AND
+TRANSFORMATION  TECHNIQUES,
+3D  LIGHTING AND  SHADING TECHNIQUES,
+3D
+TEXTURE  MAPPING
+TECHNIQUES, 3D RENDERING TECHNIQUES, BASIC
+3D COMPUTER ANIMATION CONCEPTS, USE OF
+3D COMPUTER GRAPHICS APPLICATION SOFTWARE FOR BASIC 3D MODELING AND ANIMATION.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

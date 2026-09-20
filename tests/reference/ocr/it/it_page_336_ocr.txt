@@ -1,0 +1,74 @@
+331
+มคอ.
+2
+การจัดการเวอร์ชันและการกำหนดค่า กระแสงานกิต (GIT)
+เครื่องมือสำหรับสร้างและการบูรณาการ
+อย่างต่อเนื่อง เครื่องมือสำหรับแก้จุดบกพร่องและการรวบรวมข้อมูลเชิงประสิทธิภาพของโปรแกรม
+สภาพแวดล้อมแบบร่วมมือพัฒนา เครื่องมือสำหรับการควบรวบรวมและติดตั้ง การตั้งค่าการสร้างคอน
+เทนเนอร์ขั้นสู
+ง เช่น DOCKER
+เช่น KUBERNETES
+หรือ DOCKER SWARM
+PRINCIPLES TO SOFTWARE PROFESSIONALS, ROLES OF APPLICATIONS IN SOFTWARE ENGINEERING
+TASKS, AGILE SOFTWARE DEVELOPMENT TOOLS, PRODUCT DEVELOPMENT TRACKING, VERSION AND
+CONFIGURATION
+MANAGEMENT,
+GIT
+WORKFLOW,
+BUILD
+AND
+CONTINUOUS
+INTEGRATION
+TOOLS,
+PROGRAM
+DEBUGGING
+AND
+PROFILING
+TOOLS,
+COLLABORATIVE
+DEVELOPMENT
+ENVIRONMENTS,
+PACKAGING
+AND  DEPLOYMENT
+TOOLS,
+AAVANCED
+CONTIANERIZATION  SETTINGS
+DOCKER),
+CONTIANER ORCHESTRATION
+KUBERNETES OR DOCKER SWARM)
+06016418
+การพัฒนาเว็บฝั่งเซิร์ฟเวอร์
+3(2-2-5)
+SERVER SIDE WEB DEVELOPMENT
+วิชาบังคับก่อน
+06016408 การสร้างโปรแกรมเชิงวัตถุ
+PRERECUSITE
+06016408 0B ECT-ORIENTED PROCRAMMING
+แนวคิดสถาปัตยกรรมแบบเอ็มวีซีการพัฒนาเวบด้วยเฟรมเวิร์ค DJAONGO หรือ NODE.JS
+การเร็นเดอร์ในฝั่งเชิร์ฟเวอร์ การติดต่อฐานข้อมูล ฺทรานแซคชั่นฐานข้อมูล ออปเจ็ครีเลชั่นนอลเม็ป
+เปอร์(โออาร์เอ็ม), การตรวจข้อมูลในฟอร์ม มิดเดิ้ลแวร์ การรับรองความถูกต้องการอนุญาตสิทธิ์ การ
+รับรองความถูกต้องด้วยแอลแดป ซิงเกิ้ลไชน์ออนด้วยบัญชี ผู้ใช้ที่ใช้กันโดยทั่วไป การติดตั้งเพื่อใช้งาน
+จริง
+MVC
+CONCEPTS,
+WEB  DEVELOPMENT  USING  FRAMEWORKS
+IN  DJAONGO
+OR
+NODE.JS,
+SESSIONS,
+SENVER-SIDED  RENDERING,  DATABASE  CONNECTIONS,
+DATABASE  TRANSACTIONS,  OBJECT
+RELATIONAL  MAPPER (ORM), FORM VALIDATION., MIDDLEWARE, ERROR HANALING, AUTHENTHICATION,
+AUTHORIZATION,
+AUTHENTICATION
+WITH
+LDAP,
+SINGLE-SIGN-ON
+WITH
+COMMON
+ACCOUNTS,
+DEPLOYMENT
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_
+แเทนเนอร์
+(E.G.,
+(E.G.,

@@ -17,6 +17,10 @@ from rag.retrieval.index import (
 )
 
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+_CLEAN_FINAL_DIR = _PROJECT_ROOT / "data" / "output" / "final"
+
+
 def _expand_input_paths(values: Iterable[str | Path]) -> list[Path]:
     paths: list[Path] = []
     for value in values:
@@ -26,12 +30,20 @@ def _expand_input_paths(values: Iterable[str | Path]) -> list[Path]:
     return paths
 
 
+def _default_sources() -> list[Path]:
+    """Clean-layout final output first, original layout as fallback."""
+    preferred = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
+    if preferred:
+        return preferred
+    return llm_source_paths()
+
+
 def build_index(
     input_json_paths: Iterable[str | Path] | None = None,
     index_path: str | Path | None = None,
 ) -> Path:
     """Build or reuse the shared curriculum database for the supplied JSON files."""
-    sources = llm_source_paths() if input_json_paths is None else input_json_paths
+    sources = _default_sources() if input_json_paths is None else input_json_paths
     artifact_index = index_path or ARTIFACTS_DIR / DEFAULT_INDEX_NAME
     return ensure_index(sources, index_path=artifact_index)
 
@@ -42,7 +54,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "input_json_paths",
         nargs="*",
-        help="curriculum JSON files (defaults to reviewed outputs/llm corrected files)",
+        help="curriculum JSON files (defaults to reviewed data/output/final corrected files)",
     )
     args = parser.parse_args(argv)
     input_paths = _expand_input_paths(args.input_json_paths)

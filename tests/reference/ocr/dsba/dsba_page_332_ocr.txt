@@ -1,0 +1,72 @@
+327
+มคอ
+2
+และการแยกองค์ประกอบเดียวของภาพเชิงประจักษ์ แนะ
+นำการรู้จำภาพเบื้องต้นด้วยวิธีการแบบ
+กำหนดเองและการเรียนรู้ของเครื่องจักร
+INTRODUCTION
+TO
+DIGITAL  IMAGE  PROCESSING FOR  BINARY,
+GRAY
+AND
+COLOR
+IMAGES, LOCAL IMAGE FILTERING, DIMENSIONALITY REDUCTION., TRANSFORMATION: DISCRETE FOURIER
+TRANSFORM.,  PRINCIPAL  COMPONENTS  ANALYSIS,
+LINEAR  DISCRIMINANT  ANALYSIS,
+2D
+WAVELET
+TRANSFORM,
+BI DIMENSIONAL
+EMPIRICAL
+MODE  DECOMPOSITION,
+2D
+EMPIRICAL
+WAVELET
+TRANSFORM
+AND
+EMPIRICAL  MONOCOMPONENT  IMAGE  DECOMPOSITION.,  INTRODUCTION
+TO
+IMAGE RECOGNITION: HANDCRAFT BASED AND LEARNING BASED APPROACHES.
+06026225
+การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการ
+3(2-2-5)
+แพทย์
+DEEP LEARNNG II MEDICAL IMAGE AND VIDEO
+ANALYSIS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+แนะนำหลักการและแนวทางการทำงานของโครงข่ายประสาทเทียมและเทคนิคการ
+เรียนรู้เชิงลึกการประยุกต์ใช้งานการเรียนรู้เชิงลึกสำหรับการวิเคราะห์ปัญหาภาพและวิดีโอทางการ
+แพทย์ อาทิชเช่น การตรวจจับวัตถฺการแบ่งส่วน การรู้จำเละการวิเคราะห์ ลักษณะและชนิดของ
+ข้อมูลภาพและวิดีโอทางการแพทย์ และความท้าทายของการประมวลผลภาพและวิดีโอทางการ
+แพทย์
+INTRODUCTION TO CONCEPTS AND PRINCIPLES OF ARTIFICIAL NEURAL NETWORK AND
+DEEP LEARNING TECHNIQUES, APPLYING DEEP LEARNING FOR MEDICAL IMAGE AND VIDEO ANALYSIS
+PROBLEMS SUCH AS DETECTION., SEGMENTATION., RECOGNITION, AND ANALYSIS, CHARACTERISTICS
+AND  TYPES
+OF
+MEDICAL  IMAGE
+AND  VIDEO, CHALLENGES IN
+MEDICAL  IMAGE
+AND  VIDEO
+COMPUTING.
+06026226
+หัวข้อพิเศษทางด้านวิทยาการข้อมูล
+1
+3(3-0-6)
+SPECIAL TOPICS IN DATA SCIENCE1
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอน
+ทางด้านวิทยาการข้อมูลเป็นผู้คัดเลือก
+THIS COURSE
+WILL  COVER
+RECENT ADVANCES AND OTHER TOPICS  OF INTEREST
+SELECTED BY THE INSTRUCTORS IN THE FIELD OF DATA SCIENCE.
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

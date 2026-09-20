@@ -1,0 +1,72 @@
+312
+มคอ
+2
+คำอธิบายรายวิชา
+กลุ่ม วิชาแกน
+กลุ่มคณิตศาสตร์และสถิติ
+15
+หน่วยกิต
+06026200
+แคลคูลัส
+1
+3(3-0-6)
+CALCULUS
+1
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ฟังก์ชัน, ลิมิต, ความต่อเนือง และการประยุกต์ใช้อุปนัยเชิงคณิตศาสตร์ แนะนำ
+อนุพันธ์การหาอนุพันธ์การประยุกต์ ใช้อนุพันธ์ ปริพันธ์จำกัดเขตฺการปริพันธ์ด้วยปฏิยานุพันธ์การ
+ประยุกต์ใช้ปริพันธ์จำกัดเขตฺรูปแบบของการปริพันธ์ที่หาค่าไมได้ ปริพันธ์ไม่ตรงแบบ ฺการหาปริพันธ์
+ด้วยวิธีเชิงตัวเลข อันดับและอนุกรมของจำนวน การกระจายอนุกรมเทเลอร์ของฟังก
+วิเคราะห์เวกเตอร์
+FUNCTION,
+LIMIT,
+CONTINUITY
+AND
+THEIR  APPLICATIONS,
+MATHEMATICAL
+INDUCTION., INTRODUCTION TO DERIVATIVE, DIFFERENTIATION., APPLICATIONS OF DERIVATIVE, DEFINITE
+INTEGRALS,
+ANTIDERIVATIVE  INTEGRATION.,
+APPLICATION  OF DEFINITE  INTEGRAL,
+INDETERMINATE
+FORMS, IMPROPER INTEGRALS,
+NUMERICAL INTEGRATION., SEQUENCES AND SERIES OF NUMBERS,
+TAYLOR SERIES EXPANSIONS OF ELEMENTARY FUNCTIONS VECTOR ANALYSIS.
+06026201
+แคลคูลัส 2
+3(3-0-6)
+CALCULUS 2
+วิชาบังคับก่อน
+06026200 แคลคูลัส 1
+PREREOUISITE
+06026200 CALCULUS
+ฟังก์ชันหลายตัวแปรและการประยุกต์ใช้ พีชคณิตของเวกเตอร์ในสามมิติ พิกัดเชิงขัว
+แคลคูลัสของ
+ฟังก์ชันจำนวนจริงสองตัวแปร  การหาอนุพันธ์และปริพันธ์ของฟังก์ชันจำนวนจริงและ
+ฟังก์ชันเวกเตอร์จำนวนจริงหลายตัวแปร แนะนำปริพันธ์เส้น เส้น ระนาบ และพื้นผิว ในปริภูมิสามมิติ
+แคลคูลัสของฟังก์ชันจำนวนจริงในปริภูมิสามมิติ ฺทฤษฎีบทหลักที่เกี่ยวกับการประยุกต์ เช่น ทฤษฎีบท
+ของกรีน ทฤษฎีไดเวอร์เจนซ์ ทฎษฎีบทของเกาส์ ทฤษฎีบทของสโตกส์ เป็นต้น
+FUNCTIONS OF SEVERAL VARIABLES AND THEIRS
+APPLICATIONS, VECTOR ALGEBRA IN
+THREE  DIMENSIONS,
+POLAR  COORDINATES,  CALCULUS
+OF
+REAL
+VALUED FUNCTIONS
+OF
+TWO
+VARIABLES, DIFFERENTIATION AND INTEGRATION OF REAL
+VALUED AND VECTOR
+VALUED FUNCTIONS
+OF MULTIPLE REAL VARIABLES, INTRODUCTION TO LINE INTEGRALS, LINES, PLANES AND SURFACES IN
+THREE DIMENSIONAL  SPACE,
+CALCULUS
+OF REAL
+VALUED FUNCTIONS IN  THREE DIMENSIONAL
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+เก็ชันพื้นฐานการ

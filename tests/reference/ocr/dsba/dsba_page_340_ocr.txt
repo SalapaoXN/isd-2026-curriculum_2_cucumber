@@ -1,0 +1,63 @@
+335
+มคอ
+2
+06026248
+ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล
+1
+3(2-2-5)
+SPECIAL WORKSHOP IN DATA ENGINEERING
+1
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย
+อาจารย์ผู้สอนทางด้านวิศวกรรมข้อมูลเป็นผู้คัดเลือก
+THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN DATA
+ENGINEERING, WHICH SELECTED BY A LECTURER.
+06026249
+ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2
+3(2-2-5)
+SPECIAL WORKSHOP II DATA ENGIIEERIN6 2
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดย
+อาจารย์ผู้สอนทางด้านวิศวกรรมข้อมูลเป็นผู้คัดเลือก
+THIS COURSE FOCUSES ON SELECTED TOPICS AND PRACTICAL WORKSHOP IN DATA
+ENGINEERING, WHICH SELECTED BY A LECTURER.
+กลุ่ม วิชาการศึกษาทางเลือก
+เกลุ่ม|วิชาเลือก
+เลือก
+6  หน่วยกิต
+06026250
+วิทยาการข้อมูลสำหรับธุรกิจ
+3(2-2-5)
+DATA SCIENCE FOR BUSINESS
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ภาพรวมของวิทยาการข้อมูล การสร้างโมเดลการทำนาย การแบ่งส่วนแบบมีผู้สอน
+ฟังก์ชันดิสคริมิเนนต์ การวิเคราะห์การปฏิบัติงานของโมเดล การทำเหมืองและแทนข้อความอักษร
+การจัดกลุ่มและทำเหมืองข้อมูลแบบไม่มีผู้สอน เทคนิคและงานต่าง
+ในวิทยาการข้อมูล ปกลยุทธ์เชิง
+ธุรกิจและวิทยาการข้อมูล แอพลิเคชันที่ใช้วิทยาการข้อมูลในการวิเคราะห์สื่อสังคมออนไลน์
+วิทยาการข้อมูลในการจัดการการปฏิบัติงาน
+OVERVIEW
+OF
+THE
+DATA
+SCIENCE:
+PREDICTIVE  MODELING,
+DISCRIMINANT
+FUNCTIONS, MODEL PERFORMANCE ANALYTICS, TEXT REPRESENTATION AND MINING, CLUSTERING,
+APPLICATIONS OF DATA SCIENCE TO MARKETING ANALYTICS, APPLICATIONS OF DATA SCIENCE TO
+FINANCIAL ANALYTICS, APPLICATIONS OF DATA SCIENCE TO
+SOCIAL
+NETWORK ANALYTICS, DATA
+SCIENCE IN OPERATIONS MANAGEMENT.
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

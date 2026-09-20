@@ -1,0 +1,64 @@
+337
+มคอ.
+2
+06016427
+การออกแบบและพัฒนาเกมเบืองต้น
+3(2-2-5)
+INTRODUCTION TO GAME DESIGI AND DEVELOPMENT
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+ประวัติของเกม กระบวนการออกแบบเกม ประเภทของเกม องค์ประกอบของเกม
+แพลตฟอร์มสำหรับเกม เฟรมเวิร์คสำหรับการออกแบบเกม เครื่องมือและเทคโนโลยีสำหรับการพัฒนา
+หน้าที่ของทีมพัฒนา การจัดการโครงการเกม
+GAME
+HISTORY,
+DESIGN
+PROCESS,
+GENRE,
+GAME
+ELEMENT,
+GAME
+PLATFORMS,
+DEVELOPMENT
+FRAMEWORK., DEVELOPMENT
+TOOL
+AND TECHNOLOGY., DEVELOPMENT TEAM
+ROLES, GAME PROJECT MANAGEMENT
+วิชาเลือกทางเทคโนโลยีสารสนเทศ
+06016428
+การพัฒนาและออกแบบโปรแกรมบริการแบบจุลภาค
+3(2-2-5)
+MICROSERVICE DESIGI AND DEVELOPMENT
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+แนะนำโปรแกรมบริการแบบจุลภาคเบื้องต้น ฺสถาปนิกเชิงวิวัฒนาการ สถาปัตยกรรมแบบกลุ่ม
+ก้อนเดียว สถาปัตยกรรมเชิงบริการ และแบบจุลภาค กลยุทธ์การแยกองค์ประกอบและการออกแบบ
+การสื่อสารระหว่างกระบวนการ การเข้าคิวและการกำหนดเส้นทาง การแยกหน้าที่รับผิดชอบระหว่าง
+การคิวรีกับการจัดการข้อมูล การค้นพบเซอร์วิส ตัวชี้วัดการทำงาน การจัดการกับเซอร์วิสก่อนเกิด
+ข้อผิดพลาด ความสามารถในการสังเกต, การพัฒนาบริการแบบจุลภาค
+INTRODUCTION TO MICROSERVICES, EVOLUTIONARY ARCHITECT, MONOLITH., SERVICE ORIENTED
+ARCHITECTURE
+AND
+MICROSERVICE,
+DECOMPOSITION
+STRATEGIES
+AND
+DESIGN,  INTER PROCESS
+COMMUNICATION,
+QUEUEING
+AND
+ROUTING,
+COMMAND
+QUERY  RESPONSIBILITY  SEGREGATION,
+SENICE  DISCOVERY,
+APPLICATION
+METRICS,
+CIRCUIT
+BREAKER,  OBSERVABILITY,
+MICROSERVICE
+DEVELOPMENT
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

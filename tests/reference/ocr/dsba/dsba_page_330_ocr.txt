@@ -1,0 +1,65 @@
+325
+มคอ
+2
+OVERVIEW  OF NATURAL  LANGUAGE  PROCESSING
+MODULE,
+TEXT  CLASSIFICATION
+TASKS
+SUCH
+AS
+NEWS
+CLASSIFICATION,
+SENTIMENT
+ANALYSIS,
+SPAM
+FILTERING,
+TRADITIONAL
+CLASSIFIERS, DEEP LEARNING TECHNIQUES, LANGUAGE MODELING AND SEQUENCE TAGGING, TEXT
+REPRESENTATION IN VECTOR SPACE MODELS, FORMULATE SEQUENCE TO SEQUENCE TASKS SUCH
+AS MACHINE TRANSLATION., SUMMARIZATION., QUESTION ANSWERING.
+06026220
+การทำเหมืองข้อมูลกระบวนการ
+3(3-0-6)
+PROCESS MINING
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+แบบจำลองกระบวนการ เพ็ททริเน็ต เวอกร์โฟลว์เน็ต อัลกอริทึมในการค้นหา
+กระบวนการ อัลฟาอัลกอริทึม ดีเพนเด็นซีกราฟอัลกอริทึม แคชชวลเน็ตอัลกอริทึม การตรวจสอบ
+ความสอดคล้องของกระบวนการ การค้นหาจุดบกพร่องของกระบวนการ โปรแกรมในการทำเหมือง
+กระบวนการ
+PROCESS MODEL: PETRI NETS, WORKFLOW NETS, PROCESS DISCOVERY ALGORITHM:
+ALPHA ALGORITHM, DEPENDENCY GRAPHS, CAUSAL NETS, CONFORMANCE CHECKING CONCEPTS,
+MINING BOTTLENECKS, PROCESS MINING SOFTWARE.
+06026221
+การค้นคืนสารสนเทศ
+3(3-0-6)
+INFORMATION RETRIEVAL
+วิชาบังคับก่อน
+ไม่มี
+PREREOUISITE
+NONE
+ความ รู้ เบื้องต้นเกี่ยวกับการค้นคืนสารสนเทศ สถาปัตยกรรมของระบบค้นคืน
+สารสนเทศ
+เครื่องมือและการประเมินผลการค้นคืนสารสนเทศ แบบจำลองการจัดลำดับแบบพื้นฐาน
+ของการค้นคืนสารสนเทศ คำศัพท์และรายการของการจัดตำแหน่ง การสร้างดัชนีค้นหา การถ่วงค่า
+น้ำหนักของคำการปฏิสัมพันธ์ระหว่างระบบค้นคืนสารสนเทศกับผู้ใช้ การค้นคืนสารสนเทศซึ่งเน้น
+ความหลากหลายของข้อมูลและการประเมินผลฺการตอบสนองที่เกียวข้องความต้องการสารสนเทศ
+แบบจำลองการจัดลำดับขับ
+นสูงของการค้นคืนสารสนเทศ การจัดกลุ่มและการจำแนกข้อความ ฺการ
+กรองข้อมูลสารสนเทศ การแนะ
+นำและกรองข้อมูลสารสนเทศแบบความร่วมมือ การรวบรวมข้อมูล
+บนเว็บ การวิเคราะห์ข้อมูลบนเว็บและการสืบค้นข้อมูลบนเว็บ
+INTRODUCTION TO INFORMATION RETRIEVAL (IR), ARCHITECTURE OF IR SYSTEMS, IR
+EVALUATION AND TOOLS,
+BASIC IR RANKING MODELS,
+TERM VOCABULARY AND POSTINGS LIST,
+SEARCH INDEX CONSTRUCTION., TERM WEIGHTING, INTERACTIVE IR, DIVERSITY IR AND EVALUATION.,
+RELEVANCE FEEDBACK, AAVANCED IR RANKING MODELS, TEXT CLUSTERING AND CATEGORIZATION.,
+INFORMATION  FILTERING, COLLABORATIVE RECOMMENDATIONS/ FILTERING,
+WEB CRAWLING, WEB
+ANALYSIS AND WEB RETRIEVAL.
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.

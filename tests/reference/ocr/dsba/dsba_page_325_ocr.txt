@@ -1,0 +1,78 @@
+320
+มคอ
+2
+06026208
+พืนฐานวิทยาการข้อมูล
+3(3-0-6)
+FUNDAMENTALS OF DATA SCIENCE
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+วิทยาการข้อมูลกับแรงจูงใจเชิงธุรกิจ นิยามของวิทยาการข้อมูล กระบวนการทำ
+วิทยาการข้อมูล เช่น ปกระบวนการ เคิรสดีเอ็มการทำความเข้าใจข้อมูล การเตรียมข้อมูล ฺดึงข้อมูล
+จากเว็บไซต์ การดึงข้อมูลจากเอฟีไอ นิยามของปัญญาประดิษฐ์ การแทนความรู้ การใช้เหตุผลแบบ
+ตรรกศาสตร์และความน่าจะเป็น คอมพิวเตอร์วิทัศน์ การประมวลผลภาษาธรรมชาติ การเรียนรู้ของ
+เครื่องจักร ภาษาไพธอนสำหรับวิทยาการข้อมูล
+DATA SCIENCE MOTIVATION FOR BUSINESS, DEFINITION OF DATA SCIENCE, DATA
+SCIENCE LIFECYCLE: CRISDM, DATA UNDERSTANDING, DATA PREPARATION., WEB SCAPING, API
+REQUEST
+DEFINITION
+OF
+ARTIFICIAL
+INTELLIGENCE,
+MAJOR
+SUBFIELDS
+OF
+AL:
+KNOWLEDGE
+REPRESENTATION., LOGICAL AND PROBABILISTIC REASONING, COMPUTER VISION., NATURAL LANGUAGE
+PROCESSING, MACHINE LEARNING, PYTHON PROGRAMING FOR DATA SCIENCE.
+06026209
+การแสดงข้อมูลด้วยแผนภาพ
+3(2-2-5)
+DATA VISUALLZATION
+วิชาบังคับก่อน
+ไม่มี
+PRERECUISITE
+NONE
+หลักการการแสดงข้อมูลด้วยแผนภาพ การออกแบบการแสดงข้อมูลด้วยแผนภาพ
+เครื่องมือที่ใช้ การแสดงข้อมูลด้วยแผนภาพ การได้มาซี
+การจัดระเบียบข้อมูล การเลือก
+แผนภูมิต่าง
+ที่เหมาะสม ฺเช่น ฮึทโตรแกรม
+แผนภูมิการกระจาย แผนภูมิเส้น แผนภูมิแท่ง แผนภูมิ
+วงกลม
+แผนภูมิแบบเครือข่าย กราพสตรีม แผนภูมิตัวชี้วัดผลงาน แผนที่ แผนภูมิแบบ
+ปฏิสัมพันธ์ การอธิบายแผนภูมิ หลักการเล่าเรื่องด้วยภาพ
+PRINCIPLES
+OF
+DATA
+VISUALIZATION,
+DATA
+VISUALIZATION
+DESIGN.,
+DATA
+VISUALIZATION TOOLS, DATA ACQUISITION., DATA ORGANIZATION, CHOOSING THE APPROPRIATE CHART
+TYPE, E.G., HISTOGRAM., SCATTER PLOT, LINE CHART., BAR CHART., PIE CHART., TREE DIAGRAM, NETWORK
+CHART, STREAM
+KP| CHART, MAP, INTERACTION CHART, CHART DESCRIPTION, STOR TELLING
+WITH DATA.
+06026210
+การหาค่าเหมาะทีสุด
+3(3-0-6)
+OPTMMZATON
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+การสร้างตัวแบบกำหนดการเชิงเส้น วิธีแก้ปัญหากำหนดการเชิงเส้น ปัญหาควบคู่
+ในกำหนดการเชิงเส้น กำหนดการเชิงเส้นและตัวแบบถดถอยควอนไทล์ การหาค่าเหมาะที่สุดกับ
+ปัญหากำลังสอง การหาค่าเจ
+เหมาะสมที่สุดกับปัญหาคอน วิธีเกรเดียนต์เพื่อแก้ปัญหาการหาค่าเหมาะ
+วท.บ.
+(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+คณะเทคโนโลยีสารสนเทศ สจล.
+งข้อมูล
+แผนภูมิต้นไม้
+GRAPH,

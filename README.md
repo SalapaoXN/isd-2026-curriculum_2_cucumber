@@ -25,25 +25,25 @@ CUCUMBER คือระบบที่นำเอกสารหลักส�
 
 ```text
 Part 1 — OCR
-inputs/
-  -> python ocr.py --prefix <program>
-  -> outputs/ocr/
+data/input/
+  -> python -m src.pipeline.tools.ocr.cli --prefix <program>
+  -> data/output/ocr/
 
 Part 2 — Data preparation
-outputs/ocr/
-  -> python prepare_data.py
-  -> outputs/extracted/
-  -> outputs/consolidated/
-  -> python llm_spell_corrector.py
-  -> outputs/llm/
-  -> python evaluate.py
+data/output/ocr/
+  -> python -m src.pipeline.tools.preparation.tool
+  -> data/output/extracted/
+  -> data/output/consolidated/
+  -> python -m src.pipeline.tools.correction.corrector
+  -> data/output/final/
+  -> python -m src.pipeline.tools.evaluation.evaluate
   -> reports/evaluation/
 
 Part 3 — RAG / QA
-outputs/llm/*_corrected.json
+data/output/final/*_corrected.json
   -> python -m rag.build_index
   -> cucumber_outputs/runtime/curriculum.db
-  -> python ask.py
+  -> python scripts/ask.py
 ```
 
 สรุปง่าย ๆ คือ
@@ -87,7 +87,7 @@ HF_TOKEN=...
 
 ความหมายของแต่ละตัว:
 
-- `GEMINI_API_KEY` ใช้ในขั้นตอนแก้ข้อความด้วย LLM และการสร้างคำตอบใน `ask.py`
+- `GEMINI_API_KEY` ใช้ในขั้นตอนแก้ข้อความด้วย LLM และการสร้างคำตอบใน `scripts/ask.py`
 - `HF_TOKEN` ไม่จำเป็นเสมอไป และใช้เฉพาะบางกรณีที่เกี่ยวข้องกับโมเดลจาก Hugging Face
 
 ห้าม commit ไฟล์ `.env` หรือเผยแพร่ API key
@@ -103,25 +103,25 @@ OCR เป็นขั้นตอนที่ใช้เวลาและท�
 ระบบจะอ่านภาพจาก:
 
 ```text
-inputs/<program>/
+data/input/<program>/
 ```
 
 แล้วบันทึกผล OCR ลงที่:
 
 ```text
-outputs/ocr/<program>/
+data/output/ocr/<program>/
 ```
 
 คำสั่งปกติ:
 
 ```powershell
-python ocr.py --prefix it
+python -m src.pipeline.tools.ocr.cli --prefix it
 ```
 
 ถ้าต้องการเลือกเฉพาะบางหน้า:
 
 ```powershell
-python ocr.py --prefix it --pages 32-38
+python -m src.pipeline.tools.ocr.cli --prefix it --pages 32-38
 ```
 
 ตัวอย่าง:
@@ -133,8 +133,8 @@ python ocr.py --prefix it --pages 32-38
 หมายถึง
 
 ```text
-inputs/it/
-→ outputs/ocr/it/
+data/input/it/
+→ data/output/ocr/it/
 ```
 
 prefix ที่รองรับ:
@@ -150,7 +150,7 @@ prefix ที่รองรับ:
 ถ้าต้องการใช้ CPU แทน GPU:
 
 ```powershell
-python ocr.py --prefix it --no-gpu
+python -m src.pipeline.tools.ocr.cli --prefix it --no-gpu
 ```
 
 การเลือก program และ plan สำหรับการเตรียมข้อมูลจะทำใน `prepare_data.py` ไม่ได้ทำในคำสั่ง OCR ปกติ
@@ -158,7 +158,7 @@ python ocr.py --prefix it --no-gpu
 คำสั่งเดิม:
 
 ```powershell
-python -m src.run_pipeline ...
+python -m src.pipeline.run ...
 ```
 
 ยังสามารถใช้ได้สำหรับ replay หรือ debug โดยเฉพาะ
@@ -170,9 +170,9 @@ python -m src.run_pipeline ...
 หลังจากมีผล OCR แล้ว ให้รันตามลำดับนี้:
 
 ```powershell
-python prepare_data.py
-python llm_spell_corrector.py
-python evaluate.py
+python -m src.pipeline.tools.preparation.tool
+python -m src.pipeline.tools.correction.corrector
+python -m src.pipeline.tools.evaluation.evaluate
 ```
 
 ### `prepare_data.py`
@@ -195,8 +195,8 @@ python evaluate.py
 ผลลัพธ์จะถูกเก็บไว้หลัก ๆ ที่:
 
 ```text
-outputs/extracted/
-outputs/consolidated/
+data/output/extracted/
+data/output/consolidated/
 ```
 
 ### `llm_spell_corrector.py`
@@ -206,13 +206,13 @@ outputs/consolidated/
 ระบบจะค้นหาไฟล์รูปแบบ:
 
 ```text
-outputs/consolidated/**/full/merged_*_full.json
+data/output/consolidated/**/full/merged_*_full.json
 ```
 
 จากนั้นสร้างไฟล์ที่แก้แล้วไว้ที่:
 
 ```text
-outputs/llm/
+data/output/final/
 ```
 
 ไฟล์สำคัญที่ได้ เช่น:
@@ -233,7 +233,7 @@ outputs/llm/
 ระบบจะอ่าน:
 
 ```text
-outputs/llm/*_corrected.json
+data/output/final/*_corrected.json
 ```
 
 แล้วเปรียบเทียบกับ ground truth ที่กำหนดไว้สำหรับ program/plan นั้น
@@ -274,7 +274,7 @@ python -m rag.build_index
 ข้อมูลต้นทางของ RAG คือ:
 
 ```text
-outputs/llm/*_corrected.json
+data/output/final/*_corrected.json
 ```
 
 ฐานข้อมูลที่สร้างขึ้นจะอยู่ที่:
@@ -283,18 +283,18 @@ outputs/llm/*_corrected.json
 cucumber_outputs/runtime/curriculum.db
 ```
 
-`outputs/consolidated/` ไม่ใช่ข้อมูลที่ RAG อ่านโดยตรงในขั้นตอนนี้
+`data/output/consolidated/` ไม่ใช่ข้อมูลที่ RAG อ่านโดยตรงในขั้นตอนนี้
 
 ### ถามคำถามหนึ่งข้อ
 
 ```powershell
-python ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
+python scripts/ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
 ```
 
 ### เปิดโหมดถามต่อเนื่อง
 
 ```powershell
-python ask.py
+python scripts/ask.py
 ```
 
 ออกจากโหมดถามต่อเนื่องได้ด้วย:
@@ -320,7 +320,7 @@ quit
 - **semantic** ใช้ค้นหาจากความหมายของเนื้อหารายวิชา เช่น ถามว่าเรียนเกี่ยวกับอะไร
 - **hybrid** ใช้ทั้งสองแบบร่วมกัน
 
-ก่อนใช้ `ask.py` ต้องมี runtime database อยู่ก่อน
+ก่อนใช้ `scripts/ask.py` ต้องมี runtime database อยู่ก่อน
 
 ถ้ายังไม่มี ให้รัน:
 
@@ -328,7 +328,7 @@ quit
 python -m rag.build_index
 ```
 
-`ask.py` จะไม่สร้างฐานข้อมูลให้เองโดยอัตโนมัติ
+`scripts/ask.py` จะไม่สร้างฐานข้อมูลให้เองโดยอัตโนมัติ
 
 รูปแบบ output ปกติ:
 
@@ -351,14 +351,14 @@ python -m rag.build_index
 โฟลเดอร์สำคัญของโปรเจกต์:
 
 ```text
-inputs/                         source images
-outputs/ocr/                    persistent OCR artifacts
-outputs/extracted/              extraction artifacts
-outputs/consolidated/           merged curriculum artifacts
-outputs/llm/                    corrected downstream corpus and logs
+data/input/                         source images
+data/output/ocr/                    persistent OCR artifacts
+data/output/extracted/              extraction artifacts
+data/output/consolidated/           merged curriculum artifacts
+data/output/final/                    corrected downstream corpus and logs
 reports/evaluation/             evaluation reports
 ground_truth/                   accepted evaluation references
-cucumber_outputs/runtime/       generated RAG database
+cucumber_data/output/runtime/       generated RAG database
 src/                            OCR implementation
 rag/                            indexing, routing, retrieval, and QA
 tests/                          focused and regression tests
@@ -367,22 +367,22 @@ submission/                     separate frozen submission package
 
 อธิบายแบบง่าย:
 
-- `inputs/` — ภาพเอกสารต้นฉบับ
-- `outputs/ocr/` — ข้อความที่อ่านจาก OCR
-- `outputs/extracted/` — ข้อมูลที่แยกออกจากผล OCR
-- `outputs/consolidated/` — ข้อมูลที่รวมและจัดให้อยู่ในรูปเดียวกัน
-- `outputs/llm/` — ข้อมูลหลังผ่านการแก้ข้อความ
+- `data/input/` — ภาพเอกสารต้นฉบับ
+- `data/output/ocr/` — ข้อความที่อ่านจาก OCR
+- `data/output/extracted/` — ข้อมูลที่แยกออกจากผล OCR
+- `data/output/consolidated/` — ข้อมูลที่รวมและจัดให้อยู่ในรูปเดียวกัน
+- `data/output/final/` — ข้อมูลหลังผ่านการแก้ข้อความ
 - `reports/evaluation/` — ผลการประเมินคุณภาพข้อมูล
 - `ground_truth/` — ข้อมูลอ้างอิงที่ใช้ตรวจผล
-- `cucumber_outputs/runtime/` — ฐานข้อมูลที่ใช้ตอนถาม-ตอบ
+- `cucumber_data/output/runtime/` — ฐานข้อมูลที่ใช้ตอนถาม-ตอบ
 - `src/` — โค้ด OCR
 - `rag/` — โค้ด RAG และระบบถาม-ตอบ
 - `tests/` — ชุดทดสอบ
 - `submission/` — ชุดไฟล์สำหรับส่งงาน
 
-ไฟล์ใน `outputs/`, `reports/` และ runtime database เป็นไฟล์ที่สามารถสร้างใหม่ได้จาก pipeline
+ไฟล์ใน `data/output/`, `reports/` และ runtime database เป็นไฟล์ที่สามารถสร้างใหม่ได้จาก pipeline
 
-`outputs/llm/` เป็นข้อมูลปลายทางที่ใช้สำหรับสร้าง RAG และสามารถเก็บไว้เพื่อให้คนอื่นสร้างฐานข้อมูลหรือทดสอบระบบได้โดยไม่ต้องรัน OCR และ LLM correction ใหม่
+`data/output/final/` เป็นข้อมูลปลายทางที่ใช้สำหรับสร้าง RAG และสามารถเก็บไว้เพื่อให้คนอื่นสร้างฐานข้อมูลหรือทดสอบระบบได้โดยไม่ต้องรัน OCR และ LLM correction ใหม่
 
 `submission/` เป็นชุดไฟล์สำหรับส่งงานโดยเฉพาะ และไม่ใช่ input ปกติของ runtime pipeline
 
@@ -395,13 +395,13 @@ submission/                     separate frozen submission package
 ตัวอย่าง extraction:
 
 ```powershell
-python extract.py outputs/ocr/it --output-dir outputs/extracted --program IT --plan no_coop
+python -m src.pipeline.tools.extraction.tool data/output/ocr/it --output-dir data/output/extracted --program IT --plan no_coop
 ```
 
 ตัวอย่าง merge:
 
 ```powershell
-python merge_consecutive.py --prefix it --plan no_coop -p 32-38,328-371 -d 328-371
+python -m src.pipeline.tools.merge.consolidator --prefix it --plan no_coop -p 32-38,328-371 -d 328-371
 ```
 
 คำสั่งเหล่านี้มีไว้สำหรับ debug หรือ replay บางขั้นตอน และไม่จำเป็นสำหรับ workflow ปกติ
@@ -417,7 +417,7 @@ rag.hybrid_demo
 ส่วน interface ปกติสำหรับผู้ใช้คือ:
 
 ```text
-ask.py
+scripts/ask.py
 ```
 
 ---
@@ -482,3 +482,33 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 - `coop` = แผนสหกิจ
 - `no_coop` = แผนไม่สหกิจ
+
+
+## Current clean-layout paths
+
+The current working tree keeps the HEART workflow semantics while organizing implementation files under the clean pipeline layout:
+
+```text
+config/
+data/input/
+data/output/{ocr,extracted,consolidated,final}/
+ground_truth/
+rag/
+reports/
+scripts/
+src/pipeline/
+submission/
+tests/
+```
+
+For the user-facing QA interface, run:
+
+```powershell
+python scripts/ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
+```
+
+The one-entry pipeline command is:
+
+```powershell
+python -m src.pipeline.run --program it --with-index
+```

@@ -1,0 +1,8 @@
+# Pipeline defaults (mirrors src/pipeline/run.py argparse defaults).
+program: it
+from_stage: ocr
+skip_eval: false
+with_index: false
+only_index: false
+keep_intermediates: false
+output_dir: data/output

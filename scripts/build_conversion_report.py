@@ -11,11 +11,11 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "submission" / "curriculum.conversion.json"
-CORRECTOR_SOURCE = ROOT / "llm_spell_corrector.py"
+CORRECTOR_SOURCE = ROOT / "src" / "pipeline" / "tools" / "correction" / "corrector.py"
 
 CANONICAL_FILES = {
-    "coop": ROOT / "outputs" / "consolidated" / "it" / "coop" / "full" / "merged_it_coop_full.json",
-    "no_coop": ROOT / "outputs" / "consolidated" / "it" / "no_coop" / "full" / "merged_it_no_coop_full.json",
+    "coop": ROOT / "data" / "output" / "consolidated" / "it" / "coop" / "full" / "merged_it_coop_full.json",
+    "no_coop": ROOT / "data" / "output" / "consolidated" / "it" / "no_coop" / "full" / "merged_it_no_coop_full.json",
 }
 CORRECTION_LOGS = {
     "coop": ROOT / "work" / "spell_correction" / "it" / "names_v2" / "merged_it_coop_full_corrections.json",

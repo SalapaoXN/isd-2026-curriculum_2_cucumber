@@ -1,0 +1,68 @@
+330
+มคอ.
+2
+06016415
+การเขียนโปรแกรมเชิงฟังก์ชัน
+3(2-2-5)
+FUNCTLONAL PROGRAMMNG
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+กระบวนทัศน์การเขียนโปรแกรมแนวคิดทางฟังก์ชันคณิตศาสตร์และภาษาโปรแกรมแลมด้า
+แคลคูลส
+ในการเขียนโปรแกรมเชิงฟังก์ชั่นโครงสร้างข้อมูลเชิงฟังก์ชั่นการประมวลผลขนานเชิงฟังก์ชัน
+PROGRAMMING
+PARADIGMS,
+FUNCTIONAL
+CONCEPTS
+AND
+PROGRAMMING
+LANGUAGES,
+LAMBDA
+CALCULUS
+IN
+FUNCTIONAL  PROGRAMMING,
+FUNCTIONAL
+DATA
+STRUCTURES, FUNCTIONAL
+PARALLELISM, FUNCTIONAL DESIGN
+06016416
+วิศวกรรมความต้องการ
+3(3-0-6)
+REOUIREMENT ENGIEERING
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+เทคนิคการจัดการความต้องการ การวิเคราะห์ปัญหาการเข้าถึงและเก็บเกี่ยวความต้องการจาก
+ผู้มีส่วนได้ส่วนเสีย การจัดทำเอกสารโดยใช้ยูสเคสโมเดล การจัดลำดับชันของเอกสาร การกำหนดระดับ
+ของความต้องการ การนิยามระบบ การจัดการขอบเขตและความคาดหวัง การกลันกรองความชัดเจน
+ของระบบ คุณลักษณะของความต้องการ การติดตามย้อนรอยความต้องการ การบริหารจัดการการ
+เปลี่ยนแปลงความต้องการ การนำความต้องการมาขับเคลื่อนการออกแบบ การทดสอบ การจัดทำ
+เอกสารสำหรับผู้ `ใช้งาน
+REQUIREMENTS
+MANAGEMENT  TECHNIQUE,  PROBLEM
+ANALYSIS,
+STAKEHOLDER
+NEEDS,
+DOCUMENT REQUIREMENTS
+WITH
+USE CASE
+MODEL,
+DOCUMENT  HIERARCHY  AND  STANDARD  FOR
+DEFINE  REQUIREMENTS  LEVEL, SYSTEM  DEFINITION., SCOPE  MANAGING,  REQUIREMENT  ATTRIBUTES
+AND
+TRACEABILITY., MANAGE CHANGE, USING REQUIREMENTS TO DRIVE ONGOING DESIGN, TEST, AND
+USER DOCUMENTATION.
+06016417
+เครืองมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์
+3(2-2-5)
+SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS
+วิชาบังคับก่อน
+ไม่มี
+PREREOUSITE
+NONE
+หลักการเพื่อเป็นผู้เชี่ยวชาญด้านซอฟต์แวร์บทบาทของแอพพลิเคชันในงานด้านวิศวกรรม
+ซอฟต์แวร์ เครื่องมือการพัฒนาซอฟต์แวร์แบบอไจล์ การติดตามความคืบหน้าของการพัฒนาผลิตภัณฑ์
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

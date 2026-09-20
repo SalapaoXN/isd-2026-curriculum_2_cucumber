@@ -1,0 +1,58 @@
+356
+มคอ.
+2
+INTRODUCTION TO TROUBLE SHOOTING AND PROCEDURES, PRACTICE ON SUPERVISED CASES TO SOLVE
+PROBLEMS, DISCUSS AND CONCLUDE EACH CASE, AND OVERALL COURSE.
+06016467
+การแปลงข้อมูลและการรู้จำรูปภาพ
+3(3-0-6)
+IMAGE TRANSFORMATION AND RECOGIITION
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+แนะนำการประมวลผลภาพดิจิตอลสองระดับ ภาพสีเทา
+และภาพสี การประมวลผลด้วยตัว
+กรองเฉพาะถิน ฺการลดมิติของข้อมูลภาพ การแปลงรูปแบบของข้อมูล ฺอาทิชเช่น การแปลงฟูรีเยแบบไม่
+ต่อเนื่อง การวิเคราะห์องค์ประกอบหลักการวิเคราะห์การจำแนกประเภทเชิงเส้น การแปลงข้อมูลสอง
+มิติแบบเวฟเล็ตเชิงประจักษ์ การแยกองค์ประกอบข้อมูลสองมิติแบบเชิงประจักษ์ และการแยก
+องค์ประกอบเดียวของภาพเชิงประจักษ์
+แนะนำการรู้จำภาพเบื้องต้นด้วยวิธีการแบบกำหนดเองและ
+การเรียนรู้ของเครื่องจักร
+INTRODUCTION TO DIGITAL IMAGE PROCESSING FOR BINARY., GRAY AND COLOR IMAGES, LOCAL
+IMAGE  FILTERING,  DIMENSIONALITY REDUCTION,  TRANSFORMATION,
+DISCRETE
+FOURIER  TRANSFORM,
+PRINCIPAL COMPONENTS ANALYSIS, LINEAR DISCRIMINANT ANALYSIS, 2D WAVELET TRANSFORM, BI-
+DIMENSIONAL  EMPIRICAL
+MODE
+DECOMPOSITION.,
+2D
+EMPIRICAL
+WAVELET
+TRANSFORM
+AND
+EMPIRICAL  MONOCOMPONENT IMAGE DECOMPOSITION., INTRODUCTION TO IMAGE RECOGNITION:
+HANDCRAFT BASED AND LEARNING BASED APPROACHES.
+06016468
+การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์
+3(3-0-6)
+DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS
+วิชาบังคับก่อน
+ไม่มี
+PRERECUSITE
+NONE
+แนะนำหลักการและแนวทางการทำงานของโครงข่ายประสาทเทียมและเทคนิคการเรียนรู้เชิงลึก
+การประยุกต์ใช้งานการเรียนรู้เชิงลึกสำหรับการวิเคราะห์ปัญหาภาพและวิดีโอทางการแพทย์ อาทิ:ชเช่น
+การตรวจจับวัตถฺการแบ่งส่วน การรู้จำเละการวิเคราะห์ ลักษณะและชนิดของข้อมูลภาพและวิดีโอ
+ทางการแพทย์ และความท้าทายของการประมวลผลภาพและวิดีโอทางการแพทย์
+INTRODUCTION TO CONCEPTS  AND  PRINCIPLES OF ARTIFICIAL
+NEURAL  NETWORK AND  DEEP
+LEARNING  TECHNIQUES,  APPLYING  DEEP  LEARNING  FOR
+MEDICAL  IMAGE
+AND
+VIDEO
+ANALYSIS
+PROBLEMS SUCH AS DETECTION., SEGMENTATION, RECOGNITION., AND ANALYSIS, CHARACTERISTICS AND
+TYPES OF MEDICAL IMAGE AND VIDEO, CHALLENGES IN MEDICAL IMAGE AND VIDEO COMPUTING.
+วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล_

@@ -11,25 +11,26 @@ __pycache__/
 opencode.json
 project_snapshot.zip
 
-# Generated project data
+# Generated / large local data (populated by copy or pipeline runs)
 inputs/*
 outputs/*
 prototype_outputs/*
 example/*
 work/*
-/work/
+data/input/*
+data/output/ocr/*
+data/output/extracted/*
+data/output/consolidated/*
+cucumber_outputs/*
 *.tmp
 *.log
 /curriculum.db
 demo.db
 
-# Keep tracked placeholder folders
-!inputs/.gitkeep
-!outputs/.gitkeep
-
-# CUCUMBER generated outputs
-!/outputs/llm
-/cucumber_outputs/*
-!/cucumber_outputs/.gitkeep
-!/cucumber_outputs/runtime/
-!/cucumber_outputs/runtime/curriculum.db
+# Tracked reference artifacts (small, required for RAG + tests)
+!data/input/.gitkeep
+!data/output/final/
+!data/output/final/*.json
+!tests/reference/
+!cucumber_outputs/runtime/curriculum.db
+!reports/evaluation_reference/
