@@ -37,6 +37,7 @@ _INTENT_OPERATION = {
     "course_comparison": "compare",
     "plan_comparison": "compare",
     "program_discovery": "program_discovery",
+    "count_query": "count",
 }
 
 _INTENT_FACTS = {
@@ -48,6 +49,7 @@ _INTENT_FACTS = {
     "course_comparison": frozenset({"course_comparison"}),
     "plan_comparison": frozenset({"plan_comparison"}),
     "program_discovery": frozenset({"program_identity"}),
+    "count_query": frozenset({"course_list"}),
 }
 
 _GROUP_BY_FOR_INTENT = {
@@ -204,6 +206,16 @@ def _mapped_operations(
             for operation in ("list", "prerequisite")
             if operation in merged
         )
+    if intent == "count_query":
+        if tuple(interpretation.requested_facts) != ("course_list",):
+            raise IntentCompilerError(
+                "count_query requires exactly the course_list evidence request"
+            )
+        if tuple(base_operations):
+            raise IntentCompilerError(
+                "count_query cannot combine with existing operations"
+            )
+        return ("count",)
     if intent in _INTENT_OPERATION:
         expected_facts = _INTENT_FACTS[intent]
         facts = set(interpretation.requested_facts)
@@ -284,6 +296,18 @@ def compile_intent_to_query_spec(
         raise IntentCompilerError(eligibility.reason)
     if base_spec.judgement == "unsupported":
         raise IntentCompilerError("base QuerySpec has unsupported judgement")
+
+    if interpretation.intent == "count_query":
+        if base_spec.topic is not None:
+            raise IntentCompilerError("count_query cannot use a topic")
+        if base_spec.judgement != "none":
+            raise IntentCompilerError("count_query cannot use a judgement")
+        if base_spec.course_codes or base_spec.course_name is not None:
+            raise IntentCompilerError("count_query cannot target a course")
+        if interpretation.topic is not None:
+            raise IntentCompilerError("count_query cannot add a topic")
+        if interpretation.course_codes:
+            raise IntentCompilerError("count_query cannot add course targets")
 
     program = _merge_program(
         base_spec.program,

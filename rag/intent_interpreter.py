@@ -31,6 +31,7 @@ INTENTS = frozenset(
         "course_comparison",
         "plan_comparison",
         "program_discovery",
+        "count_query",
         "workload_judgement",
         "preference_recommendation_evidence",
     }
@@ -135,7 +136,7 @@ MAX_UNRESOLVED = 8
 MAX_UNRESOLVED_ITEM_LEN = 64
 
 MIN_YEAR = 1
-MAX_YEAR = 4
+MAX_YEAR = 5
 MIN_SEMESTER = 1
 MAX_SEMESTER = 2
 
@@ -515,6 +516,9 @@ def build_intent_prompt(question: str) -> str:
             f"Allowed requested_facts values: {facts}.",
             "Allowed judgement_dimension values: "
             f"{dimensions} (or null when the intent is not a judgement).",
+            f"proposed_years values must be integers from {MIN_YEAR} to "
+            f"{MAX_YEAR}; proposed_semesters values must be integers from "
+            f"{MIN_SEMESTER} to {MAX_SEMESTER}.",
             "Extraction rules: record only information actually stated or "
             "reasonably paraphrased in the user question. "
             "Never infer a program from course-code prefixes. "
@@ -538,6 +542,12 @@ def build_intent_prompt(question: str) -> str:
             "Question \"IT 06016414 กับ 06016420 ต่างกันยังไง\": CORRECT \"proposed_program\": \"IT\", "
             "\"course_codes\": [\"06016414\", \"06016420\"].",
             "program_discovery may leave proposed_program null.",
+            "count_query is limited to one canonical structured course count. "
+            "For count_query, requested_facts MUST be exactly [\"course_list\"], "
+            "topic MUST be null, judgement_dimension MUST be null, and "
+            "course_codes MUST be []. Do not interpret semantic/topic counts, "
+            "comparisons, workload, credits, existence, or unresolved filters "
+            "as count_query.",
             "workload_judgement and preference_recommendation_evidence only "
             "identify the requested evidence dimension; they never conclude "
             "whether something is heavy, easy, good, better, or recommended.",

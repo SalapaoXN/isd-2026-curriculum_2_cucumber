@@ -77,6 +77,148 @@ class IntentCompilerTest(unittest.TestCase):
         self.assertEqual(result.operations, ("placement",))
         self.assertEqual(result.course_codes, ("06016420",))
 
+    def test_count_query_compiles_to_count_and_preserves_scope(self):
+        base = replace(
+            parse_query_spec("IT แผนสหกิจ ปี 3 เทอม 1 วิชาเลือก มีกี่วิชา"),
+            operations=(),
+        )
+        result = compile_intent_to_query_spec(
+            base,
+            self.interpretation(
+                "count_query",
+                requested_facts=("course_list",),
+            ),
+            authoritative_program="IT",
+            authoritative_plans=("coop",),
+            authoritative_years=(3,),
+            authoritative_semesters=(1,),
+        )
+
+        self.assertEqual(result.operations, ("count",))
+        self.assertEqual(result.program, "IT")
+        self.assertEqual(result.plans, ("coop",))
+        self.assertEqual(result.years, (3,))
+        self.assertEqual(result.semesters, (1,))
+        self.assertEqual(result.category, "วิชาเลือก")
+
+    def test_count_query_rejects_topic_and_judgement(self):
+        cases = (
+            replace(parse_query_spec("IT ปี 3 มีวิชาเกี่ยวกับ data กี่วิชา"), operations=()),
+            replace(parse_query_spec("IT ปี 3 มีกี่วิชา"), judgement="quantity", operations=()),
+        )
+        for base in cases:
+            with self.subTest(base=base), self.assertRaises(IntentCompilerError):
+                compile_intent_to_query_spec(
+                    base,
+                    self.interpretation(
+                        "count_query",
+                        requested_facts=("course_list",),
+                    ),
+                    authoritative_program="IT",
+                    authoritative_years=(3,),
+                )
+
+    def test_count_query_rejects_comparison_and_multiple_operations(self):
+        base = replace(
+            parse_query_spec("IT แผนสหกิจกับไม่สหกิจต่างกันยังไง"),
+            operations=("count", "compare"),
+        )
+
+        with self.assertRaises(IntentCompilerError):
+            compile_intent_to_query_spec(
+                base,
+                self.interpretation(
+                    "count_query",
+                    requested_facts=("course_list",),
+                ),
+                authoritative_program="IT",
+            )
+
+    def test_count_query_rejects_targets_and_unresolved_fields(self):
+        target_base = replace(
+            parse_query_spec("IT 06016420 มีกี่วิชา"),
+            operations=(),
+        )
+        unresolved_base = replace(
+            parse_query_spec("IT ปี 2 มีกี่วิชา"),
+            operations=(),
+        )
+        cases = (
+            (target_base, {"course_codes": ("06016420",)}),
+            (unresolved_base, {"unresolved": ("requirement_type",)}),
+        )
+        for base, fields in cases:
+            with self.subTest(fields=fields), self.assertRaises(IntentCompilerError):
+                compile_intent_to_query_spec(
+                    base,
+                    self.interpretation(
+                        "count_query",
+                        requested_facts=("course_list",),
+                        **fields,
+                    ),
+                    authoritative_program="IT",
+                    allowed_course_codes=("06016420",),
+                    authoritative_years=(2,),
+                )
+
+    def test_count_query_rejects_invented_code_and_scope_widening(self):
+        base = replace(parse_query_spec("IT ปี 2 มีกี่วิชา"), operations=())
+        cases = (
+            {"course_codes": ("06016420",)},
+            {"years": (3,)},
+        )
+        for fields in cases:
+            with self.subTest(fields=fields), self.assertRaises(IntentCompilerError):
+                compile_intent_to_query_spec(
+                    base,
+                    self.interpretation(
+                        "count_query",
+                        requested_facts=("course_list",),
+                        **fields,
+                    ),
+                    authoritative_program="IT",
+                    authoritative_years=(2,),
+                )
+
+    def test_qp35_count_mismatches_remain_excluded(self):
+        for question in (
+            "ปี 2 มีวิชาเกี่ยวกับคอมพิวเตอร์เยอะมั้ย",
+            "แผนสหกิจมีวิชาเกี่ยวกับ data มากกว่าแผนปกติไหม",
+        ):
+            with self.subTest(question=question):
+                base = replace(parse_query_spec(question), operations=())
+                with self.assertRaises(IntentCompilerError):
+                    compile_intent_to_query_spec(
+                        base,
+                        self.interpretation(
+                            "count_query",
+                            requested_facts=("course_list",),
+                        ),
+                        authoritative_program="IT",
+                    )
+
+    def test_placement_intent_preserves_authoritative_year_five(self):
+        base = replace(
+            parse_query_spec("IT ปี 5 06016420 ถามช่วงเรียน"),
+            operations=(),
+        )
+        result = compile_intent_to_query_spec(
+            base,
+            self.interpretation(
+                "placement_query",
+                years=(5,),
+                course_codes=("06016420",),
+                requested_facts=("placement",),
+            ),
+            authoritative_program="IT",
+            authoritative_years=(5,),
+            allowed_course_codes=("06016420",),
+        )
+
+        self.assertEqual(result.operations, ("placement",))
+        self.assertEqual(result.years, (5,))
+        self.assertEqual(result.course_codes, ("06016420",))
+
     def test_prerequisite_intent_maps_to_existing_operation(self):
         base = replace(
             parse_query_spec("IT 06016420 ถามวิชาก่อนหน้า"),

@@ -66,6 +66,53 @@ class RagIntentInterpreterTest(unittest.TestCase):
             ExecutionEligibility(True, "ok"),
         )
 
+    def test_valid_count_interpretation(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="count_query",
+                proposed_program="IT",
+                proposed_years=[3],
+                requested_facts=["course_list"],
+            )
+        )
+
+        self.assertEqual(interpretation.intent, "count_query")
+        self.assertEqual(
+            validate_execution_scope(
+                interpretation,
+                program="IT",
+                allowed_years=(3,),
+            ),
+            ExecutionEligibility(True, "ok"),
+        )
+
+    def test_count_prompt_names_the_bounded_contract(self):
+        prompt = build_intent_prompt("IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่")
+
+        self.assertIn("count_query", prompt)
+        self.assertIn("course_list", prompt)
+
+    def test_valid_placement_year_five_matches_query_spec_scope(self):
+        interpretation = parse_intent_payload(
+            payload(
+                intent="placement_query",
+                proposed_program="IT",
+                proposed_years=[5],
+                course_codes=["06016414"],
+                requested_facts=["placement"],
+            )
+        )
+
+        self.assertEqual(
+            validate_execution_scope(
+                interpretation,
+                program="IT",
+                allowed_years=(5,),
+                allowed_course_codes=("06016414",),
+            ),
+            ExecutionEligibility(True, "ok"),
+        )
+
     def test_valid_program_discovery_without_program(self):
         interpretation = parse_intent_payload(
             payload(
@@ -89,6 +136,17 @@ class RagIntentInterpreterTest(unittest.TestCase):
             parse_intent_payload(payload(intent="answer_anything"))
         with self.assertRaises(IntentValidationError):
             parse_intent_payload(payload())
+
+    def test_count_query_malformed_fields_remain_rejected(self):
+        with self.assertRaises(IntentValidationError):
+            parse_intent_payload(
+                payload(
+                    intent="count_query",
+                    proposed_program="IT",
+                    requested_facts=["course_list"],
+                    invented_scope="all",
+                )
+            )
 
     def test_unknown_field_rejected(self):
         with self.assertRaises(IntentValidationError):
@@ -441,6 +499,12 @@ class RagIntentInterpreterTest(unittest.TestCase):
             "unresolved",
         ):
             self.assertIn(key, prompt)
+
+    def test_prompt_states_authoritative_year_range(self):
+        prompt = build_intent_prompt("IT ปี 5 06016414 เรียนปีไหน")
+
+        self.assertIn("integers from 1 to 5", prompt)
+        self.assertIn("integers from 1 to 2", prompt)
 
     def test_prompt_exposes_bounded_intent_allowlist(self):
         prompt = build_intent_prompt("IT 06016414 เรียนปีไหน")

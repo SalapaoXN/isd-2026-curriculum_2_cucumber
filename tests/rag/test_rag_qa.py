@@ -932,6 +932,595 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(result["result"].status, "insufficient_evidence")
         planner.assert_not_called()
 
+    @staticmethod
+    def placement_shadow_payload(**overrides):
+        values = {
+            "intent": "placement_query",
+            "proposed_program": "DSBA",
+            "proposed_plans": [],
+            "proposed_years": [],
+            "proposed_semesters": [],
+            "course_codes": ["06026212"],
+            "topic": None,
+            "requested_facts": ["placement"],
+            "judgement_dimension": None,
+            "unresolved": [],
+        }
+        values.update(overrides)
+        import json
+
+        return json.dumps(values, ensure_ascii=False)
+
+    @staticmethod
+    def count_shadow_payload(**overrides):
+        values = {
+            "intent": "count_query",
+            "proposed_program": "IT",
+            "proposed_plans": [],
+            "proposed_years": [],
+            "proposed_semesters": [],
+            "course_codes": [],
+            "topic": None,
+            "requested_facts": ["course_list"],
+            "judgement_dimension": None,
+            "unresolved": [],
+        }
+        values.update(overrides)
+        import json
+
+        return json.dumps(values, ensure_ascii=False)
+
+    def test_count_shadow_defaults_off_and_complete_count_uses_zero_calls(self):
+        question = "IT ปี 3 ต้องเรียนกี่วิชา"
+        baseline = ask(
+            DB_PATH,
+            question,
+            intent_model_callable=lambda _prompt: self.fail(
+                "shadow-disabled count must not call interpreter"
+            ),
+        )
+        with patch(
+            "rag.qa.interpret_question_intent",
+            side_effect=AssertionError("complete count must not shadow"),
+        ) as interpreter:
+            result = ask(DB_PATH, question, shadow_intent=True)
+
+        self.assertNotIn("count_shadow", baseline)
+        self.assertFalse(result["count_shadow"].attempted)
+        self.assertFalse(result["count_shadow"].eligible)
+        interpreter.assert_not_called()
+
+    def test_count_shadow_validates_and_executes_bounded_long_tail(self):
+        calls = []
+        plan = EvidencePlan(StructuralScope(program="IT", years=(3,)), ())
+        bundle = EvidenceBundle(plan, ())
+        claim = GroundedClaim(
+            "count_canonical",
+            "count",
+            status="complete",
+            value=7,
+            evidence={"source": "canonical"},
+            provenance=({"source_page": 12},),
+        )
+
+        def intent_model(prompt):
+            calls.append(prompt)
+            return self.count_shadow_payload()
+
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ) as executor, patch(
+            "rag.qa._compose_evidence_claims", return_value=(claim,)
+        ), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ) as renderer:
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=intent_model,
+                answer_model_callable=lambda _prompt: self.fail(
+                    "count shadow must not invoke answer polish"
+                ),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(len(calls), 1)
+        shadow = result["count_shadow"]
+        self.assertTrue(shadow.attempted)
+        self.assertTrue(shadow.eligible)
+        self.assertEqual(shadow.status, "validated")
+        self.assertEqual(shadow.comparison, "compatible_extension")
+        self.assertEqual(shadow.compiled_spec.operations, ("count",))
+        self.assertTrue(shadow.executed)
+        planner.assert_called_once()
+        executor.assert_called_once_with(DB_PATH, plan)
+        self.assertIsNone(renderer.call_args.kwargs["answer_model_callable"])
+
+    def test_count_shadow_model_unavailable_is_diagnostic_only(self):
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("unavailable shadow must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                shadow_intent=True,
+            )
+
+        shadow = result["count_shadow"]
+        self.assertTrue(shadow.eligible)
+        self.assertFalse(shadow.attempted)
+        self.assertEqual(shadow.status, "unavailable")
+        planner.assert_not_called()
+
+    def test_count_shadow_gate_off_keeps_long_tail_fail_closed(self):
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("gate-off long-tail must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=lambda _prompt: self.fail(
+                    "gate-off count must not interpret"
+                ),
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertNotIn("count_shadow", result)
+        planner.assert_not_called()
+
+    def test_validated_count_shadow_executes_canonical_count_path(self):
+        calls = []
+        plan = EvidencePlan(
+            StructuralScope(program="IT", years=(3,)),
+            (),
+        )
+        bundle = EvidenceBundle(plan, ())
+        canonical_claim = GroundedClaim(
+            "count_canonical",
+            "count",
+            status="complete",
+            value=7,
+            evidence={"source": "canonical_structured_bundle"},
+            provenance=({"source_page": 12},),
+        )
+
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ) as executor, patch(
+            "rag.qa._compose_evidence_claims", return_value=(canonical_claim,)
+        ) as compose, patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ) as renderer:
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=lambda prompt: calls.append(prompt)
+                or self.count_shadow_payload(),
+                answer_model_callable=lambda _prompt: self.fail(
+                    "count execution must not polish"
+                ),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(len(calls), 1)
+        planner.assert_called_once()
+        executor.assert_called_once_with(DB_PATH, bundle.plan)
+        compose.assert_called_once()
+        planned_spec = planner.call_args.args[0]
+        self.assertEqual(planned_spec.operations, ("count",))
+        self.assertEqual(planned_spec.program, "IT")
+        self.assertEqual(planned_spec.years, (3,))
+        self.assertEqual(canonical_claim.provenance, ({"source_page": 12},))
+        self.assertEqual(result["result"]["status"], "answer")
+        self.assertTrue(result["count_shadow"].executed)
+        self.assertIsNone(renderer.call_args.kwargs["answer_model_callable"])
+
+    def test_count_shadow_execution_preserves_category_and_scope(self):
+        plan = EvidencePlan(StructuralScope(program="IT", plans=("coop",)), ())
+        bundle = EvidenceBundle(plan, ())
+        claim = GroundedClaim(
+            "count_canonical",
+            "count",
+            status="complete",
+            value=2,
+            evidence={"source": "canonical"},
+            provenance=({"source_page": 13},),
+        )
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ), patch("rag.qa._compose_evidence_claims", return_value=(claim,)), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ):
+            result = ask(
+                DB_PATH,
+                "IT แผนสหกิจ ปี 5 เทอม 1 วิชาเลือก มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=lambda _prompt: self.count_shadow_payload(
+                    proposed_plans=["coop"],
+                ),
+                shadow_intent=True,
+            )
+
+        planned_spec = planner.call_args.args[0]
+        self.assertEqual(planned_spec.operations, ("count",))
+        self.assertEqual(planned_spec.program, "IT")
+        self.assertEqual(planned_spec.plans, ("coop",))
+        self.assertEqual(planned_spec.years, (5,))
+        self.assertEqual(planned_spec.semesters, (1,))
+        self.assertEqual(planned_spec.category, "วิชาเลือก")
+        self.assertTrue(result["count_shadow"].executed)
+
+    def test_count_shadow_scope_conflict_never_executes(self):
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("conflicting count must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=lambda _prompt: self.count_shadow_payload(
+                    proposed_plans=["coop"],
+                ),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["count_shadow"].comparison, "conflict")
+        self.assertFalse(result["count_shadow"].executed)
+        planner.assert_not_called()
+
+    def test_count_shadow_preserves_optional_scope_and_year_five(self):
+        calls = []
+        plan = EvidencePlan(
+            StructuralScope(
+                program="IT",
+                plans=("coop",),
+                years=(5,),
+                semesters=(1,),
+            ),
+            (),
+        )
+        bundle = EvidenceBundle(plan, ())
+        claim = GroundedClaim(
+            "count_canonical",
+            "count",
+            status="complete",
+            value=2,
+            evidence={"source": "canonical"},
+            provenance=({"source_page": 13},),
+        )
+
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ), patch("rag.qa._compose_evidence_claims", return_value=(claim,)), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ):
+            result = ask(
+                DB_PATH,
+                "IT แผนสหกิจ ปี 5 เทอม 1 วิชาเลือก มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=lambda prompt: calls.append(prompt)
+                or self.count_shadow_payload(proposed_plans=["coop"]),
+                shadow_intent=True,
+            )
+
+        shadow = result["count_shadow"]
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(shadow.status, "validated")
+        self.assertEqual(shadow.compiled_spec.operations, ("count",))
+        self.assertEqual(shadow.compiled_spec.plans, ("coop",))
+        self.assertEqual(shadow.compiled_spec.years, (5,))
+        self.assertEqual(shadow.compiled_spec.semesters, (1,))
+        self.assertEqual(shadow.compiled_spec.category, "วิชาเลือก")
+        self.assertTrue(shadow.executed)
+        self.assertEqual(planner.call_args.args[0].operations, ("count",))
+
+    def test_count_shadow_skips_non_count_topic_comparison_and_missing_program(self):
+        cases = (
+            "IT มีวิชาเกี่ยวกับ data กี่วิชา",
+            "IT แผนสหกิจกับไม่สหกิจต่างกันยังไง",
+        )
+        for question in cases:
+            with self.subTest(question=question):
+                calls = []
+                result = ask(
+                    DB_PATH,
+                    question,
+                    intent_model_callable=lambda prompt: calls.append(prompt),
+                    shadow_intent=True,
+                )
+                self.assertEqual(calls, [])
+                self.assertFalse(result["count_shadow"].attempted)
+
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("unresolved count must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                intent_model_callable=lambda _prompt: self.fail(
+                    "missing program must not shadow"
+                ),
+                shadow_intent=True,
+            )
+        self.assertNotIn("count_shadow", result)
+        planner.assert_not_called()
+
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("unresolved count must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "IT ปี 2 มีวิชาบังคับกี่วิชา",
+                intent_model_callable=lambda _prompt: self.fail(
+                    "requirement residue must not shadow"
+                ),
+                shadow_intent=True,
+            )
+        self.assertFalse(result["count_shadow"].attempted)
+        planner.assert_not_called()
+
+    def test_count_shadow_rejects_scope_conflict_and_malformed_proposals(self):
+        cases = (
+            self.count_shadow_payload(proposed_plans=["coop"]),
+            self.count_shadow_payload(topic="data"),
+            self.count_shadow_payload(judgement_dimension="preference"),
+            self.count_shadow_payload(course_codes=["06016420"]),
+            self.count_shadow_payload(unresolved=["requirement_type"]),
+            "not json",
+        )
+        for payload in cases:
+            with self.subTest(payload=payload), patch(
+                "rag.qa.plan_evidence",
+                side_effect=AssertionError("invalid count shadow must not plan"),
+            ) as planner:
+                result = ask(
+                    DB_PATH,
+                    "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่",
+                    intent_model_callable=lambda _prompt, payload=payload: payload,
+                    shadow_intent=True,
+                )
+            shadow = result["count_shadow"]
+            self.assertTrue(shadow.attempted)
+            self.assertEqual(shadow.status, "invalid_interpretation")
+            self.assertIn(shadow.comparison, {"conflict", "invalid_interpretation"})
+            planner.assert_not_called()
+
+    def test_count_shadow_gate_off_does_not_change_answer_or_planner_footprint(self):
+        question = "IT ปี 3 มีรายวิชาทั้งหมดเท่าไหร่"
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("unrecognized count must fail closed"),
+        ) as planner, patch(
+            "rag.qa.execute_evidence_plan",
+            side_effect=AssertionError("unrecognized count must not execute"),
+        ) as executor:
+            baseline = ask(DB_PATH, question)
+            gate_off = ask(
+                DB_PATH,
+                question,
+            )
+
+        self.assertEqual(gate_off["result"], baseline["result"])
+        self.assertNotIn("count_shadow", gate_off)
+        planner.assert_not_called()
+        executor.assert_not_called()
+
+    def test_validated_placement_shadow_executes_deterministically(self):
+        calls = []
+        plan = EvidencePlan(StructuralScope(program="DSBA"), ())
+        bundle = EvidenceBundle(plan, ())
+        canonical_claim = GroundedClaim(
+            "placement_canonical",
+            "placement",
+            status="complete",
+            value={
+                "course_code": "06026212",
+                "placements": (("coop", 3, 1), ("no_coop", 3, 1)),
+            },
+            evidence={"source": "canonical_structured_bundle"},
+            provenance=({"source_page": 37},),
+        )
+
+        def intent_model(prompt):
+            calls.append(prompt)
+            return self.placement_shadow_payload()
+
+        with patch("rag.qa.plan_evidence", return_value=plan) as planner, patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ) as executor, patch(
+            "rag.qa._compose_evidence_claims",
+            return_value=(canonical_claim,),
+        ), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ) as renderer:
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                intent_model_callable=intent_model,
+                answer_model_callable=lambda _prompt: self.fail(
+                    "shadow placement must not polish"
+                ),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(result["result"]["status"], "answer")
+        shadow = result["intent_shadow"]
+        self.assertTrue(shadow.attempted)
+        self.assertTrue(shadow.eligible)
+        self.assertEqual(shadow.family, "placement_query")
+        self.assertEqual(shadow.status, "validated")
+        self.assertEqual(shadow.comparison, "compatible_extension")
+        self.assertEqual(shadow.compiled_spec.operations, ("placement",))
+        self.assertTrue(shadow.executed)
+        planner.assert_called_once()
+        planned_spec = planner.call_args.args[0]
+        self.assertEqual(planned_spec.operations, ("placement",))
+        self.assertEqual(planned_spec.program, "DSBA")
+        self.assertEqual(planned_spec.course_codes, ("06026212",))
+        executor.assert_called_once_with(DB_PATH, plan)
+        self.assertIsNone(renderer.call_args.kwargs["answer_model_callable"])
+
+    def test_placement_shadow_defaults_off_and_complete_query_uses_zero_calls(self):
+        plan = EvidencePlan(StructuralScope(program="DSBA"), ())
+        bundle = EvidenceBundle(plan, ())
+
+        with patch("rag.qa.plan_evidence", return_value=plan), patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ), patch("rag.qa._compose_evidence_claims", return_value=()), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ):
+            baseline = ask(
+                DB_PATH,
+                "DSBA วิชา 06026212 เรียนปีไหน เทอมไหน",
+            )
+            result = ask(
+                DB_PATH,
+                "DSBA วิชา 06026212 เรียนปีไหน เทอมไหน",
+                intent_model_callable=lambda _prompt: self.fail(
+                    "complete placement must not shadow"
+                ),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(result["result"]["status"], "answer")
+        self.assertEqual(result["result"], baseline["result"])
+        self.assertFalse(result["intent_shadow"].attempted)
+        self.assertFalse(result["intent_shadow"].eligible)
+
+    def test_placement_shadow_skips_nonplacement_queries(self):
+        plan = EvidencePlan(StructuralScope(program="IT"), ())
+        bundle = EvidenceBundle(plan, ())
+
+        with patch("rag.qa.plan_evidence", return_value=plan), patch(
+            "rag.qa.execute_evidence_plan", return_value=bundle
+        ), patch("rag.qa._compose_evidence_claims", return_value=()), patch(
+            "rag.qa.render_grounded_answer", return_value={"status": "answer"}
+        ):
+            result = ask(
+                DB_PATH,
+                "IT มีวิชาเกี่ยวกับ database อะไรบ้าง",
+                intent_model_callable=lambda _prompt: self.fail(
+                    "non-placement query must not shadow"
+                ),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(result["result"]["status"], "answer")
+        self.assertFalse(result["intent_shadow"].attempted)
+        self.assertFalse(result["intent_shadow"].eligible)
+
+    def test_qp4_unsupported_learning_period_wording_stays_fail_closed(self):
+        calls = []
+
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("unsupported wording must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 เรียนช่วงไหน",
+                intent_model_callable=lambda prompt: calls.append(prompt),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(calls, [])
+        planner.assert_not_called()
+
+    def test_qp4_nq028_behavior_stays_program_blocked(self):
+        calls = []
+
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("program clarification must block"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "ถ้าอยากเรียน AI เริ่มมีวิชาแนวนี้ตั้งแต่ปีไหน",
+                intent_model_callable=lambda prompt: calls.append(prompt),
+                shadow_intent=True,
+            )
+
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(calls, [])
+        planner.assert_not_called()
+
+    def test_placement_shadow_scope_conflict_cannot_change_answer(self):
+        calls = []
+
+        def intent_model(prompt):
+            calls.append(prompt)
+            return self.placement_shadow_payload(proposed_plans=["coop"])
+
+        with patch(
+            "rag.qa.plan_evidence",
+            side_effect=AssertionError("conflict must not plan"),
+        ) as planner:
+            result = ask(
+                DB_PATH,
+                "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                intent_model_callable=intent_model,
+                shadow_intent=True,
+            )
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["intent_shadow"].comparison, "conflict")
+        self.assertEqual(result["intent_shadow"].status, "invalid_interpretation")
+        planner.assert_not_called()
+
+    def test_placement_shadow_malformed_or_provider_failure_is_harmless(self):
+        for model in (
+            lambda _prompt: "not json",
+            lambda _prompt: (_ for _ in ()).throw(RuntimeError("offline")),
+        ):
+            with self.subTest(model=model), patch(
+                "rag.qa.plan_evidence",
+                side_effect=AssertionError("shadow failure must not plan"),
+            ) as planner:
+                result = ask(
+                    DB_PATH,
+                    "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                    intent_model_callable=model,
+                    shadow_intent=True,
+                )
+
+            self.assertEqual(result["result"].status, "insufficient_evidence")
+            self.assertIn(
+                result["intent_shadow"].status,
+                {"invalid_interpretation", "unavailable"},
+            )
+            planner.assert_not_called()
+
+    def test_placement_shadow_rejects_hallucinated_identity_and_unresolved(self):
+        cases = (
+            {"course_codes": ["06029999"]},
+            {"unresolved": ["which plan"]},
+        )
+        for overrides in cases:
+            with self.subTest(overrides=overrides), patch(
+                "rag.qa.plan_evidence",
+                side_effect=AssertionError("invalid shadow must not plan"),
+            ) as planner:
+                result = ask(
+                    DB_PATH,
+                    "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+                    intent_model_callable=lambda _prompt, overrides=overrides: self.placement_shadow_payload(
+                        **overrides
+                    ),
+                    shadow_intent=True,
+                )
+
+            self.assertEqual(result["result"].status, "insufficient_evidence")
+            self.assertEqual(
+                result["intent_shadow"].status, "invalid_interpretation"
+            )
+            planner.assert_not_called()
+
     def test_interpreted_preference_uses_one_advisory_answer_call(self):
         intent_calls = []
         answer_calls = []
