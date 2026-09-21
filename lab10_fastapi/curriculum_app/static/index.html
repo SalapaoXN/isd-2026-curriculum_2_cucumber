@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CUCUMBER Curriculum Assistant</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-soft: #f1f3f5;
+      --border: #dfe3e8;
+      --text: #1f2933;
+      --muted: #697386;
+      --accent: #2f6f5e;
+      --accent-dark: #245548;
+      --danger: #a33a3a;
+      --shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(960px, calc(100% - 32px));
+      margin: 40px auto;
+    }
+
+    .header { margin-bottom: 24px; }
+
+    .header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.7rem, 3vw, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .ask-card {
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 650;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 15px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47, 111, 94, 0.10);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button:hover { background: var(--accent-dark); }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9ca3af;
+    }
+
+    .status-dot.ok { background: #3d8b6d; }
+
+    .result-card {
+      overflow: hidden;
+      display: none;
+    }
+
+    .section {
+      padding: 20px 22px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section:first-child { border-top: 0; }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .answer {
+      font-size: 1.08rem;
+      white-space: pre-wrap;
+    }
+
+    .sql-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      overflow-x: auto;
+      background: #111827;
+      color: #e5e7eb;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .primary-sql {
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+    }
+
+    details {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-soft);
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 12px 14px;
+      font-weight: 650;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::after {
+      content: "⌄";
+      color: var(--muted);
+    }
+
+    details[open] summary::after { content: "⌃"; }
+
+    details pre {
+      border-top: 1px solid var(--border);
+      max-height: 460px;
+      overflow: auto;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .error {
+      color: var(--danger);
+      background: #fff5f5;
+      border: 1px solid #efd0d0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 14px;
+      display: none;
+    }
+
+    .rows-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    .rows-table th,
+    .rows-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .rows-table th {
+      background: var(--surface-soft);
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .container { margin: 22px auto; }
+      .ask-card, .section { padding: 17px; }
+      .sql-label { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>CUCUMBER Curriculum Assistant</h1>
+      <p>ระบบถาม–ตอบข้อมูลหลักสูตรจากฐานข้อมูล CUCUMBER</p>
+
+      <div class="status">
+        <span class="status-dot" id="healthDot"></span>
+        <span id="healthText">กำลังตรวจสอบระบบ...</span>
+      </div>
+    </header>
+
+    <section class="card ask-card">
+      <label for="question">คำถาม</label>
+      <textarea
+        id="question"
+        placeholder="เช่น IT วิชา 06016414 กี่หน่วยกิต"
+      ></textarea>
+
+      <div class="actions">
+        <button id="askButton" type="button">ถาม</button>
+        <span class="hint">กด Ctrl + Enter เพื่อส่งคำถาม</span>
+      </div>
+
+      <div class="error" id="errorBox"></div>
+    </section>
+
+    <section class="card result-card" id="resultCard">
+      <div class="section">
+        <h2 class="section-title">คำตอบ</h2>
+        <div class="answer" id="answer"></div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">ข้อมูลที่ได้จากระบบ</h2>
+        <div id="rowsContainer"></div>
+      </div>
+
+      <div class="section">
+        <div class="sql-label">
+          <div>
+            <h2 class="section-title" style="margin-bottom: 2px;">SQL หลัก</h2>
+            <div class="hint">แสดง query หลักที่ใช้ค้นข้อมูลสำหรับคำถามนี้</div>
+          </div>
+          <span class="badge" id="queryBadge"></span>
+        </div>
+
+        <pre class="primary-sql" id="primarySql"></pre>
+
+        <details id="allSqlDetails">
+          <summary>
+            <span>ดู SQL ทั้งหมดที่ระบบ execute</span>
+          </summary>
+          <pre id="allSql"></pre>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const questionInput = document.getElementById("question");
+    const askButton = document.getElementById("askButton");
+    const resultCard = document.getElementById("resultCard");
+    const answerBox = document.getElementById("answer");
+    const rowsContainer = document.getElementById("rowsContainer");
+    const primarySql = document.getElementById("primarySql");
+    const allSql = document.getElementById("allSql");
+    const queryBadge = document.getElementById("queryBadge");
+    const allSqlDetails = document.getElementById("allSqlDetails");
+    const errorBox = document.getElementById("errorBox");
+
+    async function checkHealth() {
+      const dot = document.getElementById("healthDot");
+      const text = document.getElementById("healthText");
+
+      try {
+        const response = await fetch("/api/health");
+        const data = await response.json();
+
+        if (response.ok && data.database_ready) {
+          dot.classList.add("ok");
+          text.textContent = "ระบบพร้อมใช้งาน";
+        } else {
+          text.textContent = "ระบบยังไม่พร้อม";
+        }
+      } catch {
+        text.textContent = "ไม่สามารถตรวจสอบสถานะระบบได้";
+      }
+    }
+
+    function renderRows(rows) {
+      rowsContainer.innerHTML = "";
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        rowsContainer.innerHTML =
+          '<div class="empty">ไม่มี rows เพิ่มเติมสำหรับคำถามนี้</div>';
+        return;
+      }
+
+      const columns = [...new Set(rows.flatMap(row => Object.keys(row)))];
+
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+
+      const table = document.createElement("table");
+      table.className = "rows-table";
+
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+
+      columns.forEach(column => {
+        const th = document.createElement("th");
+        th.textContent = column;
+        headRow.appendChild(th);
+      });
+
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        columns.forEach(column => {
+          const td = document.createElement("td");
+          const value = row[column];
+
+          td.textContent =
+            value === null || value === undefined
+              ? ""
+              : typeof value === "object"
+                ? JSON.stringify(value)
+                : String(value);
+
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      rowsContainer.appendChild(wrap);
+    }
+
+    function splitQueries(sql) {
+      if (!sql || !sql.trim()) return [];
+
+      const parts = sql
+        .trim()
+        .split(/(?=-- Query \d+\s*\n)/g)
+        .map(part => part.trim())
+        .filter(Boolean);
+
+      return parts.length ? parts : [sql.trim()];
+    }
+
+    function removeQueryHeader(sql) {
+      return sql.replace(/^-- Query \d+\s*\n?/, "").trim();
+    }
+
+    function renderSql(sql) {
+      const queries = splitQueries(sql);
+      const count = queries.length;
+
+      if (count === 0) {
+        primarySql.textContent = "ไม่มี SQL สำหรับคำถามนี้";
+        allSql.textContent = "";
+        queryBadge.textContent = "0 queries";
+        allSqlDetails.style.display = "none";
+        return;
+      }
+
+      primarySql.textContent = removeQueryHeader(queries[0]);
+
+      queryBadge.textContent =
+        `${count} ${count === 1 ? "query executed" : "queries executed"}`;
+
+      if (count > 1) {
+        allSql.textContent = queries.join("\n\n");
+        allSqlDetails.style.display = "block";
+        allSqlDetails.open = false;
+      } else {
+        allSql.textContent = "";
+        allSqlDetails.style.display = "none";
+      }
+    }
+
+    async function askQuestion() {
+      const question = questionInput.value.trim();
+
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+
+      if (question.length < 2) {
+        errorBox.textContent = "กรุณาพิมพ์คำถามอย่างน้อย 2 ตัวอักษร";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      askButton.disabled = true;
+      askButton.textContent = "กำลังค้นหา...";
+
+      try {
+        const response = await fetch("/api/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || "เกิดข้อผิดพลาดจาก API");
+        }
+
+        answerBox.textContent = data.answer || "ไม่พบคำตอบ";
+        renderRows(data.rows || []);
+        renderSql(data.sql || "");
+
+        resultCard.style.display = "block";
+      } catch (error) {
+        resultCard.style.display = "none";
+        errorBox.textContent = error.message || "เกิดข้อผิดพลาด";
+        errorBox.style.display = "block";
+      } finally {
+        askButton.disabled = false;
+        askButton.textContent = "ถาม";
+      }
+    }
+
+    askButton.addEventListener("click", askQuestion);
+
+    questionInput.addEventListener("keydown", event => {
+      if (event.ctrlKey && event.key === "Enter") {
+        askQuestion();
+      }
+    });
+
+    checkHealth();
+  </script>
+</body>
+</html>
