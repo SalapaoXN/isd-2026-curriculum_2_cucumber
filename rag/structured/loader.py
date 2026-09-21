@@ -25,6 +25,7 @@ _NO_PREREQUISITE = {
     "\u0e44\u0e21\u0e48\u0e21\u0e35",
 }
 _DOCUMENT_CATEGORIES = {"plan", "description", "unknown"}
+_SUPPLEMENTAL_DOCUMENT_CATEGORIES = {"rule", "program_requirement"}
 _FLEXIBLE_YEAR_SEMESTER = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*$")
 _CREDIT_UNITS = re.compile(r"^\s*(\d+)(?:\s*\([^)]*\))?\s*$")
 _SOURCE_IDENTITY_FIELDS = (
@@ -166,9 +167,11 @@ def _normalized_provenance(
     entry: Mapping[str, Any],
     default_program: str | None,
     default_source_document_key: str | None,
+    allowed_categories: set[str] | None = None,
 ) -> tuple[Any, ...]:
     category = _as_text(entry.get("document_category")) or "unknown"
-    if category not in _DOCUMENT_CATEGORIES:
+    categories = _DOCUMENT_CATEGORIES if allowed_categories is None else allowed_categories
+    if category not in categories:
         raise ValueError(f"unsupported document category: {category!r}")
     source_document_key = _source_document_key(entry) or default_source_document_key
     if source_document_key is None:
@@ -197,11 +200,15 @@ def _provenance_ids(
     default_program: str | None,
     default_source_document_key: str | None,
     cache: dict[tuple[Any, ...], int],
+    allowed_categories: set[str] | None = None,
 ) -> list[tuple[int, int]]:
     references: list[tuple[int, int]] = []
     for source_order, entry in enumerate(_provenance_entries(value)):
         normalized = _normalized_provenance(
-            entry, default_program, default_source_document_key
+            entry,
+            default_program,
+            default_source_document_key,
+            allowed_categories=allowed_categories,
         )
         provenance_id = cache.get(normalized)
         if provenance_id is None:

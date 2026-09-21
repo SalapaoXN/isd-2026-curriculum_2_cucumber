@@ -1,0 +1,3140 @@
+{
+  "source": "Academic Rules",
+  "total_rules": 155,
+  "rules": [
+    {
+      "rule_id": "rule:1",
+      "category": null,
+      "section_path": [
+        "1"
+      ],
+      "section_number": "1",
+      "parent_rule_id": null,
+      "rule_text": "ข้อบังคับนี้เรียกว่า \"ข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ว่าด้วย\nการศึกษาระดับปริญญาตรี\nพ.ศ. ๒๕๖๔",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:2",
+      "category": null,
+      "section_path": [
+        "2"
+      ],
+      "section_number": "2",
+      "parent_rule_id": null,
+      "rule_text": "ข้อบังคับนี้ไห้ใช้บังคับตั้งแต่วันถัดจากวันประกาศเป็นต้นไป",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:3",
+      "category": null,
+      "section_path": [
+        "3"
+      ],
+      "section_number": "3",
+      "parent_rule_id": null,
+      "rule_text": "ให้ยกเลิก",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:3.1",
+      "category": null,
+      "section_path": [
+        "3",
+        "3.1"
+      ],
+      "section_number": "3.1",
+      "parent_rule_id": "rule:3",
+      "rule_text": "ข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ว่าด้วยการศึกษา\nระดับปริญญาตรี พ.ศ. ๒๕๕๙",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:3.2",
+      "category": null,
+      "section_path": [
+        "3",
+        "3.2"
+      ],
+      "section_number": "3.2",
+      "parent_rule_id": "rule:3",
+      "rule_text": "ข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ว่าด้วยการศึกษา\nระดับปริญญาตรี (ฉบับที่ ๒) พ.ศ. ๒๕๖๑",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:3.3",
+      "category": null,
+      "section_path": [
+        "3",
+        "3.3"
+      ],
+      "section_number": "3.3",
+      "parent_rule_id": "rule:3",
+      "rule_text": "ข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ว่าด้วยการศึกษา\nระดับปริญญาตรี (ฉบับที่ ๓) พ.ศ. ๒๕๖๓",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:3.4",
+      "category": null,
+      "section_path": [
+        "3",
+        "3.4"
+      ],
+      "section_number": "3.4",
+      "parent_rule_id": "rule:3",
+      "rule_text": "ข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ว่าด้วยการศึกษา\nระดับปริญญาตรี (ฉบับที่\nพ.ศ. ๒๕๖๓\nบรรดาข้อบังคับ ระเบียบ คำสั่ง\nประกาศ หรือมติอื่นใดในส่วนที่ได้กำหนดไว้แล้วในข้อบังคับนี้หรือซึ่ง\nขัดหรือแย้งกับข้อบังคับนี้ ให้ใช้ข้อบังคับนี้แทน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:4",
+      "category": null,
+      "section_path": [
+        "4"
+      ],
+      "section_number": "4",
+      "parent_rule_id": null,
+      "rule_text": "ให้อธิการบดีเป็นผู้รักษาการตามข้อบังคับนี้ และมีอำนาจในการออกระเบียบ ประกาศ หรือ\nคำสั่งของสถาบันซึ่งไม่ขัดหรือแย้งกับข้อบังคับนี้โดยผ่านความเห็นชอบของสภาวิชาการแล้วรายงานให้สภา\nสถาบันทราบ\nในกรณีที่มีข้อสงสัยหรือมิได้ระบุไว้ในข้อบังคับนี้ หรือในกรณีที่มีความจำเป็นต้องผ่อนผันข้อกำหนดใน\nข้อบังคับนี้เป็นกรณีพิเศษ ให้สภาวิชาการเป็นผู้วินิจฉัยและให้ถือเป็นที่สุด\nข้อปฏิบัติอื่น\nต\nที่มิได้กำหนดไว้ในข้อบังคับนี้ ให้เป็นไปตามหลักเกณฑ์ที่กระทรวงการอุดมศึกษา\nวิทยาศาสตร์ วิจัยและนวัตกรรมกำหนด\nธุ๋",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_001.png",
+          "source_page": 1,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:5",
+      "category": "หมวด 1 บททัวไป",
+      "section_path": [
+        "5"
+      ],
+      "section_number": "5",
+      "parent_rule_id": null,
+      "rule_text": "ในข้อบังคับนี้\n\"สถาบัน\" หมายความว่า\nสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n\"อธิการบดี หมายความว่า อธิการบดีสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหาร\nลาดกระบัง\n\"นักศึกษา\" หมายความว่า ผู้เข้ารับการศึกษาในระดับปริญญาตรีในสถาบันเทคโนโลยี\nพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n\"ส่วนงานวิชาการ\" หมายความว่า ส่วนงานวิชาการที่ดำเนินการสอนหลักสูตรปริญญาตรีใน\nสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง\n\"หัวหน้าส่วนงานวิชาการ\nหมายความว่า คณบดีและให้หมายรวมถึงรองอธิการบดีทีได้รับ\nมอบหมายให้ควบคุมดูแลวิทยาเขต\nคณะกรรมการประจำส่วนงานวิชาการ\nหมายความว่า คณะกรรมการประจำส่วนงาน\nวิชาการในสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง และให้หมายรวมถึงคณะกรรมการ\nประจำวิทยาเขตด้วย\nคณะกรรมการประจำส่วนงานอืน\" หมายความว่า คณะกรรมการประจำสำนักวิชาศึกษา\nทั่วไป และให้หมายรวมถึงคณะกรรมการประจำส่วนงานอื่นในสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหาร\nลาดกระบังด้วย\nภาคการศึกษาพิเศษ\nหมายความว่าการศึกษาภาคฤดูร้อน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6"
+      ],
+      "section_number": "6",
+      "parent_rule_id": null,
+      "rule_text": "ระบบการจัดการศึกษา มีดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.1",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.1"
+      ],
+      "section_number": "6.1",
+      "parent_rule_id": "rule:6",
+      "rule_text": "การศึกษาในสถาบันใช้ระบบการศึกษาแบบทวิภาค โดยปีการศึกษาหนึ่ง\nแบ่งออกเป็น\nภาคการศึกษาปกติ คือ ภาคการศึกษาที่\n๑\nและภาคการศึกษาที่\n๒\nและอาจมีภาคการศึกษาพิเศษอีกหนึ่ง\nภาคการศึกษาได้ โดย\n๑\nภาคการศึกษาปกติมีระยะเวลาศึกษาไม่น้อยกว่า ๑๕ สัปดาห์ ซึ่งอาจแบ่งช่วงได้\nส่วนภาคการศึกษาพิเศษอาจจัดได้ตามความจำเป็นของแต่ละส่วนงานวิชาการ และให้กำหนดระยะเวลา\nและจำนวนหน่วยกิต โดยมีสัดส่วนเทียบเคียงกันได้กับภาคการศึกษาปกติ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.2",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.2"
+      ],
+      "section_number": "6.2",
+      "parent_rule_id": "rule:6",
+      "rule_text": "สถาบันอาจจัดให้ใช้ระบบการศึกษาแบบอื่นด้วยก็ได้ เช่น ระบบไตรภาค ระบบชุดวิชา\nระบบการสอนทางไกล และระบบอื่น\nโดยการจัดระบบการศึกษานั้นตต้องมีระยะเวลาการศึกษาและ\nจำนวนหน่วยกิตในสัดส่วนที่เทียบเคียงได้กับระบบทวิภาค",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.3",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.3"
+      ],
+      "section_number": "6.3",
+      "parent_rule_id": "rule:6",
+      "rule_text": "การศึกษาในหลักสูตรระดับปริญญาตรีที่จัดสอนในสถาบันแบ่งออกเป็นรายวิชา\nโดยแต่ละรายวิชาให้กำหนดปริมาณการศึกษาตามจำนวนหน่วยกิต โดยมีหลักเกณฑ์การกำหนดจำนวนหน่วย\nกิต ดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_002.png",
+          "source_page": 2,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.3.1",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.3",
+        "6.3.1"
+      ],
+      "section_number": "6.3.1",
+      "parent_rule_id": "rule:6.3",
+      "rule_text": "รายวิชาภาคทฤษฎีฺ ที่ใช้เวลาบรรยาย หรืออภิปรายปัญหา หรือการเรียนการ\nสอนที่ไม่น้อยกว่า ๑๕ ชั่วโมงต่อภาคการศึกษา คิดเป็นปริมาณการศึกษา\n๑\nหน่วยกิตระบบทวิภาค",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.3.2",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.3",
+        "6.3.2"
+      ],
+      "section_number": "6.3.2",
+      "parent_rule_id": "rule:6.3",
+      "rule_text": "รายวิชาภาคปฏิบัติ ที่ใช้เวลาฝึกหรือทดลองที่ใช้เวลาปฏิบัติไม่น้อยกว่า\nชั่วโมงต่อภาคการศึกษา คิดเป็นปริมาณการศึกษา\n๑\nหน่วยกิตระบบทวิภาค",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.3.3",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.3",
+        "6.3.3"
+      ],
+      "section_number": "6.3.3",
+      "parent_rule_id": "rule:6.3",
+      "rule_text": "รายวิชาเรียนที่มีทั้งภาคทฤษฎีและภาคปฏิบัติรวมกันการกำหนดจำนวน\nหน่วยกิตให้เป็นไปตามเกณฑ์ที่กำหนดในข้อ ๖.๓.๑ และข้อ ๖.๓.๒",
+      "references": [
+        "6.3.1",
+        "6.3.2"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.3.4",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.3",
+        "6.3.4"
+      ],
+      "section_number": "6.3.4",
+      "parent_rule_id": "rule:6.3",
+      "rule_text": "การฝึกงาน การฝึกภาคสนาม ฺหรือการฝึกอื่น\nต\nที่ใช้เวลาไม่น้อยกว่า\n๔๕\nชั่วโมงต่อภาคการศึกษา คิดเป็นปริมาณการศึกษา\n๑\nหน่วยกิตระบบทวิภาค",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.3.5",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.3",
+        "6.3.5"
+      ],
+      "section_number": "6.3.5",
+      "parent_rule_id": "rule:6.3",
+      "rule_text": "การศึกษารายวิชาเรียนที่มีลักษณะเฉพาะ เช่น โครงงานพิเศษ สหกิจศึกษา\nการฝึกงานต่างประเทศ สถาบันอาจกำหนดหน่วยกิตโดยใช้หลักเกณฑ์ |อื่นได้ตามความเหมาะสมฺกรณีการ\nฝึกงานต่างประเทศให้เป็นไปตามประกาศสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.4",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.4"
+      ],
+      "section_number": "6.4",
+      "parent_rule_id": "rule:6",
+      "rule_text": "ระยะเวลาการศึกษาสูงสุดทุกหลักสูตรให้เป็นไปตามประกาศสถาบัน โดยผ่านความ\nเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.5",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.5"
+      ],
+      "section_number": "6.5",
+      "parent_rule_id": "rule:6",
+      "rule_text": "หลักสูตรที่เปิดสอนทุกหลักสูตรต้องผ่านการพิจารณาจากสภาวิชาการและได้รับอนุมัติ\nจากสภาสถาบันก่อนการเปิดรับสมัครนักศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:6.6",
+      "category": "หมวด 2 การจัดการศึกษา",
+      "section_path": [
+        "6",
+        "6.6"
+      ],
+      "section_number": "6.6",
+      "parent_rule_id": "rule:6",
+      "rule_text": "สถาบันอาจจัดใ\nเห้มีหลักสูตรที่จัดการศึกษาเพื่อให้ผู้สำเร็จการศึกษาได้รับสองปริญญาขึ้น\nไป\nหรือหลักสูตรที่จัดการศึกษาระดับปริญญาตรีโครงการแววนวัตกร หรือโครงการอื่น\nโดยให้เป็นไปตาม\nู\nข้อบังคับ ระเบียบหรือประกาศสถาบันนัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:7",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "7"
+      ],
+      "section_number": "7",
+      "parent_rule_id": null,
+      "rule_text": "การรับเข้าเป็นนักศึกษา กำหนดการ วิธีการรับเข้าศึกษา`และคุณสมบัติผู้สมัคร ให้เป็นไป\nตามหลักเกณฑ์ที่คณะกรรมการประจำส่วนงานวิชาการหรือสภาวิชาการกำหนดโดยระบุในประกาศรับสมัคร\nของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:8",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "8"
+      ],
+      "section_number": "8",
+      "parent_rule_id": null,
+      "rule_text": "คุณสมบัติของนักศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:8.1",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "8",
+        "8.1"
+      ],
+      "section_number": "8.1",
+      "parent_rule_id": "rule:8",
+      "rule_text": "สำเร็จการศึกษาหรือคาดว่าจะสำเร็จการศึกษาชั้นมัธยมศึกษาตอนปลายหรือเทียบเท่า\nหรือชั้นประกาศนียบัตรวิชาชีพหรือเทียบเท่า หรือชั้นประกาศนียบัตรวิชาชีพชั้นสูงหรือเทียบเท่า\nตามหลักสูตรทีได้รับการรับรองจากกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม ฺหรือหน่วยงานที่\nเกี่ยวข้อง หรือวุฒิการศึกษาอื่นตามหลักเกณฑ์ที่สภาวิชาการกำหนด",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:8.2",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "8",
+        "8.2"
+      ],
+      "section_number": "8.2",
+      "parent_rule_id": "rule:8",
+      "rule_text": "ไม่เป็นผู้ที่ถูกให้ออกจากสถาบันอุดมศึกษาใด\nมาแล้ว เพราะความประพฤติ\nไม่เหมาะสมฺหรือกระทำความผิดต่าง",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:8.3",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "8",
+        "8.3"
+      ],
+      "section_number": "8.3",
+      "parent_rule_id": "rule:8",
+      "rule_text": "ไม่เป็นผู้ที่ถูกลงโทษเนื่องจากกระทำหรือมีส่วนร่วมกระทำทุจริตในการสอบคัดเลือก\nทุกประเภท",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:8.4",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "8",
+        "8.4"
+      ],
+      "section_number": "8.4",
+      "parent_rule_id": "rule:8",
+      "rule_text": "ไม่เป็นผู้ที่มีหนี้สินผูกพันกับสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_003.png",
+          "source_page": 3,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:8.5",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "8",
+        "8.5"
+      ],
+      "section_number": "8.5",
+      "parent_rule_id": "rule:8",
+      "rule_text": "คุณสมบัติอื่น\nให้เป็นไปตามหลักเกณฑ์ทีคณะกรรมการประจำส่วนงานวิชาการหรือ\nสภาวิชาการกำหนด โดยระบุในประกาศรับสมัครของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:9",
+      "category": "หมวด 3 การรับเข้าและการรายงานตัวเข้าเป็นนักศึกษา",
+      "section_path": [
+        "9"
+      ],
+      "section_number": "9",
+      "parent_rule_id": null,
+      "rule_text": "การรายงานตัวเข้าเป็นนักศึกษาให้เป็นไปตามประกาศสถาบัน โดยผ่านความเห็นชอบจากสภา\nวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:10",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "10"
+      ],
+      "section_number": "10",
+      "parent_rule_id": null,
+      "rule_text": "และการชำระค่าธรรมเนียมการศึกษาทุกประเภท ให้เป็นไปตามประกาศ\nสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:11",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "11"
+      ],
+      "section_number": "11",
+      "parent_rule_id": null,
+      "rule_text": "ในแต่ละภาคการศึกษาปกติ นักศึกษาจะต้องลงทะเบียนเรียนไม่น้อยกว่า ๙ หน่วยกิต\nและไม่เกิน ๒๒ หน่วยกิต\nยกเว้นนักศึกษาชั้นปีสุดท้ายหรือนักศึกษาก่อนปีการศึกษาสุดท้ายที่จะต้องไปฝึกสอน\nในชั้นปีสุดท้ายที่เหลือรายวิชาเรียนในหลักสูตรน้อยกว่า\n๙\nหน่วยกิตฺ ฺหรือต้องการลงทะเบียนเรียนมากกว่า\n๒๒\nหน่วยกิตเพื่อสำเร็จการศึกษา ทั้งนี้ ต้องไม่เกิน ๒๗ หน่วยกิต\nการลงทะเบียนเรียนในภาคการศึกษาพิเศษให้ลงทะเบียนเรียนได้ไม่เกิน ๙ หน่วยกิตฺหากนักศึกษา\nลงทะเบียนเรียนประเภทฝึกงานแล้วจะไม่อนุญาตให้ลงทะเบียนเรียนในรายวิชาอื่นใดในภาคการศึกษาพิเศษ\nอีก\nกรณีการลงทะเบียนเรียนที่มีจำนวนหน่วยกิตที่แตกต่างจากที่กำหนด ให้เป็นอำนาจของสภาวิชาการ\nพิจารณาอนุมัติ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:12",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "12"
+      ],
+      "section_number": "12",
+      "parent_rule_id": null,
+      "rule_text": "ในภาคการศึกษาปกติ\nนักศึกษาที่ไมได้ลงทะเบียนเรียนตามระยะเวลาที่สถาบันกำหนด:\nจะต้องมาดำเนินการลงทะเบียนล่าช้าภายในระยะเวลา\n๓\nสัปดาห์นับแต่วันเปิดภาคการศึกษา\nส่วนภาคการศึกษาพิเศษ การลงทะเบียนล่าช้าจะต้องดำเนินการภายในสัปดาห์แรกนับแต่วันเปิดภาค\nการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:13",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "13"
+      ],
+      "section_number": "13",
+      "parent_rule_id": null,
+      "rule_text": "การลงทะเบียนเร\nเรียนรายวิชาต่อเนื่อง การลงทะเบียนรายวิชาช้ำการลงทะเบียนประเภทอื่น\nการเพิ่มรายวิชาการเปลี่ยนรายวิชา การถอนรายวิชา และการรักษาสถานภาพนักศึกษา ให้เป็นไปตาม\nประกาศสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:14",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "14"
+      ],
+      "section_number": "14",
+      "parent_rule_id": null,
+      "rule_text": "การลงทะเบียนเรียนตามโครงการแววนวัตกร หรือโครงการอื่น\nให้เป็นไปตามข้อบังคับ\nระเบียบหรือประกาศสถาบันนั้น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:15",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "15"
+      ],
+      "section_number": "15",
+      "parent_rule_id": null,
+      "rule_text": "ในภาคการศึกษาปกติ นักศึกษาที่ลงทะเบียนเรียนแล้วจะต้องชำระค่าธรรมเนียมการศึกษาให้\nครบถ้วนภายในระยะเวลาที่กำหนดในปฏิทินการศึกษา หากพ้นระยะเวลาที่กำหนดแล้วนักศึกษาจะต้องชำระ\nค่าปรับภายในระยะเวลาตามที่กำหนดฺ ฺหากนักศึกษายังไม่ชำระค่าธรรมเนียมการศึกษาและค่าปรับให้ครบถ้วน\nสถาบันจะไม่อนุญาตให้นักศึกษาเข้าสอบปลายภาคในภาคการศึกษานั้น และนักศึกษาต้องยื่นคำร้อง\nขอลาพักการศึกษา\nมิฉะนั้นจะพ้นสภาพการเป็นนักศึกษา\nในภาคการศึกษาพิเศษ หลังพ้นระยะเวลาที่กำหนดในปฏิทินการศึกษาแล้ว นักศึกษาที่ลงทะเบียน\nเรียนแต่ยังไม่ชำระค่าธรรมเนียมการศึกษาและค่าปรับให้ครบถ้วน ให้ถือว่านักศึกษาถอนรายวิชา ทั้งหมด\nที่ลงทะเบียนเรียน โดยสำนักทะเบียนและประมวลผลจะดำเนินการถอนวิชาได้ทันทีและถือว่าการลงทะเบียน\nเรียนนั้นเป็นโมฆะ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_004.png",
+          "source_page": 4,
+          "document_category": "rule",
+          "program": "RULE"
+        },
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:16",
+      "category": "หมวด 4 การลงทะเบียนเรียน และการชำระค่าธรรมเนียมการศึกษา",
+      "section_path": [
+        "16"
+      ],
+      "section_number": "16",
+      "parent_rule_id": null,
+      "rule_text": "การยกเลิกการลงทะเบียน การยกเว้นค่าธรรมเนียมการศึกษา การลดค่าธรรมเนียมการศึกษา\nการขยายเวลาชำระค่าธรรมเนียมการศึกษา และการแบ่งชำระค่าธรรมเนียมการศึกษา ให้เป็นอำนาจ\nของอธิการบดี",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:17",
+      "category": "หมวด 5 การศึกษาแบบร่วมเรียน",
+      "section_path": [
+        "17"
+      ],
+      "section_number": "17",
+      "parent_rule_id": null,
+      "rule_text": "การศึกษาแบบร่วมเรียน (AUDIT) ให้เป็นไปตามประกาศสถาบัน\nสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:18",
+      "category": "หมวด 5 การศึกษาแบบร่วมเรียน",
+      "section_path": [
+        "18"
+      ],
+      "section_number": "18",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาสามารถลงทะเบียนเรียนในรายวิชาหรือหลักสูตรฝึกอบรมที่สถาบันกำหนดให้บุคคล\nทั่วไปศึกษาเพื่อเพิ่มพูนความรู้และสะสมหน่วยกิตได้\nหน่วยกิตและผลการศึกษาของรายวิชาหรือหลักสูตรฝึกอบรมตามวรรคหนึง สามารถนำมาใช้เพื่อ\nสำเร็จการศึกษาในหลักสูตรที่นักศึกษากำลังศึกษาได้โดยให้เป็นไปตามมติสภาวิชาการและต้องผ่านความ\nเห็นชอบจากส่วนงานวิชาการ หรือสามารถนำไปใช้ในการโอนหน่วยกิตและผลการเรียนเมื่อนักศึกษาเข้าศึกษา\nในหลักสูตร อื่นในอนาคต\nอัตราค่าธรรมเนียมการศึกษา หลักเกณฑ์ และวิธีการดำเนินการต่าง\nในข้อนี้ ให้เป็นไปตามข้อบังคับ\nสถาบัน\nว่าด้วยการรับบุคคลทั่วไปเข้าศึกษาเพื่อเพิ่มพูนความรู้แเละสะสมหน่วยกิต และประกาศสถาบันที่ออก\nตามข้อบังคับดังกล่าว",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19"
+      ],
+      "section_number": "19",
+      "parent_rule_id": null,
+      "rule_text": "การวัดผลการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.1",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.1"
+      ],
+      "section_number": "19.1",
+      "parent_rule_id": "rule:19",
+      "rule_text": "ให้คณะกรรมการประจำส่วนงานวิชาการหรือคณะกรรมการประจำส่วนงานอื่น\nที\nรับผิดชอบรายวิชานัน\nเป็นผู้พิจารณาอนุมัติการวัดผลการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.2",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.2"
+      ],
+      "section_number": "19.2",
+      "parent_rule_id": "rule:19",
+      "rule_text": "วิธีการวัดผลการศึกษากระทำได้โดยการสอบหรือแบบอื่น โดยต้องได้รับความเห็นชอบ\nจากคณะกรรมการประจำส่วนงานวิชาการหรือคณะกรรมการประจำส่วนงานอื่นที่เป็นเจ้าของรายวิชา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.3",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.3"
+      ],
+      "section_number": "19.3",
+      "parent_rule_id": "rule:19",
+      "rule_text": "ให้ใช้ระบบหน่วยกิตเป็นหลักในการวัดผลการศึกษา การวัดและรายงานผลการศึกษา\nให้กำหนดค่าระดับคะแนนเป็นตัวอักษรและการคิดค่าระดับคะแนนเฉลี่ยให้เทียบค่าระดับคะแนนเป็นแต้ม\nดังนี้\nค่าระดับคะแนน  แต้ม\nผลการศึกษา\nA\n๔.00\nดีเลิศ (EXCELLENT)\nB+\n๓.๕๑\nดีมาก\nGOOD)\nB.\nดี (GOOD)\n(VERY\nC+\n๒.๕0\nดีพอใช้ (FAIRLY GOOD)\nC\nพอใช้ (FAIR)\nอ่อน (POOR)\n๑.00\nอ่อนมาก (VEN/ POOR)\n*ุ\nตก (FAILED)\nไม่สมบูรณ์ (INCOMPLETE)\nพอใจ (SATISFACTON/)\nS\nไม่พอใจ (UNSATISFACTON)\n-\nรับโอน (TRANSFER)",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_005.png",
+          "source_page": 5,
+          "document_category": "rule",
+          "program": "RULE"
+        },
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.4",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.4"
+      ],
+      "section_number": "19.4",
+      "parent_rule_id": "rule:19",
+      "rule_text": "การให้ค่าระดับคะแนน A\nB+\nB  C+\nC\nD+\nD.\nE\nจะกระทำได้ในรายวิชาเรียนที่\nนักศึกษาเข้าสอบ และ/หรือมีผลงานที่ประเมินผลได้เป็นลำดับขั้น ส่วนรายวิชาอื่นนอกเหนือจากนี้ให้ค่าระดับ\nคะแนนเป็น S หรือ บ.",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.5",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.5"
+      ],
+      "section_number": "19.5",
+      "parent_rule_id": "rule:19",
+      "rule_text": "การให้ค่าระดับคะแนน\nจะกระทำได้เฉพาะวิทยานิพนธ์ ปริญญานิพนธ์ โครงงาน\nปัญหาพิเศษ การศึกษาอิสระ สหกิจศึกษา เหรือรายวิชาที่เรียกชื่ออย่างอื่นที่เทียบเท่า หรือรายวิชาในกลุ่ม|วิชา\nการศึกษาทางเลือก\nที่นักศึกษามีงานบางส่วนในรายวิชานั้นไม่สมบูรณ์หรือไม่สามารถส่งานที่ได้รับมอบหมาย\nให้ทันเวลา โดยการแก้ค่าระดับคะแนน /ในรายวิชาดังกล่าวจะต้องกระทำให้เสร็จสิ้นภายใน\nปีนับตั้งแต่วัน\nถัดจากวันส่งคะแนนและเกรดตามที่กำหนดไว้ในปฏิทินการศึกษาในภาคการศึกษานั้น\nหากไม่ดำเนินการ\nภายในเวลาดังกล่าว ถือว่านักศึกษาสอบไม่ผ่านรายวิชานัน และสำนักทะเบียนและประมวลผลจะดำเนินการ\nแก้ค่าระดับคะแนน\nเป็นค่าระดับคะแนน F หรือ U.",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.6",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.6"
+      ],
+      "section_number": "19.6",
+      "parent_rule_id": "rule:19",
+      "rule_text": "การให้ค่าระดับคะแนน T",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:19.7",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "19",
+        "19.7"
+      ],
+      "section_number": "19.7",
+      "parent_rule_id": "rule:19",
+      "rule_text": "ค่าระดับคะแนนที่ถือเป็นการสอบผ่าน ได้แก่ A\n8+ 8\nC+ C  D+ D.\nS.\nT",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:20",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "20"
+      ],
+      "section_number": "20",
+      "parent_rule_id": null,
+      "rule_text": "การสอบวัดผลการศึกษา ให้เป็นไปตามประกาศสถาบัน\nวิชาการ\nนักศึกษาซึ่งทุจริตในการสอบ ฺจะไมได้รับการพิจารณาผลการเรียนในภาคการศึกษาที่นักศึกษากระทำ\nการทุจริตนั้น และพักการเรียนในภาคการศึกษาปกติถัดไปอีก\n๑\nภาคการศึกษา หากภาคการศึกษาถัดไป\nคือภาคการศึกษาพิเศษ ให้พักการเรียนในภาคการศึกษาพิเศษและภาคการศึกษาปกติถัดไปอีก\nภาคการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:21",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "21"
+      ],
+      "section_number": "21",
+      "parent_rule_id": null,
+      "rule_text": "การคิดค่าระดับคะแนนเฉลี่ย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:21.1",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "21",
+        "21.1"
+      ],
+      "section_number": "21.1",
+      "parent_rule_id": "rule:21",
+      "rule_text": "การคิดค่าระดับคะแนนเฉลียสะสมจะกระทำเมือสินภาคการศึกษาแต่ละ\nภาคการศึกษา ในการคิดค่าระดับคะแนนเฉลี่ยสะสมให้ดำเนินการดังนี้คือ ให้คูณหน่วยกิตด้วยค่าระดับคะแนน\nเป็นรายวิชาแล้วรวมกัน  จากนั้นหารด้วยจำนวนหน่วยกิตรวมทุกรายวิชา ให้มีทศนิยมสองตำแหน่งโดยใช้การ\nปัดเศษตามหลักคณิตศาสตร์ คือพิจารณาเลขหลังจุดทศนิยมตำแหน่งที่สามฺหากเลขดังกล่าวมากกว่าหรือ\nเท่ากับ ๕\nให้ปัดเลขหลังจุดทศนิยมตำแหน่งที่สองขึ้น\nทั้งนี้ ให้นำรายวิชาที่เรียนช้ำตามข้อ\n๑๓\nมาคิดค่าระดับคะแนนเฉลี่ยด้วย แต่รายวิชาที่วัดผล\nเป็นค่าระดับคะแนน SU. หรือ Tและรายวิชาที่ลงทะเบียนแบบไม่นับหน่วยกิต (NON CREDIT\nNC)\nนำมาคิดค่าระดับคะแนนเฉลี่ย",
+      "references": [
+        "13"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:21.2",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "21",
+        "21.2"
+      ],
+      "section_number": "21.2",
+      "parent_rule_id": "rule:21",
+      "rule_text": "ให้คิดค่าระดับคะแนนเฉลี่ยเป็น ๓ ประเภท ดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_006.png",
+          "source_page": 6,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:21.2.1",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "21",
+        "21.2",
+        "21.2.1"
+      ],
+      "section_number": "21.2.1",
+      "parent_rule_id": "rule:21.2",
+      "rule_text": "ค่าระดับคะแนนเฉลียประจำภาคการศึกษา (GRADE POINT AVERAGE OF\nSEMESTER\nGPS)\nค่าระดับคะแนนเฉลี่ยที่คิดเฉพาะรายวิชาที่เรียนหรือเทียบโอนในภาคการศึกษานั้น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:21.2.2",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "21",
+        "21.2",
+        "21.2.2"
+      ],
+      "section_number": "21.2.2",
+      "parent_rule_id": "rule:21.2",
+      "rule_text": "ค่าระดับคะแนนเฉลี่ยสะสม (CUMULATIVE GRADE POINT AVERAGE\nGPA)\nคือ ค่าระดับคะแนนเฉลี่ยที่คิดจากรายวิชาที่เรียนหรือเทียบโอนตั้งแต่ภาคการศึกษาแรกจนถึงภาคการศึกษา\nปัจจุบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:21.2.3",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "21",
+        "21.2",
+        "21.2.3"
+      ],
+      "section_number": "21.2.3",
+      "parent_rule_id": "rule:21.2",
+      "rule_text": "ค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตร คือ ค่าระดับคะแนน\nเฉลี่ยที่คิดเฉพาะรายวิชาที่กำหนดไว้ในโครงสร้างหลักสูตร",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:22",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "22"
+      ],
+      "section_number": "22",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาที่ได้ค่าระดับคะแนนเฉลี่ยสะสมต่ำกว่า ๒.OO ต้องถูกภาคทัณฑ์ไว้\nภาคทัณฑ์เมื่อได้รับค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๒.OO ทั้งนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:23",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "23"
+      ],
+      "section_number": "23",
+      "parent_rule_id": null,
+      "rule_text": "สถาบันหรือส่วนงานวิชาการหรือสำนักวิชาศึกษาทั่วไปอาจมีการจัดสอบพิเศษอื่น\nเช่น\nPLACEMENT TEST\nซึ่งหากนักศึกษาสอบผ่านตามหลักเกณฑ์ที่สถาบันหรือส่วนงานวิชาการหรือสำนักวิชาศึกษา\nทั่วไปกำหนดแล้วสามารถยกเว้นไม่ต้องเรียนและไม่ต้องสอบรายวิชาที่.เกี่ยวข้องได้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:24",
+      "category": "หมวด 6 การวัดและประมวลผลการศึกษา",
+      "section_path": [
+        "24"
+      ],
+      "section_number": "24",
+      "parent_rule_id": null,
+      "rule_text": "ให้สำนักทะเบียนและประมวลผลเป็นผู้ดำเนินการประมวลและรายงานผลการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:25",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "25"
+      ],
+      "section_number": "25",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาที่จะสำเร็จการศึกษาต้องอยู่ในหลักเกณฑ์ดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:25.1",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "25",
+        "25.1"
+      ],
+      "section_number": "25.1",
+      "parent_rule_id": "rule:25",
+      "rule_text": "เรียนครบหน่วยกิตและสอบผ่านทุกรายวิชาตามที่กำหนดไว้ในโครงสร้างของหลักสูตร\nที่ศึกษาโดยต้องได้ค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรไม่ต่ำกว่า",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:25.2",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "25",
+        "25.2"
+      ],
+      "section_number": "25.2",
+      "parent_rule_id": "rule:25",
+      "rule_text": "ได้ค่าระดับคะแนนเฉลี่ยสะสมไมต่ำกว่า ๒.OO\nภาษาอังกฤษ (ENGLISH EXIT EXAM) ตามประกาศสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:25.3",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "25",
+        "25.3"
+      ],
+      "section_number": "25.3",
+      "parent_rule_id": "rule:25",
+      "rule_text": "เป็นผู้มีเกียรติและศักดิ์ของนักศึกษาตามหมวด\n๑๑\nของข้อบังคับนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:25.4",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "25",
+        "25.4"
+      ],
+      "section_number": "25.4",
+      "parent_rule_id": "rule:25",
+      "rule_text": "ต้องไม่เป็นผู้มีหนี้สินหรือภาระผูกพันกับสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:25.5",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "25",
+        "25.5"
+      ],
+      "section_number": "25.5",
+      "parent_rule_id": "rule:25",
+      "rule_text": "หลักเกณฑ์ |อื่น\nตามประกาศสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:26",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "26"
+      ],
+      "section_number": "26",
+      "parent_rule_id": null,
+      "rule_text": "ให้ผู้อำนวยการสำนักทะเบียนและประมวลผลส่งรายชี่อนักศึกษาตามข้อ\n๒๕\nให้คณะกรรมการประจำส่วนงานวิชาการเป็นผู้อนุมัติการสำเร็จการศึกษา และให้ส่วนงานวิชาการแจ้งการ\nอนุมัติการสำเร็จการศึกษาของนักศึกษาดังกล่าวให้สำนักทะเบียนและประมวลผลเพื่อนำเสนอสภาสถาบัน\nอนุมัติปริญญาต่อไป",
+      "references": [
+        "25"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27"
+      ],
+      "section_number": "27",
+      "parent_rule_id": null,
+      "rule_text": "เกียรตินิยมสำหรับผู้สำเร็จการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1"
+      ],
+      "section_number": "27.1",
+      "parent_rule_id": "rule:27",
+      "rule_text": "นักศึกษาที่จะได้รับปริญญาเกียรตินิยมจะต้องอยู่ในเกณฑ์ดังต่อไปนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1.1",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1",
+        "27.1.1"
+      ],
+      "section_number": "27.1.1",
+      "parent_rule_id": "rule:27.1",
+      "rule_text": "มีระยะเวลาการศึกษาไมเกินระยะเวลาตามแผนการศึกษาทีกำหนดไว้ใน\nทั้งนี้` ไม่นับรวมภาคการศึกษาพิเศษของปีการศึกษาสุดท้ายตามแผนการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1.2",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1",
+        "27.1.2"
+      ],
+      "section_number": "27.1.2",
+      "parent_rule_id": "rule:27.1",
+      "rule_text": "ไมมีรายวิชาใดได้ค่าระดับคะแนน F หรือ บ.",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1.3",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1",
+        "27.1.3"
+      ],
+      "section_number": "27.1.3",
+      "parent_rule_id": "rule:27.1",
+      "rule_text": "ไม่เคยลาพักการศึกษา เนื่องจากไมได้ลงทะเบียนเรียนตามกำหนด",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1.4",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1",
+        "27.1.4"
+      ],
+      "section_number": "27.1.4",
+      "parent_rule_id": "rule:27.1",
+      "rule_text": "ไม่เคยถูกลงโทษเนื่องจากผิดวินัยนักศึกษา\nหลักสูตร",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_007.png",
+          "source_page": 7,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1.5",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1",
+        "27.1.5"
+      ],
+      "section_number": "27.1.5",
+      "parent_rule_id": "rule:27.1",
+      "rule_text": ":ในกรณีที่นักศึกษาไปศึกษาระยะสั้นหรือฝึกงานที่ต่างประเทศจนเป็นเหตุให้\nไม่สำเร็จการศึกษาในระยะเวลาตามที่แผนการศึกษากำหนด อาจยื่นคำร้องเพื่อขอยกเว้นการนับระยะเวลา\nระหว่างที่ไปศึกษาระยะสั้นหรือฝึกงานที่ต่างประเทศได้ โดยให้ผู้อำนวยการสำนักทะเบียนและประมวลผล\nเป็นผู้พิจารณา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.1.6",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.1",
+        "27.1.6"
+      ],
+      "section_number": "27.1.6",
+      "parent_rule_id": "rule:27.1",
+      "rule_text": "กรณีอื่นที่อาจจะส่งผลต่อการสำเร็จการศึกษาตามแผนการศึกษาที่กำหนด\nไว้ในหลักสูตรให้จัดทำเป็นประกาศสถาบัน  โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.2",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.2"
+      ],
+      "section_number": "27.2",
+      "parent_rule_id": "rule:27",
+      "rule_text": "การให้ปริญญาเกียรตินิยม ฺแบ่งเป็นดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.2.1",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.2",
+        "27.2.1"
+      ],
+      "section_number": "27.2.1",
+      "parent_rule_id": "rule:27.2",
+      "rule_text": "เกียรตินิยมอันดับหนึ่งเหรียญทอง ต้องเป็นผู้ไเด้รับค่าระดับคะแนนเฉลี่ย\nสะสมตามโครงสร้างหลักสูตรสูงสุดในกลุ่มผู้สำเร็จการศึกษาในปีการศึกษาเดียวกันในแต่ละหลักสูตร ทั้งนี้ ต้อง\nได้ค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรและค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า\n๓.๗๕ และ\nต้องไม่เทียบโอนผลการเรียนจากสถาบันการศึกษาอื่น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.2.2",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.2",
+        "27.2.2"
+      ],
+      "section_number": "27.2.2",
+      "parent_rule_id": "rule:27.2",
+      "rule_text": "เกียรตินิยมอันดับหนึ่ง ต้องเป็นผู้ใด้รับคาระดับคะแนนเฉลี่ยสะสมตาม\nโครงสร้างหลักสูตรและค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๕๑ ในกรณีที่โอนผลการเรียนจากสถาบันอื่น\nทุกรายวิชาต้องได้ค่าระดับคะแนนไม่ต่ำกว่า 8 หรือค่าระดับคะแนน S\nและจะต้องศึกษารายวิชาในหลักสูตร\nของสถาบันไม่น้อยกว่าสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:27.2.3",
+      "category": "หมวด 7 การสำเร็จการศึกษา",
+      "section_path": [
+        "27",
+        "27.2",
+        "27.2.3"
+      ],
+      "section_number": "27.2.3",
+      "parent_rule_id": "rule:27.2",
+      "rule_text": "เกียรตินิยมอันดับสอง ต้องเป็นผู้ได้รับค่าระดับคะแนนเฉลี่ยสะสมตาม\nโครงสร้างหลักสูตรและค่าระดับคะแนนเฉลี่ยสะสมไมต่ำกว่า ๓.๒๕ ิในกรณีที่โอนผลการเรียนจากสถาบันอื่น\nทุกรายวิชาต้องได้ค่าระดับคะแนนไม่ต่ำกว่า 8 หรือค่าระดับคะแนน S\nของสถาบันไม่น้อยกว่าสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:28",
+      "category": "หมวด 8 การโอนผลการเรียน และการเทียบโอนผลการเรียน",
+      "section_path": [
+        "28"
+      ],
+      "section_number": "28",
+      "parent_rule_id": null,
+      "rule_text": "สถาบันอาจกำหนดหลักเกณฑ์ในการที่จะรับโอน หรือไม่รับโอนนิสิตนักศึกษาและ\nหน่วยกิตจากสถาบันอุดมศึกษาอื่น\nทั้งในและต่างประเทศตามหลักเกณฑ์การเทียบโอนผลการเรียนระดับ\nปริญญาเข้าสู่การศึกษาในระบบของสำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม\nและตามหลักเกณฑ์ที่กำหนดในประกาศสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:29",
+      "category": "หมวด 8 การโอนผลการเรียน และการเทียบโอนผลการเรียน",
+      "section_path": [
+        "29"
+      ],
+      "section_number": "29",
+      "parent_rule_id": null,
+      "rule_text": "หลักเกณฑ์และวิธีการโอนผลการเรียน การเทียบโอนผลการเรียน การเทียบรายวิชาเรียนและ\nโอนหน่วยกิต และการย้ายหลักสูตร ให้เป็นไปตามประกาศสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:30",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "30"
+      ],
+      "section_number": "30",
+      "parent_rule_id": null,
+      "rule_text": "การลา.ให้เป็นไปตามประกาศสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:31",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "31"
+      ],
+      "section_number": "31",
+      "parent_rule_id": null,
+      "rule_text": "การลาพักการศึกษา\nใ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_008.png",
+          "source_page": 8,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:31.1",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "31",
+        "31.1"
+      ],
+      "section_number": "31.1",
+      "parent_rule_id": "rule:31",
+      "rule_text": "การลาพักการศึกษาเป็นการลาพักทั้งภาคการศึกษา หากได้ลงทะเบียนวิชาเรียนไป\nแล้วถือเป็นการยกเลิกการลงทะเบียนนั้น โดยรายวิชาเรียนที่ได้ลงทะเบียนทั้งหมดจะไม่ปรากฏในใบแสดงผล\nการศึกษา",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:31.2",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "31",
+        "31.2"
+      ],
+      "section_number": "31.2",
+      "parent_rule_id": "rule:31",
+      "rule_text": "สถาบันอนุญาตให้นักศึกษาลาพักการศึกษาได้ โดยต้องได้รับความเห็นชอบจาก\nคณะกรรมการประจำส่วนงานวิชาการ และให้แเจ้งต่อสำนักทะเบียนและประมวลผล",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:31.3",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "31",
+        "31.3"
+      ],
+      "section_number": "31.3",
+      "parent_rule_id": "rule:31",
+      "rule_text": "นักศึกษาที่ได้รับอนุมัติให้ลาพักการศึกษาให้นับรวมระยะเวลาที่ลาพักการศึกษาอยู่ใน\nระยะเวลาตามหลักสูตรด้วย\n.A",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:31.4",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "31",
+        "31.4"
+      ],
+      "section_number": "31.4",
+      "parent_rule_id": "rule:31",
+      "rule_text": "นักศึกษาทีได้รับอนุมัติให้ลาพักการศึกษาต้องชำระค่าธรรมเนียมรักษาสถานภาพ\nนักศึกษาทุกภาคการศึกษาปกติ ยกเว้นภาคการศึกษาที่ได้ลงทะเบียนวิชาเรียนและชำระค่าธรรมเนียม\nการศึกษาไปก่อนแล้ว",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:32",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "32"
+      ],
+      "section_number": "32",
+      "parent_rule_id": null,
+      "rule_text": "การลาออก\nให้นักศึกษายื่นคำร้องขอลาออกต่อผู้อำนวยการสำนักทะเบียนและประมวลผล\nโดยต้องได้รับความยินยอมจากผู้ปกครอง และผ่านความเห็นชอบจากหัวหน้าส่วนงานวิชาการ ทั้งนี้\nผู้ที่จะได้รับการอนุมัติให้ลาออกได้จะต้องไม่มีหนี้สินกับสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33"
+      ],
+      "section_number": "33",
+      "parent_rule_id": null,
+      "rule_text": "การพ้นสภาพการเป็นนักศึกษา\nมีในกรณีดังต่อไปนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.1",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.1"
+      ],
+      "section_number": "33.1",
+      "parent_rule_id": "rule:33",
+      "rule_text": "เสียชีวิต",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.2",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.2"
+      ],
+      "section_number": "33.2",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ลาออก",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.3",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.3"
+      ],
+      "section_number": "33.3",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ถูกลงโทษให้ออก หรือไล่ออกจากสถาบัน ตามหมวด\n๑0",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.4",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.4"
+      ],
+      "section_number": "33.4",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ขาดคุณสมบัติการเข้าเป็นนักศึกษาของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.5",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.5"
+      ],
+      "section_number": "33.5",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ไม่ลงทะเบียนวิชาเรียน และไม่ลาพักการศึกษาภายในระยะเวลาที่กำหนด",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.6",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.6"
+      ],
+      "section_number": "33.6",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ไม่รักษาสถานภาพนักศึกษาตามที่สถาบันกำหนด",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.7",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.7"
+      ],
+      "section_number": "33.7",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ศึกษาอยู่ในสถาบันเกินระยะเวลาการศึกษาสูงสุดของหลักสูตร`ทั้งนี้ ให้นับรวม\nระยะเวลาทีรักษาสถานภาพนักศึกษา ลาพักการศึกษา หรือถูกลงโทษพักการเรียนด้วย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.8",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.8"
+      ],
+      "section_number": "33.8",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ทุจริตในการสอบมากกว่า\nครัง",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.9",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.9"
+      ],
+      "section_number": "33.9",
+      "parent_rule_id": "rule:33",
+      "rule_text": "สถาบันมีประกาศให้พ้นสภาพการเป็นนักศึกษาเนื่องจากกระทำผิดข้อบังคับหรือ\nระเบียบสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.10",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.10"
+      ],
+      "section_number": "33.10",
+      "parent_rule_id": "rule:33",
+      "rule_text": "ไม่ชำระค่าธรรมเนียมการศึกษารวมถึงค่าปรับทังหมด และไม่ลาพักการศึกษาภายใน\nระยะเวลาทีกำหนด",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.11",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.11"
+      ],
+      "section_number": "33.11",
+      "parent_rule_id": "rule:33",
+      "rule_text": "นักศึกษาทีถูกภาคทัณฑ์ตามข้อ ๒๑ และในระหว่างภาคทัณฑ์ได้ค่าระดับคะแนน\nเฉลี่ยประจำภาคการศึกษาถัดไปต่ำกว่า ๒.OO",
+      "references": [
+        "21"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:33.12",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "33",
+        "33.12"
+      ],
+      "section_number": "33.12",
+      "parent_rule_id": "rule:33",
+      "rule_text": "นักศึกษาซึ่งได้ค่าระดับคะแนนเฉลี่ยสะสมต่ำกว่า\n๑.00\nวันพ้นสภาพการเป็นนักศึกษาตามข้อ\n๓๓.๓\nถึงข้อ ๓๓.๑๒ ให้เป็นไปตามประกาศสถาบัน โดยผ่าน\nความเห็นชอบจากสภาวิชาการ",
+      "references": [
+        "33.3",
+        "33.12"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:34",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "34"
+      ],
+      "section_number": "34",
+      "parent_rule_id": null,
+      "rule_text": "ในทุกสิ้นภาคการศึกษา ให้ผู้อำนวยการสำนักทะเบียนและประมวลผลประกาศรายชื่อผู้พ้น\nสภาพการเป็นนักศึกษา และถอนรายชือออกจากการเป็นนักศึกษา โดยต้องได้รับความเห็นชอบจากหัวหน้า\nส่วนงานวิชาการก่อนดำเนินการดังกล่าว",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:35",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "35"
+      ],
+      "section_number": "35",
+      "parent_rule_id": null,
+      "rule_text": "ในกรณีที่นักศึกษาพ้นสภาพเนื่องจากเสียชีวิต ให้ส่วนงานวิชาการที่นักศึกษาสังกัดแจ้งส่วน\nงานที่เกี่ยวข้องทราบโดยเร็ว",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_009.png",
+          "source_page": 9,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:36",
+      "category": "หมวด 9 การลา การลาพักการศึกษา การลาออก และการพ้นสภาพการเป็นนักศึกษา",
+      "section_path": [
+        "36"
+      ],
+      "section_number": "36",
+      "parent_rule_id": null,
+      "rule_text": "ในกรณีที่มีความจำเป็น นักศึกษาที่พ้นสภาพการเป็นนักศึกษาตามข้อ\n๓๓.๒ ข้อ\n๓๓.๕\nข้อ\n๓๓.๖\nและข้อ\n๓๓.๑0\nอาจยื่นคำร้องขอกลับเข้าศึกษาในสถาบันได้โดยให้อธิการบดีเป็นผู้อนุมัติโดยความ\nเห็นชอบของหัวหน้าส่วนงานวิชาการที่นักศึกษาสังกัด โดยให้นักศึกษาลาพักการศึกษาย้อนหลังและชำระ\nค่าธรรมเนียมการศึกษารวมถึงค่าปรับทั้งหมดให้ครบถ้วน ทั้งนี้ ต้องไม่เกิน\n๑\nปีนับจากวันที่พ้นสภาพนักศึกษา\nและต้องไม่ขัดกับระยะเวลาการศึกษาสูงสุดของหลักสูตร",
+      "references": [
+        "33.2",
+        "33.5",
+        "33.6",
+        "33.10"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37"
+      ],
+      "section_number": "37",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาต้องรักษาวินัยตามข้อบังคับนี้โดยเคร่งครัดอยู่เสมอ ผู้ใดฝ่าฝินหรือไม่ปฏิบัติตาม\nะู\nให้ถือว่าผู้นั้นกระทำผิดทางวินัยและต้องได้รับโทษตามที่กำหนดไว้ในข้อบังคับนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.1",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.1"
+      ],
+      "section_number": "37.1",
+      "parent_rule_id": "rule:37",
+      "rule_text": "นักศึกษาต้องแต่งกายให้สุภาพเรียบร้อย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.2",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.2"
+      ],
+      "section_number": "37.2",
+      "parent_rule_id": "rule:37",
+      "rule_text": "นักศึกษาต้องแสดงความเคารพต่ออาจารย์หรือบุคลากรของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.3",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.3"
+      ],
+      "section_number": "37.3",
+      "parent_rule_id": "rule:37",
+      "rule_text": "นักศึกษาต้องเป็นผู้มีกิริยามารยาทเรียบร้อย และประพฤติตนหรือวางตนให้เหมาะสม\nและต้องไม่ประพฤติตนในสิ่งที่อาจจะนำมาซึ่งความเสื่อมเสียชื่อเสียง หรือเกียรติศักดิ์แก่ตนเองหรือสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.4",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.4"
+      ],
+      "section_number": "37.4",
+      "parent_rule_id": "rule:37",
+      "rule_text": "นักศึกษาต้องไม่สูบบุหรี่ไนบริเวณสถาบัน ยกเว้นในพื้นที่ที่สถาบันจัดให้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.5",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.5"
+      ],
+      "section_number": "37.5",
+      "parent_rule_id": "rule:37",
+      "rule_text": "นักศึกษาต้องไม่เสพสุราหรือของมึนเมาในสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6"
+      ],
+      "section_number": "37.6",
+      "parent_rule_id": "rule:37",
+      "rule_text": "ความผิดวินัยอย่างร้ายแรง มีดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.1",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.1"
+      ],
+      "section_number": "37.6.1",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การกลั่นแกล้งจนเป็นเหตุให้ผู้อืนได้รับความเสียหาย รวมถึงการยุยง\nส่งเสริม\nหรือสนับสนุนหรือเป็นตัวการในการก่อให้เกิดเหตุการณ์ไม่สงบขึ้นภายในบริเวณสถาบัน เช่น การก่อ\nเหตุวิวาท การทำลายทรัพย์สินของทางสถาบัน การประพฤติตนเป็นอันธพาล ฺหรือการชุมนุมประท้วงเกินกว่า\n๑\nคนขึ้นไปโดยละเมิดกฎหมาย ฺเป็นต้น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.2",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.2"
+      ],
+      "section_number": "37.6.2",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การเสพสุราหรือของมึนเมาในสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.3",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.3"
+      ],
+      "section_number": "37.6.3",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การเสพยาเสพติดให้โทษที่ผิดกฎา\nหมาย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.4",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.4"
+      ],
+      "section_number": "37.6.4",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การพกพาอาวุธหรือสิ่งที่ผิดกฎหมาย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.5",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.5"
+      ],
+      "section_number": "37.6.5",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "ทุจริตในการสอบ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.6",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.6"
+      ],
+      "section_number": "37.6.6",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การมีพฤติกรรมที่แสดงออกถึงความไม่เคารพนับถืออาจารย์ หรือบุคลากร\nของสถาบันที่ปฏิบัติหน้าที่ตามกฎหมายหรือข้อบังคับหรีอระเบียบของสถาบัน ซึ่งคณะกรรมการรักษาวินัย\nนักศึกษาวินิจฉัยแล้วว่าผิดวินัยอย่างร้ายแรง",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.7",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.7"
+      ],
+      "section_number": "37.6.7",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การปลอมแปลงลายมือชื่อผู้ปกครอง หรือลายมือชื่อบุคคลอื่น เพื่อใช้เป็น\nหลักฐานในการติดต่อกับสถาบันอันเป็นเหตุที่ทำให้สถาบันได้รับความเสียหาย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.8",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.8"
+      ],
+      "section_number": "37.6.8",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "เล่นการพนันทุกประเภทในสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.9",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.9"
+      ],
+      "section_number": "37.6.9",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "การกระทำการใด\nที่ทำให้สถาบันได้รับความเสียหายหรือเสียชื่อเสียง\nVA\nเช่น\nรับจ้างสอบแทนผู้อืนทั้งในและนอกสถาบัน การคัดลอกปริญญานิพนธ์หรือผลงานวิชาการ จ้างวานให้ผู้อื่น\nทำปริญญานิพนธ์หรือผลงานวิชาการ เป็นต้น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:37.6.10",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "37",
+        "37.6",
+        "37.6.10"
+      ],
+      "section_number": "37.6.10",
+      "parent_rule_id": "rule:37.6",
+      "rule_text": "โทษ อื่น\nที่คณะกรรมการรักษาวินัยนักศึกษาวินิจฉัยว่าเป็นโทษร้ายแรง\nและเสนออธิการบดีพิจารณาแล้วเท็นชอบว่าร้ายแรง",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_010.png",
+          "source_page": 10,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:38",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "38"
+      ],
+      "section_number": "38",
+      "parent_rule_id": null,
+      "rule_text": "โทษทางวินัยอย่างไมร้ายแรงมี ๓ สถาน คือ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:38.1",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "38",
+        "38.1"
+      ],
+      "section_number": "38.1",
+      "parent_rule_id": "rule:38",
+      "rule_text": "ว่ากล่าวตักเตือน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:38.2",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "38",
+        "38.2"
+      ],
+      "section_number": "38.2",
+      "parent_rule_id": "rule:38",
+      "rule_text": "ภาคทัณฑ์",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:38.3",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "38",
+        "38.3"
+      ],
+      "section_number": "38.3",
+      "parent_rule_id": "rule:38",
+      "rule_text": "การให้ชดใช้ค่าเสียหาย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:39",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "39"
+      ],
+      "section_number": "39",
+      "parent_rule_id": null,
+      "rule_text": "โทษทางวินัยอย่างร้ายแรงมี ๓ สถาน คือ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:39.1",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "39",
+        "39.1"
+      ],
+      "section_number": "39.1",
+      "parent_rule_id": "rule:39",
+      "rule_text": "พักการเรียน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:39.2",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "39",
+        "39.2"
+      ],
+      "section_number": "39.2",
+      "parent_rule_id": "rule:39",
+      "rule_text": "ให้ออก",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:39.3",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "39",
+        "39.3"
+      ],
+      "section_number": "39.3",
+      "parent_rule_id": "rule:39",
+      "rule_text": "ไล่ออก",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:40",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "40"
+      ],
+      "section_number": "40",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษา ผู้ใดกระทำผิดวินัยตามข้อ\n๓๗\nยกเว้นข้อ ๓๗.๖.๕\nให้อธิการบดีสั่งลงโทษตามควร\nแก่กรณีให้เหมาะสมกับความผิด แต่ถ้ามีเหตุอันควรลดหย่อนจะนำเหตุดังกล่าวมาประกอบการพิจารณา\nสำหรับการลดโทษด้วยก็ได้",
+      "references": [
+        "37",
+        "37.6.5"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:41",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "41"
+      ],
+      "section_number": "41",
+      "parent_rule_id": null,
+      "rule_text": "ในกรณีที่นักศึกษากระทำความผิดทุจริตในการสอบตามข้อ\n๓๗.๖.๕\nโดยมีหลักฐานแห่งการ\nทุจริตชัดแจ้งให้หัวหน้าส่วนงานวิชาการทำหน้าที่พิจารณาหรือสอบสวนการกระทำผิดของนักศึกษาให้แล้ว\nเสร็จโดยเร็ว นับตั้งแต่วันที่ตรวจพบการทุจริต และเสนออธิการบดีให้ลงโทษตามข้อ ๒O\nะู\nเมื่ออธิการบดี สั่งลงโทษและลงนามในคำสั่งเรียบร้อยแล้ว ให้หัวหน้าส่วนงานวิชาการแจ้งคำสั่งลงโทษนั้น\nแก่นักศึกษาโดยไม่ชักช้า และให้แจ้งสำนักทะเบียนและประมวลผลด้วย",
+      "references": [
+        "37.6.5",
+        "20"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:42",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "42"
+      ],
+      "section_number": "42",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาผู้ใดมีกรณีถูกกล่าวหาว่ากระทำความผิดวินัยตามข้อ\n๓๗\nยกเว้นกรณีการทุจริตการ\nสอบตามข้อ ๓๗.๖.๕\nให้คณะกรรมการรักษาวินัยนักศึกษาที่สถาบันตั้งขึ้นมีอำนาจดำเนินการสอบสวนทาง\nวินัยต่อนักศึกษาผู้ถูกกล่าวหานั้นได้โดยทันที เพื่อให้ได้ความจริงด้วยความยุติธรรมโดยดำเนินการให้แล้วเสร็จ\nโดยเร็ว และเสนออธิการบดีให้ลงโทษตามควรแก่ความผิด เมื่ออธิการบดี สั่งลงโทษและลงนามในคำสั่ง\nเรียบร้อยแล้ว ให้คณะกรรมการรักษาวินัยนักศึกษาแจ้งคำสั่งลงโทษนั้นแก่นักศึกษาโดยไม่ชักช้า พร้อมทั้งให้\nแจ้งหัวหน้าส่วนงานวิชาการที่นักศึกษานั้นสังกัดและแจ้ง สำนักทะเบียนและประมวลผลด้วย\nการแต่งตั้ง การกำหนดอำนาจหน้าที่ และการประชุมของคณะกรรมการรักษาวินัยนักศึกษาให้จัดทำ\nเป็นประกาศของสถาบัน\nะู",
+      "references": [
+        "37",
+        "37.6.5"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:43",
+      "category": "หมวด 10 วินัยนักศึกษา",
+      "section_path": [
+        "43"
+      ],
+      "section_number": "43",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษา ผู้ใดถูกสังลงโทษตามข้อ ๓๘ หรือข้อ ๓๙ ให้ผู้นันมีสิทธิอุทธรณ์ต่ออธิการบดีได้โดย\nให้อุทธรณ์ภายใน\nวันนับตั้งแต่วันทราบคำสั่งทุกกรณี และต้องอุทธรณ์เป็นหนังสือลงลายมือชื่อของ\nผู้อุทธรณ์ด้วย\nเมื่ออธิการบดีได้วินิจฉัยแล้วให้คณะกรรมการรักษาวินัยนักศึกษาที่สถาบันตั้งขึ้น หรือหัวหน้าส่วนงาน\nวิชาการแล้วแต่กรณี ดำเนินการตามที่อธิการบดีสั่งการต่อไปโดยไมชักช้า",
+      "references": [
+        "38",
+        "39"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:44",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "44"
+      ],
+      "section_number": "44",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาจะมีสิ\nไทธิได้รับการเสนอชื่อให้ได้รับปริญญาหรืออนุปริญญา ต้องมีคุณสมบัติครบ\nหลักเกณฑ์ตามข้อ ๒๕",
+      "references": [
+        "25"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_011.png",
+          "source_page": 11,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45"
+      ],
+      "section_number": "45",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาซึงเป็นผู้มีเกียรติและศักดิ์สมควรพิจารณาเสนอสภาสถาบันให้ได้ปริญญาหรือ\nอนุปริญญาของสถาบัน นอกจากจะต้องเป็นผู้ซึ่งมีคุณธรรมจริยธรรม ฺเป็นผู้ซึ่งรักษา ชื่อเสียง เกียรติคุณและ\nประโยชน์ของสถาบัน เป็นผู้ซึ่งสุภาพเรียบร้อย ปฏิบัติตามวินัยของนักศึกษา ข้อบังคับ และระเบียบของ\nสถาบันแล้วจะต้องมีพฤติการณ์ด้านความประพฤติ ดังนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.1",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.1"
+      ],
+      "section_number": "45.1",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้ ซึ่งมีจิตฟั่นเฟือนไม่สมประกอบโดยคำวินิจฉัยของแพทย์หรือผู้ที่ศาลสั่งให้เป็น\nคนเสมือนไร้ความสามารถ ฺหรือไร้ความสามารถ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.2",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.2"
+      ],
+      "section_number": "45.2",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้เคยถูกจำคุกโดยคำพิพากษาถึงที่สุดให้จาคุกหรืออยู่ในระหว่างต้องหา\nคดีอาญา เว้นแต่เป็นความผิดลหุโทษ หรือความผิดที่ได้กระทำโดยประมาท",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.3",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.3"
+      ],
+      "section_number": "45.3",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้ซึ่งประพฤติชั่ว บกพรองในศีลธรรม ประพฤติตนเป็นคนเสเพล เสพเครื่องดอง\nของเมาจนไม่สามารถครองสติได้ มีหนี้สินรุงรัง หมกมุ่นในการพนัน ประพฤติผิดฐานชู้สาว ซึ่งทำให้เสื่อมเสีย\nชื่อเสียง",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.4",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.4"
+      ],
+      "section_number": "45.4",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้ซึ่งก่อให้เกิดความแตกแยกความสามัคคีหรือก่อการวิวาทในระหว่างนักศึกษา\nด้วยกัน หรือระหว่างนักศึกษาของสถาบันกับนิสิตหรือนักศึกษาในสถาบันอื่นหรือบุคคลอื่น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.5",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.5"
+      ],
+      "section_number": "45.5",
+      "parent_rule_id": "rule:45",
+      "rule_text": ":ไม่เป็นผู้ ซึ่งแสดงอาการกระด้างกระเดื่อง ลบหลู่ดูหมิ่นต่อคณาจารย์หรือบุคลากรของ\nสถาบันที่ปฏิบัติหน้าที่ตามกฎหมายหรือข้อบังคับหรือระเบียบของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.6",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.6"
+      ],
+      "section_number": "45.6",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้ ซึ่งก้าวก่ายในอำนาจการบริหารงานของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.7",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.7"
+      ],
+      "section_number": "45.7",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้ซึงจงใจ หรือกระทำการอันก่อให้เกิดความเสียหายอย่างร้ายแรงแก่ทรัพย์สิน\nของสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.8",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.8"
+      ],
+      "section_number": "45.8",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้คัดลอกหรือจ้างวานให้ผู้อื่นทำปริญญานิพนธ์ วิทยานิพนธ์ ปัญหาพิเศษ หรือที่\nเรียกชื่อเป็นอย่างอื่น ให้แก่ตน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.9",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.9"
+      ],
+      "section_number": "45.9",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่เป็นผู้รับจ้างทำปริญญานิพนธํ วิทยานิพนธ์ ปัญหาพิเศษ หรือ ที่เรียกชื่อเป็นอย่าง\nอื่น ให้ผู้อื่นหรือรับจ้างสอบแทนผู้อื่น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.10",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.10"
+      ],
+      "section_number": "45.10",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่คัดลอกผลงานวิจัยของตนเองหรือผู้อื่น",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:45.11",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "45",
+        "45.11"
+      ],
+      "section_number": "45.11",
+      "parent_rule_id": "rule:45",
+      "rule_text": "ไม่มีหนี้สินผูกพันกับสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:46",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "46"
+      ],
+      "section_number": "46",
+      "parent_rule_id": null,
+      "rule_text": "ในการขอเข้ารับพระราชทานปริญญาบัตร ให้ปฏิบัติตามที่สถาบันกำหนดในประกาศสถาบัน",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:47",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "47"
+      ],
+      "section_number": "47",
+      "parent_rule_id": null,
+      "rule_text": "นักศึกษาซึ่งขาดคุณสมบัติข้อใดข้อหนึ่งตามข้อ ๔๕ ได้ชื่อว่าเป็นผู้ซึ่งไม่มีเกียรติและศักดิ์\nไม่สมควรได้รับปริญญาของสถาบันและอาจได้รับการพิจารณา ดังนี้",
+      "references": [
+        "45"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:47.1",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "47",
+        "47.1"
+      ],
+      "section_number": "47.1",
+      "parent_rule_id": "rule:47",
+      "rule_text": "ไม่เสนอชื่อให้ได้รับปริญญาของสถาบัน ฺหรือ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:47.2",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "47",
+        "47.2"
+      ],
+      "section_number": "47.2",
+      "parent_rule_id": "rule:47",
+      "rule_text": "ชะลอการเสนอชื่อให้ได้รับปริญญามีกำหนด\n๑\nถึง๓ ปีการศึกษา ทั้งนี้ ตามลักษณะ\nความผิดที่ได้กระทำหรือ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:47.3",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "47",
+        "47.3"
+      ],
+      "section_number": "47.3",
+      "parent_rule_id": "rule:47",
+      "rule_text": "เพิกถอนปริญญา กรณีที่สถาบันตรวจสอบพบว่าผู้สำเร็จการศึกษา ซึ่งสภาสถาบันได้\nอนุมัติปริญญาไปแล้วมีคุณสมบัติไมเป็นไปตามข้อ ๔๕ ให้สภาสถาบันพิจารณาเพิกถอนปริญญา โดยให้มีผล\nตั้งแต่วันที่สภาสถาบันได้อนุมัติปริญญาให้กับบุคคลนั้น",
+      "references": [
+        "45"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:48",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "48"
+      ],
+      "section_number": "48",
+      "parent_rule_id": null,
+      "rule_text": "ในทุกสิ้นปีการศึกษา หากมีนักศึกษาที่ขาดคุณสมบัติตามข้อ ๔๕ ให้คณะกรรมการ\nประจำส่วนงานวิชาการดำเนินการตามข้อ ๔๗ และส่งผลการพิจารณามาที่สำนักทะเบียนและประมวลผลเพื่อ\nนำเสนอสภาสถาบันพิจารณา นักศึกษาผู้ใดที่สภาสถาบันพิจารณาเห็นสมควรไม่เสนอชื่อให้ได้รับปริญญา\nถ้าเห็นว่าตนไมได้รับความเป็นธรรมให้มีสิทธิอุทธรณ์ได้ โดยทำเป็นหนังสือลงลายมือชื่อของผู้อุทธรณ์\nต่ออธิการบดี\nพร้อมทั้งทำสำเนารับรองถูกต้องยื่นต่อหัวหน้าส่วนงานวิชาการภายใน\n๑๕ วันทำการ\nนับตั้งแต่\nวันที่ทราบว่าตนเป็น\nผู้ไม่สมควรได้รับปริญญา",
+      "references": [
+        "45",
+        "47"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_012.png",
+          "source_page": 12,
+          "document_category": "rule",
+          "program": "RULE"
+        },
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:49",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "49"
+      ],
+      "section_number": "49",
+      "parent_rule_id": null,
+      "rule_text": "ให้หัวหน้าส่วนงานวิชาการส่งคำชี้แจงเกี่ยวกับการอุ\nนันมายังสถาบันภายใน\n๗\nวันทำการ\nนับตั้งแต่วันที่ได้รับสำเนาหนังสืออุทธรณ์อันถูกต้องตามข้อ\n๔๘",
+      "references": [
+        "48"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:50",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "50"
+      ],
+      "section_number": "50",
+      "parent_rule_id": null,
+      "rule_text": "เมื่อ อธิการบดีได้รับคำอุทธรณ์พร้อมทั้งคำชี้แจงของหัวหน้าส่วนงานวิชาการแล้วให้นำเสนอที่\nประชุมสภาวิชาการพิจารณาให้แล้วเสร็จโดยเร็ว เพื่อนำเสนอสภาสถาบันพิจารณาวินิจฉัยต่อไป",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:51",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "51"
+      ],
+      "section_number": "51",
+      "parent_rule_id": null,
+      "rule_text": "กรณีนักศึกษาไม่พอใจในคำวินิจฉัยอุทธรณ์ตามข้อ ๕O\nอุทธรณ์ใหม่ได้ในกรณีดังต่อไปนี้",
+      "references": [
+        "50"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:51.1",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "51",
+        "51.1"
+      ],
+      "section_number": "51.1",
+      "parent_rule_id": "rule:51",
+      "rule_text": "มีพยานหลักฐานใหม่ อันอาจทำให้ข้อเท็จจริงที่ฟังเป็นยุติแล้วนั้น เปลี่ยนแปลงไปใน\nสาระสำคัญ",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:51.2",
+      "category": "หมวด 11 การพิจารณาเกียรติและศักดิ์ของนักศึกษาซึ่งจะให้ได้รับปริญญา หรืออนุปริญญา",
+      "section_path": [
+        "51",
+        "51.2"
+      ],
+      "section_number": "51.2",
+      "parent_rule_id": "rule:51",
+      "rule_text": "ถ้าคำวินิจฉัยอุทธรณ์นั้นได้ออกโดยอาศัยข้อเท็จจริงหรือข้อกฎหมายใด และต่อมา\nข้อเท็จจริงหรือข้อกฎหมายนั้นเปลี่ยนแปลงไปในสาระสำคัญในทางที่จะเป็นประโยชน์แก่นักศึกษา\nการยีนคำขอตามวรรคหนึง ให้กระทำได้เฉพาะเมื่อนักศึกษาไม่อาจทราบถึงเหตุนั้นในการ\nพิจารณาครั้งที่แล้วมาก่อนโดยมิใช่ความผิดของนักศึกษา\nการยื่นคำขอตามวรรคหนึ่ง ต้องกระทำภายใน ๓O\nนับตั้งแต่นักศึกษาได้รู้ถึงเหตุซึ่งอาจ\nขอให้พิจารณาใหม่ได้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:52",
+      "category": "บทเฉพาะกาล",
+      "section_path": [
+        "52"
+      ],
+      "section_number": "52",
+      "parent_rule_id": null,
+      "rule_text": "ในกรณีที่เกิดปัญหาเกี่ยวกับการปฏิบัติตามข้อบังคับนี้ ให้อธิการบดีวินิจฉัยสั่งการ ให้เป็นไป\nด้วยความเหมาะสมตามควรแก่กรณีเป็นเรือง\nไป โดยในกรณีที่เกี่ยวกับนักศึกษาที่เข้าศึกษาก่อนที่ข้อบังคับนี้\nจะมีผลใช้บังคับ ให้อธิการบดีวินิจฉัยโดยคำนึงถึงข้อบังคบระเบียบหรือหลักเกณฑ์แเดิมประกอบด้วย",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    },
+    {
+      "rule_id": "rule:53",
+      "category": "บทเฉพาะกาล",
+      "section_path": [
+        "53"
+      ],
+      "section_number": "53",
+      "parent_rule_id": null,
+      "rule_text": "ในระหว่างที่ยังไม่มีระเบียบ ประกาศ คำสั่ง หรือมติเพื่อปฏิบัติการตามข้อบังคับนี้ ปให้นำ\nข้อบังคับ ระเบียบ ประกาศ คำสั่ง\nหรือมติที่ใช้บังคับอยู่ในวันที่ข้อบังคับนี้มีผลใช้บังคับ ฺมาใช้บังคับโดยอนุโลม\nไปพลางก่อนเท่าที่ไม่ขัดหรือแย้งกับข้อบังคับนี้จนกว่าจะได้มีระเบียบ ประกาศ คำสั่ง หรือมติ\nเพื่อปฏิบัติการ\nตามข้อบังคับนี้",
+      "references": [],
+      "source_provenance": [
+        {
+          "source_filename": "rule_page_013.png",
+          "source_page": 13,
+          "document_category": "rule",
+          "program": "RULE"
+        }
+      ]
+    }
+  ]
+}

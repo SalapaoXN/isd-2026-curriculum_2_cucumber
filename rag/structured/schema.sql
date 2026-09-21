@@ -8,10 +8,60 @@ CREATE TABLE provenance (
     source_page INTEGER,
     document_page INTEGER,
     document_category TEXT NOT NULL DEFAULT 'unknown'
-        CHECK (document_category IN ('plan', 'description', 'unknown')),
+        CHECK (document_category IN (
+            'plan', 'description', 'unknown', 'rule', 'program_requirement'
+        )),
     source_uri TEXT,
     source_locator TEXT,
     excerpt TEXT
+);
+
+CREATE TABLE regulation_rules (
+    rule_id TEXT PRIMARY KEY,
+    section_number TEXT NOT NULL,
+    parent_rule_id TEXT,
+    category TEXT NOT NULL,
+    rule_text TEXT NOT NULL,
+    references_json TEXT NOT NULL
+);
+
+CREATE TABLE policy_facts (
+    fact_id INTEGER PRIMARY KEY,
+    category TEXT NOT NULL,
+    fact_key TEXT,
+    operator TEXT NOT NULL,
+    value NUMERIC NOT NULL,
+    unit TEXT,
+    condition TEXT,
+    context TEXT,
+    source_rule_id TEXT NOT NULL REFERENCES regulation_rules(rule_id),
+    verification_status TEXT
+);
+
+CREATE TABLE policy_fact_provenance (
+    fact_id INTEGER NOT NULL REFERENCES policy_facts(fact_id)
+        ON DELETE CASCADE,
+    provenance_id INTEGER NOT NULL REFERENCES provenance(provenance_id)
+        ON DELETE CASCADE,
+    PRIMARY KEY (fact_id, provenance_id)
+);
+
+CREATE TABLE program_requirements (
+    requirement_id INTEGER PRIMARY KEY,
+    program_code TEXT NOT NULL,
+    requirement_type TEXT NOT NULL,
+    operator TEXT NOT NULL,
+    value NUMERIC NOT NULL,
+    unit TEXT NOT NULL,
+    UNIQUE (program_code, requirement_type)
+);
+
+CREATE TABLE program_requirement_provenance (
+    requirement_id INTEGER NOT NULL REFERENCES program_requirements(requirement_id)
+        ON DELETE CASCADE,
+    provenance_id INTEGER NOT NULL REFERENCES provenance(provenance_id)
+        ON DELETE CASCADE,
+    PRIMARY KEY (requirement_id, provenance_id)
 );
 
 CREATE TABLE catalogs (

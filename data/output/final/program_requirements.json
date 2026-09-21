@@ -1,0 +1,66 @@
+[
+  {
+    "program": "AIT",
+    "requirement_type": "total_program_credits",
+    "operator": "=",
+    "value": 120,
+    "unit": "credits",
+    "source_provenance": [
+      {
+        "program": "AIT",
+        "source_filename": "ait_page_005.png",
+        "source_page": 5,
+        "document_category": "program_requirement",
+        "document_page": 1
+      }
+    ]
+  },
+  {
+    "program": "BIT",
+    "requirement_type": "total_program_credits",
+    "operator": "=",
+    "value": 126,
+    "unit": "credits",
+    "source_provenance": [
+      {
+        "program": "BIT",
+        "source_filename": "bit_page_006.png",
+        "source_page": 6,
+        "document_category": "program_requirement",
+        "document_page": 1
+      }
+    ]
+  },
+  {
+    "program": "DSBA",
+    "requirement_type": "total_program_credits",
+    "operator": "=",
+    "value": 132,
+    "unit": "credits",
+    "source_provenance": [
+      {
+        "program": "DSBA",
+        "source_filename": "dsba_page_006.png",
+        "source_page": 6,
+        "document_category": "program_requirement",
+        "document_page": 1
+      }
+    ]
+  },
+  {
+    "program": "IT",
+    "requirement_type": "total_program_credits",
+    "operator": "=",
+    "value": 129,
+    "unit": "credits",
+    "source_provenance": [
+      {
+        "program": "IT",
+        "source_filename": "it_page_006.png",
+        "source_page": 6,
+        "document_category": "program_requirement",
+        "document_page": 1
+      }
+    ]
+  }
+]
