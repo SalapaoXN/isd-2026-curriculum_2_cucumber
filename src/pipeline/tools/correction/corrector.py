@@ -176,6 +176,48 @@ def _record_course_code(record: dict[str, Any]) -> Any:
     return record.get("code")
 
 
+_SOURCE_SELECTOR_FIELDS = frozenset(
+    ("program", "plan", "source_filename", "source_page", "document_category")
+)
+
+
+def _record_source_entries(record: dict[str, Any]) -> list[dict[str, Any]]:
+    entries = record.get("source_provenance")
+    if not isinstance(entries, list):
+        return []
+    return [entry for entry in entries if isinstance(entry, dict)]
+
+
+def _source_selector_matches(
+    record: dict[str, Any],
+    correction: dict[str, Any],
+    *,
+    document_program: Any,
+    document_plan: Any,
+) -> bool:
+    expected_program = correction.get("program", document_program)
+    actual_program = record.get("program", document_program)
+    if "program" in correction and actual_program != expected_program:
+        return False
+
+    if "plan" in correction:
+        actual_plan = record.get("plan", record.get("plan_key", document_plan))
+        if actual_plan != correction["plan"]:
+            return False
+
+    provenance_fields = {
+        field: correction[field]
+        for field in ("source_filename", "source_page", "document_category")
+        if field in correction
+    }
+    if provenance_fields and not any(
+        all(entry.get(field) == value for field, value in provenance_fields.items())
+        for entry in _record_source_entries(record)
+    ):
+        return False
+    return True
+
+
 def _guard_correction_value(
     record: dict[str, Any],
     field: str,
@@ -232,6 +274,7 @@ def apply_corrections(
     document_program = (
         document.get("program") if isinstance(document, dict) else None
     )
+    document_plan = document.get("plan") if isinstance(document, dict) else None
     if len(original_records) != len(corrected_records):
         raise ValueError("Correction reconstruction changed curriculum record count")
     approved_records = (
@@ -270,12 +313,41 @@ def apply_corrections(
                 f"Correction {correction_index} before/after must be strings"
             )
 
+        allowed_correction_fields = (
+            required_fields | _SOURCE_SELECTOR_FIELDS | {"source_occurrence"}
+        )
+        unknown_selector_fields = set(correction).difference(
+            allowed_correction_fields
+        )
+        if unknown_selector_fields:
+            raise ValueError(
+                f"Correction {correction_index} has unsupported identity fields: "
+                f"{sorted(unknown_selector_fields)}"
+            )
+        if "source_occurrence" in correction and (
+            not isinstance(correction["source_occurrence"], int)
+            or isinstance(correction["source_occurrence"], bool)
+            or correction["source_occurrence"] < 1
+        ):
+            raise ValueError(
+                f"Correction {correction_index} source_occurrence must be a positive integer"
+            )
+
         matching_indexes = [
             index
-            for index, record in enumerate(corrected_records)
+            for index, record in enumerate(original_records)
             if _record_course_code(record) == course_code
             and record.get(field) == before
+            and _source_selector_matches(
+                record,
+                correction,
+                document_program=document_program,
+                document_plan=document_plan,
+            )
         ]
+        if "source_occurrence" in correction:
+            occurrence = correction["source_occurrence"]
+            matching_indexes = matching_indexes[occurrence - 1 : occurrence]
         if len(matching_indexes) > 1:
             raise ValueError(
                 f"Correction {correction_index} is ambiguous for "

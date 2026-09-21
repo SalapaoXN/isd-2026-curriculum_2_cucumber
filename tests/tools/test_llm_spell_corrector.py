@@ -653,6 +653,112 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 ],
             )
 
+    def test_source_identified_duplicate_corrections_apply_by_occurrence(self):
+        records = []
+        for _ in range(2):
+            record = make_record(
+                course_code="06016418",
+                name_th="การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+            )
+            record["plan_key"] = "coop"
+            record["source_provenance"] = [
+                {
+                    "source_filename": "it_page_043.png",
+                    "source_page": 43,
+                    "document_category": "plan",
+                }
+            ]
+            records.append(record)
+        corrections = [
+            {
+                "program": "IT",
+                "plan": "coop",
+                "course_code": "06016418",
+                "field": "name_th",
+                "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+                "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+                "source_filename": "it_page_043.png",
+                "source_page": 43,
+                "document_category": "plan",
+                "source_occurrence": 1,
+            },
+            {
+                "program": "IT",
+                "plan": "coop",
+                "course_code": "06016418",
+                "field": "name_th",
+                "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+                "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+                "source_filename": "it_page_043.png",
+                "source_page": 43,
+                "document_category": "plan",
+                "source_occurrence": 2,
+            },
+        ]
+
+        corrected, applied = llm_spell_corrector.apply_corrections(
+            {"program": "IT", "plan": "coop", "courses": records},
+            corrections,
+        )
+
+        self.assertEqual(len(applied), 2)
+        self.assertEqual(
+            [record["name_th"] for record in corrected["courses"]],
+            ["การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"] * 2,
+        )
+
+    def test_source_identity_mismatch_does_not_apply_correction(self):
+        record = make_record(
+            course_code="06016418",
+            name_th="การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+        )
+        record["source_provenance"] = [
+            {
+                "source_filename": "it_page_043.png",
+                "source_page": 43,
+                "document_category": "plan",
+            }
+        ]
+        with self.assertRaisesRegex(ValueError, "did not match"):
+            llm_spell_corrector.apply_corrections(
+                {"program": "IT", "plan": "coop", "courses": [record]},
+                [
+                    {
+                        "program": "IT",
+                        "plan": "coop",
+                        "course_code": "06016418",
+                        "field": "name_th",
+                        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+                        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+                        "source_filename": "it_page_999.png",
+                        "source_page": 999,
+                        "document_category": "plan",
+                        "source_occurrence": 1,
+                    }
+                ],
+            )
+
+    def test_unidentified_duplicate_match_still_fails_closed(self):
+        records = [
+            make_record(
+                course_code="06016418",
+                name_th="การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+            )
+            for _ in range(2)
+        ]
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            llm_spell_corrector.apply_corrections(
+                {"program": "IT", "plan": "coop", "courses": records},
+                [
+                    {
+                        "course_code": "06016418",
+                        "field": "name_th",
+                        "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
+                        "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+                    }
+                ],
+            )
+
     def test_normal_text_correction_succeeds_and_is_logged(self):
         records = [make_record()]
         path, original = self.write_document("curriculum.json", records)

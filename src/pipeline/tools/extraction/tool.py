@@ -8,126 +8,142 @@ from src.pipeline.tools.extraction.engine import CurriculumExtractor, prediction
 from src.pipeline.config import plan_label, resolve_plan, resolve_program
 
 
-GROUND_TRUTH_DIR = Path(__file__).resolve().parents[4] / "ground_truth"
-AUTHORITATIVE_CREDIT_FILES = {
-    ("AIT", None): Path("AIT/AIT_academic_plan.json"),
-    ("BIT", "coop"): Path("BIT/BIT_academic_plan_coop.json"),
-    ("BIT", "no_coop"): Path("BIT/BIT_academic_plan_no_coop.json"),
-    ("DSBA", "coop"): Path("DSBA/DSBA_academic_plan_coop.json"),
-    ("DSBA", "no_coop"): Path("DSBA/DSBA_academic_plan_no_coop.json"),
-    ("GENED", "gened"): Path("general_education_ground_truth.json"),
-    ("IT", "coop"): Path("IT/IT_academic_plan_coop.json"),
-    ("IT", "no_coop"): Path("IT/IT_academic_plan_no_coop.json"),
-}
-
-_PARENTHETICAL_CREDIT_RE = re.compile(r"^\(\d+-\d+-\d+\)$")
+SOURCE_VERIFIED_CREDIT_CORRECTIONS_PATH = (
+    Path(__file__).resolve().parents[4]
+    / "data"
+    / "corrections"
+    / "source_verified_credit_corrections.json"
+)
 _AUTHORITATIVE_CREDIT_RE = re.compile(r"^\d+\(\d+-\d+-\d+\)$")
-_INCOMPLETE_CREDIT_FRAGMENT_RE = re.compile(r"^\d+\(\d+-\d+(?:-\d*)?$")
-
-# These are source-verified description records whose OCR credit is unresolved
-# rather than parenthetical-only.  The value is the authoritative lookup key;
-# source identity is intentionally part of the key so a matching course code
-# elsewhere cannot be repaired by this exception.
-SOURCE_VERIFIED_DESCRIPTION_CREDIT_REPAIRS = {
-    ("IT", "coop", "06016454", "it_page_354.png", 354): "06016454",
-    ("IT", "coop", "06016454", "it_page_354_ocr.json", 354): "06016454",
-    ("BIT", "coop", "06036135", "bit_page_252.png", 252): "06036135",
-    ("BIT", "coop", "06036135", "bit_page_252_ocr.json", 252): "06036135",
+_REQUIRED_CREDIT_CORRECTION_FIELDS = {
+    "program",
+    "plan",
+    "course_code",
+    "credits",
+    "source_verified",
+    "source_filename",
+    "source_page",
+    "document_category",
 }
 
 
-def _load_authoritative_credit_lookup(program, plan, reference_root=None):
-    """Load source-derived credits keyed by the complete curriculum identity."""
-    reference_root = GROUND_TRUTH_DIR if reference_root is None else Path(reference_root)
-    relative_path = AUTHORITATIVE_CREDIT_FILES.get((program, plan))
-    if relative_path is None:
-        return {}
+def _load_source_verified_credit_corrections(path=None):
+    """Load reviewed source corrections keyed by exact source identity."""
+    correction_path = (
+        SOURCE_VERIFIED_CREDIT_CORRECTIONS_PATH
+        if path is None
+        else Path(path)
+    )
+    try:
+        with correction_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError) as error:
+        raise ValueError(
+            f"cannot load source-verified credit corrections: {correction_path}"
+        ) from error
 
-    with (reference_root / relative_path).open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
+    records = payload.get("corrections") if isinstance(payload, dict) else None
+    if not isinstance(records, list):
+        raise ValueError("source-verified credit corrections must contain a corrections list")
 
-    return {
-        (program, plan, record.get("code")): record
-        for record in payload.get("courses", [])
-        if isinstance(record, dict) and record.get("code")
-    }
+    lookup = {}
+    for index, record in enumerate(records):
+        if not isinstance(record, dict) or set(record) != _REQUIRED_CREDIT_CORRECTION_FIELDS:
+            raise ValueError(f"invalid source-verified credit correction at index {index}")
+        if (
+            not isinstance(record["program"], str)
+            or not record["program"].strip()
+            or not isinstance(record["plan"], str)
+            or not record["plan"].strip()
+            or not isinstance(record["course_code"], str)
+            or not record["course_code"].strip()
+            or not isinstance(record["credits"], str)
+            or not _AUTHORITATIVE_CREDIT_RE.fullmatch(record["credits"].strip())
+            or record["source_verified"] is not True
+            or not isinstance(record["source_filename"], str)
+            or not record["source_filename"].strip()
+            or isinstance(record["source_page"], bool)
+            or not isinstance(record["source_page"], int)
+            or not isinstance(record["document_category"], str)
+            or not record["document_category"].strip()
+        ):
+            raise ValueError(f"invalid source-verified credit correction at index {index}")
+
+        key = (
+            record["program"].strip().upper(),
+            record["plan"].strip(),
+            record["course_code"].strip(),
+            record["source_filename"].strip(),
+            record["source_page"],
+            record["document_category"].strip(),
+        )
+        if key in lookup and lookup[key] != record:
+            raise ValueError(f"ambiguous source-verified credit correction at index {index}")
+        lookup[key] = dict(record)
+    return lookup
 
 
-def _reconcile_source_backed_credit(course, authoritative_lookup, *, program, plan):
-    """Repair only an exact identity/tuple match from authoritative source data."""
+def _reconcile_source_backed_credit(course, correction_lookup, *, program, plan):
+    """Apply only an exact reviewed source correction; otherwise fail closed."""
     if not isinstance(course, dict):
         return course
 
     current_credit = course.get("credits")
-    current_credit = current_credit.strip() if isinstance(current_credit, str) else None
-    authoritative_code = course.get("code")
-    authoritative = authoritative_lookup.get((program, plan, authoritative_code))
-    if not isinstance(authoritative, dict):
-        return course
-
-    authoritative_credit = authoritative.get("credits")
-    if not isinstance(authoritative_credit, str):
-        return course
-    authoritative_credit = authoritative_credit.strip()
-    if not _AUTHORITATIVE_CREDIT_RE.fullmatch(authoritative_credit):
-        return course
-
+    current_credit = current_credit.strip() if isinstance(current_credit, str) else ""
+    course_code = course.get("code")
     source_entries = course.get("source_provenance")
-    source_identity = {
-        (
-            entry.get("program"),
-            entry.get("source_filename"),
-            entry.get("source_page"),
-        )
-        for entry in source_entries
-        if isinstance(entry, dict)
-    } if isinstance(source_entries, list) else set()
-    repair_key = next(
+    if not isinstance(course_code, str) or not isinstance(source_entries, list):
+        return course
+
+    matching_key = next(
         (
             key
-            for key in SOURCE_VERIFIED_DESCRIPTION_CREDIT_REPAIRS
-            if key[0] == program
+            for key in correction_lookup
+            if key[0] == str(program).upper()
             and key[1] == plan
-            and key[2] == authoritative_code
-            and (key[0], key[3], key[4]) in source_identity
+            and key[2] == course_code
+            and any(
+                isinstance(entry, dict)
+                and str(entry.get("program", "")).upper() == key[0]
+                and entry.get("source_filename") == key[3]
+                and entry.get("source_page") == key[4]
+                and entry.get("document_category") == key[5]
+                for entry in source_entries
+            )
         ),
         None,
     )
-
-    # A valid parsed credit that conflicts with authoritative data is left
-    # untouched and therefore fails closed.  It must not be overwritten by a
-    # source-backed exception.
-    if current_credit and not _PARENTHETICAL_CREDIT_RE.fullmatch(current_credit):
-        if current_credit != authoritative_credit:
-            if repair_key is not None and not _INCOMPLETE_CREDIT_FRAGMENT_RE.fullmatch(
-                current_credit
-            ):
-                return course
-            if repair_key is None:
-                return course
-        else:
-            return course
-
-    if (
-        current_credit
-        and _PARENTHETICAL_CREDIT_RE.fullmatch(current_credit)
-        and authoritative_credit[authoritative_credit.index("(") :] != current_credit
-    ):
+    if matching_key is None:
         return course
 
-    if current_credit:
-        repaired = dict(course)
-        repaired["credits"] = authoritative_credit
-        return repaired
-
-    if repair_key is None:
-        return course
-
-    if SOURCE_VERIFIED_DESCRIPTION_CREDIT_REPAIRS[repair_key] != authoritative_code:
+    correction = correction_lookup[matching_key]
+    corrected_credit = correction["credits"].strip()
+    if current_credit and _AUTHORITATIVE_CREDIT_RE.fullmatch(current_credit):
         return course
 
     repaired = dict(course)
-    repaired["credits"] = authoritative_credit
+    repaired["credits"] = corrected_credit
+    repaired["credit_source_verified"] = True
+    repaired["credit_source_provenance"] = {
+        "source_filename": correction["source_filename"],
+        "source_page": correction["source_page"],
+        "document_category": correction["document_category"],
+    }
+    repaired["source_provenance"] = [
+        {
+            **entry,
+            "source_verified": True,
+        }
+        if (
+            isinstance(entry, dict)
+            and str(entry.get("program", "")).upper() == matching_key[0]
+            and entry.get("source_filename") == matching_key[3]
+            and entry.get("source_page") == matching_key[4]
+            and entry.get("document_category") == matching_key[5]
+        )
+        else entry
+        for entry in source_entries
+    ]
     return repaired
 
 
@@ -345,7 +361,7 @@ def run_extraction(
 
     all_courses = []
     last_result = None
-    authoritative_lookup = _load_authoritative_credit_lookup(resolved_program, resolved_plan)
+    source_verified_corrections = _load_source_verified_credit_corrections()
 
     for file in files_to_process:
         # Ignore already extracted files
@@ -357,7 +373,7 @@ def run_extraction(
         result["courses"] = [
             _reconcile_source_backed_credit(
                 course,
-                authoritative_lookup,
+                source_verified_corrections,
                 program=resolved_program,
                 plan=resolved_plan,
             )

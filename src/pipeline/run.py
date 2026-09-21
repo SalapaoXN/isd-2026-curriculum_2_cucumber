@@ -113,7 +113,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.only_index:
         from src.pipeline.tools.indexing.tool import run_build_index_stage
 
-        paths = _corrected_paths_for_program(llm_dir, args.program) or None
+        # The default runtime database is unified.  Let the indexing stage
+        # validate and discover the complete source set unless the caller
+        # explicitly supplied a separate index path for a scoped build.
+        paths = (
+            _corrected_paths_for_program(llm_dir, args.program) or None
+            if args.index_path is not None
+            else None
+        )
         print(run_build_index_stage(paths, args.index_path))
         return 0
 
@@ -189,7 +196,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.with_index:
             from src.pipeline.tools.indexing.tool import run_build_index_stage
 
-            program_paths = _corrected_paths_for_program(llm_dir, args.program)
+            program_paths = (
+                _corrected_paths_for_program(llm_dir, args.program)
+                if args.index_path is not None
+                else None
+            )
             print(run_build_index_stage(program_paths or None, args.index_path))
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)

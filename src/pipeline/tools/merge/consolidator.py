@@ -48,6 +48,42 @@ def _source_course_identity(course: dict) -> set[tuple]:
     }
 
 
+def _propagate_credit_source_metadata(merged_course: dict, source_record: dict) -> dict:
+    """Carry reviewed credit metadata only with its matching source identity."""
+    if source_record.get("credit_source_verified") is not True:
+        return merged_course
+
+    credit_provenance = source_record.get("credit_source_provenance")
+    if not isinstance(credit_provenance, dict):
+        return merged_course
+
+    identity = (
+        credit_provenance.get("source_filename"),
+        credit_provenance.get("source_page"),
+        credit_provenance.get("document_category"),
+    )
+    if not all(identity):
+        return merged_course
+
+    matching_source = any(
+        isinstance(entry, dict)
+        and (
+            entry.get("source_filename"),
+            entry.get("source_page"),
+            entry.get("document_category"),
+        )
+        == identity
+        for entry in source_record.get("source_provenance", [])
+    )
+    if not matching_source:
+        return merged_course
+
+    propagated = dict(merged_course)
+    propagated["credit_source_verified"] = True
+    propagated["credit_source_provenance"] = dict(credit_provenance)
+    return propagated
+
+
 def _preserve_authoritative_extracted_credit(
     merge_time_record: dict,
     extracted_records: list[dict],
@@ -76,23 +112,47 @@ def _preserve_authoritative_extracted_credit(
             "Conflicting complete Extracted credits for "
             f"{merge_time_record.get('code')}"
         )
+    preserved_record = merge_time_record
     if not authoritative_values:
-        return merge_time_record
+        preserved_record = merge_time_record
+    else:
+        authoritative_credit = next(iter(authoritative_values))
+        merge_rank = _ordinary_credit_rank(merge_time_record.get("credits"))
+        if merge_rank is not None and merge_rank < 2:
+            preserved_record = dict(merge_time_record)
+            preserved_record["credits"] = authoritative_credit
+        elif merge_rank == 2 and authoritative_credit.replace(" ", "") != str(
+            merge_time_record.get("credits")
+        ).replace(" ", ""):
+            raise ValueError(
+                "Conflicting complete merge credits for "
+                f"{merge_time_record.get('code')}"
+            )
 
-    authoritative_credit = next(iter(authoritative_values))
-    merge_rank = _ordinary_credit_rank(merge_time_record.get("credits"))
-    if merge_rank is not None and merge_rank < 2:
-        preserved = dict(merge_time_record)
-        preserved["credits"] = authoritative_credit
-        return preserved
-    if merge_rank == 2 and authoritative_credit.replace(" ", "") != str(
-        merge_time_record.get("credits")
-    ).replace(" ", ""):
-        raise ValueError(
-            "Conflicting complete merge credits for "
-            f"{merge_time_record.get('code')}"
+    verified_matches = [
+        record
+        for record in matches
+        if record.get("credit_source_verified") is True
+    ]
+    if verified_matches:
+        provenance_values = {
+            json.dumps(
+                record.get("credit_source_provenance"),
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+            for record in verified_matches
+        }
+        if len(provenance_values) > 1:
+            raise ValueError(
+                "Conflicting verified credit provenance for "
+                f"{merge_time_record.get('code')}"
+            )
+        preserved_record = _propagate_credit_source_metadata(
+            preserved_record,
+            verified_matches[0],
         )
-    return merge_time_record
+    return preserved_record
 
 
 def _recover_credit_from_matching_description(
@@ -538,6 +598,10 @@ class CurriculumConsolidator:
 
                     merged_course["source_provenance"] = merge_source_provenance(
                         course,
+                        target_desc,
+                    )
+                    merged_course = _propagate_credit_source_metadata(
+                        merged_course,
                         target_desc,
                     )
 
