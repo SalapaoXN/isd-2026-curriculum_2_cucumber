@@ -38,14 +38,34 @@ def _default_sources() -> list[Path]:
     return llm_source_paths()
 
 
+def _default_supplemental_sources() -> dict[str, Path]:
+    return {
+        "institution_policy": _PROJECT_ROOT
+        / "data"
+        / "output"
+        / "final"
+        / "institution_policy.json",
+        "program_requirements": _PROJECT_ROOT
+        / "data"
+        / "output"
+        / "final"
+        / "program_requirements.json",
+    }
+
+
 def build_index(
     input_json_paths: Iterable[str | Path] | None = None,
     index_path: str | Path | None = None,
 ) -> Path:
     """Build or reuse the shared curriculum database for the supplied JSON files."""
-    sources = _default_sources() if input_json_paths is None else input_json_paths
+    using_defaults = input_json_paths is None
+    sources = _default_sources() if using_defaults else input_json_paths
     artifact_index = index_path or ARTIFACTS_DIR / DEFAULT_INDEX_NAME
-    return ensure_index(sources, index_path=artifact_index)
+    supplemental = _default_supplemental_sources() if using_defaults else None
+    kwargs = {"index_path": artifact_index}
+    if supplemental is not None:
+        kwargs["supplemental_json_paths"] = supplemental
+    return ensure_index(sources, **kwargs)
 
 
 def main(argv: Sequence[str] | None = None) -> None:

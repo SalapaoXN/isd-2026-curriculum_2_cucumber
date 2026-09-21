@@ -387,7 +387,22 @@ class RagIndexTest(unittest.TestCase):
             with redirect_stdout(io.StringIO()):
                 build_index_main([])
 
-        ensure.assert_called_once_with(sources, index_path=default_index_path)
+            ensure.assert_called_once_with(
+                sources,
+                index_path=default_index_path,
+                supplemental_json_paths={
+                    "institution_policy": index_module._PROJECT_ROOT
+                    / "data"
+                    / "output"
+                    / "final"
+                    / "institution_policy.json",
+                    "program_requirements": index_module._PROJECT_ROOT
+                    / "data"
+                    / "output"
+                    / "final"
+                    / "program_requirements.json",
+                },
+            )
 
     def test_cli_loads_dotenv_before_embedding_index_starts(self):
         events = []

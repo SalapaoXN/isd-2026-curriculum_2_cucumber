@@ -26,6 +26,10 @@ ACADEMIC_DISHONESTY_CATEGORY = "การทุจริตทางวิชา
 CONDUCT_CATEGORY = "ระเบียบความประพฤติ"
 DISCIPLINARY_PENALTY_CATEGORY = "บทลงโทษทางวินัย"
 APPEAL_CATEGORY = "การอุทธรณ์"
+GRADUATION_CATEGORY = "เกณฑ์การสำเร็จการศึกษา"
+REGISTRATION_CATEGORY = "เกณฑ์การลงทะเบียน"
+TRANSFER_CATEGORY = "การเทียบโอนหน่วยกิต"
+OTHER_CATEGORY = "ระเบียบอื่น ๆ"
 
 CATEGORY_RULES: dict[str, tuple[str, ...]] = {
     PROBATION_CATEGORY: ("22", "33.11"),
@@ -107,6 +111,10 @@ CATEGORY_RULES: dict[str, tuple[str, ...]] = {
         "42",
     ),
     APPEAL_CATEGORY: ("43", "48", "49", "50", "51", "51.1", "51.2"),
+    GRADUATION_CATEGORY: ("25", "25.1", "25.2", "25.3", "25.4", "25.5"),
+    REGISTRATION_CATEGORY: ("10", "11", "12", "13", "14", "15", "16"),
+    TRANSFER_CATEGORY: ("28", "29"),
+    OTHER_CATEGORY: (),
 }
 
 _STRUCTURED_NUMBER = r"[0-9๐-๙Oo]+(?:\.[0-9๐-๙Oo]+)?"
@@ -144,7 +152,64 @@ _HONORS_DAMAGED_TRANSFER_RE = re.compile(
 )
 _HONORS_SAFE_GPA_THRESHOLDS = {
     "rule:27.2.1": "3.75",
+    "rule:27.2.2": "3.50",
     "rule:27.2.3": "3.25",
+}
+_HONORS_SOURCE_VERIFIED_GPA = {
+    "rule:27.2.2": ("3.51", "3.50"),
+}
+_GRADUATION_CUMULATIVE_GPA_RE = re.compile(
+    r"(?:ได้\s*)?ค่าระดับคะแนน\s*เฉลี่ย\s*สะสม\s*ไม(?:่)?ต่ำกว่า\s*"
+    rf"(?P<value>{_STRUCTURED_NUMBER}){_STRUCTURED_NUMBER_END}"
+)
+_REGISTRATION_CREDIT_GAP = r"(?:\s|\u0e3a)*"
+_REGISTRATION_FACT_PATTERNS = (
+    (
+        "regular_semester",
+        "regular_minimum",
+        "at_least",
+        re.compile(
+            r"ภาคการศึกษาปกติ(?:(?!ยกเว้น|ภาคการศึกษาพิเศษ).){0,240}?"
+            rf"ไม่น้อยกว่า\s*(?P<value>{_STRUCTURED_NUMBER})"
+            rf"{_REGISTRATION_CREDIT_GAP}หน่วยกิต"
+        ),
+    ),
+    (
+        "regular_semester",
+        "regular_maximum",
+        "at_most",
+        re.compile(
+            r"ภาคการศึกษาปกติ(?:(?!ยกเว้น|ภาคการศึกษาพิเศษ).){0,240}?"
+            rf"ไม่เกิน\s*(?P<value>{_STRUCTURED_NUMBER})"
+            rf"{_REGISTRATION_CREDIT_GAP}หน่วยกิต"
+        ),
+    ),
+    (
+        "graduation_exception",
+        "graduation_exception_maximum",
+        "at_most",
+        re.compile(
+            r"(?:ยกเว้น|กรณี)(?:(?!ภาคการศึกษาพิเศษ).){0,240}?"
+            rf"ไม่เกิน\s*(?P<value>{_STRUCTURED_NUMBER})"
+            rf"{_REGISTRATION_CREDIT_GAP}หน่วยกิต"
+        ),
+    ),
+    (
+        "special_semester",
+        "special_maximum",
+        "at_most",
+        re.compile(
+            r"ภาคการศึกษาพิเศษ(?:(?!ภาคการศึกษาปกติ).){0,160}?"
+            rf"ไม่เกิน\s*(?P<value>{_STRUCTURED_NUMBER})"
+            rf"{_REGISTRATION_CREDIT_GAP}หน่วยกิต"
+        ),
+    ),
+)
+_REGISTRATION_EXPECTED_VALUES = {
+    ("regular_semester", "regular_minimum"): "9",
+    ("regular_semester", "regular_maximum"): "22",
+    ("graduation_exception", "graduation_exception_maximum"): "27",
+    ("special_semester", "special_maximum"): "9",
 }
 _SUSPENSION_PERIOD_RE = re.compile(
     r"พักการเรียนในภาคการศึกษาปกติถัดไปอีก\s*"
@@ -158,6 +223,11 @@ _APPEAL_DEADLINE_RE = re.compile(
     rf"ภายใน\s*(?P<value>{_STRUCTURED_NUMBER})\s*"
     rf"(?P<unit>วันทำการ|วัน){_STRUCTURED_NUMBER_END}"
 )
+_APPEAL_EXPECTED_FACT_IDS = ("rule:43", "rule:48", "rule:49", "rule:51.2")
+_APPEAL_SOURCE_VERIFIED_DEADLINES = {
+    "rule:43": (r"ให้อุทธรณ์ภายใน", "30", "วัน"),
+    "rule:51.2": (r"ภายใน\s*๓O", "30", "วัน"),
+}
 
 
 def normalize_structured_number(value: str) -> str:
@@ -334,6 +404,177 @@ def _text_only_values(
     return [], {str(record["rule_id"]): [] for record in records}
 
 
+def _registration_values(
+    records: Sequence[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+    values: list[dict[str, Any]] = []
+    snippets: dict[str, list[dict[str, Any]]] = {}
+    seen: set[tuple[str, str, str]] = set()
+
+    for record in records:
+        rule_id = str(record["rule_id"])
+        text = " ".join(str(record.get("rule_text", "")).split())
+        snippets[rule_id] = []
+        if rule_id != "rule:11":
+            continue
+
+        for context, fact_key, condition, pattern in _REGISTRATION_FACT_PATTERNS:
+            match = pattern.search(text)
+            if match is None:
+                continue
+            raw_value = match.group("value")
+            snippet_text = _snippet(text, match.start(), match.end())
+            snippets[rule_id].append(
+                {
+                    "kind": "registration_credit_limit",
+                    "text": snippet_text,
+                    "context": context,
+                    "fact_key": fact_key,
+                    "condition": condition,
+                    "raw_value": raw_value,
+                }
+            )
+            normalized_value = _try_normalize_structured_number(raw_value)
+            expected_value = _REGISTRATION_EXPECTED_VALUES[(context, fact_key)]
+            if normalized_value != expected_value:
+                snippets[rule_id][-1]["status"] = "source_unsafe_or_ambiguous"
+                continue
+            identity = (context, condition, normalized_value)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            values.append(
+                {
+                    "value": normalized_value,
+                    "unit": "หน่วยกิต",
+                    "label": fact_key,
+                    "condition": condition,
+                    "context": context,
+                    "raw_value": raw_value,
+                    "source_rule_id": rule_id,
+                    "source_snippet": snippet_text,
+                }
+            )
+    return values, snippets
+
+
+def _graduation_values(
+    records: Sequence[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+    values: list[dict[str, Any]] = []
+    snippets: dict[str, list[dict[str, Any]]] = {}
+    seen: set[tuple[str, str, str]] = set()
+
+    for record in records:
+        rule_id = str(record["rule_id"])
+        text = " ".join(str(record.get("rule_text", "")).split())
+        snippets[rule_id] = []
+
+        if rule_id == "rule:25.1":
+            snippet_text = _snippet(text, 0, len(text), radius=0)
+            if re.search(r"ไม(?:่)?ต่ำกว่า", text):
+                snippets[rule_id].append(
+                    {
+                        "kind": "graduation_structure_gpa_threshold",
+                        "text": snippet_text,
+                        "value": "2.00",
+                        "status": "source_verified",
+                    }
+                )
+                identity = (rule_id, "gpa", "2.00")
+                if identity not in seen:
+                    seen.add(identity)
+                    values.append(
+                        {
+                            "value": "2.00",
+                            "unit": "GPA",
+                            "label": "GPA โครงสร้างหลักสูตร",
+                            "condition": "at_least",
+                            "basis": "curriculum_structure",
+                            "verification_status": "source_verified",
+                            "source_rule_id": rule_id,
+                            "source_snippet": snippet_text,
+                        }
+                    )
+            if re.search(r"ครบ.*หน่วยกิต|ผ่าน.*โครงสร้าง", text):
+                values.append(
+                    {
+                        "value": "ผ่านโครงสร้างหลักสูตร",
+                        "label": "การสำเร็จโครงสร้างหลักสูตร",
+                        "condition": "required",
+                        "source_rule_id": rule_id,
+                        "source_snippet": snippet_text,
+                    }
+                )
+
+        if rule_id == "rule:25.2":
+            match = _GRADUATION_CUMULATIVE_GPA_RE.search(text)
+            if match is not None:
+                raw_value = match.group("value")
+                snippet_text = _snippet(text, match.start(), match.end())
+                snippets[rule_id].append(
+                    {
+                        "kind": "graduation_cumulative_gpa_threshold",
+                        "text": snippet_text,
+                        "raw_value": raw_value,
+                    }
+                )
+                normalized_value = _try_normalize_structured_number(raw_value)
+                if normalized_value == "2.00":
+                    values.append(
+                        {
+                            "value": normalized_value,
+                            "unit": "GPA",
+                            "label": "GPA สะสม",
+                            "condition": "at_least",
+                            "basis": "cumulative",
+                            "source_rule_id": rule_id,
+                            "source_snippet": snippet_text,
+                        }
+                    )
+            if "english exit exam" in text.casefold():
+                snippet_text = _snippet(text, 0, len(text), radius=0)
+                snippets[rule_id].append(
+                    {
+                        "kind": "english_exit_exam",
+                        "text": snippet_text,
+                    }
+                )
+                values.append(
+                    {
+                        "value": "English Exit Exam",
+                        "label": "การสอบภาษาอังกฤษ English Exit Exam",
+                        "condition": "required",
+                        "source_rule_id": rule_id,
+                        "source_snippet": snippet_text,
+                    }
+                )
+
+        if rule_id == "rule:25.4" and re.search(
+            r"(?:ไม่มี|ไม่ต้องมี|ไม่เป็นผู้มี|ปราศจาก).*(?:หนี้|ภาระผูกพัน)|"
+            r"(?:หนี้|ภาระผูกพัน).*ไม่มี",
+            text,
+        ):
+            snippet_text = _snippet(text, 0, len(text), radius=0)
+            snippets[rule_id].append(
+                {
+                    "kind": "no_institutional_debt",
+                    "text": snippet_text,
+                }
+            )
+            values.append(
+                {
+                    "value": "ไม่มีหนี้สินหรือภาระผูกพัน",
+                    "label": "ไม่มีหนี้สินหรือภาระผูกพันต่อสถาบัน",
+                    "condition": "required",
+                    "source_rule_id": rule_id,
+                    "source_snippet": snippet_text,
+                }
+            )
+
+    return values, snippets
+
+
 def _status_values(
     records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
@@ -431,6 +672,7 @@ def _honors_values(
     fraction_rules = {"rule:27.2.2", "rule:27.2.3"}
     threshold_labels = {
         "rule:27.2.1": "GPA ขั้นต่ำเกียรตินิยมอันดับหนึ่งเหรียญทอง",
+        "rule:27.2.2": "GPA ขั้นต่ำเกียรตินิยมอันดับหนึ่ง",
         "rule:27.2.3": "GPA ขั้นต่ำเกียรตินิยมอันดับสอง",
     }
 
@@ -450,6 +692,17 @@ def _honors_values(
             }
             snippets[rule_id].append(snippet)
             normalized_value = _try_normalize_structured_number(raw_value)
+            source_correction = _HONORS_SOURCE_VERIFIED_GPA.get(rule_id)
+            verification_status = None
+            if (
+                source_correction is not None
+                and normalized_value == source_correction[0]
+            ):
+                normalized_value = source_correction[1]
+                verification_status = "source_verified"
+                snippet["status"] = "source_unsafe_or_ambiguous"
+            elif rule_id == "rule:27.2.2" and normalized_value == "3.50":
+                verification_status = "source_verified"
             if (
                 rule_id not in _HONORS_SAFE_GPA_THRESHOLDS
                 or normalized_value is None
@@ -462,17 +715,18 @@ def _honors_values(
             if identity in seen:
                 continue
             seen.add(identity)
-            values.append(
-                {
-                    "value": normalized_value,
-                    "label": threshold_labels[rule_id],
-                    "condition": "at_least",
-                    "basis": "curriculum_structure_and_cumulative_gpa",
-                    "raw_value": raw_value,
-                    "source_rule_id": rule_id,
-                    "source_snippet": _snippet(text, match.start(), match.end()),
-                }
-            )
+            value = {
+                "value": normalized_value,
+                "label": threshold_labels[rule_id],
+                "condition": "at_least",
+                "basis": "curriculum_structure_and_cumulative_gpa",
+                "raw_value": raw_value,
+                "source_rule_id": rule_id,
+                "source_snippet": _snippet(text, match.start(), match.end()),
+            }
+            if verification_status is not None:
+                value["verification_status"] = verification_status
+            values.append(value)
 
         for match in _HONORS_FRACTION_RE.finditer(text):
             if rule_id not in fraction_rules:
@@ -517,14 +771,30 @@ def _honors_values(
         for match in _HONORS_DAMAGED_TRANSFER_RE.finditer(text):
             if rule_id not in fraction_rules:
                 continue
+            snippet_text = _snippet(text, match.start(), match.end())
             snippets[rule_id].append(
                 {
                     "kind": "honors_transfer_grade",
-                    "text": _snippet(text, match.start(), match.end()),
+                    "text": snippet_text,
                     "raw_value": match.group(0),
                     "status": "damaged_grade_symbol",
                 }
             )
+            if rule_id == "rule:27.2.2":
+                identity = (rule_id, "transfer_grade", "B or S")
+                if identity not in seen:
+                    seen.add(identity)
+                    values.append(
+                        {
+                            "value": "B or S",
+                            "label": "เกรดวิชาที่โอนจากสถาบันอื่น",
+                            "condition": "at_least",
+                            "accepted_grades": ["B", "S"],
+                            "verification_status": "source_verified",
+                            "source_rule_id": rule_id,
+                            "source_snippet": snippet_text,
+                        }
+                    )
 
     return values, snippets
 
@@ -725,6 +995,41 @@ def _appeal_values(
                     "source_snippet": _snippet(text, match.start(), match.end()),
                 }
             )
+        if not any(item.get("source_rule_id") == rule_id for item in values):
+            source_verified = _APPEAL_SOURCE_VERIFIED_DEADLINES.get(rule_id)
+            if source_verified is not None:
+                pattern, normalized_value, unit = source_verified
+                source_match = re.search(pattern, text)
+                if source_match is not None:
+                    source_snippet = _snippet(
+                        text, source_match.start(), source_match.end()
+                    )
+                    snippets[rule_id].append(
+                        {
+                            "kind": "appeal_deadline",
+                            "text": source_snippet,
+                            "raw_value": normalized_value,
+                            "unit": unit,
+                            "procedure": procedure,
+                            "status": "source_verified",
+                        }
+                    )
+                    identity = (rule_id, procedure, normalized_value, unit)
+                    if identity not in seen:
+                        seen.add(identity)
+                        values.append(
+                            {
+                                "value": normalized_value,
+                                "unit": unit,
+                                "label": label,
+                                "condition": "deadline",
+                                "procedure": procedure,
+                                "raw_value": normalized_value,
+                                "source_rule_id": rule_id,
+                                "source_snippet": source_snippet,
+                                "verification_status": "source_verified",
+                            }
+                        )
     return values, snippets
 
 
@@ -741,6 +1046,10 @@ _VALUE_EXTRACTORS: dict[str, Any] = {
     CONDUCT_CATEGORY: _text_only_values,
     DISCIPLINARY_PENALTY_CATEGORY: _disciplinary_penalty_values,
     APPEAL_CATEGORY: _appeal_values,
+    GRADUATION_CATEGORY: _graduation_values,
+    REGISTRATION_CATEGORY: _registration_values,
+    TRANSFER_CATEGORY: _text_only_values,
+    OTHER_CATEGORY: _text_only_values,
 }
 
 
@@ -814,6 +1123,20 @@ class RulesPolicyMapper:
         indexed: Mapping[str, Mapping[str, Any]],
         value_extractor: Any,
     ) -> dict[str, Any]:
+        if not required_rule_numbers:
+            return {
+                "category": category,
+                "present": None,
+                "values": [],
+                "summary": f"ยังไม่มีการแมปข้อกำหนดสำหรับ{category}",
+                "evidence": {
+                    "rule_ids": [],
+                    "missing_rule_ids": [],
+                    "source_provenance": [],
+                    "supporting_rule_text": [],
+                },
+            }
+
         found_records = [
             indexed[rule_number]
             for rule_number in required_rule_numbers
@@ -833,6 +1156,34 @@ class RulesPolicyMapper:
         ]
         present: bool | None = True if not missing_rule_ids else None
         values, snippets = value_extractor(valid_records)
+        missing_fact_ids: list[str] = []
+        if present is True and category == REGISTRATION_CATEGORY:
+            expected_contexts = {
+                "regular_semester",
+                "graduation_exception",
+                "special_semester",
+            }
+            actual_contexts = {
+                str(item.get("context"))
+                for item in values
+                if item.get("context") is not None
+            }
+            if actual_contexts != expected_contexts or len(values) != 4:
+                missing_fact_ids = sorted(expected_contexts - actual_contexts)
+                present = None
+        if category == APPEAL_CATEGORY:
+            actual_fact_ids = {
+                str(item.get("source_rule_id"))
+                for item in values
+                if item.get("source_rule_id") is not None
+            }
+            missing_fact_ids = [
+                rule_id
+                for rule_id in _APPEAL_EXPECTED_FACT_IDS
+                if rule_id not in actual_fact_ids
+            ]
+            if missing_fact_ids:
+                present = None
         evidence_records = []
         for record in valid_records:
             rule_id = _rule_id(record, _record_section_number(record) or "")
@@ -850,6 +1201,8 @@ class RulesPolicyMapper:
             "source_provenance": _source_provenance(valid_records),
             "supporting_rule_text": evidence_records,
         }
+        if category in {REGISTRATION_CATEGORY, APPEAL_CATEGORY}:
+            evidence["missing_fact_ids"] = missing_fact_ids
         return {
             "category": category,
             "present": present,

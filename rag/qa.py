@@ -41,7 +41,20 @@ from rag.grounded_answer import (
     compose_grounded_answer,
 )
 from rag.intent_compiler import compile_intent_to_query_spec
-from rag.intent_interpreter import interpret_question_intent
+from rag.intent_interpreter import (
+    IntentValidationError,
+    interpret_question_intent,
+)
+from rag.intent_gate import (
+    CountShadowResult,
+    IntentShadowResult,
+    _count_candidate as _is_count_shadow_candidate,
+    _placement_candidate as _placement_shadow_candidate,
+    authoritative_scope as _intent_authoritative_scope,
+    count_shadow_comparison as _count_shadow_comparison,
+    run_count_shadow,
+    run_placement_shadow,
+)
 from rag.judgement import (
     JudgementEvidence,
     evaluate_preference,
@@ -234,6 +247,46 @@ def _is_placement_fallback_candidate(
     )
 
 
+def _run_placement_shadow(
+    question: str,
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+    resolution: ResolutionOutcome,
+    context: QueryContext | None,
+    intent_model_callable: Callable[[str], str] | None,
+) -> IntentShadowResult:
+    return run_placement_shadow(
+        question,
+        spec,
+        completeness,
+        resolution,
+        context,
+        intent_model_callable,
+        interpret_callable=interpret_question_intent,
+        compile_callable=compile_intent_to_query_spec,
+    )
+
+
+def _run_count_shadow(
+    question: str,
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+    resolution: ResolutionOutcome,
+    context: QueryContext | None,
+    intent_model_callable: Callable[[str], str] | None,
+) -> CountShadowResult:
+    return run_count_shadow(
+        question,
+        spec,
+        completeness,
+        resolution,
+        context,
+        intent_model_callable,
+        interpret_callable=interpret_question_intent,
+        compile_callable=compile_intent_to_query_spec,
+    )
+
+
 def _is_course_credit_fallback_candidate(
     spec: Any,
     completeness: StructuredParseCompleteness,
@@ -310,25 +363,6 @@ def _should_use_intent_interpreter(
         or getattr(spec, "semesters", ())
         or getattr(spec, "judgement", None) in {"workload", "preference"}
     )
-
-
-def _intent_authoritative_scope(
-    spec: Any,
-    context: QueryContext | None = None,
-) -> dict[str, Any]:
-    """Return only deterministic scope values permitted for intent validation."""
-    plans = list(getattr(spec, "plans", ()))
-    context_plan = getattr(context, "plan", None)
-    if context_plan and context_plan not in plans:
-        plans.append(context_plan)
-    return {
-        "authoritative_program": getattr(spec, "program", None)
-        or getattr(context, "program", None),
-        "authoritative_plans": tuple(plans),
-        "authoritative_years": tuple(getattr(spec, "years", ())),
-        "authoritative_semesters": tuple(getattr(spec, "semesters", ())),
-        "allowed_course_codes": tuple(getattr(spec, "course_codes", ())),
-    }
 
 
 def _intent_failure_result(question: str) -> dict[str, Any]:
@@ -2296,6 +2330,7 @@ def ask(
     context: QueryContext | None = None,
     answer_model_callable: Callable[[str], str] | None = None,
     intent_model_callable: Callable[[str], str] | None = None,
+    shadow_intent: bool = False,
 ) -> dict[str, Any]:
     """Run the typed evidence pipeline while retaining the legacy signature."""
     if not isinstance(question, str) or not question.strip():
@@ -2352,6 +2387,153 @@ def ask(
         resolution,
         context,
     )
+    intent_shadow = (
+        _run_placement_shadow(
+            question,
+            spec,
+            completeness,
+            resolution,
+            context,
+            intent_model_callable,
+        )
+        if shadow_intent
+        else None
+    )
+    count_shadow = (
+        _run_count_shadow(
+            question,
+            spec,
+            completeness,
+            resolution,
+            context,
+            intent_model_callable,
+        )
+        if shadow_intent
+        else None
+    )
+
+    if (
+        shadow_intent
+        and completeness.classification == "not_eligible"
+        and tuple(getattr(spec, "operations", ())) == ()
+        and getattr(spec, "topic", None) is None
+        and len(tuple(getattr(spec, "course_codes", ()))) == 1
+    ):
+        # In shadow mode the legacy interpreter branch is intentionally
+        # disabled.  Keep unsupported exact-course wording fail-closed rather
+        # than allowing an empty operation set into planning.
+        return _intent_failure_result(question)
+
+    shadow_executed = False
+    if (
+        shadow_intent
+        and intent_shadow is not None
+        and intent_shadow.eligible
+        and intent_shadow.attempted
+        and intent_shadow.status == "validated"
+        and intent_shadow.comparison == "compatible_extension"
+        and intent_shadow.compiled_spec is not None
+    ):
+        compiled_spec = intent_shadow.compiled_spec
+        try:
+            compiled_resolution = resolve_query_spec(
+                compiled_spec,
+                db_path,
+                context=context,
+            )
+            compiled_completeness = _classify_structured_parse_completeness(
+                compiled_spec,
+                compiled_resolution,
+                context,
+            )
+        except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+            compiled_resolution = None
+            compiled_completeness = None
+
+        authoritative_program = completeness.program or resolution.resolved_program
+        same_authoritative_code = tuple(
+            getattr(compiled_spec, "course_codes", ())
+        ) == tuple(completeness.course_codes)
+        safe_compiled_placement = bool(
+            compiled_resolution is not None
+            and compiled_resolution.action == "answer"
+            and isinstance(authoritative_program, str)
+            and authoritative_program.strip()
+            and tuple(getattr(compiled_spec, "operations", ()))
+            == ("placement",)
+            and len(tuple(getattr(compiled_spec, "course_codes", ()))) == 1
+            and same_authoritative_code
+            and compiled_completeness is not None
+            and compiled_completeness.classification == "complete"
+            and not compiled_completeness.missing_filters
+        )
+        if safe_compiled_placement:
+            spec = compiled_spec
+            resolution = compiled_resolution
+            completeness = compiled_completeness
+            shadow_executed = True
+            intent_shadow = replace(intent_shadow, executed=True)
+
+    if (
+        shadow_intent
+        and not shadow_executed
+        and count_shadow is not None
+        and count_shadow.eligible
+        and count_shadow.attempted
+        and count_shadow.status == "validated"
+        and count_shadow.comparison == "compatible_extension"
+        and count_shadow.compiled_spec is not None
+    ):
+        compiled_spec = count_shadow.compiled_spec
+        try:
+            compiled_resolution = resolve_query_spec(
+                compiled_spec,
+                db_path,
+                context=context,
+            )
+            compiled_completeness = _classify_structured_parse_completeness(
+                compiled_spec,
+                compiled_resolution,
+                context,
+            )
+        except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+            compiled_resolution = None
+            compiled_completeness = None
+
+        authoritative_program = completeness.program or resolution.resolved_program
+        safe_compiled_count = bool(
+            compiled_resolution is not None
+            and compiled_resolution.action == "answer"
+            and isinstance(authoritative_program, str)
+            and authoritative_program.strip()
+            and tuple(getattr(compiled_spec, "operations", ())) == ("count",)
+            and not getattr(compiled_spec, "course_codes", ())
+            and getattr(compiled_spec, "course_name", None) is None
+            and getattr(compiled_spec, "topic", None) is None
+            and getattr(compiled_spec, "judgement", None) in {None, "none"}
+            and _count_shadow_comparison(spec, compiled_spec, context)
+            == "compatible_extension"
+            and compiled_completeness is not None
+            and compiled_completeness.classification == "complete"
+            and not compiled_completeness.missing_filters
+        )
+        if safe_compiled_count:
+            spec = compiled_spec
+            resolution = compiled_resolution
+            completeness = compiled_completeness
+            shadow_executed = True
+            count_shadow = replace(count_shadow, executed=True)
+
+    def finish(result: dict[str, Any]) -> dict[str, Any]:
+        diagnostics = {}
+        if intent_shadow is not None:
+            diagnostics["intent_shadow"] = intent_shadow
+        if count_shadow is not None:
+            diagnostics["count_shadow"] = count_shadow
+        if not diagnostics:
+            return result
+        return {**result, **diagnostics}
+
     filtered_credit_candidate = _is_filtered_sum_credits_fallback_candidate(
         spec,
         completeness,
@@ -2414,23 +2596,23 @@ def ask(
                         grounded = compose_grounded_answer(
                             composed_claims=claims,
                         )
-                        return {
+                        return finish({
                             "route": None,
                             "result": render_grounded_answer(
                                 grounded,
                                 answer_model_callable=None,
                                 question=question,
                             ),
-                        }
+                        })
         grounded = compose_grounded_answer(composed_claims=(claim,))
-        return {
+        return finish({
             "route": None,
             "result": render_grounded_answer(
                 grounded,
                 answer_model_callable=None,
                 question=question,
             ),
-        }
+        })
     if (
         completeness.classification in {"partial", "unrecognized_structured"}
         and callable(structured_model_callable)
@@ -2456,14 +2638,14 @@ def ask(
                 operation=fallback_operation,
             )
             grounded = compose_grounded_answer(composed_claims=(claim,))
-            return {
+            return finish({
                 "route": None,
                 "result": render_grounded_answer(
                     grounded,
                     answer_model_callable=None,
                     question=question,
                 ),
-            }
+            })
 
     if (
         completeness.classification in {"partial", "unrecognized_structured"}
@@ -2493,14 +2675,14 @@ def ask(
                 fallback_scope,
             )
             grounded = compose_grounded_answer(composed_claims=(claim,))
-            return {
+            return finish({
                 "route": None,
                 "result": render_grounded_answer(
                     grounded,
                     answer_model_callable=None,
                     question=question,
                 ),
-            }
+            })
 
     if (
         completeness.classification in {"partial", "unrecognized_structured"}
@@ -2530,17 +2712,17 @@ def ask(
                 fallback_scope,
             )
             grounded = compose_grounded_answer(composed_claims=(claim,))
-            return {
+            return finish({
                 "route": None,
                 "result": render_grounded_answer(
                     grounded,
                     answer_model_callable=None,
                     question=question,
                 ),
-            }
+            })
 
-    intent_interpreted = False
-    if _should_use_intent_interpreter(
+    intent_interpreted = shadow_executed
+    if not shadow_intent and _should_use_intent_interpreter(
         spec,
         completeness,
         resolution,
@@ -2583,7 +2765,7 @@ def ask(
                 "no_data",
                 "unsupported",
             }:
-                return {"route": None, "result": _blocked_result(compiled_resolution)}
+                return finish({"route": None, "result": _blocked_result(compiled_resolution)})
             return _intent_failure_result(question)
 
         compiled_completeness = _classify_structured_parse_completeness(
@@ -2608,14 +2790,14 @@ def ask(
         grounded = compose_grounded_answer(
             resolution_status="insufficient_evidence",
         )
-        return {
+        return finish({
             "route": None,
             "result": render_grounded_answer(
                 grounded,
                 answer_model_callable=None,
                 question=question,
             ),
-        }
+        })
 
     try:
         plan = plan_evidence(spec, resolution)
@@ -2624,10 +2806,10 @@ def ask(
         grounded = compose_grounded_answer(
             resolution_status="insufficient_evidence",
         )
-        return {
+        return finish({
             "route": None,
             "result": render_grounded_answer(grounded),
-        }
+        })
 
     similarity_evidence: SimilarityEvidence | None = None
     similarity_request_ids: tuple[str, str] | None = None
@@ -2664,7 +2846,7 @@ def ask(
     preference_advisory = (
         intent_interpreted and getattr(spec, "judgement", None) == "preference"
     )
-    return {
+    return finish({
         "route": None,
         "result": render_grounded_answer(
             grounded,
@@ -2676,7 +2858,7 @@ def ask(
             question=question,
             preference_advisory=preference_advisory,
         ),
-    }
+    })
 
 
 __all__ = ["ask"]

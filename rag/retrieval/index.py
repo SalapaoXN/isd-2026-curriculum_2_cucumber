@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from rag.structured.loader import load_jsons_to_sqlite
+from rag.structured.supplemental_loader import load_supplemental_jsons_to_sqlite
 
 from .chunks import build_chunks
 from .embedder import EMBEDDING_DIMENSION, MODEL_NAME, embed_texts
@@ -46,6 +47,11 @@ _RELATIONAL_TABLES = {
     "plan_placements",
     "prerequisites",
     "provenance",
+    "regulation_rules",
+    "policy_facts",
+    "policy_fact_provenance",
+    "program_requirements",
+    "program_requirement_provenance",
 }
 _RELATIONAL_VIEWS = {
     "v_plan_courses",
@@ -624,6 +630,7 @@ def ensure_index(
     embed_texts_callable: Callable[[Iterable[str]], Any] | None = None,
     embedding_model_identity: str | None = None,
     vector_dimension: int | None = None,
+    supplemental_json_paths: Mapping[str, str | Path] | None = None,
 ) -> Path:
     """Build or reuse the unified curriculum database for source JSON files."""
     source_paths = _source_paths(input_json_paths)
@@ -632,8 +639,15 @@ def ensure_index(
     model_identity, dimension = _effective_settings(
         embedding_model_identity, vector_dimension
     )
+    supplemental_paths: list[Path] = []
+    if supplemental_json_paths is not None:
+        required_keys = {"institution_policy", "program_requirements"}
+        if set(supplemental_json_paths) != required_keys:
+            raise ValueError("supplemental_json_paths must name both authority files")
+        supplemental_paths = _source_paths(supplemental_json_paths.values())
+    all_source_paths = source_paths + supplemental_paths
     source_rows = []
-    for path in source_paths:
+    for path in all_source_paths:
         fingerprint = _source_fingerprint(path)
         source_rows.append((_source_identity(path, fingerprint), path.name, fingerprint))
 
@@ -642,6 +656,12 @@ def ensure_index(
 
     _remove_database(database_path)
     catalog_ids = load_jsons_to_sqlite(source_paths, database_path)
+    if supplemental_paths:
+        load_supplemental_jsons_to_sqlite(
+            supplemental_json_paths["institution_policy"],
+            supplemental_json_paths["program_requirements"],
+            database_path,
+        )
     source_by_catalog_id = {
         catalog_id: (
             source_path,
@@ -649,7 +669,7 @@ def ensure_index(
             source_row[0],
         )
         for source_path, catalog_id, source_row in zip(
-            source_paths, catalog_ids, source_rows, strict=True
+            source_paths, catalog_ids, source_rows[: len(source_paths)], strict=True
         )
     }
     all_chunks = _enrich_chunks(

@@ -11,6 +11,8 @@ class AskRequest(BaseModel):
 
 class AskResponse(BaseModel):
     question: str
-    sql: str
-    rows: list[dict[str, Any]]
     answer: str
+    status: str
+    action: str | None = None
+    route: str | None = None
+    provenance: list[dict[str, Any]] = Field(default_factory=list)

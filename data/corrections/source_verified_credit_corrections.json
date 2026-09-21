@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "corrections": [
+    {
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016454",
+      "credits": "3(3-0-6)",
+      "source_verified": true,
+      "source_filename": "it_page_354.png",
+      "source_page": 354,
+      "document_category": "description"
+    }
+  ]
+}
