@@ -48,3 +48,48 @@ def health() -> dict:
         "database": str(db_path),
         "database_ready": db_path.is_file(),
     }
+
+@app.post("/api/ask", response_model=AskResponse)
+def ask(request: AskRequest) -> dict:
+    db_path = Path(DEFAULT_CURRICULUM_DB_PATH)
+
+    if not db_path.is_file():
+        raise HTTPException(
+            status_code=503,
+            detail="ไม่พบฐานข้อมูล CUCUMBER",
+        )
+
+    try:
+        with capture_sql_queries() as executed_sql:
+            response = answer_question_once(
+                db_path,
+                request.question,
+                structured_model_callable=provider,
+                top_k=10,
+                answer_model_callable=provider,
+                intent_model_callable=provider,
+            )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc),
+        ) from exc
+
+    result = response.get("result")
+
+    if isinstance(result, GroundedAnswerResult):
+        answer = result.final_answer
+    else:
+        answer = response.get("final_answer", "")
+
+    sql_text = "\n\n".join(
+        f"-- Query {index}\n{statement}"
+        for index, statement in enumerate(executed_sql, start=1)
+    )
+    
+    return {
+        "question": request.question,
+        "answer": answer,
+        "rows": [],
+        "sql": sql_text,
+    }
