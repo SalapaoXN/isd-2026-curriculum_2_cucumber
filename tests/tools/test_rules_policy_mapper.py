@@ -7,14 +7,18 @@ from src.pipeline.tools.merge.policy import (
     CONDUCT_CATEGORY,
     DISCIPLINARY_PENALTY_CATEGORY,
     EXAM_CATEGORY,
+    GRADUATION_CATEGORY,
     GRADING_CATEGORY,
     HONORS_CATEGORY,
     LEAVE_CATEGORY,
     PROBATION_CATEGORY,
+    OTHER_CATEGORY,
+    REGISTRATION_CATEGORY,
     REENTRY_CATEGORY,
     RESIGNATION_CATEGORY,
     RulesPolicyMapper,
     STATUS_CATEGORY,
+    TRANSFER_CATEGORY,
 )
 
 
@@ -182,12 +186,130 @@ class RulesPolicyMapperTests(unittest.TestCase):
         self.assertEqual(result["source"], "Academic Rules")
         self.assertEqual(category(result, REENTRY_CATEGORY)["present"], True)
 
-    def test_mapper_emits_all_twelve_categories(self):
+    def test_mapper_emits_all_sixteen_categories_in_legacy_then_appended_order(self):
         result = RulesPolicyMapper().map_data({"rules": []})
 
         self.assertEqual(
             [item["category"] for item in result["categories"]],
             list(CATEGORY_RULES),
+        )
+        self.assertEqual(len(result["categories"]), 16)
+        self.assertEqual(
+            [item["category"] for item in result["categories"]][-4:],
+            [
+                GRADUATION_CATEGORY,
+                REGISTRATION_CATEGORY,
+                TRANSFER_CATEGORY,
+                OTHER_CATEGORY,
+            ],
+        )
+
+    def test_other_category_is_explicitly_unknown(self):
+        result = RulesPolicyMapper().map_data({"rules": []})
+
+        other = category(result, OTHER_CATEGORY)
+        self.assertIsNone(other["present"])
+        self.assertEqual(other["values"], [])
+        self.assertEqual(other["evidence"]["rule_ids"], [])
+
+    def test_registration_emits_contextual_credit_limits(self):
+        result = RulesPolicyMapper().map_data(
+            {
+                "rules": mapped_category_rules(
+                    REGISTRATION_CATEGORY,
+                    {
+                        "11": (
+                            "ภาคการศึกษาปกติ นักศึกษาต้องลงทะเบียนไม่น้อยกว่า ๙ หน่วยกิต "
+                            "และไม่เกิน ๒๒ ฺหน่วยกิต ยกเว้นนักศึกษาชั้นปีสุดท้าย "
+                            "ลงทะเบียนได้ไม่เกิน ๒๗ หน่วยกิต "
+                            "ภาคการศึกษาพิเศษ ลงทะเบียนได้ไม่เกิน ๙ หน่วยกิต"
+                        )
+                    },
+                )
+            }
+        )
+
+        registration = category(result, REGISTRATION_CATEGORY)
+        self.assertTrue(registration["present"])
+        self.assertEqual(
+            {
+                (
+                    item["context"],
+                    item["value"],
+                    item["condition"],
+                )
+                for item in registration["values"]
+            },
+            {
+                ("regular_semester", "9", "at_least"),
+                ("regular_semester", "22", "at_most"),
+                ("graduation_exception", "27", "at_most"),
+                ("special_semester", "9", "at_most"),
+            },
+        )
+        self.assertEqual(
+            {item["source_rule_id"] for item in registration["values"]},
+            {"rule:11"},
+        )
+
+    def test_graduation_uses_source_verified_rule_251_and_preserves_conditions(self):
+        result = RulesPolicyMapper().map_data(
+            {
+                "rules": mapped_category_rules(
+                    GRADUATION_CATEGORY,
+                    {
+                        "25.1": (
+                            "เรียนครบหน่วยกิตและผ่านรายวิชาตามโครงสร้างของหลักสูตร "
+                            "โดยต้องได้ค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า"
+                        ),
+                        "25.2": (
+            "ได้ค่าระดับคะแนนเฉลี่ยสะสมไมต่ำกว่า ๒.OO\n"
+                            "ภาษาอังกฤษ (ENGLISH EXIT EXAM) ตามประกาศสถาบัน"
+                        ),
+                        "25.4": "ต้องไม่เป็นผู้มีหนี้สินหรือภาระผูกพันกับสถาบัน",
+                    },
+                )
+            }
+        )
+
+        graduation = category(result, GRADUATION_CATEGORY)
+        self.assertTrue(graduation["present"])
+        facts = graduation["values"]
+        self.assertIn(
+            ("rule:25.1", "2.00", "at_least"),
+            {
+                (item["source_rule_id"], item["value"], item["condition"])
+                for item in facts
+                if item.get("unit") == "GPA"
+            },
+        )
+        rule_251_gpa = next(
+            item
+            for item in facts
+            if item["source_rule_id"] == "rule:25.1" and item.get("unit") == "GPA"
+        )
+        self.assertEqual(rule_251_gpa["verification_status"], "source_verified")
+        self.assertIn(
+            ("rule:25.2", "2.00"),
+            {
+                (item["source_rule_id"], item["value"])
+                for item in facts
+                if item.get("unit") == "GPA"
+            },
+        )
+        self.assertTrue(
+            any(
+                item["source_rule_id"] == "rule:25.2"
+                and item["value"] == "English Exit Exam"
+                for item in facts
+            )
+        )
+        self.assertTrue(
+            any(
+                item["source_rule_id"] == "rule:25.4"
+                and item["condition"] == "required"
+                for item in facts
+            )
         )
 
     def test_honors_category_extracts_safe_values_and_preserves_damaged_conditions(self):
@@ -222,12 +344,23 @@ class RulesPolicyMapperTests(unittest.TestCase):
             },
             {
                 ("rule:27.2.1", "3.75", "at_least"),
+                ("rule:27.2.2", "3.50", "at_least"),
+                ("rule:27.2.2", "B or S", "at_least"),
                 ("rule:27.2.2", "2/3", "at_least"),
                 ("rule:27.2.3", "3.25", "at_least"),
                 ("rule:27.2.3", "2/3", "at_least"),
             },
         )
         self.assertNotIn("3.51", {item["value"] for item in honors["values"]})
+        self.assertNotIn("8", {item["value"] for item in honors["values"]})
+        self.assertTrue(
+            any(
+                item["source_rule_id"] == "rule:27.2.2"
+                and item["value"] == "B or S"
+                and item["verification_status"] == "source_verified"
+                for item in honors["values"]
+            )
+        )
         self.assertEqual(
             honors["evidence"]["rule_ids"],
             [f"rule:{section}" for section in CATEGORY_RULES[HONORS_CATEGORY]],
@@ -293,6 +426,45 @@ class RulesPolicyMapperTests(unittest.TestCase):
             if item["rule_id"] == "rule:27.1.1"
         )
         self.assertEqual(rule_2711["snippets"], [])
+
+    def test_transfer_requires_both_rules_and_preserves_text_only_evidence(self):
+        complete = RulesPolicyMapper().map_data(
+            {"rules": mapped_category_rules(TRANSFER_CATEGORY)}
+        )
+        transfer = category(complete, TRANSFER_CATEGORY)
+        self.assertTrue(transfer["present"])
+        self.assertEqual(transfer["values"], [])
+        self.assertEqual(
+            transfer["evidence"]["rule_ids"],
+            ["rule:28", "rule:29"],
+        )
+        self.assertTrue(transfer["evidence"]["source_provenance"])
+        self.assertEqual(
+            [
+                item["rule_id"]
+                for item in transfer["evidence"]["supporting_rule_text"]
+            ],
+            ["rule:28", "rule:29"],
+        )
+
+        incomplete = RulesPolicyMapper().map_data(
+            {"rules": [rule("28", "เกณฑ์การเทียบโอน", 8)]}
+        )
+        incomplete_transfer = category(incomplete, TRANSFER_CATEGORY)
+        self.assertIsNone(incomplete_transfer["present"])
+        self.assertEqual(incomplete_transfer["evidence"]["missing_rule_ids"], ["rule:29"])
+
+    def test_rule_3311_reference_text_is_not_rewritten(self):
+        text = "ภาคทัณฑ์ตามข้อ ๒๑"
+        result = RulesPolicyMapper().map_data(
+            {"rules": [rule("22", "ภาคทัณฑ์", 7), rule("33.11", text, 9)]}
+        )
+
+        supporting = category(result, PROBATION_CATEGORY)["evidence"]["supporting_rule_text"]
+        self.assertEqual(
+            next(item["rule_text"] for item in supporting if item["rule_id"] == "rule:33.11"),
+            text,
+        )
 
     def test_status_category_extracts_complete_threshold(self):
         result = RulesPolicyMapper().map_data(
@@ -432,10 +604,10 @@ class RulesPolicyMapperTests(unittest.TestCase):
                 "rules": mapped_category_rules(
                     APPEAL_CATEGORY,
                     {
-                        "43": "ผู้ถูกลงโทษตามข้อ ๓๘ มีสิทธิอุทธรณ์ ให้อุทธรณ์ภายใน ๓O วัน",
+                        "43": "ผู้ถูกลงโทษตามข้อ ๓๘ มีสิทธิอุทธรณ์ ให้อุทธรณ์ภายใน วัน",
                         "48": "ไม่เสนอชื่อให้ได้รับปริญญาและมีสิทธิอุทธรณ์ ภายใน ๑๕ วันทำการ",
                         "49": "ส่งคำชี้แจงเกี่ยวกับการอุทธรณ์มายังสถาบันภายใน ๗ วันทำการ",
-                        "51.2": "การยื่นคำขอพิจารณาใหม่ต้องกระทำภายใน ๓O วัน",
+                        "51.2": "การยื่นคำขอพิจารณาใหม่ต้องกระทำภายใน ๓O นับตั้งแต่ทราบเหตุ",
                     },
                 )
             }
@@ -460,6 +632,68 @@ class RulesPolicyMapperTests(unittest.TestCase):
                 "institution_response": "ส่งคำชี้แจงของส่วนงานวิชาการ",
                 "reconsideration_request": "ยื่นคำขอพิจารณาอุทธรณ์ใหม่",
             },
+        )
+        self.assertEqual(appeal["evidence"]["missing_fact_ids"], [])
+        self.assertEqual(
+            {
+                item["source_rule_id"]
+                for item in appeal["values"]
+                if item["source_rule_id"] in {"rule:43", "rule:51.2"}
+            },
+            {"rule:43", "rule:51.2"},
+        )
+        self.assertTrue(
+            all(
+                item.get("verification_status") == "source_verified"
+                for item in appeal["values"]
+                if item["source_rule_id"] in {"rule:43", "rule:51.2"}
+            )
+        )
+
+    def test_appeal_completeness_reports_missing_procedure_fact(self):
+        result = RulesPolicyMapper().map_data(
+            {
+                "rules": mapped_category_rules(
+                    APPEAL_CATEGORY,
+                    {
+                        "43": "ผู้ถูกลงโทษมีสิทธิอุทธรณ์ภายในวัน",
+                        "48": "ไม่เสนอชื่อให้ได้รับปริญญาและมีสิทธิอุทธรณ์ ภายใน ๑๕ วันทำการ",
+                        "49": "ส่งคำชี้แจงเกี่ยวกับการอุทธรณ์มายังสถาบันภายใน ๗ วันทำการ",
+                        "51.2": "การยื่นคำขอพิจารณาใหม่ต้องกระทำภายใน ๓O นับตั้งแต่ทราบเหตุ",
+                    },
+                )
+            }
+        )
+
+        appeal = category(result, APPEAL_CATEGORY)
+        self.assertIsNone(appeal["present"])
+        self.assertEqual(appeal["evidence"]["missing_fact_ids"], ["rule:43"])
+
+    def test_graduation_rule_251_gpa_requires_threshold_wording(self):
+        result = RulesPolicyMapper().map_data(
+            {
+                "rules": mapped_category_rules(
+                    GRADUATION_CATEGORY,
+                    {
+                        "25.1": "เรียนครบหน่วยกิตและผ่านรายวิชาตามโครงสร้างของหลักสูตร",
+                    },
+                )
+            }
+        )
+
+        graduation = category(result, GRADUATION_CATEGORY)
+        self.assertFalse(
+            any(
+                item.get("source_rule_id") == "rule:25.1" and item.get("unit") == "GPA"
+                for item in graduation["values"]
+            )
+        )
+        self.assertTrue(
+            any(
+                item.get("source_rule_id") == "rule:25.1"
+                and item.get("value") == "ผ่านโครงสร้างหลักสูตร"
+                for item in graduation["values"]
+            )
         )
 
 
