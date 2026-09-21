@@ -38,3 +38,13 @@ provider = make_gemini_callable()
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+@app.get("/api/health")
+def health() -> dict:
+    db_path = Path(DEFAULT_CURRICULUM_DB_PATH)
+
+    return {
+        "status": "ok" if db_path.is_file() else "degraded",
+        "database": str(db_path),
+        "database_ready": db_path.is_file(),
+    }
