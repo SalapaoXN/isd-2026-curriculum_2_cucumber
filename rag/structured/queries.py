@@ -6,6 +6,7 @@ import re
 import sqlite3
 from collections.abc import Iterable, Mapping
 from contextlib import closing, contextmanager
+from contextvars import ContextVar
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterator
@@ -17,6 +18,24 @@ _COURSE_CODE_RE = re.compile(r"[0-9]{8}")
 _COURSE_NAME_TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 _FLEXIBLE_YEAR_SEMESTER_PART = re.compile(r"\s*([1-5])\s*/\s*([1-2])\s*")
 _CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
+
+_SQL_TRACE: ContextVar[list[str] | None] = ContextVar(
+    "cucumber_sql_trace",
+    default=None,
+)
+
+
+@contextmanager
+def capture_sql_queries() -> Iterator[list[str]]:
+    """Capture SQLite statements executed by structured curriculum queries."""
+
+    statements: list[str] = []
+    token = _SQL_TRACE.set(statements)
+
+    try:
+        yield statements
+    finally:
+        _SQL_TRACE.reset(token)
 
 
 @contextmanager
@@ -35,6 +54,11 @@ def _open_database(database: Database) -> Iterator[sqlite3.Connection]:
         raise FileNotFoundError(database_path)
     with closing(sqlite3.connect(str(database_path))) as connection:
         connection.row_factory = sqlite3.Row
+        trace = _SQL_TRACE.get()
+        if trace is not None:
+            connection.set_trace_callback(
+                lambda statement: trace.append(statement.strip())
+            )
         yield connection
 
 
