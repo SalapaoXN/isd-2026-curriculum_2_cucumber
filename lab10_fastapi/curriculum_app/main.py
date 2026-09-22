@@ -8,7 +8,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from rag.grounded_answer import GroundedAnswerResult
-from rag.hybrid_demo import DEFAULT_CURRICULUM_DB_PATH, answer_question_once
+from rag.hybrid_demo import (
+    DEFAULT_CURRICULUM_DB_PATH,
+    answer_question_once,
+    parse_conversation_context,
+)
 from rag.providers.gemini import make_gemini_callable
 from .schemas import AskRequest, AskResponse
 
@@ -81,6 +85,11 @@ def ask(request: AskRequest) -> dict:
         )
 
     try:
+        parsed_context = parse_conversation_context(request.conversation_context)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=f"invalid conversation_context: {exc}") from exc
+
+    try:
         response = answer_question_once(
             db_path,
             request.question,
@@ -88,6 +97,7 @@ def ask(request: AskRequest) -> dict:
             top_k=10,
             answer_model_callable=_lazy_provider,
             intent_model_callable=_lazy_provider,
+            conversation_context=parsed_context,
         )
     except ProviderUnavailable as exc:
         raise HTTPException(
@@ -115,4 +125,5 @@ def ask(request: AskRequest) -> dict:
         "action": action,
         "route": response.get("route"),
         "provenance": provenance,
+        "next_context": response.get("next_context"),
     }

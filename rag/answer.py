@@ -1848,6 +1848,228 @@ def _polish_deterministic_answer(
     return polished
 
 
+def _value_field(value: Any, name: str, default: Any = None) -> Any:
+    if isinstance(value, Mapping):
+        return value.get(name, default)
+    return getattr(value, name, default)
+
+
+def _atomic_course_target(claim: GroundedClaim) -> Mapping[str, Any] | None:
+    scope = claim.effective_scope
+    targets = _value_field(scope, "course_targets", ()) if scope is not None else ()
+    if not isinstance(targets, (tuple, list)) or len(targets) != 1:
+        return None
+    target = targets[0]
+    if not isinstance(target, Mapping):
+        return None
+    code = target.get("course_code")
+    if not isinstance(code, str) or not re.fullmatch(r"\d{8}", code.strip()):
+        return None
+    return target
+
+
+def _atomic_scope_payload(claim: GroundedClaim) -> dict[str, Any]:
+    scope = claim.effective_scope
+    payload: dict[str, Any] = {}
+    for field in ("program", "plans", "years", "semesters", "category"):
+        value = _value_field(scope, field) if scope is not None else None
+        if value not in (None, (), [], ""):
+            payload[field] = list(value) if isinstance(value, tuple) else value
+    return payload
+
+
+def _bounded_count_payload(claim: GroundedClaim) -> dict[str, Any] | None:
+    scope = claim.effective_scope
+    if scope is None:
+        return None
+    program = _value_field(scope, "program")
+    if not isinstance(program, str) or not program.strip():
+        return None
+    if not any(
+        _value_field(scope, field)
+        for field in ("plans", "years", "semesters", "category")
+    ):
+        return None
+    if _value_field(scope, "group_by", ()):
+        return None
+    if isinstance(claim.value, bool) or not isinstance(claim.value, int) or claim.value < 0:
+        return None
+    return {
+        "scope": _atomic_scope_payload(claim),
+        "count": claim.value,
+    }
+
+
+def _atomic_synthesis_payload(claim: GroundedClaim) -> tuple[str, dict[str, Any]] | None:
+    if claim.status != "complete" or claim.kind != "deterministic_fact":
+        return None
+    if claim.operation == "count":
+        payload = _bounded_count_payload(claim)
+        return ("course_count", payload) if payload is not None else None
+    target = _atomic_course_target(claim)
+    if target is None:
+        return None
+    code = str(target["course_code"]).strip()
+    payload: dict[str, Any] = {
+        "scope": _atomic_scope_payload(claim),
+        "course": {"course_code": code},
+    }
+    if claim.operation == "sum_credits":
+        if isinstance(claim.value, bool) or not isinstance(claim.value, (int, float)):
+            return None
+        components = _value_field(claim.evidence, "components", ())
+        if not isinstance(components, (tuple, list)) or len(components) != 1:
+            return None
+        raw = _value_field(components[0], "credits_raw")
+        if not isinstance(raw, str) or not raw.strip():
+            return None
+        payload["credit"] = {
+            "value": claim.value,
+            "structure": raw.strip(),
+        }
+        return "course_credit", payload
+    if claim.operation == "existence" and isinstance(claim.value, bool):
+        payload["exists"] = claim.value
+        return "course_existence", payload
+    return None
+
+
+_ATOMIC_SYNTHESIS_INSTRUCTION = """You are a presentation-only writer for a grounded university QA answer.
+Rephrase ONLY the supplied canonical facts in natural language.
+Do not add facts, recommendations, difficulty judgments, explanations, requirements, or other course identities.
+Do not change the course code, scope, credit value, credit structure, or existence polarity.
+Return only the answer text."""
+
+
+def _atomic_synthesis_guard(
+    family: str,
+    generated: str,
+    deterministic: str,
+    payload: Mapping[str, Any],
+) -> bool:
+    if not isinstance(generated, str) or not generated.strip() or is_fallback_like(generated):
+        return False
+    text = generated.strip()
+    if not set(_critical_facts(deterministic)).issubset(_critical_facts(text)):
+        return False
+    lowered = text.casefold()
+    if any(
+        marker in lowered
+        for marker in ("recommend", "best", "difficulty", "แนะนำ", "ดีที่สุด", "ยาก", "ง่าย")
+    ):
+        return False
+    if family == "course_credit":
+        code = str(payload["course"]["course_code"])
+        if tuple(re.findall(r"(?<!\d)\d{8}(?!\d)", text)) != (code,):
+            return False
+        credit = payload.get("credit")
+        if not isinstance(credit, Mapping):
+            return False
+        structure = str(credit.get("structure"))
+        structures = tuple(re.findall(r"\b\d+\s*\([^\n)]*\)", text))
+        return (
+            str(credit.get("value")) in text
+            and structures == (structure,)
+        )
+    if family == "course_count":
+        count = payload.get("count")
+        scope = payload.get("scope")
+        if not isinstance(count, int) or not isinstance(scope, Mapping):
+            return False
+        numeric_tokens = tuple(re.findall(r"(?<!\d)\d+(?!\d)", text))
+        allowed_numbers = {str(count)}
+        for field in ("years", "semesters"):
+            values = scope.get(field, ())
+            if isinstance(values, (list, tuple)):
+                allowed_numbers.update(str(value) for value in values)
+        if any(token not in allowed_numbers for token in numeric_tokens):
+            return False
+        lowered_scope = text.casefold()
+        if any(
+            marker in lowered_scope
+            for marker in ("หน่วยกิต", "credit", "workload", "ภาระ", "difficulty")
+        ):
+            return False
+        if not any(marker in lowered_scope for marker in ("วิชา", "รายวิชา", "course", "count", "จำนวน")):
+            return False
+        program = scope.get("program")
+        if isinstance(program, str) and program.casefold() not in lowered_scope:
+            return False
+        plans = scope.get("plans", ())
+        for plan in plans if isinstance(plans, (list, tuple)) else ():
+            aliases = (str(plan), "สหกิจ") if plan == "coop" else (str(plan), "ไม่สหกิจ")
+            if plan == "coop" and "ไม่สหกิจ" in lowered_scope:
+                return False
+            if plan == "no_coop" and "coop" in lowered_scope and "no_coop" not in lowered_scope:
+                return False
+            if not any(alias.casefold() in lowered_scope for alias in aliases):
+                continue
+            if plan == "coop" and "ไม่สหกิจ" in lowered_scope and "coop" not in lowered_scope:
+                return False
+            if plan == "no_coop" and "coop" in lowered_scope and "ไม่สหกิจ" not in lowered_scope:
+                return False
+        for field, markers in (
+            ("years", ("ปี", "year", "y")),
+            ("semesters", ("เทอม", "ภาคเรียน", "semester")),
+        ):
+            expected = {str(value) for value in scope.get(field, ())}
+            if not expected:
+                continue
+            pattern = r"(?:" + "|".join(markers) + r")\s*(?:ที่\s*)?(\d+)"
+            found = set(re.findall(pattern, lowered_scope, re.IGNORECASE))
+            if found and found != expected:
+                return False
+        category = scope.get("category")
+        if isinstance(category, str) and category.casefold() not in lowered_scope:
+            return False
+        return True
+    if family == "course_existence":
+        code = str(payload["course"]["course_code"])
+        if tuple(re.findall(r"(?<!\d)\d{8}(?!\d)", text)) != (code,):
+            return False
+        exists = payload.get("exists")
+        negative = ("ไม่มี", "ไม่พบ", "false", "no")
+        positive = ("มี", "พบ", "true", "yes")
+        negative_text = any(token in lowered for token in negative)
+        positive_text = any(
+            token in lowered.replace("ไม่มี", "").replace("ไม่พบ", "")
+            for token in positive
+        )
+        if exists is True:
+            return positive_text and not negative_text
+        if exists is False:
+            return negative_text and not positive_text
+    return False
+
+
+def _synthesize_atomic_answer(
+    question: str | None,
+    result: GroundedAnswerResult,
+    deterministic: str,
+    answer_model_callable: Callable[[str], str] | None,
+) -> str:
+    if result.status != "answer" or len(result.claims) != 1 or not callable(answer_model_callable):
+        return deterministic
+    claim = result.claims[0]
+    selected = _atomic_synthesis_payload(claim)
+    if selected is None:
+        return deterministic
+    family, payload = selected
+    prompt = "\n".join(
+        (
+            _ATOMIC_SYNTHESIS_INSTRUCTION,
+            f"USER_QUESTION:\n{question or ''}",
+            "CANONICAL_FACTS_JSON:",
+            json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+        )
+    )
+    try:
+        generated = answer_model_callable(prompt)
+    except Exception:
+        return deterministic
+    return generated.strip() if _atomic_synthesis_guard(family, generated, deterministic, payload) else deterministic
+
+
 def render_grounded_claim(
     claim: GroundedClaim,
     *,
@@ -2150,6 +2372,7 @@ def render_grounded_answer(
     *,
     question: str | None = None,
     preference_advisory: bool = False,
+    synthesize_answer: bool = False,
 ) -> GroundedAnswerResult:
     """Render deterministic evidence, then optionally polish its final text."""
     if not isinstance(result, GroundedAnswerResult):
@@ -2173,8 +2396,13 @@ def render_grounded_answer(
             final_answer,
             answer_model_callable,
         )
+    elif synthesize_answer:
+        final_answer = _synthesize_atomic_answer(
+            question, result, final_answer, answer_model_callable
+        )
     elif any(
         claim.operation == "list"
+        or claim.operation == "count"
         or isinstance(claim.value, PlanComparisonAggregation)
         for claim in result.claims
     ):

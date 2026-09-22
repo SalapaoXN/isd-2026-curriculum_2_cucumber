@@ -32,6 +32,8 @@ INTENTS = frozenset(
         "plan_comparison",
         "program_discovery",
         "count_query",
+        "course_credit_query",
+        "existence_query",
         "workload_judgement",
         "preference_recommendation_evidence",
     }
@@ -43,6 +45,7 @@ INTENTS = frozenset(
 REQUESTED_FACTS = frozenset(
     {
         "course_list",
+        "course_credit",
         "course_description",
         "placement",
         "prerequisite",
@@ -548,6 +551,12 @@ def build_intent_prompt(question: str) -> str:
             "course_codes MUST be []. Do not interpret semantic/topic counts, "
             "comparisons, workload, credits, existence, or unresolved filters "
             "as count_query.",
+            "course_credit_query is limited to one exact course target and "
+            "MUST request exactly [\"course_credit\"]. The credit value is "
+            "never supplied by the model; use canonical evidence only. "
+            "existence_query is limited to one exact course target and MUST "
+            "request exactly [\"course_list\"]. Neither intent may add a "
+            "topic, judgement, comparison, unresolved filter, or scope.",
             "workload_judgement and preference_recommendation_evidence only "
             "identify the requested evidence dimension; they never conclude "
             "whether something is heavy, easy, good, better, or recommended.",

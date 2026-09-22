@@ -57,6 +57,12 @@ class _BatchModel:
 
 
 class RagEmbedderTest(unittest.TestCase):
+    def setUp(self):
+        self._saved_components = embedder._COMPONENTS
+
+    def tearDown(self):
+        embedder._COMPONENTS = self._saved_components
+
     def test_lazy_ordered_float32_embeddings(self):
         tokenizer = _Tokenizer()
         model = _Model()

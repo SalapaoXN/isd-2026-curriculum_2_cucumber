@@ -38,6 +38,8 @@ _INTENT_OPERATION = {
     "plan_comparison": "compare",
     "program_discovery": "program_discovery",
     "count_query": "count",
+    "course_credit_query": "sum_credits",
+    "existence_query": "existence",
 }
 
 _INTENT_FACTS = {
@@ -50,6 +52,8 @@ _INTENT_FACTS = {
     "plan_comparison": frozenset({"plan_comparison"}),
     "program_discovery": frozenset({"program_identity"}),
     "count_query": frozenset({"course_list"}),
+    "course_credit_query": frozenset({"course_credit"}),
+    "existence_query": frozenset({"course_list"}),
 }
 
 _GROUP_BY_FOR_INTENT = {
@@ -206,6 +210,16 @@ def _mapped_operations(
             for operation in ("list", "prerequisite")
             if operation in merged
         )
+    if intent in {"course_credit_query", "existence_query"}:
+        expected = {
+            "course_credit_query": ("course_credit",),
+            "existence_query": ("course_list",),
+        }[intent]
+        if tuple(interpretation.requested_facts) != expected:
+            raise IntentCompilerError("exact-course intent has wrong evidence request")
+        if tuple(base_operations):
+            raise IntentCompilerError("exact-course intent cannot combine with operations")
+        return (_INTENT_OPERATION[intent],)
     if intent == "count_query":
         if tuple(interpretation.requested_facts) != ("course_list",):
             raise IntentCompilerError(
@@ -260,6 +274,15 @@ def _require_course_target(spec: QuerySpec, *, exact_count: int | None = None) -
         raise IntentCompilerError("intent requires an exact course target")
 
 
+def _require_single_course_target(spec: QuerySpec) -> None:
+    codes = tuple(spec.course_codes)
+    if len(codes) > 1 or (
+        not codes
+        and not (isinstance(spec.course_name, str) and spec.course_name.strip())
+    ):
+        raise IntentCompilerError("intent requires one exact course target")
+
+
 def compile_intent_to_query_spec(
     base_spec: QuerySpec,
     interpretation: IntentInterpretation,
@@ -297,6 +320,11 @@ def compile_intent_to_query_spec(
     if base_spec.judgement == "unsupported":
         raise IntentCompilerError("base QuerySpec has unsupported judgement")
 
+    if interpretation.intent in {"course_credit_query", "existence_query"}:
+        if base_spec.topic is not None or base_spec.judgement not in {None, "none"}:
+            raise IntentCompilerError("exact-course intent cannot use topic or judgement")
+        if interpretation.topic is not None or interpretation.judgement_dimension is not None:
+            raise IntentCompilerError("exact-course intent cannot add topic or judgement")
     if interpretation.intent == "count_query":
         if base_spec.topic is not None:
             raise IntentCompilerError("count_query cannot use a topic")
@@ -362,6 +390,8 @@ def compile_intent_to_query_spec(
         _require_course_target(
             replace(base_spec, course_codes=course_codes),
         )
+    if interpretation.intent in {"course_credit_query", "existence_query"}:
+        _require_single_course_target(replace(base_spec, course_codes=course_codes))
     if interpretation.intent in {"similarity_query", "course_comparison"}:
         _require_course_target(
             replace(base_spec, course_codes=course_codes),

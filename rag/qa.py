@@ -53,6 +53,7 @@ from rag.intent_gate import (
     authoritative_scope as _intent_authoritative_scope,
     count_shadow_comparison as _count_shadow_comparison,
     run_count_shadow,
+    run_exact_course_shadow,
     run_placement_shadow,
 )
 from rag.judgement import (
@@ -204,6 +205,82 @@ def _classify_structured_parse_completeness(
             **common,
         )
     return not_eligible
+
+
+_FOLLOWUP_SCOPE_CUE = re.compile(
+    r"(?:แล้ว\s*(?:ปี|เทอม|ภาค)|ล่ะ|อีกที)"
+)
+_FOLLOWUP_COURSE_CUE = re.compile(r"กี่หน่วยกิต|กี่หน่วย|prerequisite|วิชาบังคับก่อน", re.I)
+_FOLLOWUP_PLACEMENT_CUE = re.compile(r"เรียนตอนไหน|เรียนช่วงไหน|จัดไว้ปีไหน|เทอมอะไร", re.I)
+
+
+def _merge_conversation_context(spec: Any, context: QueryContext | None) -> Any:
+    """Fill only missing structural fields from explicit caller context."""
+    if context is None:
+        return spec
+
+    updates: dict[str, Any] = {}
+    for field_name in ("program", "category"):
+        if getattr(spec, field_name, None) is None:
+            value = getattr(context, field_name, None)
+            if value is not None:
+                updates[field_name] = value
+    if not getattr(spec, "plans", ()) and context.plan is not None:
+        updates["plans"] = (context.plan,)
+    if not getattr(spec, "years", ()) and context.years:
+        updates["years"] = context.years
+    if not getattr(spec, "semesters", ()) and context.semesters:
+        updates["semesters"] = context.semesters
+    if not getattr(spec, "course_codes", ()) and context.course_code is not None:
+        updates["course_codes"] = (context.course_code,)
+
+    operations = tuple(getattr(spec, "operations", ()))
+    if not operations and getattr(spec, "topic", None) is None:
+        question = getattr(spec, "normalized_question", "")
+        if context.course_code is not None and _FOLLOWUP_COURSE_CUE.search(question):
+            if re.search(r"กี่หน่วย", question, re.I):
+                operations = ("sum_credits",)
+            elif re.search(r"prerequisite|วิชาบังคับก่อน", question, re.I):
+                operations = ("existence", "prerequisite")
+        elif context.course_code is not None and _FOLLOWUP_PLACEMENT_CUE.search(question):
+            operations = ("placement",)
+        elif context.operations and _FOLLOWUP_SCOPE_CUE.search(question):
+            operations = context.operations
+    if operations:
+        updates["operations"] = operations
+    return replace(spec, **updates) if updates else spec
+
+
+def _next_conversation_context(
+    spec: Any,
+    resolution: ResolutionOutcome,
+    result: Any,
+) -> QueryContext | None:
+    """Derive structural references only from an authoritative current turn."""
+    if getattr(result, "status", None) != "answer" or resolution.action != "answer":
+        return None
+    if getattr(spec, "topic", None) is not None:
+        return None
+    program = getattr(spec, "program", None) or resolution.resolved_program
+    if not isinstance(program, str) or not program.strip():
+        return None
+    references = resolution.course_references
+    course_code = None
+    if len(references) == 1 and len(references[0].candidates) == 1:
+        candidate = references[0].candidates[0]
+        course_code = candidate.get("course_code")
+        if not isinstance(course_code, str) or not course_code.strip():
+            course_code = None
+    plans = tuple(getattr(spec, "plans", ())) or tuple(resolution.resolved_plans)
+    return QueryContext(
+        program=program,
+        plan=plans[0] if len(plans) == 1 else None,
+        years=tuple(getattr(spec, "years", ())),
+        semesters=tuple(getattr(spec, "semesters", ())),
+        category=getattr(spec, "category", None),
+        course_code=course_code,
+        operations=tuple(getattr(spec, "operations", ())),
+    )
 
 
 def _is_course_list_fallback_candidate(
@@ -2328,16 +2405,25 @@ def ask(
     top_k: int = 5,
     *,
     context: QueryContext | None = None,
+    conversation_context: QueryContext | None = None,
     answer_model_callable: Callable[[str], str] | None = None,
     intent_model_callable: Callable[[str], str] | None = None,
     shadow_intent: bool = False,
+    synthesize_answer: bool = False,
 ) -> dict[str, Any]:
     """Run the typed evidence pipeline while retaining the legacy signature."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
 
     spec = parse_query_spec(question)
-    resolution = resolve_query_spec(spec, db_path, context=context)
+    conversation_mode = conversation_context is not None
+    if conversation_mode:
+        spec = _merge_conversation_context(spec, conversation_context)
+    resolution = resolve_query_spec(
+        spec,
+        db_path,
+        context=None if conversation_mode else context,
+    )
     if resolution.action != "answer":
         if resolution.action == "clarify_program":
             consensus = _consensus_prerequisite_grounded_answer(
@@ -2377,10 +2463,14 @@ def ask(
         grounded = compose_grounded_answer(
             identity_result=_identity_result(resolution),
         )
-        return {
+        response = {
             "route": None,
             "result": render_grounded_answer(grounded),
         }
+        next_context = _next_conversation_context(spec, resolution, response["result"])
+        if next_context is not None:
+            response["next_context"] = next_context
+        return response
 
     completeness = _classify_structured_parse_completeness(
         spec,
@@ -2409,6 +2499,72 @@ def ask(
             intent_model_callable,
         )
         if shadow_intent
+        else None
+    )
+    shadow_chain_busy = any(
+        shadow is not None and shadow.eligible
+        for shadow in (intent_shadow, count_shadow)
+    )
+    prerequisite_shadow = (
+        run_exact_course_shadow(
+            question,
+            spec,
+            completeness,
+            resolution,
+            context,
+            intent_model_callable,
+            family="prerequisite_query",
+        )
+        if shadow_intent and not shadow_chain_busy
+        else None
+    )
+    description_shadow = (
+        run_exact_course_shadow(
+            question,
+            spec,
+            completeness,
+            resolution,
+            context,
+            intent_model_callable,
+            family="course_description",
+        )
+        if shadow_intent and not shadow_chain_busy
+        and not (
+            prerequisite_shadow is not None and prerequisite_shadow.eligible
+        )
+        else None
+    )
+    exact_shadow_eligible = any(
+        shadow is not None and shadow.eligible
+        for shadow in (prerequisite_shadow, description_shadow)
+    )
+    credit_shadow = (
+        run_exact_course_shadow(
+            question,
+            spec,
+            completeness,
+            resolution,
+            context,
+            intent_model_callable,
+            family="course_credit_query",
+        )
+        if shadow_intent and not shadow_chain_busy and not exact_shadow_eligible
+        else None
+    )
+    exact_shadow_eligible = exact_shadow_eligible or (
+        credit_shadow is not None and credit_shadow.eligible
+    )
+    existence_shadow = (
+        run_exact_course_shadow(
+            question,
+            spec,
+            completeness,
+            resolution,
+            context,
+            intent_model_callable,
+            family="existence_query",
+        )
+        if shadow_intent and not shadow_chain_busy and not exact_shadow_eligible
         else None
     )
 
@@ -2524,15 +2680,90 @@ def ask(
             shadow_executed = True
             count_shadow = replace(count_shadow, executed=True)
 
+    if shadow_intent and not shadow_executed:
+        for exact_shadow, family, operation in (
+            (prerequisite_shadow, "prerequisite_query", "prerequisite"),
+            (description_shadow, "course_description", "describe"),
+            (credit_shadow, "course_credit_query", "sum_credits"),
+            (existence_shadow, "existence_query", "existence"),
+        ):
+            if not (
+                exact_shadow is not None
+                and exact_shadow.eligible
+                and exact_shadow.attempted
+                and exact_shadow.status == "validated"
+                and exact_shadow.comparison == "compatible_extension"
+                and exact_shadow.compiled_spec is not None
+            ):
+                continue
+            compiled_spec = exact_shadow.compiled_spec
+            try:
+                compiled_resolution = resolve_query_spec(
+                    compiled_spec,
+                    db_path,
+                    context=context,
+                )
+                compiled_completeness = _classify_structured_parse_completeness(
+                    compiled_spec,
+                    compiled_resolution,
+                    context,
+                )
+            except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+                continue
+
+            authoritative_program = completeness.program or resolution.resolved_program
+            exact_target_preserved = (
+                tuple(getattr(compiled_spec, "course_codes", ()))
+                == tuple(getattr(spec, "course_codes", ()))
+                and getattr(compiled_spec, "course_name", None)
+                == getattr(spec, "course_name", None)
+            )
+            safe_compiled_exact_course = bool(
+                compiled_resolution.action == "answer"
+                and isinstance(authoritative_program, str)
+                and authoritative_program.strip()
+                and tuple(getattr(compiled_spec, "operations", ())) == (operation,)
+                and exact_target_preserved
+                and getattr(compiled_spec, "topic", None) is None
+                and getattr(compiled_spec, "judgement", None) in {None, "none"}
+                and compiled_completeness.classification == "complete"
+                and not compiled_completeness.missing_filters
+            )
+            if safe_compiled_exact_course:
+                spec = compiled_spec
+                resolution = compiled_resolution
+                completeness = compiled_completeness
+                shadow_executed = True
+                if family == "prerequisite_query":
+                    prerequisite_shadow = replace(exact_shadow, executed=True)
+                elif family == "course_description":
+                    description_shadow = replace(exact_shadow, executed=True)
+                elif family == "course_credit_query":
+                    credit_shadow = replace(exact_shadow, executed=True)
+                else:
+                    existence_shadow = replace(exact_shadow, executed=True)
+                break
+
     def finish(result: dict[str, Any]) -> dict[str, Any]:
         diagnostics = {}
         if intent_shadow is not None:
             diagnostics["intent_shadow"] = intent_shadow
         if count_shadow is not None:
             diagnostics["count_shadow"] = count_shadow
-        if not diagnostics:
-            return result
-        return {**result, **diagnostics}
+        if prerequisite_shadow is not None:
+            diagnostics["prerequisite_shadow"] = prerequisite_shadow
+        if description_shadow is not None:
+            diagnostics["description_shadow"] = description_shadow
+        if credit_shadow is not None:
+            diagnostics["credit_shadow"] = credit_shadow
+        if existence_shadow is not None:
+            diagnostics["existence_shadow"] = existence_shadow
+        response = result if not diagnostics else {**result, **diagnostics}
+        answer_result = response.get("result")
+        next_context = _next_conversation_context(spec, resolution, answer_result)
+        if next_context is not None:
+            response = {**response, "next_context": next_context}
+        return response
 
     filtered_credit_candidate = _is_filtered_sum_credits_fallback_candidate(
         spec,
@@ -2857,6 +3088,7 @@ def ask(
             ),
             question=question,
             preference_advisory=preference_advisory,
+            synthesize_answer=(synthesize_answer and not intent_interpreted and not preference_advisory),
         ),
     })
 
