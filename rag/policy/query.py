@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from rag.query_spec import parse_query_spec
+
 
 @dataclass(frozen=True, slots=True)
 class PolicyQuery:
@@ -25,6 +27,40 @@ def _normalized(question: str) -> str:
 def _program(question: str) -> str | None:
     matches = {match.group("program").upper() for match in _PROGRAM_RE.finditer(question)}
     return next(iter(matches)) if len(matches) == 1 else None
+
+
+def _is_bare_regular_max(text: str, question: str) -> bool:
+    """Return True for bare regular-semester maximum wording (H28-B).
+
+    Matches only when a maximum synonym co-occurs with a registration
+    verb, the shape carries no program-total verbs (those keep the
+    program_total route), and the curriculum parse carries no explicit
+    scope axis (axis shapes keep the curriculum/H27 path). Earlier
+    branches (compare, exception, special, explicit-ปกติ, min) are
+    untouched, so every previously routed shape keeps its outcome.
+    """
+    if not re.search(r"(?:สูงสุด|มากสุด|ไม่เกิน)", text):
+        return False
+    if not re.search(r"(?:ลงทะเบียน|ลง|เรียน)", text):
+        return False
+    if re.search(r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด)", text):
+        return False
+    if re.search(r"(?:(?<!ไม่)เกิน|overload)", text):
+        # Overload wording is ambiguous between the regular cap and the
+        # exception cap: without an explicit กรณีพิเศษ marker it fails
+        # closed instead of guessing the regular maximum. The negated
+        # ไม่เกิน ("not exceeding") is a plain maximum synonym, not
+        # overload wording, so the lookbehind exempts it.
+        return False
+    spec = parse_query_spec(question)
+    return not bool(
+        getattr(spec, "years", ())
+        or getattr(spec, "semesters", ())
+        or getattr(spec, "plans", ())
+        or getattr(spec, "category", None)
+        or getattr(spec, "course_codes", ())
+        or getattr(spec, "course_name", None)
+    )
 
 
 def parse_policy_question(question: str) -> PolicyQuery | None:
@@ -56,6 +92,8 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("registration_regular_max")
         if re.search(r"(?:ขั้นต่ำ|ต่ำสุด|อย่างน้อย)", text):
             return PolicyQuery("registration_regular_min")
+        if _is_bare_regular_max(text, question):
+            return PolicyQuery("registration_regular_max")
         if program and re.search(r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด)", text):
             return PolicyQuery("program_total_credits", program=program)
         return None

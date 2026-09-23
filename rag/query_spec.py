@@ -75,7 +75,7 @@ _PROGRAM_DISCOVERY_PATTERN = re.compile(
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร\s*(?:อะไร|ไหน)(?:บ้าง)?",
     re.IGNORECASE,
 )
-_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gened(?![A-Za-z0-9_])", re.IGNORECASE)
+_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|(?<![A-Za-z0-9_])(?:electives?|gened)(?![A-Za-z0-9_])|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s+ed(?![A-Za-z0-9_])", re.IGNORECASE)
 _TOPIC_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])(programming|database|network|data|web|AI)"
     r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
@@ -286,9 +286,30 @@ def _extract_category(question: str) -> str | None:
     match = _CATEGORY_PATTERN.search(question)
     if not match:
         return None
-    if match.group(0).casefold() == "วิชาเลือก":
+    matched = match.group(0).casefold()
+    if matched == "วิชาเลือก" or matched in {"elective", "electives"}:
         return "วิชาเลือก"
     return "หมวดวิชาศึกษาทั่วไป"
+
+
+_CREDIT_UNITS_PATTERN = re.compile(r"(?<!\d)(\d+(?:\.\d+)?)\s*หน่วยกิต")
+_CREDIT_TOTAL_PATTERN = re.compile(r"รวม|ทั้งหมด|กี่\s*หน่วยกิต")
+
+
+def _extract_credit_units(question: str) -> int | None:
+    """Capture an integral per-course credit predicate, if explicitly stated.
+
+    Numeric parsing follows the existing parser convention (bare ``int``,
+    consistent with year/semester extraction). Non-integral values stay
+    unparsed so the existing partial path fails closed.
+    """
+    match = _CREDIT_UNITS_PATTERN.search(question)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except ValueError:
+        return None
 
 
 def _extract_topic(question: str, course_name: str | None) -> str | None:
@@ -302,6 +323,36 @@ def _extract_topic(question: str, course_name: str | None) -> str | None:
     if match.group(0) == "ฐานข้อมูล":
         return "database"
     return match.group(0)
+
+
+def _surface_operation_matches(
+    question: str,
+) -> tuple[tuple[int, int, str], ...]:
+    matches: list[tuple[int, int, str]] = []
+    for operation, pattern in _OPERATION_PATTERNS:
+        matches.extend(
+            (
+                match.start(),
+                _OPERATION_ORDER[operation],
+                operation,
+            )
+            for match in pattern.finditer(question)
+        )
+    return tuple(matches)
+
+
+def detect_surface_operations(question: str) -> tuple[str, ...]:
+    """Return only operations explicitly surfaced in the current question."""
+    if not isinstance(question, str):
+        raise TypeError("question must be a string")
+    normalized_question = normalize_thai_surface(question)
+    return _ordered_unique(
+        operation
+        for _, _, operation in sorted(
+            _surface_operation_matches(normalized_question),
+            key=lambda item: (item[0], item[1]),
+        )
+    )
 
 
 def _extract_operations(
@@ -344,7 +395,7 @@ def _extract_operations(
         len(course_codes) > 1
         and bool(_COURSE_CONTENT_COMPARISON_PATTERN.search(question))
     )
-    for operation, pattern in _OPERATION_PATTERNS:
+    for start, _, operation in _surface_operation_matches(question):
         if operation in {"list", "describe"} and prerequisite_object_request:
             continue
         if operation == "count" and prerequisite_burden_preference:
@@ -353,19 +404,18 @@ def _extract_operations(
             continue
         if operation == "existence" and judgement in {"quantity", "workload"}:
             continue
-        for match in pattern.finditer(question):
-            resolved_operation = (
-                "similarity"
-                if operation == "compare" and course_content_comparison
-                else operation
+        resolved_operation = (
+            "similarity"
+            if operation == "compare" and course_content_comparison
+            else operation
+        )
+        matches.append(
+            (
+                start,
+                _OPERATION_ORDER[resolved_operation],
+                resolved_operation,
             )
-            matches.append(
-                (
-                    match.start(),
-                    _OPERATION_ORDER[resolved_operation],
-                    resolved_operation,
-                )
-            )
+        )
     if course_content_comparison and not any(
         operation == "similarity" for _, _, operation in matches
     ):
@@ -461,6 +511,7 @@ class QuerySpec:
     operations: tuple[str, ...]
     group_by: tuple[str, ...]
     judgement: str
+    credit_units: int | None = None
 
 
 def parse_query_spec(question: str) -> QuerySpec:
@@ -478,6 +529,7 @@ def parse_query_spec(question: str) -> QuerySpec:
     category = _extract_category(normalized_question)
     topic = _extract_topic(normalized_question, course_name)
     judgement = _extract_judgement(normalized_question)
+    credit_units = _extract_credit_units(normalized_question)
     if _INVALID_YEAR_PATTERN.search(normalized_question):
         judgement = "unsupported"
     # A fully specified year/semester scope is sufficient to recognize an
@@ -492,6 +544,24 @@ def parse_query_spec(question: str) -> QuerySpec:
         or topic is not None
     )
 
+    operations = _extract_operations(
+        normalized_question,
+        judgement,
+        has_scope,
+        course_codes=course_codes,
+        course_name=course_name,
+    )
+    if (
+        credit_units is not None
+        and "sum_credits" in operations
+        and not _CREDIT_TOTAL_PATTERN.search(normalized_question)
+    ):
+        # The credit token is consumed by the per-course predicate; the
+        # wording-derived total was an over-trigger, not a requested total.
+        operations = tuple(
+            operation for operation in operations if operation != "sum_credits"
+        )
+
     return QuerySpec(
         original_question=question,
         normalized_question=normalized_question,
@@ -503,16 +573,11 @@ def parse_query_spec(question: str) -> QuerySpec:
         course_name=course_name,
         category=category,
         topic=topic,
-        operations=_extract_operations(
-            normalized_question,
-            judgement,
-            has_scope,
-            course_codes=course_codes,
-            course_name=course_name,
-        ),
+        operations=operations,
         group_by=_extract_group_by(normalized_question, plans, years, course_codes, has_scope),
         judgement=judgement,
+        credit_units=credit_units,
     )
 
 
-__all__ = ["QuerySpec", "parse_query_spec"]
+__all__ = ["QuerySpec", "detect_surface_operations", "parse_query_spec"]

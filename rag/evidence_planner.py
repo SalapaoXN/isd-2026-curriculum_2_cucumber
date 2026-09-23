@@ -76,6 +76,7 @@ class StructuralScope:
     years: tuple[int, ...] = ()
     semesters: tuple[int, ...] = ()
     category: str | None = None
+    credit_units: int | None = None
     expand_applicable: tuple[str, ...] = ()
     unconstrained: tuple[str, ...] = ()
     course_targets: tuple[Mapping[str, Any], ...] = ()
@@ -92,6 +93,11 @@ class StructuralScope:
         _validate_axes(expand_applicable, "expand_applicable axes")
         _validate_axes(unconstrained, "unconstrained axes")
         _validate_axes(group_by, "group_by")
+        if self.credit_units is not None and (
+            isinstance(self.credit_units, bool)
+            or not isinstance(self.credit_units, int)
+        ):
+            raise ValueError("credit_units must be None or an integer")
         if any(not isinstance(target, Mapping) for target in course_targets):
             raise ValueError("course_targets must contain mappings")
         overlap = set(expand_applicable) & set(unconstrained)
@@ -252,6 +258,7 @@ def build_structural_scope(
         years=years,
         semesters=semesters,
         category=query_spec.category,
+        credit_units=getattr(query_spec, "credit_units", None),
         expand_applicable=tuple(expand_applicable),
         unconstrained=tuple(unconstrained),
         course_targets=course_targets,
@@ -270,6 +277,7 @@ def _plan_partition_scopes(scope: StructuralScope) -> tuple[StructuralScope, ...
             years=scope.years,
             semesters=scope.semesters,
             category=scope.category,
+            credit_units=scope.credit_units,
             expand_applicable=scope.expand_applicable,
             unconstrained=scope.unconstrained,
             course_targets=scope.course_targets,
@@ -378,6 +386,22 @@ def plan_evidence(
         topic_target_id = "topic_matches"
     elif needs_collection:
         add(_request("course_set", "course_set", scope))
+
+    if (
+        "prerequisite" in query_spec.operations
+        and not exact_targets
+        and query_spec.topic is None
+    ):
+        if "course_set" not in by_kind:
+            add(_request("course_set", "course_set", scope))
+        add(
+            _request(
+                "prerequisite_facts",
+                "prerequisite_facts",
+                scope,
+                depends_on=("course_set",),
+            )
+        )
 
     if (
         topic_target_id is not None

@@ -1386,6 +1386,17 @@ def _credit_claim_targets(scope: Any) -> tuple[Mapping[str, Any], ...]:
     return tuple(target for target in targets if isinstance(target, Mapping))
 
 
+def _scope_credit_units_text(scope: Any) -> str:
+    value = (
+        scope.get("credit_units")
+        if isinstance(scope, Mapping)
+        else getattr(scope, "credit_units", None)
+    )
+    if isinstance(value, bool) or not isinstance(value, int):
+        return ""
+    return f"{value} หน่วยกิต"
+
+
 def _credit_scope_text(scope: Any, *, prefix: str) -> str:
     """Render only grounded program/plan/year/semester scope wording."""
     parts = [prefix] if prefix else []
@@ -1403,7 +1414,18 @@ def _credit_scope_text(scope: Any, *, prefix: str) -> str:
     semesters = [str(semester) for semester in _scope_dimension_values(scope, "semesters")]
     if semesters:
         parts.append("ภาคเรียนที่ " + "/".join(semesters))
+    credit_text = _scope_credit_units_text(scope)
+    if credit_text:
+        parts.append(credit_text)
     return " ".join(parts)
+
+
+def _sum_scope_category_suffix(scope: Any, context: str) -> str:
+    """Append the grounded category to a sum scope header, when present."""
+    category_text = _scope_category_text(scope)
+    if category_text and category_text not in context:
+        return f"{context} {category_text}".strip() if context else category_text
+    return context
 
 
 def _sum_credits_text(claim: GroundedClaim) -> str | None:
@@ -1426,9 +1448,11 @@ def _sum_credits_text(claim: GroundedClaim) -> str | None:
         )
         if code is None:
             return None
-        context = _credit_scope_text(scope, prefix=f"วิชา {code}")
+        context = _sum_scope_category_suffix(
+            scope, _credit_scope_text(scope, prefix=f"วิชา {code}")
+        )
         return f"{context}: {total} หน่วยกิต" if context else f"{total} หน่วยกิต"
-    context = _credit_scope_text(scope, prefix="")
+    context = _sum_scope_category_suffix(scope, _credit_scope_text(scope, prefix=""))
     if context:
         return f"{context} ลงทะเบียนรวม {total} หน่วยกิต"
     return f"ลงทะเบียนรวม {total} หน่วยกิต"
@@ -2187,6 +2211,7 @@ def _list_collapse_scope_key(claim: GroundedClaim) -> tuple[Any, ...] | None:
         years,
         semesters,
         _scope_category_text(claim.effective_scope),
+        _scope_credit_units_text(claim.effective_scope),
         _scope_topic_text(claim.effective_scope),
         _scope_course_targets_text(claim.effective_scope),
     )

@@ -24,6 +24,7 @@ from rag.aggregation import (
 )
 from rag.evidence_executor import (
     DirectPrerequisiteBurden,
+    DirectPrerequisiteRequirement,
     EvidenceBundle,
     EvidenceExecutionResult,
     execute_evidence_plan,
@@ -62,7 +63,8 @@ from rag.judgement import (
     evaluate_quantity,
     evaluate_workload,
 )
-from rag.query_spec import parse_query_spec
+from rag.policy.routing import route_policy_question
+from rag.query_spec import detect_surface_operations, parse_query_spec
 from rag.retrieval.retrieve import (
     ConstrainedTopicRetrievalResult,
     SimilarityEvidence,
@@ -91,7 +93,7 @@ _STRUCTURED_FALLBACK_CUE = re.compile(
     re.IGNORECASE,
 )
 _CATEGORY_FILTER_RESIDUE = re.compile(
-    r"ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s*ed(?![A-Za-z0-9_])|วิชาเลือก",
+    r"ศึกษาทั่วไป|(?<![A-Za-z0-9_])(?:gen\s*ed|electives?)(?![A-Za-z0-9_])|วิชาเลือก",
     re.IGNORECASE,
 )
 _REQUIREMENT_FILTER_RESIDUE = re.compile(r"วิชาบังคับ(?!\s*ก่อน)", re.IGNORECASE)
@@ -169,7 +171,11 @@ def _classify_structured_parse_completeness(
         missing_filters.append("category")
     if _REQUIREMENT_FILTER_RESIDUE.search(question):
         missing_filters.append("requirement_type")
-    if _CREDIT_UNIT_FILTER_RESIDUE.search(question):
+    if _CREDIT_UNIT_FILTER_RESIDUE.search(question) and getattr(
+        spec, "credit_units", None
+    ) is None:
+        # A captured integral predicate fully specifies the credit axis;
+        # unparseable residue (e.g. non-integral) keeps the partial path.
         missing_filters.append("credit_units")
 
     if missing_filters:
@@ -180,6 +186,35 @@ def _classify_structured_parse_completeness(
         )
 
     operations = tuple(getattr(spec, "operations", ()))
+    if getattr(spec, "credit_units", None) is not None and operations != ("list",):
+        # H23-R1: deterministic credit filtering supports only ("list",).
+        # Count/existence/sum/placement/compare + predicate stay fail-closed
+        # before planner/fallback; no sum+filter or other combos. Empty
+        # missing avoids the filtered-credit fallback seam (which requires
+        # non-empty missing) so this fails closed with zero model calls.
+        return StructuredParseCompleteness(
+            "partial",
+            missing_filters=(),
+            **common,
+        )
+    if (
+        getattr(spec, "category", None) is not None
+        and "sum_credits" in operations
+        and (
+            len(tuple(getattr(spec, "years", ()))) != 1
+            or len(tuple(getattr(spec, "semesters", ()))) != 1
+        )
+    ):
+        # H27-B: category-aware sums are supported only for an explicit
+        # single term. Year-only / semester-only / program-only totals would
+        # need a default academic scope that changes the meaning of "total",
+        # so they stay fail-closed before planner/fallback with zero model
+        # calls. Empty missing keeps the filtered-credit fallback seam False.
+        return StructuredParseCompleteness(
+            "partial",
+            missing_filters=(),
+            **common,
+        )
     if any(operation not in _STRUCTURED_FALLBACK_OPERATIONS for operation in operations):
         return not_eligible
     if getattr(spec, "topic", None) is not None:
@@ -237,7 +272,21 @@ def _merge_conversation_context(spec: Any, context: QueryContext | None) -> Any:
     operations = tuple(getattr(spec, "operations", ()))
     if not operations and getattr(spec, "topic", None) is None:
         question = getattr(spec, "normalized_question", "")
-        if context.course_code is not None and _FOLLOWUP_COURSE_CUE.search(question):
+        current_exact_reference = bool(
+            getattr(spec, "course_codes", ())
+            or getattr(spec, "course_name", None) is not None
+        )
+        merged_program = getattr(spec, "program", None) or context.program
+        if (
+            not current_exact_reference
+            and isinstance(merged_program, str)
+            and bool(merged_program.strip())
+            and context.operations == ("list",)
+            and context.course_code is None
+            and "prerequisite" in detect_surface_operations(question)
+        ):
+            operations = ("prerequisite",)
+        elif context.course_code is not None and _FOLLOWUP_COURSE_CUE.search(question):
             if re.search(r"กี่หน่วย", question, re.I):
                 operations = ("sum_credits",)
             elif re.search(r"prerequisite|วิชาบังคับก่อน", question, re.I):
@@ -290,6 +339,13 @@ def _is_course_list_fallback_candidate(
     """Allow only bounded course-list/filter residue into the SQL seam."""
     if getattr(spec, "topic", None) is not None:
         return False
+    if getattr(spec, "credit_units", None) is not None:
+        # H32-B (H23-R1): a per-course credit predicate is parser-owned and
+        # supported only for ("list",) on the deterministic path (which
+        # classifies complete and never reaches this seam). Any
+        # credit-bearing spec here is an unsupported op combo that must fail
+        # closed with 0 calls instead of entering unfiltered SQL fallback.
+        return False
     operations = tuple(getattr(spec, "operations", ()))
     if operations:
         if operations in {("count",), ("existence",)}:
@@ -311,6 +367,11 @@ def _is_placement_fallback_candidate(
     completeness: StructuredParseCompleteness,
 ) -> bool:
     """Allow only bounded placement wording into the placement SQL seam."""
+    if getattr(spec, "credit_units", None) is not None:
+        # H32-B (H23-R1): same credit-bearing fail-closed rule as the
+        # course-list seam above; placement + credit must never run an
+        # unfiltered placement selector.
+        return False
     if completeness.missing_filters:
         return False
     operations = tuple(getattr(spec, "operations", ()))
@@ -440,6 +501,110 @@ def _should_use_intent_interpreter(
         or getattr(spec, "semesters", ())
         or getattr(spec, "judgement", None) in {"workload", "preference"}
     )
+
+
+def _should_use_course_list_interpreter(
+    spec: Any,
+    completeness: StructuredParseCompleteness,
+    resolution: ResolutionOutcome,
+    context: QueryContext | None = None,
+) -> bool:
+    """Admit only operation-free scoped shapes for LIST recovery.
+
+    Partial classifications (credit/category/requirement residue) never
+    enter: unsupported filters such as credit values stay fail-closed
+    with zero model calls. The only accepted `not_eligible` shape is a
+    category-only request whose category is already deterministically
+    parsed: with no plan/year/semester axis there is nothing else the
+    classification could be missing.
+    """
+    if getattr(resolution, "action", None) != "answer":
+        return False
+    if completeness.classification == "not_eligible":
+        if (
+            getattr(spec, "category", None) is None
+            or tuple(getattr(spec, "plans", ())) != ()
+            or tuple(getattr(spec, "years", ())) != ()
+            or tuple(getattr(spec, "semesters", ())) != ()
+        ):
+            return False
+    elif completeness.classification != "unrecognized_structured":
+        return False
+    if tuple(getattr(spec, "operations", ())) != ():
+        return False
+    if getattr(spec, "topic", None) is not None:
+        return False
+    if getattr(spec, "judgement", None) not in (None, "none"):
+        return False
+    if tuple(getattr(spec, "course_codes", ())) or (
+        getattr(spec, "course_name", None) is not None
+    ):
+        return False
+    program = getattr(spec, "program", None) or getattr(context, "program", None)
+    if not isinstance(program, str) or not program.strip():
+        return False
+    return bool(
+        tuple(getattr(spec, "plans", ()))
+        or tuple(getattr(spec, "years", ()))
+        or tuple(getattr(spec, "semesters", ()))
+        or getattr(spec, "category", None) is not None
+        or getattr(context, "plan", None) is not None
+        or tuple(getattr(context, "years", ()))
+        or tuple(getattr(context, "semesters", ()))
+        or getattr(context, "category", None) is not None
+    )
+
+
+def _run_course_list_interpreter(
+    db_path: str | Path,
+    question: str,
+    spec: Any,
+    context: QueryContext | None,
+    intent_model_callable: Callable[[str], str] | None,
+) -> tuple[Any, Any, Any] | None:
+    """Recover only ("list",) for an eligible shape; None fails closed."""
+    if not callable(intent_model_callable):
+        return None
+    try:
+        interpretation = interpret_question_intent(
+            question,
+            intent_model_callable,
+        )
+    except Exception:
+        return None
+    if (
+        interpretation.intent != "course_list_query"
+        or tuple(interpretation.requested_facts) != ("course_list",)
+    ):
+        return None
+    try:
+        compiled_spec = compile_intent_to_query_spec(
+            spec,
+            interpretation,
+            **_intent_authoritative_scope(spec, context),
+        )
+    except (TypeError, ValueError):
+        return None
+    if tuple(compiled_spec.operations) != ("list",):
+        return None
+    try:
+        compiled_resolution = resolve_query_spec(
+            compiled_spec,
+            db_path,
+            context=context,
+        )
+    except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
+        return None
+    if compiled_resolution.action != "answer":
+        return None
+    compiled_completeness = _classify_structured_parse_completeness(
+        compiled_spec,
+        compiled_resolution,
+        context,
+    )
+    if compiled_completeness.classification != "complete":
+        return None
+    return compiled_spec, compiled_resolution, compiled_completeness
 
 
 def _intent_failure_result(question: str) -> dict[str, Any]:
@@ -1000,6 +1165,236 @@ def _preference_options_with_prerequisites(
     if any(burdens_by_identity.values()):
         return None
     return tuple(enriched)
+
+
+def _scope_prerequisite_dependency(
+    result: EvidenceExecutionResult,
+    course_results: tuple[EvidenceExecutionResult, ...],
+) -> bool:
+    request = result.planned_request
+    return (
+        result.kind == "prerequisite_facts"
+        and len(request.depends_on) == 1
+        and any(
+            course_result.request_id == request.depends_on[0]
+            for course_result in course_results
+        )
+    )
+
+
+def _prerequisite_burden_identity(
+    burden: DirectPrerequisiteBurden,
+) -> tuple[str, str, int] | None:
+    if (
+        not isinstance(burden.program, str)
+        or not burden.program.strip()
+        or not isinstance(burden.course_code, str)
+        or not burden.course_code.strip()
+        or isinstance(burden.course_id, bool)
+        or not isinstance(burden.course_id, int)
+    ):
+        return None
+    return burden.program.strip(), burden.course_code.strip(), burden.course_id
+
+
+def _classify_prerequisite_burden(
+    burden: DirectPrerequisiteBurden,
+) -> str | None:
+    if not isinstance(burden, DirectPrerequisiteBurden):
+        return None
+    if burden.status != "complete" or not burden.provenance:
+        return None
+    groups = burden.ordered_requirement_groups
+    if not isinstance(groups, tuple) or any(
+        not isinstance(group, DirectPrerequisiteRequirement) or not group.provenance
+        for group in groups
+    ):
+        return None
+    required_count = sum(group.kind == "required_course" for group in groups)
+    alternative_groups = tuple(
+        group for group in groups if group.kind == "alternative_group"
+    )
+    if any(group.kind not in {"required_course", "alternative_group"} for group in groups):
+        return None
+    if burden.required_course_count != required_count:
+        return None
+    if burden.alternative_group_count != len(alternative_groups):
+        return None
+    if burden.alternative_member_counts != tuple(
+        len(group.alternative_members) for group in alternative_groups
+    ):
+        return None
+    if burden.required_course_count or burden.alternative_group_count:
+        return "required"
+    if groups:
+        return None
+    return "explicit_none"
+
+
+def _course_row_identity(
+    row: Mapping[str, Any],
+    *,
+    fallback_program: str | None = None,
+) -> tuple[str, str, int] | None:
+    program = row.get("program") or fallback_program
+    course_code = row.get("course_code")
+    course_id = row.get("course_id")
+    if (
+        not isinstance(program, str)
+        or not program.strip()
+        or not isinstance(course_code, str)
+        or not course_code.strip()
+        or isinstance(course_id, bool)
+        or not isinstance(course_id, int)
+    ):
+        return None
+    return program.strip(), course_code.strip(), course_id
+
+
+def _merged_scope_prerequisite_provenance(
+    course_rows: tuple[Mapping[str, Any], ...],
+    burdens: tuple[DirectPrerequisiteBurden, ...],
+) -> tuple[Any, ...] | None:
+    course_provenance: list[Any] = []
+    for row in course_rows:
+        if not _provenance_from_records((row,)):
+            return None
+        for reference in _provenance_from_records((row,)):
+            if reference not in course_provenance:
+                course_provenance.append(reference)
+    burden_provenance: list[Any] = []
+    for burden in burdens:
+        if not burden.provenance:
+            return None
+        for reference in burden.provenance:
+            if reference not in burden_provenance:
+                burden_provenance.append(reference)
+    merged = course_provenance[:]
+    for reference in burden_provenance:
+        if reference not in merged:
+            merged.append(reference)
+    return tuple(merged)
+
+
+def _claim_for_scope_prerequisite(
+    prerequisite_result: EvidenceExecutionResult,
+    course_results: tuple[EvidenceExecutionResult, ...],
+) -> GroundedClaim:
+    dependency_id = prerequisite_result.planned_request.depends_on
+    matching_courses = tuple(
+        result
+        for result in course_results
+        if dependency_id == (result.request_id,)
+        and result.effective_scope == prerequisite_result.effective_scope
+    )
+    if len(matching_courses) != 1:
+        return _claim("list", prerequisite_result, status="insufficient_evidence")
+    course_result = matching_courses[0]
+    if course_result.status not in {"complete", "valid_empty"}:
+        return _claim("list", course_result, status="insufficient_evidence")
+    if prerequisite_result.status != "complete":
+        if prerequisite_result.status == "valid_empty":
+            payload = prerequisite_result.payload
+            if isinstance(payload, (list, tuple)) and not payload:
+                pass
+            else:
+                return _claim("list", course_result, status="insufficient_evidence")
+        else:
+            return _claim("list", course_result, status="insufficient_evidence")
+
+    course_rows = _payload_records(course_result, "courses")
+    if course_rows is None:
+        return _claim("list", course_result, status="insufficient_evidence")
+    raw_burdens = prerequisite_result.payload
+    if not isinstance(raw_burdens, (list, tuple)):
+        return _claim("list", course_result, status="insufficient_evidence")
+    burdens = tuple(raw_burdens)
+    burdens_by_identity: dict[tuple[str, str, int], DirectPrerequisiteBurden] = {}
+    for burden in burdens:
+        if not isinstance(burden, DirectPrerequisiteBurden):
+            return _claim("list", course_result, status="insufficient_evidence")
+        identity = _prerequisite_burden_identity(burden)
+        if identity is None or identity in burdens_by_identity:
+            return _claim("list", course_result, status="insufficient_evidence")
+        if _classify_prerequisite_burden(burden) is None:
+            return _claim("list", course_result, status="insufficient_evidence")
+        burdens_by_identity[identity] = burden
+
+    filtered_rows: list[Mapping[str, Any]] = []
+    used_burden_identities: set[tuple[str, str, int]] = set()
+    logical_identities: set[tuple[Any, ...]] = set()
+    for row in course_rows:
+        is_alternative = (
+            row.get("is_alternative") is True
+            or row.get("alternative_group_id") is not None
+        )
+        if is_alternative:
+            program = row.get("program")
+            group_id = row.get("alternative_group_id")
+            members = row.get("alternative_courses")
+            if (
+                not isinstance(program, str)
+                or not program.strip()
+                or group_id is None
+                or not isinstance(members, (list, tuple))
+                or not members
+            ):
+                return _claim("list", course_result, status="insufficient_evidence")
+            logical_identity = ("alternative_group", program.strip(), group_id)
+            if logical_identity in logical_identities:
+                return _claim("list", course_result, status="insufficient_evidence")
+            logical_identities.add(logical_identity)
+            member_states: list[str] = []
+            member_identities: set[tuple[str, str, int]] = set()
+            for member in members:
+                if not isinstance(member, Mapping):
+                    return _claim("list", course_result, status="insufficient_evidence")
+                identity = _course_row_identity(member, fallback_program=program)
+                if identity is None or identity in member_identities:
+                    return _claim("list", course_result, status="insufficient_evidence")
+                member_identities.add(identity)
+                burden = burdens_by_identity.get(identity)
+                if burden is None or identity in used_burden_identities:
+                    return _claim("list", course_result, status="insufficient_evidence")
+                used_burden_identities.add(identity)
+                member_states.append(_classify_prerequisite_burden(burden) or "invalid")
+            if all(state == "required" for state in member_states):
+                filtered_rows.append(row)
+            elif not all(state == "explicit_none" for state in member_states):
+                return _claim("list", course_result, status="insufficient_evidence")
+            continue
+
+        identity = _course_row_identity(row)
+        if identity is None or ("course", identity) in logical_identities:
+            return _claim("list", course_result, status="insufficient_evidence")
+        logical_identities.add(("course", identity))
+        burden = burdens_by_identity.get(identity)
+        if burden is None or identity in used_burden_identities:
+            return _claim("list", course_result, status="insufficient_evidence")
+        used_burden_identities.add(identity)
+        state = _classify_prerequisite_burden(burden)
+        if state == "required":
+            filtered_rows.append(row)
+        elif state != "explicit_none":
+            return _claim("list", course_result, status="insufficient_evidence")
+
+    if len(used_burden_identities) != len(burdens_by_identity):
+        return _claim("list", course_result, status="insufficient_evidence")
+    try:
+        aggregate = aggregate_course_set(filtered_rows, evidence_complete=True)
+    except (TypeError, ValueError, OverflowError):
+        return _claim("list", course_result, status="insufficient_evidence")
+    provenance = _merged_scope_prerequisite_provenance(course_rows, burdens)
+    if provenance is None:
+        return _claim("list", course_result, status="insufficient_evidence")
+    return _claim(
+        "list",
+        course_result,
+        value=aggregate.courses,
+        evidence=aggregate,
+        provenance=provenance,
+        status=aggregate.status,
+    )
 
 
 def _claim_for_relation_operation(
@@ -2268,10 +2663,27 @@ def _compose_evidence_claims(
         elif operation == "prerequisite":
             if preference_requires_prerequisite:
                 continue
-            claims.extend(
-                _claim_for_prerequisite_operation(operation, result)
+            course_results = _execution_results(bundle, "course_set")
+            scope_prerequisites = tuple(
+                result
                 for result in prerequisite_results
+                if _scope_prerequisite_dependency(result, course_results)
             )
+            if scope_prerequisites:
+                claims.extend(
+                    _claim_for_scope_prerequisite(result, course_results)
+                    for result in scope_prerequisites
+                )
+                claims.extend(
+                    _claim_for_prerequisite_operation(operation, result)
+                    for result in prerequisite_results
+                    if result not in scope_prerequisites
+                )
+            else:
+                claims.extend(
+                    _claim_for_prerequisite_operation(operation, result)
+                    for result in prerequisite_results
+                )
         elif operation == "describe":
             claims.extend(
                 _claim_for_description_operation(operation, result)
@@ -2414,6 +2826,10 @@ def ask(
     """Run the typed evidence pipeline while retaining the legacy signature."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
+
+    policy_result = route_policy_question(db_path, question)
+    if policy_result is not None:
+        return {"route": None, "result": policy_result}
 
     spec = parse_query_spec(question)
     conversation_mode = conversation_context is not None
@@ -2953,7 +3369,28 @@ def ask(
             })
 
     intent_interpreted = shadow_executed
-    if not shadow_intent and _should_use_intent_interpreter(
+    if (
+        not shadow_intent
+        and not intent_interpreted
+        and _should_use_course_list_interpreter(
+            spec,
+            completeness,
+            resolution,
+            context,
+        )
+    ):
+        course_list_outcome = _run_course_list_interpreter(
+            db_path,
+            question,
+            spec,
+            context,
+            intent_model_callable,
+        )
+        if course_list_outcome is None:
+            return _intent_failure_result(question)
+        spec, resolution, completeness = course_list_outcome
+        intent_interpreted = True
+    if not shadow_intent and not intent_interpreted and _should_use_intent_interpreter(
         spec,
         completeness,
         resolution,

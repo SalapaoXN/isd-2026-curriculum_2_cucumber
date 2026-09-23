@@ -18,6 +18,45 @@ _COURSE_CODE_RE = re.compile(r"[0-9]{8}")
 _COURSE_NAME_TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 _FLEXIBLE_YEAR_SEMESTER_PART = re.compile(r"\s*([1-5])\s*/\s*([1-2])\s*")
 _CANONICAL_PLAN_KEYS = frozenset({"coop", "no_coop", "default", "gened"})
+_CREDIT_UNITS_INTEGRAL_RE = re.compile(r"^\s*(\d+)(?:\s*\([^)]*\))?\s*$")
+
+
+def _parse_integral_credit(value: Any) -> int | None:
+    """Parse an integral per-course credit value with explicit None handling.
+
+    Returns an int only for integral inputs; bool, float non-integral,
+    empty, or unparseable text yields None (unknown). Never uses truthiness.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if value.is_integer():
+            return int(value)
+        return None
+    if isinstance(value, str):
+        if not value.strip():
+            return None
+        match = _CREDIT_UNITS_INTEGRAL_RE.fullmatch(value)
+        if match is None:
+            return None
+        try:
+            return int(match.group(1))
+        except ValueError:
+            return None
+    return None
+
+
+def _has_credit_override(value: Any) -> bool:
+    """Return True only when an override is explicitly present (None/empty excluded)."""
+    if value is None:
+        return False
+    if isinstance(value, str) and not value.strip():
+        return False
+    return True
 
 _SQL_TRACE: ContextVar[list[str] | None] = ContextVar(
     "cucumber_sql_trace",
@@ -1513,13 +1552,24 @@ def scoped_course_set(
     category: str | None = None,
     course_targets: Iterable[Mapping[str, Any]] = (),
     exact_term_placements: bool = False,
+    credit_units: int | None = None,
 ) -> dict[str, Any]:
     """Return one deterministic, structurally scoped course-set relation.
 
     This helper materializes only the supplied structural filters.  It does
     not count, aggregate, compare, or perform semantic retrieval.  The
     executor is responsible for enumerating applicable plan or term values.
+
+    When ``credit_units`` is an int predicate, filter by effective per-course
+    credit (``credits_override ?? courses.credits`` parsed integrally with
+    explicit None checks). Any in-scope candidate with unknown effective
+    credit, or any alternative group with mixed/unknown member credits,
+    fails closed with ``insufficient_evidence``. NULL-credit rows never match.
     """
+    if credit_units is not None and (
+        isinstance(credit_units, bool) or not isinstance(credit_units, int)
+    ):
+        raise ValueError("credit_units must be None or an integer")
     if not isinstance(program, str) or not program.strip():
         raise ValueError("program must be a non-empty string")
     normalized_program = program.strip().upper()
@@ -1677,6 +1727,93 @@ def scoped_course_set(
                 ):
                     continue
 
+            if credit_units is not None:
+                if alternative_group_id is None:
+                    if _has_credit_override(row.get("credits_override")):
+                        effective_credit = _parse_integral_credit(
+                            row.get("credits_override")
+                        )
+                        if effective_credit is None:
+                            return {
+                                "status": "insufficient_evidence",
+                                "program": normalized_program,
+                                "plan_keys": tuple(normalized_plan_keys),
+                                "years": normalized_years,
+                                "semesters": normalized_semesters,
+                                "category": category,
+                                "credit_units": credit_units,
+                                "courses": [],
+                            }
+                    else:
+                        raw_course_credit = row.get("credits")
+                        if raw_course_credit is None and "course_credit_units" in row:
+                            raw_course_credit = row.get("course_credit_units")
+                        effective_credit = _parse_integral_credit(raw_course_credit)
+                        if effective_credit is None:
+                            effective_credit = _parse_integral_credit(
+                                row.get("credits_raw")
+                            )
+                        if effective_credit is None:
+                            return {
+                                "status": "insufficient_evidence",
+                                "program": normalized_program,
+                                "plan_keys": tuple(normalized_plan_keys),
+                                "years": normalized_years,
+                                "semesters": normalized_semesters,
+                                "category": category,
+                                "credit_units": credit_units,
+                                "courses": [],
+                            }
+                    if effective_credit != credit_units:
+                        continue
+                else:
+                    if _has_credit_override(row.get("credits_override")):
+                        effective_credit = _parse_integral_credit(
+                            row.get("credits_override")
+                        )
+                        if effective_credit is None:
+                            return {
+                                "status": "insufficient_evidence",
+                                "program": normalized_program,
+                                "plan_keys": tuple(normalized_plan_keys),
+                                "years": normalized_years,
+                                "semesters": normalized_semesters,
+                                "category": category,
+                                "credit_units": credit_units,
+                                "courses": [],
+                            }
+                        if effective_credit != credit_units:
+                            continue
+                    else:
+                        member_credits: list[int | None] = []
+                        for member in members:
+                            raw_member_credit = member.get("credit_units")
+                            if raw_member_credit is None:
+                                raw_member_credit = member.get("credits")
+                            parsed_member = _parse_integral_credit(raw_member_credit)
+                            if parsed_member is None:
+                                parsed_member = _parse_integral_credit(
+                                    member.get("credits_raw")
+                                )
+                            member_credits.append(parsed_member)
+                        if (
+                            not member_credits
+                            or any(value is None for value in member_credits)
+                            or len(set(member_credits)) != 1
+                        ):
+                            return {
+                                "status": "insufficient_evidence",
+                                "program": normalized_program,
+                                "plan_keys": tuple(normalized_plan_keys),
+                                "years": normalized_years,
+                                "semesters": normalized_semesters,
+                                "category": category,
+                                "credit_units": credit_units,
+                                "courses": [],
+                            }
+                        if member_credits[0] != credit_units:
+                            continue
+
             placement_id = int(row["placement_id"])
             placement_references = _provenance_for(
                 connection,
@@ -1772,6 +1909,7 @@ def scoped_course_set(
         "years": normalized_years,
         "semesters": normalized_semesters,
         "category": category,
+        "credit_units": credit_units,
         "courses": courses,
     }
 
