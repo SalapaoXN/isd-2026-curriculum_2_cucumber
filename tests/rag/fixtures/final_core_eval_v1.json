@@ -1,0 +1,956 @@
+{
+  "version": "final-core-eval-v1",
+  "db": "cucumber_outputs/runtime/curriculum.db",
+  "conventions": "budgets are max allowed calls per callable; structured/answer/intent stubs raise unless budget allows; blocked dict results carry status/action without claims",
+  "cases": [
+    {
+      "id": "C01",
+      "capability": "course_list",
+      "turns": [
+        {
+          "question": "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "list",
+          "status": "complete",
+          "contains": [
+            "06016401",
+            "06016402"
+          ]
+        }
+      ],
+      "final_contains": [
+        "06016401"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "nq_001 (year-1 variant) + H23 list tests",
+      "notes": ""
+    },
+    {
+      "id": "C02",
+      "capability": "count",
+      "turns": [
+        {
+          "question": "IT ปี 3 มีกี่วิชา"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "count",
+          "status": "complete",
+          "value": 12
+        },
+        {
+          "operation": "count",
+          "status": "complete",
+          "value": 69
+        }
+      ],
+      "final_contains": [
+        "12",
+        "69"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H14 count synthesis tests",
+      "notes": "coop 12 / no_coop 69 per plan partition"
+    },
+    {
+      "id": "C03",
+      "capability": "existence",
+      "turns": [
+        {
+          "question": "IT ปี 3 เทอม 1 มีวิชา 06016404 ไหม"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "existence",
+          "status": "complete",
+          "value": true
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H12b existence tests",
+      "notes": ""
+    },
+    {
+      "id": "C04",
+      "capability": "existence_negative",
+      "turns": [
+        {
+          "question": "IT ปี 3 เทอม 1 มีวิชา 06016414 ไหม"
+        }
+      ],
+      "expected_status": "valid_empty",
+      "claim_checks": [
+        {
+          "operation": "existence",
+          "status": "valid_empty"
+        }
+      ],
+      "final_contains": [
+        "false"
+      ],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H12b existence tests",
+      "notes": "06016414 lives in y2t2, not y3t1 | fail-closed carries no authoritative provenance by design."
+    },
+    {
+      "id": "C05",
+      "capability": "placement",
+      "turns": [
+        {
+          "question": "IT 06016414 เรียนตอนไหน"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "placement",
+          "status": "complete",
+          "contains": [
+            "06016414"
+          ]
+        }
+      ],
+      "final_contains": [
+        "06016414"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "nq_006 (IT-prefixed; bare code lacks program scope)",
+      "notes": "y2t2 both plans, 3(2-2-5)"
+    },
+    {
+      "id": "C06",
+      "capability": "exact_credit",
+      "turns": [
+        {
+          "question": "IT 06016414 กี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "sum_credits",
+          "status": "complete",
+          "value": 3
+        }
+      ],
+      "final_contains": [
+        "06016414"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H12b credit tests",
+      "notes": ""
+    },
+    {
+      "id": "C07",
+      "capability": "credit_filter_list",
+      "turns": [
+        {
+          "question": "IT ปี 3 เทอม 1 มีวิชาไหน 3 หน่วยกิตบ้าง"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "list",
+          "status": "complete",
+          "contains": [
+            "06016404"
+          ],
+          "scope_credit": 3
+        }
+      ],
+      "final_contains": [
+        "06016404"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H23 flagship term-1 tests",
+      "notes": ""
+    },
+    {
+      "id": "C08",
+      "capability": "sum_credits",
+      "turns": [
+        {
+          "question": "IT ปี 3 เทอม 1 รวมกี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "sum_credits",
+          "status": "complete",
+          "value": 33
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "structured sum tests",
+      "notes": ""
+    },
+    {
+      "id": "C09",
+      "capability": "category_term_sum",
+      "turns": [
+        {
+          "question": "IT ปี 4 เทอม 1 วิชาเลือก รวมทั้งหมดกี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "sum_credits",
+          "status": "complete",
+          "value": 159
+        },
+        {
+          "operation": "sum_credits",
+          "status": "complete",
+          "value": 165
+        }
+      ],
+      "final_contains": [
+        "159",
+        "165"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H27 elective y4s1 tests",
+      "notes": "coop 159 / no_coop 165"
+    },
+    {
+      "id": "C10",
+      "capability": "category_term_sum",
+      "turns": [
+        {
+          "question": "IT ปี 1 เทอม 1 หมวดวิชาศึกษาทั่วไป รวมทั้งหมดกี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "sum_credits",
+          "status": "complete",
+          "value": 6
+        }
+      ],
+      "final_contains": [
+        "6"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H27 gen-ed y1s1 tests",
+      "notes": ""
+    },
+    {
+      "id": "C11",
+      "capability": "category_list",
+      "turns": [
+        {
+          "question": "IT ปี 4 เทอม 1 วิชาเลือก มีวิชาอะไรบ้าง"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "list",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H27 category-list guard tests",
+      "notes": ""
+    },
+    {
+      "id": "C12",
+      "capability": "prerequisite_exact",
+      "turns": [
+        {
+          "question": "IT 06016414 ต้องผ่านวิชาอะไรก่อน"
+        }
+      ],
+      "expected_status": "valid_empty",
+      "claim_checks": [
+        {
+          "operation": "prerequisite",
+          "status": "valid_empty"
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "nq_008 (IT-prefixed)",
+      "notes": "explicit-none burden"
+    },
+    {
+      "id": "C13",
+      "capability": "identity",
+      "turns": [
+        {
+          "question": "IT 06016414 ชื่อวิชาอะไร"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "identity",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [
+        "NOSQL DATABASE SYSTEMS"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "identity tests",
+      "notes": ""
+    },
+    {
+      "id": "C14",
+      "capability": "program_discovery",
+      "turns": [
+        {
+          "question": "วิชา 06016414 อยู่ในหลักสูตรไหน"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "program_discovery",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [
+        "IT"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "program-discovery tests",
+      "notes": "requires ในหลักสูตร per frozen parser"
+    },
+    {
+      "id": "C15",
+      "capability": "description",
+      "turns": [
+        {
+          "question": "IT 06016414 รายละเอียดวิชาเป็นอย่างไร"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "describe",
+          "status": "complete",
+          "contains": [
+            "06016414"
+          ]
+        }
+      ],
+      "final_contains": [
+        "06016414"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "description tests",
+      "notes": ""
+    },
+    {
+      "id": "C16",
+      "capability": "similarity",
+      "turns": [
+        {
+          "question": "IT 06016414 กับ 06016419 เนื้อหาคล้ายกันไหม"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "similarity",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "nq_031 (IT-prefixed)",
+      "notes": "deterministic exact-similarity, 0 calls"
+    },
+    {
+      "id": "C17",
+      "capability": "placement_compare",
+      "turns": [
+        {
+          "question": "IT 06016414 กับ 06016419 เรียนช่วงเดียวกันไหม"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "placement",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "nq_032 (IT-prefixed)",
+      "notes": "same term y2t2 both plans"
+    },
+    {
+      "id": "C18",
+      "capability": "plan_compare",
+      "turns": [
+        {
+          "question": "IT แผนสหกิจกับไม่สหกิจต่างกันยังไง"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "compare",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "nq_009",
+      "notes": "typed plan comparison, both plans complete"
+    },
+    {
+      "id": "C19",
+      "capability": "context_followup_exact",
+      "turns": [
+        {
+          "question": "IT 06016414 เรียนตอนไหน"
+        },
+        {
+          "question": "แล้ววิชาบังคับก่อนล่ะ",
+          "context": "previous"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "existence",
+          "status": "complete",
+          "value": true
+        },
+        {
+          "operation": "prerequisite",
+          "status": "valid_empty"
+        }
+      ],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H15b/H20 conversation tests",
+      "notes": "structural course_code reuse, canonical re-query"
+    },
+    {
+      "id": "C20",
+      "capability": "context_followup_resultset",
+      "turns": [
+        {
+          "question": "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
+        },
+        {
+          "question": "แล้ววิชาไหนมีวิชาบังคับก่อนบ้าง",
+          "context": "previous"
+        }
+      ],
+      "expected_status": "insufficient_evidence",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H20 scope-prerequisite tests",
+      "notes": "frozen fail-closed on unknown burden states | fail-closed carries no authoritative provenance by design."
+    },
+    {
+      "id": "C21",
+      "capability": "credit_filter_failclosed",
+      "turns": [
+        {
+          "question": "IT ปี 3 มีวิชาไหน 3 หน่วยกิตบ้าง"
+        }
+      ],
+      "expected_status": "insufficient_evidence",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H23 both-terms NULL-placeholder tests",
+      "notes": "060164xx NULL keeps y3 both-terms insufficient by design"
+    },
+    {
+      "id": "C22",
+      "capability": "credit_filter_failclosed",
+      "turns": [
+        {
+          "question": "IT ปี 3 เทอม 1 3 หน่วยกิตกี่วิชา"
+        }
+      ],
+      "expected_status": "insufficient_evidence",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H23-R1 + H32 seam tests",
+      "notes": "structured stub must record 0 calls | fail-closed carries no authoritative provenance by design."
+    },
+    {
+      "id": "C23",
+      "capability": "category_sum_failclosed",
+      "turns": [
+        {
+          "question": "IT วิชาเลือก รวมทั้งหมดกี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "insufficient_evidence",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H27 flagship program-only tests",
+      "notes": "no product semantic for program-wide category total | fail-closed carries no authoritative provenance by design."
+    },
+    {
+      "id": "C24",
+      "capability": "unknown_course",
+      "turns": [
+        {
+          "question": "IT 99999999 เรียนตอนไหน"
+        }
+      ],
+      "expected_status": "no_data",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "gold unknown_course_99999999",
+      "notes": "blocked dict result, no claims"
+    },
+    {
+      "id": "C25",
+      "capability": "missing_program",
+      "turns": [
+        {
+          "question": "ปี 3 เทอม 1 มีวิชาอะไรบ้าง"
+        }
+      ],
+      "expected_status": "clarify_program",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "resolution guard tests",
+      "notes": "blocked dict result"
+    },
+    {
+      "id": "C26",
+      "capability": "unsupported",
+      "turns": [
+        {
+          "question": "IT วิชาที่ยากที่สุดคือวิชาไหน"
+        }
+      ],
+      "expected_status": "unsupported",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "judgement-unsupported tests",
+      "notes": "difficulty verdict out of scope"
+    },
+    {
+      "id": "C27",
+      "capability": "credit_filter_failclosed",
+      "turns": [
+        {
+          "question": "IT ปี 3 เทอม 1 3 หน่วยกิตเรียนตอนไหน"
+        }
+      ],
+      "expected_status": "insufficient_evidence",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H23-R1 + H32 seam tests",
+      "notes": "placement+credit, structured stub must record 0 calls | fail-closed carries no authoritative provenance by design."
+    },
+    {
+      "id": "C28",
+      "capability": "policy_regular_max",
+      "turns": [
+        {
+          "question": "ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [],
+      "final_contains": [
+        "22"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H25 routing tests (extracted)",
+      "notes": ""
+    },
+    {
+      "id": "C29",
+      "capability": "policy_special_max",
+      "turns": [
+        {
+          "question": "ซัมเมอร์ลงได้กี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [],
+      "final_contains": [
+        "9"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H25 routing tests (extracted)",
+      "notes": ""
+    },
+    {
+      "id": "C30",
+      "capability": "policy_program_total",
+      "turns": [
+        {
+          "question": "IT ต้องเรียนรวมทั้งหมดกี่หน่วยกิต"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [],
+      "final_contains": [
+        "129"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H25 program-total tests",
+      "notes": ""
+    },
+    {
+      "id": "C31",
+      "capability": "policy_compare",
+      "turns": [
+        {
+          "question": "IT ลงทะเบียน 22 หน่วยกิตได้ไหม"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [],
+      "final_contains": [
+        "22"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H25 compare tests",
+      "notes": "registration verdict, no curriculum DB read"
+    },
+    {
+      "id": "C32",
+      "capability": "policy_probation",
+      "turns": [
+        {
+          "question": "GPA เท่าไรถึงติดโปร"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [],
+      "final_contains": [
+        "2"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H25 routing tests (extracted)",
+      "notes": ""
+    },
+    {
+      "id": "C33",
+      "capability": "policy_reentry",
+      "turns": [
+        {
+          "question": "กลับเข้าศึกษาได้ภายในกี่ปี"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [],
+      "final_contains": [
+        "1"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 0,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": null,
+      "source": "H25 routing tests (extracted)",
+      "notes": ""
+    },
+    {
+      "id": "C34",
+      "capability": "interpreted_list_recovery",
+      "turns": [
+        {
+          "question": "IT ปี 1 เทอม 1"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "list",
+          "status": "complete",
+          "contains": [
+            "06016401"
+          ]
+        }
+      ],
+      "final_contains": [
+        "06016401"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 1,
+        "structured": 0,
+        "answer": 0
+      },
+      "harness_stub": {
+        "intent": "course_list_query",
+        "requested_facts": [
+          "course_list"
+        ],
+        "proposed_years": [
+          1
+        ],
+        "proposed_semesters": [
+          1
+        ]
+      },
+      "source": "H21 course_list_query tests",
+      "notes": "op-free shape, exactly one interpretation call"
+    },
+    {
+      "id": "C35",
+      "capability": "interpreted_preference",
+      "turns": [
+        {
+          "question": "IT ปี 3 ถ้าอยากปูทางไป data มีตัวไหนที่ควรจับตาไว้"
+        }
+      ],
+      "expected_status": "answer",
+      "claim_checks": [
+        {
+          "operation": "preference",
+          "status": "complete"
+        }
+      ],
+      "final_contains": [
+        "06016421"
+      ],
+      "provenance_required": true,
+      "budget": {
+        "intent": 1,
+        "structured": 0,
+        "answer": 1
+      },
+      "harness_stub": {
+        "intent": "preference_recommendation_evidence",
+        "requested_facts": [
+          "course_list"
+        ],
+        "topic": "data",
+        "judgement_dimension": "preference",
+        "proposed_program": "IT",
+        "proposed_years": [
+          3
+        ],
+        "advisory": true
+      },
+      "source": "interpreter prompt example + preference tests",
+      "notes": "bounded evidence request + supported advisory synthesis; code pinned from dry run"
+    }
+  ]
+}
