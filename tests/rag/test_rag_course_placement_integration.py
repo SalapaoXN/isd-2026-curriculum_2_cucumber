@@ -604,9 +604,11 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         )
 
     def test_exact_course_name_credit_facts_are_deterministic_and_grounded(self):
+        # Program scope is required for name+credit operations (fail-closed
+        # program guard); bare course-code wording clarifies instead.
         questions = (
             (
-                "วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไรและมีหน่วยกิตเท่าไร?",
+                "IT วิชา 06016401 ชื่อภาษาอังกฤษว่าอะไรและมีหน่วยกิตเท่าไร?",
                 "MATHEMATICS FOR INFORMATION TECHNOLOGY",
             ),
             (
@@ -614,7 +616,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
                 "NOSQL DATABASE SYSTEMS",
             ),
             (
-                "วิชา 06016420 ชื่ออะไรและมีกี่หน่วยกิต?",
+                "IT วิชา 06016420 ชื่ออะไรและมีกี่หน่วยกิต?",
                 "INFRASTRUCTURE SYSTEMS AND SERVICES",
             ),
         )
@@ -990,15 +992,22 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         sums = _claims(result, "sum_credits")
         self.assertEqual(len(sums), 1)
         self.assertEqual(sums[0].status, "complete")
-        # Exact-course scope: the mentioned course carries its own credits.
-        self.assertEqual(sums[0].value, 3)
+        # "รวมกี่หน่วยกิต" is an explicit semester total: the frozen planner
+        # rule (_credit_request_targets) drops exact-course targets, so the
+        # term aggregate (10 x 3) is authoritative, not the mentioned course.
+        self.assertEqual(sums[0].value, 30)
         self.assertTrue(sums[0].provenance)
+        component_codes = [
+            component["course_code"]
+            for component in sums[0].evidence.components
+        ]
+        self.assertIn("06016420", component_codes)
         self.assertEqual(
-            [
-                component["course_code"]
+            sums[0].value,
+            sum(
+                component["counted_credit_units"]
                 for component in sums[0].evidence.components
-            ],
-            ["06016420"],
+            ),
         )
         prereqs = _claims(result, "prerequisite")
         self.assertEqual(len(prereqs), 1)

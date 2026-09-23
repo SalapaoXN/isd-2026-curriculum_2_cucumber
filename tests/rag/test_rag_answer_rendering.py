@@ -41,6 +41,8 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_single_scoped_claim_keeps_existing_rendering(self):
+        # Frozen user-facing rendering uses Thai human scope prefixes
+        # (living pins: test_rag_answer.py scoped-sum assertions).
         claim = GroundedClaim(
             "claim_001",
             "sum_credits",
@@ -54,7 +56,10 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
             GroundedAnswerResult("answer", "deterministic", claims=(claim,))
         )
 
-        self.assertEqual(rendered.final_answer, "sum_credits: 18")
+        self.assertEqual(
+            rendered.final_answer,
+            "หลักสูตร IT แผนสหกิจ ปี 2 ลงทะเบียนรวม 18 หน่วยกิต",
+        )
 
     def test_sibling_claims_prefix_only_differing_plan(self):
         claims = (
@@ -82,7 +87,8 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
 
         self.assertEqual(
             rendered.final_answer,
-            "plan=coop | sum_credits: 48\nplan=no_coop | sum_credits: 45",
+            "หลักสูตร IT แผนสหกิจ ปี 2 ลงทะเบียนรวม 48 หน่วยกิต\n"
+            "หลักสูตร IT แผนไม่สหกิจ ปี 2 ลงทะเบียนรวม 45 หน่วยกิต",
         )
         self.assertNotIn("year=", rendered.final_answer)
         self.assertNotIn("program=", rendered.final_answer)
@@ -113,8 +119,8 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
 
         self.assertEqual(
             rendered.final_answer,
-            "year=2, semester=1 | sum_credits: 21\n"
-            "year=3, semester=2 | sum_credits: 21",
+            "หลักสูตร IT แผนสหกิจ ปี 2 ภาคเรียนที่ 1 ลงทะเบียนรวม 21 หน่วยกิต\n"
+            "หลักสูตร IT แผนสหกิจ ปี 3 ภาคเรียนที่ 2 ลงทะเบียนรวม 21 หน่วยกิต",
         )
 
     def test_sibling_claims_prefix_all_differing_dimensions_and_preserve_order(self):
@@ -147,8 +153,8 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
 
         self.assertEqual(
             rendered.final_answer,
-            "plan=coop, year=2, semester=1 | sum_credits: 48\n"
-            "plan=no_coop, year=3, semester=2 | sum_credits: 45",
+            "หลักสูตร IT แผนสหกิจ ปี 2 ภาคเรียนที่ 1 ลงทะเบียนรวม 48 หน่วยกิต\n"
+            "หลักสูตร IT แผนไม่สหกิจ ปี 3 ภาคเรียนที่ 2 ลงทะเบียนรวม 45 หน่วยกิต",
         )
         self.assertEqual(rendered.claims, source.claims)
         self.assertEqual(rendered.provenance, source.provenance)
@@ -326,24 +332,35 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
             lambda prompt: prompts.append(prompt) or "description comparison",
         )
 
-        self.assertIn("0.2", numeric)
-        self.assertIn("0.8", numeric)
+        # Frozen similarity rendering is descriptions-only (living pin:
+        # test_rag_answer complete_similarity_renders_grounded_course_*
+        # asserts NotIn cosine_*); numerics stay in evidence for gating.
+        self.assertIn("06016414", numeric)
+        self.assertIn("06016419", numeric)
+        self.assertIn("left description", numeric)
+        self.assertIn("right description", numeric)
+        self.assertNotIn("cosine_similarity", numeric)
+        self.assertNotIn("cosine_distance", numeric)
         self.assertIn("description comparison", synthesized)
-        self.assertIn("0.2", synthesized)
         self.assertIn("left description", prompts[0])
         self.assertIn("right description", prompts[0])
         self.assertNotIn("0.2", prompts[0])
         self.assertNotIn("0.8", prompts[0])
+        answer_calls: list = []
         rendered_answer = render_grounded_answer(
             GroundedAnswerResult(
                 "answer",
                 "grounded_synthesis",
                 claims=(claim,),
             ),
-            lambda prompt: "description comparison",
+            answer_calls.append,
         )
-        self.assertIn("0.2", rendered_answer.final_answer)
-        self.assertIn("description comparison", rendered_answer.final_answer)
+        # Same H26 gating as above: no question, no polish call — the
+        # deterministic descriptions-only text stands.
+        self.assertEqual(answer_calls, [])
+        self.assertIn("left description", rendered_answer.final_answer)
+        self.assertIn("right description", rendered_answer.final_answer)
+        self.assertNotIn("description comparison", rendered_answer.final_answer)
 
     def test_mixed_answer_renders_claims_in_order_without_mutation(self):
         deterministic = GroundedClaim(
@@ -360,10 +377,16 @@ class GroundedAnswerRenderingTests(unittest.TestCase):
             provenance=({"source_page": 1}, {"source_page": 12}),
         )
 
-        rendered = render_grounded_answer(source, lambda prompt: "synthesized segment")
+        model_calls: list = []
+
+        rendered = render_grounded_answer(source, model_calls.append)
 
         self.assertTrue(rendered.final_answer.startswith('count: {"count":2}'))
-        self.assertTrue(rendered.final_answer.endswith("synthesized segment"))
+        # Frozen H26 gating: without a question the polish path is a
+        # no-op, so the describe claim keeps its deterministic text and
+        # the model is never called.
+        self.assertTrue(rendered.final_answer.endswith("second segment"))
+        self.assertEqual(model_calls, [])
         self.assertEqual(rendered.claims, source.claims)
         self.assertEqual(rendered.status, source.status)
         self.assertEqual(rendered.provenance, source.provenance)

@@ -22,6 +22,8 @@ EXPECTED_FIELDS = (
     "operations",
     "group_by",
     "judgement",
+    # H23-B: parser-owned integral per-course credit predicate.
+    "credit_units",
 )
 
 
@@ -258,6 +260,34 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertEqual(spec.plans, ())
                 self.assertEqual(spec.category, expected_category)
                 self.assertEqual(spec.operations, ("list",))
+
+    def test_english_category_aliases_map_to_closed_taxonomy(self):
+        self.assertEqual(
+            parse_query_spec("DSBA เทอม 2 มี elective อะไร").category,
+            "วิชาเลือก",
+        )
+        self.assertEqual(
+            parse_query_spec("DSBA เทอม 2 มี electives อะไร").category,
+            "วิชาเลือก",
+        )
+        self.assertEqual(
+            parse_query_spec("ขอหมวด gen ed ของ IT ปี 2").category,
+            "หมวดวิชาศึกษาทั่วไป",
+        )
+
+    def test_existing_category_forms_and_precedence_unchanged(self):
+        self.assertEqual(
+            parse_query_spec("DSBA เทอม 2 มีวิชาเลือกอะไรบ้าง").category,
+            "วิชาเลือก",
+        )
+        self.assertEqual(
+            parse_query_spec("ในหลักสูตร DSBA ลงเรียนวิชา gened อะไรได้บ้าง").category,
+            "หมวดวิชาศึกษาทั่วไป",
+        )
+        self.assertEqual(
+            parse_query_spec("วิชาเลือกหมวดศึกษาทั่วไปของ IT มีอะไรบ้าง").category,
+            "วิชาเลือก",
+        )
 
     def test_bounded_colloquial_list_cues_request_course_lists(self):
         for question in (

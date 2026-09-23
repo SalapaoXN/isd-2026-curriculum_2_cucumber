@@ -36,14 +36,31 @@ class QueryContext:
 
     program: str | None = None
     plan: str | None = None
+    years: tuple[int, ...] = ()
+    semesters: tuple[int, ...] = ()
+    category: str | None = None
+    course_code: str | None = None
+    operations: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        for field_name in ("program", "plan"):
+        for field_name in ("program", "plan", "category", "course_code"):
             value = getattr(self, field_name)
             if value is not None and (
                 not isinstance(value, str) or not value.strip()
             ):
                 raise ValueError(f"{field_name} must be None or a non-empty string")
+        for field_name in ("years", "semesters", "operations"):
+            value = getattr(self, field_name)
+            if not isinstance(value, tuple):
+                raise ValueError(f"{field_name} must be a tuple")
+            if field_name != "operations" and any(
+                not isinstance(item, int) or isinstance(item, bool) for item in value
+            ):
+                raise ValueError(f"{field_name} must contain integers")
+            if field_name == "operations" and any(
+                not isinstance(item, str) or not item.strip() for item in value
+            ):
+                raise ValueError("operations must contain non-empty strings")
 
 
 @dataclass(frozen=True, slots=True)

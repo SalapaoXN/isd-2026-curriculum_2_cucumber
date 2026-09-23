@@ -101,10 +101,12 @@ class ExactCourseCandidatesTest(unittest.TestCase):
         self.assertEqual(len(candidates), 1)
         candidate = candidates[0]
         self.assertEqual((candidate["program"], candidate["course_code"]), ("DSBA", "06026200"))
-        self.assertIsNone(candidate["name_th"])
+        # Canonical DB (rebuilt data authority) carries a concrete Thai title
+        # on every duplicate row; collapsing still yields one logical identity.
+        self.assertEqual(candidate["name_th"], "แคลคูลัส 1")
         self.assertEqual(
             set(candidate["name_th_variants"]),
-            {"ไม่ระบุ 1", "แคลคูลัส 1"},
+            {"แคลคูลัส 1"},
         )
         self.assertEqual(candidate["name_en"], "CALCULUS 1")
         self.assertEqual(candidate["name_en_variants"], ["CALCULUS 1"])
@@ -173,7 +175,7 @@ class ExactCourseCandidatesTest(unittest.TestCase):
             item for item in candidates if item["course_code"] == "06026200"
         )
         self.assertEqual(candidate["program"], "DSBA")
-        self.assertIsNone(candidate["name_th"])
+        self.assertEqual(candidate["name_th"], "แคลคูลัส 1")
         self.assertEqual(candidate["name_en"], "CALCULUS 1")
         self.assertTrue(candidate["provenance"])
 

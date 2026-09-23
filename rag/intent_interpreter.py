@@ -32,6 +32,9 @@ INTENTS = frozenset(
         "plan_comparison",
         "program_discovery",
         "count_query",
+        "course_list_query",
+        "course_credit_query",
+        "existence_query",
         "workload_judgement",
         "preference_recommendation_evidence",
     }
@@ -43,6 +46,7 @@ INTENTS = frozenset(
 REQUESTED_FACTS = frozenset(
     {
         "course_list",
+        "course_credit",
         "course_description",
         "placement",
         "prerequisite",
@@ -548,6 +552,22 @@ def build_intent_prompt(question: str) -> str:
             "course_codes MUST be []. Do not interpret semantic/topic counts, "
             "comparisons, workload, credits, existence, or unresolved filters "
             "as count_query.",
+            "course_list_query recovers a missing LIST intent only: return "
+            "the courses in the already supplied structural scope. "
+            "For course_list_query, requested_facts MUST be exactly "
+            "[\"course_list\"], topic MUST be null, judgement_dimension MUST "
+            "be null, and course_codes MUST be []. Do not invent program, "
+            "plans, years, semesters, category, topic, or course codes. "
+            "Do not use this family for numeric credit filters, ranking, "
+            "workload, difficulty, comparison, or unsupported predicates. "
+            "Unresolved or unsupported constraints must remain in "
+            "unresolved, never be silently dropped.",
+            "course_credit_query is limited to one exact course target and "
+            "MUST request exactly [\"course_credit\"]. The credit value is "
+            "never supplied by the model; use canonical evidence only. "
+            "existence_query is limited to one exact course target and MUST "
+            "request exactly [\"course_list\"]. Neither intent may add a "
+            "topic, judgement, comparison, unresolved filter, or scope.",
             "workload_judgement and preference_recommendation_evidence only "
             "identify the requested evidence dimension; they never conclude "
             "whether something is heavy, easy, good, better, or recommended.",

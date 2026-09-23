@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
+import math
+import re
 import sqlite3
 from types import MappingProxyType
 from typing import Any
@@ -53,6 +56,7 @@ def _scope_payload(scope: StructuralScope) -> dict[str, Any]:
         "years": scope.years,
         "semesters": scope.semesters,
         "category": scope.category,
+        "credit_units": getattr(scope, "credit_units", None),
         "group_by": scope.group_by,
     }
 
@@ -711,6 +715,7 @@ def _materialize_scopes(
                             years=selected_years or source.years,
                             semesters=selected_semesters or source.semesters,
                             category=source.category,
+                            credit_units=getattr(source, "credit_units", None),
                             expand_applicable=tuple(
                                 axis for axis in source.expand_applicable
                                 if axis in selected_expand
@@ -760,7 +765,12 @@ def _execute_course_set(
         category=scope.category,
         course_targets=scope.course_targets,
         exact_term_placements=exact_term_placements,
+        credit_units=getattr(scope, "credit_units", None),
     )
+    if result.get("status") == "insufficient_evidence":
+        return _result(
+            request, scope, "insufficient_evidence", result, "credit_filter_incomplete"
+        )
     courses = tuple(result.get("courses", ()))
     if result.get("status") == "no_data":
         return _result(request, scope, "valid_empty", result, "empty_relation")
@@ -781,10 +791,213 @@ def _execute_placement(
         semesters=scope.semesters,
         category=scope.category,
         course_targets=scope.course_targets,
+        credit_units=getattr(scope, "credit_units", None),
     )
+    if result.get("status") == "insufficient_evidence":
+        return _result(
+            request, scope, "insufficient_evidence", result, "credit_filter_incomplete"
+        )
     if result.get("status") == "no_data":
         return _result(request, scope, "valid_empty", result, "empty_relation")
     return _result(request, scope, _status_for_payload(result), result)
+
+
+_CATEGORY_CREDIT_RE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)")
+
+
+def _parse_category_credit(value: Any) -> Decimal | None:
+    """Parse one canonical per-course credit value with explicit None handling.
+
+    Mirrors the lenient leading-number read of the existing semester-total
+    path, but returns None (unknown) instead of silently using zero. Never
+    uses truthiness, so explicit ``0`` credits keep working.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return Decimal(value)
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return None
+        try:
+            parsed = Decimal(str(value))
+        except InvalidOperation:
+            return None
+        return parsed if parsed.is_finite() else None
+    if isinstance(value, str):
+        if not value.strip():
+            return None
+        match = _CATEGORY_CREDIT_RE.search(value)
+        if match is None:
+            return None
+        try:
+            parsed = Decimal(match.group(1))
+        except InvalidOperation:
+            return None
+        return parsed if parsed.is_finite() else None
+    return None
+
+
+def _has_category_override(value: Any) -> bool:
+    """Return True only when a credit override is explicitly present."""
+    if value is None:
+        return False
+    if isinstance(value, str) and not value.strip():
+        return False
+    return True
+
+
+def _counted_category_credit(course: Mapping[str, Any]) -> Decimal | None:
+    """Return the counted credit for one filtered logical course, if provable.
+
+    Frozen H23/H27-A alternative rule: an explicit placement override wins;
+    otherwise every member must carry a known equal credit (member
+    ``credits`` with ``credits_raw`` fallback, mirroring the list filter).
+    Mixed/unknown/conflicting members, invalid choice counts, or missing
+    credits yield None so the caller fails closed. Never chooses a member.
+    """
+    override = course.get("credits_override")
+    if _has_category_override(override):
+        return _parse_category_credit(override)
+    if not course.get("is_alternative"):
+        return _parse_category_credit(course.get("credits"))
+    members = course.get("alternative_courses", ())
+    if not isinstance(members, (list, tuple)) or not members:
+        return None
+    units: list[Decimal] = []
+    for member in members:
+        if not isinstance(member, Mapping):
+            return None
+        unit = _parse_category_credit(member.get("credits"))
+        if unit is None:
+            unit = _parse_category_credit(member.get("credits_raw"))
+        if unit is None:
+            return None
+        units.append(unit)
+    if len(set(units)) != 1:
+        return None
+    choices = course.get("minimum_choices")
+    if isinstance(choices, bool) or not isinstance(choices, int) or choices < 1:
+        return None
+    if len(members) < choices:
+        return None
+    return units[0] * choices
+
+
+def _execute_category_credit(
+    db_path: str,
+    request: EvidenceRequest,
+    scope: StructuralScope,
+    *,
+    course_targets: Iterable[Mapping[str, Any]] = (),
+) -> EvidenceExecutionResult:
+    """Compose a category-restricted credit total from the filtered set.
+
+    Defensive second layer behind the H27-B completeness guard: only concrete
+    single plan/year/semester scopes execute; anything else fails closed.
+    Components mirror the existing credit payload shape (with provenance from
+    the filtered set only) so downstream aggregation/dedup contracts apply
+    unchanged. Empty filtered sets are valid-empty (0).
+    """
+    if (
+        len(scope.plans) != 1
+        or len(scope.years) != 1
+        or len(scope.semesters) != 1
+    ):
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="credit_scope_not_concrete",
+        )
+    try:
+        filtered = scoped_course_set(
+            db_path,
+            scope.program or "",
+            scope.plans,
+            years=scope.years,
+            semesters=scope.semesters,
+            category=scope.category,
+            course_targets=tuple(course_targets or ()),
+        )
+    except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError, KeyError):
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="execution_failure",
+        )
+    if not isinstance(filtered, Mapping) or filtered.get("status") == "insufficient_evidence":
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            filtered if isinstance(filtered, Mapping) else None,
+            "category_credit_incomplete",
+        )
+    if filtered.get("status") == "no_data":
+        return _result(request, scope, "valid_empty", filtered, "empty_relation")
+    courses = filtered.get("courses", ())
+    if not isinstance(courses, (list, tuple)):
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="category_credit_incomplete",
+        )
+    components: list[dict[str, Any]] = []
+    for course in courses:
+        if not isinstance(course, Mapping):
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="category_credit_incomplete",
+            )
+        counted = _counted_category_credit(course)
+        if counted is None:
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                filtered,
+                "category_credit_incomplete",
+            )
+        numeric: int | float = (
+            int(counted) if counted == counted.to_integral_value() else float(counted)
+        )
+        components.append(
+            {
+                "placement_id": course.get("placement_id"),
+                "program": course.get("program"),
+                "plan_key": course.get("plan_key"),
+                "course_id": course.get("course_id"),
+                "course_code": course.get("course_code"),
+                "name_th": course.get("name_th"),
+                "name_en": course.get("name_en"),
+                "credits_raw": course.get("credits_raw"),
+                "credit_units": (
+                    None if course.get("is_alternative") else counted
+                ),
+                "counted_credit_units": numeric,
+                "alternative_group_id": course.get("alternative_group_id"),
+                "alternative_courses": course.get("alternative_courses", ()),
+                "year": course.get("year_number"),
+                "semester": course.get("semester_number"),
+                "provenance": tuple(course.get("provenance", ())),
+            }
+        )
+    payload = {
+        "status": "ok",
+        "program": scope.program,
+        "plan_key": scope.plans[0],
+        "year": scope.years[0],
+        "semester": scope.semesters[0],
+        "total_credits": None,
+        "plans": (),
+        "components": tuple(components),
+    }
+    return _result(request, scope, _status_for_payload(payload), payload)
 
 
 def _execute_credit(
@@ -795,6 +1008,17 @@ def _execute_credit(
     course_targets: Iterable[Mapping[str, Any]] | None = None,
 ) -> EvidenceExecutionResult:
     targets = tuple(course_targets or ())
+    if scope.category is not None:
+        # H27-B: never route a category-filtered sum through the
+        # category-blind get_semester_credits() path. Compose the total from
+        # the canonical filtered course set instead; fail closed on any
+        # missing/conflicting credit evidence.
+        return _execute_category_credit(
+            db_path,
+            request,
+            scope,
+            course_targets=tuple(targets) or tuple(scope.course_targets),
+        )
     if targets and (not scope.years or not scope.semesters):
         if len(targets) != 1:
             return _result(
@@ -980,6 +1204,7 @@ def _scoped_course_ids(
         semesters=scope.semesters,
         category=scope.category,
         course_targets=targets,
+        credit_units=getattr(scope, "credit_units", None),
     )
     if not isinstance(result, Mapping) or result.get("status") != "ok":
         return None
@@ -1336,6 +1561,102 @@ def _execute_topic_dependent_prerequisites(
     )
 
 
+def _course_set_prerequisite_targets(
+    payload: Any,
+) -> tuple[Mapping[str, Any], ...] | None:
+    if not isinstance(payload, Mapping):
+        return None
+    courses = payload.get("courses")
+    if not isinstance(courses, (list, tuple)):
+        return None
+
+    targets: list[Mapping[str, Any]] = []
+    for course in courses:
+        if not isinstance(course, Mapping):
+            return None
+        if course.get("is_alternative"):
+            members = course.get("alternative_courses")
+            if not isinstance(members, (list, tuple)) or not members:
+                return None
+            for member in members:
+                if not isinstance(member, Mapping):
+                    return None
+                program = member.get("program") or course.get("program")
+                candidate = _canonical_prerequisite_candidate(member, program)
+                if candidate is None:
+                    return None
+                targets.append(candidate)
+            continue
+
+        candidate = _canonical_prerequisite_candidate(course, course.get("program"))
+        if candidate is None:
+            return None
+        targets.append(candidate)
+    return tuple(targets)
+
+
+def _canonical_prerequisite_candidate(
+    value: Mapping[str, Any],
+    fallback_program: Any,
+) -> Mapping[str, Any] | None:
+    program = value.get("program") or fallback_program
+    course_id = value.get("course_id")
+    course_code = value.get("course_code")
+    if (
+        not isinstance(program, str)
+        or not program.strip()
+        or isinstance(course_id, bool)
+        or not isinstance(course_id, int)
+        or not isinstance(course_code, str)
+        or not course_code.strip()
+    ):
+        return None
+    return {
+        "program": program.strip(),
+        "course_id": course_id,
+        "course_code": course_code.strip(),
+    }
+
+
+def _execute_course_set_dependent_prerequisites(
+    db_path: str,
+    request: EvidenceRequest,
+    dependency: EvidenceExecutionResult,
+) -> EvidenceExecutionResult:
+    scope = dependency.effective_scope
+    if dependency.status == "insufficient_evidence":
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state=dependency.primitive_state or "dependency_insufficient",
+        )
+    if dependency.status == "valid_empty":
+        return _result(
+            request,
+            scope,
+            "valid_empty",
+            (),
+            "empty_course_set",
+        )
+    targets = _course_set_prerequisite_targets(dependency.payload)
+    if targets is None:
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="malformed_course_set_dependency",
+        )
+    burden = build_direct_prerequisite_burden(db_path, targets)
+    return _result(
+        request,
+        scope,
+        burden.status,
+        burden.burdens,
+        burden.primitive_state,
+    )
+
+
 def execute_evidence_plan(
     db_path: str,
     plan: EvidencePlan,
@@ -1459,6 +1780,57 @@ def execute_evidence_plan(
                         else:
                             request_results.append(
                                 _execute_topic_dependent_credit(
+                                    db_path,
+                                    request,
+                                    dependency,
+                                )
+                            )
+        elif request.kind == "prerequisite_facts" and any(
+            request_by_id.get(dependency_id, None) is not None
+            and request_by_id[dependency_id].kind == "course_set"
+            for dependency_id in request.depends_on
+        ):
+            course_set_dependency_ids = tuple(
+                dependency_id
+                for dependency_id in request.depends_on
+                if request_by_id.get(dependency_id, None) is not None
+                and request_by_id[dependency_id].kind == "course_set"
+            )
+            if len(request.depends_on) != 1 or len(course_set_dependency_ids) != 1:
+                request_results = [
+                    _result(
+                        request,
+                        request.scope,
+                        "insufficient_evidence",
+                        primitive_state="invalid_course_set_dependency",
+                    )
+                ]
+            else:
+                dependency_results = by_request.get(course_set_dependency_ids[0], ())
+                if not dependency_results:
+                    request_results = [
+                        _result(
+                            request,
+                            request.scope,
+                            "insufficient_evidence",
+                            primitive_state="missing_course_set_dependency",
+                        )
+                    ]
+                else:
+                    request_results = []
+                    for dependency in dependency_results:
+                        if dependency.planned_request.scope != request.scope:
+                            request_results.append(
+                                _result(
+                                    request,
+                                    dependency.effective_scope,
+                                    "insufficient_evidence",
+                                    primitive_state="incompatible_course_set_scope",
+                                )
+                            )
+                        else:
+                            request_results.append(
+                                _execute_course_set_dependent_prerequisites(
                                     db_path,
                                     request,
                                     dependency,

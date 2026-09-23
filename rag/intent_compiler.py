@@ -38,6 +38,8 @@ _INTENT_OPERATION = {
     "plan_comparison": "compare",
     "program_discovery": "program_discovery",
     "count_query": "count",
+    "course_credit_query": "sum_credits",
+    "existence_query": "existence",
 }
 
 _INTENT_FACTS = {
@@ -50,6 +52,8 @@ _INTENT_FACTS = {
     "plan_comparison": frozenset({"plan_comparison"}),
     "program_discovery": frozenset({"program_identity"}),
     "count_query": frozenset({"course_list"}),
+    "course_credit_query": frozenset({"course_credit"}),
+    "existence_query": frozenset({"course_list"}),
 }
 
 _GROUP_BY_FOR_INTENT = {
@@ -177,6 +181,62 @@ def _merge_operations(
     return tuple(result)
 
 
+def _course_list_operations(
+    base_spec: QuerySpec,
+    interpretation: Any,
+    *,
+    program: str | None,
+    plans: tuple[Any, ...],
+    years: tuple[Any, ...],
+    semesters: tuple[Any, ...],
+    course_codes: tuple[Any, ...],
+    effective_program: str | None,
+    effective_plans: tuple[Any, ...],
+    effective_years: tuple[Any, ...],
+    effective_semesters: tuple[Any, ...],
+    effective_codes: tuple[Any, ...],
+) -> tuple[str, ...]:
+    """Compile course_list_query to ("list",) without touching scope.
+
+    Only the missing LIST operation may be recovered. Every other
+    effective field must round-trip exactly; any deviation raises.
+    """
+    if tuple(interpretation.requested_facts) != ("course_list",):
+        raise IntentCompilerError(
+            "course_list_query requires exactly [\"course_list\"]"
+        )
+    if interpretation.topic is not None or base_spec.topic is not None:
+        raise IntentCompilerError("course_list_query cannot use a topic")
+    if (
+        interpretation.judgement_dimension is not None
+        or base_spec.judgement not in (None, "none")
+    ):
+        raise IntentCompilerError("course_list_query cannot use a judgement")
+    if (
+        tuple(interpretation.course_codes)
+        or tuple(base_spec.course_codes)
+        or base_spec.course_name is not None
+    ):
+        raise IntentCompilerError("course_list_query cannot target a course")
+    if getattr(base_spec, "credit_units", None) is not None:
+        # Deterministic credit predicates are parser-owned; the interpreter
+        # must never recover LIST for a credit-filtered shape (no LLM
+        # credit paraphrase in H23). Deterministic ("list",) + predicate
+        # stays on the 0-call path.
+        raise IntentCompilerError("course_list_query cannot use a credit filter")
+    expected_program = effective_program or base_spec.program
+    if (program or "").casefold() != (expected_program or "").casefold():
+        raise IntentCompilerError("course_list_query changed the program scope")
+    if (
+        tuple(plans) != tuple(effective_plans)
+        or tuple(years) != tuple(effective_years)
+        or tuple(semesters) != tuple(effective_semesters)
+        or tuple(course_codes) != tuple(effective_codes)
+    ):
+        raise IntentCompilerError("course_list_query changed the filter scope")
+    return ("list",)
+
+
 def _mapped_operations(
     interpretation: IntentInterpretation,
     base_operations: tuple[str, ...],
@@ -206,6 +266,16 @@ def _mapped_operations(
             for operation in ("list", "prerequisite")
             if operation in merged
         )
+    if intent in {"course_credit_query", "existence_query"}:
+        expected = {
+            "course_credit_query": ("course_credit",),
+            "existence_query": ("course_list",),
+        }[intent]
+        if tuple(interpretation.requested_facts) != expected:
+            raise IntentCompilerError("exact-course intent has wrong evidence request")
+        if tuple(base_operations):
+            raise IntentCompilerError("exact-course intent cannot combine with operations")
+        return (_INTENT_OPERATION[intent],)
     if intent == "count_query":
         if tuple(interpretation.requested_facts) != ("course_list",):
             raise IntentCompilerError(
@@ -260,6 +330,15 @@ def _require_course_target(spec: QuerySpec, *, exact_count: int | None = None) -
         raise IntentCompilerError("intent requires an exact course target")
 
 
+def _require_single_course_target(spec: QuerySpec) -> None:
+    codes = tuple(spec.course_codes)
+    if len(codes) > 1 or (
+        not codes
+        and not (isinstance(spec.course_name, str) and spec.course_name.strip())
+    ):
+        raise IntentCompilerError("intent requires one exact course target")
+
+
 def compile_intent_to_query_spec(
     base_spec: QuerySpec,
     interpretation: IntentInterpretation,
@@ -297,6 +376,11 @@ def compile_intent_to_query_spec(
     if base_spec.judgement == "unsupported":
         raise IntentCompilerError("base QuerySpec has unsupported judgement")
 
+    if interpretation.intent in {"course_credit_query", "existence_query"}:
+        if base_spec.topic is not None or base_spec.judgement not in {None, "none"}:
+            raise IntentCompilerError("exact-course intent cannot use topic or judgement")
+        if interpretation.topic is not None or interpretation.judgement_dimension is not None:
+            raise IntentCompilerError("exact-course intent cannot add topic or judgement")
     if interpretation.intent == "count_query":
         if base_spec.topic is not None:
             raise IntentCompilerError("count_query cannot use a topic")
@@ -348,10 +432,26 @@ def compile_intent_to_query_spec(
     if base_spec.category is not None and not isinstance(base_spec.category, str):
         raise IntentCompilerError("base category is malformed")
 
-    operations = _mapped_operations(
-        interpretation,
-        tuple(base_spec.operations),
-    )
+    if interpretation.intent == "course_list_query":
+        operations = _course_list_operations(
+            base_spec,
+            interpretation,
+            program=program,
+            plans=plans,
+            years=years,
+            semesters=semesters,
+            course_codes=course_codes,
+            effective_program=effective_program,
+            effective_plans=effective_plans,
+            effective_years=effective_years,
+            effective_semesters=effective_semesters,
+            effective_codes=effective_codes,
+        )
+    else:
+        operations = _mapped_operations(
+            interpretation,
+            tuple(base_spec.operations),
+        )
     if interpretation.intent == "topic_course_search" and not topic:
         raise IntentCompilerError("topic_course_search requires a topic")
     if interpretation.intent in {
@@ -362,6 +462,8 @@ def compile_intent_to_query_spec(
         _require_course_target(
             replace(base_spec, course_codes=course_codes),
         )
+    if interpretation.intent in {"course_credit_query", "existence_query"}:
+        _require_single_course_target(replace(base_spec, course_codes=course_codes))
     if interpretation.intent in {"similarity_query", "course_comparison"}:
         _require_course_target(
             replace(base_spec, course_codes=course_codes),
