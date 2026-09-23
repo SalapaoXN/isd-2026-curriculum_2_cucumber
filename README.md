@@ -209,6 +209,14 @@ cucumber_outputs/
 - `submission/` — ชุดส่งงานเดิม แยกจาก runtime ปัจจุบัน
 - `cucumber_outputs/runtime/curriculum.db` — database ที่ QA ใช้
 
+### แผนที่ subsystem (เอกสารละเอียดแยกตามส่วน)
+
+- `src/pipeline/README.md` — OCR → canonical JSON → database
+- `data/README.md` — ชั้นข้อมูลและความหมายของแต่ละ layer
+- `rag/README.md` — QA pipeline, query families, evaluation
+- `lab10_fastapi/README.md` — API, UI, provider/key behavior
+- `scripts/README.md` — CLI และเครื่องมือ developer
+
 ---
 
 ## 5. Pipeline เต็ม
@@ -500,3 +508,39 @@ docs/review.md
 4. `ground_truth/` ใช้ตรวจผล ไม่ใช่ production authority
 5. `submission/` เป็น artifact แยกจาก runtime ปัจจุบัน
 6. ถ้าแก้ canonical JSON ให้รัน `python -m rag.build_index` ใหม่ก่อนทดสอบ QA
+
+---
+
+## 11. RAG Final: ขอบเขตที่รองรับ & demo
+
+### คำถามที่รองรับ
+- รายชื่อวิชา / จำนวนวิชา / มีวิชานี้ไหม / วิชานี้เรียนตอนไหน (ระบุ program เสมอ)
+- หน่วยกิตรายวิชา; กรองรายชื่อด้วย `N หน่วยกิต` (list-only)
+- ผลรวมหน่วยกิตตาม scope; ผลรวมหมวด (`วิชาเลือก` / `หมวดวิชาศึกษาทั่วไป`) เฉพาะปี+เทอมที่ระบุชัด
+- วิชาบังคับก่อน (รายวิชา + ติดตามผลแบบ result-set); รายละเอียดวิชา; ความคล้าย 2 วิชา; เปรียบเทียบแผน
+- คำถามนอก template บางรูป (op-free scope, preference) ใช้ bounded interpretation (สูงสุด 1 call)
+- นโยบายแบบ single-turn: เพดาน/ขั้นต่ำลงทะเบียน, กรณีพิเศษ, ซัมเมอร์, โปร, เกียรตินิยม, กลับเข้าศึกษา, รวมหลักสูตร,  verdict ลงทะเบียน
+
+### Multi-turn
+ส่ง `next_context` จาก response กลับมาเป็น `conversation_context` ในครั้งถัดไป (โครงสร้างล้วน ไม่มีแคชคำตอบ) เทิร์นปัจจุบันที่ระบุชัดชนะ context; anaphora ที่กู้ไม่ได้ fail safe
+
+### Authority
+ข้อเท็จจริงหลักสูตรมาจาก SQLite deterministic; นโยบายมาจาก policy authority แยกกัน; LLM เป็นได้แค่ interpreter/presenter; `ground_truth/` ใช้ประเมินเท่านั้น ทุกคำตอบมี provenance; หลักฐานไม่พอ → `insufficient_evidence` / `valid_empty` / `no_data` / `clarify_program` / `unsupported` แทนการเดา
+
+### ทดสอบแบบ offline (ไม่ต้องมี API key)
+```powershell
+python -m unittest tests.rag.test_final_core_eval -v
+```
+Core Set 35 ข้อ (`tests/rag/fixtures/final_core_eval_v1.json`) รันผ่าน public `ask()` ทั้งหมด
+
+### Demo
+CLI ต้องมี `GEMINI_API_KEY`:
+```powershell
+python scripts/ask.py "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
+```
+API: แอป FastAPI ใต้ `lab10_fastapi/` (`POST /api/ask` รับ `question` + `conversation_context` ต่อได้)
+
+### ข้อจำกัดที่รู้แล้ว / งานในอนาคต
+- ผลรวมหมวดระดับ program/year-only/semester-only ไม่มี semantics (fail closed)
+- นโยบายแบบ multi-turn, earliest-year, English/word-form credit filter: ไม่อยู่ใน scope
+- CLI แสดง label แหล่งนโยบายเป็น `เล่มหลักสูตร: RULE` (contract ถูก, label รอ product decision)
