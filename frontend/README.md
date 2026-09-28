@@ -2,7 +2,9 @@
 
 React + Vite single-page app. Every page uses a shared left navigation pane with:
 
-- **Chat** (`/chat`) — ask questions via `POST /api/ask` (multi-turn supported)
+- **Chat** (`/chat`) — program selector on top seeds the question scope,
+  chat sessions (left panel, persisted in browser) keep multi-turn context,
+  your questions align right and answers align left
 - **Curriculum document** (`/curriculum`) — browse courses via `GET /api/programs`, `GET /api/curriculum`, `GET /api/courses/{code}`
 
 ## Develop

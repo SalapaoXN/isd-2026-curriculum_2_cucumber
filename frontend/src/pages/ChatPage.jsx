@@ -1,35 +1,146 @@
-import { useState } from "react";
-import { askQuestion } from "../api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { askQuestion, fetchPrograms } from "../api";
+
+const STORAGE_KEY = "cucumber-chat-sessions-v1";
+
+function loadStored() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.sessions)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function newSession(program) {
+  return {
+    id: `s-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+    program: program || "",
+    title: "New chat",
+    messages: [],
+    context: null,
+    createdAt: Date.now(),
+  };
+}
 
 export default function ChatPage() {
+  const [programs, setPrograms] = useState([]);
+  const [sessions, setSessions] = useState(() => {
+    const stored = loadStored();
+    if (stored && stored.sessions.length > 0) return stored.sessions;
+    return [newSession("IT")];
+  });
+  const [activeId, setActiveId] = useState(() => {
+    const stored = loadStored();
+    if (stored && stored.sessions.length > 0) {
+      return stored.activeId || stored.sessions[0].id;
+    }
+    return null;
+  });
   const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [context, setContext] = useState(null);
-  const [followUp, setFollowUp] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const threadRef = useRef(null);
+
+  const active = useMemo(
+    () => sessions.find((s) => s.id === activeId) || sessions[0],
+    [sessions, activeId]
+  );
+
+  useEffect(() => {
+    fetchPrograms()
+      .then((res) => setPrograms(res.programs || []))
+      .catch(() => setPrograms([]));
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ sessions, activeId: active?.id || null })
+      );
+    } catch {
+      // storage is best-effort only
+    }
+  }, [sessions, active]);
+
+  useEffect(() => {
+    threadRef.current?.scrollTo({
+      top: threadRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [active?.messages.length, loading]);
+
+  function updateActive(patch) {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === active.id ? { ...s, ...patch } : s))
+    );
+  }
+
+  function handleNewChat() {
+    const session = newSession(active?.program || "IT");
+    setSessions((prev) => [session, ...prev]);
+    setActiveId(session.id);
+    setQuestion("");
+    setError("");
+  }
+
+  function handleDeleteSession(id) {
+    setSessions((prev) => {
+      const next = prev.filter((s) => s.id !== id);
+      if (next.length === 0) {
+        const fresh = newSession(active?.program || "IT");
+        setActiveId(fresh.id);
+        return [fresh];
+      }
+      if (id === active?.id) setActiveId(next[0].id);
+      return next;
+    });
+  }
+
+  function handleProgramChange(program) {
+    // Keep the current session and its history; only the scope changes.
+    // Context is cleared so the next question is seeded with the new
+    // program instead of chaining the previous program's scope.
+    updateActive({ program, context: null });
+    setQuestion("");
+    setError("");
+  }
 
   async function handleAsk() {
     const q = question.trim();
     setError("");
+    if (!active) return;
     if (q.length < 2) {
       setError("กรุณาพิมพ์คำถามอย่างน้อย 2 ตัวอักษร");
       return;
     }
     setLoading(true);
     try {
-      const data = await askQuestion(q, followUp ? context : null);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          question: q,
-          answer: data.answer || "ไม่พบคำตอบ",
-          status: data.status,
-          provenance: data.provenance || [],
-        },
-      ]);
-      setContext(data.next_context || null);
+      // Seed the first turn with the chosen program so the user does not
+      // have to type it in every question; later turns chain next_context.
+      const seed = active.context || (active.program ? { program: active.program } : null);
+      const data = await askQuestion(q, seed);
+      const entry = {
+        id: Date.now(),
+        question: q,
+        answer: data.answer || "ไม่พบคำตอบ",
+        status: data.status,
+        provenance: data.provenance || [],
+      };
+      updateActive({
+        messages: [...active.messages, entry],
+        context: data.next_context || null,
+        title:
+          active.messages.length === 0
+            ? q.length > 42
+              ? `${q.slice(0, 42)}…`
+              : q
+            : active.title,
+      });
       setQuestion("");
     } catch (err) {
       setError(err.message || "เกิดข้อผิดพลาด");
@@ -38,12 +149,7 @@ export default function ChatPage() {
     }
   }
 
-  function handleReset() {
-    setMessages([]);
-    setContext(null);
-    setQuestion("");
-    setError("");
-  }
+  if (!active) return null;
 
   return (
     <div className="page">
@@ -52,67 +158,133 @@ export default function ChatPage() {
         <p>ระบบถาม–ตอบข้อมูลหลักสูตรจากฐานข้อมูล CUCUMBER</p>
       </header>
 
-      <section className="card ask-card">
-        <label htmlFor="question">คำถาม</label>
-        <textarea
-          id="question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.ctrlKey && e.key === "Enter") handleAsk();
-          }}
-          placeholder="เช่น IT วิชา 06016454 กี่หน่วยกิต"
-        />
-        <div className="actions">
-          <button type="button" onClick={handleAsk} disabled={loading}>
-            {loading ? "กำลังค้นหา..." : "ถาม"}
+      <div className="chat-layout">
+        <aside className="card session-panel">
+          <button type="button" className="session-new" onClick={handleNewChat}>
+            + New chat
           </button>
-          <button
-            type="button"
-            className="ghost"
-            onClick={handleReset}
-            disabled={loading && messages.length === 0}
-          >
-            เริ่มใหม่
-          </button>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={followUp}
-              onChange={(e) => setFollowUp(e.target.checked)}
-            />
-            ต่อบทสนทนา (multi-turn)
-          </label>
-          <span className="hint">กด Ctrl + Enter เพื่อส่งคำถาม</span>
-        </div>
-        {error && <div className="error visible">{error}</div>}
-      </section>
+          <ul className="session-list">
+            {sessions.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  className={`session-item${s.id === active.id ? " active" : ""}`}
+                  onClick={() => {
+                    setActiveId(s.id);
+                    setQuestion("");
+                    setError("");
+                  }}
+                  title={s.title}
+                >
+                  <span className="session-program">{s.program || "All"}</span>
+                  <span className="session-title">{s.title}</span>
+                  <span className="session-count">{s.messages.length}</span>
+                </button>
+                {sessions.length > 1 && (
+                  <button
+                    type="button"
+                    className="session-del"
+                    aria-label="Delete chat"
+                    onClick={() => handleDeleteSession(s.id)}
+                  >
+                    ✕
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </aside>
 
-      <section className="thread">
-        {messages.length === 0 && (
-          <div className="empty">ยังไม่มีบทสนทนา เริ่มถามได้เลย</div>
-        )}
-        {messages.map((m) => (
-          <article key={m.id} className="card thread-item">
-            <div className="bubble user">{m.question}</div>
-            <div className="bubble assistant">{m.answer}</div>
-            <div className="meta">
-              <span className={`badge status-${m.status}`}>{m.status}</span>
-              {m.provenance.length > 0 && (
-                <span className="hint">
-                  provenance:{" "}
-                  {m.provenance
-                    .map(
-                      (p) =>
-                        `${p.program || "-"} p.${p.source_page ?? "?"}`
-                    )
-                    .join(" · ")}
-                </span>
+        <div className="chat-main">
+          <section className="card program-bar">
+            <div className="field field-inline">
+              <label htmlFor="chatProgram">Program</label>
+              <select
+                id="chatProgram"
+                value={active.program}
+                onChange={(e) => handleProgramChange(e.target.value)}
+              >
+                <option value="">All programs</option>
+                {programs.map((p) => (
+                  <option key={p.program_code} value={p.program_code}>
+                    {p.program_code}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <span className="hint">
+              คำถามในห้องนี้จะใช้ {active.program || "ทุกหลักสูตร"} เป็นขอบเขต
+              ไม่ต้องพิมพ์ชื่อหลักสูตรทุกครั้ง
+            </span>
+          </section>
+
+          <section className="card thread-card">
+            <div className="thread" ref={threadRef}>
+              {active.messages.length === 0 && (
+                <div className="empty">
+                  ยังไม่มีบทสนทนาในห้องนี้ เริ่มถามได้เลย
+                </div>
+              )}
+              {active.messages.map((m) => (
+                <div key={m.id}>
+                  <div className="msg-row user">
+                    <div className="bubble bubble-user">{m.question}</div>
+                  </div>
+                  <div className="msg-row assistant">
+                    <div className="bubble bubble-assistant">{m.answer}</div>
+                  </div>
+                  <div className="msg-row assistant">
+                    <div className="meta">
+                      <span className={`badge status-${m.status}`}>
+                        {m.status}
+                      </span>
+                      {m.provenance.length > 0 && (
+                        <span className="hint">
+                          {m.provenance
+                            .map(
+                              (p) =>
+                                `${p.program || "-"} p.${p.source_page ?? "?"}`
+                            )
+                            .join(" · ")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="msg-row assistant">
+                  <div className="bubble bubble-assistant typing">
+                    กำลังค้นหา...
+                  </div>
+                </div>
               )}
             </div>
-          </article>
-        ))}
-      </section>
+
+            <div className="composer">
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") handleAsk();
+                }}
+                placeholder="พิมพ์คำถามได้เลย เช่น วิชา 06016454 กี่หน่วยกิต"
+              />
+              <div className="actions">
+                <button
+                  type="button"
+                  onClick={handleAsk}
+                  disabled={loading}
+                >
+                  {loading ? "กำลังค้นหา..." : "ส่ง"}
+                </button>
+                <span className="hint">กด Ctrl + Enter เพื่อส่งคำถาม</span>
+              </div>
+              {error && <div className="error visible">{error}</div>}
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
