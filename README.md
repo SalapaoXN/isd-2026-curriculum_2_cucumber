@@ -214,7 +214,8 @@ cucumber_outputs/
 - `src/pipeline/README.md` — OCR → canonical JSON → database
 - `data/README.md` — ชั้นข้อมูลและความหมายของแต่ละ layer
 - `rag/README.md` — QA pipeline, query families, evaluation
-- `lab10_fastapi/README.md` — API, UI, provider/key behavior
+- `backend/README.md` — API, provider/key behavior
+- `frontend/README.md` — UI
 - `scripts/README.md` — CLI และเครื่องมือ developer
 
 ---
@@ -538,7 +539,7 @@ CLI ต้องมี `GEMINI_API_KEY`:
 ```powershell
 python scripts/ask.py "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
 ```
-API: แอป FastAPI ใต้ `lab10_fastapi/` (`POST /api/ask` รับ `question` + `conversation_context` ต่อได้)
+API: แอป FastAPI ใต้ `backend/` + `frontend/` (`POST /api/ask` รับ `question` + `conversation_context` ต่อได้)
 
 ### ข้อจำกัดที่รู้แล้ว / งานในอนาคต
 - ผลรวมหมวดระดับ program/year-only/semester-only ไม่มี semantics (fail closed)

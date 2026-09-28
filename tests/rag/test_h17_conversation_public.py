@@ -7,7 +7,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 import rag.qa as qa_module
-from lab10_fastapi.curriculum_app import main
+from backend import main
 from rag.grounded_answer import GroundedAnswerResult
 from rag.hybrid_demo import answer_question_once
 from rag.resolution import QueryContext

@@ -1,18 +1,21 @@
-# CUCUMBER FastAPI Web App
+# CUCUMBER FastAPI Backend
 
-FastAPI frontend bridge for the existing CUCUMBER curriculum QA system.
+FastAPI bridge for the existing CUCUMBER curriculum QA system.
 
 ## Architecture
 
 ```text
-Browser
-  -> static/index.html
-  -> FastAPI
+Browser (React SPA in ../frontend/)
+  -> FastAPI (backend/main.py)
   -> CUCUMBER RAG
   -> cucumber_outputs/runtime/curriculum.db
   -> Gemini
   -> JSON response
 ```
+
+The React app lives in `frontend/` (`npm run build` → `frontend/dist/`).
+`backend/main.py` serves `frontend/dist/index.html` when built, otherwise the
+Vite dev entry, plus SPA routes `/chat` and `/curriculum`.
 
 ## Requirements
 
@@ -25,12 +28,12 @@ python -m pip install -r requirements.txt
 Then install the Lab 10 web dependencies:
 
 ```powershell
-python -m pip install -r lab10_fastapi/curriculum_app/requirements.txt
+python -m pip install -r backend/requirements.txt
 ```
 
 ## Environment
 
-Create `.env` at the repository root:
+Create `.env` at the repository root (see `.env.example`):
 
 ```dotenv
 GEMINI_API_KEY=your_key_here
@@ -43,15 +46,16 @@ Do not commit `.env`.
 Run from the repository root:
 
 ```powershell
-python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --port 8000
+python -m uvicorn backend.main:app --reload --port 8000
 ```
 
 ## URLs
 
-Web page:
+Frontend pages (left navigation: Chat, Curriculum document):
 
 ```text
-http://127.0.0.1:8000/
+http://127.0.0.1:8000/chat
+http://127.0.0.1:8000/curriculum
 ```
 
 Swagger API docs:
@@ -69,8 +73,11 @@ http://127.0.0.1:8000/api/health
 ## Current API
 
 ```text
-GET  /
+GET  / | /chat | /curriculum
 GET  /api/health
+GET  /api/programs
+GET  /api/curriculum?program=&plan=&year=&semester=&search=&limit=&offset=
+GET  /api/courses/{course_code}?program=
 POST /api/ask
 ```
 
