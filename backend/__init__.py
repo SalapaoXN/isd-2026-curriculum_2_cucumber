@@ -1,0 +1,1 @@
+"""CUCUMBER curriculum FastAPI backend."""

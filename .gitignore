@@ -34,3 +34,7 @@ demo.db
 !tests/reference/
 !cucumber_outputs/runtime/curriculum.db
 !reports/evaluation_reference/
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
