@@ -178,7 +178,7 @@ def _filter_files_by_prefix(files, prefix):
     if not prefix:
         return list(files)
 
-    normalized_prefix = prefix.casefold()
+    normalized_prefix = f"{prefix.casefold().rstrip('_')}_"
     return [
         file
         for file in files
@@ -277,6 +277,12 @@ def parse_arguments():
         help="Only process OCR files whose filenames start with this prefix"
     )
     parser.add_argument(
+        "--dataset-key",
+        type=str,
+        default=None,
+        help="Optional exact output dataset directory (defaults to logical program)",
+    )
+    parser.add_argument(
         "-p",
         "--pages",
         type=str,
@@ -301,6 +307,7 @@ def run_extraction(
     prefix: str | None = None,
     pages: str | None = None,
     source: str | None = None,
+    dataset_key: str | None = None,
 ) -> Path:
     """Pure extraction stage (no argv): OCR files -> per-file JSON + legacy summary."""
     input_path = Path(input_path)
@@ -313,7 +320,9 @@ def run_extraction(
     except ValueError as exc:
         raise ValueError(f"Error: {exc}") from exc
 
-    resolved_output_dir = output_root / resolved_program.casefold()
+    if dataset_key is not None and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", dataset_key) is None:
+        raise ValueError("dataset_key must be one path-safe directory component")
+    resolved_output_dir = output_root / (dataset_key or resolved_program.casefold())
     resolved_output_dir.mkdir(parents=True, exist_ok=True)
 
     extractor = CurriculumExtractor(
@@ -421,6 +430,7 @@ def main():
             prefix=args.prefix,
             pages=args.pages,
             source=args.source,
+            dataset_key=getattr(args, "dataset_key", None),
         )
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc

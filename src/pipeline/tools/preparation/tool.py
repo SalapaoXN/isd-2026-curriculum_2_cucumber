@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 import sys
+import argparse
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -36,6 +37,9 @@ class ProgramConfig:
     prefix: str
     scopes: tuple[Scope, ...]
     shared_description: Scope | None = None
+    dataset_key: str | None = None
+    catalog_key: str | None = None
+    academic_year: str | None = None
 
 
 PROGRAM_CONFIG: dict[str, ProgramConfig] = {
@@ -69,6 +73,28 @@ PROGRAM_CONFIG: dict[str, ProgramConfig] = {
             Scope(plan="gened", pages="16-30,44-117", description_pages="44-117"),
         ),
     ),
+    "dsba2560": ProgramConfig(
+        program="DSBA",
+        prefix="dsba2560",
+        scopes=(
+            Scope(plan="no_coop", pages="25-29", description_pages="175-207"),
+            Scope(plan="coop", pages="30-34", description_pages="175-207"),
+        ),
+        shared_description=Scope(plan="coop", pages="175-207"),
+        dataset_key="dsba2560",
+        catalog_key="dsba-2560",
+        academic_year="2560",
+    ),
+    "gened2557": ProgramConfig(
+        program="GENED",
+        prefix="gened2557",
+        scopes=(
+            Scope(plan="gened", pages="11-18,47-92", description_pages="47-92"),
+        ),
+        dataset_key="gened2557",
+        catalog_key="gened-2557",
+        academic_year="2557",
+    ),
     "it": ProgramConfig(
         program="IT",
         prefix="it",
@@ -95,7 +121,9 @@ def _ocr_files(ocr_dir: Path, prefix: str | None = None) -> list[Path]:
             continue
         if path.name.endswith("_extracted.json"):
             continue
-        if prefix and not path.name.casefold().startswith(prefix.casefold()):
+        if prefix and not path.name.casefold().startswith(
+            f"{prefix.casefold().rstrip('_')}_"
+        ):
             continue
         if PAGE_RE.search(path.name) is None:
             continue
@@ -143,7 +171,7 @@ def discover_supported_corpora(ocr_root: Path) -> tuple[list[tuple[str, Path]], 
 
     supported = []
     unknown = []
-    supported_names = set(SUPPORTED_PROGRAMS)
+    supported_names = set(PROGRAM_CONFIG)
     for child in sorted(ocr_root.iterdir(), key=lambda path: path.name.casefold()):
         if not child.is_dir():
             continue
@@ -170,6 +198,7 @@ def _run_extract(
         prefix=config.prefix,
         pages=scope.pages,
         source=None,
+        dataset_key=config.dataset_key,
     )
 
 
@@ -179,6 +208,7 @@ def _run_merge(
     config: ProgramConfig,
     scope: Scope,
     pages: str | None,
+    edition_metadata: dict[str, str] | None = None,
 ) -> None:
     merge_consecutive_files(
         input_dir=str(extracted_dir),
@@ -187,11 +217,16 @@ def _run_merge(
         pages=pages,
         prefix=config.prefix,
         desc_pages=scope.description_pages,
+        catalog_key=(edition_metadata or {}).get("catalog_key"),
     )
 
 
 def _combined_pages(scope: Scope, include_descriptions: bool) -> str | None:
     if scope.pages is None or not include_descriptions or scope.description_pages is None:
+        return scope.pages
+    if _configured_pages(scope.description_pages).issubset(
+        _configured_pages(scope.pages)
+    ):
         return scope.pages
     return f"{scope.pages},{scope.description_pages}"
 
@@ -202,9 +237,22 @@ def prepare_program(
     extracted_path: Path,
     consolidated_path: Path,
     root: Path,
+    edition_metadata: dict[str, str] | None = None,
 ) -> bool:
     """Prepare one program corpus; shared by prepare_data() and pipeline.py."""
+    key = key.casefold()
     config = PROGRAM_CONFIG[key]
+    configured_metadata = (
+        {"catalog_key": config.catalog_key, "academic_year": config.academic_year}
+        if config.catalog_key is not None and config.academic_year is not None
+        else None
+    )
+    if config.dataset_key is not None and edition_metadata not in (None, configured_metadata):
+        raise ValueError(
+            f"dataset {config.dataset_key!r} requires edition metadata "
+            f"{configured_metadata!r}"
+        )
+    effective_metadata = edition_metadata or configured_metadata
     files = _ocr_files(program_dir, config.prefix)
     if not files:
         print(f"Skipping empty OCR directory: {program_dir}")
@@ -232,15 +280,36 @@ def prepare_program(
 
     for scope in usable_scopes:
         _run_merge(
-            extracted_path / key,
-            consolidated_path,
+            extracted_path / (config.dataset_key or config.program.casefold()),
+            consolidated_path / config.dataset_key if config.dataset_key else consolidated_path,
             config,
             scope,
             _combined_pages(
                 scope,
                 descriptions_available or config.shared_description is None,
             ),
+            effective_metadata,
         )
+
+    if config.dataset_key is not None and usable_scopes:
+        if effective_metadata is None:
+            raise PreparationError(
+                f"edition metadata is not configured for {config.dataset_key}"
+            )
+        from src.pipeline.run import _apply_edition_metadata
+        from src.pipeline.tools.merge.consolidator import edition_filename_token
+
+        token = edition_filename_token(effective_metadata["catalog_key"])
+        full_files = sorted(
+            (consolidated_path / config.dataset_key).glob(
+                f"**/full/*_{token}_full.json"
+            )
+        )
+        if not full_files:
+            raise PreparationError(
+                f"no full consolidated artifact found for {config.dataset_key}"
+            )
+        _apply_edition_metadata(full_files, effective_metadata)
 
     return bool(usable_scopes)
 
@@ -250,8 +319,9 @@ def prepare_data(
     ocr_root: str | Path = "data/output/ocr",
     extracted_root: str | Path = "data/output/extracted",
     consolidated_root: str | Path = "data/output/consolidated",
+    dataset_keys: Iterable[str] | None = None,
 ) -> dict:
-    """Prepare every usable supported OCR corpus under ``ocr_root``."""
+    """Prepare selected supported OCR datasets, or all discovered datasets."""
     root = Path(project_root or Path(__file__).resolve().parents[4]).resolve()
     ocr_path = Path(ocr_root)
     if not ocr_path.is_absolute():
@@ -264,6 +334,18 @@ def prepare_data(
         consolidated_path = root / consolidated_path
 
     supported, unknown = discover_supported_corpora(ocr_path)
+    if dataset_keys is not None:
+        selected = tuple(dict.fromkeys(str(key).casefold() for key in dataset_keys))
+        unsupported = sorted(set(selected) - set(PROGRAM_CONFIG))
+        if unsupported:
+            raise ValueError(f"Unsupported dataset key(s): {', '.join(unsupported)}")
+        directories = {key: path for key, path in supported}
+        missing = [key for key in selected if key not in directories]
+        if missing:
+            raise PreparationError(
+                f"Selected OCR dataset directory not found: {', '.join(missing)}"
+            )
+        supported = [(key, directories[key]) for key in selected]
     for name in unknown:
         print(f"Ignoring unsupported OCR directory: {name}")
 
@@ -287,9 +369,17 @@ def prepare_data(
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Prepare selected persisted OCR datasets.")
+    parser.add_argument(
+        "--dataset-key",
+        action="append",
+        choices=tuple(PROGRAM_CONFIG),
+        help="Prepare only this exact OCR dataset key; may be supplied multiple times.",
+    )
+    args = parser.parse_args(argv)
     try:
-        result = prepare_data()
+        result = prepare_data(dataset_keys=args.dataset_key)
     except (OSError, ValueError, PreparationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

@@ -560,6 +560,193 @@ class RagLoaderTest(unittest.TestCase):
         )
         self.assertEqual(pages, [(10,), (20,)])
 
+    def test_same_program_and_plan_are_isolated_across_catalog_editions(self):
+        documents = [
+            {
+                "program": "DSBA",
+                "catalog": {
+                    "catalog_key": "dsba-2565-coop",
+                    "academic_year": "2565",
+                },
+                "plan": {"plan_code": "coop", "version": "2565"},
+                "source_provenance": [
+                    {
+                        "source_document_key": "dsba-2565",
+                        "source_filename": "DSBA_2565.pdf",
+                        "source_page": 10,
+                        "document_category": "plan",
+                    }
+                ],
+                "courses": [
+                    {"code": "C100"},
+                    {"code": "C101", "prerequisite": "C100"},
+                ],
+            },
+            {
+                "program": "DSBA",
+                "catalog": {
+                    "catalog_key": "dsba-2568-coop",
+                    "academic_year": "2568",
+                },
+                "plan": {"plan_code": "coop", "version": "2568"},
+                "source_provenance": [
+                    {
+                        "source_document_key": "dsba-2568",
+                        "source_filename": "DSBA_2568.pdf",
+                        "source_page": 10,
+                        "document_category": "plan",
+                    }
+                ],
+                "courses": [
+                    {"code": "C100"},
+                    {"code": "C102", "prerequisite": "C100"},
+                ],
+            },
+        ]
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = Path(directory)
+            input_paths = []
+            for index, document in enumerate(documents):
+                input_path = directory_path / f"edition-{index}.json"
+                input_path.write_text(json.dumps(document), encoding="utf-8")
+                input_paths.append(input_path)
+            database_path = directory_path / "curriculum.db"
+
+            catalog_ids = load_jsons_to_sqlite(input_paths, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                catalogs = connection.execute(
+                    """
+                    SELECT catalog_id, catalog_key, academic_year
+                    FROM catalogs
+                    ORDER BY academic_year
+                    """
+                ).fetchall()
+                plans = connection.execute(
+                    """
+                    SELECT cp.catalog_id, cp.program_code, cp.plan_key, cp.version
+                    FROM curriculum_plans AS cp
+                    JOIN catalogs AS c ON c.catalog_id = cp.catalog_id
+                    ORDER BY c.academic_year
+                    """
+                ).fetchall()
+                courses = connection.execute(
+                    """
+                    SELECT catalog_id, course_code, course_id
+                    FROM courses
+                    ORDER BY catalog_id, course_code
+                    """
+                ).fetchall()
+                prerequisite_edges = connection.execute(
+                    """
+                    SELECT dependent.catalog_id, prerequisite.catalog_id,
+                           dependent.course_id, prerequisite.course_id,
+                           dependent.course_code, prerequisite.course_code
+                    FROM prerequisites AS edge
+                    JOIN courses AS dependent
+                        ON dependent.course_id = edge.course_id
+                    JOIN courses AS prerequisite
+                        ON prerequisite.course_id = edge.prerequisite_course_id
+                    ORDER BY dependent.catalog_id
+                    """
+                ).fetchall()
+                course_sources = connection.execute(
+                    """
+                    SELECT course.catalog_id, provenance.source_document_key,
+                           provenance.source_filename, provenance.source_page
+                    FROM course_provenance AS link
+                    JOIN courses AS course ON course.course_id = link.course_id
+                    JOIN provenance ON provenance.provenance_id = link.provenance_id
+                    WHERE course.course_code = 'C100'
+                    ORDER BY course.catalog_id
+                    """
+                ).fetchall()
+                plan_sources = connection.execute(
+                    """
+                    SELECT plan.catalog_id, provenance.source_document_key,
+                           provenance.source_filename, provenance.source_page
+                    FROM curriculum_plan_provenance AS link
+                    JOIN curriculum_plans AS plan ON plan.plan_id = link.plan_id
+                    JOIN provenance ON provenance.provenance_id = link.provenance_id
+                    ORDER BY plan.catalog_id
+                    """
+                ).fetchall()
+                same_page_sources = connection.execute(
+                    """
+                    SELECT source_document_key, source_filename, source_page
+                    FROM provenance
+                    WHERE source_page = 10
+                    ORDER BY source_document_key
+                    """
+                ).fetchall()
+
+        self.assertEqual(len(catalog_ids), 2)
+        self.assertEqual(
+            [(key, year) for _, key, year in catalogs],
+            [("dsba-2565-coop", "2565"), ("dsba-2568-coop", "2568")],
+        )
+        self.assertEqual([catalog_id for catalog_id, _, _ in catalogs], catalog_ids)
+        self.assertEqual(
+            plans,
+            [
+                (catalog_ids[0], "DSBA", "coop", "2565"),
+                (catalog_ids[1], "DSBA", "coop", "2568"),
+            ],
+        )
+
+        course_rows = {
+            (catalog_id, code): course_id
+            for catalog_id, code, course_id in courses
+        }
+        self.assertEqual(sum(code == "C100" for _, code, _ in courses), 2)
+        self.assertIn((catalog_ids[0], "C101"), course_rows)
+        self.assertNotIn((catalog_ids[1], "C101"), course_rows)
+        self.assertIn((catalog_ids[1], "C102"), course_rows)
+        self.assertNotIn((catalog_ids[0], "C102"), course_rows)
+        self.assertNotEqual(
+            course_rows[(catalog_ids[0], "C100")],
+            course_rows[(catalog_ids[1], "C100")],
+        )
+        self.assertEqual(
+            prerequisite_edges,
+            [
+                (
+                    catalog_ids[0], catalog_ids[0],
+                    course_rows[(catalog_ids[0], "C101")],
+                    course_rows[(catalog_ids[0], "C100")],
+                    "C101", "C100",
+                ),
+                (
+                    catalog_ids[1], catalog_ids[1],
+                    course_rows[(catalog_ids[1], "C102")],
+                    course_rows[(catalog_ids[1], "C100")],
+                    "C102", "C100",
+                ),
+            ],
+        )
+        self.assertEqual(
+            course_sources,
+            [
+                (catalog_ids[0], "dsba-2565", "DSBA_2565.pdf", 10),
+                (catalog_ids[1], "dsba-2568", "DSBA_2568.pdf", 10),
+            ],
+        )
+        self.assertEqual(
+            plan_sources,
+            [
+                (catalog_ids[0], "dsba-2565", "DSBA_2565.pdf", 10),
+                (catalog_ids[1], "dsba-2568", "DSBA_2568.pdf", 10),
+            ],
+        )
+        self.assertEqual(
+            same_page_sources,
+            [
+                ("dsba-2565", "DSBA_2565.pdf", 10),
+                ("dsba-2568", "DSBA_2568.pdf", 10),
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

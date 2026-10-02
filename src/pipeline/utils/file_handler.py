@@ -16,6 +16,7 @@ def save_ocr_results(
     detections: Sequence[dict[str, Any]] | None = None,
     image_width: int | None = None,
     image_height: int | None = None,
+    source_dataset: str | None = None,
 ) -> None:
     """Save extracted text to both plain text (.txt) and metadata (.json) format."""
     # Ensure directory exists
@@ -47,6 +48,8 @@ def save_ocr_results(
         json_data["source_page"] = source_page
     if program is not None:
         json_data["program"] = program
+    if source_dataset is not None:
+        json_data["source_dataset"] = source_dataset
     if detections is not None:
         json_data["detections"] = _json_safe(detections)
     if image_width is not None:
