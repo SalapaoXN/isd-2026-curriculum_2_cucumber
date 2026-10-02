@@ -1,0 +1,314 @@
+[
+    {
+        "course_code": "06026100",
+        "field": "name_en",
+        "before": "INFORMATLON TECHNOLOGY FUNDAMENTALS",
+        "after": "INFORMATION TECHNOLOGY FUNDAMENTALS"
+    },
+    {
+        "course_code": "90101007",
+        "field": "name_th",
+        "before": "คณิตเศรษฐศาสตร์เบืองต้น",
+        "after": "คณิตเศรษฐศาสตร์เบื้องต้น"
+    },
+    {
+        "course_code": "90101007",
+        "field": "name_en",
+        "before": "NTRODUCTLON TO MATHEMATICAL ECONOMICS E",
+        "after": "INTRODUCTION TO MATHEMATICAL ECONOMICS"
+    },
+    {
+        "course_code": "90401013",
+        "field": "name_th",
+        "before": "ความูรู้ทัวไปเกียวกับธุรกิจ",
+        "after": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ"
+    },
+    {
+        "course_code": "90401013",
+        "field": "name_en",
+        "before": "GENERAL  BUSINESS",
+        "after": "GENERAL BUSINESS"
+    },
+    {
+        "course_code": "06026101",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06026101",
+        "field": "name_en",
+        "before": "MATHEMATICS FOR INFORMATON TECHNOLOGV",
+        "after": "MATHEMATICS FOR INFORMATION TECHNOLOGY"
+    },
+    {
+        "course_code": "06026105",
+        "field": "name_en",
+        "before": "INTRODUCILON TO COMPUTER NEIWORKS",
+        "after": "INTRODUCTION TO COMPUTER NETWORKS"
+    },
+    {
+        "course_code": "06026106",
+        "field": "name_en",
+        "before": "DATABASE SVSTEM CONCEPTS",
+        "after": "DATABASE SYSTEM CONCEPTS"
+    },
+    {
+        "course_code": "06026107",
+        "field": "name_en",
+        "before": "DATA SIRUCTURES AND ALGORITHMS",
+        "after": "DATA STRUCTURES AND ALGORITHMS"
+    },
+    {
+        "course_code": "06026102",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ไม่ต่อเนือง",
+        "after": "คณิตศาสตร์ไม่ต่อเนื่อง"
+    },
+    {
+        "course_code": "06026102",
+        "field": "name_en",
+        "before": "DISCREIE MATHEMATICS",
+        "after": "DISCRETE MATHEMATICS"
+    },
+    {
+        "course_code": "06026103",
+        "field": "name_en",
+        "before": "PROBABILIIX AND STATSTICS",
+        "after": "PROBABILITY AND STATISTICS"
+    },
+    {
+        "course_code": "06026108",
+        "field": "name_th",
+        "before": "ระบบสารสนเทศเพือการจัดการ",
+        "after": "ระบบสารสนเทศเพื่อการจัดการ"
+    },
+    {
+        "course_code": "06026109",
+        "field": "name_th",
+        "before": "เทคโนโลยี เว็บ",
+        "after": "เทคโนโลยีเว็บ"
+    },
+    {
+        "course_code": "06026110",
+        "field": "name_en",
+        "before": "FLINANCAL ACCOUNTIG",
+        "after": "FINANCIAL ACCOUNTING"
+    },
+    {
+        "course_code": "06026111",
+        "field": "name_en",
+        "before": "PRACIICAL NOSOL DATABASE",
+        "after": "PRACTICAL NOSQL DATABASE"
+    },
+    {
+        "course_code": "06026112",
+        "field": "name_en",
+        "before": "BUSINESS INFORMATON SVSTEM ANALYSIS AND DESIGN",
+        "after": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN"
+    },
+    {
+        "course_code": "06026113",
+        "field": "name_en",
+        "before": "STATISTICAL PROCRAMMNG",
+        "after": "STATISTICAL PROGRAMMING"
+    },
+    {
+        "course_code": "06026114",
+        "field": "name_en",
+        "before": "BUSINESS PROCESSES AND ENTERPRISE RESOURCE PLANNNG",
+        "after": "BUSINESS PROCESSES AND ENTERPRISE RESOURCE PLANNING"
+    },
+    {
+        "course_code": "06026115",
+        "field": "name_en",
+        "before": "NTRODUCTON TO BUSINESS INTELLIGENCE",
+        "after": "INTRODUCTION TO BUSINESS INTELLIGENCE"
+    },
+    {
+        "course_code": "06026116",
+        "field": "name_th",
+        "before": "การวิเคราะห์ ข้อมูลเชิงธุรกิจ",
+        "after": "การวิเคราะห์ข้อมูลเชิงธุรกิจ"
+    },
+    {
+        "course_code": "90201026",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพื่อการสื่อสาร ู",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "06026118",
+        "field": "name_en",
+        "before": "INFORMATION TECHNOLOGY PROECT MANAGEMENT",
+        "after": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
+    },
+    {
+        "course_code": "06026119",
+        "field": "name_th",
+        "before": "ความมันคงของระบบสารสนเทศและกฎหมายไอที",
+        "after": "ความมั่นคงของระบบสารสนเทศและกฎหมายไอที"
+    },
+    {
+        "course_code": "06026119",
+        "field": "name_en",
+        "before": "INFORMATLON TECHNOLOGV SECURIIV AND LAWS",
+        "after": "INFORMATION TECHNOLOGY SECURITY AND LAWS"
+    },
+    {
+        "course_code": "06026121",
+        "field": "name_en",
+        "before": "DATA MNNG AND BIG DATA ANALYIICS",
+        "after": "DATA MINING AND BIG DATA ANALYTICS"
+    },
+    {
+        "course_code": "06026123",
+        "field": "name_en",
+        "before": "SEMINAR ON PROFESSIONAL COMMUNICATON SKLLS",
+        "after": "SEMINAR ON PROFESSIONAL COMMUNICATION SKILLS"
+    },
+    {
+        "course_code": "06026124",
+        "field": "name_en",
+        "before": "DATA VSUALLZATLON",
+        "after": "DATA VISUALIZATION"
+    },
+    {
+        "course_code": "06026125",
+        "field": "name_en",
+        "before": "MACHINE LEARNNG",
+        "after": "MACHINE LEARNING"
+    },
+    {
+        "course_code": "060261xx",
+        "field": "name_en",
+        "before": "ELECIIVE COURSE IN DATA SCIENCE AND BUSINESS ANALYTICS 1",
+        "after": "ELECTIVE COURSE IN DATA SCIENCE AND BUSINESS ANALYTICS 1"
+    },
+    {
+        "course_code": "06026129",
+        "field": "name_th",
+        "before": "ฝึกวิชาชีพวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ เอมเกลาง",
+        "after": "ฝึกวิชาชีพวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
+    },
+    {
+        "course_code": "06026129",
+        "field": "name_en",
+        "before": "DATA SCIENCE AND BUSINESS ANALYTICS PROFESSIONAL PRACNICES",
+        "after": "DATA SCIENCE AND BUSINESS ANALYTICS PROFESSIONAL PRACTICES"
+    },
+    {
+        "course_code": "06026128",
+        "field": "name_en",
+        "before": "PROECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
+        "after": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
+    },
+    {
+        "course_code": "060261xx",
+        "field": "name_th",
+        "before": "วิชาเลือกทางพิเศษวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 วิชาเลือกเสรี 1",
+        "after": "วิชาเลือกทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 วิชาเลือกเสรี 1"
+    },
+    {
+        "course_code": "060261xx",
+        "field": "name_en",
+        "before": "ELECIE COURSE IN DATA SCIENCE AND BUSINESS ANALYIICS 2 9OXXXXXX FREE ELECIIE COURSE 1",
+        "after": "ELECTIVE COURSE IN DATA SCIENCE AND BUSINESS ANALYTICS 2 90XXXXXX FREE ELECTIVE COURSE 1"
+    },
+    {
+        "course_code": "xxxxxxxx",
+        "field": "name_en",
+        "before": "FREE ELECTIVE COURSE 2 9OXXXXXX ELECTIVE COURSE IN HUMANIIY 2",
+        "after": "FREE ELECTIVE COURSE 2 90XXXXXX ELECTIVE COURSE IN HUMANITY 2"
+    },
+    {
+        "course_code": "06026131",
+        "field": "name_en",
+        "before": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS E",
+        "after": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    },
+    {
+        "course_code": "06026143",
+        "field": "name_en",
+        "before": "REOULREMENT ENGINEERING",
+        "after": "REQUIREMENT ENGINEERING"
+    },
+    {
+        "course_code": "06026144",
+        "field": "name_th",
+        "before": "อินเทอร์เน็ตสำหรับทุกสรรพสิง",
+        "after": "อินเทอร์เน็ตสำหรับทุกสรรพสิ่ง"
+    },
+    {
+        "course_code": "06026145",
+        "field": "name_th",
+        "before": "ระบบฐานข้อมูลขนสู",
+        "after": "ระบบฐานข้อมูลขั้นสูง"
+    },
+    {
+        "course_code": "06026146",
+        "field": "name_en",
+        "before": "DATABASE SYSTEM MATENANCE AND ADMINISTRATION",
+        "after": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
+    },
+    {
+        "course_code": "06026148",
+        "field": "name_en",
+        "before": "SUPPLY CHA/N MANAGEMENT AND LOGISTICS",
+        "after": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS"
+    },
+    {
+        "course_code": "06026150",
+        "field": "name_en",
+        "before": "CUSTOMER RELATLONSHIP MANAGEMENT",
+        "after": "CUSTOMER RELATIONSHIP MANAGEMENT"
+    },
+    {
+        "course_code": "06026154",
+        "field": "name_en",
+        "before": "E COMMERCE MANAGEMENT",
+        "after": "E-COMMERCE MANAGEMENT"
+    },
+    {
+        "course_code": "06026157",
+        "field": "name_en",
+        "before": "CLINICAL DATA ACOUSITION AND MANAGEMENT",
+        "after": "CLINICAL DATA ACQUISITION AND MANAGEMENT"
+    },
+    {
+        "course_code": "06026158",
+        "field": "name_en",
+        "before": "FLNANCIAL INSTITUTIONS AND MARKETS",
+        "after": "FINANCIAL INSTITUTIONS AND MARKETS"
+    },
+    {
+        "course_code": "06026162",
+        "field": "name_th",
+        "before": "การวิเคราะห์ทางสถิติของตัวแปรพห",
+        "after": "การวิเคราะห์ทางสถิติของตัวแปรพหุ"
+    },
+    {
+        "course_code": "06026162",
+        "field": "name_en",
+        "before": "MULTIVARIATE STATISTICAL ANAL YSIS",
+        "after": "MULTIVARIATE STATISTICAL ANALYSIS"
+    },
+    {
+        "course_code": "06026163",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN DATA SCIENCE AND BUSINESS ANALYTICS 1",
+        "after": "SPECIAL TOPICS IN DATA SCIENCE AND BUSINESS ANALYTICS 1"
+    },
+    {
+        "course_code": "06026164",
+        "field": "name_en",
+        "before": "SPECIAL TOPICS IN DATA SCIENCE AND BUSINESS ANAL YTICS 2",
+        "after": "SPECIAL TOPICS IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
+    },
+    {
+        "course_code": "06026166",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
+        "after": "SPECIAL WORKSHOP IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
+    }
+]
