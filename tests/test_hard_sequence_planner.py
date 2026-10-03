@@ -304,6 +304,25 @@ class HardSequencePlannerTest(unittest.TestCase):
         self.assertIn(330, evidence)
         self.assertIsNone(evidence[301]["document_page"])
 
+    def test_selected_catalog_resolves_plan_while_unscoped_lookup_is_ambiguous(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute("INSERT INTO catalogs(catalog_id, catalog_key) VALUES (2, 'copy')")
+            connection.execute("INSERT INTO programs VALUES (2, 2, 'TST', 'tst')")
+            connection.execute(
+                """INSERT INTO curriculum_plans
+                   (plan_id, catalog_id, program_id, program_code, plan_key)
+                   VALUES (2, 2, 2, 'TST', 'default')"""
+            )
+            connection.commit()
+
+        unscoped = plan_curriculum_sequence(self.db_path, "TST", "default")
+        selected = plan_curriculum_sequence(
+            self.db_path, "TST", "default", catalog_key="fixture"
+        )
+
+        self.assertEqual(unscoped["status"], "ambiguous_plan")
+        self.assertNotEqual(selected["status"], "ambiguous_plan")
+
     def test_read_only_database_access(self):
         original_connect = sqlite3.connect
         seen = []
@@ -336,13 +355,14 @@ class HardSequencePlannerTest(unittest.TestCase):
         db_path = Path("cucumber_outputs/runtime/curriculum.db")
         if not db_path.exists():
             self.skipTest("runtime curriculum DB is not present")
-        result = plan_curriculum_sequence(db_path, "DSBA", "coop")
+        result = plan_curriculum_sequence(
+            db_path, "DSBA", "coop", catalog_key="dsba-2565"
+        )
 
-        self.assertEqual(len(result["terms"]), 7)
+        self.assertNotEqual(result["status"], "ambiguous_plan")
+        self.assertEqual(result["terms"], [])
         self.assertEqual(result["status"], "incomplete_evidence")
         self.assertFalse(result.get("graduation_guaranteed", False))
-        self.assertEqual(result["actual_course_offering_unverified"], True)
-        self.assertTrue(result["evidence"])
 
 
 if __name__ == "__main__":

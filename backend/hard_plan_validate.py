@@ -35,19 +35,27 @@ def _failure(status: str, program: Any, plan: Any, limitation: str) -> dict[str,
 
 
 def _resolve_plan(
-    connection: sqlite3.Connection, program: str, plan_key: str
+    connection: sqlite3.Connection,
+    program: str,
+    plan_key: str,
+    catalog_key: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | None]:
     rows = connection.execute(
         """SELECT cp.plan_id, cp.catalog_id, cp.program_code, cp.plan_key,
-                  cp.program_id, p.program_code_normalized
+                  cp.program_id, p.program_code_normalized, c.catalog_key
            FROM curriculum_plans AS cp
            JOIN programs AS p ON p.program_id = cp.program_id
+           JOIN catalogs AS c ON c.catalog_id = cp.catalog_id
            WHERE UPPER(cp.program_code) = ?
              AND UPPER(p.program_code_normalized) = ?
              AND p.catalog_id = cp.catalog_id
              AND LOWER(cp.plan_key) = ?
+             AND (? IS NULL OR LOWER(TRIM(c.catalog_key)) = LOWER(TRIM(?)))
            ORDER BY cp.plan_id""",
-        (program.upper(), program.upper(), plan_key.casefold()),
+        (
+            program.upper(), program.upper(), plan_key.casefold(),
+            catalog_key, catalog_key,
+        ),
     ).fetchall()
     if not rows:
         return None, "plan_not_found"
@@ -60,6 +68,7 @@ def _resolve_plan(
         "program_id": int(row["program_id"]),
         "program": str(row["program_code"]),
         "plan": str(row["plan_key"]),
+        "catalog_key": str(row["catalog_key"]),
     }, None
 
 
@@ -703,6 +712,7 @@ def validate_curriculum_plan_structure(
     db_path: str | Path,
     program: str,
     plan: str,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Report structural checks supported by canonical evidence for one explicit plan."""
     if (
@@ -713,6 +723,14 @@ def validate_curriculum_plan_structure(
             "invalid_scope", program, plan,
             "program and plan must be explicitly provided",
         )
+    if catalog_key is not None and (
+        not isinstance(catalog_key, str) or not catalog_key.strip()
+    ):
+        return _failure(
+            "invalid_scope", program, plan,
+            "catalog_key must be a non-empty string when provided",
+        )
+    catalog_key = catalog_key.strip() if catalog_key is not None else None
     normalized_program = program.strip().upper()
     normalized_plan = plan.strip()
     try:
@@ -720,7 +738,7 @@ def validate_curriculum_plan_structure(
         with closing(sqlite3.connect(uri, uri=True)) as connection:
             connection.row_factory = sqlite3.Row
             resolved, scope_error = _resolve_plan(
-                connection, normalized_program, normalized_plan
+                connection, normalized_program, normalized_plan, catalog_key
             )
             if scope_error:
                 return _failure(
@@ -862,6 +880,7 @@ def validate_curriculum_plan_structure(
                 "assessment_scope": "curriculum_plan_structure_only",
                 "program": resolved["program"],
                 "plan": resolved["plan"],
+                "catalog_key": resolved["catalog_key"],
                 "checks": checks,
                 "mandatory_courses": mandatory,
                 "alternative_groups": groups,

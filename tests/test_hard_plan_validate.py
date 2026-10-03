@@ -271,6 +271,10 @@ class HardPlanValidateTest(unittest.TestCase):
             connection.commit()
         ambiguous = validate_curriculum_plan_structure(self.db_path, "TST", "default")
         self.assertEqual(ambiguous["status"], "ambiguous_plan")
+        selected = validate_curriculum_plan_structure(
+            self.db_path, "TST", "default", catalog_key="fixture"
+        )
+        self.assertNotEqual(selected["status"], "ambiguous_plan")
 
     def test_database_is_opened_read_only(self):
         original_connect = sqlite3.connect
@@ -293,7 +297,9 @@ class HardPlanValidateTest(unittest.TestCase):
         if not db_path.exists():
             self.skipTest("runtime curriculum DB is not present")
 
-        result = validate_curriculum_plan_structure(db_path, "DSBA", "coop")
+        result = validate_curriculum_plan_structure(
+            db_path, "DSBA", "coop", catalog_key="dsba-2565"
+        )
 
         self.assertEqual(result["status"], "incomplete_evidence")
         self.assertEqual(result["program"], "DSBA")

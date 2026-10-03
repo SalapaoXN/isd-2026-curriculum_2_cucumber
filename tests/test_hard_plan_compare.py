@@ -197,6 +197,10 @@ class HardPlanCompareTest(unittest.TestCase):
             connection.commit()
         ambiguous = compare_plan_course_sets(self.db_path, "DSBA", "coop", "no_coop")
         self.assertEqual(ambiguous["status"], "ambiguous_plan")
+        selected = compare_plan_course_sets(
+            self.db_path, "DSBA", "coop", "no_coop", catalog_key="left"
+        )
+        self.assertEqual(selected["status"], "plan_not_found")
 
     def test_missing_membership_provenance_fails_closed(self):
         with closing(sqlite3.connect(self.db_path)) as connection:
@@ -231,9 +235,12 @@ class HardPlanCompareTest(unittest.TestCase):
         if not db_path.exists():
             self.skipTest("runtime curriculum DB is not present")
 
-        result = compare_plan_course_sets(db_path, "DSBA", "coop", "no_coop")
+        result = compare_plan_course_sets(
+            db_path, "DSBA", "coop", "no_coop", catalog_key="dsba-2565"
+        )
 
         self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["catalog_key"], "dsba-2565")
         self.assertEqual(result["left_course_count"], 83)
         self.assertEqual(result["right_course_count"], 83)
         self.assertEqual(result["shared_course_count"], 83)
@@ -241,6 +248,19 @@ class HardPlanCompareTest(unittest.TestCase):
         self.assertEqual(result["right_only_courses"], [])
         self.assertTrue(result["left_plan_evidence"])
         self.assertTrue(result["right_plan_evidence"])
+
+    def test_both_dsba_editions_resolve_coop_and_no_coop_independently(self):
+        db_path = Path("cucumber_outputs/runtime/curriculum.db")
+        if not db_path.exists():
+            self.skipTest("runtime curriculum DB is not present")
+
+        for catalog_key in ("dsba-2560", "dsba-2565"):
+            with self.subTest(catalog_key=catalog_key):
+                result = compare_plan_course_sets(
+                    db_path, "DSBA", "coop", "no_coop", catalog_key=catalog_key
+                )
+                self.assertEqual(result["status"], "complete")
+                self.assertEqual(result["catalog_key"], catalog_key)
 
 
 if __name__ == "__main__":

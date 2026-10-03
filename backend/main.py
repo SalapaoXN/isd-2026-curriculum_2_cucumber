@@ -181,23 +181,52 @@ def list_programs() -> dict:
     try:
         rows = con.execute(
             """
-            SELECT program_code, plan_key, plan_name
-            FROM curriculum_plans
-            ORDER BY program_code, plan_key
+            SELECT p.program_code, c.catalog_key, c.academic_year,
+                   cp.plan_key, cp.plan_name
+            FROM curriculum_plans cp
+            JOIN catalogs c ON c.catalog_id = cp.catalog_id
+            JOIN programs p ON p.program_id = cp.program_id
+            ORDER BY p.program_code, c.academic_year, c.catalog_key, cp.plan_key
             """
         ).fetchall()
     finally:
         con.close()
 
-    grouped: dict[str, list[dict]] = {}
+    grouped: dict[str, dict[str, Any]] = {}
     for row in rows:
-        grouped.setdefault(row["program_code"], []).append(
-            {"plan_key": row["plan_key"], "plan_name": row["plan_name"]}
+        program_code = row["program_code"]
+        program = grouped.setdefault(program_code, {"plans": {}, "editions": {}})
+        plan_info = {"plan_key": row["plan_key"], "plan_name": row["plan_name"]}
+        program["plans"].setdefault(row["plan_key"], plan_info)
+        edition_key = (row["catalog_key"], row["academic_year"])
+        edition = program["editions"].setdefault(
+            edition_key,
+            {
+                "catalog_key": row["catalog_key"],
+                "academic_year": row["academic_year"],
+                "plans": {},
+            },
         )
+        edition["plans"].setdefault(row["plan_key"], plan_info)
     return {
         "programs": [
-            {"program_code": code, "plans": plans}
-            for code, plans in sorted(grouped.items())
+            {
+                "program_code": code,
+                "plans": list(data["plans"].values()),
+                "editions": [
+                    {
+                        **edition,
+                        "plans": list(edition["plans"].values()),
+                    }
+                    for _, edition in sorted(
+                        data["editions"].items(),
+                        key=lambda item: (
+                            str(item[0][1] or ""), str(item[0][0] or "")
+                        ),
+                    )
+                ],
+            }
+            for code, data in sorted(grouped.items())
         ]
     }
 
@@ -205,6 +234,7 @@ def list_programs() -> dict:
 @app.get("/api/curriculum", response_model=CurriculumResponse)
 def list_curriculum(
     program: str | None = Query(default=None, max_length=20),
+    catalog_key: str | None = Query(default=None, max_length=128),
     plan: str | None = Query(default=None, max_length=40),
     year: int | None = Query(default=None, ge=1, le=8),
     semester: int | None = Query(default=None, ge=1, le=3),
@@ -215,6 +245,14 @@ def list_curriculum(
     db_path = _curriculum_db()
     conditions = ["(c.course_id IS NOT NULL OR mc.course_id IS NOT NULL)"]
     params: list = []
+
+    if catalog_key is not None:
+        try:
+            catalog_key = _validate_catalog_context(db_path, catalog_key, program)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"invalid catalog_key: {exc}") from exc
+        conditions.append("p.catalog_id = (SELECT catalog_id FROM catalogs WHERE catalog_key = ?)")
+        params.append(catalog_key)
 
     if program:
         conditions.append("p.program_code = ?")
@@ -241,6 +279,7 @@ def list_curriculum(
     base_from = """
         FROM plan_placements pl
         JOIN curriculum_plans p ON p.plan_id = pl.plan_id
+        JOIN catalogs cat ON cat.catalog_id = p.catalog_id
         LEFT JOIN courses c ON c.course_id = pl.course_id
         LEFT JOIN alternative_course_group_members m
             ON m.alternative_group_id = pl.alternative_group_id
@@ -254,6 +293,8 @@ def list_curriculum(
         rows = con.execute(
             f"""
             SELECT
+                cat.catalog_key AS catalog_key,
+                cat.academic_year AS academic_year,
                 p.program_code AS program,
                 p.plan_key AS plan_key,
                 pl.year_number AS year,
@@ -287,36 +328,55 @@ def list_curriculum(
 
 
 @app.get("/api/courses/{course_code}", response_model=CourseDetailResponse)
-def course_detail(course_code: str, program: str | None = None) -> dict:
+def course_detail(
+    course_code: str,
+    program: str | None = Query(default=None, max_length=20),
+    catalog_key: str | None = Query(default=None, max_length=128),
+) -> dict:
     db_path = _curriculum_db()
     con = _connect_ro(db_path)
     try:
+        if catalog_key is not None:
+            try:
+                catalog_key = _validate_catalog_context(db_path, catalog_key, program)
+            except (TypeError, ValueError) as exc:
+                raise HTTPException(status_code=422, detail=f"invalid catalog_key: {exc}") from exc
+        conditions = ["c.course_code_normalized = ?"]
+        params: list[Any] = [course_code.strip().lower()]
+        if catalog_key is not None:
+            conditions.append("c.catalog_id = (SELECT catalog_id FROM catalogs WHERE catalog_key = ?)")
+            params.append(catalog_key)
         if program:
-            course = con.execute(
-                """
-                SELECT c.* FROM courses c
-                JOIN curriculum_plans p ON p.catalog_id = c.catalog_id
-                WHERE c.course_code_normalized = ?
-                  AND p.program_code = ?
-                LIMIT 1
-                """,
-                (course_code.strip().lower(), program),
-            ).fetchone()
-        else:
-            course = con.execute(
-                "SELECT * FROM courses WHERE course_code_normalized = ? LIMIT 1",
-                (course_code.strip().lower(),),
-            ).fetchone()
-        if course is None:
+            conditions.append(
+                "EXISTS (SELECT 1 FROM programs p WHERE p.catalog_id = c.catalog_id "
+                "AND p.program_code_normalized = ?)"
+            )
+            params.append(program.strip().casefold())
+        courses = con.execute(
+            "SELECT c.*, cat.catalog_key, cat.academic_year FROM courses c "
+            "JOIN catalogs cat ON cat.catalog_id = c.catalog_id WHERE "
+            + " AND ".join(conditions)
+            + " ORDER BY cat.academic_year, cat.catalog_key",
+            params,
+        ).fetchall()
+        if not courses:
             raise HTTPException(status_code=404, detail="ไม่พบรายวิชา")
+        if len(courses) > 1:
+            raise HTTPException(
+                status_code=409,
+                detail="พบรหัสวิชาในหลายหลักสูตร กรุณาระบุ catalog_key",
+            )
+        course = courses[0]
 
         placements = con.execute(
             """
-            SELECT p.program_code AS program, p.plan_key AS plan_key,
+            SELECT cat.catalog_key, cat.academic_year,
+                   p.program_code AS program, p.plan_key AS plan_key,
                    pl.year_number AS year, pl.semester_number AS semester,
                    pl.category AS placement_category
             FROM plan_placements pl
             JOIN curriculum_plans p ON p.plan_id = pl.plan_id
+            JOIN catalogs cat ON cat.catalog_id = p.catalog_id
             LEFT JOIN alternative_course_group_members m
                 ON m.alternative_group_id = pl.alternative_group_id
             WHERE pl.course_id = ?
@@ -458,13 +518,15 @@ def ask(request: AskRequest) -> dict:
         hard_context = {}
         if program is not None:
             hard_context["program"] = program
+        if catalog_key is not None:
+            hard_context["catalog_key"] = catalog_key
         if parsed_context is not None and parsed_context.plan is not None and parsed_context.program == program:
             hard_context["plan"] = parsed_context.plan
         if parsed_context is not None and parsed_context.course_code is not None:
             hard_context["course_code"] = parsed_context.course_code
         result = None
         # Hard QA does not accept bounded result-course context; SQL QA does.
-        if parsed_results is None and catalog_key is None:
+        if parsed_results is None:
             result = answer_hard_question(
                 db_path,
                 request.question,

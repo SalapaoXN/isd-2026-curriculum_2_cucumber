@@ -34,19 +34,27 @@ def _failure(
 
 
 def _resolve_plan(
-    connection: sqlite3.Connection, program: str, plan_key: str
+    connection: sqlite3.Connection,
+    program: str,
+    plan_key: str,
+    catalog_key: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | None]:
     rows = connection.execute(
         """SELECT cp.plan_id, cp.catalog_id, cp.program_id,
-                  cp.program_code, cp.plan_key
+                  cp.program_code, cp.plan_key, c.catalog_key
            FROM curriculum_plans AS cp
            JOIN programs AS p ON p.program_id = cp.program_id
+           JOIN catalogs AS c ON c.catalog_id = cp.catalog_id
            WHERE UPPER(cp.program_code) = ?
              AND UPPER(p.program_code_normalized) = ?
              AND p.catalog_id = cp.catalog_id
              AND LOWER(cp.plan_key) = ?
+             AND (? IS NULL OR LOWER(TRIM(c.catalog_key)) = LOWER(TRIM(?)))
            ORDER BY cp.plan_id""",
-        (program.upper(), program.upper(), plan_key.casefold()),
+        (
+            program.upper(), program.upper(), plan_key.casefold(),
+            catalog_key, catalog_key,
+        ),
     ).fetchall()
     if not rows:
         return None, "plan_not_found"
@@ -59,6 +67,7 @@ def _resolve_plan(
         "program_id": int(row["program_id"]),
         "program": str(row["program_code"]),
         "plan": str(row["plan_key"]),
+        "catalog_key": str(row["catalog_key"]),
     }, None
 
 
@@ -227,6 +236,7 @@ def compare_plan_course_sets(
     program: str,
     left_plan: str,
     right_plan: str,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Compare two explicitly named plans within one program using read-only SQLite."""
     requested = (program, left_plan, right_plan)
@@ -235,6 +245,14 @@ def compare_plan_course_sets(
             "invalid_scope", program, left_plan, right_plan,
             "program and both plan names must be explicitly provided",
         )
+    if catalog_key is not None and (
+        not isinstance(catalog_key, str) or not catalog_key.strip()
+    ):
+        return _failure(
+            "invalid_scope", program, left_plan, right_plan,
+            "catalog_key must be a non-empty string when provided",
+        )
+    catalog_key = catalog_key.strip() if catalog_key is not None else None
     normalized_program = program.strip().upper()
     normalized_left = left_plan.strip()
     normalized_right = right_plan.strip()
@@ -249,10 +267,10 @@ def compare_plan_course_sets(
         with closing(sqlite3.connect(uri, uri=True)) as connection:
             connection.row_factory = sqlite3.Row
             left, left_error = _resolve_plan(
-                connection, normalized_program, normalized_left
+                connection, normalized_program, normalized_left, catalog_key
             )
             right, right_error = _resolve_plan(
-                connection, normalized_program, normalized_right
+                connection, normalized_program, normalized_right, catalog_key
             )
             if left_error or right_error:
                 status = (
@@ -332,6 +350,7 @@ def compare_plan_course_sets(
     return {
         "status": "complete",
         "program": left["program"],
+        "catalog_key": left["catalog_key"],
         "left_plan": left["plan"],
         "right_plan": right["plan"],
         "left_course_count": len(left_ids),

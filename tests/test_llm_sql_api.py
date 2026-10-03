@@ -118,7 +118,7 @@ class LlmSqlApiTests(unittest.TestCase):
         response = self.client.post(
             "/api/ask",
             json={
-                "question": "DSBA coop กับ no_coop ต่างกันอย่างไร",
+                "question": "DSBA มีวิชาอะไรบ้าง",
                 "conversation_context": {
                     "program": "DSBA",
                     "catalog_key": "dsba-2560",
@@ -177,6 +177,50 @@ class LlmSqlApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.json()["programs"], list)
+        dsba = next(item for item in response.json()["programs"] if item["program_code"] == "DSBA")
+        self.assertEqual(
+            {(edition["catalog_key"], edition["academic_year"]) for edition in dsba["editions"]},
+            {("dsba-2560", "2560"), ("dsba-2565", "2565")},
+        )
+
+    def test_curriculum_endpoint_filters_by_catalog(self):
+        response = self.client.get(
+            "/api/curriculum",
+            params={"program": "DSBA", "catalog_key": "dsba-2560", "limit": 5},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["items"])
+        self.assertTrue(
+            all(
+                item["catalog_key"] == "dsba-2560" and item["academic_year"] == "2560"
+                for item in response.json()["items"]
+            )
+        )
+
+    def test_curriculum_endpoint_rejects_unknown_catalog(self):
+        response = self.client.get(
+            "/api/curriculum", params={"catalog_key": "dsba-9999"}
+        )
+
+        self.assertEqual(response.status_code, 422)
+
+    def test_course_detail_requires_catalog_when_code_is_ambiguous(self):
+        ambiguous = self.client.get("/api/courses/06016401", params={"program": "IT"})
+        selected = self.client.get(
+            "/api/courses/06016401",
+            params={
+                "program": "IT",
+                "catalog_key": "OCR extraction / Academic Plan - IT no_coop",
+            },
+        )
+
+        self.assertEqual(ambiguous.status_code, 409)
+        self.assertEqual(selected.status_code, 200)
+        self.assertEqual(
+            selected.json()["course"]["catalog_key"],
+            "OCR extraction / Academic Plan - IT no_coop",
+        )
 
     def test_curriculum_endpoint_remains_available(self):
         response = self.client.get("/api/curriculum", params={"program": "IT", "limit": 1})
@@ -187,7 +231,7 @@ class LlmSqlApiTests(unittest.TestCase):
 
     def test_hard_comparison_uses_deterministic_h1_and_returns_provenance(self):
         question = "DSBA coop กับ no_coop ต่างกันที่วิชาไหน"
-        context = {"program": "DSBA"}
+        context = {"program": "DSBA", "catalog_key": "dsba-2565"}
         intent = {
             "task_type": "plan_comparison",
             "program": "DSBA",

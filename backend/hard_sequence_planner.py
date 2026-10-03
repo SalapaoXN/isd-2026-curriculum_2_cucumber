@@ -51,15 +51,26 @@ def _read_only(db_path: str | Path) -> sqlite3.Connection:
     return connection
 
 
-def _resolve_plan(connection: sqlite3.Connection, program: str, plan: str) -> tuple[dict[str, Any] | None, str | None]:
+def _resolve_plan(
+    connection: sqlite3.Connection,
+    program: str,
+    plan: str,
+    catalog_key: str | None = None,
+) -> tuple[dict[str, Any] | None, str | None]:
     rows = connection.execute(
-        """SELECT cp.plan_id, cp.catalog_id, cp.program_code, cp.plan_key
+        """SELECT cp.plan_id, cp.catalog_id, cp.program_code, cp.plan_key,
+                  c.catalog_key
            FROM curriculum_plans cp
            JOIN programs p ON p.program_id=cp.program_id
+           JOIN catalogs c ON c.catalog_id=cp.catalog_id
            WHERE UPPER(cp.program_code)=? AND UPPER(p.program_code_normalized)=?
              AND p.catalog_id=cp.catalog_id AND LOWER(cp.plan_key)=?
+             AND (? IS NULL OR LOWER(TRIM(c.catalog_key))=LOWER(TRIM(?)))
            ORDER BY cp.plan_id""",
-        (program.strip().upper(), program.strip().upper(), plan.strip().casefold()),
+        (
+            program.strip().upper(), program.strip().upper(), plan.strip().casefold(),
+            catalog_key, catalog_key,
+        ),
     ).fetchall()
     if not rows:
         return None, "plan_not_found"
@@ -70,6 +81,7 @@ def _resolve_plan(connection: sqlite3.Connection, program: str, plan: str) -> tu
         "catalog_id": int(rows[0]["catalog_id"]),
         "program": str(rows[0]["program_code"]),
         "plan": str(rows[0]["plan_key"]),
+        "catalog_key": str(rows[0]["catalog_key"]),
     }, None
 
 
@@ -456,6 +468,7 @@ def plan_curriculum_sequence(
     program: str,
     plan: str,
     horizon_terms: int = _HORIZON_TERMS,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Schedule represented mandatory courses and choice slots over seven regular terms."""
     if not isinstance(program, str) or not program.strip() or not isinstance(plan, str) or not plan.strip():
@@ -463,14 +476,18 @@ def plan_curriculum_sequence(
     if isinstance(horizon_terms, bool) or horizon_terms != _HORIZON_TERMS:
         return _failure("unsupported_horizon", program, plan, horizon_terms, "only seven regular terms are supported")
     try:
-        structure = validate_curriculum_plan_structure(db_path, program, plan)
+        structure = validate_curriculum_plan_structure(
+            db_path, program, plan, catalog_key
+        )
         if structure["status"] in {"plan_not_found", "ambiguous_plan", "invalid_scope", "database_error"}:
             return _failure(structure["status"], program, plan, horizon_terms, "H2 could not resolve the explicit canonical plan")
         if structure.get("mandatory_courses", {}).get("status") != "complete":
             return _failure("incomplete_evidence", structure.get("program"), structure.get("plan"), horizon_terms, "H2 could not establish a complete mandatory course set")
 
         with closing(_read_only(db_path)) as connection:
-            scope, scope_error = _resolve_plan(connection, structure["program"], structure["plan"])
+            scope, scope_error = _resolve_plan(
+                connection, structure["program"], structure["plan"], catalog_key
+            )
             if scope_error or scope is None:
                 return _failure(scope_error or "plan_not_found", program, plan, horizon_terms, "canonical plan scope did not resolve uniquely")
             max_policy = _policy_fact(connection, "regular_maximum", "regular_semester")
@@ -489,7 +506,9 @@ def plan_curriculum_sequence(
             if max_policy is None:
                 policy_issue = "canonical regular-semester maximum or its provenance is unresolved"
             cap = max_policy["value"] if max_policy else None
-            h3_plan = validate_plan_prerequisite_sequence(db_path, structure["program"], structure["plan"])
+            h3_plan = validate_plan_prerequisite_sequence(
+                db_path, structure["program"], structure["plan"], catalog_key
+            )
             graph, graph_issues = _graph_constraints(h3_plan, nodes, slots)
             unresolved: list[dict[str, Any]] = []
             limitations: list[str] = ["actual_course_offering_unverified"]

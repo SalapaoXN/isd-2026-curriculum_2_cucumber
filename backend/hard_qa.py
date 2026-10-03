@@ -60,34 +60,43 @@ class _InterpretationParseError(ValueError):
 def _read_context(context: Any) -> dict[str, str]:
     if context is None:
         return {}
-    if not isinstance(context, dict) or set(context) - {"program", "plan", "course_code"}:
-        raise ValueError("Hard QA accepts only validated program, plan, and course_code context")
+    if not isinstance(context, dict) or set(context) - {"program", "plan", "course_code", "catalog_key"}:
+        raise ValueError("Hard QA accepts only validated catalog, program, plan, and course_code context")
     normalized = {}
     for key, value in context.items():
         if value is not None:
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{key} must be a non-empty string")
             normalized[key] = value.strip()
+    if "catalog_key" in normalized and len(normalized["catalog_key"]) > 128:
+        raise ValueError("catalog_key must be at most 128 characters")
     return normalized
 
 
-def _load_scopes(db_path: str | Path) -> list[dict[str, str]]:
+def _load_scopes(
+    db_path: str | Path, catalog_key: str | None = None
+) -> list[dict[str, str]]:
     path = Path(db_path).resolve()
     if not path.is_file():
         raise OSError("canonical database is unavailable")
     with closing(sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True)) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
-            """SELECT DISTINCT cp.program_code, p.program_code_normalized, cp.plan_key
+            """SELECT DISTINCT cp.program_code, p.program_code_normalized,
+                      cp.plan_key, c.catalog_key
                FROM curriculum_plans cp
                JOIN programs p ON p.program_id=cp.program_id AND p.catalog_id=cp.catalog_id
-               ORDER BY cp.program_code, cp.plan_key"""
+               JOIN catalogs c ON c.catalog_id=cp.catalog_id
+               WHERE (? IS NULL OR LOWER(TRIM(c.catalog_key))=LOWER(TRIM(?)))
+               ORDER BY cp.program_code, cp.plan_key""",
+            (catalog_key, catalog_key),
         ).fetchall()
     return [
         {
             "program": str(row["program_code"]),
             "program_normalized": str(row["program_code_normalized"]),
             "plan": str(row["plan_key"]),
+            "catalog_key": str(row["catalog_key"]),
         }
         for row in rows
     ]
@@ -509,9 +518,12 @@ def _term_phrase(term: Any) -> str | None:
 def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
     feasible = result.get("sequence_feasible")
     status = result.get("status", "incomplete_evidence")
+    terms = result.get("terms", [])
     lines = []
     if status == "incomplete_evidence" and feasible is False:
         lines.append("จากข้อจำกัดหลักสูตรที่ตรวจสอบได้ ยังจัดรายวิชาลงครบ 7 เทอมไม่ได้ และข้อมูลยังไม่พอยืนยันความครบถ้วนทั้งหมด:")
+    elif status == "incomplete_evidence" and not terms:
+        lines.append("หลักฐานที่มีไม่เพียงพอสำหรับจัดทำโครงร่าง 7 เทอม จึงยังระบุลำดับรายวิชาไม่ได้:")
     elif status == "incomplete_evidence":
         lines.append("จากข้อมูลหลักสูตรที่มี สามารถจัดลำดับรายวิชาเป็นโครงร่าง 7 เทอมได้ดังนี้ แต่ข้อมูลยังไม่เพียงพอที่จะยืนยันว่าแผนนี้ครบเงื่อนไขจบทั้งหมด:")
     elif feasible is True:
@@ -520,7 +532,7 @@ def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
         lines.append("หลักฐานที่แทนได้ชี้ว่าโครงสร้างนี้จัดลง 7 ภาคเรียนภายใต้เพดานปกติไม่ได้")
     else:
         lines.append("จากข้อมูลหลักสูตรที่มี สามารถจัดลำดับรายวิชาเป็นโครงร่าง 7 เทอมได้ดังนี้:")
-    for term in result.get("terms", []):
+    for term in terms:
         if not isinstance(term, dict):
             continue
         index = term.get("term_index")
@@ -550,7 +562,7 @@ def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
             concise_limitations.append("บางรายวิชายังไม่มีข้อมูลหน่วยกิตหรือภาคเรียนที่ระบุแน่นอน")
         if any("prerequisite" in item for item in relevant_limitations):
             concise_limitations.append("ข้อมูล prerequisite บางส่วนยังยืนยันได้ไม่ครบ")
-    if result.get("actual_course_offering_unverified") is True:
+    if terms and result.get("actual_course_offering_unverified") is True:
         concise_limitations.append("ยังไม่ได้ตรวจสอบการเปิดสอนจริงในแต่ละภาคเรียน")
     if concise_limitations:
         lines.append("หมายเหตุ: " + "; ".join(concise_limitations))
@@ -587,7 +599,11 @@ def _response(
     *,
     action: str | None = None,
 ) -> dict[str, Any]:
-    next_context = {key: value for key, value in scope.items() if key in {"program", "plan", "target_course_code"} and value is not None}
+    next_context = {key: value for key, value in scope.items() if key in {"catalog_key", "program", "plan", "target_course_code"} and value is not None}
+    public_scope = {
+        key: value for key, value in scope.items()
+        if key != "catalog_key" or value is not None
+    }
     if "target_course_code" in next_context:
         next_context["course_code"] = next_context.pop("target_course_code")
     return {
@@ -596,7 +612,7 @@ def _response(
         "action": action,
         "route": "hard",
         "hard_task_type": task_type,
-        "scope": scope,
+        "scope": public_scope,
         "provenance": provenance or [],
         "next_context": next_context or None,
     }
@@ -621,12 +637,36 @@ def answer_hard_question(
         return None
     try:
         context = _read_context(conversation_context)
-        scopes = _load_scopes(db_path)
+        catalog_key = context.get("catalog_key")
+        if catalog_key is not None:
+            with closing(sqlite3.connect(f"{Path(db_path).resolve().as_uri()}?mode=ro", uri=True)) as connection:
+                catalogs = connection.execute(
+                    "SELECT catalog_key FROM catalogs WHERE LOWER(TRIM(catalog_key))=LOWER(TRIM(?))",
+                    (catalog_key,),
+                ).fetchall()
+            if len(catalogs) != 1 or not catalogs[0][0]:
+                return _response(
+                    "context_conflict",
+                    "catalog_key ไม่ได้ระบุหลักสูตรฉบับที่มีอยู่เพียงหนึ่งรายการ",
+                    "scope_resolution",
+                    {"catalog_key": catalog_key},
+                    action="invalid_catalog_scope",
+                )
+            catalog_key = str(catalogs[0][0]).strip()
+        scopes = _load_scopes(db_path, catalog_key)
     except (OSError, sqlite3.Error, ValueError):
         return _response("incomplete_evidence", "ไม่สามารถอ่านขอบเขตหลักสูตรที่ยืนยันได้", "scope_resolution", {}, action="canonical_scope_unavailable")
 
     programs = sorted({item["program"] for item in scopes}, key=lambda value: value.casefold())
     context_program = _canonical_match(context.get("program"), programs)
+    if catalog_key is not None and context.get("program") is not None and context_program is None:
+        return _response(
+            "context_conflict",
+            "หลักสูตรที่เลือกไม่มีโปรแกรมตามบริบท กรุณาเลือกหลักสูตรฉบับที่ตรงกัน",
+            "scope_resolution",
+            {"catalog_key": catalog_key},
+            action="catalog_program_mismatch",
+        )
     context_plan = _canonical_match(
         context.get("plan"),
         [item["plan"] for item in scopes if context_program is not None and _same(item["program"], context_program)],
@@ -637,7 +677,7 @@ def answer_hard_question(
             "unsupported",
             "ฐานข้อมูลที่มีไม่ระบุปีหรือรุ่นหลักสูตรเพียงพอสำหรับเปรียบเทียบหลักสูตรเก่ากับใหม่",
             "unsupported_old_new",
-            {"program": context_program, "plan": context_plan},
+            {"catalog_key": catalog_key, "program": context_program, "plan": context_plan},
         )
 
     raw = interpretation_model(_interpretation_prompt(question, scopes, context))
@@ -681,6 +721,17 @@ def answer_hard_question(
     if program is None:
         return _response("clarification_required", "ต้องการตรวจสอบหลักสูตรใด? โปรดระบุรหัสหลักสูตร เช่น IT หรือ DSBA", intent["task_type"], {})
 
+    program_catalogs = {
+        item["catalog_key"] for item in scopes if _same(item["program"], program)
+    }
+    if catalog_key is None and len(program_catalogs) > 1:
+        return _response(
+            "clarification_required",
+            "โปรดเลือกฉบับหลักสูตรหรือ academic_year ก่อนตรวจสอบแผน",
+            intent["task_type"],
+            {"program": program},
+        )
+
     plans_for_program = sorted({item["plan"] for item in scopes if _same(item["program"], program)}, key=lambda value: value.casefold())
     explicit_plans = _mentioned_values(question, [item for item in scopes if _same(item["program"], program)], "plan")
     task_type = intent["task_type"]
@@ -689,10 +740,12 @@ def answer_hard_question(
         right_plan = _canonical_match(intent.get("right_plan"), plans_for_program)
         if (left_plan is None or right_plan is None or _same(left_plan, right_plan)
                 or not _mentioned(question, left_plan) or not _mentioned(question, right_plan)):
-            return _response("clarification_required", "โปรดระบุชื่อแผนทั้งสองแผนที่ต้องการเปรียบเทียบ", task_type, {"program": program, "plan": None})
+            return _response("clarification_required", "โปรดระบุชื่อแผนทั้งสองแผนที่ต้องการเปรียบเทียบ", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
         context_plan = _canonical_match(context.get("plan"), plans_for_program) if context_program is not None and _same(program, context_program) else None
-        scope = {"program": program, "plan": context_plan, "left_plan": left_plan, "right_plan": right_plan}
-        hard_result = compare_plan_course_sets(db_path, program, left_plan, right_plan)
+        scope = {"catalog_key": catalog_key, "program": program, "plan": context_plan, "left_plan": left_plan, "right_plan": right_plan}
+        hard_result = compare_plan_course_sets(
+            db_path, program, left_plan, right_plan, catalog_key
+        )
         status, answer, provenance = _format_h1(hard_result)
     else:
         explicit_program_changed = context_program is not None and not _same(program, context_program)
@@ -701,18 +754,18 @@ def answer_hard_question(
         if explicit_plans:
             plan = explicit_plans[0] if len(explicit_plans) == 1 else None
             if len(explicit_plans) > 1:
-                return _response("clarification_required", "โปรดเลือกแผนเดียวสำหรับการตรวจสอบนี้", task_type, {"program": program, "plan": None})
+                return _response("clarification_required", "โปรดเลือกแผนเดียวสำหรับการตรวจสอบนี้", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
             if proposed_plan is not None and not _same(proposed_plan, plan):
-                return _response("clarification_required", "โปรดตรวจสอบชื่อแผนที่ต้องการอีกครั้ง", task_type, {"program": program, "plan": None})
+                return _response("clarification_required", "โปรดตรวจสอบชื่อแผนที่ต้องการอีกครั้ง", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
         elif proposed_plan is not None:
             if context_plan is not None and _same(proposed_plan, context_plan):
                 plan = context_plan
             else:
-                return _response("clarification_required", "ไม่สามารถใช้แผนที่ไม่ได้ระบุในคำถามหรือบริบทที่เลือกไว้ได้ โปรดระบุแผน", task_type, {"program": program, "plan": None})
+                return _response("clarification_required", "ไม่สามารถใช้แผนที่ไม่ได้ระบุในคำถามหรือบริบทที่เลือกไว้ได้ โปรดระบุแผน", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
         else:
             plan = context_plan
         if plan is None:
-            return _response("clarification_required", "โปรดเลือกแผนหลักสูตรที่ต้องการตรวจสอบ เช่น coop หรือ no_coop", task_type, {"program": program, "plan": None})
+            return _response("clarification_required", "โปรดเลือกแผนหลักสูตรที่ต้องการตรวจสอบ เช่น coop หรือ no_coop", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
         if task_type == "prerequisite_sequence":
             current_codes = list(dict.fromkeys(
                 str(code).strip().upper() for code in parse_query_spec(question).course_codes
@@ -727,7 +780,9 @@ def answer_hard_question(
                 target = target.strip().upper()
                 if not _mentioned(question, target) and not _same(target, context_course or ""):
                     return _response("clarification_required", "โปรดระบุรหัสวิชาที่ต้องการตรวจสอบ prerequisite", task_type, {"program": program, "plan": plan})
-            hard_result = validate_plan_prerequisite_sequence(db_path, program, plan)
+            hard_result = validate_plan_prerequisite_sequence(
+                db_path, program, plan, catalog_key
+            )
             if target is not None:
                 with closing(sqlite3.connect(f"{Path(db_path).resolve().as_uri()}?mode=ro", uri=True)) as connection:
                     exists = connection.execute(
@@ -736,24 +791,31 @@ def answer_hard_question(
                            LEFT JOIN courses c ON c.course_id=pp.course_id
                            LEFT JOIN alternative_course_group_members gm ON gm.alternative_group_id=pp.alternative_group_id
                            LEFT JOIN courses mc ON mc.course_id=gm.course_id
+                           JOIN catalogs cat ON cat.catalog_id=cp.catalog_id
                            WHERE UPPER(cp.program_code)=? AND LOWER(cp.plan_key)=?
+                             AND (? IS NULL OR LOWER(TRIM(cat.catalog_key))=LOWER(TRIM(?)))
                              AND UPPER(COALESCE(c.course_code_normalized,mc.course_code_normalized))=? LIMIT 1""",
-                        (program.upper(), plan.casefold(), target),
+                        (program.upper(), plan.casefold(), catalog_key, catalog_key, target),
                     ).fetchone()
                 if exists is None:
                     return _response("unsupported", f"ไม่พบวิชา {target} ในแผน {plan} ที่ระบุ", task_type, {"program": program, "plan": plan})
             status, answer, provenance = _format_h3(hard_result, target)
-            scope = {"program": program, "plan": plan, "target_course_code": target}
+            scope = {"catalog_key": catalog_key, "program": program, "plan": plan, "target_course_code": target}
         elif task_type == "plan_structure_validation":
-            hard_result = validate_curriculum_plan_structure(db_path, program, plan)
+            hard_result = validate_curriculum_plan_structure(
+                db_path, program, plan, catalog_key
+            )
             status, answer, provenance = _format_h2(hard_result)
-            scope = {"program": program, "plan": plan}
+            scope = {"catalog_key": catalog_key, "program": program, "plan": plan}
         elif task_type == "seven_term_plan":
             if intent.get("horizon_terms") != _HORIZON_TERMS:
                 return _response("unsupported", "รองรับเฉพาะการจัดลำดับ 7 ภาคเรียนปกติสำหรับกรณี 3.5 ปี", task_type, {"program": program, "plan": plan})
-            hard_result = plan_curriculum_sequence(db_path, program, plan, horizon_terms=_HORIZON_TERMS)
+            hard_result = plan_curriculum_sequence(
+                db_path, program, plan, horizon_terms=_HORIZON_TERMS,
+                catalog_key=catalog_key,
+            )
             status, answer, provenance = _format_h4(hard_result)
-            scope = {"program": program, "plan": plan}
+            scope = {"catalog_key": catalog_key, "program": program, "plan": plan}
         else:
             return _response("unsupported", "ไม่รองรับงาน Hard ประเภทนี้", task_type, {"program": program, "plan": plan})
     return _response(status, _append_citation_summary(answer, provenance), task_type, scope, provenance)

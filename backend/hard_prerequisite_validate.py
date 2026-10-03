@@ -35,19 +35,27 @@ def _connect_read_only(db_path: str | Path) -> sqlite3.Connection:
 
 
 def _resolve_plan(
-    connection: sqlite3.Connection, program: str, plan: str
+    connection: sqlite3.Connection,
+    program: str,
+    plan: str,
+    catalog_key: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | None]:
     rows = connection.execute(
         """SELECT cp.plan_id, cp.catalog_id, cp.program_id, cp.program_code,
-                  cp.plan_key
+                  cp.plan_key, c.catalog_key
            FROM curriculum_plans AS cp
            JOIN programs AS p ON p.program_id = cp.program_id
+           JOIN catalogs AS c ON c.catalog_id = cp.catalog_id
            WHERE UPPER(cp.program_code) = ?
              AND UPPER(p.program_code_normalized) = ?
              AND p.catalog_id = cp.catalog_id
              AND LOWER(cp.plan_key) = ?
+             AND (? IS NULL OR LOWER(TRIM(c.catalog_key)) = LOWER(TRIM(?)))
            ORDER BY cp.plan_id""",
-        (program.strip().upper(), program.strip().upper(), plan.strip().casefold()),
+        (
+            program.strip().upper(), program.strip().upper(), plan.strip().casefold(),
+            catalog_key, catalog_key,
+        ),
     ).fetchall()
     if not rows:
         return None, "plan_not_found"
@@ -60,6 +68,7 @@ def _resolve_plan(
         "program_id": int(row["program_id"]),
         "program": str(row["program_code"]),
         "plan": str(row["plan_key"]),
+        "catalog_key": str(row["catalog_key"]),
     }, None
 
 
@@ -582,12 +591,15 @@ def _run_validation(
     program: Any,
     plan: Any,
     semester_assignments: list[dict[str, Any]] | None,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     if not isinstance(program, str) or not program.strip() or not isinstance(plan, str) or not plan.strip():
         return _failure("invalid_scope", program, plan, "explicit program and plan are required")
     try:
         with closing(_connect_read_only(db_path)) as connection:
-            scope, scope_error = _resolve_plan(connection, program, plan)
+            scope, scope_error = _resolve_plan(
+                connection, program, plan, catalog_key
+            )
             if scope_error:
                 return _failure(scope_error, program, plan, "the explicit program/plan scope is unresolved")
             assert scope is not None
@@ -644,6 +656,7 @@ def _run_validation(
                 "status": status,
                 "program": scope["program"],
                 "plan": scope["plan"],
+                "catalog_key": scope["catalog_key"],
                 "relationships": relationships,
                 "transitive_paths": transitive_paths,
                 "violations": violations,
@@ -664,10 +677,13 @@ def _run_validation(
 
 
 def validate_plan_prerequisite_sequence(
-    db_path: str | Path, program: str, plan: str
+    db_path: str | Path,
+    program: str,
+    plan: str,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Validate structured prerequisite order in a canonical plan."""
-    return _run_validation(db_path, program, plan, None)
+    return _run_validation(db_path, program, plan, None, catalog_key)
 
 
 def validate_candidate_sequence(
@@ -675,9 +691,12 @@ def validate_candidate_sequence(
     program: str,
     plan: str,
     semester_assignments: list[dict[str, Any]],
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Validate an explicitly supplied course-to-term assignment."""
-    return _run_validation(db_path, program, plan, semester_assignments)
+    return _run_validation(
+        db_path, program, plan, semester_assignments, catalog_key
+    )
 
 
 __all__ = ["validate_candidate_sequence", "validate_plan_prerequisite_sequence"]

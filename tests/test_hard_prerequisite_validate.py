@@ -191,6 +191,10 @@ class HardPrerequisiteValidateTest(unittest.TestCase):
             connection.commit()
         ambiguous = validate_plan_prerequisite_sequence(self.db_path, "TST", "default")
         self.assertEqual(ambiguous["status"], "ambiguous_plan")
+        selected = validate_plan_prerequisite_sequence(
+            self.db_path, "TST", "default", catalog_key="fixture"
+        )
+        self.assertNotEqual(selected["status"], "ambiguous_plan")
 
     def test_missing_prerequisite_source_link_makes_judgment_incomplete(self):
         with closing(sqlite3.connect(self.db_path)) as connection:
@@ -286,7 +290,9 @@ class HardPrerequisiteValidateTest(unittest.TestCase):
         db_path = Path("cucumber_outputs/runtime/curriculum.db")
         if not db_path.exists():
             self.skipTest("runtime curriculum DB is not present")
-        result = validate_plan_prerequisite_sequence(db_path, "DSBA", "coop")
+        result = validate_plan_prerequisite_sequence(
+            db_path, "DSBA", "coop", catalog_key="dsba-2565"
+        )
         relationship = next(
             item for item in result["relationships"]
             if item["dependent_course_code"] == "06026201"
