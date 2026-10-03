@@ -224,6 +224,47 @@ CANONICAL_NAME_CORRECTIONS = {
         "name_th",
         "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
     ): "กฎหมายสำหรับคนรุ่นใหม่",
+    # Legacy IT/BIT 2560 pins verified against the listed legacy plan and
+    # description pages. Each exact OCR before-value keeps these deterministic
+    # pins fail-closed; they unify the coop/no_coop shared-course names that
+    # the runtime loader requires to agree within one catalog edition.
+    # IT 06016304: coop plan p036 truncated the title to 'PROBABILITV';
+    # no_coop plan p029 and description p224 give the full title.
+    ("IT", "06016304", "name_en", "PROBABILITV"):
+        "PROBABILITY AND STATISTICS",
+    # IT 06016329: no_coop plan p032 lost the terminal ' 1' to an OCR typo
+    # ('ENGINEERNG'); description p236 carries 'PROJECT IN SOFTWARE
+    # ENGINEERNNG 1' and the Thai name agrees with the numbered form.
+    ("IT", "06016329", "name_en", "PROJECT IN SOFTWARE ENGINEERNG"):
+        "PROJECT IN SOFTWARE ENGINEERING 1",
+    # IT 06016342: no_coop plan p029 row has no Thai name ('ไม่ระบุ');
+    # coop plan p036 and description p243 give the full Thai name.
+    ("IT", "06016342", "name_th", "ไม่ระบุ"):
+        "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
+    # IT 06016349: coop is description-only (p246, unnumbered) while the
+    # no_coop plan p032 row carries the project number ' 1'.
+    ("IT", "06016349", "name_th", "โครงงานทางด้านการพัฒนาสือประสมและเกม"):
+        "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 1",
+    ("IT", "06016349", "name_en", "PROJECT IN MULTIMEDLA AND GAME DEVELOPMENT"):
+        "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 1",
+    # IT 90101007: coop plan p034 abbreviates ('คณิต.เศรษฐศาสตร์เบื้องต้น');
+    # no_coop plan p027 and the English title fix the full course name.
+    # Rejects the unsupported LLM expansion to 'คณิตศาสตร์เศรษฐศาสตร์...'.
+    ("IT", "90101007", "name_th", "คณิต.เศรษฐศาสตร์เบื้องต้น"):
+        "คณิตเศรษฐศาสตร์เบื้องต้น",
+    # IT 90201002: coop plan p035 dropped 'พื้นฐาน' from the Y1S2 row;
+    # no_coop plan p028 carries the full name in the same slot.
+    ("IT", "90201002", "name_th", "ภาษาอังกฤษ 2"):
+        "ภาษาอังกฤษพื้นฐาน 2",
+    # BIT 06036019/06036020: no_coop plan p026 rows carry only the slot
+    # number ('ไม่ระบุ 1/2'); description p178 gives the project titles.
+    ("BIT", "06036019", "name_th", "ไม่ระบุ 1"): "โครงงาน 1",
+    ("BIT", "06036020", "name_th", "ไม่ระบุ 2"): "โครงงาน 2",
+    # BIT 06036085: no_coop plan p023 row carries an OCR-fragment suffix
+    # ('EAU'); the coop plan p027 row and the Thai name agree on the clean
+    # English title.
+    ("BIT", "06036085", "name_en", "INTRODUCTION TO MATHEMATICAL ECONOMICS EAU"):
+        "INTRODUCTION TO MATHEMATICAL ECONOMICS",
 }
 BIT_NAME_CORRECTION_SOURCE_PAGES = {
     "06036100": 31,
@@ -257,6 +298,15 @@ BIT_NAME_CORRECTION_SOURCE_PAGE_OVERRIDES = {
         "name_th",
         "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
     ): 29,
+}
+# Legacy BIT 2560 pin sources. Unlike the current edition (whose plan
+# provenance cites the OCR JSON filename), legacy consolidated records cite
+# the source image filename, so these entries use the `.png` form exactly
+# as stored in `source_provenance`.
+BIT_LEGACY_NAME_CORRECTION_SOURCES = {
+    "06036019": ("bit2560_page_026.png", 26),
+    "06036020": ("bit2560_page_026.png", 26),
+    "06036085": ("bit2560_page_023.png", 23),
 }
 BIT_SOURCE_VERIFIED_PLACEMENT_NOTES = {
     ("96644042", 26): "กลุ่มวิชาที่กำหนดโดยคณะ",
@@ -346,16 +396,40 @@ def _guard_correction_value(
     *,
     program: Any = None,
 ) -> str:
-    if field in TEXT_FIELDS and before in NON_CORRECTABLE_NAME_VALUES:
-        return before
     record_program = record.get("program")
     if record_program is None:
         record_program = program
     identity = (record_program, _record_course_code(record), field, before)
+    # Reviewed canonical pins take precedence: they carry explicit source
+    # evidence (see CANONICAL_NAME_CORRECTIONS), so they also apply to
+    # otherwise non-correctable placeholders such as bare 'ไม่ระบุ'.
+    # Unpinned placeholders remain fail-closed below.
+    pinned = (
+        identity in CANONICAL_NAME_CORRECTIONS
+        or identity in LITERAL_PRESERVE_VALUES
+    )
+    if not pinned and field in TEXT_FIELDS and before in NON_CORRECTABLE_NAME_VALUES:
+        return before
     canonical_after = CANONICAL_NAME_CORRECTIONS.get(identity)
     if canonical_after is not None:
         if record_program == "BIT" and field in TEXT_FIELDS:
             course_code = _record_course_code(record)
+            legacy_source = BIT_LEGACY_NAME_CORRECTION_SOURCES.get(course_code)
+            if legacy_source is not None:
+                expected_source = {
+                    "source_filename": legacy_source[0],
+                    "source_page": legacy_source[1],
+                    "document_category": "plan",
+                }
+                if not any(
+                    all(
+                        entry.get(key) == value
+                        for key, value in expected_source.items()
+                    )
+                    for entry in _record_source_entries(record)
+                ):
+                    return before
+                return canonical_after
             source_page = BIT_NAME_CORRECTION_SOURCE_PAGE_OVERRIDES.get(
                 (course_code, field, before),
                 BIT_NAME_CORRECTION_SOURCE_PAGES.get(course_code),

@@ -15,7 +15,7 @@
         "course_code": "90101007",
         "field": "name_th",
         "before": "คณิต.เศรษฐศาสตร์เบื้องต้น",
-        "after": "คณิตศาสตร์เศรษฐศาสตร์เบื้องต้น"
+        "after": "คณิตเศรษฐศาสตร์เบื้องต้น"
     },
     {
         "course_code": "90201001",
@@ -60,6 +60,12 @@
         "after": "COMPUTER SYSTEMS ORGANIZATION AND OPERATING SYSTEM"
     },
     {
+        "course_code": "90201002",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษ 2",
+        "after": "ภาษาอังกฤษพื้นฐาน 2"
+    },
+    {
         "course_code": "06016303",
         "field": "name_th",
         "before": "คณิตศาสตร์ไม่ต่อเนือ",
@@ -93,7 +99,7 @@
         "course_code": "06016304",
         "field": "name_en",
         "before": "PROBABILITV",
-        "after": "PROBABILITY"
+        "after": "PROBABILITY AND STATISTICS"
     },
     {
         "course_code": "90201026",
@@ -160,12 +166,6 @@
         "field": "name_en",
         "before": "REOUIREMENT ENGINEERING",
         "after": "REQUIREMENT ENGINEERING"
-    },
-    {
-        "course_code": "06016333",
-        "field": "name_th",
-        "before": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
-        "after": "เทคโนโลยีการให้บริการอินเทอร์เน็ต"
     },
     {
         "course_code": "06016318",
@@ -255,13 +255,13 @@
         "course_code": "06016349",
         "field": "name_th",
         "before": "โครงงานทางด้านการพัฒนาสือประสมและเกม",
-        "after": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม"
+        "after": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 1"
     },
     {
         "course_code": "06016349",
         "field": "name_en",
         "before": "PROJECT IN MULTIMEDLA AND GAME DEVELOPMENT",
-        "after": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT"
+        "after": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 1"
     },
     {
         "course_code": "06016350",

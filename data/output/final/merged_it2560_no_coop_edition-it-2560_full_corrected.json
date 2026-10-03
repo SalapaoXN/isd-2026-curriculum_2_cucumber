@@ -858,7 +858,7 @@
         },
         {
             "code": "06016342",
-            "name_th": "ไม่ระบุ",
+            "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
             "name_en": "COMPUTER GRAPHICS AND ANIMATION",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1073,7 +1073,7 @@
         },
         {
             "code": "06016333",
-            "name_th": "เทคโนโลยีการให้บริการอินเทอร์เน็ต",
+            "name_th": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
             "name_en": "INTERNET SERVICE TECHNOLOGY",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1696,7 +1696,7 @@
         {
             "code": "06016329",
             "name_th": "โครงงานทางด้านวิศวกรรมซอฟต์แวร์ 1",
-            "name_en": "PROJECT IN SOFTWARE ENGINEERING",
+            "name_en": "PROJECT IN SOFTWARE ENGINEERING 1",
             "credits": "3(0-9-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",

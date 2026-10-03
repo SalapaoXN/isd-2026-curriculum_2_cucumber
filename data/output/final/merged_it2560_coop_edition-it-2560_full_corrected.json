@@ -107,7 +107,7 @@
         },
         {
             "code": "90101007",
-            "name_th": "คณิตศาสตร์เศรษฐศาสตร์เบื้องต้น",
+            "name_th": "คณิตเศรษฐศาสตร์เบื้องต้น",
             "name_en": "INTRODUCTION TO MATHEMATICAL ECONOMICS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -297,7 +297,7 @@
         },
         {
             "code": "90201002",
-            "name_th": "ภาษาอังกฤษ 2",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 2",
             "name_en": "FOUNDATION ENGLISH 2",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -528,7 +528,7 @@
         {
             "code": "06016304",
             "name_th": "ความน่าจะเป็นและสถิติ",
-            "name_en": "PROBABILITY",
+            "name_en": "PROBABILITY AND STATISTICS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1011,7 +1011,7 @@
         },
         {
             "code": "06016333",
-            "name_th": "เทคโนโลยีการให้บริการอินเทอร์เน็ต",
+            "name_th": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
             "name_en": "INTERNET SERVICE TECHNOLOGY",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1935,8 +1935,8 @@
         },
         {
             "code": "06016349",
-            "name_th": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม",
-            "name_en": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT",
+            "name_th": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 1",
+            "name_en": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 1",
             "credits": "3(0-9-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",

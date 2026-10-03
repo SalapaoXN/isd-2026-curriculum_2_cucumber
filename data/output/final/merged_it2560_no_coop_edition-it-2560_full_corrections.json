@@ -132,6 +132,12 @@
         "after": "MULTIMEDIA PROGRAMMING"
     },
     {
+        "course_code": "06016342",
+        "field": "name_th",
+        "before": "ไม่ระบุ",
+        "after": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน"
+    },
+    {
         "course_code": "06016309",
         "field": "name_th",
         "before": "ความมันคงของระบบสารสนเทศและกฎหมายไอที",
@@ -154,12 +160,6 @@
         "field": "name_en",
         "before": "REOUIREMENT ENGINEERING",
         "after": "REQUIREMENT ENGINEERING"
-    },
-    {
-        "course_code": "06016333",
-        "field": "name_th",
-        "before": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
-        "after": "เทคโนโลยีการให้บริการอินเทอร์เน็ต"
     },
     {
         "course_code": "06016318",
@@ -213,7 +213,7 @@
         "course_code": "06016329",
         "field": "name_en",
         "before": "PROJECT IN SOFTWARE ENGINEERNG",
-        "after": "PROJECT IN SOFTWARE ENGINEERING"
+        "after": "PROJECT IN SOFTWARE ENGINEERING 1"
     },
     {
         "course_code": "06016349",

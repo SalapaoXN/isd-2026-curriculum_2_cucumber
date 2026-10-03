@@ -1,0 +1,572 @@
+[
+    {
+        "course_code": "90101002",
+        "field": "name_en",
+        "before": "MATHEMATICS IN DAILV LIFE",
+        "after": "MATHEMATICS IN DAILY LIFE"
+    },
+    {
+        "course_code": "90101003",
+        "field": "name_en",
+        "before": "STATISTICS IN DALLX LIFE",
+        "after": "STATISTICS IN DAILY LIFE"
+    },
+    {
+        "course_code": "90101006",
+        "field": "name_th",
+        "before": "คณิตศาสตร์เพือพัฒนากระบวนการคิด",
+        "after": "คณิตศาสตร์เพื่อพัฒนากระบวนการคิด"
+    },
+    {
+        "course_code": "90101006",
+        "field": "name_en",
+        "before": "MATHEMATICS FOR THINKNG PROCESS DEVELOPMENT",
+        "after": "MATHEMATICS FOR THINKING PROCESS DEVELOPMENT"
+    },
+    {
+        "course_code": "90101007",
+        "field": "name_th",
+        "before": "คณิตเศรษฐศาสตร์ เบื้องต้น",
+        "after": "คณิตเศรษฐศาสตร์เบื้องต้น"
+    },
+    {
+        "course_code": "90101009",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับผู้บริโภค",
+        "after": "คณิตศาสตร์สำหรับผู้บริโภค"
+    },
+    {
+        "course_code": "90102001",
+        "field": "name_en",
+        "before": "COMPUTER IN DALLY LIFE",
+        "after": "COMPUTER IN DAILY LIFE"
+    },
+    {
+        "course_code": "90102003",
+        "field": "name_en",
+        "before": "COMPUTERS AND PROCRAMMNG",
+        "after": "COMPUTERS AND PROGRAMMING"
+    },
+    {
+        "course_code": "90102005",
+        "field": "name_th",
+        "before": "ระบบสารสนเทศเพือการจัดการเบืองต้น",
+        "after": "ระบบสารสนเทศเพื่อการจัดการเบื้องต้น"
+    },
+    {
+        "course_code": "90102005",
+        "field": "name_en",
+        "before": "INTRODUCTLON TO IFORMATON SYSTEMS FOR MANAGEMENT",
+        "after": "INTRODUCTION TO INFORMATION SYSTEMS FOR MANAGEMENT"
+    },
+    {
+        "course_code": "90102006",
+        "field": "name_th",
+        "before": "การจัดการข้อมูลการวิจัยทางวิทยาศาสตร์และการเกษตร ด้วยโปรแกรมคอมพิวเตอร์",
+        "after": "การจัดการข้อมูลการวิจัยทางวิทยาศาสตร์และการเกษตรด้วยโปรแกรมคอมพิวเตอร์"
+    },
+    {
+        "course_code": "90102006",
+        "field": "name_en",
+        "before": "INTEGRATED DATA MANAGEMENT FOR SCIENTIFIC AND AGRICULTURAL RESEARCH BV USING COMPUTATIONAL PROGRAM",
+        "after": "INTEGRATED DATA MANAGEMENT FOR SCIENTIFIC AND AGRICULTURAL RESEARCH BY USING COMPUTATIONAL PROGRAM"
+    },
+    {
+        "course_code": "90103003",
+        "field": "name_en",
+        "before": "AUTOMOTIE TECHNOLOGY",
+        "after": "AUTOMOTIVE TECHNOLOGY"
+    },
+    {
+        "course_code": "90104005",
+        "field": "name_th",
+        "before": "วิทยาศาสตร์การถ่ายภาพ หน้า จาก 124",
+        "after": "วิทยาศาสตร์การถ่ายภาพ"
+    },
+    {
+        "course_code": "90104005",
+        "field": "name_en",
+        "before": "SCIENCE OF PHOTOCRAPHY",
+        "after": "SCIENCE OF PHOTOGRAPHY"
+    },
+    {
+        "course_code": "90104006",
+        "field": "name_en",
+        "before": "INTRODUCTION TO FOQD NUTRITION",
+        "after": "INTRODUCTION TO FOOD NUTRITION"
+    },
+    {
+        "course_code": "90104007",
+        "field": "name_en",
+        "before": "FOQD SCIENCE IN DALLX LIFE",
+        "after": "FOOD SCIENCE IN DAILY LIFE"
+    },
+    {
+        "course_code": "90104008",
+        "field": "name_en",
+        "before": "PERSONAL AND COMMUNIT HYGIENE",
+        "after": "PERSONAL AND COMMUNITY HYGIENE"
+    },
+    {
+        "course_code": "90104009",
+        "field": "name_th",
+        "before": "สิงแวดล้อมและการอนุรักษ์ทรัพยากรธรรมชาติ",
+        "after": "สิ่งแวดล้อมและการอนุรักษ์ทรัพยากรธรรมชาติ"
+    },
+    {
+        "course_code": "90104011",
+        "field": "name_th",
+        "before": "การเลียงสัตว์สวยงาม",
+        "after": "การเลี้ยงสัตว์สวยงาม"
+    },
+    {
+        "course_code": "90105002",
+        "field": "name_en",
+        "before": "CHEMICALS IN DALLY LIFE",
+        "after": "CHEMICALS IN DAILY LIFE"
+    },
+    {
+        "course_code": "90106001",
+        "field": "name_en",
+        "before": "PHVSICS IN DAILV LIFE",
+        "after": "PHYSICS IN DAILY LIFE"
+    },
+    {
+        "course_code": "90106002",
+        "field": "name_en",
+        "before": "HUMAN AND ENERGV",
+        "after": "HUMAN AND ENERGY"
+    },
+    {
+        "course_code": "90106003",
+        "field": "name_en",
+        "before": "EARTH AND UNIERSE",
+        "after": "EARTH AND UNIVERSE"
+    },
+    {
+        "course_code": "90106004",
+        "field": "name_en",
+        "before": "PHVSICS AND TECHNOLOGY FOR DISASTER PREPAREDNESS",
+        "after": "PHYSICS AND TECHNOLOGY FOR DISASTER PREPAREDNESS"
+    },
+    {
+        "course_code": "90108005",
+        "field": "name_en",
+        "before": "RENEWABLE ENERGX TECHNOLOGIES",
+        "after": "RENEWABLE ENERGY TECHNOLOGIES"
+    },
+    {
+        "course_code": "90108007",
+        "field": "name_en",
+        "before": "ENVIRONMENTAL STUDV",
+        "after": "ENVIRONMENTAL STUDY"
+    },
+    {
+        "course_code": "90010007",
+        "field": "name_th",
+        "before": "การออกแบบเ เชิงภูมิสังคมไทย หน้า 10 จาก 124",
+        "after": "การออกแบบเชิงภูมิสังคมไทย หน้า 10 จาก 124"
+    },
+    {
+        "course_code": "90010007",
+        "field": "name_en",
+        "before": "THA/ GEOSOCIAL DESIGN",
+        "after": "THAI GEOSOCIAL DESIGN"
+    },
+    {
+        "course_code": "90201003",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเชิงวิชาการ",
+        "after": "ภาษาอังกฤษเชิงวิชาการ"
+    },
+    {
+        "course_code": "90201013",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการจัดการ",
+        "after": "ภาษาอังกฤษเพื่อการจัดการ"
+    },
+    {
+        "course_code": "90201016",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพือการสือสารทางวิชาชีพ",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสารทางวิชาชีพ"
+    },
+    {
+        "course_code": "90201017",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษสำหรับธุรกิจ",
+        "after": "ภาษาอังกฤษสำหรับธุรกิจ"
+    },
+    {
+        "course_code": "90201018",
+        "field": "name_th",
+        "before": "การเขียนภาษาอังกฤษเพือการสือสาร",
+        "after": "การเขียนภาษาอังกฤษเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "90201018",
+        "field": "name_en",
+        "before": "ENGLISH FOR COMMUNICATIE WRITING",
+        "after": "ENGLISH FOR COMMUNICATIVE WRITING"
+    },
+    {
+        "course_code": "90201019",
+        "field": "name_en",
+        "before": "ENGLISH FOR DEVELOPNG READING SKILLS",
+        "after": "ENGLISH FOR DEVELOPING READING SKILLS"
+    },
+    {
+        "course_code": "90201022",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพื่อการศึกษา ต่อ",
+        "after": "ภาษาอังกฤษเพื่อการศึกษาต่อ"
+    },
+    {
+        "course_code": "90201029",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการท่องเทียวและการเดินทาง",
+        "after": "ภาษาอังกฤษเพื่อการท่องเที่ยวและการเดินทาง"
+    },
+    {
+        "course_code": "90201029",
+        "field": "name_en",
+        "before": "ENGLISH FOR TOURISM AND TRAVELLNNG",
+        "after": "ENGLISH FOR TOURISM AND TRAVELLING"
+    },
+    {
+        "course_code": "90201030",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษเพือการนำเสนอผลงานทางวิชาชีพ",
+        "after": "ภาษาอังกฤษเพื่อการนำเสนอผลงานทางวิชาชีพ"
+    },
+    {
+        "course_code": "90201031",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการสือสารระหว่างวัฒนธรรม",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสารระหว่างวัฒนธรรม"
+    },
+    {
+        "course_code": "90201033",
+        "field": "name_en",
+        "before": "COMMUNICATIE ENGLISH GRAMMAR",
+        "after": "COMMUNICATIVE ENGLISH GRAMMAR"
+    },
+    {
+        "course_code": "90201034",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษแบบเข้ม",
+        "after": "ภาษาอังกฤษแบบเข้ม"
+    },
+    {
+        "course_code": "90201034",
+        "field": "name_en",
+        "before": "INTENSIE ENGLISH",
+        "after": "INTENSIVE ENGLISH"
+    },
+    {
+        "course_code": "90201035",
+        "field": "name_en",
+        "before": "WRITING AND SPEAKNG IN THE PROFESSIONS",
+        "after": "WRITING AND SPEAKING IN THE PROFESSIONS"
+    },
+    {
+        "course_code": "90201036",
+        "field": "name_en",
+        "before": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNG",
+        "after": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNING"
+    },
+    {
+        "course_code": "90201039",
+        "field": "name_en",
+        "before": "ENGLISH FROM ENTERTA NMENT MEDIA",
+        "after": "ENGLISH FROM ENTERTAINMENT MEDIA"
+    },
+    {
+        "course_code": "90201040",
+        "field": "name_th",
+        "before": "การพูดภาษาอังกฤษเพื่อการสือสารในทีทำงาน",
+        "after": "การพูดภาษาอังกฤษเพื่อการสื่อสารในที่ทำงาน"
+    },
+    {
+        "course_code": "90020008",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการตลาด กล่มวิชามนษย์ศาสตร์ จำนวน",
+        "after": "ภาษาอังกฤษเพื่อการตลาด กลุ่มวิชามนุษยศาสตร์ จำนวน"
+    },
+    {
+        "course_code": "90301003",
+        "field": "name_th",
+        "before": "ปรัชญา ทั่วไป",
+        "after": "ปรัชญาทั่วไป"
+    },
+    {
+        "course_code": "90302001",
+        "field": "name_th",
+        "before": "จิตวิทยาทัวไป",
+        "after": "จิตวิทยาทั่วไป"
+    },
+    {
+        "course_code": "90302001",
+        "field": "name_en",
+        "before": "GENERAL PSXCHOLOGY",
+        "after": "GENERAL PSYCHOLOGY"
+    },
+    {
+        "course_code": "90302010",
+        "field": "name_th",
+        "before": "จิตวิทยาเพือพัฒนาตน",
+        "after": "จิตวิทยาเพื่อพัฒนาตน"
+    },
+    {
+        "course_code": "90302010",
+        "field": "name_en",
+        "before": "PSXCHOLOGY FOR SELF DEVELOPMENT",
+        "after": "PSYCHOLOGY FOR SELF DEVELOPMENT"
+    },
+    {
+        "course_code": "90302011",
+        "field": "name_en",
+        "before": "PSXCHOLOGY OF THINKN",
+        "after": "PSYCHOLOGY OF THINKING"
+    },
+    {
+        "course_code": "90302012",
+        "field": "name_en",
+        "before": "IDUSTRIAL BUSINESS PSXCHOLOG",
+        "after": "INDUSTRIAL BUSINESS PSYCHOLOGY"
+    },
+    {
+        "course_code": "90302013",
+        "field": "name_en",
+        "before": "PERSONALITV AND MENTAL HEAL TH DEVELOPMENT",
+        "after": "PERSONALITY AND MENTAL HEALTH DEVELOPMENT"
+    },
+    {
+        "course_code": "90303005",
+        "field": "name_th",
+        "before": "พลศึกษา?เบื้องต้น",
+        "after": "พลศึกษาเบื้องต้น"
+    },
+    {
+        "course_code": "90303007",
+        "field": "name_th",
+        "before": "นันทนาการเบืองต้น",
+        "after": "นันทนาการเบื้องต้น"
+    },
+    {
+        "course_code": "90303008",
+        "field": "name_en",
+        "before": "FIRST ALDS",
+        "after": "FIRST AIDS"
+    },
+    {
+        "course_code": "90303009",
+        "field": "name_en",
+        "before": "PRINCPLES OF WORK SAFETV",
+        "after": "PRINCIPLES OF WORK SAFETY"
+    },
+    {
+        "course_code": "90303011",
+        "field": "name_en",
+        "before": "ENHANCEMENT OF QUALITV OF LIFE",
+        "after": "ENHANCEMENT OF QUALITY OF LIFE"
+    },
+    {
+        "course_code": "90303012",
+        "field": "name_en",
+        "before": "HOLSTIC HEAL TH DEVELOPMENT",
+        "after": "HOLISTIC HEALTH DEVELOPMENT"
+    },
+    {
+        "course_code": "90304001",
+        "field": "name_en",
+        "before": "LLBRARY USAGE AND INFORMATION",
+        "after": "LIBRARY USAGE AND INFORMATION"
+    },
+    {
+        "course_code": "90304005",
+        "field": "name_th",
+        "before": "ศิลปะแห่งการสือสาร",
+        "after": "ศิลปะแห่งการสื่อสาร"
+    },
+    {
+        "course_code": "90305001",
+        "field": "name_en",
+        "before": "THA/ CIILIZATION",
+        "after": "THAI CIVILIZATION"
+    },
+    {
+        "course_code": "90306003",
+        "field": "name_en",
+        "before": "LIING SKILLS",
+        "after": "LIVING SKILLS"
+    },
+    {
+        "course_code": "90306004",
+        "field": "name_en",
+        "before": "LOVNG FAMLLY",
+        "after": "LOVING FAMILY"
+    },
+    {
+        "course_code": "90306005",
+        "field": "name_en",
+        "before": "THA/ WISDOM",
+        "after": "THAI WISDOM"
+    },
+    {
+        "course_code": "90307001",
+        "field": "name_th",
+        "before": "ภาษาไทยเพือการสือสาร",
+        "after": "ภาษาไทยเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "90307001",
+        "field": "name_en",
+        "before": "THA/ USAGE FOR COMMUNICATION",
+        "after": "THAI USAGE FOR COMMUNICATION"
+    },
+    {
+        "course_code": "90307002",
+        "field": "name_th",
+        "before": "ภาษาและวัฒนธรรมญีปุ่น",
+        "after": "ภาษาและวัฒนธรรมญี่ปุ่น"
+    },
+    {
+        "course_code": "90307004",
+        "field": "name_en",
+        "before": "LANGUAGE IN THAL SOCIET",
+        "after": "LANGUAGE IN THAI SOCIETY"
+    },
+    {
+        "course_code": "90307005",
+        "field": "name_en",
+        "before": "LISTENNG AND READING FOR IMPROVNG LIFE QUAL/TV",
+        "after": "LISTENING AND READING FOR IMPROVING LIFE QUALITY"
+    },
+    {
+        "course_code": "90030001",
+        "field": "name_en",
+        "before": "SCIENTIFIC THINKNG",
+        "after": "SCIENTIFIC THINKING"
+    },
+    {
+        "course_code": "90401003",
+        "field": "name_en",
+        "before": "ECONOMV AND LIING",
+        "after": "ECONOMY AND LIVING"
+    },
+    {
+        "course_code": "90401007",
+        "field": "name_en",
+        "before": "INTRODUCTION TO THAL ECONOMY",
+        "after": "INTRODUCTION TO THAI ECONOMY"
+    },
+    {
+        "course_code": "90401010",
+        "field": "name_th",
+        "before": "ความู'รู้เบื้องต้นเกี่ยวกับการลงทุน",
+        "after": "ความรู้เบื้องต้นเกี่ยวกับการลงทุน"
+    },
+    {
+        "course_code": "90401012",
+        "field": "name_en",
+        "before": "ITRODUCTION TO MARKETING",
+        "after": "INTRODUCTION TO MARKETING"
+    },
+    {
+        "course_code": "90401013",
+        "field": "name_th",
+        "before": "ความรู้ ทั่วไปเกี่ยวกับธุรกิจ",
+        "after": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ"
+    },
+    {
+        "course_code": "90402007",
+        "field": "name_en",
+        "before": "INTRODUCTLON TO PRINCPLES OF SOCAL AND FAMILY RIGHTS",
+        "after": "INTRODUCTION TO PRINCIPLES OF SOCIAL AND FAMILY RIGHTS"
+    },
+    {
+        "course_code": "90402009",
+        "field": "name_th",
+        "before": "ความรู้ เบื้องต้นเกี่ยวกับกฎหมายในชีวิตประจำวัน",
+        "after": "ความรู้เบื้องต้นเกี่ยวกับกฎหมายในชีวิตประจำวัน"
+    },
+    {
+        "course_code": "90402009",
+        "field": "name_en",
+        "before": "NTRODUCTION TO PRNCPLES OF LAWS IN DALX LIFE",
+        "after": "INTRODUCTION TO PRINCIPLES OF LAWS IN DAILY LIFE"
+    },
+    {
+        "course_code": "90402010",
+        "field": "name_th",
+        "before": "ความ รู้เบื้องต้นเกี่ยวกับกฎหมายไทย",
+        "after": "ความรู้เบื้องต้นเกี่ยวกับกฎหมายไทย"
+    },
+    {
+        "course_code": "90402010",
+        "field": "name_en",
+        "before": "INTRODUCTION TO THAL LAWS",
+        "after": "INTRODUCTION TO THAI LAWS"
+    },
+    {
+        "course_code": "90402012",
+        "field": "name_th",
+        "before": "ความูรู้.เบื้องต้นเกี่ยวกับตลาดแรงงานและการค้าในกลุ่มอาเซียน",
+        "after": "ความรู้เบื้องต้นเกี่ยวกับตลาดแรงงานและการค้าในกลุ่มอาเซียน"
+    },
+    {
+        "course_code": "90402013",
+        "field": "name_en",
+        "before": "THA/ INTELLECTUAL PROPERTX",
+        "after": "THAI INTELLECTUAL PROPERTY"
+    },
+    {
+        "course_code": "90403004",
+        "field": "name_th",
+        "before": "การบริหารท้องถินไทย",
+        "after": "การบริหารท้องถิ่นไทย"
+    },
+    {
+        "course_code": "90403004",
+        "field": "name_en",
+        "before": "THA/ LOCAL ADMNISTRATION",
+        "after": "THAI LOCAL ADMINISTRATION"
+    },
+    {
+        "course_code": "90403007",
+        "field": "name_en",
+        "before": "LIING IN SOCIETV",
+        "after": "LIVING IN SOCIETY"
+    },
+    {
+        "course_code": "90403008",
+        "field": "name_en",
+        "before": "THA/ SOCIETV AND CULTURE",
+        "after": "THAI SOCIETY AND CULTURE"
+    },
+    {
+        "course_code": "90403009",
+        "field": "name_en",
+        "before": "DXNAMICS OF THA/ SOCIET",
+        "after": "DYNAMICS OF THAI SOCIETY"
+    },
+    {
+        "course_code": "90403011",
+        "field": "name_en",
+        "before": "TECHNOLOGY MANAGEMENT IN DALLY LIFE",
+        "after": "TECHNOLOGY MANAGEMENT IN DAILY LIFE"
+    },
+    {
+        "course_code": "90403013",
+        "field": "name_en",
+        "before": "THAL ART AND CULTURE",
+        "after": "THAI ART AND CULTURE"
+    },
+    {
+        "course_code": "90403015",
+        "field": "name_en",
+        "before": "THAL POLITICS AND GOVERNMENT",
+        "after": "THAI POLITICS AND GOVERNMENT"
+    }
+]
