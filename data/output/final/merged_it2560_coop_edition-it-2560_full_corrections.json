@@ -1,0 +1,416 @@
+[
+    {
+        "course_code": "06016314",
+        "field": "name_en",
+        "before": "PROBLEM SOLVING IN INFORMATION TECHNOLOGX",
+        "after": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY"
+    },
+    {
+        "course_code": "06016319",
+        "field": "name_th",
+        "before": "ระบบคอมพิวเตอร์เบืองต้น",
+        "after": "ระบบคอมพิวเตอร์เบื้องต้น"
+    },
+    {
+        "course_code": "90101007",
+        "field": "name_th",
+        "before": "คณิต.เศรษฐศาสตร์เบื้องต้น",
+        "after": "คณิตศาสตร์เศรษฐศาสตร์เบื้องต้น"
+    },
+    {
+        "course_code": "90201001",
+        "field": "name_th",
+        "before": "ภาษา อังกฤษพืนฐาน 1",
+        "after": "ภาษาอังกฤษพื้นฐาน 1"
+    },
+    {
+        "course_code": "90401013",
+        "field": "name_th",
+        "before": "ความ เรู้ทัวไปเกียวกับธุรกิจ",
+        "after": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ"
+    },
+    {
+        "course_code": "06016302",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06016311",
+        "field": "name_th",
+        "before": "เทคโนโลยีสือประสม",
+        "after": "เทคโนโลยีสื่อประสม"
+    },
+    {
+        "course_code": "06016311",
+        "field": "name_en",
+        "before": "MULTIMEDLA TECHNOLOGY",
+        "after": "MULTIMEDIA TECHNOLOGY"
+    },
+    {
+        "course_code": "06016315",
+        "field": "name_en",
+        "before": "COMPUTER PROCRAMMNG",
+        "after": "COMPUTER PROGRAMMING"
+    },
+    {
+        "course_code": "06016320",
+        "field": "name_en",
+        "before": "COMPUTER SVSTEMS ORGANIZATION AND OPERATIG SYSTEM",
+        "after": "COMPUTER SYSTEMS ORGANIZATION AND OPERATING SYSTEM"
+    },
+    {
+        "course_code": "06016303",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ไม่ต่อเนือ",
+        "after": "คณิตศาสตร์ไม่ต่อเนื่อง"
+    },
+    {
+        "course_code": "06016305",
+        "field": "name_th",
+        "before": "ระบบสารสนเทศเจ .เพือการจัดการ",
+        "after": "ระบบสารสนเทศเพื่อการจัดการ"
+    },
+    {
+        "course_code": "06016312",
+        "field": "name_th",
+        "before": "เทคโนโลยี เว็บ",
+        "after": "เทคโนโลยีเว็บ"
+    },
+    {
+        "course_code": "06016313",
+        "field": "name_en",
+        "before": "ITRODUCTION TO COMPUTER NETWORKS",
+        "after": "INTRODUCTION TO COMPUTER NETWORKS"
+    },
+    {
+        "course_code": "06016317",
+        "field": "name_en",
+        "before": "OBJECT ORIENTED PROGRAMMNG",
+        "after": "OBJECT ORIENTED PROGRAMMING"
+    },
+    {
+        "course_code": "06016304",
+        "field": "name_en",
+        "before": "PROBABILITV",
+        "after": "PROBABILITY"
+    },
+    {
+        "course_code": "90201026",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษเพือการสือสาร",
+        "after": "ภาษาอังกฤษเพื่อการสื่อสาร"
+    },
+    {
+        "course_code": "06016321",
+        "field": "name_en",
+        "before": "SOFTWARE ENGINEERNG",
+        "after": "SOFTWARE ENGINEERING"
+    },
+    {
+        "course_code": "06016322",
+        "field": "name_en",
+        "before": "WEB PROGRAMMNG",
+        "after": "WEB PROGRAMMING"
+    },
+    {
+        "course_code": "06016331",
+        "field": "name_en",
+        "before": "PRACTICAL COMPUTER NETWORKNG",
+        "after": "PRACTICAL COMPUTER NETWORKING"
+    },
+    {
+        "course_code": "06016332",
+        "field": "name_th",
+        "before": "การเชือมต่อเครือข่ายสือสาร",
+        "after": "การเชื่อมต่อเครือข่ายสื่อสาร"
+    },
+    {
+        "course_code": "06016341",
+        "field": "name_en",
+        "before": "MULTIMEDIA PROGRAMMNG",
+        "after": "MULTIMEDIA PROGRAMMING"
+    },
+    {
+        "course_code": "06016342",
+        "field": "name_th",
+        "before": "คอมพิวเตอร์กราฟิกส์และแอนิเม",
+        "after": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน"
+    },
+    {
+        "course_code": "06016309",
+        "field": "name_th",
+        "before": "ความมันคงของระบบสารสนเทศและกฎหมายไอที",
+        "after": "ความมั่นคงของระบบสารสนเทศและกฎหมายไอที"
+    },
+    {
+        "course_code": "06016309",
+        "field": "name_en",
+        "before": "INFORMATION SYSTEM SECURITV AND IT LAWS",
+        "after": "INFORMATION SYSTEM SECURITY AND IT LAWS"
+    },
+    {
+        "course_code": "06016323",
+        "field": "name_en",
+        "before": "MOBILE DEVICE PRORAMMNG",
+        "after": "MOBILE DEVICE PROGRAMMING"
+    },
+    {
+        "course_code": "06016324",
+        "field": "name_en",
+        "before": "REOUIREMENT ENGINEERING",
+        "after": "REQUIREMENT ENGINEERING"
+    },
+    {
+        "course_code": "06016333",
+        "field": "name_th",
+        "before": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
+        "after": "เทคโนโลยีการให้บริการอินเทอร์เน็ต"
+    },
+    {
+        "course_code": "06016318",
+        "field": "name_th",
+        "before": "สัมมนาทางด้านทักษะการสือสารในวิชาชีพ",
+        "after": "สัมมนาทางด้านทักษะการสื่อสารในวิชาชีพ"
+    },
+    {
+        "course_code": "06016328",
+        "field": "name_th",
+        "before": "เครืองมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์",
+        "after": "เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์"
+    },
+    {
+        "course_code": "06016336",
+        "field": "name_th",
+        "before": "การจัดการเครือข่ายและ. ะโครงสร้างพื้นฐานเทคโนโลยี สารสนเทศ",
+        "after": "การจัดการเครือข่ายและโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06016347",
+        "field": "name_en",
+        "before": "FUNDAMENTALS OF DIGITAL STORYTELLG AND CINEMATOCRAPHY",
+        "after": "FUNDAMENTALS OF DIGITAL STORYTELLING AND CINEMATOGRAPHY"
+    },
+    {
+        "course_code": "06016348",
+        "field": "name_th",
+        "before": "การพัฒนาเกมขันสูง",
+        "after": "การพัฒนาเกมขั้นสูง"
+    },
+    {
+        "course_code": "06016393",
+        "field": "name_en",
+        "before": "COOPERATIVE EDUCATION IN SOFTWARE ENGINEERNNG",
+        "after": "COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING"
+    },
+    {
+        "course_code": "06016394",
+        "field": "name_en",
+        "before": "OVERSEA COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
+        "after": "OVERSEAS COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING"
+    },
+    {
+        "course_code": "06016395",
+        "field": "name_th",
+        "before": "สหกิจศึกษาทางด้านการเทคโนโลยีเครือข่ายและระบบ",
+        "after": "สหกิจศึกษาทางด้านเทคโนโลยีเครือข่ายและระบบ"
+    },
+    {
+        "course_code": "06016396",
+        "field": "name_en",
+        "before": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY",
+        "after": "OVERSEAS COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY"
+    },
+    {
+        "course_code": "06016397",
+        "field": "name_th",
+        "before": "สหกิจศึกษาทางด้านการพัฒนาสือประสมและเกม",
+        "after": "สหกิจศึกษาทางด้านการพัฒนาสื่อประสมและเกม"
+    },
+    {
+        "course_code": "06016397",
+        "field": "name_en",
+        "before": "COOPERATIVE EDUCATION IN MULTIMEDLA AND GAME DEVELOPMENT",
+        "after": "COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT"
+    },
+    {
+        "course_code": "06016398",
+        "field": "name_th",
+        "before": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสือประสมและเกม",
+        "after": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสื่อประสมและเกม"
+    },
+    {
+        "course_code": "06016398",
+        "field": "name_en",
+        "before": "OVERSEA COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
+        "after": "OVERSEAS COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT"
+    },
+    {
+        "course_code": "060163xx",
+        "field": "name_en",
+        "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 2 9OXXX 2",
+        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2 9OXXX 2"
+    },
+    {
+        "course_code": "06016349",
+        "field": "name_th",
+        "before": "โครงงานทางด้านการพัฒนาสือประสมและเกม",
+        "after": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม"
+    },
+    {
+        "course_code": "06016349",
+        "field": "name_en",
+        "before": "PROJECT IN MULTIMEDLA AND GAME DEVELOPMENT",
+        "after": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT"
+    },
+    {
+        "course_code": "06016350",
+        "field": "name_th",
+        "before": "โครงงานทางด้านการพัฒนาสือประสมและเกม 2",
+        "after": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 2"
+    },
+    {
+        "course_code": "06016350",
+        "field": "name_en",
+        "before": "PROJECT IN MULTIMEDLA AND GAME DEVELOPMENT 2",
+        "after": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 2"
+    },
+    {
+        "course_code": "06016351",
+        "field": "name_en",
+        "before": "OBECT ORIENTED TECHNOLOGY",
+        "after": "OBJECT ORIENTED TECHNOLOGY"
+    },
+    {
+        "course_code": "06016353",
+        "field": "name_th",
+        "before": "การด,แลและบำรุงรักษาระบบฐานข้อมูล",
+        "after": "การดูแลและบำรุงรักษาระบบฐานข้อมูล"
+    },
+    {
+        "course_code": "06016353",
+        "field": "name_en",
+        "before": "DATABASE SYSTEM MAITENANCE AND ADMINISTRATION",
+        "after": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
+    },
+    {
+        "course_code": "06016361",
+        "field": "name_th",
+        "before": "หุ่นยนต์ศาสตร์ประยุก",
+        "after": "หุ่นยนต์ศาสตร์ประยุกต์"
+    },
+    {
+        "course_code": "06016362",
+        "field": "name_th",
+        "before": "ระบบสือสารดิจิตอล",
+        "after": "ระบบสื่อสารดิจิตอล"
+    },
+    {
+        "course_code": "06016363",
+        "field": "name_th",
+        "before": "การประมวลผลและสือสารผ่านอุปกรณ์พกพา",
+        "after": "การประมวลผลและสื่อสารผ่านอุปกรณ์พกพา"
+    },
+    {
+        "course_code": "06016364",
+        "field": "name_en",
+        "before": "DIGITAL CIRCULT DESIGN",
+        "after": "DIGITAL CIRCUIT DESIGN"
+    },
+    {
+        "course_code": "06016367",
+        "field": "name_en",
+        "before": "VIRTUAL REALITX",
+        "after": "VIRTUAL REALITY"
+    },
+    {
+        "course_code": "06016368",
+        "field": "name_en",
+        "before": "PATTERN RECOGIITION",
+        "after": "PATTERN RECOGNITION"
+    },
+    {
+        "course_code": "06016370",
+        "field": "name_th",
+        "before": "อัจฉริยะทางธุรกิจขเบื้องต้น",
+        "after": "อัจฉริยะทางธุรกิจเบื้องต้น"
+    },
+    {
+        "course_code": "06016371",
+        "field": "name_en",
+        "before": "SUPPLY CHA/N MANAGEMENT AND LOGISTICS E",
+        "after": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS"
+    },
+    {
+        "course_code": "06016373",
+        "field": "name_en",
+        "before": "CUSTOMER RELATIONSH|P MANAGEMENT",
+        "after": "CUSTOMER RELATIONSHIP MANAGEMENT"
+    },
+    {
+        "course_code": "06016375",
+        "field": "name_th",
+        "before": "ระบบสนับสนุนการตัดสินใ",
+        "after": "ระบบสนับสนุนการตัดสินใจ"
+    },
+    {
+        "course_code": "06016377",
+        "field": "name_th",
+        "before": "พืนฐานวิทยาการข้อมูล",
+        "after": "พื้นฐานวิทยาการข้อมูล"
+    },
+    {
+        "course_code": "06016378",
+        "field": "name_en",
+        "before": "INTRODUCTION TO NATURAL LANGUAGE PROCESSIG",
+        "after": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
+    },
+    {
+        "course_code": "06036382",
+        "field": "name_en",
+        "before": "INTERNET PROGRAMMNG",
+        "after": "INTERNET PROGRAMMING"
+    },
+    {
+        "course_code": "06016385",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN NETWORK AND SYSTEM TECHNOLOGY 1",
+        "after": "SPECIAL TOPICS IN NETWORK AND SYSTEM TECHNOLOGY 1"
+    },
+    {
+        "course_code": "06016387",
+        "field": "name_th",
+        "before": "หัวข้อพิเศษทางด้านการพัฒนาสือประสมและเกม 1",
+        "after": "หัวข้อพิเศษทางด้านการพัฒนาสื่อประสมและเกม 1"
+    },
+    {
+        "course_code": "06016387",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN MULTIMEDLA AND GAME DEVEL OPMENT 1",
+        "after": "SPECIAL TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT 1"
+    },
+    {
+        "course_code": "06016388",
+        "field": "name_th",
+        "before": "หัวข้อพิเศษทางด้านการพัฒนาสือประสมและเกม 2",
+        "after": "หัวข้อพิเศษทางด้านการพัฒนาสื่อประสมและเกม 2"
+    },
+    {
+        "course_code": "06016388",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN MULTIMEDLA AND GAME DEVELOPMENT 2",
+        "after": "SPECIAL TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT 2"
+    },
+    {
+        "course_code": "06016390",
+        "field": "name_en",
+        "before": "SPECAL TOPICS IN INFORMATION TECHNOLOGY 2",
+        "after": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 2"
+    },
+    {
+        "course_code": "06016391",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 1",
+        "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 1"
+    }
+]

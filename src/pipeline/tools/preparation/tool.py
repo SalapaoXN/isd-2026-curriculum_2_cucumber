@@ -95,6 +95,30 @@ PROGRAM_CONFIG: dict[str, ProgramConfig] = {
         catalog_key="gened-2557",
         academic_year="2557",
     ),
+    "it2560": ProgramConfig(
+        program="IT",
+        prefix="it2560",
+        scopes=(
+            Scope(plan="no_coop", pages="27-33", description_pages="222-269"),
+            Scope(plan="coop", pages="34-40", description_pages="222-269"),
+        ),
+        shared_description=Scope(plan="coop", pages="222-269"),
+        dataset_key="it2560",
+        catalog_key="it-2560",
+        academic_year="2560",
+    ),
+    "bit2560": ProgramConfig(
+        program="BIT",
+        prefix="bit2560",
+        scopes=(
+            Scope(plan="no_coop", pages="23-26", description_pages="170-192"),
+            Scope(plan="coop", pages="27-30", description_pages="170-192"),
+        ),
+        shared_description=Scope(plan="coop", pages="170-192"),
+        dataset_key="bit2560",
+        catalog_key="bit-2560",
+        academic_year="2560",
+    ),
     "it": ProgramConfig(
         program="IT",
         prefix="it",
