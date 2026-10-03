@@ -323,6 +323,50 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertIn("ตัวเลือกที่อาจเป็นการเปลี่ยนรหัสวิชา", payload["answer"])
         self.assertIn("ยังไม่ถือว่าเป็นการยืนยัน", payload["answer"])
         self.assertTrue(payload["provenance"])
+        candidate = payload["comparison"]["categories"]["same_name_changed_code_candidates"][0]
+        self.assertFalse(candidate["equivalence_proven"])
+        source_names = {item["source_filename"] for item in payload["comparison"]["provenance"]}
+        self.assertTrue(any(name.startswith("dsba2560_") for name in source_names))
+        self.assertTrue(any(name.startswith("dsba_") for name in source_names))
+        provider.assert_not_called()
+
+    def test_old_new_comparison_api_preserves_plan_and_both_edition_provenance(self):
+        with patch.object(
+            main, "_lazy_provider", side_effect=AssertionError("comparison is deterministic")
+        ) as provider:
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "วิชาใดในหลักสูตรเก่า DSBA coop ไม่พบในหลักสูตรใหม่",
+                    "conversation_context": {"program": "DSBA"},
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["route"], "hard")
+        self.assertEqual(payload["hard_task_type"], "old_new_comparison")
+        comparison = payload["comparison"]
+        self.assertEqual(comparison["older"], {"catalog_key": "dsba-2560", "academic_year": "2560"})
+        self.assertEqual(comparison["newer"], {"catalog_key": "dsba-2565", "academic_year": "2565"})
+        self.assertEqual(comparison["plan"], "coop")
+        self.assertIn("ขอบเขตแผน: coop", payload["answer"])
+        for category in (
+            "shared_same_code", "old_only_by_code", "new_only_by_code",
+            "same_name_changed_code_candidates",
+        ):
+            for bucket in comparison["categories"][category]:
+                courses = bucket.get("courses", []) or [
+                    bucket.get("older", {}), bucket.get("newer", {})
+                ]
+                for course in courses:
+                    if course:
+                        self.assertEqual(course["plans"], ["coop"])
+        source_names = {item["source_filename"] for item in comparison["provenance"]}
+        self.assertTrue(any(name.startswith("dsba2560_") for name in source_names))
+        self.assertTrue(any(name.startswith("dsba_") for name in source_names))
+        self.assertTrue(payload["provenance"])
+        self.assertIn("ยังไม่ถือว่าเป็นการยืนยัน", payload["answer"])
         provider.assert_not_called()
 
     def test_rejected_hard_interpretation_does_not_fall_through_to_sql_service(self):

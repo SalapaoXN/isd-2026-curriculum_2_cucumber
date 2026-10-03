@@ -400,6 +400,44 @@ class LlmSqlQaTest(unittest.TestCase):
             )
             self.assertEqual(result["next_context"]["catalog_key"], selected_catalog)
 
+    def test_canonical_unique_dsba_courses_stay_inside_selected_edition(self):
+        db_path = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
+        cases = (
+            ("06026160", "dsba-2560", "dsba-2565"),
+            ("90641002", "dsba-2565", "dsba-2560"),
+            ("06026106", "dsba-2560", "dsba-2565"),
+            ("06066300", "dsba-2565", "dsba-2560"),
+        )
+        sql_template = (
+            "SELECT catalogs.catalog_key, plan_rows.course_code "
+            "FROM v_plan_courses AS plan_rows "
+            "JOIN courses ON courses.course_id = plan_rows.course_id "
+            "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
+            "WHERE plan_rows.program = 'DSBA' "
+            "AND plan_rows.course_code = '{course_code}'"
+        )
+
+        for course_code, source_catalog, other_catalog in cases:
+            for selected_catalog, should_exist in (
+                (source_catalog, True),
+                (other_catalog, False),
+            ):
+                with self.subTest(course_code=course_code, selected_catalog=selected_catalog):
+                    result = ask_sql(
+                        db_path,
+                        f"แสดงรายวิชา DSBA {course_code}",
+                        "DSBA",
+                        lambda _prompt, code=course_code: sql_template.format(course_code=code),
+                        lambda _prompt: "พบรายวิชา",
+                        conversation_context={"catalog_key": selected_catalog},
+                    )
+
+                    self.assertEqual(bool(result["rows"]), should_exist)
+                    self.assertTrue(
+                        all(row["catalog_key"] == selected_catalog for row in result["rows"])
+                    )
+                    self.assertEqual(result["next_context"]["catalog_key"], selected_catalog)
+
     def test_selected_catalog_invalidates_stale_focus_and_persists_scope(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(
