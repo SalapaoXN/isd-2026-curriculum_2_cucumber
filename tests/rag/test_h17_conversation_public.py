@@ -84,9 +84,8 @@ class H17PublicHelperE2E(unittest.TestCase):
         t2 = answer_question_once(
             DB_PATH, "แล้ว DSBA ล่ะ", conversation_context=t1["next_context"]
         )
-        self.assertTrue(
-            all(c.effective_scope.program == "DSBA" for c in t2["result"].claims)
-        )
+        self.assertEqual(t2["result"]["status"], "clarify_catalog")
+        self.assertEqual(t2["result"]["program"], "DSBA")
 
     def test_next_context_has_no_factual_values(self):
         t1 = answer_question_once(DB_PATH, "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา")

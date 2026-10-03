@@ -40,7 +40,7 @@ def _has_policy_provenance(result: GroundedAnswerResult) -> bool:
 
 class H25P3ProgramTotalTests(unittest.TestCase):
     def test_axis_free_totals_route_to_policy_requirement(self):
-        expected = {"AIT": "120", "BIT": "126", "DSBA": "132", "IT": "129"}
+        expected = {"AIT": "120", "BIT": "126", "IT": "129"}
         for program, value in expected.items():
             with self.subTest(program=program):
                 response = _ask(f"{program} ต้องเรียนกี่หน่วยกิต")
@@ -55,6 +55,10 @@ class H25P3ProgramTotalTests(unittest.TestCase):
                     self.assertEqual(
                         reference.get("document_category"), "program_requirement"
                     )
+
+    def test_multi_edition_dsba_total_requires_catalog_scope(self):
+        response = _ask("DSBA ต้องเรียนกี่หน่วยกิต")
+        self.assertEqual(response["result"]["status"], "clarify_catalog")
 
     def test_graduation_wording_dual_routes_to_policy(self):
         result = _ask("IT ต้องเรียนกี่หน่วยกิตถึงจบ")["result"]

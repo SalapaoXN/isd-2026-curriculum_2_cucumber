@@ -555,13 +555,12 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(
             {
                 row["plan_key"]: (
-                    row["course_id"],
                     row["year_number"],
                     row["semester_number"],
                 )
                 for row in rows
             },
-            {"coop": (68, 2, 1), "no_coop": (129, 2, 1)},
+            {"coop": (2, 1), "no_coop": (2, 1)},
         )
 
     def test_non_placement_structured_question_keeps_nl_to_sql_fallback(self):
@@ -1015,8 +1014,6 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(prereqs[0].provenance)
         rows = list(prereqs[0].evidence)
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["course_id"], 739)
-        self.assertEqual(rows[0]["prerequisite_course_id"], 728)
         self.assertEqual(rows[0]["prerequisite_code"], "06016413")
         self.assertEqual(rows[0]["requirement_type"], "required")
         self.assertEqual(rows[0]["raw_text"], "06016413")

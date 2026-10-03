@@ -38,7 +38,7 @@ class RagQueriesTest(unittest.TestCase):
                 },
                 {
                     "code": "C100",
-                    "name_th": "Repeated placement",
+                    "name_th": "First placement",
                     "credits": "3(3-0-6)",
                     "year": 1,
                     "semester": 1,

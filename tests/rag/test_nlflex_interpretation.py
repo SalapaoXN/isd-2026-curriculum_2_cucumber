@@ -167,6 +167,11 @@ class NLFlexPublicPathTests(unittest.TestCase):
                 response = ask(
                     DB_PATH,
                     question,
+                    conversation_context=(
+                        QueryContext(program="DSBA", catalog_key="dsba-2565")
+                        if parse_query_spec(question).program == "DSBA"
+                        else None
+                    ),
                     intent_model_callable=lambda prompt, operation=operation, calls=calls: (
                         calls.append(prompt)
                         or _proposal(

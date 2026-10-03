@@ -23,26 +23,23 @@ class RagCombinedPolicyTest(unittest.TestCase):
         self.assertEqual(result.normal_maximum, 22)
         self.assertEqual(result.decision, "within_normal_limit")
 
-    def test_above_normal_below_exception_is_conditional(self):
+    def test_unscoped_multiedition_dsba_above_normal_fails_closed(self):
         result = answer_combined_question(
             DB_PATH,
             "DSBA แผนไม่สหกิจ ปี 2 เทอม 2 มี 21 หน่วยกิต ถ้าลงเพิ่มอีก 3 หน่วยกิตได้ไหม",
         )
-        self.assertEqual(result.status, "complete")
-        self.assertEqual(result.current_credits, 21)
-        self.assertEqual(result.resulting_total, 24)
-        self.assertEqual(result.decision, "conditional_exception")
-        self.assertIn("เงื่อนไข", result.conditional_note)
-        self.assertNotIn("อนุมัติ", result.rendered_answer)
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertIsNone(result.resulting_total)
+        self.assertFalse(result.curriculum_evidence)
 
-    def test_above_exception_is_deterministically_rejected(self):
+    def test_unscoped_multiedition_dsba_above_exception_fails_closed(self):
         result = answer_combined_question(
             DB_PATH,
             "DSBA แผนไม่สหกิจ ปี 2 เทอม 2 มี 21 หน่วยกิต ถ้าลงเพิ่มอีก 7 หน่วยกิตได้ไหม",
         )
-        self.assertEqual(result.status, "complete")
-        self.assertEqual(result.resulting_total, 28)
-        self.assertEqual(result.decision, "exceeds_exception_maximum")
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertIsNone(result.resulting_total)
+        self.assertFalse(result.curriculum_evidence)
 
     def test_second_program_and_semester_are_not_hardcoded(self):
         result = answer_combined_question(
@@ -55,13 +52,14 @@ class RagCombinedPolicyTest(unittest.TestCase):
         self.assertEqual(result.resulting_total, 21)
         self.assertEqual(result.curriculum_evidence[0].plan_key, "default")
 
-    def test_unconstrained_plans_are_retained_when_their_load_agrees(self):
+    def test_unscoped_multiedition_dsba_without_plan_fails_closed(self):
         result = answer_combined_question(
             DB_PATH,
             "DSBA ปี 2 เทอม 2 มี 21 หน่วยกิต ถ้าลงเพิ่มอีก 3 หน่วยกิตได้ไหม",
         )
-        self.assertEqual(result.status, "complete")
-        self.assertEqual({load.plan_key for load in result.curriculum_evidence}, {"coop", "no_coop"})
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertIsNone(result.resulting_total)
+        self.assertFalse(result.curriculum_evidence)
 
     def test_stated_load_conflict_fails_closed(self):
         result = answer_combined_question(
@@ -100,21 +98,14 @@ class RagCombinedPolicyTest(unittest.TestCase):
             )
             self.assertEqual(result.status, "insufficient_evidence")
 
-    def test_dual_provenance_and_r5_regression_survive(self):
+    def test_unscoped_multiedition_dsba_does_not_claim_dual_provenance(self):
         result = answer_combined_question(
             DB_PATH,
             "DSBA แผนไม่สหกิจ ปี 2 เทอม 2 มี 21 หน่วยกิต ถ้าลงเพิ่มอีก 3 หน่วยกิตได้ไหม",
         )
-        self.assertTrue(result.curriculum_provenance)
-        self.assertTrue(result.policy_provenance)
-        self.assertEqual(
-            {ref["document_category"] for ref in result.curriculum_provenance},
-            {"plan", "description"},
-        )
-        self.assertEqual(
-            {ref["document_category"] for ref in result.policy_provenance},
-            {"rule"},
-        )
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertFalse(result.curriculum_provenance)
+        self.assertFalse(result.policy_provenance)
         self.assertEqual(
             answer_policy_question(DB_PATH, "IT ต้องเรียนกี่หน่วยกิต").value,
             129,

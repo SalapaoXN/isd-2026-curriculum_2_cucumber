@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 import re
+import sqlite3
 from typing import Any
 
 from rag.aggregation import (
@@ -81,7 +82,12 @@ from rag.structured.fallback import (
     ground_placement,
     run_structured_fallback,
 )
-from rag.structured.queries import exact_course_candidates, prerequisite_state
+from rag.structured.queries import (
+    catalog_keys_for_program,
+    edition_catalog_keys_for_program,
+    exact_course_candidates,
+    prerequisite_state,
+)
 
 
 _STRUCTURED_FALLBACK_OPERATIONS = frozenset(
@@ -304,6 +310,7 @@ def _next_conversation_context(
     spec: Any,
     resolution: ResolutionOutcome,
     result: Any,
+    catalog_key: str | None = None,
 ) -> QueryContext | None:
     """Derive structural references only from an authoritative current turn."""
     if getattr(result, "status", None) != "answer" or resolution.action != "answer":
@@ -323,6 +330,7 @@ def _next_conversation_context(
     plans = tuple(getattr(spec, "plans", ())) or tuple(resolution.resolved_plans)
     return QueryContext(
         program=program,
+        catalog_key=catalog_key,
         plan=plans[0] if len(plans) == 1 else None,
         years=tuple(getattr(spec, "years", ())),
         semesters=tuple(getattr(spec, "semesters", ())),
@@ -723,6 +731,7 @@ def _fallback_scope(
     resolution: ResolutionOutcome,
     *,
     placement_code_identity: bool = False,
+    catalog_key: str | None = None,
 ) -> StructuredFallbackScope | None:
     """Build fallback scope only from deterministic parser/resolver state."""
     program = completeness.program or resolution.resolved_program
@@ -758,6 +767,7 @@ def _fallback_scope(
             semesters=completeness.semesters,
             course_ids=tuple(course_ids),
             course_codes=tuple(course_codes),
+            catalog_key=catalog_key,
         )
     except (TypeError, ValueError):
         return None
@@ -778,6 +788,7 @@ def _fallback_course_list_claim(
         plans=scope.plans,
         years=scope.years,
         semesters=scope.semesters,
+        catalog_key=scope.catalog_key,
     )
     if grounded.status == "insufficient_evidence":
         return GroundedClaim(
@@ -851,10 +862,12 @@ def _filtered_credit_plan(
     spec: Any,
     resolution: ResolutionOutcome,
     selected_targets: tuple[Mapping[str, Any], ...],
+    *,
+    catalog_key: str | None = None,
 ) -> EvidencePlan:
     """Build only the filtered credit request after selector grounding."""
     scope = replace(
-        build_structural_scope(spec, resolution),
+        build_structural_scope(spec, resolution, catalog_key=catalog_key),
         course_targets=selected_targets,
     )
     request = EvidenceRequest(
@@ -904,6 +917,7 @@ def _fallback_placement_claim(
         plans=scope.plans,
         years=scope.years,
         semesters=scope.semesters,
+        catalog_key=scope.catalog_key,
     )
     if grounded.status == "insufficient_evidence":
         return GroundedClaim(
@@ -940,6 +954,7 @@ def _fallback_course_credit_claim(
         plans=scope.plans,
         years=scope.years,
         semesters=scope.semesters,
+        catalog_key=scope.catalog_key,
         course_targets=tuple(
             {"course_code": course_code} for course_code in scope.course_codes
         ),
@@ -2924,14 +2939,76 @@ def ask(
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
 
-    policy_result = route_policy_question(db_path, question)
-    if policy_result is not None:
-        return {"route": None, "result": policy_result}
-
     spec = parse_query_spec(question)
     conversation_mode = conversation_context is not None
     if conversation_mode:
         spec = _merge_conversation_context(spec, conversation_context)
+    active_context = conversation_context if conversation_mode else context
+    program = getattr(spec, "program", None) or getattr(active_context, "program", None)
+    catalog_key = getattr(active_context, "catalog_key", None)
+    catalog_keys: tuple[str | None, ...] = ()
+    edition_keys: tuple[str, ...] = ()
+    if isinstance(program, str) and program.strip():
+        try:
+            catalog_keys = catalog_keys_for_program(db_path, program)
+            edition_keys = edition_catalog_keys_for_program(db_path, program)
+        except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError):
+            catalog_keys = ()
+            edition_keys = ()
+    curriculum_scoped = bool(
+        tuple(spec.operations)
+        or spec.plans
+        or spec.years
+        or spec.semesters
+        or spec.course_codes
+        or spec.course_name
+        or spec.topic
+    )
+    matching_catalog_key = next(
+        (
+            key for key in catalog_keys
+            if isinstance(key, str)
+            and isinstance(catalog_key, str)
+            and key.casefold() == catalog_key.strip().casefold()
+        ),
+        None,
+    )
+    if catalog_key is not None and matching_catalog_key is None:
+        return {
+            "route": None,
+            "result": {
+                "status": "clarify_catalog",
+                "action": "clarify_catalog",
+                "program": program,
+            },
+        }
+    if curriculum_scoped and edition_keys and catalog_key is None:
+        return {
+            "route": None,
+            "result": {
+                "status": "clarify_catalog",
+                "action": "clarify_catalog",
+                "program": program,
+                "catalog_keys": list(edition_keys),
+            },
+        }
+    if catalog_key is None and len(catalog_keys) == 1:
+        catalog_key = catalog_keys[0]
+    elif matching_catalog_key is not None:
+        catalog_key = matching_catalog_key
+
+    policy_result = route_policy_question(
+        db_path,
+        question,
+        catalog_key=(
+            catalog_key
+            if program and edition_catalog_keys_for_program(db_path, program)
+            else None
+        ),
+    )
+    if policy_result is not None:
+        return {"route": None, "result": policy_result}
+
     resolution = resolve_query_spec(
         spec,
         db_path,
@@ -3042,7 +3119,9 @@ def ask(
             "route": None,
             "result": render_grounded_answer(grounded),
         }
-        next_context = _next_conversation_context(spec, resolution, response["result"])
+        next_context = _next_conversation_context(
+            spec, resolution, response["result"], catalog_key
+        )
         if next_context is not None:
             response["next_context"] = next_context
         return response
@@ -3336,7 +3415,9 @@ def ask(
             diagnostics["existence_shadow"] = existence_shadow
         response = result if not diagnostics else {**result, **diagnostics}
         answer_result = response.get("result")
-        next_context = _next_conversation_context(spec, resolution, answer_result)
+        next_context = _next_conversation_context(
+            spec, resolution, answer_result, catalog_key
+        )
         if next_context is not None:
             response = {**response, "next_context": next_context}
         return response
@@ -3346,14 +3427,18 @@ def ask(
         completeness,
     )
     if filtered_credit_candidate:
-        filtered_scope = build_structural_scope(spec, resolution)
+        filtered_scope = build_structural_scope(
+            spec, resolution, catalog_key=catalog_key
+        )
         if not callable(structured_model_callable):
             claim = _filtered_credit_status_claim(
                 filtered_scope,
                 "insufficient_evidence",
             )
         else:
-            fallback_scope = _fallback_scope(completeness, resolution)
+            fallback_scope = _fallback_scope(
+                completeness, resolution, catalog_key=catalog_key
+            )
             if fallback_scope is None:
                 claim = _filtered_credit_status_claim(
                     filtered_scope,
@@ -3386,6 +3471,7 @@ def ask(
                         spec,
                         resolution,
                         grounded_list.selected_targets,
+                        catalog_key=catalog_key,
                     )
                     credit_bundle = execute_evidence_plan(
                         db_path,
@@ -3426,7 +3512,9 @@ def ask(
         and _is_course_list_fallback_candidate(spec, completeness)
     ):
         fallback_operation = _course_list_fallback_operation(spec)
-        fallback_scope = _fallback_scope(completeness, resolution)
+        fallback_scope = _fallback_scope(
+            completeness, resolution, catalog_key=catalog_key
+        )
         if fallback_scope is not None and fallback_operation is not None:
             fallback_result = run_structured_fallback(
                 db_path,
@@ -3463,6 +3551,7 @@ def ask(
             completeness,
             resolution,
             placement_code_identity=True,
+            catalog_key=catalog_key,
         )
         if fallback_scope is not None:
             fallback_result = run_structured_fallback(
@@ -3500,6 +3589,7 @@ def ask(
             completeness,
             resolution,
             placement_code_identity=True,
+            catalog_key=catalog_key,
         )
         if fallback_scope is not None:
             fallback_result = run_structured_fallback(
@@ -3628,7 +3718,7 @@ def ask(
         })
 
     try:
-        plan = plan_evidence(spec, resolution)
+        plan = plan_evidence(spec, resolution, catalog_key=catalog_key)
         bundle = execute_evidence_plan(db_path, plan)
     except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
         grounded = compose_grounded_answer(

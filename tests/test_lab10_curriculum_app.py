@@ -109,7 +109,7 @@ class CurriculumAppTests(unittest.TestCase):
         self.assertEqual(sql_service.call_args.args[1:3], ("แล้วเรียนปีไหน", "DSBA"))
         self.assertEqual(
             sql_service.call_args.kwargs["conversation_context"],
-            {"focus_course": focus},
+            {"program": "DSBA", "focus_course": focus},
         )
         self.assertNotIn("sql", payload)
         self.assertNotIn("rows", payload)
@@ -131,7 +131,10 @@ class CurriculumAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         sql_service.assert_called_once()
         self.assertEqual(sql_service.call_args.args[2], "IT")
-        self.assertIsNone(sql_service.call_args.kwargs["conversation_context"])
+        self.assertEqual(
+            sql_service.call_args.kwargs["conversation_context"],
+            {"program": "IT"},
+        )
         self.assertEqual(response.json()["next_context"], {"program": "IT"})
 
     def test_ask_chains_bounded_result_courses_through_context_contract(self):
@@ -167,6 +170,7 @@ class CurriculumAppTests(unittest.TestCase):
         self.assertEqual(
             sql_service.call_args.kwargs["conversation_context"],
             {
+                "program": "IT",
                 "result_courses": courses,
                 "result_scope_program": "IT",
             },
@@ -203,6 +207,7 @@ class CurriculumAppTests(unittest.TestCase):
         self.assertEqual(
             sql_service.call_args.kwargs["conversation_context"],
             {
+                "program": "AIT",
                 "result_courses": [],
                 "result_set_empty": True,
                 "result_scope_program": "AIT",

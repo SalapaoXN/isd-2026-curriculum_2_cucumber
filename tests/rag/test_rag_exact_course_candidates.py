@@ -87,7 +87,11 @@ class ExactCourseCandidatesTest(unittest.TestCase):
 
         self.assertEqual(
             {(item["program"], item["course_code"]) for item in candidates},
-            {("IT", "06016414"), ("DSBA", "06026207")},
+            {
+                ("IT", "06016414"),
+                ("DSBA", "06026207"),
+                ("DSBA", "06026111"),
+            },
         )
 
         self.assertEqual(

@@ -31,7 +31,7 @@ from rag.qa import (
     _fallback_scope,
     _is_placement_fallback_candidate,
     _should_use_intent_interpreter,
-    ask,
+    ask as _ask,
 )
 from rag.query_spec import parse_query_spec
 from rag.retrieval.retrieve import (
@@ -54,6 +54,27 @@ DB_PATH = (
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Run legacy DSBA cases against the edition they originally covered."""
+    spec = parse_query_spec(question)
+    if spec.program == "DSBA":
+        context_field = next(
+            (name for name in ("conversation_context", "context") if name in kwargs),
+            None,
+        )
+        if context_field is None:
+            kwargs["conversation_context"] = QueryContext(
+                program="DSBA", catalog_key="dsba-2565"
+            )
+        else:
+            context = kwargs[context_field]
+            if isinstance(context, QueryContext) and context.program == "DSBA" and not context.catalog_key:
+                kwargs[context_field] = replace(context, catalog_key="dsba-2565")
+            elif isinstance(context, dict) and context.get("program") == "DSBA" and not context.get("catalog_key"):
+                kwargs[context_field] = {**context, "catalog_key": "dsba-2565"}
+    return _ask(db_path, question, *args, **kwargs)
 
 
 class RagQaTest(unittest.TestCase):
@@ -602,15 +623,21 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(claim.operation, "describe")
         self.assertEqual(len(claim.evidence), 1)
         evidence = claim.evidence[0]
-        self.assertEqual(evidence["course_id"], 736)
+        self.assertEqual(evidence["course_code"], "06016414")
         self.assertEqual(evidence["plan"], "no_coop")
         self.assertEqual(
             evidence["source_filename"],
             "merged_it_no_coop_full_corrected.json",
         )
         self.assertEqual(
-            {reference["provenance_id"] for reference in evidence["provenance"]},
-            {194, 236},
+            {reference["document_category"] for reference in evidence["provenance"]},
+            {"plan", "description"},
+        )
+        self.assertTrue(
+            all(
+                reference.get("source_filename") and reference.get("source_page")
+                for reference in evidence["provenance"]
+            )
         )
 
     def test_course_targeted_semantic_detail_reaches_typed_description_evidence(self):
@@ -2633,30 +2660,67 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(len(model_calls), 1)
         self.assertEqual(claim.status, "complete")
         self.assertEqual(
-            [(record["placement_id"], record["plan_key"]) for record in claim.evidence],
-            [(211, "coop"), (300, "no_coop")],
+            {(record["course_code"], record["plan_key"]) for record in claim.evidence},
+            {("06026212", "coop"), ("06026212", "no_coop")},
         )
+        self.assertEqual(
+            claim.effective_scope.catalog_key, "dsba-2565"
+        )
+
+    def test_placement_fallback_keeps_explicit_edition_during_selection_and_grounding(self):
+        def selector(_prompt):
+            return (
+                "SELECT DISTINCT p.placement_id AS placement_id "
+                "FROM v_plan_courses AS p WHERE p.course_code = '06026212'"
+            )
+
+        old_result = _ask(
+            DB_PATH,
+            "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2560"
+            ),
+            structured_model_callable=selector,
+        )["result"]
+        self.assertEqual(old_result.claims[0].status, "valid_empty")
+        self.assertEqual(old_result.claims[0].effective_scope.catalog_key, "dsba-2560")
+
+        current_result = _ask(
+            DB_PATH,
+            "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2565"
+            ),
+            structured_model_callable=selector,
+        )["result"]
+        self.assertEqual(current_result.claims[0].status, "complete")
+        self.assertEqual(
+            current_result.claims[0].effective_scope.catalog_key, "dsba-2565"
+        )
+        self.assertTrue(current_result.provenance)
 
     def test_explicit_placement_plan_keeps_only_that_plan(self):
         cases = (
-            ("DSBA แบบสหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", 211, "coop"),
-            ("DSBA แบบไม่สหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", 300, "no_coop"),
+            ("DSBA แบบสหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", "coop"),
+            ("DSBA แบบไม่สหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", "no_coop"),
         )
-        for question, placement_id, plan_key in cases:
+        for question, plan_key in cases:
             with self.subTest(question=question):
                 result = ask(
                     DB_PATH,
                     question,
-                    structured_model_callable=lambda prompt, placement_id=placement_id: (
-                        f"SELECT {placement_id} AS placement_id"
+                    structured_model_callable=lambda prompt, plan_key=plan_key: (
+                        "SELECT DISTINCT p.placement_id AS placement_id "
+                        "FROM v_plan_courses AS p "
+                        f"WHERE p.course_code = '06026212' AND p.plan_key = '{plan_key}'"
                     ),
                 )["result"]
                 claim = result.claims[0]
 
                 self.assertEqual(claim.status, "complete")
                 self.assertEqual(
-                    [(record["placement_id"], record["plan_key"]) for record in claim.evidence],
-                    [(placement_id, plan_key)],
+                    {(record["course_code"], record["plan_key"]) for record in claim.evidence},
+                    {("06026212", plan_key)},
                 )
 
     def test_placement_fallback_rejects_selector_from_another_program(self):
@@ -2669,8 +2733,8 @@ class RagQaTest(unittest.TestCase):
             ),
         )["result"]
 
-        self.assertEqual(result.status, "insufficient_evidence")
-        self.assertEqual(result.claims[0].status, "insufficient_evidence")
+        self.assertEqual(result.status, "valid_empty")
+        self.assertEqual(result.claims[0].status, "valid_empty")
 
     def test_placement_fallback_failure_returns_insufficient_evidence(self):
         fallback_result = StructuredFallbackResult(

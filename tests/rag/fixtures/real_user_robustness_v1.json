@@ -305,20 +305,10 @@
           "question": "DSBA ปี 2 มีวิชาอะไรบ้าง"
         }
       ],
-      "expected_status": "answer",
-      "claim_checks": [
-        {
-          "operation": "list",
-          "status": "complete",
-          "contains": [
-            "06026204"
-          ]
-        }
-      ],
-      "final_contains": [
-        "06026204"
-      ],
-      "provenance_required": true,
+      "expected_status": "clarify_catalog",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
       "budget": {
         "intent": 0,
         "structured": 0,
@@ -453,18 +443,10 @@
           "question": "DSBA ปี 1 เทอม 1 มีกี่วิชา"
         }
       ],
-      "expected_status": "answer",
-      "claim_checks": [
-        {
-          "operation": "count",
-          "status": "complete",
-          "value": 7
-        }
-      ],
-      "final_contains": [
-        "7"
-      ],
-      "provenance_required": true,
+      "expected_status": "clarify_catalog",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
       "budget": {
         "intent": 0,
         "structured": 0,
@@ -472,7 +454,7 @@
       },
       "harness_stub": null,
       "source": "H14 count tests",
-      "notes": "7 per plan partition",
+      "notes": "requires an edition because DSBA has multiple catalogs",
       "robustness_note": ""
     },
     {
@@ -562,21 +544,10 @@
           "question": "DSBA ปี 1 มีวิชา 3 หน่วยกิตอะไรบ้าง"
         }
       ],
-      "expected_status": "answer",
-      "claim_checks": [
-        {
-          "operation": "list",
-          "status": "complete",
-          "contains": [
-            "06026200"
-          ],
-          "scope_credit": 3
-        }
-      ],
-      "final_contains": [
-        "06026200"
-      ],
-      "provenance_required": true,
+      "expected_status": "clarify_catalog",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
       "budget": {
         "intent": 0,
         "structured": 0,
@@ -674,18 +645,10 @@
           "question": "DSBA ปี 2 เทอม 2 รวมทั้งหมดกี่หน่วยกิต"
         }
       ],
-      "expected_status": "answer",
-      "claim_checks": [
-        {
-          "operation": "sum_credits",
-          "status": "complete",
-          "value": 21
-        }
-      ],
-      "final_contains": [
-        "21"
-      ],
-      "provenance_required": true,
+      "expected_status": "clarify_catalog",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
       "budget": {
         "intent": 0,
         "structured": 0,
@@ -693,7 +656,7 @@
       },
       "harness_stub": null,
       "source": "gold structured_dsba_coop_year2_sem2_credits",
-      "notes": "",
+      "notes": "requires an edition because DSBA has multiple catalogs",
       "robustness_note": ""
     },
     {
@@ -1122,9 +1085,14 @@
     {
       "id": "R39",
       "capability": "context_followup_resultset",
+      "initial_context": {
+        "program": "DSBA",
+        "catalog_key": "dsba-2565"
+      },
       "turns": [
         {
-          "question": "DSBA ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
+          "question": "DSBA ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+          "context": "initial"
         },
         {
           "question": "วิชาไหนมีวิชาบังคับก่อนบ้าง",
@@ -1321,7 +1289,7 @@
           "question": "DSBA ปี 1 เทอม 1 มีวิชา 3 หน่วยกิตกี่วิชา"
         }
       ],
-      "expected_status": "insufficient_evidence",
+      "expected_status": "clarify_catalog",
       "claim_checks": [],
       "final_contains": [],
       "provenance_required": false,
@@ -1419,17 +1387,10 @@
           "question": "DSBA IT มีวิชาอะไรบ้าง"
         }
       ],
-      "expected_status": "answer",
-      "claim_checks": [
-        {
-          "operation": "list",
-          "status": "complete"
-        }
-      ],
-      "final_contains": [
-        "DSBA"
-      ],
-      "provenance_required": true,
+      "expected_status": "clarify_catalog",
+      "claim_checks": [],
+      "final_contains": [],
+      "provenance_required": false,
       "budget": {
         "intent": 0,
         "structured": 0,

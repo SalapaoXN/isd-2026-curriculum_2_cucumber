@@ -1,5 +1,6 @@
 """FastAPI bridge for the CUCUMBER curriculum QA system."""
 
+import re
 import sqlite3
 from pathlib import Path
 
@@ -10,9 +11,17 @@ from fastapi.staticfiles import StaticFiles
 
 from rag.hybrid_demo import (
     DEFAULT_CURRICULUM_DB_PATH,
+    answer_question_once,
     parse_conversation_context,
 )
+from rag.policy.query import parse_policy_question
+from rag.policy.routing import route_policy_question
 from rag.providers.gemini import make_gemini_callable
+from rag.query_spec import parse_query_spec
+from rag.structured.queries import (
+    catalog_keys_for_program,
+    edition_catalog_keys_for_program,
+)
 from .hard_qa import HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA, answer_hard_question
 from .llm_sql_qa import (
     ask_sql,
@@ -416,6 +425,7 @@ def course_detail(
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> dict:
     db_path = _curriculum_db()
+    query_spec = parse_query_spec(request.question)
 
     try:
         raw_context = request.conversation_context
@@ -426,23 +436,87 @@ def ask(request: AskRequest) -> dict:
         raw_result_set_empty = False
         has_result_set_empty = False
         has_result_scope = False
+        focus_catalog_key = None
         if isinstance(raw_context, dict):
             legacy_context = dict(raw_context)
             raw_focus = legacy_context.pop("focus_course", None)
+            focus_catalog_key = legacy_context.pop("focus_catalog_key", None)
             raw_result_courses = legacy_context.pop("result_courses", None)
             has_result_set_empty = "result_set_empty" in legacy_context
             raw_result_set_empty = legacy_context.pop("result_set_empty", False)
             has_result_scope = "result_scope_program" in legacy_context
             raw_result_scope = legacy_context.pop("result_scope_program", None)
+            if focus_catalog_key is not None and (
+                not isinstance(focus_catalog_key, str)
+                or not focus_catalog_key.strip()
+                or len(focus_catalog_key.strip()) > 128
+            ):
+                raise ValueError("focus_catalog_key must be a non-empty string or null")
+            active_catalog_key = legacy_context.get("catalog_key")
+            source_catalog_key = focus_catalog_key
+            if source_catalog_key is None and isinstance(raw_focus, dict):
+                source_catalog_key = raw_focus.get("catalog_key")
+            if source_catalog_key is None and isinstance(raw_result_courses, list):
+                result_catalog_keys = {
+                    item.get("catalog_key")
+                    for item in raw_result_courses
+                    if isinstance(item, dict) and isinstance(item.get("catalog_key"), str)
+                }
+                if len(result_catalog_keys) == 1:
+                    source_catalog_key = next(iter(result_catalog_keys))
+            if (
+                active_catalog_key is None
+                and isinstance(source_catalog_key, str)
+                and source_catalog_key.strip()
+            ):
+                # A single-edition previous result can carry its own canonical
+                # scope when the caller omitted the top-level selector.
+                legacy_context["catalog_key"] = source_catalog_key.strip()
+                active_catalog_key = source_catalog_key.strip()
+            if (
+                isinstance(source_catalog_key, str)
+                and isinstance(active_catalog_key, str)
+                and source_catalog_key.strip().casefold()
+                != active_catalog_key.strip().casefold()
+            ):
+                # The selected edition supersedes all prior focus and result context.
+                raw_focus = None
+                raw_result_courses = None
+                raw_result_scope = None
+                raw_result_set_empty = False
+                has_result_scope = False
+                has_result_set_empty = False
+                for key in ("plan", "plans", "year", "years", "semester", "semesters", "operations"):
+                    legacy_context.pop(key, None)
+                focus_catalog_key = active_catalog_key.strip()
             if raw_result_courses is None and has_result_scope:
                 raise ValueError("result_scope_program requires result_courses")
             if has_result_set_empty and raw_result_set_empty is not True:
                 raise ValueError("result_set_empty must be true when provided")
         parsed_context = parse_conversation_context(legacy_context)
+        if (
+            query_spec.program
+            and parsed_context is not None
+            and parsed_context.program is not None
+            and query_spec.program.casefold() != parsed_context.program.casefold()
+        ):
+            # An explicit program in the current turn replaces the prior turn's
+            # structural context, including edition and term focus.
+            parsed_context = parse_conversation_context({"program": query_spec.program})
+            raw_focus = None
+            raw_result_courses = None
+            raw_result_scope = None
+            raw_result_set_empty = False
+            has_result_scope = False
+            has_result_set_empty = False
+            focus_catalog_key = None
     except (TypeError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=f"invalid conversation_context: {exc}") from exc
 
-    program = parsed_context.program if parsed_context is not None else None
+    program = (
+        query_spec.program
+        or (parsed_context.program if parsed_context is not None else None)
+    )
     catalog_key = parsed_context.catalog_key if parsed_context is not None else None
     if catalog_key is not None:
         try:
@@ -452,6 +526,87 @@ def ask(request: AskRequest) -> dict:
                 status_code=422,
                 detail=f"invalid conversation_context: {exc}",
             ) from exc
+    scope_program = program or query_spec.program
+    explicit_edition_comparison = (
+        (
+            "2560" in request.question
+            and "2565" in request.question
+            and any(
+                cue in request.question.casefold()
+                for cue in ("เปรียบเทียบ", "เทียบ", "ต่างกัน", "compare", " vs ")
+            )
+        )
+        or (
+            "หลักสูตรเก่า" in request.question
+            and "หลักสูตรใหม่" in request.question
+        )
+        or (
+            "coop" in request.question.casefold()
+            and "no_coop" in request.question.casefold()
+            and any(
+                cue in request.question.casefold()
+                for cue in ("ต่างกัน", "เปรียบเทียบ", "compare")
+            )
+        )
+    )
+    policy_query = parse_policy_question(request.question)
+    requires_catalog = bool(
+        query_spec.operations
+        or query_spec.plans
+        or query_spec.years
+        or query_spec.semesters
+        or query_spec.course_codes
+        or query_spec.course_name
+        or query_spec.topic
+        or (
+            policy_query is not None
+            and policy_query.kind == "program_total_credits"
+        )
+    )
+    unanchored_term_followup = (
+        scope_program is None
+        and bool(query_spec.years or query_spec.semesters)
+        and re.search(
+            r"(?:แล้ว\s*(?:ปี|เทอม|ภาค)|(?:ปี|เทอม|ภาค)[^\n]{0,24}ล่ะ)",
+            request.question,
+        )
+        is not None
+    )
+    if unanchored_term_followup:
+        return {
+            "question": request.question,
+            "answer": "โปรดระบุหลักสูตรก่อนค้นหาข้อมูลภาคเรียนนี้",
+            "status": "clarification_required",
+            "action": "program_required",
+            "route": "llm_sql",
+            "provenance": [],
+            "next_context": None,
+            "comparison": None,
+        }
+    if (
+        scope_program is not None
+        and requires_catalog
+        and catalog_key is None
+        and not explicit_edition_comparison
+    ):
+        try:
+            program_catalogs = catalog_keys_for_program(db_path, scope_program)
+            edition_catalogs = edition_catalog_keys_for_program(db_path, scope_program)
+        except (OSError, sqlite3.Error, TypeError, ValueError):
+            program_catalogs = ()
+            edition_catalogs = ()
+        if edition_catalogs:
+            keys = list(edition_catalogs)
+            return {
+                "question": request.question,
+                "answer": f"โปรดเลือกฉบับหลักสูตรของ {scope_program}: " + ", ".join(keys),
+                "status": "clarification_required",
+                "action": "catalog_required",
+                "route": "llm_sql",
+                "provenance": [],
+                "next_context": None,
+                "comparison": None,
+            }
     try:
         focus_course = parse_focus_course_context(
             raw_focus, program, catalog_key
@@ -468,8 +623,21 @@ def ask(request: AskRequest) -> dict:
             status_code=422, detail=f"invalid conversation_context: {exc}"
         ) from exc
     service_context: dict | None = {}
+    if program is not None:
+        service_context["program"] = program
     if catalog_key is not None:
         service_context["catalog_key"] = catalog_key
+    if parsed_context is not None:
+        if parsed_context.plan is not None:
+            service_context["plan"] = parsed_context.plan
+        if parsed_context.years:
+            service_context["years"] = list(parsed_context.years)
+        if parsed_context.semesters:
+            service_context["semesters"] = list(parsed_context.semesters)
+        if parsed_context.operations:
+            service_context["operations"] = list(parsed_context.operations)
+        if focus_catalog_key is not None:
+            service_context["focus_catalog_key"] = focus_catalog_key.strip()
     if focus_course is not None:
         service_context["focus_course"] = focus_course
     if parsed_results is not None:
@@ -479,6 +647,30 @@ def ask(request: AskRequest) -> dict:
             service_context["result_set_empty"] = True
     if not service_context:
         service_context = None
+
+    if (
+        policy_query is not None
+        and policy_query.kind == "program_total_credits"
+        and policy_query.program
+        and edition_catalog_keys_for_program(db_path, policy_query.program)
+        and catalog_key is not None
+    ):
+        policy_result = route_policy_question(
+            db_path, request.question, catalog_key=catalog_key
+        )
+        if policy_result is not None:
+            return {
+                "question": request.question,
+                "answer": policy_result.final_answer
+                or "ไม่พบหลักฐานที่ยืนยันหน่วยกิตรวมของฉบับหลักสูตรนี้",
+                "status": policy_result.status,
+                "action": None,
+                "route": "llm_sql",
+                "hard_task_type": None,
+                "provenance": list(policy_result.provenance),
+                "next_context": service_context,
+                "comparison": None,
+            }
     provider_unavailable = False
 
     def model_provider(
@@ -534,6 +726,31 @@ def ask(request: AskRequest) -> dict:
                 hard_interpreter_provider,
             )
         if result is None:
+            def ground_sql_answer(current_question: str) -> dict:
+                grounding_context = {
+                    key: value
+                    for key, value in (service_context or {}).items()
+                    if key
+                    in {
+                        "program", "catalog_key", "plan", "years", "semesters",
+                        "operations", "category", "course_code",
+                    }
+                }
+                if service_context and service_context.get("result_courses"):
+                    # The canonical QA context cannot represent an arbitrary
+                    # bounded multi-course result set; do not widen it.
+                    return {"status": "insufficient_evidence", "provenance": []}
+                focus_course = (service_context or {}).get("focus_course")
+                if isinstance(focus_course, dict):
+                    course_code = focus_course.get("course_code")
+                    if isinstance(course_code, str) and course_code.strip():
+                        grounding_context["course_code"] = course_code.strip()
+                return answer_question_once(
+                    db_path,
+                    current_question,
+                    conversation_context=grounding_context or None,
+                )
+
             result = ask_sql(
                 db_path,
                 request.question,
@@ -541,6 +758,7 @@ def ask(request: AskRequest) -> dict:
                 model_provider,
                 model_provider,
                 conversation_context=service_context,
+                grounding_callable=ground_sql_answer,
             )
     except ProviderUnavailable as exc:
         raise HTTPException(
@@ -568,6 +786,17 @@ def ask(request: AskRequest) -> dict:
         fallback_context["program"] = program
     if catalog_key is not None:
         fallback_context["catalog_key"] = catalog_key
+    if parsed_context is not None:
+        if parsed_context.plan is not None:
+            fallback_context["plan"] = parsed_context.plan
+        if parsed_context.years:
+            fallback_context["years"] = list(parsed_context.years)
+        if parsed_context.semesters:
+            fallback_context["semesters"] = list(parsed_context.semesters)
+        if parsed_context.operations:
+            fallback_context["operations"] = list(parsed_context.operations)
+        if focus_catalog_key is not None:
+            fallback_context["focus_catalog_key"] = focus_catalog_key.strip()
     if focus_course is not None:
         fallback_context["focus_course"] = focus_course
     if parsed_results is not None:

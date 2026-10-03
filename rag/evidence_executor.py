@@ -52,6 +52,7 @@ def _freeze(value: Any) -> Any:
 def _scope_payload(scope: StructuralScope) -> dict[str, Any]:
     return {
         "program": scope.program,
+        "catalog_key": scope.catalog_key,
         "plans": scope.plans,
         "years": scope.years,
         "semesters": scope.semesters,
@@ -529,6 +530,7 @@ def _axis_values(
         years=years,
         category=scope.category,
         course_targets=scope.course_targets,
+        catalog_key=scope.catalog_key,
     )
     values: set[int] = set()
     for course in result.get("courses", ()):
@@ -564,6 +566,7 @@ def _is_flexible_only_exact_credit_request(
             request.scope.program,
             plan_key,
             course_targets=targets,
+            catalog_key=request.scope.catalog_key,
         )
         plan_courses = result.get("courses")
         if not isinstance(plan_courses, (list, tuple)) or not plan_courses:
@@ -726,6 +729,7 @@ def _materialize_scopes(
                             ),
                             course_targets=selected_targets,
                             group_by=source.group_by,
+                            catalog_key=source.catalog_key,
                         )
                     )
     return tuple(scopes)
@@ -766,6 +770,7 @@ def _execute_course_set(
         course_targets=scope.course_targets,
         exact_term_placements=exact_term_placements,
         credit_units=getattr(scope, "credit_units", None),
+        catalog_key=scope.catalog_key,
     )
     if result.get("status") == "insufficient_evidence":
         return _result(
@@ -792,6 +797,7 @@ def _execute_placement(
         category=scope.category,
         course_targets=scope.course_targets,
         credit_units=getattr(scope, "credit_units", None),
+        catalog_key=scope.catalog_key,
     )
     if result.get("status") == "insufficient_evidence":
         return _result(
@@ -919,6 +925,7 @@ def _execute_category_credit(
             semesters=scope.semesters,
             category=scope.category,
             course_targets=tuple(course_targets or ()),
+            catalog_key=scope.catalog_key,
         )
     except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError, KeyError):
         return _result(
@@ -1134,9 +1141,13 @@ def _execute_credit(
         scope.semesters[0],
     )
     if not targets:
-        result = get_semester_credits(*credit_args)
+        result = get_semester_credits(*credit_args, catalog_key=scope.catalog_key)
     else:
-        result = get_semester_credits(*credit_args, course_targets=targets)
+        result = get_semester_credits(
+            *credit_args,
+            course_targets=targets,
+            catalog_key=scope.catalog_key,
+        )
     if result.get("status") == "no_data":
         return _result(request, scope, "valid_empty", result, "empty_relation")
     return _result(request, scope, _status_for_payload(result), result)
@@ -1205,6 +1216,7 @@ def _scoped_course_ids(
         category=scope.category,
         course_targets=targets,
         credit_units=getattr(scope, "credit_units", None),
+        catalog_key=scope.catalog_key,
     )
     if not isinstance(result, Mapping) or result.get("status") != "ok":
         return None

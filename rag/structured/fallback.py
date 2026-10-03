@@ -113,10 +113,15 @@ class StructuredFallbackScope:
     semesters: tuple[int, ...] = ()
     course_ids: tuple[int, ...] = ()
     course_codes: tuple[str, ...] = ()
+    catalog_key: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.program, str) or not self.program.strip():
             raise ValueError("program is required for SQL fallback scope")
+        if self.catalog_key is not None and (
+            not isinstance(self.catalog_key, str) or not self.catalog_key.strip()
+        ):
+            raise ValueError("catalog_key must be None or a non-empty string")
         for name, values in (
             ("plans", self.plans),
             ("years", self.years),
@@ -185,6 +190,7 @@ def _scope_prompt(scope: StructuredFallbackScope) -> str:
         "and MUST be preserved as exact SQL constraints. Do not widen, infer, "
         "replace, or omit them. Never infer a program from a course-code prefix.\n"
         f"program: {scope.program!r}\n"
+        f"catalog_key: {scope.catalog_key!r}\n"
         f"plans: {render(scope.plans)}\n"
         f"years: {render(scope.years)}\n"
         f"semesters: {render(scope.semesters)}\n"
@@ -348,6 +354,7 @@ def ground_course_list(
             years=scope.years,
             semesters=scope.semesters,
             course_targets=[{"course_id": course_id} for course_id in selected_ids],
+            catalog_key=scope.catalog_key,
         )
     except Exception as error:
         return GroundedCourseListResult(
@@ -770,6 +777,7 @@ def ground_placement(
             years=scope.years,
             semesters=scope.semesters,
             course_targets=course_targets,
+            catalog_key=scope.catalog_key,
         )
     except Exception as error:
         return GroundedPlacementResult(
@@ -892,7 +900,17 @@ def run_structured_fallback(
         )
 
     try:
-        columns, rows = _validate_result(execute_readonly(db_path, safe_sql))
+        columns, rows = _validate_result(
+            execute_readonly(
+                db_path,
+                safe_sql,
+                catalog_key=scope.catalog_key,
+                program=scope.program,
+                plan_key=scope.plans[0] if len(scope.plans) == 1 else None,
+                years=scope.years,
+                semesters=scope.semesters,
+            )
+        )
     except Exception as error:
         return StructuredFallbackResult(
             status="error",

@@ -18,6 +18,11 @@ DB_PATH = (
 
 class ConversationContextEvaluationTests(unittest.TestCase):
     def _answer(self, question, *, context=None):
+        if context is None:
+            context = QueryContext(
+                program="IT",
+                catalog_key="OCR extraction / Academic Plan - IT no_coop",
+            )
         result = ask(DB_PATH, question, conversation_context=context)
         self.assertIsInstance(result["result"], GroundedAnswerResult)
         self.assertEqual(result["result"].status, "answer")
@@ -51,11 +56,21 @@ class ConversationContextEvaluationTests(unittest.TestCase):
 
     def test_program_switch_does_not_leak_previous_program(self):
         first = self._answer("IT มีกี่วิชา")
-        second = self._answer("แล้ว DSBA ล่ะ", context=first["next_context"])
-        self.assertTrue(all(
-            claim.effective_scope.program == "DSBA"
-            for claim in second["result"].claims
-        ))
+        second = ask(
+            DB_PATH,
+            "แล้ว DSBA ล่ะ",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2565"
+            ),
+        )
+        self.assertIsInstance(second["result"], GroundedAnswerResult)
+        self.assertTrue(
+            all(
+                claim.effective_scope is None
+                or claim.effective_scope.program == "DSBA"
+                for claim in second["result"].claims
+            )
+        )
 
     def test_exact_course_followups_requery_credit_prerequisite_and_placement(self):
         first = self._answer("IT 06016454 คือวิชาอะไร")
@@ -66,6 +81,17 @@ class ConversationContextEvaluationTests(unittest.TestCase):
             ("วิชานี้เรียนตอนไหน", "placement"),
         ):
             with self.subTest(question=question):
+                if operation == "prerequisite":
+                    result = ask(DB_PATH, question, conversation_context=context)
+                    self.assertEqual(result["result"].status, "insufficient_evidence")
+                    self.assertTrue(
+                        any(
+                            claim.operation == operation
+                            and claim.status == "insufficient_evidence"
+                            for claim in result["result"].claims
+                        )
+                    )
+                    continue
                 result = self._answer(question, context=context)
                 self.assertIn(
                     operation,
@@ -122,7 +148,10 @@ class ConversationContextEvaluationTests(unittest.TestCase):
         self.assertTrue(context.__dataclass_params__.frozen)
         self.assertEqual(
             {field.name for field in dataclasses.fields(context)},
-            {"program", "plan", "years", "semesters", "category", "course_code", "operations"},
+            {
+                "program", "catalog_key", "plan", "years", "semesters",
+                "category", "course_code", "operations",
+            },
         )
 
 

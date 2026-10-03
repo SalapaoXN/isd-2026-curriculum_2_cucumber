@@ -10,8 +10,9 @@ from rag.intent_interpreter import (
     IntentValidationError,
     parse_intent_payload,
 )
-from rag.qa import ask
+from rag.qa import ask as _ask
 from rag.query_spec import parse_query_spec
+from rag.resolution import QueryContext
 
 
 DB_PATH = (
@@ -20,6 +21,17 @@ DB_PATH = (
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Keep legacy DSBA acceptance cases pinned to their original edition."""
+    if parse_query_spec(question).program == "DSBA" and not any(
+        name in kwargs for name in ("context", "conversation_context")
+    ):
+        kwargs["conversation_context"] = QueryContext(
+            program="DSBA", catalog_key="dsba-2565"
+        )
+    return _ask(db_path, question, *args, **kwargs)
 
 ACCEPTANCE_QUESTION = "ขอวิชาเลือกของ DSBA เทอม 2"
 DETERMINISTIC_EQUIVALENT = "DSBA เทอม 2 มีวิชาเลือกอะไรบ้าง"

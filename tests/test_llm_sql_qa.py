@@ -47,14 +47,16 @@ class LlmSqlQaTest(unittest.TestCase):
         db_path = Path(self.temp_dir.name) / "edition-curriculum.db"
         with closing(sqlite3.connect(db_path)) as connection:
             connection.executescript(
-                "CREATE TABLE catalogs (catalog_id INTEGER PRIMARY KEY, catalog_key TEXT);"
+                "CREATE TABLE catalogs (catalog_id INTEGER PRIMARY KEY, catalog_key TEXT, "
+                "academic_year TEXT);"
                 "CREATE TABLE programs (program_id INTEGER PRIMARY KEY, catalog_id INTEGER, "
                 "program_code TEXT, program_code_normalized TEXT);"
                 "CREATE TABLE courses (course_id INTEGER PRIMARY KEY, catalog_id INTEGER, "
                 "course_code TEXT, course_code_normalized TEXT, name_th TEXT);"
                 "CREATE TABLE curriculum_plans (plan_id INTEGER PRIMARY KEY, catalog_id INTEGER, "
                 "program_id INTEGER, plan_key TEXT);"
-                "INSERT INTO catalogs VALUES (1, 'dsba-2560'), (2, 'dsba-2565');"
+                "INSERT INTO catalogs VALUES "
+                "(1, 'dsba-2560', '2560'), (2, 'dsba-2565', '2565');"
                 "INSERT INTO programs VALUES (1, 1, 'DSBA', 'dsba'), (2, 2, 'DSBA', 'dsba');"
                 "INSERT INTO courses VALUES "
                 "(1, 1, 'C101', 'c101', 'legacy course'), "
@@ -91,6 +93,24 @@ class LlmSqlQaTest(unittest.TestCase):
         self.assertEqual(result["status"], "answer")
         self.assertEqual(result["rows"], [{"course_id": 1, "course_code": "C101"}])
 
+    def test_grounded_answer_without_source_provenance_fails_closed(self):
+        result = ask_sql(
+            self.db_path,
+            "IT มีกี่วิชา",
+            "IT",
+            lambda _prompt: "SELECT course_id, course_code FROM courses",
+            lambda _prompt: "unverified model answer",
+            grounding_callable=lambda _question: {
+                "status": "answer",
+                "final_answer": "unverified answer",
+                "provenance": [],
+            },
+        )
+
+        self.assertEqual(result["status"], "insufficient_evidence")
+        self.assertNotIn("unverified", result["answer"])
+        self.assertEqual(result["provenance"], [])
+
     def test_previous_result_catalog_scope_bounds_aggregate(self):
         db_path = self._build_edition_scope_db()
         context = {
@@ -126,10 +146,10 @@ class LlmSqlQaTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(result["status"], "error")
-        self.assertEqual(result["error"]["code"], "invalid_context")
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "catalog_required")
 
-    def test_unambiguous_legacy_previous_result_context_remains_compatible(self):
+    def test_legacy_previous_result_without_catalog_fails_closed_for_multi_edition_program(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(
             db_path,
@@ -143,8 +163,8 @@ class LlmSqlQaTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(result["status"], "answer")
-        self.assertEqual(result["rows"], [{"course_id": 3, "course_code": "C202"}])
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "catalog_required")
 
     def test_edition_aware_focus_context_blocks_cross_edition_rows(self):
         db_path = self._build_edition_scope_db()
@@ -179,21 +199,22 @@ class LlmSqlQaTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(result["status"], "error")
-        self.assertEqual(result["error"]["code"], "invalid_context")
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "catalog_required")
 
-    def test_no_context_still_returns_courses_across_editions(self):
+    def test_unscoped_multi_edition_program_fails_closed_before_sql_model(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(
             db_path,
             "แสดงรายวิชา",
             "DSBA",
-            lambda _prompt: "SELECT course_id, catalog_id FROM courses ORDER BY course_id",
-            lambda _prompt: "พบข้อมูล",
+            lambda _prompt: self.fail("ambiguous edition must fail before SQL generation"),
+            lambda _prompt: self.fail("ambiguous edition must not reach answer model"),
         )
 
-        self.assertEqual(result["status"], "answer")
-        self.assertEqual(len(result["rows"]), 3)
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "catalog_required")
+        self.assertEqual(result["catalog_keys"], ["dsba-2560", "dsba-2565"])
 
     def test_selected_catalog_scope_filters_rows_and_aggregates(self):
         db_path = self._build_edition_scope_db()
@@ -512,6 +533,66 @@ class LlmSqlQaTest(unittest.TestCase):
             result["next_context"]["focus_course"]["catalog_key"], "dsba-2560"
         )
 
+    def test_year_semester_focus_survives_course_list_followup_in_each_edition(self):
+        db_path = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
+        credit_sql = (
+            "SELECT catalogs.catalog_key, plan_rows.program, plan_rows.plan, "
+            "plan_rows.year, plan_rows.semester, SUM(plan_rows.credit_units) AS total_credits "
+            "FROM v_plan_courses AS plan_rows "
+            "JOIN curriculum_plans AS plans ON plans.plan_id = plan_rows.plan_id "
+            "JOIN catalogs ON catalogs.catalog_id = plans.catalog_id "
+            "WHERE plan_rows.program = 'DSBA' AND plan_rows.year = 2 "
+            "AND plan_rows.semester = 1 "
+            "GROUP BY catalogs.catalog_key, plan_rows.program, plan_rows.plan, "
+            "plan_rows.year, plan_rows.semester"
+        )
+        course_sql = (
+            "SELECT catalogs.catalog_key, plan_rows.program, plan_rows.plan, "
+            "plan_rows.year, plan_rows.semester, plan_rows.course_code "
+            "FROM v_plan_courses AS plan_rows "
+            "JOIN curriculum_plans AS plans ON plans.plan_id = plan_rows.plan_id "
+            "JOIN catalogs ON catalogs.catalog_id = plans.catalog_id "
+            "ORDER BY plan_rows.course_code"
+        )
+
+        for catalog_key, expected_credits in (("dsba-2565", 15), ("dsba-2560", 19)):
+            with self.subTest(catalog_key=catalog_key):
+                first = ask_sql(
+                    db_path,
+                    "ปี 2 เทอม 1 เรียนกี่หน่วยกิต",
+                    "DSBA",
+                    lambda _prompt: credit_sql,
+                    lambda _prompt: "พบยอดหน่วยกิต",
+                    conversation_context={"catalog_key": catalog_key},
+                )
+                self.assertEqual(first["status"], "answer")
+                self.assertTrue(first["rows"])
+                self.assertEqual({row["total_credits"] for row in first["rows"]}, {expected_credits})
+                context = first["next_context"]
+                self.assertEqual(context["catalog_key"], catalog_key)
+                self.assertEqual(context["years"], [2])
+                self.assertEqual(context["semesters"], [1])
+
+                second = ask_sql(
+                    db_path,
+                    "แล้วมีวิชาอะไรบ้าง",
+                    "DSBA",
+                    lambda prompt: course_sql,
+                    lambda _prompt: "พบรายวิชาในช่วงที่เลือก",
+                    conversation_context=context,
+                )
+                self.assertEqual(second["status"], "answer")
+                self.assertTrue(second["rows"])
+                self.assertTrue(
+                    all(
+                        row["catalog_key"] == catalog_key
+                        and row["year"] == 2
+                        and row["semester"] == 1
+                        for row in second["rows"]
+                    )
+                )
+                self.assertEqual(second["next_context"]["catalog_key"], catalog_key)
+
     def test_catalog_scope_keeps_read_only_sql_guard(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(
@@ -546,6 +627,7 @@ class LlmSqlQaTest(unittest.TestCase):
                 "WHERE courses.catalog_id = 1 AND courses.course_id = 3"
             ),
             lambda _prompt: "C202 เป็นรายวิชาในหลักสูตร",
+            conversation_context={"catalog_key": "dsba-2560"},
         )
 
         self.assertEqual(result["status"], "answer")
@@ -553,33 +635,18 @@ class LlmSqlQaTest(unittest.TestCase):
             result["next_context"]["focus_course"]["catalog_key"], "dsba-2560"
         )
 
-    def test_next_result_set_keeps_same_code_from_distinct_catalogs(self):
+    def test_unscoped_multi_edition_listing_does_not_mix_catalogs(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(
             db_path,
             "แสดงรายวิชา C101",
             "DSBA",
-            lambda _prompt: (
-                "SELECT plan_rows.program, plan_rows.course_code, catalogs.catalog_key "
-                "FROM v_plan_courses AS plan_rows "
-                "JOIN courses ON courses.course_id = plan_rows.course_id "
-                "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
-                "WHERE courses.course_id IN (1, 2)"
-            ),
-            lambda _prompt: "พบผลลัพธ์จากสองหลักสูตร",
+            lambda _prompt: self.fail("ambiguous edition must not generate SQL"),
+            lambda _prompt: self.fail("ambiguous edition must not reach answer model"),
         )
 
-        self.assertEqual(result["status"], "answer")
-        self.assertEqual(
-            {
-                (item["catalog_key"], item["program"], item["course_code"])
-                for item in result["next_context"]["result_courses"]
-            },
-            {
-                ("dsba-2560", "DSBA", "C101"),
-                ("dsba-2565", "DSBA", "C101"),
-            },
-        )
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "catalog_required")
 
     def test_previous_result_scope_blocks_row_leak_before_answer_model(self):
         self._enable_program_course_scope()
@@ -1248,6 +1315,9 @@ class LlmSqlQaTest(unittest.TestCase):
             result["next_context"],
             {
                 "program": "IT",
+                "operations": ["list"],
+                "years": [1],
+                "semesters": [1],
                 "result_courses": [
                     {"program": "IT", "course_code": "C101", "course_name": "แคลคูลัส"},
                     {"program": "IT", "course_code": "C102", "course_name": "ฟิสิกส์"},
@@ -1441,8 +1511,9 @@ class LlmSqlQaTest(unittest.TestCase):
 
         context = result["next_context"]
         self.assertEqual(
-            set(context), {"program", "result_courses", "result_scope_program"}
+            set(context), {"program", "years", "result_courses", "result_scope_program"}
         )
+        self.assertEqual(context["years"], [1])
         self.assertEqual(len(context["result_courses"]), 2)
         self.assertTrue(
             all(set(item) <= {"program", "course_code", "course_name"} for item in context["result_courses"])
@@ -1485,6 +1556,9 @@ class LlmSqlQaTest(unittest.TestCase):
             result["next_context"],
             {
                 "program": "AIT",
+                "operations": ["list"],
+                "years": [2],
+                "semesters": [1],
                 "result_courses": [],
                 "result_set_empty": True,
                 "result_scope_program": "AIT",

@@ -81,6 +81,7 @@ class StructuralScope:
     unconstrained: tuple[str, ...] = ()
     course_targets: tuple[Mapping[str, Any], ...] = ()
     group_by: tuple[str, ...] = ()
+    catalog_key: str | None = None
 
     def __post_init__(self) -> None:
         plans = _ordered_unique(self.plans)
@@ -98,6 +99,12 @@ class StructuralScope:
             or not isinstance(self.credit_units, int)
         ):
             raise ValueError("credit_units must be None or an integer")
+        if self.catalog_key is not None and (
+            not isinstance(self.catalog_key, str)
+            or not self.catalog_key.strip()
+            or len(self.catalog_key.strip()) > 128
+        ):
+            raise ValueError("catalog_key must be None or a valid catalog key")
         if any(not isinstance(target, Mapping) for target in course_targets):
             raise ValueError("course_targets must contain mappings")
         overlap = set(expand_applicable) & set(unconstrained)
@@ -205,6 +212,8 @@ def _resolved_course_targets(
 def build_structural_scope(
     query_spec: QuerySpec,
     resolution: ResolutionOutcome,
+    *,
+    catalog_key: str | None = None,
 ) -> StructuralScope:
     """Construct symbolic structural scope without querying or expanding data.
 
@@ -263,6 +272,7 @@ def build_structural_scope(
         unconstrained=tuple(unconstrained),
         course_targets=course_targets,
         group_by=group_by,
+        catalog_key=catalog_key,
     )
 
 
@@ -282,6 +292,7 @@ def _plan_partition_scopes(scope: StructuralScope) -> tuple[StructuralScope, ...
             unconstrained=scope.unconstrained,
             course_targets=scope.course_targets,
             group_by=scope.group_by,
+            catalog_key=scope.catalog_key,
         )
         for plan in scope.plans
     )
@@ -320,6 +331,8 @@ def _credit_request_targets(
 def plan_evidence(
     query_spec: QuerySpec,
     resolution: ResolutionOutcome,
+    *,
+    catalog_key: str | None = None,
 ) -> EvidencePlan:
     """Map a QuerySpec and answerable resolution to evidence requests.
 
@@ -327,7 +340,9 @@ def plan_evidence(
     parse natural language, access the database, execute vector search, or
     perform any aggregation or comparison.
     """
-    scope = build_structural_scope(query_spec, resolution)
+    scope = build_structural_scope(
+        query_spec, resolution, catalog_key=catalog_key
+    )
     requests: list[EvidenceRequest] = []
     by_kind: dict[str, list[str]] = {}
 

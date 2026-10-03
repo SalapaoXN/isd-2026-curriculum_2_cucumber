@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from collections.abc import Mapping
 import json
 import math
 from contextlib import closing
@@ -18,6 +19,10 @@ from rag.structured.guard_sql import (
 )
 from rag.structured.nl_to_sql import question_to_sql, repair_sql
 from rag.query_spec import QuerySpec, parse_query_spec
+from rag.structured.queries import (
+    catalog_keys_for_program,
+    edition_catalog_keys_for_program,
+)
 
 
 _ALLOWED_RELATIONS = frozenset(
@@ -470,6 +475,8 @@ def _next_conversation_context(
     *,
     establish_empty_result_set: bool = False,
     selected_catalog_key: str | None = None,
+    current_spec: QuerySpec | None = None,
+    prior_scope: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     result_courses, over_bound = _result_courses_from_rows(rows, selected_program)
     context: dict[str, Any] = {}
@@ -477,6 +484,47 @@ def _next_conversation_context(
         context["program"] = selected_program
     if selected_catalog_key is not None:
         context["catalog_key"] = selected_catalog_key
+    focus_values: dict[str, tuple[int, ...]] = {}
+    for axis, row_key, max_value in (
+        ("years", "year", 5),
+        ("semesters", "semester", 2),
+    ):
+        explicit = tuple(getattr(current_spec, axis, ())) if current_spec is not None else ()
+        row_values = {
+            row.get(row_key)
+            for row in rows
+            if isinstance(row.get(row_key), int)
+            and not isinstance(row.get(row_key), bool)
+        }
+        if len(explicit) == 1 and 1 <= explicit[0] <= max_value:
+            focus_values[axis] = explicit
+        elif len(row_values) == 1:
+            focus_values[axis] = (next(iter(row_values)),)
+        elif prior_scope is not None:
+            prior_values = tuple(prior_scope.get(axis, ()))
+            if len(prior_values) == 1 and 1 <= prior_values[0] <= max_value:
+                focus_values[axis] = prior_values
+    plans = tuple(getattr(current_spec, "plans", ())) if current_spec is not None else ()
+    row_plans = {
+        row.get("plan") for row in rows
+        if isinstance(row.get("plan"), str) and row.get("plan").strip()
+    }
+    selected_plan = plans[0] if len(plans) == 1 else None
+    if selected_plan is None and len(row_plans) == 1:
+        selected_plan = next(iter(row_plans))
+    if selected_plan is None and prior_scope is not None:
+        raw_plan = prior_scope.get("plan")
+        selected_plan = raw_plan if isinstance(raw_plan, str) and raw_plan.strip() else None
+    if selected_plan is not None:
+        context["plan"] = selected_plan
+    operations = tuple(getattr(current_spec, "operations", ())) if current_spec is not None else ()
+    if not operations and prior_scope is not None:
+        operations = tuple(prior_scope.get("operations", ()))
+    if operations and operations != ("identity",):
+        context["operations"] = list(operations)
+    context.update({axis: list(values) for axis, values in focus_values.items()})
+    if focus_values and selected_catalog_key is not None:
+        context["focus_catalog_key"] = selected_catalog_key
     if over_bound:
         return context or None
     if result_courses is not None:
@@ -701,6 +749,8 @@ def ask_sql(
     sql_model_callable: Callable[[str], str],
     answer_model_callable: Callable[[str], str],
     conversation_context: dict[str, Any] | None = None,
+    *,
+    grounding_callable: Callable[[str], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Generate, guard, and execute one curriculum query, then summarize its rows."""
     if not isinstance(question, str) or not question.strip():
@@ -714,10 +764,28 @@ def ask_sql(
     if conversation_context is not None and (
         not isinstance(conversation_context, dict)
         or set(conversation_context)
-        - {"catalog_key", "focus_course", "result_courses", "result_scope_program", "result_set_empty"}
+        - {
+            "program", "catalog_key", "focus_catalog_key", "plan", "years", "semesters",
+            "focus_course", "result_courses", "result_scope_program", "result_set_empty",
+            "operations",
+        }
     ):
         return _failure("invalid_context")
     selected_catalog_key = None
+    context_program = (
+        conversation_context.get("program")
+        if conversation_context is not None
+        else None
+    )
+    if context_program is not None and (
+        not isinstance(context_program, str)
+        or not context_program.strip()
+        or (selected_program is not None
+            and context_program.strip().casefold() != selected_program.strip().casefold())
+    ):
+        return _failure("invalid_context")
+    if selected_program is None and isinstance(context_program, str):
+        selected_program = context_program.strip()
     if conversation_context is not None and "catalog_key" in conversation_context:
         raw_catalog_key = conversation_context["catalog_key"]
         if (
@@ -739,6 +807,151 @@ def ask_sql(
         if len(catalog_rows) != 1 or not catalog_rows[0][0]:
             return _failure("invalid_context")
         selected_catalog_key = str(catalog_rows[0][0]).strip()
+    if selected_catalog_key is None and conversation_context is not None:
+        contextual_keys: set[str] = set()
+        raw_focus_catalog = conversation_context.get("focus_catalog_key")
+        if isinstance(raw_focus_catalog, str) and raw_focus_catalog.strip():
+            contextual_keys.add(raw_focus_catalog.strip())
+        raw_focus = conversation_context.get("focus_course")
+        if isinstance(raw_focus, dict) and isinstance(raw_focus.get("catalog_key"), str):
+            contextual_keys.add(raw_focus["catalog_key"].strip())
+        raw_results = conversation_context.get("result_courses")
+        if isinstance(raw_results, (list, tuple)) and raw_results:
+            if all(
+                isinstance(item, dict)
+                and isinstance(item.get("catalog_key"), str)
+                and item["catalog_key"].strip()
+                for item in raw_results
+            ):
+                contextual_keys.update(item["catalog_key"].strip() for item in raw_results)
+        if len(contextual_keys) == 1:
+            contextual_key = next(iter(contextual_keys))
+            try:
+                database_uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
+                with closing(sqlite3.connect(database_uri, uri=True)) as connection:
+                    catalog_rows = connection.execute(
+                        "SELECT catalog_key FROM catalogs "
+                        "WHERE lower(trim(catalog_key)) = ?",
+                        (contextual_key.casefold(),),
+                    ).fetchall()
+            except sqlite3.Error:
+                return _failure("invalid_context")
+            if len(catalog_rows) == 1 and isinstance(catalog_rows[0][0], str):
+                selected_catalog_key = catalog_rows[0][0].strip()
+    query_spec = parse_query_spec(question.strip())
+    scope_program = selected_program or query_spec.program
+    prior_scope: dict[str, Any] = {}
+    focus_catalog_key = (
+        conversation_context.get("focus_catalog_key")
+        if conversation_context is not None
+        else None
+    )
+    if focus_catalog_key is not None and (
+        not isinstance(focus_catalog_key, str)
+        or not focus_catalog_key.strip()
+        or len(focus_catalog_key.strip()) > 128
+    ):
+        return _failure("invalid_context")
+    focus_is_stale = (
+        isinstance(focus_catalog_key, str)
+        and selected_catalog_key is not None
+        and focus_catalog_key.strip().casefold() != selected_catalog_key.casefold()
+    )
+    if not focus_is_stale and selected_catalog_key is not None and conversation_context is not None:
+        prior_keys: set[str] = set()
+        raw_focus_course = conversation_context.get("focus_course")
+        if isinstance(raw_focus_course, dict) and isinstance(
+            raw_focus_course.get("catalog_key"), str
+        ):
+            prior_keys.add(raw_focus_course["catalog_key"].strip())
+        raw_result_courses = conversation_context.get("result_courses")
+        if isinstance(raw_result_courses, (list, tuple)):
+            prior_keys.update(
+                item["catalog_key"].strip()
+                for item in raw_result_courses
+                if isinstance(item, dict)
+                and isinstance(item.get("catalog_key"), str)
+                and item["catalog_key"].strip()
+            )
+        focus_is_stale = bool(
+            prior_keys
+            and any(key.casefold() != selected_catalog_key.casefold() for key in prior_keys)
+        )
+    if not focus_is_stale and conversation_context is not None:
+        raw_plan = conversation_context.get("plan")
+        if raw_plan is not None:
+            if not isinstance(raw_plan, str) or raw_plan.strip().casefold() not in {
+                "coop", "no_coop", "default", "gened"
+            }:
+                return _failure("invalid_context")
+            prior_scope["plan"] = raw_plan.strip().casefold()
+        for field_name, maximum in (("years", 5), ("semesters", 2)):
+            raw_values = conversation_context.get(field_name, ())
+            if not isinstance(raw_values, (list, tuple)):
+                return _failure("invalid_context")
+            values = tuple(raw_values)
+            if any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or not 1 <= value <= maximum
+                for value in values
+            ):
+                return _failure("invalid_context")
+            if values:
+                prior_scope[field_name] = values
+        raw_operations = conversation_context.get("operations", ())
+        allowed_operations = {
+            "list", "program_discovery", "describe", "count", "sum_credits",
+            "existence", "placement", "prerequisite", "similarity", "earliest",
+            "compare", "identity",
+        }
+        if (
+            not isinstance(raw_operations, (list, tuple))
+            or any(
+                not isinstance(operation, str)
+                or operation not in allowed_operations
+                for operation in raw_operations
+            )
+        ):
+            return _failure("invalid_context")
+        if raw_operations:
+            prior_scope["operations"] = tuple(raw_operations)
+    if scope_program is not None:
+        try:
+            program_catalogs = catalog_keys_for_program(db_path, scope_program)
+            edition_catalogs = edition_catalog_keys_for_program(db_path, scope_program)
+        except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError):
+            program_catalogs = ()
+            edition_catalogs = ()
+        matching_catalog = next(
+            (
+                key for key in program_catalogs
+                if isinstance(key, str)
+                and selected_catalog_key is not None
+                and key.casefold() == selected_catalog_key.casefold()
+            ),
+            None,
+        )
+        if selected_catalog_key is not None and matching_catalog is None:
+            return _failure("invalid_context")
+        if selected_catalog_key is None and edition_catalogs:
+            keys = list(edition_catalogs)
+            return {
+                "status": "clarification_required",
+                "action": "catalog_required",
+                "answer": (
+                    f"โปรดเลือกฉบับหลักสูตรของ {scope_program}: "
+                    + ", ".join(keys)
+                ),
+                "catalog_keys": keys,
+                "sql": None,
+                "columns": [],
+                "rows": [],
+            }
+        if selected_catalog_key is None and len(program_catalogs) == 1:
+            only_catalog = program_catalogs[0]
+            if isinstance(only_catalog, str) and only_catalog.strip():
+                selected_catalog_key = only_catalog.strip()
     if conversation_context is not None and (
         "result_scope_program" in conversation_context
         and "result_courses" not in conversation_context
@@ -754,14 +967,14 @@ def ask_sql(
     ):
         return _failure("invalid_context")
     try:
-        prior_focus = parse_focus_course_context(
+        prior_focus = None if focus_is_stale else parse_focus_course_context(
             conversation_context.get("focus_course")
             if conversation_context is not None
             else None,
             selected_program,
             selected_catalog_key,
         )
-        parsed_results = parse_result_courses_context(
+        parsed_results = None if focus_is_stale else parse_result_courses_context(
             conversation_context.get("result_courses")
             if conversation_context is not None
             else None,
@@ -778,7 +991,16 @@ def ask_sql(
         return _failure("invalid_context")
     prior_result_courses = parsed_results[0] if parsed_results is not None else None
 
-    query_spec = parse_query_spec(question.strip())
+    focus_scope = dict(prior_scope)
+    if query_spec.plans:
+        focus_scope["plan"] = query_spec.plans[0] if len(query_spec.plans) == 1 else None
+    for axis in ("years", "semesters"):
+        explicit_values = tuple(getattr(query_spec, axis, ()))
+        if explicit_values:
+            focus_scope[axis] = explicit_values
+    if query_spec.operations:
+        focus_scope["operations"] = tuple(query_spec.operations)
+
     has_explicit_override = _explicit_course_or_plan_override(query_spec)
     use_result_set_scope = (
         prior_result_courses is not None
@@ -831,6 +1053,8 @@ def ask_sql(
                 prior_result_courses,
                 [],
                 selected_catalog_key=selected_catalog_key,
+                current_spec=query_spec,
+                prior_scope=focus_scope,
             ),
         }
 
@@ -861,6 +1085,12 @@ def ask_sql(
             f"\nSelected catalog_key: {selected_catalog_key}. "
             "This is the active curriculum edition and must constrain the SQL."
         )
+    if focus_scope:
+        generation_question += (
+            f"\nPreserve follow-up focus as SQL predicates: {focus_scope}. "
+            "Do not remove a plan, year, or semester restriction inherited from "
+            "validated conversation context."
+        )
 
     def call_sql_model(prompt: str) -> str:
         try:
@@ -873,6 +1103,12 @@ def ask_sql(
                 f"{_LOGICAL_COURSE_COUNTING_GUIDANCE}\n\n"
                 f"{_conversation_focus_guidance(prior_focus)}"
                 f"{_conversation_result_set_guidance(prior_result_courses, selected_program)}"
+                + (
+                    f"Validated follow-up plan/year/semester focus: {focus_scope}. "
+                    "Keep these predicates in SQL.\n"
+                    if focus_scope
+                    else ""
+                )
                 + (
                     f"Selected curriculum catalog_key: {selected_catalog_key}. "
                     "Curriculum relations are bounded to this catalog.\n"
@@ -978,9 +1214,18 @@ def ask_sql(
             return failure
 
     try:
+        execution_scope = {
+            "program": scope_program,
+            "plan_key": focus_scope.get("plan"),
+            "years": focus_scope.get("years", ()),
+            "semesters": focus_scope.get("semesters", ()),
+        }
         if course_scope is None:
             columns, raw_rows = execute_readonly(
-                db_path, safe_sql, catalog_key=selected_catalog_key
+                db_path,
+                safe_sql,
+                catalog_key=selected_catalog_key,
+                **execution_scope,
             )
         else:
             columns, raw_rows = execute_readonly(
@@ -999,7 +1244,10 @@ def ask_sql(
         try:
             if course_scope is None:
                 columns, raw_rows = execute_readonly(
-                    db_path, safe_sql, catalog_key=selected_catalog_key
+                    db_path,
+                    safe_sql,
+                    catalog_key=selected_catalog_key,
+                    **execution_scope,
                 )
             else:
                 columns, raw_rows = execute_readonly(
@@ -1023,6 +1271,62 @@ def ask_sql(
         ]
     except (TypeError, ValueError):
         return _failure("invalid_result", safe_sql)
+
+    if grounding_callable is not None:
+        try:
+            grounded = grounding_callable(question.strip())
+        except Exception:
+            grounded = None
+        if isinstance(grounded, Mapping):
+            grounded_status = grounded.get("status")
+            grounded_answer = grounded.get("final_answer")
+            raw_provenance = grounded.get("provenance")
+            next_context = grounded.get("next_context")
+            provenance: list[dict[str, Any]] = []
+            if isinstance(raw_provenance, (list, tuple)):
+                for reference in raw_provenance:
+                    if (
+                        not isinstance(reference, Mapping)
+                        or not isinstance(reference.get("source_filename"), str)
+                        or not reference.get("source_filename")
+                        or isinstance(reference.get("source_page"), bool)
+                        or not isinstance(reference.get("source_page"), int)
+                    ):
+                        provenance = []
+                        break
+                    provenance.append(dict(reference))
+            if (
+                grounded_status == "answer"
+                and isinstance(grounded_answer, str)
+                and grounded_answer.strip()
+                and provenance
+            ):
+                return {
+                    "status": "answer",
+                    "answer": grounded_answer.strip(),
+                    "provenance": provenance,
+                    "sql": safe_sql,
+                    "columns": columns,
+                    "rows": rows,
+                    "next_context": next_context,
+                }
+            if grounded_status == "clarify_catalog":
+                return {
+                    "status": "clarification_required",
+                    "action": "catalog_required",
+                    "answer": "โปรดเลือกฉบับหลักสูตรก่อนค้นหาข้อมูล",
+                    "provenance": [],
+                    "next_context": None,
+                }
+        return {
+            "status": "insufficient_evidence",
+            "answer": "ไม่พบหลักฐานที่มีแหล่งอ้างอิงเพียงพอสำหรับคำตอบนี้",
+            "provenance": [],
+            "sql": safe_sql,
+            "columns": columns,
+            "rows": rows,
+            "next_context": None,
+        }
 
     if not rows:
         course_identity_projection = (
@@ -1053,6 +1357,8 @@ def ask_sql(
                 [],
                 establish_empty_result_set=establish_empty_result_set,
                 selected_catalog_key=selected_catalog_key,
+                current_spec=query_spec,
+                prior_scope=focus_scope,
             ),
         }
 
@@ -1081,6 +1387,8 @@ def ask_sql(
             prior_result_courses,
             rows,
             selected_catalog_key=selected_catalog_key,
+            current_spec=query_spec,
+            prior_scope=focus_scope,
         ),
     }
 

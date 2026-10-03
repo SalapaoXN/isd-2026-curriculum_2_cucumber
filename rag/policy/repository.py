@@ -131,8 +131,32 @@ def fetch_policy_facts(
         )
 
 
-def fetch_program_requirement(db_path: str | Path, program: str) -> dict[str, Any] | None:
+def fetch_program_requirement(
+    db_path: str | Path,
+    program: str,
+    *,
+    catalog_key: str | None = None,
+) -> dict[str, Any] | None:
     with closing(_open(db_path)) as connection:
+        catalog_provenance_ids: set[int] | None = None
+        if catalog_key is not None:
+            if not isinstance(catalog_key, str) or not catalog_key.strip():
+                return None
+            catalog_rows = connection.execute(
+                "SELECT catalog_id FROM catalogs WHERE lower(trim(catalog_key)) = ?",
+                (catalog_key.strip().casefold(),),
+            ).fetchall()
+            if len(catalog_rows) != 1:
+                return None
+            catalog_provenance_ids = {
+                int(row[0])
+                for row in connection.execute(
+                    "SELECT provenance_id FROM catalog_provenance WHERE catalog_id = ?",
+                    (catalog_rows[0][0],),
+                ).fetchall()
+            }
+            if not catalog_provenance_ids:
+                return None
         rows = connection.execute(
             """
             SELECT * FROM program_requirements
@@ -149,7 +173,19 @@ def fetch_program_requirement(db_path: str | Path, program: str) -> dict[str, An
         )
         if len(records) > 1:
             raise ValueError("program requirement is ambiguous")
-        return records[0] if records else None
+        if not records:
+            return None
+        record = records[0]
+        if catalog_provenance_ids is not None:
+            provenance = tuple(
+                item
+                for item in record.get("provenance", ())
+                if item.get("provenance_id") in catalog_provenance_ids
+            )
+            if not provenance:
+                return None
+            record = {**record, "provenance": provenance}
+        return record
 
 
 __all__ = ["fetch_policy_facts", "fetch_program_requirement"]

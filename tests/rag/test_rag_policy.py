@@ -6,12 +6,41 @@ from contextlib import closing
 from pathlib import Path
 
 from rag.policy import answer_policy_question
+from rag.policy.routing import route_policy_question
+from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
 
 
 class RagPolicyTest(unittest.TestCase):
+    def test_dsba_total_requirement_requires_catalog_provenance(self):
+        for catalog_key in ("dsba-2560", "dsba-2565"):
+            answer = answer_policy_question(
+                DB_PATH,
+                "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+                catalog_key=catalog_key,
+            )
+            self.assertEqual(answer.status, "insufficient_evidence")
+            self.assertEqual(answer.provenance, ())
+
+            result = ask(
+                DB_PATH,
+                "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+                conversation_context=QueryContext(
+                    program="DSBA", catalog_key=catalog_key
+                ),
+            )
+            grounded = result["result"]
+            self.assertNotEqual(grounded.status, "answer")
+            self.assertNotIn("132", grounded.final_answer)
+
+        unscoped = route_policy_question(
+            DB_PATH, "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต"
+        )
+        self.assertEqual(unscoped.status, "insufficient_evidence")
+
     def test_registration_facts_are_canonical_and_provenanced(self):
         maximum = answer_policy_question(DB_PATH, "ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต")
         minimum = answer_policy_question(DB_PATH, "ขั้นต่ำกี่หน่วยกิต")

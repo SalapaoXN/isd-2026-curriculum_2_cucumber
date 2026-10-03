@@ -30,10 +30,10 @@ from rag import qa as qa_module
 from rag.qa import (
     _classify_structured_parse_completeness,
     _placement_shadow_candidate,
-    ask,
+    ask as _ask,
 )
 from rag.query_spec import parse_query_spec
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 
 
 DB_PATH = str(
@@ -42,6 +42,17 @@ DB_PATH = str(
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Pin legacy DSBA placement cases to the pre-existing 2565 fixture."""
+    if parse_query_spec(question).program == "DSBA" and not any(
+        name in kwargs for name in ("context", "conversation_context")
+    ):
+        kwargs["conversation_context"] = QueryContext(
+            program="DSBA", catalog_key="dsba-2565"
+        )
+    return _ask(db_path, question, *args, **kwargs)
 
 
 def placement_payload(**overrides):

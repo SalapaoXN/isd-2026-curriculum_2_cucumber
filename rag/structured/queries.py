@@ -101,6 +101,54 @@ def _open_database(database: Database) -> Iterator[sqlite3.Connection]:
         yield connection
 
 
+def catalog_keys_for_program(database: Database, program: str) -> tuple[str | None, ...]:
+    """Return canonical catalog keys attached to one logical program."""
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError("program must be a non-empty string")
+    with _open_database(database) as connection:
+        rows = connection.execute(
+            """SELECT DISTINCT catalogs.catalog_key
+               FROM catalogs
+               JOIN programs USING (catalog_id)
+               WHERE lower(trim(programs.program_code_normalized)) = ?
+               ORDER BY catalogs.catalog_key""",
+            (program.strip().casefold(),),
+        ).fetchall()
+    return tuple(row[0].strip() if isinstance(row[0], str) else None for row in rows)
+
+
+def edition_catalog_keys_for_program(
+    database: Database, program: str
+) -> tuple[str, ...]:
+    """Return catalog keys only when metadata proves multiple academic editions."""
+    if not isinstance(program, str) or not program.strip():
+        raise ValueError("program must be a non-empty string")
+    with _open_database(database) as connection:
+        rows = connection.execute(
+            """SELECT DISTINCT catalogs.catalog_key, catalogs.academic_year
+               FROM catalogs
+               JOIN programs USING (catalog_id)
+               WHERE lower(trim(programs.program_code_normalized)) = ?
+               ORDER BY catalogs.academic_year, catalogs.catalog_key""",
+            (program.strip().casefold(),),
+        ).fetchall()
+    years = {
+        str(year).strip().casefold()
+        for _, year in rows
+        if isinstance(year, (str, int)) and str(year).strip()
+    }
+    if len(years) < 2:
+        return ()
+    return tuple(
+        key.strip()
+        for key, year in rows
+        if isinstance(key, str)
+        and key.strip()
+        and isinstance(year, (str, int))
+        and str(year).strip()
+    )
+
+
 def _provenance_for(
     connection: sqlite3.Connection,
     link_table: str,
@@ -1144,6 +1192,7 @@ def get_semester_credits(
     semester_number: int,
     *,
     course_targets: Iterable[Mapping[str, Any]] | None = None,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Return one plan term's deterministic credit total and components.
 
@@ -1161,14 +1210,33 @@ def get_semester_credits(
     )
     target_filter = _credit_target_filter(normalized_program, course_targets)
     with _open_database(db_path) as connection:
+        plan_catalog_filter = ""
+        plan_params: tuple[Any, ...] = (normalized_program, normalized_plan_key)
+        if catalog_key is not None:
+            if not isinstance(catalog_key, str) or not catalog_key.strip():
+                return {"status": "insufficient_evidence", "plans": (), "components": ()}
+            matching_catalogs = connection.execute(
+                """SELECT catalogs.catalog_id
+                   FROM catalogs
+                   JOIN programs USING (catalog_id)
+                   WHERE lower(trim(catalogs.catalog_key)) = ?
+                     AND lower(trim(programs.program_code_normalized)) = ?""",
+                (catalog_key.strip().casefold(), normalized_program.casefold()),
+            ).fetchall()
+            catalog_ids = {int(row[0]) for row in matching_catalogs}
+            if len(catalog_ids) != 1:
+                return {"status": "insufficient_evidence", "plans": (), "components": ()}
+            plan_catalog_filter = " AND catalog_id = ?"
+            plan_params = (*plan_params, next(iter(catalog_ids)))
         plan_rows = connection.execute(
-            """
+            f"""
             SELECT plan_id, catalog_id, program_code, plan_key
             FROM curriculum_plans
             WHERE program_code = ? AND plan_key = ?
+            {plan_catalog_filter}
             ORDER BY plan_id
             """,
-            (normalized_program, normalized_plan_key),
+            plan_params,
         ).fetchall()
         plans: list[dict[str, Any]] = []
         flat_components: list[dict[str, Any]] = []
@@ -1557,6 +1625,7 @@ def scoped_course_set(
     course_targets: Iterable[Mapping[str, Any]] = (),
     exact_term_placements: bool = False,
     credit_units: int | None = None,
+    catalog_key: str | None = None,
 ) -> dict[str, Any]:
     """Return one deterministic, structurally scoped course-set relation.
 
@@ -1610,6 +1679,13 @@ def scoped_course_set(
         else None
     )
     is_elective_category = normalized_category == "วิชาเลือก"
+    normalized_catalog_key = (
+        catalog_key.strip().casefold()
+        if isinstance(catalog_key, str) and catalog_key.strip()
+        else None
+    )
+    if catalog_key is not None and normalized_catalog_key is None:
+        raise ValueError("catalog_key must be a non-empty string")
 
     targets = tuple(course_targets)
     target_ids = {
@@ -1627,6 +1703,10 @@ def scoped_course_set(
         and target.get("course_code").strip()
     }
     plan_placeholders = ", ".join("?" for _ in normalized_plan_keys)
+    catalog_filter = ""
+    query_params: tuple[Any, ...] = (normalized_program, *normalized_plan_keys)
+    if normalized_catalog_key is not None:
+        catalog_filter = " AND plans.catalog_id = ?"
     query = f"""
         SELECT
             placements.placement_id,
@@ -1660,15 +1740,35 @@ def scoped_course_set(
           ON groups.alternative_group_id = placements.alternative_group_id
         WHERE plans.program_code = ?
           AND plans.plan_key IN ({plan_placeholders})
+          {catalog_filter}
         ORDER BY plans.plan_key, plans.catalog_id, plans.plan_id,
                  placements.placement_order IS NULL,
                  placements.placement_order, placements.placement_id
     """
 
     with _open_database(db_path) as connection:
+        if normalized_catalog_key is not None:
+            catalog_rows = connection.execute(
+                """SELECT catalogs.catalog_id
+                   FROM catalogs
+                   JOIN programs USING (catalog_id)
+                   WHERE lower(trim(catalogs.catalog_key)) = ?
+                     AND lower(trim(programs.program_code_normalized)) = ?""",
+                (normalized_catalog_key, normalized_program.casefold()),
+            ).fetchall()
+            if len({row[0] for row in catalog_rows}) != 1:
+                return {
+                    "status": "insufficient_evidence",
+                    "program": normalized_program,
+                    "catalog_key": catalog_key,
+                    "plan_keys": tuple(normalized_plan_keys),
+                    "courses": [],
+                }
+            catalog_id = int(catalog_rows[0][0])
+            query_params = (*query_params, catalog_id)
         rows = connection.execute(
             query,
-            (normalized_program, *normalized_plan_keys),
+            query_params,
         ).fetchall()
         courses: list[dict[str, Any]] = []
         for raw_row in rows:
@@ -2166,10 +2266,12 @@ def courses_requiring_prerequisite(
 __all__ = [
     "alternative_group_placements",
     "applicable_plan_keys",
+    "catalog_keys_for_program",
     "course_facts",
     "course_placement",
     "courses_in_year_semester",
     "courses_requiring_prerequisite",
+    "edition_catalog_keys_for_program",
     "earliest_year_semester",
     "earliest_year_semester_from_choices",
     "exact_course_candidates",

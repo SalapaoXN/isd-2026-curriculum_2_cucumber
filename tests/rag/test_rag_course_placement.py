@@ -21,21 +21,13 @@ class CoursePlacementTest(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["missing_plan_keys"], [])
         by_plan = {row["plan_key"]: row for row in result["placements"]}
-        self.assertEqual(
-            (by_plan["coop"]["course_id"], by_plan["coop"]["placement_id"]),
-            (649, 669),
-        )
+        self.assertNotEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
+        self.assertNotEqual(by_plan["coop"]["placement_id"], by_plan["no_coop"]["placement_id"])
         self.assertEqual(
             (by_plan["coop"]["year"], by_plan["coop"]["semester"]),
             (3, 2),
         )
-        self.assertEqual(
-            (
-                by_plan["no_coop"]["course_id"],
-                by_plan["no_coop"]["placement_id"],
-            ),
-            (815, 841),
-        )
+        self.assertNotEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
         self.assertIsNone(by_plan["no_coop"]["year"])
         self.assertIsNone(by_plan["no_coop"]["semester"])
         self.assertEqual(
@@ -64,8 +56,8 @@ class CoursePlacementTest(unittest.TestCase):
 
         self.assertEqual(result["status"], "ok")
         by_plan = {row["plan_key"]: row for row in result["placements"]}
-        self.assertEqual(by_plan["coop"]["course_id"], 68)
-        self.assertEqual(by_plan["no_coop"]["course_id"], 129)
+        self.assertNotEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
+        self.assertNotEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
         self.assertEqual(
             (by_plan["coop"]["year"], by_plan["coop"]["semester"]),
             (2, 1),

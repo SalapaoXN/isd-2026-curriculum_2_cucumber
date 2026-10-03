@@ -41,18 +41,14 @@ class ConversationContextTests(unittest.TestCase):
             )
         )
 
-    def test_year_override_and_explicit_program_switch(self):
+    def test_year_override_requires_edition_after_program_switch(self):
         context = QueryContext(
             program="IT", years=(3,), semesters=(1,), operations=("count",)
         )
         result = ask(DB_PATH, "DSBA แล้วปี 2 ล่ะ", conversation_context=context)
-        self.assertEqual(result["result"].status, "answer")
-        self.assertTrue(
-            all(claim.effective_scope.program == "DSBA" for claim in result["result"].claims)
-        )
-        self.assertTrue(
-            all(claim.effective_scope.years == (2,) for claim in result["result"].claims)
-        )
+        self.assertEqual(result["result"]["status"], "clarify_catalog")
+        self.assertEqual(result["result"]["program"], "DSBA")
+        self.assertEqual(set(result["result"]["catalog_keys"]), {"dsba-2560", "dsba-2565"})
 
     def test_exact_course_carries_to_credit_prerequisite_and_placement(self):
         first = ask(DB_PATH, "IT 06016454 คือวิชาอะไร")
@@ -80,7 +76,12 @@ class ConversationContextTests(unittest.TestCase):
 
     def test_context_objects_do_not_leak_into_each_other(self):
         left = QueryContext(program="IT", years=(3,), operations=("count",))
-        right = QueryContext(program="DSBA", years=(2,), operations=("count",))
+        right = QueryContext(
+            program="DSBA",
+            years=(2,),
+            operations=("count",),
+            catalog_key="dsba-2565",
+        )
         left_result = ask(DB_PATH, "แล้วเทอม 1 ล่ะ", conversation_context=left)
         right_result = ask(DB_PATH, "แล้วเทอม 1 ล่ะ", conversation_context=right)
         self.assertTrue(all(c.effective_scope.program == "IT" for c in left_result["result"].claims))

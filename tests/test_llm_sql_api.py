@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from backend import main
 from backend.hard_qa import HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA, answer_hard_question
+from backend.llm_sql_qa import ask_sql as run_ask_sql
 
 
 DB_PATH = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -77,7 +78,10 @@ class LlmSqlApiTests(unittest.TestCase):
             "/api/ask",
             json={
                 "question": "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
-                "conversation_context": {"program": "DSBA"},
+                "conversation_context": {
+                    "program": "DSBA",
+                    "catalog_key": "dsba-2560",
+                },
             },
         )
 
@@ -150,6 +154,295 @@ class LlmSqlApiTests(unittest.TestCase):
         forwarded = self.sql_service.call_args.kwargs["conversation_context"]
         self.assertEqual(forwarded["catalog_key"], "dsba-2565")
         self.assertEqual(response.json()["next_context"]["catalog_key"], "dsba-2565")
+
+    def test_dsba_total_requirement_without_edition_provenance_fails_closed(self):
+        for catalog_key in ("dsba-2560", "dsba-2565"):
+            with self.subTest(catalog_key=catalog_key):
+                self.sql_service.reset_mock()
+                response = self.client.post(
+                    "/api/ask",
+                    json={
+                        "question": "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+                        "conversation_context": {
+                            "program": "DSBA",
+                            "catalog_key": catalog_key,
+                        },
+                    },
+                )
+
+                self.assertEqual(response.status_code, 200)
+                payload = response.json()
+                self.assertEqual(payload["status"], "insufficient_evidence")
+                self.assertNotIn("132", payload["answer"])
+                self.assertNotIn("453", payload["answer"])
+                self.assertNotIn("240", payload["answer"])
+                self.assertEqual(payload["provenance"], [])
+                self.sql_service.assert_not_called()
+
+    def test_unscoped_multi_edition_question_is_stopped_before_any_qa_route(self):
+        with patch.object(main, "answer_hard_question", return_value=None):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": "DSBA ปี 2 เทอม 1 เรียนกี่หน่วยกิต"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "clarification_required")
+        self.assertEqual(response.json()["action"], "catalog_required")
+        self.assertIn("dsba-2560", response.json()["answer"])
+        self.assertIn("dsba-2565", response.json()["answer"])
+        self.sql_service.assert_not_called()
+
+    def test_explicit_it_query_returns_structural_context_and_real_provenance(self):
+        def deterministic_sql_service(
+            db_path, question, program, _sql_model, answer_model, *,
+            conversation_context=None, **kwargs,
+        ):
+            grounding_callable = kwargs.pop("grounding_callable", None)
+            return run_ask_sql(
+                db_path,
+                question,
+                program,
+                lambda _prompt: (
+                    "SELECT course_code, program, plan_key, year, semester "
+                    "FROM v_plan_courses"
+                ),
+                answer_model,
+                conversation_context=conversation_context,
+                grounding_callable=grounding_callable,
+                **kwargs,
+            )
+
+        with patch.object(main, "answer_hard_question", return_value=None), patch.object(
+            main, "ask_sql", side_effect=deterministic_sql_service
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertTrue(
+            all(
+                reference.get("program") == "IT"
+                and reference.get("source_filename")
+                and isinstance(reference.get("source_page"), int)
+                for reference in payload["provenance"]
+            )
+        )
+        context = payload["next_context"]
+        self.assertEqual(context["program"], "IT")
+        self.assertEqual(context["years"], [3])
+        self.assertEqual(context["semesters"], [1])
+
+    def test_it_semester_followup_keeps_program_and_year_scope(self):
+        def deterministic_sql_service(
+            db_path, question, program, _sql_model, answer_model, *,
+            conversation_context=None, **kwargs,
+        ):
+            grounding_callable = kwargs.pop("grounding_callable", None)
+            return run_ask_sql(
+                db_path,
+                question,
+                program,
+                lambda _prompt: (
+                    "SELECT course_code, program, plan_key, year, semester "
+                    "FROM v_plan_courses"
+                ),
+                answer_model,
+                conversation_context=conversation_context,
+                grounding_callable=grounding_callable,
+                **kwargs,
+            )
+
+        with patch.object(main, "answer_hard_question", return_value=None), patch.object(
+            main, "ask_sql", side_effect=deterministic_sql_service
+        ):
+            first = self.client.post(
+                "/api/ask",
+                json={"question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา"},
+            )
+            second = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "แล้วเทอม 2 ล่ะ",
+                    "conversation_context": first.json()["next_context"],
+                },
+            )
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        payload = second.json()
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertTrue(all(ref.get("program") == "IT" for ref in payload["provenance"]))
+        self.assertNotRegex(payload["answer"], r"(?i)\b(?:AIT|BIT|DSBA)\b")
+        self.assertEqual(
+            {
+                key: payload["next_context"][key]
+                for key in ("program", "years", "semesters")
+            },
+            {"program": "IT", "years": [3], "semesters": [2]},
+        )
+
+    def test_dsba_edition_scoped_followup_keeps_catalog_and_real_provenance(self):
+        def deterministic_sql_service(
+            db_path, question, program, _sql_model, answer_model, *,
+            conversation_context=None, **kwargs,
+        ):
+            return run_ask_sql(
+                db_path,
+                question,
+                program,
+                lambda _prompt: (
+                    "SELECT course_code, program, plan_key, year, semester "
+                    "FROM v_plan_courses"
+                ),
+                answer_model,
+                conversation_context=conversation_context,
+                **kwargs,
+            )
+
+        outputs = {}
+        with patch.object(main, "answer_hard_question", return_value=None), patch.object(
+            main, "ask_sql", side_effect=deterministic_sql_service
+        ):
+            for catalog_key in ("dsba-2560", "dsba-2565"):
+                response = self.client.post(
+                    "/api/ask",
+                    json={
+                        "question": "แล้วเทอม 2 ล่ะ",
+                        "conversation_context": {
+                            "program": "DSBA",
+                            "catalog_key": catalog_key,
+                            "years": [2],
+                            "semesters": [1],
+                            "operations": ["count"],
+                        },
+                    },
+                )
+                self.assertEqual(response.status_code, 200)
+                payload = response.json()
+                self.assertEqual(payload["status"], "answer")
+                self.assertTrue(payload["provenance"])
+                self.assertTrue(
+                    all(
+                        reference.get("source_filename")
+                        and isinstance(reference.get("source_page"), int)
+                        for reference in payload["provenance"]
+                    )
+                )
+                self.assertEqual(payload["next_context"]["program"], "DSBA")
+                self.assertEqual(payload["next_context"]["catalog_key"], catalog_key)
+                self.assertEqual(payload["next_context"]["years"], [2])
+                self.assertEqual(payload["next_context"]["semesters"], [2])
+                outputs[catalog_key] = payload["provenance"]
+
+        self.assertNotEqual(
+            {item["source_filename"] for item in outputs["dsba-2560"]},
+            {item["source_filename"] for item in outputs["dsba-2565"]},
+        )
+
+    def test_semester_followup_without_context_fails_before_sql(self):
+        with patch.object(main, "answer_hard_question", return_value=None):
+            response = self.client.post(
+                "/api/ask", json={"question": "แล้วเทอม 2 ล่ะ"}
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.json()["status"], "answer")
+        self.assertIn(response.json()["action"], {"program_required", "clarify_program"})
+        self.assertEqual(response.json()["provenance"], [])
+        self.assertIsNone(response.json()["next_context"])
+        self.sql_service.assert_not_called()
+
+    def test_explicit_program_replaces_prior_program_context(self):
+        with patch.object(main, "answer_hard_question", return_value=None):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "แล้ว DSBA ปี 1 เทอม 1 มีกี่วิชา",
+                    "conversation_context": {
+                        "program": "IT",
+                        "years": [3],
+                        "semesters": [2],
+                    },
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "clarification_required")
+        self.assertEqual(response.json()["action"], "catalog_required")
+        self.assertIn("dsba-2560", response.json()["answer"])
+        self.assertIn("dsba-2565", response.json()["answer"])
+        self.sql_service.assert_not_called()
+
+    def test_year_semester_focus_is_forwarded_as_structural_sql_context(self):
+        response = self.client.post(
+            "/api/ask",
+            json={
+                "question": "แล้วมีวิชาอะไรบ้าง",
+                "conversation_context": {
+                    "program": "DSBA",
+                    "catalog_key": "dsba-2565",
+                    "years": [2],
+                    "semesters": [1],
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        forwarded = self.sql_service.call_args.kwargs["conversation_context"]
+        self.assertEqual(forwarded["catalog_key"], "dsba-2565")
+        self.assertEqual(forwarded["years"], [2])
+        self.assertEqual(forwarded["semesters"], [1])
+
+    def test_edition_switch_clears_stale_focus_and_result_context_both_directions(self):
+        for old_key, new_key in (
+            ("dsba-2565", "dsba-2560"),
+            ("dsba-2560", "dsba-2565"),
+        ):
+            with self.subTest(old_key=old_key, new_key=new_key):
+                self.sql_service.reset_mock()
+                response = self.client.post(
+                    "/api/ask",
+                    json={
+                        "question": "DSBA ปี 1 เทอม 1 มีกี่วิชา",
+                        "conversation_context": {
+                            "program": "DSBA",
+                            "catalog_key": new_key,
+                            "focus_course": {
+                                "catalog_key": old_key,
+                                "program": "DSBA",
+                                "course_code": "06026111",
+                            },
+                            "plan": "coop",
+                            "years": [2],
+                            "semesters": [1],
+                            "result_scope_program": "DSBA",
+                            "result_courses": [
+                                {
+                                    "catalog_key": old_key,
+                                    "program": "DSBA",
+                                    "course_code": "06026111",
+                                }
+                            ],
+                        },
+                    },
+                )
+
+                self.assertEqual(response.status_code, 200)
+                forwarded = self.sql_service.call_args.kwargs["conversation_context"]
+                self.assertEqual(forwarded["catalog_key"], new_key)
+                self.assertEqual(forwarded["focus_catalog_key"], new_key)
+                self.assertNotIn("years", forwarded)
+                self.assertNotIn("semesters", forwarded)
+                self.assertNotIn("plan", forwarded)
+                self.assertNotIn("result_courses", forwarded)
+                self.assertNotIn("result_scope_program", forwarded)
 
     def test_nonexistent_catalog_key_is_rejected_by_api(self):
         response = self.client.post(

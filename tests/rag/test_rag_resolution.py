@@ -176,7 +176,11 @@ class ResolutionTest(unittest.TestCase):
                 (candidate["program"], candidate["course_code"])
                 for candidate in outcome.course_references[0].candidates
             },
-            {("IT", "06016414"), ("DSBA", "06026207")},
+            {
+                ("IT", "06016414"),
+                ("DSBA", "06026207"),
+                ("DSBA", "06026111"),
+            },
         )
 
     def test_program_scoped_course_facts_require_program_context(self):

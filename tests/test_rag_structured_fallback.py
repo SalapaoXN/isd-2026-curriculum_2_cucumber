@@ -656,6 +656,7 @@ class RagStructuredFallbackTest(unittest.TestCase):
             years=(3,),
             semesters=(1,),
             course_targets=[{"course_id": 1}],
+            catalog_key=None,
         )
 
     def test_placement_grounding_returns_canonical_in_scope_record(self):
@@ -797,6 +798,7 @@ class RagStructuredFallbackTest(unittest.TestCase):
             years=(2,),
             semesters=(2,),
             course_targets=[{"course_id": 1}],
+            catalog_key=None,
         )
 
 

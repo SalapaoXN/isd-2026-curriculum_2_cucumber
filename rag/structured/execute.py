@@ -209,7 +209,13 @@ def _install_course_scope(
 
 
 def _install_catalog_scope(
-    connection: sqlite3.Connection, catalog_key: str
+    connection: sqlite3.Connection,
+    catalog_key: str,
+    *,
+    program: str | None = None,
+    plan_key: str | None = None,
+    years: Iterable[int] = (),
+    semesters: Iterable[int] = (),
 ) -> None:
     matches = connection.execute(
         "SELECT catalog_id, catalog_key FROM main.catalogs "
@@ -225,6 +231,43 @@ def _install_catalog_scope(
     connection.execute(
         "INSERT INTO _qa_selected_catalog (catalog_id) VALUES (?)", (catalog_id,)
     )
+    plan_conditions = ["plan.catalog_id = ?"]
+    plan_parameters: list[Any] = [catalog_id]
+    if program is not None:
+        plan_conditions.append(
+            "EXISTS (SELECT 1 FROM main.programs AS scoped_program "
+            "WHERE scoped_program.program_id = plan.program_id "
+            "AND scoped_program.catalog_id = plan.catalog_id "
+            "AND lower(trim(scoped_program.program_code_normalized)) = ?)"
+        )
+        plan_parameters.append(program.strip().casefold())
+    if plan_key is not None:
+        plan_conditions.append("lower(trim(plan.plan_key)) = ?")
+        plan_parameters.append(plan_key.strip().casefold())
+    plan_where = " AND ".join(plan_conditions)
+    connection.execute(
+        "CREATE TEMP TABLE _qa_selected_plans (plan_id INTEGER PRIMARY KEY)"
+    )
+    connection.execute(
+        "INSERT INTO _qa_selected_plans (plan_id) "
+        f"SELECT plan.plan_id FROM main.curriculum_plans AS plan WHERE {plan_where}",
+        plan_parameters,
+    )
+    term_conditions: list[str] = []
+    for column, values in (("year", tuple(years)), ("semester", tuple(semesters))):
+        if values:
+            table_name = f"_qa_focus_{column}s"
+            connection.execute(
+                f"CREATE TEMP TABLE {table_name} ({column} INTEGER PRIMARY KEY)"
+            )
+            connection.executemany(
+                f"INSERT INTO {table_name} ({column}) VALUES (?)",
+                ((value,) for value in values),
+            )
+            term_conditions.append(
+                f"plan_course_view.{column} IN (SELECT {column} FROM {table_name})"
+            )
+    term_filter = " AND " + " AND ".join(term_conditions) if term_conditions else ""
     views = (
         (
             "catalogs",
@@ -239,7 +282,7 @@ def _install_catalog_scope(
         (
             "curriculum_plans",
             "SELECT plan.* FROM main.curriculum_plans AS plan "
-            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+            "JOIN _qa_selected_plans AS selected USING (plan_id)",
         ),
         (
             "courses",
@@ -260,7 +303,8 @@ def _install_catalog_scope(
         (
             "plan_placements",
             "SELECT placement.* FROM main.plan_placements AS placement "
-            "WHERE placement.plan_id IN (SELECT plan_id FROM curriculum_plans)",
+            "WHERE placement.placement_id IN "
+            "(SELECT placement_id FROM v_plan_courses)",
         ),
         (
             "prerequisites",
@@ -275,8 +319,8 @@ def _install_catalog_scope(
         (
             "v_plan_courses",
             "SELECT plan_course_view.* FROM main.v_plan_courses AS plan_course_view "
-            "JOIN main.curriculum_plans AS plan ON plan.plan_id = plan_course_view.plan_id "
-            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+            "JOIN curriculum_plans AS plan ON plan.plan_id = plan_course_view.plan_id "
+            f"WHERE 1 = 1{term_filter}",
         ),
         (
             "v_prerequisite_edges",
@@ -298,7 +342,6 @@ def _install_catalog_scope(
     )
     for name, query in views:
         connection.execute(f"CREATE TEMP VIEW {name} AS {query}")
-
     tables = {
         row[0]
         for row in connection.execute(
@@ -335,6 +378,10 @@ def execute_readonly(
         tuple[str, str] | tuple[str | None, str, str]
     ] | None = None,
     catalog_key: str | None = None,
+    program: str | None = None,
+    plan_key: str | None = None,
+    years: Iterable[int] = (),
+    semesters: Iterable[int] = (),
 ) -> tuple[list[str], list[tuple[Any, ...]]]:
     """Execute one guarded SELECT/WITH query without opening a writable DB."""
     safe_sql = guard_sql(sql)
@@ -347,7 +394,14 @@ def execute_readonly(
         if course_scope is not None:
             _install_course_scope(connection, course_scope)
         elif catalog_key is not None:
-            _install_catalog_scope(connection, catalog_key)
+            _install_catalog_scope(
+                connection,
+                catalog_key,
+                program=program,
+                plan_key=plan_key,
+                years=years,
+                semesters=semesters,
+            )
         cursor = connection.execute(safe_sql)
         columns = [description[0] for description in cursor.description or ()]
         rows = cursor.fetchall()

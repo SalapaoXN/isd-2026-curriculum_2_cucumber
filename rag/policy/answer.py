@@ -217,10 +217,17 @@ def _comparison_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
     )
 
 
-def _program_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
+def _program_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+    *,
+    catalog_key: str | None = None,
+) -> PolicyAnswer:
     if not query.program:
         raise ValueError("program is required")
-    record = fetch_program_requirement(db_path, query.program)
+    record = fetch_program_requirement(
+        db_path, query.program, catalog_key=catalog_key
+    )
     if record is None:
         return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
     fact = PolicyFact(
@@ -273,6 +280,8 @@ def _honors_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
 def answer_policy_question(
     db_path: str | Path,
     question: str,
+    *,
+    catalog_key: str | None = None,
 ) -> PolicyAnswer:
     """Answer one supported policy question using only the canonical runtime DB."""
 
@@ -281,7 +290,7 @@ def answer_policy_question(
         return PolicyAnswer(status="unsupported")
     try:
         if query.kind == "program_total_credits":
-            return _program_answer(db_path, query)
+            return _program_answer(db_path, query, catalog_key=catalog_key)
         if query.kind == "registration_compare":
             return _comparison_answer(db_path, query)
         if query.kind in {"honors_first", "honors_second"}:
