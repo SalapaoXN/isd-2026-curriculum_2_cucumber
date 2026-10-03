@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
@@ -184,3 +185,188 @@ def extract_program_requirements(
             )
         )
     return results
+
+
+# Plan-page extraction is intentionally separate from the overview-page API
+# above. Callers supply the catalog identity and page provenance explicitly;
+# this module does not infer an edition from a program name or OCR filename.
+_PLAN_TOTAL_ANCHOR_RE = re.compile(
+    r"รวม\s*ตลอด\s*หลักสูตร"
+    r"|total\s+(?:credits?\s+(?:for\s+)?(?:the\s+)?(?:entire\s+)?(?:program|curriculum)"
+    r"|(?:program|curriculum)\s+total\s+credits?)",
+    re.IGNORECASE,
+)
+_GENERAL_ED_TOTAL_ANCHOR_RE = re.compile(
+    r"รวม\s*(?:จำนวน\s*)?(?:หน่วยกิต\s*)?(?:หมวด\s*)?วิชา\s*ศึกษา\s*ทั่วไป"
+    r"|total\s+credits?\s+(?:for|in)\s+(?:the\s+)?general\s+education"
+    r"(?:\s+block)?|general\s+education\s+(?:block\s+)?total\s+credits?",
+    re.IGNORECASE,
+)
+_PLAN_TOTAL_VALUE_RE = re.compile(
+    r"^\s*[:：\-]?\s*(?:จำนวน\s*)?"
+    r"(?P<value>[0-9๐-๙]+)\s*(?:หน่วยกิต|credits?)",
+    re.IGNORECASE,
+)
+_THAI_TOTAL_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
+_PLAN_TOTAL_LOOKAHEAD = 80
+
+
+def extract_explicit_total_credits(
+    text: str,
+    *,
+    requirement_type: str = "total_program_credits",
+) -> int | None:
+    """Return a credit total only when it follows an explicit total anchor.
+
+    Whitespace and Unicode presentation artifacts are normalized before
+    matching, and only a nearby number followed by a credit unit is accepted.
+    An unanchored number is never treated as a program requirement.
+    """
+    if not isinstance(text, str):
+        raise TypeError("OCR text must be a string")
+
+    normalized = unicodedata.normalize("NFKC", text)
+    normalized = normalized.replace("\u200b", "").replace("\ufeff", "")
+    normalized = " ".join(normalized.split())
+
+    if requirement_type == "total_program_credits":
+        anchors = _PLAN_TOTAL_ANCHOR_RE
+    elif requirement_type == "general_education_total_credits":
+        anchors = _GENERAL_ED_TOTAL_ANCHOR_RE
+    else:
+        raise ValueError(f"Unsupported requirement_type: {requirement_type!r}")
+
+    values: set[int] = set()
+    for anchor in anchors.finditer(normalized):
+        bounded_text = normalized[
+            anchor.end() : anchor.end() + _PLAN_TOTAL_LOOKAHEAD
+        ]
+        value_match = _PLAN_TOTAL_VALUE_RE.match(bounded_text)
+        if value_match is None:
+            continue
+        digits = value_match.group("value").translate(_THAI_TOTAL_DIGITS)
+        value = int(digits)
+        if value > 0:
+            values.add(value)
+
+    if len(values) > 1:
+        raise ProgramRequirementExtractionError(
+            "Conflicting explicit total-credit values found on one source page"
+        )
+    return next(iter(values), None)
+
+
+def extract_total_credit_requirement(
+    text: str,
+    *,
+    requirement_type: str,
+    source_provenance: Iterable[Mapping[str, Any]],
+    catalog_key: str | None = None,
+    program: str | None = None,
+    scope: str | None = None,
+) -> dict[str, Any] | None:
+    """Build one normalized requirement from an explicitly scoped OCR page.
+
+    Degree totals require caller-supplied ``catalog_key`` and ``program``.
+    General Education totals use ``scope="GENED"`` and remain distinct from
+    degree-program requirements. A page without an explicit total returns
+    ``None``.
+    """
+    if requirement_type == "total_program_credits":
+        if not isinstance(catalog_key, str) or not catalog_key.strip():
+            raise ValueError("degree requirements need an explicit catalog_key")
+        if not isinstance(program, str) or not program.strip():
+            raise ValueError("degree requirements need an explicit program")
+        identity = {
+            "catalog_key": catalog_key.strip(),
+            "program": program.strip().upper(),
+        }
+    elif requirement_type == "general_education_total_credits":
+        if not isinstance(scope, str) or scope.strip().upper() != "GENED":
+            raise ValueError("General Education requirements need scope='GENED'")
+        identity = {"scope": "GENED"}
+    else:
+        raise ValueError(f"Unsupported requirement_type: {requirement_type!r}")
+
+    provenance: list[dict[str, Any]] = []
+    for item in source_provenance:
+        if not isinstance(item, Mapping):
+            raise TypeError("source_provenance entries must be mappings")
+        provenance.append(dict(item))
+    if not provenance:
+        raise ValueError("source_provenance must contain at least one source")
+
+    value = extract_explicit_total_credits(
+        text,
+        requirement_type=requirement_type,
+    )
+    if value is None:
+        return None
+
+    return {
+        **identity,
+        "requirement_type": requirement_type,
+        "operator": "=",
+        "value": value,
+        "unit": "credits",
+        "source_provenance": provenance,
+    }
+
+
+def merge_plan_requirements(
+    requirements: Iterable[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Merge plan-specific evidence for each canonical requirement identity.
+
+    Equal totals retain provenance from each plan. Conflicting values or
+    requirement semantics fail closed instead of selecting one plan.
+    """
+    merged: dict[tuple[str, ...], dict[str, Any]] = {}
+    for source in requirements:
+        if not isinstance(source, Mapping):
+            raise TypeError("requirements must contain mappings")
+        record = dict(source)
+        requirement_type = record.get("requirement_type")
+        if requirement_type == "total_program_credits":
+            catalog_key = record.get("catalog_key")
+            program = record.get("program")
+            if not isinstance(catalog_key, str) or not catalog_key.strip():
+                raise ValueError("degree requirements need an explicit catalog_key")
+            if not isinstance(program, str) or not program.strip():
+                raise ValueError("degree requirements need an explicit program")
+            identity = (requirement_type, catalog_key.strip(), program.strip().upper())
+        elif requirement_type == "general_education_total_credits":
+            if str(record.get("scope", "")).strip().upper() != "GENED":
+                raise ValueError("General Education requirements need scope='GENED'")
+            identity = (requirement_type, "GENED")
+        else:
+            raise ValueError(f"Unsupported requirement_type: {requirement_type!r}")
+
+        if not isinstance(record.get("source_provenance"), list) or not record[
+            "source_provenance"
+        ]:
+            raise ValueError("requirements need non-empty source_provenance")
+        if record.get("operator") != "=" or record.get("unit") != "credits":
+            raise ValueError("requirements must use operator '=' and unit 'credits'")
+        value = record.get("value")
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise ValueError("requirement values must be positive integers")
+        if any(not isinstance(item, Mapping) for item in record["source_provenance"]):
+            raise TypeError("source_provenance entries must be mappings")
+
+        current = merged.get(identity)
+        if current is None:
+            merged[identity] = record
+            continue
+
+        comparable = ("operator", "value", "unit")
+        if any(current.get(key) != record.get(key) for key in comparable):
+            raise ProgramRequirementExtractionError(
+                "Conflicting plan-specific requirements for "
+                f"{identity!r}: {current.get('value')!r} vs {record.get('value')!r}"
+            )
+        for source_provenance in record["source_provenance"]:
+            if source_provenance not in current["source_provenance"]:
+                current["source_provenance"].append(dict(source_provenance))
+
+    return list(merged.values())
