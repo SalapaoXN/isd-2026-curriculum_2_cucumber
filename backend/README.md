@@ -7,11 +7,19 @@ FastAPI bridge for the existing CUCUMBER curriculum QA system.
 ```text
 Browser (React SPA in ../frontend/)
   -> FastAPI (backend/main.py)
-  -> CUCUMBER RAG
-  -> cucumber_outputs/runtime/curriculum.db
-  -> Gemini
-  -> JSON response
+  -> validate conversation and curriculum-edition scope
+  -> Easy/Medium: guarded, catalog-scoped SQL QA
+     Hard: deterministic H1–H4 / old-new comparison
+  -> read-only canonical SQLite
+  -> grounded JSON response with provenance
 ```
+
+`catalog_key` identifies a curriculum edition; `academic_year` is display/order
+metadata, `program` is the logical program, and `plan` identifies a study-plan
+variant. If a program has multiple editions, an unscoped curriculum question
+asks for an edition instead of choosing one implicitly. `next_context` carries
+validated scope for follow-ups, and switching editions clears incompatible
+stale context. Model output is not factual authority.
 
 The React app lives in `frontend/` (`npm run build` → `frontend/dist/`).
 `backend/main.py` serves `frontend/dist/index.html` when built, otherwise the
@@ -94,3 +102,7 @@ The API uses the existing CUCUMBER runtime database:
 ```text
 cucumber_outputs/runtime/curriculum.db
 ```
+
+The plan table is operational authority for course identity, credits, term
+placement, and required/elective classification. Course-description sources
+add prerequisite and explanatory detail. Responses retain source provenance.

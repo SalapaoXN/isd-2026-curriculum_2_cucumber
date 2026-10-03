@@ -36,7 +36,23 @@ Member:
 - GENED — `gened`
 - IT — `coop`, `no_coop`
 
-แต่ละ program/plan ถูกแยก identity ออกจากกันตลอด pipeline เพื่อลดการปนข้อมูลข้ามหลักสูตรหรือข้ามแผน
+ตัวตนหลักสูตรมี 4 ส่วนที่แยกจากกัน:
+
+- `catalog_key` = ตัวตนของฉบับหลักสูตร
+- `academic_year` = metadata สำหรับแสดงผลและเรียงลำดับ
+- `program` = ตัวตนของหลักสูตรเชิงตรรกะ เช่น `DSBA`
+- `plan` = แผนการเรียน เช่น `coop` หรือ `no_coop`; ไม่ใช่ฉบับหลักสูตร
+
+DSBA มีสองฉบับที่ใช้แผนร่วมกัน:
+
+| `catalog_key` | แผน |
+| --- | --- |
+| `dsba-2560` | `coop`, `no_coop` |
+| `dsba-2565` | `coop`, `no_coop` |
+
+ตารางแผนการเรียนเป็นแหล่งอ้างอิงหลักสำหรับรหัส ชื่อ หน่วยกิต ปี เทอม ตำแหน่ง
+และประเภทบังคับ/เลือก ส่วนหน้าคำอธิบายเพิ่ม prerequisite คำอธิบาย และ metadata
+ประกอบ โดยเก็บ provenance ไว้กับหลักฐาน
 
 ---
 
@@ -125,7 +141,8 @@ IT ปี 3 อยากเน้น data มีวิชาไหนที่�
 หน้า: ...
 ```
 
-ถ้าหลักฐานไม่พอ ระบบจะขอให้ระบุ program/plan เพิ่ม หรือคืนสถานะไม่พบข้อมูลแทนการเดา
+ถ้าหลักฐานหรือขอบเขตฉบับหลักสูตรไม่พอ ระบบจะขอให้ระบุ
+program/edition/plan เพิ่ม หรือคืนสถานะไม่พบข้อมูลแทนการเดา
 
 ---
 
@@ -395,6 +412,28 @@ Question
 → provenance
 ```
 
+### Runtime API: Easy / Medium และ Hard
+
+Easy/Medium ใช้ขอบเขตบทสนทนาที่ตรวจสอบแล้ว ก่อนส่ง SQL ผ่าน guard และบังคับ
+ขอบเขต `catalog_key` กับ SQLite แบบ read-only จากนั้นตอบจากหลักฐานที่มี provenance:
+
+```text
+User/API → conversation scope → edition-safe SQL QA
+          → canonical SQLite → grounded answer + provenance
+```
+
+คำถามข้ามฉบับที่ไม่มี `catalog_key` จะขอให้เลือกฉบับก่อน ไม่เลือกฉบับให้เอง
+ส่วน Hard ใช้การ resolve แบบ deterministic ตามด้วย H1–H4 หรือการเปรียบเทียบเก่า/ใหม่
+และ renderer แบบ deterministic; LLM ไม่เป็นผู้ตัดสินข้อเท็จจริงหลัง resolve
+
+ผลเปรียบเทียบเก่า/ใหม่แยก `shared_same_code`, `old_only_by_code`,
+`new_only_by_code`, `same_name_changed_code_candidates` และ
+`unresolved_non_concrete` อย่างชัดเจน การเปลี่ยนรหัสที่ชื่อคล้ายกันเป็นเพียง
+candidate ไม่ใช่การยืนยันว่าเป็นวิชาเดียวกัน
+
+บริบทสำหรับถามต่ออาจเก็บ `catalog_key`, `program`, `plan`, ปี, เทอม และ
+ผลลัพธ์/วิชาที่โฟกัสไว้ เมื่อสลับฉบับ ระบบล้างบริบทเดิมที่ขัดกับฉบับใหม่
+
 ### Structured
 
 ใช้กับข้อเท็จจริง เช่น:
@@ -459,7 +498,7 @@ COUNT / SUM / existence / credit totals และ factual fields จะคำน
 
 ### Provenance
 
-พยายามแนบ program และ source page กลับไปกับคำตอบ
+คำตอบข้อเท็จจริงต้องเก็บ provenance ที่เชื่อมกลับไปยังเอกสารต้นทางและหน้าเอกสาร
 
 ### Fail closed
 
@@ -543,5 +582,17 @@ API: แอป FastAPI ใต้ `backend/` + `frontend/` (`POST /api/ask` ร�
 
 ### ข้อจำกัดที่รู้แล้ว / งานในอนาคต
 - ผลรวมหมวดระดับ program/year-only/semester-only ไม่มี semantics (fail closed)
+- runtime requirements ยังไม่มีข้อกำหนดหน่วยกิตรวมของ DSBA 2560; คำถามที่ต้องใช้
+  ข้อกำหนดนี้จึง fail closed และไม่ยืมค่า 132 หน่วยกิตของ DSBA 2565
+- 3.5-year planner เป็นแผนคาดการณ์ ไม่รับประกันว่าจะเปิดสอนรายวิชาในอนาคต
 - นโยบายแบบ multi-turn, earliest-year, English/word-form credit filter: ไม่อยู่ใน scope
 - CLI แสดง label แหล่งนโยบายเป็น `เล่มหลักสูตร: RULE` (contract ถูก, label รอ product decision)
+
+### Final closeout validation
+- deterministic discovery: 1,897 tests, 1,896 passed, 1 skipped, 0 failures
+- local discovery excluded two Gemini checks already validated externally and two
+  unseen-evaluation tests requiring an unavailable fixture
+- Gemini H17 `test_no_hidden_memory` และ `test_two_turn_lab10`: ผ่านจากการตรวจภายนอก
+- มีหลักฐาน UI ที่ผู้ใช้ตรวจด้วยตนเองว่าเลือก DSBA 2560/2565 แยกกันได้ และผลปี 2
+  เทอม 1 ต่างกัน (19 กับ 15 หน่วยกิต) พร้อมชุดวิชาตามฉบับ
+- ไม่ได้ตรวจ UI ด้วย browser automation ในสภาพแวดล้อมนี้
