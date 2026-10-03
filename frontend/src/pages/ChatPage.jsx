@@ -2,6 +2,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { askQuestion, fetchPrograms } from "../api";
 
 const STORAGE_KEY = "cucumber-chat-sessions-v1";
+const HARD_STATUS_LABELS = {
+  answer: "ตอบแล้ว",
+  satisfied: "เป็นไปตามเงื่อนไข",
+  violation: "ไม่เป็นไปตามลำดับที่กำหนด",
+  incomplete_evidence: "ข้อมูลยังไม่เพียงพอที่จะยืนยันทั้งหมด",
+  invalid_scope: "ขอบเขตหลักสูตรไม่ถูกต้อง",
+  deficit: "พบข้อขาดตามข้อมูลที่ตรวจสอบได้",
+  infeasible: "จัดลำดับไม่ได้ตามข้อจำกัดที่ตรวจสอบได้",
+  clarification_required: "ต้องระบุข้อมูลเพิ่มเติม",
+  unsupported: "ยังไม่รองรับคำถามนี้",
+  error: "เกิดข้อผิดพลาดในการตรวจสอบ",
+};
 
 function loadStored() {
   try {
@@ -129,6 +141,7 @@ export default function ChatPage() {
         question: q,
         answer: data.answer || "ไม่พบคำตอบ",
         status: data.status,
+        route: data.route,
         provenance: data.provenance || [],
       };
       updateActive({
@@ -236,9 +249,11 @@ export default function ChatPage() {
                   <div className="msg-row assistant">
                     <div className="meta">
                       <span className={`badge status-${m.status}`}>
-                        {m.status}
+                        {m.route === "hard"
+                          ? HARD_STATUS_LABELS[m.status] || "ผลการตรวจสอบหลักสูตร"
+                          : m.status}
                       </span>
-                      {m.provenance.length > 0 && (
+                      {m.route !== "hard" && m.provenance.length > 0 && (
                         <span className="hint">
                           {m.provenance
                             .map(

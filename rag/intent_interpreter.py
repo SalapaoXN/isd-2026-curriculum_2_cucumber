@@ -20,6 +20,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from rag.query_spec import parse_query_spec
+
 
 INTENTS = frozenset(
     {
@@ -145,6 +147,25 @@ MIN_SEMESTER = 1
 MAX_SEMESTER = 2
 
 _COURSE_CODE_RE = re.compile(r"^[0-9]{8}$")
+_QUERY_SHAPE_OPERATIONS = frozenset(
+    {
+        "list",
+        "describe",
+        "count",
+        "sum_credits",
+        "existence",
+        "compare",
+        "earliest",
+        "placement",
+        "prerequisite",
+        "similarity",
+        "identity",
+        "program_discovery",
+    }
+)
+_QUERY_SHAPE_FIELDS = frozenset(
+    {"operations", "predicate", "course_name_span"}
+)
 
 #: Machine-readable eligibility reasons returned by validate_execution_scope.
 ELIGIBILITY_REASONS = frozenset(
@@ -211,6 +232,39 @@ class IntentInterpretation:
                 f"intent {self.intent!r} requires judgement_dimension "
                 f"{expected_dimension!r}, got {self.judgement_dimension!r}"
             )
+
+
+@dataclass(frozen=True, slots=True)
+class QueryStructureInterpretation:
+    """Strict, bounded operation/predicate proposal for query shape only."""
+
+    operations: tuple[str, ...]
+    predicate: str | None
+    course_name_span: str | None
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.operations, tuple)
+            or len(self.operations) > 1
+            or any(
+                not isinstance(operation, str)
+                or operation not in _QUERY_SHAPE_OPERATIONS
+                for operation in self.operations
+            )
+        ):
+            raise IntentValidationError("unsupported query-shape operations")
+        if len(set(self.operations)) != len(self.operations):
+            raise IntentValidationError("query-shape operations contain duplicates")
+        if self.predicate not in (None, "has_prerequisite"):
+            raise IntentValidationError("unsupported query-shape predicate")
+        if self.predicate == "has_prerequisite" and self.operations != ("list",):
+            raise IntentValidationError(
+                "has_prerequisite is supported only for list operations"
+            )
+        if self.course_name_span is not None and not isinstance(
+            self.course_name_span, str
+        ):
+            raise IntentValidationError("course_name_span must be a string or null")
 
 
 @dataclass(frozen=True, slots=True)
@@ -402,6 +456,70 @@ def parse_intent_payload(payload: str) -> IntentInterpretation:
         requested_facts=requested_facts,
         judgement_dimension=judgement_dimension,
         unresolved=unresolved,
+    )
+
+
+def parse_query_structure_payload(
+    payload: str,
+    question: str,
+) -> QueryStructureInterpretation:
+    """Validate the exact three-field NLFLEX structural proposal."""
+    if not isinstance(question, str) or not question.strip():
+        raise IntentValidationError("question must be non-empty text")
+    if not isinstance(payload, str) or len(payload) > MAX_PAYLOAD_LEN:
+        raise IntentValidationError("query-shape payload must be bounded text")
+    try:
+        data = json.loads(payload)
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        raise IntentValidationError(f"malformed JSON: {error}") from None
+    if not isinstance(data, dict) or set(data) != _QUERY_SHAPE_FIELDS:
+        raise IntentValidationError("query-shape payload has an invalid schema")
+
+    raw_operations = data["operations"]
+    if not isinstance(raw_operations, list) or len(raw_operations) > 1:
+        raise IntentValidationError("operations must be a bounded JSON list")
+    if any(
+        not isinstance(operation, str)
+        or operation not in _QUERY_SHAPE_OPERATIONS
+        for operation in raw_operations
+    ):
+        raise IntentValidationError("unknown query-shape operation")
+
+    predicate = data["predicate"]
+    if predicate not in (None, "has_prerequisite"):
+        raise IntentValidationError("unknown query-shape predicate")
+    if predicate == "has_prerequisite" and raw_operations != ["list"]:
+        raise IntentValidationError(
+            "has_prerequisite is supported only for list operations"
+        )
+
+    span = data["course_name_span"]
+    if span is not None:
+        if (
+            not isinstance(question, str)
+            or not question.strip()
+            or not isinstance(span, str)
+            or not span.strip()
+            or len(span) > 80
+            or span not in question
+        ):
+            raise IntentValidationError(
+                "course_name_span must be a literal substring of the question"
+            )
+        if parse_query_spec(question).course_name is not None:
+            raise IntentValidationError(
+                "course_name_span is allowed only when deterministic extraction is missing"
+            )
+        extracted = parse_query_spec(f"วิชา {span.strip()} คืออะไร").course_name
+        if extracted is None or extracted.casefold() != span.strip().casefold():
+            raise IntentValidationError(
+                "course_name_span is outside the bounded course-title grammar"
+            )
+
+    return QueryStructureInterpretation(
+        operations=tuple(raw_operations),
+        predicate=predicate,
+        course_name_span=span.strip() if isinstance(span, str) else None,
     )
 
 
@@ -603,10 +721,39 @@ def build_intent_prompt(question: str) -> str:
     )
 
 
+def build_query_structure_prompt(question: str) -> str:
+    """Build the narrow NLFLEX prompt without factual proposal fields."""
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("question must be a non-empty string")
+    return "\n".join(
+        (
+            "Interpret query structure only; do not answer the question.",
+            "Return exactly one JSON object with exactly these keys: ",
+            '"operations", "predicate", "course_name_span".',
+            'operations is a JSON array using only: "list", "describe", '
+            '"count", "sum_credits", "existence", "compare", '
+            '"earliest", "placement", "prerequisite", "similarity", '
+            '"identity", "program_discovery".',
+            'predicate is null or exactly "has_prerequisite". This predicate '
+            'is allowed only when operations is exactly ["list"].',
+            "course_name_span is null unless a literal bounded English or "
+            "alphanumeric course title appears in the question and the "
+            "deterministic parser did not extract it. Copy only that exact "
+            "title substring; never include surrounding Thai prose.",
+            "Do not propose program, plan, year, semester, course code, "
+            "credits, curriculum facts, provenance, SQL, or answer text.",
+            "USER QUESTION:",
+            question.strip(),
+        )
+    )
+
+
 def interpret_question_intent(
     question: str,
     model_callable: Callable[[str], str],
-) -> IntentInterpretation:
+    *,
+    proposal_kind: str = "intent",
+) -> IntentInterpretation | QueryStructureInterpretation:
     """Convert one question into a validated IntentInterpretation.
 
     Makes exactly one call to ``model_callable`` with the bounded prompt,
@@ -621,9 +768,17 @@ def interpret_question_intent(
         raise ValueError("question must be a non-empty string")
     if not callable(model_callable):
         raise TypeError("model_callable must be callable")
-    output = model_callable(build_intent_prompt(question))
+    if proposal_kind == "intent":
+        prompt = build_intent_prompt(question)
+    elif proposal_kind == "query_structure":
+        prompt = build_query_structure_prompt(question)
+    else:
+        raise ValueError(f"unsupported proposal_kind: {proposal_kind!r}")
+    output = model_callable(prompt)
     if not isinstance(output, str):
         raise TypeError("model output must be a string")
+    if proposal_kind == "query_structure":
+        return parse_query_structure_payload(output, question)
     return parse_intent_payload(output)
 
 
@@ -651,9 +806,12 @@ __all__ = [
     "MAX_SEMESTER",
     "IntentValidationError",
     "IntentInterpretation",
+    "QueryStructureInterpretation",
     "ExecutionEligibility",
     "parse_intent_payload",
+    "parse_query_structure_payload",
     "validate_execution_scope",
     "build_intent_prompt",
+    "build_query_structure_prompt",
     "interpret_question_intent",
 ]

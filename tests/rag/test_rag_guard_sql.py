@@ -1,6 +1,9 @@
 import unittest
 
-from rag.structured.guard_sql import guard_sql
+from rag.structured.guard_sql import (
+    extract_column_predicate_literals,
+    guard_sql,
+)
 
 
 class RagGuardSqlTest(unittest.TestCase):
@@ -157,6 +160,61 @@ class RagGuardSqlTest(unittest.TestCase):
             sql,
         )
 
+    def test_relation_allowlist_accepts_chained_ctes_and_set_operations(self):
+        sql = (
+            "WITH base AS (SELECT course_code FROM v_plan_courses), "
+            "filtered AS (SELECT course_code FROM base), "
+            "other AS (SELECT course_code FROM courses) "
+            "SELECT course_code, 'base' AS source FROM filtered "
+            "EXCEPT SELECT course_code, 'other' FROM other"
+        )
+        self.assertEqual(
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
+            f"{sql} LIMIT 100",
+        )
+
+    def test_relation_allowlist_does_not_leak_nested_cte_names_to_outer_query(self):
+        sql = (
+            "WITH outer_set AS ("
+            "WITH inner_only AS (SELECT course_id FROM courses) "
+            "SELECT course_id FROM inner_only"
+            ") SELECT course_id FROM inner_only"
+        )
+        with self.assertRaisesRegex(ValueError, "relation is not allowed: inner_only"):
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_relation_allowlist_does_not_allow_cte_name_to_hide_its_own_physical_source(self):
+        sql = (
+            "WITH secret_table AS (SELECT course_code FROM secret_table) "
+            "SELECT course_code FROM secret_table"
+        )
+        with self.assertRaisesRegex(ValueError, "relation is not allowed: secret_table"):
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_cte_alias_is_not_added_to_the_physical_allowlist(self):
+        with self.assertRaisesRegex(ValueError, "relation is not allowed: local_set"):
+            guard_sql(
+                "SELECT course_code FROM local_set",
+                allowed_relations=self.ALLOWED_RELATIONS,
+            )
+
+    def test_relation_allowlist_rejects_unauthorized_relation_after_valid_cte(self):
+        sql = (
+            "WITH selected AS (SELECT course_id FROM courses) "
+            "SELECT course_id FROM selected UNION "
+            "SELECT course_id FROM secret_table"
+        )
+        with self.assertRaisesRegex(ValueError, "relation is not allowed: secret_table"):
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
+    def test_relation_allowlist_keeps_recursive_ctes_unsupported(self):
+        sql = (
+            "WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL "
+            "SELECT n + 1 FROM seq WHERE n < 3) SELECT n FROM seq"
+        )
+        with self.assertRaisesRegex(ValueError, "WITH RECURSIVE is not supported"):
+            guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS)
+
     def test_relation_allowlist_rejects_malformed_cte_syntax(self):
         for sql in (
             "WITH selected AS SELECT 1",
@@ -201,6 +259,22 @@ class RagGuardSqlTest(unittest.TestCase):
         self.assertEqual(
             guard_sql(sql, allowed_relations=self.ALLOWED_RELATIONS),
             f"{sql} LIMIT 100",
+        )
+
+    def test_extracts_literals_only_from_qualified_course_code_predicates(self):
+        sql = (
+            "SELECT c.course_code FROM courses AS c "
+            "WHERE c.course_code = '06026200' "
+            "OR c.course_code_normalized IN ('MATH102', 'MATH112') "
+            "AND c.name_en LIKE '%Calculus 2%' "
+            "AND program = 'IT' AND plan_key = 'coop'"
+        )
+
+        self.assertEqual(
+            extract_column_predicate_literals(
+                sql, {"course_code", "course_code_normalized"}
+            ),
+            ("06026200", "MATH102", "MATH112"),
         )
 
 

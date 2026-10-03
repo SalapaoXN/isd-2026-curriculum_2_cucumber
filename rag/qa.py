@@ -339,14 +339,16 @@ def _is_course_list_fallback_candidate(
     """Allow only bounded course-list/filter residue into the SQL seam."""
     if getattr(spec, "topic", None) is not None:
         return False
-    if getattr(spec, "credit_units", None) is not None:
-        # H32-B (H23-R1): a per-course credit predicate is parser-owned and
-        # supported only for ("list",) on the deterministic path (which
-        # classifies complete and never reaches this seam). Any
-        # credit-bearing spec here is an unsupported op combo that must fail
-        # closed with 0 calls instead of entering unfiltered SQL fallback.
-        return False
     operations = tuple(getattr(spec, "operations", ()))
+    if getattr(spec, "credit_units", None) is not None:
+        # A parsed credit predicate normally stays on the deterministic path.
+        # When the requirement type is still unresolved, allow only the
+        # bounded list fallback to interpret the combined filter.
+        return (
+            completeness.classification == "partial"
+            and "requirement_type" in completeness.missing_filters
+            and operations == ("list",)
+        )
     if operations:
         if operations in {("count",), ("existence",)}:
             return True
@@ -500,6 +502,101 @@ def _should_use_intent_interpreter(
         or getattr(spec, "years", ())
         or getattr(spec, "semesters", ())
         or getattr(spec, "judgement", None) in {"workload", "preference"}
+    )
+
+
+def _should_use_query_structure_interpreter(
+    spec: Any,
+    resolution: ResolutionOutcome,
+    question: str,
+    completeness: StructuredParseCompleteness,
+    context: QueryContext | None = None,
+) -> bool:
+    """Admit only bounded incomplete shapes with no model-owned scope."""
+    if getattr(resolution, "action", None) not in {"answer", "clarify_program"}:
+        return False
+    if (
+        getattr(spec, "topic", None) is not None
+        or getattr(spec, "judgement", None) not in {None, "none"}
+        or getattr(spec, "credit_units", None) is not None
+    ):
+        return False
+    surfaced = set(detect_surface_operations(question))
+    clarified_collection = bool(
+        getattr(resolution, "action", None) in {"answer", "clarify_program"}
+        and tuple(getattr(spec, "operations", ())) == ()
+        and getattr(spec, "program", None) is None
+        and not tuple(getattr(spec, "plans", ()))
+        and not tuple(getattr(spec, "years", ()))
+        and not tuple(getattr(spec, "semesters", ()))
+        and not tuple(getattr(spec, "course_codes", ()))
+        and getattr(spec, "course_name", None) is None
+        and getattr(spec, "topic", None) is None
+        and {"list", "prerequisite"}.issubset(surfaced)
+    )
+    if clarified_collection:
+        return True
+
+    if (
+        tuple(getattr(spec, "course_codes", ()))
+        or getattr(spec, "course_name", None) is not None
+        or getattr(spec, "category", None) is not None
+    ):
+        return False
+    has_scope = bool(
+        getattr(spec, "program", None)
+        or getattr(context, "program", None)
+        or tuple(getattr(spec, "plans", ()))
+        or tuple(getattr(spec, "years", ()))
+        or tuple(getattr(spec, "semesters", ()))
+        or tuple(getattr(spec, "course_codes", ()))
+        or getattr(spec, "course_name", None) is not None
+    )
+    program_labels = {"ait", "bit", "dsba", "gened", "it"}
+    has_non_program_ascii_word = any(
+        token.strip(".,?!:;()[]{}").isascii()
+        and token.strip(".,?!:;()[]{}").isalpha()
+        and token.strip(".,?!:;()[]{}").casefold() not in program_labels
+        for token in question.split()
+    )
+    scoped_prerequisite_candidate = bool(
+        getattr(resolution, "action", None) == "answer"
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured"}
+        and has_scope
+        and "prerequisite" in surfaced
+    )
+    unscoped_exact_course_candidate = bool(
+        getattr(resolution, "action", None) in {"answer", "clarify_program"}
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured"}
+        and tuple(getattr(spec, "operations", ())) == ()
+        and getattr(spec, "program", None) is None
+        and not tuple(getattr(spec, "course_codes", ()))
+        and getattr(spec, "course_name", None) is None
+        and getattr(spec, "topic", None) is None
+        and getattr(spec, "category", None) is None
+        and getattr(spec, "credit_units", None) is None
+        and surfaced.intersection(
+            {"prerequisite", "placement", "sum_credits", "describe", "existence"}
+        )
+        and has_non_program_ascii_word
+    )
+    flexible_exact_course_candidate = bool(
+        getattr(resolution, "action", None) == "answer"
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured"}
+        and (getattr(spec, "program", None) or getattr(context, "program", None))
+        and not tuple(getattr(spec, "plans", ()))
+        and not tuple(getattr(spec, "years", ()))
+        and not tuple(getattr(spec, "semesters", ()))
+        and not tuple(getattr(spec, "operations", ()))
+        and has_non_program_ascii_word
+    )
+    return (
+        scoped_prerequisite_candidate
+        or unscoped_exact_course_candidate
+        or flexible_exact_course_candidate
     )
 
 
@@ -2840,6 +2937,68 @@ def ask(
         db_path,
         context=None if conversation_mode else context,
     )
+    completeness = _classify_structured_parse_completeness(
+        spec,
+        resolution,
+        context,
+    )
+    structural_interpreted = False
+    if (
+        not shadow_intent
+        and callable(intent_model_callable)
+        and _should_use_query_structure_interpreter(
+            spec,
+            resolution,
+            question,
+            completeness,
+            context,
+        )
+    ):
+        try:
+            structure = interpret_question_intent(
+                question,
+                intent_model_callable,
+                proposal_kind="query_structure",
+            )
+            if (
+                structure.predicate is None
+                and not getattr(spec, "course_codes", ())
+                and getattr(spec, "course_name", None) is None
+                and not tuple(getattr(spec, "plans", ()))
+                and not tuple(getattr(spec, "years", ()))
+                and not tuple(getattr(spec, "semesters", ()))
+                and structure.course_name_span is None
+            ):
+                return _intent_failure_result(question)
+            compiled_spec = compile_intent_to_query_spec(spec, structure)
+            compiled_resolution = resolve_query_spec(
+                compiled_spec,
+                db_path,
+                context=None if conversation_mode else context,
+            )
+        except Exception:
+            return _intent_failure_result(question)
+        if compiled_resolution.action in {
+            "clarify_program",
+            "context_conflict",
+            "no_data",
+            "unsupported",
+        }:
+            return {"route": None, "result": _blocked_result(compiled_resolution)}
+        if compiled_resolution.action != "answer":
+            return _intent_failure_result(question)
+        if tuple(compiled_spec.operations) != ("identity",):
+            compiled_completeness = _classify_structured_parse_completeness(
+                compiled_spec,
+                compiled_resolution,
+                context,
+            )
+            if compiled_completeness.classification != "complete":
+                return _intent_failure_result(question)
+            completeness = compiled_completeness
+        spec = compiled_spec
+        resolution = compiled_resolution
+        structural_interpreted = True
     if resolution.action != "answer":
         if resolution.action == "clarify_program":
             consensus = _consensus_prerequisite_grounded_answer(
@@ -2888,11 +3047,12 @@ def ask(
             response["next_context"] = next_context
         return response
 
-    completeness = _classify_structured_parse_completeness(
-        spec,
-        resolution,
-        context,
-    )
+    if not structural_interpreted:
+        completeness = _classify_structured_parse_completeness(
+            spec,
+            resolution,
+            context,
+        )
     intent_shadow = (
         _run_placement_shadow(
             question,
@@ -3368,7 +3528,7 @@ def ask(
                 ),
             })
 
-    intent_interpreted = shadow_executed
+    intent_interpreted = shadow_executed or structural_interpreted
     if (
         not shadow_intent
         and not intent_interpreted

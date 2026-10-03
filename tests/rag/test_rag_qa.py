@@ -359,6 +359,55 @@ class RagQaTest(unittest.TestCase):
         planner.assert_not_called()
         executor.assert_not_called()
 
+    def test_prefix_course_name_to_code_uses_canonical_identity_without_model(self):
+        model_calls = []
+
+        def forbidden_model(prompt):
+            model_calls.append(prompt)
+            raise AssertionError("course identity must not call a model")
+
+        cases = (
+            (
+                "รหัสของวิชา calculus 2 คืออะไร",
+                [("AIT", "06046401"), ("DSBA", "06026201")],
+            ),
+            (
+                "รหัสวิชาของ Calculus 2 คืออะไร",
+                [("AIT", "06046401"), ("DSBA", "06026201")],
+            ),
+            (
+                "รหัสของวิชา calculus 2 ใน DSBA คืออะไร",
+                [("DSBA", "06026201")],
+            ),
+            (
+                "รหัสของวิชา calculus 2 ใน AIT คืออะไร",
+                [("AIT", "06046401")],
+            ),
+        )
+
+        for question, expected_records in cases:
+            with self.subTest(question=question):
+                result = ask(
+                    DB_PATH,
+                    question,
+                    forbidden_model,
+                    answer_model_callable=forbidden_model,
+                    intent_model_callable=forbidden_model,
+                )
+
+                self.assertIsNone(result["route"])
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+                self.assertEqual(result["result"].status, "answer")
+                claim = result["result"].claims[0]
+                self.assertEqual(claim.operation, "identity")
+                self.assertEqual(
+                    [(row["program"], row["course_code"]) for row in claim.value],
+                    expected_records,
+                )
+                self.assertTrue(result["result"].provenance)
+
+        self.assertEqual(model_calls, [])
+
     def test_answerable_path_does_not_require_legacy_structured_callable(self):
         result = ask(DB_PATH, "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
         self.assertIsNone(result["route"])

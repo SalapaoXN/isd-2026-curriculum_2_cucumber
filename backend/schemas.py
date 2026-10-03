@@ -16,6 +16,7 @@ class AskResponse(BaseModel):
     status: str
     action: str | None = None
     route: str | None = None
+    hard_task_type: str | None = None
     provenance: list[dict[str, Any]] = Field(default_factory=list)
     next_context: dict[str, Any] | None = None
 

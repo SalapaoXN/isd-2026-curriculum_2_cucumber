@@ -151,6 +151,15 @@ _OPERATION_PATTERNS = (
     ),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
 )
+_PREVIOUS_RESULT_SET_ANCHORS = (
+    "วิชาเหล่านี้",
+    "รายวิชาเหล่านี้",
+    "พวกนี้",
+    "ในพวกนี้",
+    "รายการเหล่านี้",
+    "จากรายการก่อนหน้า",
+    "จากวิชาก่อนหน้า",
+)
 _COURSE_DETAIL_PATTERN = re.compile(
     r"ลักษณะไหน|ด้าน(?:ไหน|ใด)(?:บ้าง)?|พูดถึง|อะไรบ้าง|อย่างไร|แบบไหน|"
     r"เนื้อหา.*?(?:ครอบคลุม|ช่วยจัดการ).*?เรื่องใด(?:บ้าง)?",
@@ -158,6 +167,13 @@ _COURSE_DETAIL_PATTERN = re.compile(
 )
 _IDENTITY_NAME_TO_CODE_PATTERN = re.compile(
     r"รหัส(?:วิชา)?\s*อะไร", re.IGNORECASE
+)
+_IDENTITY_PREFIX_NAME_TO_CODE_PATTERN = re.compile(
+    r"^\s*รหัส(?:ของวิชา|วิชาของ|วิชา)\s+", re.IGNORECASE
+)
+_IDENTITY_PREFIX_PROGRAM_QUALIFIER_PATTERN = re.compile(
+    r"\s+ใน\s+(?:AIT|BIT|DSBA|GENED|IT)\s+คืออะไร\s*\??\s*$",
+    re.IGNORECASE,
 )
 _IDENTITY_CODE_TO_NAME_PATTERN = re.compile(
     r"(?:ชื่อวิชา\s*อะไร|ชื่อ\s*อะไร|คือวิชา\s*อะไร|"
@@ -268,18 +284,52 @@ def _extract_course_codes(question: str) -> tuple[str, ...]:
     return _ordered_unique(match.group(1) for match in _COURSE_CODE_PATTERN.finditer(question))
 
 
+def _prefix_name_to_code_title_match(question: str) -> re.Match[str] | None:
+    prefix = _IDENTITY_PREFIX_NAME_TO_CODE_PATTERN.match(question)
+    if prefix is None:
+        return None
+    remainder = question[prefix.end() :]
+    program_qualifier = _IDENTITY_PREFIX_PROGRAM_QUALIFIER_PATTERN.search(
+        remainder
+    )
+    title_text = (
+        remainder[: program_qualifier.start()] + " คืออะไร"
+        if program_qualifier is not None
+        else remainder
+    )
+    title = _BARE_COURSE_NAME_PATTERN.match(title_text)
+    if title is None:
+        return None
+    suffix = title_text[title.end() :]
+    if program_qualifier is None and not suffix.casefold().startswith("คืออะไร"):
+        return None
+    return title
+
+
 def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | None:
     if course_codes:
         return None
     match = _COURSE_NAME_PATTERN.search(question)
     if match is None:
         match = _BARE_COURSE_NAME_PATTERN.search(question)
+    if match is None:
+        match = _prefix_name_to_code_title_match(question)
     if not match:
         return None
     name = match.group("name").strip()
     if name.casefold() in {"ait", "bit", "dsba", "gened", "it"}:
         return None
     return name
+
+
+def _is_prefix_name_to_code_request(
+    question: str,
+    course_name: str | None,
+) -> bool:
+    if course_name is None:
+        return False
+    title = _prefix_name_to_code_title_match(question)
+    return bool(title and title.group("name").casefold() == course_name.casefold())
 
 
 def _extract_category(question: str) -> str | None:
@@ -376,6 +426,7 @@ def _extract_operations(
             course_name
             and (
                 _IDENTITY_NAME_TO_CODE_PATTERN.search(question)
+                or _is_prefix_name_to_code_request(question, course_name)
                 or _IDENTITY_CODE_TO_NAME_PATTERN.search(question)
             )
         )
@@ -462,6 +513,16 @@ def _extract_operations(
     )
 
 
+def _references_previous_result_set(question: str) -> bool:
+    """Recognize only explicit, high-confidence anchors to a prior result set."""
+    normalized = " ".join(question.casefold().split())
+    compact = "".join(normalized.split())
+    return any(
+        "".join(anchor.casefold().split()) in compact
+        for anchor in _PREVIOUS_RESULT_SET_ANCHORS
+    )
+
+
 def _extract_group_by(question: str, plans: tuple[str, ...], years: tuple[int, ...],
                       course_codes: tuple[str, ...], has_scope: bool) -> tuple[str, ...]:
     if not has_scope:
@@ -512,6 +573,7 @@ class QuerySpec:
     group_by: tuple[str, ...]
     judgement: str
     credit_units: int | None = None
+    references_previous_result_set: bool = False
 
 
 def parse_query_spec(question: str) -> QuerySpec:
@@ -577,6 +639,9 @@ def parse_query_spec(question: str) -> QuerySpec:
         group_by=_extract_group_by(normalized_question, plans, years, course_codes, has_scope),
         judgement=judgement,
         credit_units=credit_units,
+        references_previous_result_set=_references_previous_result_set(
+            normalized_question
+        ),
     )
 
 

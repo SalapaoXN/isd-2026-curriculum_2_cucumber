@@ -8,13 +8,17 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from rag.grounded_answer import GroundedAnswerResult
 from rag.hybrid_demo import (
     DEFAULT_CURRICULUM_DB_PATH,
-    answer_question_once,
     parse_conversation_context,
 )
 from rag.providers.gemini import make_gemini_callable
+from .hard_qa import HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA, answer_hard_question
+from .llm_sql_qa import (
+    ask_sql,
+    parse_focus_course_context,
+    parse_result_courses_context,
+)
 from .schemas import (
     AskRequest,
     AskResponse,
@@ -77,7 +81,13 @@ class ProviderUnavailable(RuntimeError):
 _provider = None
 
 
-def _lazy_provider(prompt: str) -> str:
+def _lazy_provider(
+    prompt: str,
+    *,
+    response_mime_type: str | None = None,
+    response_schema: dict | None = None,
+    response_json_schema: dict | None = None,
+) -> str:
     global _provider
     if _provider is None:
         try:
@@ -85,7 +95,16 @@ def _lazy_provider(prompt: str) -> str:
         except Exception as exc:
             raise ProviderUnavailable("optional model provider unavailable") from exc
     try:
-        return _provider(prompt)
+        if response_mime_type is None and response_schema is None and response_json_schema is None:
+            return _provider(prompt)
+        generation_options = {}
+        if response_mime_type is not None:
+            generation_options["response_mime_type"] = response_mime_type
+        if response_schema is not None:
+            generation_options["response_schema"] = response_schema
+        if response_json_schema is not None:
+            generation_options["response_json_schema"] = response_json_schema
+        return _provider(prompt, **generation_options)
     except Exception as exc:
         raise ProviderUnavailable("optional model provider unavailable") from exc
 
@@ -310,54 +329,157 @@ def course_detail(course_code: str, program: str | None = None) -> dict:
 
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> dict:
-    db_path = Path(DEFAULT_CURRICULUM_DB_PATH)
-
-    if not db_path.is_file():
-        raise HTTPException(
-            status_code=503,
-            detail="ไม่พบฐานข้อมูล CUCUMBER",
-        )
+    db_path = _curriculum_db()
 
     try:
-        parsed_context = parse_conversation_context(request.conversation_context)
+        raw_context = request.conversation_context
+        legacy_context = raw_context
+        raw_focus = None
+        raw_result_courses = None
+        raw_result_scope = None
+        raw_result_set_empty = False
+        has_result_set_empty = False
+        has_result_scope = False
+        if isinstance(raw_context, dict):
+            legacy_context = dict(raw_context)
+            raw_focus = legacy_context.pop("focus_course", None)
+            raw_result_courses = legacy_context.pop("result_courses", None)
+            has_result_set_empty = "result_set_empty" in legacy_context
+            raw_result_set_empty = legacy_context.pop("result_set_empty", False)
+            has_result_scope = "result_scope_program" in legacy_context
+            raw_result_scope = legacy_context.pop("result_scope_program", None)
+            if raw_result_courses is None and has_result_scope:
+                raise ValueError("result_scope_program requires result_courses")
+            if has_result_set_empty and raw_result_set_empty is not True:
+                raise ValueError("result_set_empty must be true when provided")
+        parsed_context = parse_conversation_context(legacy_context)
     except (TypeError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=f"invalid conversation_context: {exc}") from exc
 
+    program = parsed_context.program if parsed_context is not None else None
     try:
-        response = answer_question_once(
-            db_path,
-            request.question,
-            structured_model_callable=_lazy_provider,
-            top_k=10,
-            answer_model_callable=_lazy_provider,
-            intent_model_callable=_lazy_provider,
-            conversation_context=parsed_context,
+        focus_course = parse_focus_course_context(raw_focus, program)
+        parsed_results = parse_result_courses_context(
+            raw_result_courses,
+            raw_result_scope if has_result_scope else program,
+            program,
+            raw_result_set_empty,
         )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422, detail=f"invalid conversation_context: {exc}"
+        ) from exc
+    service_context: dict | None = {}
+    if focus_course is not None:
+        service_context["focus_course"] = focus_course
+    if parsed_results is not None:
+        service_context["result_courses"] = parsed_results[0]
+        service_context["result_scope_program"] = parsed_results[1]
+        if not parsed_results[0]:
+            service_context["result_set_empty"] = True
+    if not service_context:
+        service_context = None
+    provider_unavailable = False
+
+    def model_provider(
+        prompt: str,
+        *,
+        response_mime_type: str | None = None,
+        response_schema: dict | None = None,
+        response_json_schema: dict | None = None,
+    ) -> str:
+        nonlocal provider_unavailable
+        try:
+            if response_mime_type is None and response_schema is None and response_json_schema is None:
+                return _lazy_provider(prompt)
+            generation_options = {}
+            if response_mime_type is not None:
+                generation_options["response_mime_type"] = response_mime_type
+            if response_schema is not None:
+                generation_options["response_schema"] = response_schema
+            if response_json_schema is not None:
+                generation_options["response_json_schema"] = response_json_schema
+            return _lazy_provider(
+                prompt,
+                **generation_options,
+            )
+        except ProviderUnavailable:
+            provider_unavailable = True
+            raise
+
+    def hard_interpreter_provider(prompt: str) -> str:
+        return model_provider(
+            prompt,
+            response_mime_type="application/json",
+            response_json_schema=HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA,
+        )
+
+    try:
+        hard_context = {}
+        if program is not None:
+            hard_context["program"] = program
+        if parsed_context is not None and parsed_context.plan is not None and parsed_context.program == program:
+            hard_context["plan"] = parsed_context.plan
+        if parsed_context is not None and parsed_context.course_code is not None:
+            hard_context["course_code"] = parsed_context.course_code
+        result = None
+        # Hard QA does not accept bounded result-course context; SQL QA does.
+        if parsed_results is None:
+            result = answer_hard_question(
+                db_path,
+                request.question,
+                hard_context or None,
+                hard_interpreter_provider,
+            )
+        if result is None:
+            result = ask_sql(
+                db_path,
+                request.question,
+                program,
+                model_provider,
+                model_provider,
+                conversation_context=service_context,
+            )
     except ProviderUnavailable as exc:
         raise HTTPException(
             status_code=503,
             detail="ตัวให้บริการโมเดลไม่พร้อมใช้งาน",
         ) from exc
+    except Exception:
+        result = {"status": "error", "answer": "", "error": {"code": "service_failure"}}
 
-    result = response.get("result")
+    if provider_unavailable:
+        raise HTTPException(
+            status_code=503,
+            detail="ตัวให้บริการโมเดลไม่พร้อมใช้งาน",
+        )
 
-    if isinstance(result, GroundedAnswerResult):
-        answer = result.final_answer
-        status = result.status
-        action = None
-        provenance = list(result.provenance)
-    else:
-        answer = response.get("final_answer", "")
-        status = result.get("status", "unknown") if isinstance(result, dict) else "unknown"
-        action = result.get("action") if isinstance(result, dict) else None
-        provenance = []
+    if not isinstance(result, dict):
+        result = {"status": "error", "answer": "", "error": {"code": "service_failure"}}
+    error = result.get("error") if isinstance(result.get("error"), dict) else {}
+    status = result.get("status")
+    if not isinstance(status, str):
+        status = "error"
+
+    fallback_context: dict = {}
+    if program is not None:
+        fallback_context["program"] = program
+    if focus_course is not None:
+        fallback_context["focus_course"] = focus_course
+    if parsed_results is not None:
+        fallback_context["result_courses"] = parsed_results[0]
+        fallback_context["result_scope_program"] = parsed_results[1]
+        if not parsed_results[0]:
+            fallback_context["result_set_empty"] = True
+    next_context = result.get("next_context", fallback_context or None)
 
     return {
         "question": request.question,
-        "answer": answer,
+        "answer": result.get("answer") if isinstance(result.get("answer"), str) else "",
         "status": status,
-        "action": action,
-        "route": response.get("route"),
-        "provenance": provenance,
-        "next_context": response.get("next_context"),
+        "action": (result.get("action") or error.get("code")) if status == "error" else result.get("action"),
+        "route": result.get("route") if result.get("route") in {"hard", "llm_sql"} else "llm_sql",
+        "hard_task_type": result.get("hard_task_type"),
+        "provenance": result.get("provenance", []) if isinstance(result.get("provenance"), list) else [],
+        "next_context": next_context,
     }
