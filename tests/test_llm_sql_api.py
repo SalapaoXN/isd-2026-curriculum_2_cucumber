@@ -40,7 +40,7 @@ class LlmSqlApiTests(unittest.TestCase):
                 "/api/ask",
                 json={
                     "question": "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
-                    "conversation_context": {"program": "IT"},
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
                 },
             )
 
@@ -48,7 +48,9 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(response.json()["answer"], "พบ 4 วิชา")
         self.assertEqual(response.json()["status"], "answer")
         self.assertEqual(response.json()["route"], "llm_sql")
-        self.assertEqual(response.json()["next_context"], {"program": "IT"})
+        self.assertEqual(
+            response.json()["next_context"], {"program": "IT", "catalog_key": "it-2565"}
+        )
         self.assertNotIn("sql", response.json())
         self.assertNotIn("rows", response.json())
         self.assertEqual(self.sql_service.call_args.args[:3], (
@@ -155,8 +157,12 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(forwarded["catalog_key"], "dsba-2565")
         self.assertEqual(response.json()["next_context"]["catalog_key"], "dsba-2565")
 
-    def test_dsba_total_requirement_without_edition_provenance_fails_closed(self):
-        for catalog_key in ("dsba-2560", "dsba-2565"):
+    def test_dsba_total_requirement_with_edition_scope_answers(self):
+        # Catalog-scoped requirements carry edition attribution through
+        # their catalog row plus final-plan-page provenance, so an explicit
+        # edition scope now answers (see test_rag_policy). Scopeless totals
+        # still fail closed (test_multi_edition_dsba_total_requires_catalog_scope).
+        for catalog_key, value in (("dsba-2560", "126"), ("dsba-2565", "132")):
             with self.subTest(catalog_key=catalog_key):
                 self.sql_service.reset_mock()
                 response = self.client.post(
@@ -172,11 +178,11 @@ class LlmSqlApiTests(unittest.TestCase):
 
                 self.assertEqual(response.status_code, 200)
                 payload = response.json()
-                self.assertEqual(payload["status"], "insufficient_evidence")
-                self.assertNotIn("132", payload["answer"])
+                self.assertEqual(payload["status"], "answer")
+                self.assertIn(value, payload["answer"])
                 self.assertNotIn("453", payload["answer"])
                 self.assertNotIn("240", payload["answer"])
-                self.assertEqual(payload["provenance"], [])
+                self.assertTrue(payload["provenance"])
                 self.sql_service.assert_not_called()
 
     def test_unscoped_multi_edition_question_is_stopped_before_any_qa_route(self):
@@ -218,7 +224,10 @@ class LlmSqlApiTests(unittest.TestCase):
         ):
             response = self.client.post(
                 "/api/ask",
-                json={"question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา"},
+                json={
+                    "question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
             )
 
         self.assertEqual(response.status_code, 200)
@@ -263,7 +272,10 @@ class LlmSqlApiTests(unittest.TestCase):
         ):
             first = self.client.post(
                 "/api/ask",
-                json={"question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา"},
+                json={
+                    "question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
             )
             second = self.client.post(
                 "/api/ask",
@@ -515,22 +527,34 @@ class LlmSqlApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
-    def test_course_detail_requires_catalog_when_code_is_ambiguous(self):
-        ambiguous = self.client.get("/api/courses/06016401", params={"program": "IT"})
+    def test_course_detail_resolves_shared_edition_row_without_artificial_split(self):
+        # Frozen contract: one shared course row per edition; plan/source
+        # provenance does not split it. Obsolete source-string catalog keys
+        # are invalid identities.
+        resolved = self.client.get("/api/courses/06016401", params={"program": "IT"})
         selected = self.client.get(
+            "/api/courses/06016401",
+            params={
+                "program": "IT",
+                "catalog_key": "it-2565",
+            },
+        )
+
+        self.assertEqual(resolved.status_code, 200)
+        self.assertEqual(resolved.json()["course"]["catalog_key"], "it-2565")
+        self.assertEqual(selected.status_code, 200)
+        self.assertEqual(
+            selected.json()["course"]["catalog_key"],
+            "it-2565",
+        )
+        stale = self.client.get(
             "/api/courses/06016401",
             params={
                 "program": "IT",
                 "catalog_key": "OCR extraction / Academic Plan - IT no_coop",
             },
         )
-
-        self.assertEqual(ambiguous.status_code, 409)
-        self.assertEqual(selected.status_code, 200)
-        self.assertEqual(
-            selected.json()["course"]["catalog_key"],
-            "OCR extraction / Academic Plan - IT no_coop",
-        )
+        self.assertEqual(stale.status_code, 422)
 
     def test_dsba_course_details_resolve_inside_selected_edition(self):
         cases = (

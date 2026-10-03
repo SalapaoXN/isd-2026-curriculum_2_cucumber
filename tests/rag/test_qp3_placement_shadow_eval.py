@@ -45,12 +45,30 @@ DB_PATH = str(
 
 
 def ask(db_path, question, *args, **kwargs):
-    """Pin legacy DSBA placement cases to the pre-existing 2565 fixture."""
-    if parse_query_spec(question).program == "DSBA" and not any(
+    """Pin legacy single-edition cases to their authored catalog edition.
+
+    Every fixture question predates multi-edition IT/BIT/GENED; the UI
+    edition selector now supplies the scope the questions leave implicit.
+    """
+    authored_edition = {
+        "DSBA": "dsba-2565",
+        "IT": "it-2565",
+        "BIT": "bit-2565",
+        "GENED": "gened-2564",
+        "AIT": "ait-2566",
+    }
+    program = parse_query_spec(question).program
+    # Auto-pinning applies only to the shared runtime DB. Temp-DB tests
+    # construct their own catalogs and must keep exact behavior.
+    try:
+        is_shared = Path(db_path).resolve() == Path(DB_PATH).resolve()
+    except (OSError, ValueError):
+        is_shared = False
+    if program in authored_edition and is_shared and not any(
         name in kwargs for name in ("context", "conversation_context")
     ):
         kwargs["conversation_context"] = QueryContext(
-            program="DSBA", catalog_key="dsba-2565"
+            program=program, catalog_key=authored_edition[program]
         )
     return _ask(db_path, question, *args, **kwargs)
 

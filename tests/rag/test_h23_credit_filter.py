@@ -11,9 +11,9 @@ from rag.answer import _credit_scope_text
 from rag.evidence_planner import build_structural_scope
 from rag.intent_compiler import IntentCompilerError, compile_intent_to_query_spec
 from rag.intent_interpreter import parse_intent_payload
-from rag.qa import _classify_structured_parse_completeness, ask
+from rag.qa import _classify_structured_parse_completeness, ask as _ask
 from rag.query_spec import parse_query_spec
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 from rag.structured.loader import load_json_to_sqlite
 from rag.structured.queries import scoped_course_set
 
@@ -23,6 +23,32 @@ DB_PATH = (
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Pin scopeless questions to their authored current edition.
+
+    Applies only to the shared runtime DB; temp-DB tests construct their
+    own catalogs and keep exact behavior.
+    """
+    try:
+        is_shared = Path(db_path).resolve() == Path(DB_PATH).resolve()
+    except (OSError, ValueError):
+        is_shared = False
+    if is_shared and not any(name in kwargs for name in ("context", "conversation_context")):
+        authored_edition = {
+            "DSBA": "dsba-2565",
+            "IT": "it-2565",
+            "BIT": "bit-2565",
+            "GENED": "gened-2564",
+            "AIT": "ait-2566",
+        }
+        program = parse_query_spec(question).program
+        if program in authored_edition:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=authored_edition[program]
+            )
+    return _ask(db_path, question, *args, **kwargs)
 
 
 def _course_list_payload():

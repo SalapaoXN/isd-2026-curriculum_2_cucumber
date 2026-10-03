@@ -60,7 +60,10 @@ class CurriculumAppTests(unittest.TestCase):
         ) as sql_service:
             response = self.client.post(
                 "/api/ask",
-                json={"question": "IT วิชา 06016454 มีกี่หน่วยกิต"},
+                json={
+                    "question": "IT วิชา 06016454 มีกี่หน่วยกิต",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
             )
 
         self.assertEqual(response.status_code, 200)
@@ -124,7 +127,7 @@ class CurriculumAppTests(unittest.TestCase):
                 "/api/ask",
                 json={
                     "question": "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
-                    "conversation_context": {"program": "IT"},
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
                 },
             )
 
@@ -133,9 +136,12 @@ class CurriculumAppTests(unittest.TestCase):
         self.assertEqual(sql_service.call_args.args[2], "IT")
         self.assertEqual(
             sql_service.call_args.kwargs["conversation_context"],
-            {"program": "IT"},
+            {"program": "IT", "catalog_key": "it-2565"},
         )
-        self.assertEqual(response.json()["next_context"], {"program": "IT"})
+        self.assertEqual(
+            response.json()["next_context"],
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
 
     def test_ask_chains_bounded_result_courses_through_context_contract(self):
         courses = [
@@ -223,7 +229,10 @@ class CurriculumAppTests(unittest.TestCase):
         with patch.object(main, "ask_sql", side_effect=unavailable_service):
             response = self.client.post(
                 "/api/ask",
-                json={"question": "DSBA มีรายวิชาทั้งหมดเท่าไหร่"},
+                json={
+                    "question": "IT 06016454 เรียนยากไหม",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
             )
 
         self.assertEqual(response.status_code, 503)
@@ -240,7 +249,10 @@ class CurriculumAppTests(unittest.TestCase):
         ):
             response = self.client.post(
                 "/api/ask",
-                json={"question": "IT 06016454 เรียนยากไหม"},
+                json={
+                    "question": "IT วิชา 06016454 มีกี่หน่วยกิต",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
             )
 
         self.assertEqual(response.status_code, 200)

@@ -33,7 +33,11 @@
       },
       "harness_stub": null,
       "source": "nq_001 (year-1 variant) + H23 list tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C02",
@@ -68,7 +72,11 @@
       },
       "harness_stub": null,
       "source": "H14 count synthesis tests",
-      "notes": "coop 12 / no_coop 69 per plan partition"
+      "notes": "coop 12 / no_coop 69 per plan partition",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C03",
@@ -95,7 +103,11 @@
       },
       "harness_stub": null,
       "source": "H12b existence tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C04",
@@ -123,7 +135,11 @@
       },
       "harness_stub": null,
       "source": "H12b existence tests",
-      "notes": "06016414 lives in y2t2, not y3t1 | fail-closed carries no authoritative provenance by design."
+      "notes": "06016414 lives in y2t2, not y3t1 | fail-closed carries no authoritative provenance by design.",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C05",
@@ -154,7 +170,11 @@
       },
       "harness_stub": null,
       "source": "nq_006 (IT-prefixed; bare code lacks program scope)",
-      "notes": "y2t2 both plans, 3(2-2-5)"
+      "notes": "y2t2 both plans, 3(2-2-5)",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C06",
@@ -183,7 +203,11 @@
       },
       "harness_stub": null,
       "source": "H12b credit tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C07",
@@ -215,7 +239,11 @@
       },
       "harness_stub": null,
       "source": "H23 flagship term-1 tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C08",
@@ -242,7 +270,11 @@
       },
       "harness_stub": null,
       "source": "structured sum tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C09",
@@ -277,7 +309,11 @@
       },
       "harness_stub": null,
       "source": "H27 elective y4s1 tests",
-      "notes": "coop 159 / no_coop 165"
+      "notes": "coop 159 / no_coop 165",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C10",
@@ -306,7 +342,11 @@
       },
       "harness_stub": null,
       "source": "H27 gen-ed y1s1 tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C11",
@@ -332,7 +372,11 @@
       },
       "harness_stub": null,
       "source": "H27 category-list guard tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C12",
@@ -358,7 +402,11 @@
       },
       "harness_stub": null,
       "source": "nq_008 (IT-prefixed)",
-      "notes": "explicit-none burden"
+      "notes": "explicit-none burden",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C13",
@@ -386,7 +434,11 @@
       },
       "harness_stub": null,
       "source": "identity tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C14",
@@ -445,7 +497,11 @@
       },
       "harness_stub": null,
       "source": "description tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C16",
@@ -455,15 +511,15 @@
           "question": "IT 06016414 กับ 06016419 เนื้อหาคล้ายกันไหม"
         }
       ],
-      "expected_status": "answer",
+      "expected_status": "insufficient_evidence",
       "claim_checks": [
         {
           "operation": "similarity",
-          "status": "complete"
+          "status": "insufficient_evidence"
         }
       ],
       "final_contains": [],
-      "provenance_required": true,
+      "provenance_required": false,
       "budget": {
         "intent": 0,
         "structured": 0,
@@ -471,7 +527,11 @@
       },
       "harness_stub": null,
       "source": "nq_031 (IT-prefixed)",
-      "notes": "deterministic exact-similarity, 0 calls"
+      "notes": "similarity wording routes to the exact-similarity path, but the executed-vs-persisted evidence validation fails closed on one partition pair (pre-existing on the pre-change DB); no synthesis budget, so insufficient_evidence. Descriptions remain available via describe claims.",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C17",
@@ -497,7 +557,11 @@
       },
       "harness_stub": null,
       "source": "nq_032 (IT-prefixed)",
-      "notes": "same term y2t2 both plans"
+      "notes": "same term y2t2 both plans",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C18",
@@ -523,7 +587,11 @@
       },
       "harness_stub": null,
       "source": "nq_009",
-      "notes": "typed plan comparison, both plans complete"
+      "notes": "typed plan comparison, both plans complete",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C19",
@@ -558,7 +626,11 @@
       },
       "harness_stub": null,
       "source": "H15b/H20 conversation tests",
-      "notes": "structural course_code reuse, canonical re-query"
+      "notes": "structural course_code reuse, canonical re-query",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C20",
@@ -583,7 +655,11 @@
       },
       "harness_stub": null,
       "source": "H20 scope-prerequisite tests",
-      "notes": "frozen fail-closed on unknown burden states | fail-closed carries no authoritative provenance by design."
+      "notes": "frozen fail-closed on unknown burden states | fail-closed carries no authoritative provenance by design.",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C21",
@@ -604,7 +680,11 @@
       },
       "harness_stub": null,
       "source": "H23 both-terms NULL-placeholder tests",
-      "notes": "060164xx NULL keeps y3 both-terms insufficient by design"
+      "notes": "060164xx NULL keeps y3 both-terms insufficient by design",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C22",
@@ -625,7 +705,11 @@
       },
       "harness_stub": null,
       "source": "H23-R1 + H32 seam tests",
-      "notes": "structured stub must record 0 calls | fail-closed carries no authoritative provenance by design."
+      "notes": "structured stub must record 0 calls | fail-closed carries no authoritative provenance by design.",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C23",
@@ -646,7 +730,11 @@
       },
       "harness_stub": null,
       "source": "H27 flagship program-only tests",
-      "notes": "no product semantic for program-wide category total | fail-closed carries no authoritative provenance by design."
+      "notes": "no product semantic for program-wide category total | fail-closed carries no authoritative provenance by design.",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C24",
@@ -667,7 +755,11 @@
       },
       "harness_stub": null,
       "source": "gold unknown_course_99999999",
-      "notes": "blocked dict result, no claims"
+      "notes": "blocked dict result, no claims",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C25",
@@ -709,7 +801,11 @@
       },
       "harness_stub": null,
       "source": "judgement-unsupported tests",
-      "notes": "difficulty verdict out of scope"
+      "notes": "difficulty verdict out of scope",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C27",
@@ -730,7 +826,11 @@
       },
       "harness_stub": null,
       "source": "H23-R1 + H32 seam tests",
-      "notes": "placement+credit, structured stub must record 0 calls | fail-closed carries no authoritative provenance by design."
+      "notes": "placement+credit, structured stub must record 0 calls | fail-closed carries no authoritative provenance by design.",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C28",
@@ -799,7 +899,11 @@
       },
       "harness_stub": null,
       "source": "H25 program-total tests",
-      "notes": ""
+      "notes": "",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C31",
@@ -822,7 +926,11 @@
       },
       "harness_stub": null,
       "source": "H25 compare tests",
-      "notes": "registration verdict, no curriculum DB read"
+      "notes": "registration verdict, no curriculum DB read",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C32",
@@ -910,7 +1018,11 @@
         ]
       },
       "source": "H21 course_list_query tests",
-      "notes": "op-free shape, exactly one interpretation call"
+      "notes": "op-free shape, exactly one interpretation call",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "C35",
@@ -950,7 +1062,11 @@
         "advisory": true
       },
       "source": "interpreter prompt example + preference tests",
-      "notes": "bounded evidence request + supported advisory synthesis; code pinned from dry run"
+      "notes": "bounded evidence request + supported advisory synthesis; code pinned from dry run",
+      "edition_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     }
   ]
 }

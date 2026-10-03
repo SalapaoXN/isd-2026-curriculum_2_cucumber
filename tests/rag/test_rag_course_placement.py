@@ -21,13 +21,15 @@ class CoursePlacementTest(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["missing_plan_keys"], [])
         by_plan = {row["plan_key"]: row for row in result["placements"]}
-        self.assertNotEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
+        # One shared edition row (it-2565) with two distinct plan placements.
+        self.assertEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
+        self.assertEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
         self.assertNotEqual(by_plan["coop"]["placement_id"], by_plan["no_coop"]["placement_id"])
+        self.assertNotEqual(by_plan["coop"]["plan_id"], by_plan["no_coop"]["plan_id"])
         self.assertEqual(
             (by_plan["coop"]["year"], by_plan["coop"]["semester"]),
             (3, 2),
         )
-        self.assertNotEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
         self.assertIsNone(by_plan["no_coop"]["year"])
         self.assertIsNone(by_plan["no_coop"]["semester"])
         self.assertEqual(
@@ -49,15 +51,18 @@ class CoursePlacementTest(unittest.TestCase):
         }
         self.assertTrue(required_fields.issubset(by_plan["coop"]))
 
-    def test_bit_cross_plan_course_ids_remain_independent(self):
+    def test_bit_cross_plan_shares_edition_row_with_independent_placements(self):
         result = course_placement(
             DB_PATH, "BIT", "06036103", ["coop", "no_coop"]
         )
 
         self.assertEqual(result["status"], "ok")
         by_plan = {row["plan_key"]: row for row in result["placements"]}
-        self.assertNotEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
-        self.assertNotEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
+        # Same edition (bit-2565), same shared course row, independent plans.
+        self.assertEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
+        self.assertEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
+        self.assertNotEqual(by_plan["coop"]["placement_id"], by_plan["no_coop"]["placement_id"])
+        self.assertNotEqual(by_plan["coop"]["plan_id"], by_plan["no_coop"]["plan_id"])
         self.assertEqual(
             (by_plan["coop"]["year"], by_plan["coop"]["semester"]),
             (2, 1),

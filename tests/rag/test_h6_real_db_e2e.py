@@ -2,9 +2,14 @@ import unittest
 from pathlib import Path
 
 from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
+
+# 06016454 is a current-edition IT course; IT now has two catalog editions,
+# so these cases pin the edition the same way DSBA cases pin dsba-2565.
+CURRENT_IT = QueryContext(program="IT", catalog_key="it-2565")
 
 
 class RealRuntimeQaRegressionTests(unittest.TestCase):
@@ -12,6 +17,7 @@ class RealRuntimeQaRegressionTests(unittest.TestCase):
         result = ask(
             DB_PATH,
             "IT วิชา 06016454 มีกี่หน่วยกิต",
+            conversation_context=CURRENT_IT,
             structured_model_callable=None,
             answer_model_callable=None,
         )["result"]
@@ -25,6 +31,7 @@ class RealRuntimeQaRegressionTests(unittest.TestCase):
         result = ask(
             DB_PATH,
             "IT 06016454 อยู่ปีไหน เทอมไหน",
+            conversation_context=CURRENT_IT,
             structured_model_callable=None,
             answer_model_callable=None,
         )["result"]
@@ -37,6 +44,7 @@ class RealRuntimeQaRegressionTests(unittest.TestCase):
         result = ask(
             DB_PATH,
             "IT 06016454 เรียนยากไหม",
+            conversation_context=CURRENT_IT,
             structured_model_callable=None,
             answer_model_callable=None,
         )["result"]

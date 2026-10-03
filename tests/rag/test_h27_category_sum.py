@@ -16,7 +16,7 @@ from pathlib import Path
 
 from rag.qa import _classify_structured_parse_completeness, ask
 from rag.query_spec import parse_query_spec
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 from rag.structured.loader import load_json_to_sqlite
 
 DB_PATH = (
@@ -35,13 +35,34 @@ def _no_model(prompt: str) -> str:
     raise AssertionError("category sum path must not call any model")
 
 
-def _ask(question: str, db_path=DB_PATH) -> dict:
+def _ask(question: str, db_path=DB_PATH, context=None) -> dict:
+    kwargs = {}
+    # Auto-pinning applies only to the shared runtime DB. Temp-DB tests
+    # construct their own catalogs and must keep exact behavior.
+    if context is None and Path(db_path).resolve() == Path(DB_PATH).resolve():
+        # Fixture questions predate multi-edition programs; pin the
+        # authored current edition the way the UI selector would.
+        authored = {
+            "IT": "it-2565",
+            "BIT": "bit-2565",
+            "GENED": "gened-2564",
+            "DSBA": "dsba-2565",
+            "AIT": "ait-2566",
+        }
+        program = parse_query_spec(question).program
+        if program in authored:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=authored[program]
+            )
+    elif context is not None:
+        kwargs["conversation_context"] = context
     return ask(
         db_path,
         question,
         structured_model_callable=_no_model,
         answer_model_callable=_no_model,
         intent_model_callable=_no_model,
+        **kwargs,
     )
 
 

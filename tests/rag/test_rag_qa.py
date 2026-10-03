@@ -57,23 +57,45 @@ DB_PATH = (
 
 
 def ask(db_path, question, *args, **kwargs):
-    """Run legacy DSBA cases against the edition they originally covered."""
+    """Run legacy single-edition cases against the edition they covered.
+
+    Every case in this module was authored when each program had exactly one
+    catalog edition; the UI edition selector now supplies the scope that the
+    questions leave implicit. DSBA keeps its original pin; IT/BIT/GENED pin
+    to their current editions (legacy editions are covered by the dedicated
+    isolation suite).
+    """
+    authored_edition = {
+        "DSBA": "dsba-2565",
+        "IT": "it-2565",
+        "BIT": "bit-2565",
+        "GENED": "gened-2564",
+        "AIT": "ait-2566",
+    }
     spec = parse_query_spec(question)
-    if spec.program == "DSBA":
+    program = spec.program
+    # Auto-pinning applies only to the shared runtime DB. Temp-DB tests
+    # construct their own catalogs and must keep exact behavior.
+    try:
+        is_shared = Path(db_path).resolve() == Path(DB_PATH).resolve()
+    except (OSError, ValueError):
+        is_shared = False
+    if program in authored_edition and is_shared:
+        catalog_key = authored_edition[program]
         context_field = next(
             (name for name in ("conversation_context", "context") if name in kwargs),
             None,
         )
         if context_field is None:
             kwargs["conversation_context"] = QueryContext(
-                program="DSBA", catalog_key="dsba-2565"
+                program=program, catalog_key=catalog_key
             )
         else:
             context = kwargs[context_field]
-            if isinstance(context, QueryContext) and context.program == "DSBA" and not context.catalog_key:
-                kwargs[context_field] = replace(context, catalog_key="dsba-2565")
-            elif isinstance(context, dict) and context.get("program") == "DSBA" and not context.get("catalog_key"):
-                kwargs[context_field] = {**context, "catalog_key": "dsba-2565"}
+            if isinstance(context, QueryContext) and context.program == program and not context.catalog_key:
+                kwargs[context_field] = replace(context, catalog_key=catalog_key)
+            elif isinstance(context, dict) and context.get("program") == program and not context.get("catalog_key"):
+                kwargs[context_field] = {**context, "catalog_key": catalog_key}
     return _ask(db_path, question, *args, **kwargs)
 
 
@@ -168,7 +190,7 @@ class RagQaTest(unittest.TestCase):
         result = ask(
             DB_PATH,
             "ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
-            context=QueryContext(program="IT"),
+            context=QueryContext(program="IT", catalog_key="it-2565"),
         )
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -209,7 +231,7 @@ class RagQaTest(unittest.TestCase):
         contextual = ask(
             DB_PATH,
             "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง",
-            context=QueryContext(program="IT"),
+            context=QueryContext(program="IT", catalog_key="it-2565"),
         )
 
         for result in (explicit, contextual):
@@ -544,7 +566,12 @@ class RagQaTest(unittest.TestCase):
         ), patch(
             "rag.qa.execute_exact_similarity_from_bundle", return_value=similarity
         ) as bridge:
-            result = ask(DB_PATH, "ignored", answer_model_callable=forbidden_model)
+            result = ask(
+                DB_PATH,
+                "ignored",
+                context=QueryContext(program="IT", catalog_key="it-2565"),
+                answer_model_callable=forbidden_model,
+            )
 
         self.assertIsNone(result["route"])
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -609,7 +636,7 @@ class RagQaTest(unittest.TestCase):
         result = ask(
             DB_PATH,
             "06016414 เรียนเกี่ยวกับอะไร",
-            context=QueryContext(program="IT", plan="no_coop"),
+            context=QueryContext(program="IT", plan="no_coop", catalog_key="it-2565"),
         )
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -621,8 +648,11 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(len(claims), 1)
         claim = claims[0]
         self.assertEqual(claim.operation, "describe")
-        self.assertEqual(len(claim.evidence), 1)
-        evidence = claim.evidence[0]
+        # The shared course row surfaces one evidence row per plan; each row
+        # must be correctly plan-labeled with plan-scoped provenance.
+        by_plan = {row["plan"]: row for row in claim.evidence}
+        self.assertEqual(set(by_plan), {"coop", "no_coop"})
+        evidence = by_plan["no_coop"]
         self.assertEqual(evidence["course_code"], "06016414")
         self.assertEqual(evidence["plan"], "no_coop")
         self.assertEqual(
@@ -639,6 +669,33 @@ class RagQaTest(unittest.TestCase):
                 for reference in evidence["provenance"]
             )
         )
+        self.assertEqual(
+            {
+                reference["source_filename"]
+                for reference in evidence["provenance"]
+                if reference["document_category"] == "plan"
+            },
+            {"it_page_035.png"},
+        )
+        self.assertEqual(
+            by_plan["coop"]["source_filename"],
+            "merged_it_coop_full_corrected.json",
+        )
+        self.assertEqual(
+            {
+                reference["source_filename"]
+                for reference in by_plan["coop"]["provenance"]
+                if reference["document_category"] == "plan"
+            },
+            {"it_page_042.png"},
+        )
+        # No cross-edition leakage: every reference must come from the
+        # current-edition sources, never from another catalog edition.
+        for row in claim.evidence:
+            for reference in row["provenance"]:
+                self.assertFalse(
+                    str(reference.get("source_filename", "")).startswith("it2560_page_")
+                )
 
     def test_course_targeted_semantic_detail_reaches_typed_description_evidence(self):
         result = ask(

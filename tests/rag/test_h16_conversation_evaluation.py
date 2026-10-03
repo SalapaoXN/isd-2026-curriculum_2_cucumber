@@ -21,7 +21,7 @@ class ConversationContextEvaluationTests(unittest.TestCase):
         if context is None:
             context = QueryContext(
                 program="IT",
-                catalog_key="OCR extraction / Academic Plan - IT no_coop",
+                catalog_key="it-2565",
             )
         result = ask(DB_PATH, question, conversation_context=context)
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -83,11 +83,14 @@ class ConversationContextEvaluationTests(unittest.TestCase):
             with self.subTest(question=question):
                 if operation == "prerequisite":
                     result = ask(DB_PATH, question, conversation_context=context)
-                    self.assertEqual(result["result"].status, "insufficient_evidence")
+                    # 06016454 has no prerequisites: the followup answers
+                    # with a fail-closed valid_empty prerequisite claim
+                    # (verified identical on the pre-change runtime DB).
+                    self.assertEqual(result["result"].status, "answer")
                     self.assertTrue(
                         any(
                             claim.operation == operation
-                            and claim.status == "insufficient_evidence"
+                            and claim.status == "valid_empty"
                             for claim in result["result"].claims
                         )
                     )

@@ -8,7 +8,8 @@
       "capability": "course_list",
       "turns": [
         {
-          "question": "IT ปี 3 เทอม 1 มีอะไรเรียนบ้าง"
+          "question": "IT ปี 3 เทอม 1 มีอะไรเรียนบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -44,7 +45,11 @@
       },
       "source": "C01 wording variant",
       "notes": "op-free wording is eligible for bounded LIST recovery (H21/H22); compiles to y3t1 list",
-      "robustness_note": "supported via 1-call interpretation; deterministic wording stays 0-call (C01)"
+      "robustness_note": "supported via 1-call interpretation; deterministic wording stays 0-call (C01)",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R02",
@@ -83,7 +88,8 @@
       "capability": "course_list",
       "turns": [
         {
-          "question": "GENED มีวิชาอะไรบ้าง"
+          "question": "GENED มีวิชาอะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -107,15 +113,20 @@
       },
       "harness_stub": null,
       "source": "GENED list tests",
-      "notes": "",
-      "robustness_note": ""
+      "notes": " [gened-2564 scoped since GENED has two editions]",
+      "robustness_note": "",
+      "initial_context": {
+        "program": "GENED",
+        "catalog_key": "gened-2564"
+      }
     },
     {
       "id": "R04",
       "capability": "course_list",
       "turns": [
         {
-          "question": "BIT ปี 1 เทอม 1 ต้องเรียนอะไรบ้าง"
+          "question": "BIT ปี 1 เทอม 1 ต้องเรียนอะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -140,14 +151,19 @@
       "harness_stub": null,
       "source": "gold structured_bit_coop_year1_sem1",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "BIT",
+        "catalog_key": "bit-2565"
+      }
     },
     {
       "id": "R05",
       "capability": "course_list",
       "turns": [
         {
-          "question": "IT ปี 2 เรียนตัวไหนกันบ้าง"
+          "question": "IT ปี 2 เรียนตัวไหนกันบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -172,7 +188,11 @@
       "harness_stub": null,
       "source": "list-cue variants in query_spec tests",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R06",
@@ -211,7 +231,8 @@
       "capability": "category_list",
       "turns": [
         {
-          "question": "IT หมวดวิชาศึกษาทั่วไปมีอะไรบ้าง"
+          "question": "IT หมวดวิชาศึกษาทั่วไปมีอะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -236,14 +257,19 @@
       "harness_stub": null,
       "source": "H27 category-list guards",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R08",
       "capability": "category_list",
       "turns": [
         {
-          "question": "IT ปี 4 เทอม 2 วิชาเลือกมีวิชาอะไรบ้าง"
+          "question": "IT ปี 4 เทอม 2 วิชาเลือกมีวิชาอะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "valid_empty",
@@ -263,14 +289,19 @@
       "harness_stub": null,
       "source": "H27 category-list guards",
       "notes": "provably no electives in y4t2",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R09",
       "capability": "course_list",
       "turns": [
         {
-          "question": "ขอรายวิชา IT ปี 1 หน่อย"
+          "question": "ขอรายวิชา IT ปี 1 หน่อย",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -295,7 +326,11 @@
       "harness_stub": null,
       "source": "list-cue variants in query_spec tests",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R10",
@@ -324,7 +359,8 @@
       "capability": "count",
       "turns": [
         {
-          "question": "IT มีทั้งหมดกี่วิชา"
+          "question": "IT มีทั้งหมดกี่วิชา",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -347,14 +383,19 @@
       "harness_stub": null,
       "source": "H14 count tests",
       "notes": "103 per plan partition",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R12",
       "capability": "count",
       "turns": [
         {
-          "question": "GENED มีกี่รายวิชา"
+          "question": "GENED มีกี่รายวิชา",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -376,15 +417,20 @@
       },
       "harness_stub": null,
       "source": "H14 count tests",
-      "notes": "single gened plan",
-      "robustness_note": ""
+      "notes": "single gened plan [gened-2564 scoped since GENED has two editions]",
+      "robustness_note": "",
+      "initial_context": {
+        "program": "GENED",
+        "catalog_key": "gened-2564"
+      }
     },
     {
       "id": "R13",
       "capability": "existence",
       "turns": [
         {
-          "question": "IT ปี 2 เทอม 2 มีวิชา 06016419 ไหม"
+          "question": "IT ปี 2 เทอม 2 มีวิชา 06016419 ไหม",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -405,14 +451,19 @@
       "harness_stub": null,
       "source": "H12b existence tests (C03 pattern, y2t2 entity)",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R14",
       "capability": "count",
       "turns": [
         {
-          "question": "BIT ปี 1 มีวิชาบังคับกี่วิชา"
+          "question": "BIT ปี 1 มีวิชาบังคับกี่วิชา",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -433,7 +484,11 @@
       "source": "partial-filter tests",
       "notes": "partial requirement residue is seam-eligible by design (model selects IDs, canonical grounding validates scope); dead stub fails closed; unlike H32 credit shapes there is no frozen 0-call promise here",
       "robustness_note": "",
-      "structured_attempt_ok": true
+      "structured_attempt_ok": true,
+      "initial_context": {
+        "program": "BIT",
+        "catalog_key": "bit-2565"
+      }
     },
     {
       "id": "R15",
@@ -484,7 +539,8 @@
       "capability": "exact_credit",
       "turns": [
         {
-          "question": "IT 06016419 กี่หน่วยกิต"
+          "question": "IT 06016419 กี่หน่วยกิต",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -507,14 +563,19 @@
       "harness_stub": null,
       "source": "H12b credit tests (C06 pattern, second entity)",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R18",
       "capability": "credit_filter_list",
       "turns": [
         {
-          "question": "IT ปี 2 มีวิชาไหน 2 หน่วยกิตบ้าง"
+          "question": "IT ปี 2 มีวิชาไหน 2 หน่วยกิตบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "valid_empty",
@@ -534,7 +595,11 @@
       "harness_stub": null,
       "source": "H23 filter tests",
       "notes": "no 2-credit courses in IT y2 scope",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R19",
@@ -563,7 +628,8 @@
       "capability": "credit_filter_list",
       "turns": [
         {
-          "question": "IT วิชา 3 หน่วยกิตมีอะไรบ้าง"
+          "question": "IT วิชา 3 หน่วยกิตมีอะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -583,14 +649,19 @@
       "harness_stub": null,
       "source": "H23 both-terms NULL-placeholder tests",
       "notes": "program-wide scope hits unknown credit",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R21",
       "capability": "exact_credit",
       "turns": [
         {
-          "question": "GENED 90641001 กี่หน่วยกิต"
+          "question": "GENED 90641001 กี่หน่วยกิต",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -604,15 +675,20 @@
       },
       "harness_stub": null,
       "source": "gold semantic_gened_course_90641001 (entity only)",
-      "notes": "GENED token parses as category; category+sum without term is H27-B partial",
-      "robustness_note": "B-candidate: GENED-program exact credit unreachable via credit wording; needs program/category disambiguation"
+      "notes": "GENED token parses as category; category+sum without term is H27-B partial [gened-2564 scoped since GENED has two editions]",
+      "robustness_note": "B-candidate: GENED-program exact credit unreachable via credit wording; needs program/category disambiguation",
+      "initial_context": {
+        "program": "GENED",
+        "catalog_key": "gened-2564"
+      }
     },
     {
       "id": "R22",
       "capability": "sum_credits",
       "turns": [
         {
-          "question": "IT ปี 2 เทอม 1 รวมกี่หน่วยกิต"
+          "question": "IT ปี 2 เทอม 1 รวมกี่หน่วยกิต",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -635,7 +711,11 @@
       "harness_stub": null,
       "source": "structured sum tests",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R23",
@@ -664,7 +744,8 @@
       "capability": "sum_credits",
       "turns": [
         {
-          "question": "BIT ปี 1 เทอม 1 หน่วยกิตรวมเท่าไหร่"
+          "question": "BIT ปี 1 เทอม 1 หน่วยกิตรวมเท่าไหร่",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -679,14 +760,19 @@
       "harness_stub": null,
       "source": "sum wording variant",
       "notes": "เทอม 1 หน่วยกิต misfires integral credit predicate (=1); kept sum + predicate => H23-R1 partial",
-      "robustness_note": "B-candidate: natural sum wording needs credit-regex disambiguation"
+      "robustness_note": "B-candidate: natural sum wording needs credit-regex disambiguation",
+      "initial_context": {
+        "program": "BIT",
+        "catalog_key": "bit-2565"
+      }
     },
     {
       "id": "R25",
       "capability": "category_sum_failclosed",
       "turns": [
         {
-          "question": "IT ปี 3 วิชาเลือก รวมกี่หน่วยกิต"
+          "question": "IT ปี 3 วิชาเลือก รวมกี่หน่วยกิต",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -701,14 +787,19 @@
       "harness_stub": null,
       "source": "H27 year-only tests",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R26",
       "capability": "category_sum_failclosed",
       "turns": [
         {
-          "question": "IT เทอม 1 วิชาเลือก รวมกี่หน่วยกิต"
+          "question": "IT เทอม 1 วิชาเลือก รวมกี่หน่วยกิต",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -723,14 +814,19 @@
       "harness_stub": null,
       "source": "H27 semester-only tests",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R27",
       "capability": "topic_list",
       "turns": [
         {
-          "question": "IT มีวิชาเกี่ยวกับ AI อะไรบ้าง"
+          "question": "IT มีวิชาเกี่ยวกับ AI อะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -755,7 +851,11 @@
       "harness_stub": null,
       "source": "nq_013/nq_018 topic patterns",
       "notes": "deterministic constrained topic path, 0 calls",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R28",
@@ -784,7 +884,8 @@
       "capability": "description",
       "turns": [
         {
-          "question": "IT 06016404 เรียนเกี่ยวกับอะไร"
+          "question": "IT 06016404 เรียนเกี่ยวกับอะไร",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -809,7 +910,11 @@
       "harness_stub": null,
       "source": "description tests (C15 pattern, second entity)",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R30",
@@ -838,7 +943,8 @@
       "capability": "placement",
       "turns": [
         {
-          "question": "IT 06016420 จัดไว้ปีไหน"
+          "question": "IT 06016420 จัดไว้ปีไหน",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -863,14 +969,19 @@
       "harness_stub": null,
       "source": "placement wording variants",
       "notes": "y2t2 both plans",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R32",
       "capability": "identity",
       "turns": [
         {
-          "question": "IT วิชา CLOUD COMPUTING รหัสอะไร"
+          "question": "IT วิชา CLOUD COMPUTING รหัสอะไร",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -892,14 +1003,19 @@
       "harness_stub": null,
       "source": "identity tests (name->code direction)",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R33",
       "capability": "prerequisite_exact",
       "turns": [
         {
-          "question": "IT 06016420 ต้องผ่านวิชาอะไรมาก่อน"
+          "question": "IT 06016420 ต้องผ่านวิชาอะไรมาก่อน",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -924,14 +1040,19 @@
       "harness_stub": null,
       "source": "gold structured_it_no_coop_year2_sem2_prerequisite",
       "notes": "course WITH prerequisite (complements C12 explicit-none)",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R34",
       "capability": "prerequisite_exact",
       "turns": [
         {
-          "question": "IT 06016404 มีวิชาบังคับก่อนไหม"
+          "question": "IT 06016404 มีวิชาบังคับก่อนไหม",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -956,7 +1077,11 @@
       "harness_stub": null,
       "source": "prerequisite burden tests",
       "notes": "existence+prerequisite composition on explicit-none course",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R35",
@@ -985,7 +1110,8 @@
       "capability": "prerequisite_exact",
       "turns": [
         {
-          "question": "IT 06016419 วิชาบังคับก่อนคืออะไร"
+          "question": "IT 06016419 วิชาบังคับก่อนคืออะไร",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -1010,14 +1136,19 @@
       "harness_stub": null,
       "source": "prerequisite wording variants",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R37",
       "capability": "context_followup_scope",
       "turns": [
         {
-          "question": "IT ปี 2 เทอม 1 มีวิชาอะไรบ้าง"
+          "question": "IT ปี 2 เทอม 1 มีวิชาอะไรบ้าง",
+          "context": "initial"
         },
         {
           "question": "แล้วเทอม 2 ล่ะ",
@@ -1046,14 +1177,19 @@
       "harness_stub": null,
       "source": "H15b scope follow-up tests",
       "notes": "semester-only follow-up inherits year+program+list from context",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R38",
       "capability": "context_followup_exact",
       "turns": [
         {
-          "question": "IT 06016419 เรียนตอนไหน"
+          "question": "IT 06016419 เรียนตอนไหน",
+          "context": "initial"
         },
         {
           "question": "แล้วกี่หน่วยกิต",
@@ -1080,7 +1216,11 @@
       "harness_stub": null,
       "source": "H15b exact-course follow-up tests",
       "notes": "course_code reuse turns credit wording into exact lookup",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R39",
@@ -1118,7 +1258,8 @@
       "capability": "context_followup_vague",
       "turns": [
         {
-          "question": "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
+          "question": "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+          "context": "initial"
         },
         {
           "question": "แล้วอันนั้นล่ะ",
@@ -1147,14 +1288,19 @@
       "harness_stub": null,
       "source": "H20 anaphora tests",
       "notes": "vague follow-up with rich list context safely re-asks the list",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R41",
       "capability": "context_followup_explicit",
       "turns": [
         {
-          "question": "IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง"
+          "question": "IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
+          "context": "initial"
         },
         {
           "question": "IT ปี 2 เทอม 1 มีวิชาอะไรบ้าง",
@@ -1183,7 +1329,11 @@
       "harness_stub": null,
       "source": "H15b explicit-beats-context tests",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R42",
@@ -1238,7 +1388,8 @@
       "capability": "policy_program_total",
       "turns": [
         {
-          "question": "BIT ต้องเรียนทั้งหมดกี่หน่วยกิต"
+          "question": "BIT ต้องเรียนทั้งหมดกี่หน่วยกิต",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -1255,7 +1406,11 @@
       "harness_stub": null,
       "source": "H25 program-total tests (BIT program)",
       "notes": "",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "BIT",
+        "catalog_key": "bit-2565"
+      }
     },
     {
       "id": "R45",
@@ -1308,7 +1463,8 @@
       "capability": "credit_filter_failclosed",
       "turns": [
         {
-          "question": "IT 06016414 3 หน่วยกิตเรียนช่วงไหน"
+          "question": "IT 06016414 3 หน่วยกิตเรียนช่วงไหน",
+          "context": "initial"
         }
       ],
       "expected_status": "insufficient_evidence",
@@ -1323,7 +1479,11 @@
       "harness_stub": null,
       "source": "H23-R1 + H32 (exact-course placement+credit)",
       "notes": "placement+credit partial; structured stub must record 0 calls",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R48",
@@ -1352,7 +1512,8 @@
       "capability": "projection",
       "turns": [
         {
-          "question": "IT ปี 3 ตอนเช้ามีวิชาอะไรบ้าง"
+          "question": "IT ปี 3 ตอนเช้ามีวิชาอะไรบ้าง",
+          "context": "initial"
         }
       ],
       "expected_status": "answer",
@@ -1377,7 +1538,11 @@
       "harness_stub": null,
       "source": "projection tests",
       "notes": "ตอนเช้า projected away per frozen policy; year-scope list answers; stable across reruns (semesters (1,2), 12/69 per plan)",
-      "robustness_note": ""
+      "robustness_note": "",
+      "initial_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
     },
     {
       "id": "R50",

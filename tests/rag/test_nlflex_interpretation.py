@@ -69,6 +69,7 @@ class NLFlexPublicPathTests(unittest.TestCase):
             DB_PATH,
             "IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
             intent_model_callable=lambda prompt: calls.append(prompt) or _proposal(),
+            context=QueryContext(program="IT", catalog_key="it-2565"),
         )["result"]
 
         status = response.get("status") if isinstance(response, dict) else response.status
@@ -105,6 +106,7 @@ class NLFlexPublicPathTests(unittest.TestCase):
             DB_PATH,
             "IT ปี 3 เทอม 1 มีวิชาอะไรบ้างที่มีวิชาบังคับก่อน",
             intent_model_callable=lambda prompt: calls.append(prompt) or _proposal(),
+            context=QueryContext(program="IT", catalog_key="it-2565"),
         )["result"]
 
         self.assertEqual(response.status, "insufficient_evidence")

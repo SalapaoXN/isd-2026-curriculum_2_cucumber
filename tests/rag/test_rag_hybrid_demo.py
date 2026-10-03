@@ -9,10 +9,34 @@ from unittest.mock import patch
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
 from rag.hybrid_demo import (
     DEFAULT_CURRICULUM_DB_PATH,
-    answer_question_once,
+    answer_question_once as _answer_question_once,
     main,
     run_hybrid_demo,
 )
+from rag.query_spec import parse_query_spec
+from rag.resolution import QueryContext
+
+
+def answer_question_once(db_path, question, *args, **kwargs):
+    """Pin scopeless questions to their authored current edition.
+
+    Fixture questions predate multi-edition IT/BIT/GENED; follow-ups chain
+    the returned next_context, which carries the edition forward.
+    """
+    if "conversation_context" not in kwargs:
+        authored_edition = {
+            "DSBA": "dsba-2565",
+            "IT": "it-2565",
+            "BIT": "bit-2565",
+            "GENED": "gened-2564",
+            "AIT": "ait-2566",
+        }
+        program = parse_query_spec(question).program
+        if program in authored_edition:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=authored_edition[program]
+            )
+    return _answer_question_once(db_path, question, *args, **kwargs)
 
 
 def _typed_response(final_answer="คำตอบภาษาไทย"):

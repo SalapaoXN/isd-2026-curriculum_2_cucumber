@@ -552,13 +552,36 @@ class HardQaTests(unittest.TestCase):
     def test_old_new_comparison_fails_closed_when_only_one_edition_exists(self):
         result = answer_hard_question(
             DB_PATH,
-            "วิชาที่มีในหลักสูตรเก่า IT ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
-            {"program": "IT"},
+            "วิชาที่มีในหลักสูตรเก่า AIT ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
+            {"program": "AIT"},
             lambda prompt: self.fail("missing edition pair must not call interpreter"),
         )
 
         self.assertEqual(result["status"], "no_data")
         self.assertEqual(result["action"], "insufficient_editions")
+
+    def test_old_new_comparison_resolves_legacy_and_current_edition_pair(self):
+        for program, legacy_catalog in (("IT", "it-2560"), ("BIT", "bit-2560")):
+            with self.subTest(program=program):
+                result = answer_hard_question(
+                    DB_PATH,
+                    f"วิชาที่มีในหลักสูตรเก่า {program} ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
+                    {"program": program},
+                    lambda prompt: self.fail("edition pair must not call interpreter"),
+                )
+
+                self.assertEqual(result["status"], "answer")
+                self.assertEqual(result["hard_task_type"], "old_new_comparison")
+                self.assertIn(legacy_catalog, result["answer"])
+                self.assertTrue(result["provenance"])
+                self.assertTrue(
+                    any(
+                        str(reference.get("source_filename", "")).startswith(
+                            legacy_catalog.replace("-", "")
+                        )
+                        for reference in result["provenance"]
+                    )
+                )
 
     def test_provenance_pages_are_only_canonical_fields_and_answer_uses_no_model(self):
         answer_callable_calls = []

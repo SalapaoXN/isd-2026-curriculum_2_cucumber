@@ -10,10 +10,11 @@ import rag.qa as qa_module
 from backend import main
 from rag.grounded_answer import GroundedAnswerResult
 from rag.hybrid_demo import (
-    answer_question_once,
+    answer_question_once as _answer_question_once,
     conversation_context_to_dict,
     parse_conversation_context,
 )
+from rag.query_spec import parse_query_spec
 from rag.resolution import QueryContext
 
 
@@ -23,6 +24,29 @@ FORBIDDEN_KEYS = (
     "answer", "count", "credits", "existence", "prerequisites",
     "description", "claims", "evidence", "provenance", "sql", "rows",
 )
+
+
+def answer_question_once(db_path, question, *args, **kwargs):
+    """Pin scopeless first turns to their authored current edition.
+
+    Follow-up turns chain the returned next_context (which carries the
+    edition), so only the initial scopeless turn needs the UI-selector
+    equivalent scope.
+    """
+    if "conversation_context" not in kwargs:
+        authored_edition = {
+            "DSBA": "dsba-2565",
+            "IT": "it-2565",
+            "BIT": "bit-2565",
+            "GENED": "gened-2564",
+            "AIT": "ait-2566",
+        }
+        program = parse_query_spec(question).program
+        if program in authored_edition:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=authored_edition[program]
+            )
+    return _answer_question_once(db_path, question, *args, **kwargs)
 
 
 class H17PublicHelperE2E(unittest.TestCase):
@@ -114,7 +138,9 @@ class H17PublicHelperE2E(unittest.TestCase):
                     answer_question_once(DB_PATH, "แล้วเทอม 2 ล่ะ", conversation_context=bad)
 
     def test_object_input_still_accepted(self):
-        ctx = QueryContext(program="IT", years=(3,), operations=("count",))
+        ctx = QueryContext(
+            program="IT", catalog_key="it-2565", years=(3,), operations=("count",)
+        )
         r = answer_question_once(DB_PATH, "แล้วเทอม 1 ล่ะ", conversation_context=ctx)
         self.assertEqual(r["result"].status, "answer")
 
@@ -132,7 +158,11 @@ class H17Lab10E2E(unittest.TestCase):
 
     def test_two_turn_lab10(self):
         r1 = self.client.post(
-            "/api/ask", json={"question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา"}
+            "/api/ask",
+            json={
+                "question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา",
+                "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+            },
         )
         self.assertEqual(r1.status_code, 200)
         nc = r1.json().get("next_context")

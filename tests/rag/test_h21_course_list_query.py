@@ -24,12 +24,26 @@ DB_PATH = (
 
 
 def ask(db_path, question, *args, **kwargs):
-    """Keep legacy DSBA acceptance cases pinned to their original edition."""
-    if parse_query_spec(question).program == "DSBA" and not any(
+    """Keep legacy acceptance cases pinned to their authored edition."""
+    authored_edition = {
+        "DSBA": "dsba-2565",
+        "IT": "it-2565",
+        "BIT": "bit-2565",
+        "GENED": "gened-2564",
+        "AIT": "ait-2566",
+    }
+    program = parse_query_spec(question).program
+    # Auto-pinning applies only to the shared runtime DB. Temp-DB tests
+    # construct their own catalogs and must keep exact behavior.
+    try:
+        is_shared = Path(db_path).resolve() == Path(DB_PATH).resolve()
+    except (OSError, ValueError):
+        is_shared = False
+    if program in authored_edition and is_shared and not any(
         name in kwargs for name in ("context", "conversation_context")
     ):
         kwargs["conversation_context"] = QueryContext(
-            program="DSBA", catalog_key="dsba-2565"
+            program=program, catalog_key=authored_edition[program]
         )
     return _ask(db_path, question, *args, **kwargs)
 

@@ -50,12 +50,16 @@ class RagSupplementalLoaderTest(unittest.TestCase):
             ("DSBA", "dsba-2560", "2560", "no_coop"),
             ("DSBA", "dsba-2565", "2565", "coop"),
             ("DSBA", "dsba-2565", "2565", "no_coop"),
+            ("IT", "it-2560", "2560", "coop"),
+            ("IT", "it-2560", "2560", "no_coop"),
             ("IT", "it-2565", "2565", "coop"),
             ("IT", "it-2565", "2565", "no_coop"),
+            ("BIT", "bit-2560", "2560", "coop"),
+            ("BIT", "bit-2560", "2560", "no_coop"),
             ("BIT", "bit-2565", "2565", "coop"),
             ("BIT", "bit-2565", "2565", "no_coop"),
             ("AIT", "ait-2566", "2566", "default"),
-            ("GENED", "gened-2557", "2557", "gened"),
+            ("GENED", "gened-2564", "2564", "gened"),
         ]
         paths = []
         for index, (program, catalog_key, academic_year, plan) in enumerate(editions):
@@ -127,14 +131,16 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                     """
                 ).fetchone()
 
-            self.assertEqual(counts[2:], (5, 10))
+            self.assertEqual(counts[2:], (7, 14))
             self.assertEqual(
                 totals,
                 [
                     ("ait-2566", "AIT", 120),
+                    ("bit-2560", "BIT", 126),
                     ("bit-2565", "BIT", 126),
                     ("dsba-2560", "DSBA", 126),
                     ("dsba-2565", "DSBA", 132),
+                    ("it-2560", "IT", 130),
                     ("it-2565", "IT", 129),
                 ],
             )
@@ -256,13 +262,13 @@ class RagSupplementalLoaderTest(unittest.TestCase):
             self.assertEqual(
                 sources,
                 [
-                    *(f"curriculum-{index:02d}.json" for index in range(10)),
+                    *(f"curriculum-{index:02d}.json" for index in range(14)),
                     "institution_policy.json",
                     "program_requirements.json",
                 ],
             )
             self.assertGreater(rule_count, 0)
-            self.assertEqual(requirement_count, 5)
+            self.assertEqual(requirement_count, 7)
             self.assertEqual(len(embed_calls), 1)
 
 

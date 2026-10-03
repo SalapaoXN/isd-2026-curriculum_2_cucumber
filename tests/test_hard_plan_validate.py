@@ -360,7 +360,9 @@ class HardPlanValidateTest(unittest.TestCase):
         expected = {
             ("DSBA", "dsba-2560"): 126,
             ("DSBA", "dsba-2565"): 132,
+            ("IT", "it-2560"): 130,
             ("IT", "it-2565"): 129,
+            ("BIT", "bit-2560"): 126,
             ("BIT", "bit-2565"): 126,
             ("AIT", "ait-2566"): 120,
         }
@@ -399,7 +401,9 @@ class HardPlanValidateTest(unittest.TestCase):
         plans = {
             ("DSBA", "dsba-2560"): "coop",
             ("DSBA", "dsba-2565"): "coop",
+            ("IT", "it-2560"): "no_coop",
             ("IT", "it-2565"): "no_coop",
+            ("BIT", "bit-2560"): "no_coop",
             ("BIT", "bit-2565"): "no_coop",
             ("AIT", "ait-2566"): "default",
         }

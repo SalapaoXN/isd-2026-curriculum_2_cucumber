@@ -40,6 +40,16 @@ def make_record(
 
 
 def add_bit_source_provenance(record, course_code, field, before, *, page_offset=0):
+    legacy = llm_spell_corrector.BIT_LEGACY_NAME_CORRECTION_SOURCES.get(course_code)
+    if legacy is not None:
+        filename, page = legacy
+        record["source_provenance"] = [{
+            "program": "BIT",
+            "source_filename": filename,
+            "source_page": page + page_offset,
+            "document_category": "plan",
+        }]
+        return
     page = llm_spell_corrector.BIT_NAME_CORRECTION_SOURCE_PAGE_OVERRIDES.get(
         (course_code, field, before),
         llm_spell_corrector.BIT_NAME_CORRECTION_SOURCE_PAGES[course_code],
@@ -299,6 +309,18 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                         {"program": wrong_program, "courses": [record]},
                         {(wrong_name_field, current): "LLM candidate"},
                     )
+                    # Bare placeholders (e.g. exact 'ไม่ระบุ') are never
+                    # LLM-correctable, even off-pin: the guard keeps them
+                    # fail-closed. Only reviewed pins may replace them.
+                    if (
+                        isinstance(current, str)
+                        and current in llm_spell_corrector.NON_CORRECTABLE_NAME_VALUES
+                    ):
+                        self.assertEqual(
+                            corrected["courses"][0][wrong_name_field], current
+                        )
+                        self.assertEqual(applied, [])
+                        continue
                     self.assertEqual(
                         corrected["courses"][0][wrong_name_field], "LLM candidate"
                     )
@@ -515,6 +537,18 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                         {"program": wrong_program, "courses": [record]},
                         {(wrong_name_field, current): "LLM candidate"},
                     )
+                    # Bare placeholders (e.g. exact 'ไม่ระบุ') are never
+                    # LLM-correctable, even off-pin: the guard keeps them
+                    # fail-closed. Only reviewed pins may replace them.
+                    if (
+                        isinstance(current, str)
+                        and current in llm_spell_corrector.NON_CORRECTABLE_NAME_VALUES
+                    ):
+                        self.assertEqual(
+                            corrected["courses"][0][wrong_name_field], current
+                        )
+                        self.assertEqual(applied, [])
+                        continue
                     self.assertEqual(
                         corrected["courses"][0][wrong_name_field], "LLM candidate"
                     )

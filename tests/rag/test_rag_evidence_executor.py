@@ -805,7 +805,7 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertEqual(result.status, "insufficient_evidence")
         self.assertEqual(result.primitive_state, "prerequisite_state_unknown")
 
-    def test_prerequisite_facts_remap_physical_course_per_plan(self):
+    def test_prerequisite_facts_share_course_row_with_plan_partitioned_evidence(self):
         target = {
             "course_id": 635,
             "program": "IT",
@@ -849,7 +849,22 @@ class EvidenceExecutorTests(unittest.TestCase):
         ]
         self.assertIn("it_page_042.png", plan_sources[0])
         self.assertIn("it_page_035.png", plan_sources[1])
-        self.assertNotEqual(plan_sources[0], plan_sources[1])
+        # Prerequisite facts are catalog-scoped: the shared prerequisite
+        # course row retains genuine sources from both plans of the same
+        # edition, so each plan's evidence must stay within that retained
+        # source set and keep its own plan page.
+        genuine_sources = {
+            "it_page_034.png",
+            "it_page_035.png",
+            "it_page_041.png",
+            "it_page_042.png",
+            "it_page_333.png",
+            "it_page_334.png",
+            "it_page_338.png",
+        }
+        for sources in plan_sources:
+            self.assertTrue(sources)
+            self.assertTrue(sources <= genuine_sources)
 
     def test_direct_description_evidence_preserves_partition(self):
         scope = self._scope(

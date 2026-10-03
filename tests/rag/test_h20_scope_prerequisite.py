@@ -17,7 +17,7 @@ from rag.evidence_planner import (
     plan_evidence,
 )
 from rag.qa import _merge_conversation_context
-from rag.qa import _compose_evidence_claims, ask
+from rag.qa import _compose_evidence_claims, ask as _ask
 from rag.query_spec import QuerySpec, detect_surface_operations, parse_query_spec
 from rag.resolution import QueryContext, ResolutionOutcome
 from rag.grounded_answer import compose_grounded_answer
@@ -29,6 +29,24 @@ DB_PATH = (
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Pin scopeless first turns to their authored current edition."""
+    if not any(name in kwargs for name in ("context", "conversation_context")):
+        authored_edition = {
+            "DSBA": "dsba-2565",
+            "IT": "it-2565",
+            "BIT": "bit-2565",
+            "GENED": "gened-2564",
+            "AIT": "ait-2566",
+        }
+        program = parse_query_spec(question).program
+        if program in authored_edition:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=authored_edition[program]
+            )
+    return _ask(db_path, question, *args, **kwargs)
 
 
 class H20ScopePrerequisiteTests(unittest.TestCase):

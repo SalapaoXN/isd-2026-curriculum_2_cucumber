@@ -88,9 +88,11 @@ class RagPolicyTest(unittest.TestCase):
     def test_program_totals_come_from_catalog_scoped_program_requirements(self):
         expected = {
             ("AIT", "ait-2566"): 120,
+            ("BIT", "bit-2560"): 126,
             ("BIT", "bit-2565"): 126,
             ("DSBA", "dsba-2560"): 126,
             ("DSBA", "dsba-2565"): 132,
+            ("IT", "it-2560"): 130,
             ("IT", "it-2565"): 129,
         }
         for (program, catalog_key), value in expected.items():
@@ -145,9 +147,25 @@ class RagPolicyTest(unittest.TestCase):
             self.assertEqual(answer.provenance, ())
 
     def test_no_provider_or_curriculum_planner_is_required(self):
-        answer = answer_policy_question(DB_PATH, "IT ต้องเรียนกี่หน่วยกิต")
+        answer = answer_policy_question(DB_PATH, "AIT ต้องเรียนกี่หน่วยกิต")
         self.assertEqual(answer.status, "complete")
-        self.assertEqual(answer.rendered_answer, "หลักสูตร IT ต้องเรียนทั้งหมด 129 credits")
+        self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 credits")
+
+    def test_multi_edition_program_total_without_catalog_fails_closed(self):
+        # IT now has two catalog editions (it-2560: 130, it-2565: 129), so
+        # an edition-ambiguous total must fail closed instead of guessing.
+        answer = answer_policy_question(DB_PATH, "IT ต้องเรียนกี่หน่วยกิต")
+        self.assertEqual(answer.status, "insufficient_evidence")
+        legacy = answer_policy_question(
+            DB_PATH, "IT ต้องเรียนกี่หน่วยกิต", catalog_key="it-2560"
+        )
+        self.assertEqual(legacy.status, "complete")
+        self.assertEqual(legacy.value, 130)
+        current = answer_policy_question(
+            DB_PATH, "IT ต้องเรียนกี่หน่วยกิต", catalog_key="it-2565"
+        )
+        self.assertEqual(current.status, "complete")
+        self.assertEqual(current.value, 129)
 
 
 if __name__ == "__main__":
