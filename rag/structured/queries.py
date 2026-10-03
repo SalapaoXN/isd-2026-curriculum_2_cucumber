@@ -152,6 +152,10 @@ def _source_pages(references: Iterable[Mapping[str, Any]]) -> list[int]:
 
 
 def _course_fields(row: Mapping[str, Any]) -> dict[str, Any]:
+    keys = row.keys()
+    placement_type = (
+        row["requirement_type"] if "requirement_type" in keys else None
+    )
     return {
         "course_id": int(row["course_id"]),
         "catalog_id": row["catalog_id"],
@@ -163,7 +167,7 @@ def _course_fields(row: Mapping[str, Any]) -> dict[str, Any]:
         "description_th": row["description_th"],
         "description_en": row["description_en"],
         "category": row["category"],
-        "course_type": row["course_type"],
+        "course_type": placement_type or row["course_type"],
         "prerequisite_text": row["prerequisite_text"],
         "notes": row["notes"],
     }
@@ -1703,10 +1707,9 @@ def scoped_course_set(
             members: list[dict[str, Any]] = []
             if alternative_group_id is not None:
                 members = _alternative_members(connection, int(alternative_group_id))
-                if is_elective_category and not any(
-                    isinstance(member.get("course_type"), str)
-                    and member["course_type"].strip() == "เลือก"
-                    for member in members
+                if is_elective_category and not (
+                    isinstance(row["requirement_type"], str)
+                    and row["requirement_type"].strip() == "เลือก"
                 ):
                     continue
                 if targets and not any(
@@ -1717,8 +1720,8 @@ def scoped_course_set(
                     continue
             else:
                 if is_elective_category and not (
-                    isinstance(row["course_type"], str)
-                    and row["course_type"].strip() == "เลือก"
+                    isinstance(row["requirement_type"], str)
+                    and row["requirement_type"].strip() == "เลือก"
                 ):
                     continue
                 if targets and (
@@ -1850,7 +1853,7 @@ def scoped_course_set(
                     "course_code": row["course_code"],
                     "name_th": row["name_th"],
                     "name_en": row["name_en"],
-                    "course_type": row["course_type"],
+                    "course_type": row["requirement_type"],
                     "credits": row["credits"],
                     "placement_credits": row["credits_override"] or row["credits"],
                     "provenance": references,

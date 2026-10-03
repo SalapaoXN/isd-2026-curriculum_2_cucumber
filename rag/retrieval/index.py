@@ -161,7 +161,7 @@ def _source_document_key(entry: Mapping[str, Any]) -> str | None:
     return None
 
 
-def _document_metadata(input_path: Path) -> tuple[str, str, str | None]:
+def _document_metadata(input_path: Path) -> tuple[str, str, list[str]]:
     with input_path.open("r", encoding="utf-8") as stream:
         document = json.load(stream)
     if not isinstance(document, Mapping):
@@ -180,7 +180,37 @@ def _document_metadata(input_path: Path) -> tuple[str, str, str | None]:
         ) or "default"
     else:
         plan = _as_text(plan_value) or _as_text(document.get("plan_name")) or "default"
-    return program, plan, _source_document_key(document)
+    source_document_keys = {
+        key for key in [_source_document_key(document)] if key is not None
+    }
+    provenance = document.get("source_provenance")
+    entries = provenance if isinstance(provenance, list) else [provenance]
+    source_document_keys.update(
+        key
+        for entry in entries
+        if isinstance(entry, Mapping)
+        for key in [_source_document_key(entry)]
+        if key is not None
+    )
+    courses = document.get("courses")
+    if isinstance(courses, list):
+        for course in courses:
+            if not isinstance(course, Mapping):
+                continue
+            course_provenance = course.get("source_provenance")
+            course_entries = (
+                course_provenance
+                if isinstance(course_provenance, list)
+                else [course_provenance]
+            )
+            source_document_keys.update(
+                key
+                for entry in course_entries
+                if isinstance(entry, Mapping)
+                for key in [_source_document_key(entry)]
+                if key is not None
+            )
+    return program, plan, sorted(source_document_keys)
 
 
 def index_path_for_source(
@@ -423,14 +453,15 @@ def _one_or_many(values: Iterable[Any]) -> Any:
 def _enrich_chunks(
     database_path: Path,
     chunks: Iterable[Mapping[str, Any]],
-    source_by_catalog_id: Mapping[int, tuple[Path, str, str, str | None, str]],
+    source_by_catalog_id: Mapping[
+        int, list[tuple[Path, str, str, list[str], str]]
+    ],
 ) -> list[dict[str, Any]]:
     course_codes: dict[int, str] = {}
     course_catalog_ids: dict[int, int] = {}
     placement_metadata: dict[
         int, tuple[Any, Any, int | None, int | None, int, list[str]]
     ] = {}
-    placements_by_course: defaultdict[int, list[tuple[Any, Any]]] = defaultdict(list)
     group_codes: defaultdict[int, list[str]] = defaultdict(list)
     group_catalog_ids: dict[int, int] = {}
     provenance_keys: dict[int, str] = {}
@@ -463,7 +494,6 @@ def _enrich_chunks(
                 codes = []
                 if course_id is not None and course_id in course_codes:
                     codes.append(course_codes[course_id])
-                    placements_by_course[course_id].append((row[1], row[2]))
                 placement_metadata[placement_id] = (
                     row[1],
                     row[2],
@@ -500,8 +530,8 @@ def _enrich_chunks(
         pass
 
     def source_context(
-        chunk: Mapping[str, Any],
-    ) -> tuple[Path, str, str, str | None, str]:
+        chunk: Mapping[str, Any], references: list[dict[str, Any]]
+    ) -> list[tuple[Path, str, str, list[str], str]]:
         catalog_id: int | None = None
         placement_id = chunk.get("placement_id")
         course_id = chunk.get("course_id")
@@ -514,57 +544,99 @@ def _enrich_chunks(
             catalog_id = course_catalog_ids.get(int(course_id))
         if catalog_id is None and group_id is not None:
             catalog_id = group_catalog_ids.get(int(group_id))
-        if catalog_id is not None and catalog_id in source_by_catalog_id:
-            return source_by_catalog_id[catalog_id]
-        if len(source_by_catalog_id) == 1:
-            return next(iter(source_by_catalog_id.values()))
-        raise ValueError("cannot determine a source document for a retrieval chunk")
+        candidates = source_by_catalog_id.get(catalog_id, [])
+        if not candidates:
+            all_sources = [source for values in source_by_catalog_id.values() for source in values]
+            if len(all_sources) == 1:
+                candidates = all_sources
+            else:
+                raise ValueError("cannot determine a source document for a retrieval chunk")
+
+        evidence_keys = {
+            str(reference.get("source_document_key")).strip()
+            for reference in references
+            if reference.get("source_document_key") is not None
+            and str(reference.get("source_document_key")).strip()
+        }
+        known_evidence_keys = {
+            key for source in candidates for key in source[3]
+        }
+        unknown_evidence_keys = evidence_keys - known_evidence_keys
+        if unknown_evidence_keys:
+            raise ValueError(
+                "cannot attribute evidence to a source document for retrieval chunk "
+                f"{chunk.get('chunk_id')!r}; unknown evidence keys="
+                f"{sorted(unknown_evidence_keys)!r}"
+            )
+
+        if placement_id is not None:
+            placement = placement_metadata.get(int(placement_id))
+            if placement is not None:
+                plan_candidates = [
+                    source
+                    for source in candidates
+                    if str(source[1]).strip().casefold()
+                    == str(placement[0]).strip().casefold()
+                    and str(source[2]).strip().casefold()
+                    == str(placement[1]).strip().casefold()
+                ]
+                if plan_candidates:
+                    if evidence_keys:
+                        plan_candidates = [
+                            source
+                            for source in plan_candidates
+                            if evidence_keys.intersection(source[3])
+                        ]
+                        if not plan_candidates:
+                            raise ValueError(
+                                "cannot attribute evidence to the matching plan for "
+                                f"retrieval chunk {chunk.get('chunk_id')!r}"
+                            )
+                    return plan_candidates
+        evidence_candidates = [
+            source for source in candidates if evidence_keys.intersection(source[3])
+        ]
+        if evidence_candidates:
+            return evidence_candidates
+        if len(candidates) == 1:
+            return candidates
+        raise ValueError(
+            "cannot determine a source document for retrieval chunk "
+            f"{chunk.get('chunk_id')!r}; evidence keys={sorted(evidence_keys)!r}; "
+            f"candidate keys={[source[3] for source in candidates]!r}"
+        )
 
     enriched: list[dict[str, Any]] = []
     for original_chunk in chunks:
         chunk = dict(original_chunk)
-        (
-            input_path,
-            default_program,
-            default_plan,
-            default_source_document_key,
-            source_identity,
-        ) = (
-            source_context(chunk)
-        )
         references = [
             dict(reference)
             for reference in chunk.get("provenance", [])
             if isinstance(reference, Mapping)
         ]
-        source_document_keys: list[str] = []
-        source_pages: list[Any] = []
         for reference in references:
             provenance_id = reference.get("provenance_id")
             key = reference.get("source_document_key")
             if key is None and provenance_id is not None:
                 key = provenance_keys.get(int(provenance_id))
-            if key is None:
-                key = default_source_document_key
             if key is not None and str(key).strip():
                 key_text = str(key).strip()
                 reference["source_document_key"] = key_text
-                source_document_keys.append(key_text)
-            page = reference.get("source_page")
-            if page is not None:
-                source_pages.append(page)
-        chunk["provenance"] = references
+        selected_sources = source_context(chunk, references)
+        if len(selected_sources) > 1 and any(
+            not reference.get("source_document_key") for reference in references
+        ):
+            raise ValueError(
+                "cannot partition unkeyed evidence across source documents for "
+                f"retrieval chunk {chunk.get('chunk_id')!r}"
+            )
 
-        program_values: list[Any] = [default_program]
-        plan_values: list[Any] = [default_plan]
         course_code_values: list[Any] = []
         placement_id = chunk.get("placement_id")
         course_id = chunk.get("course_id")
         group_id = chunk.get("alternative_group_id")
         if placement_id is not None and int(placement_id) in placement_metadata:
             placement = placement_metadata[int(placement_id)]
-            program_values.append(placement[0])
-            plan_values.append(placement[1])
             course_code_values.extend(placement[5])
             if placement[3] is not None:
                 course_code_values.extend(group_codes[int(placement[3])])
@@ -572,9 +644,6 @@ def _enrich_chunks(
             course_code = course_codes.get(int(course_id))
             if course_code is not None:
                 course_code_values.append(course_code)
-            for program, plan in placements_by_course.get(int(course_id), []):
-                program_values.append(program)
-                plan_values.append(plan)
         elif group_id is not None:
             course_code_values.extend(group_codes[int(group_id)])
 
@@ -585,22 +654,54 @@ def _enrich_chunks(
             else:
                 course_code_values.append(existing_codes)
 
+        embedded_pages: list[Any] = []
         if chunk.get("source_page") is not None:
             existing_pages = chunk["source_page"]
             if isinstance(existing_pages, (list, tuple, set)):
-                source_pages.extend(existing_pages)
+                embedded_pages = list(existing_pages)
             else:
-                source_pages.append(existing_pages)
+                embedded_pages = [existing_pages]
 
-        chunk["original_chunk_id"] = chunk.get("chunk_id")
-        chunk["source_file_identity"] = source_identity
-        chunk["source_filename"] = input_path.name
-        chunk["program"] = _one_or_many(program_values)
-        chunk["plan"] = _one_or_many(plan_values)
-        chunk["course_code"] = _one_or_many(course_code_values)
-        chunk["source_page"] = _unique_values(source_pages)
-        chunk["source_document_key"] = _one_or_many(source_document_keys)
-        enriched.append(chunk)
+        all_evidence_keys = {
+            str(reference.get("source_document_key")).strip()
+            for reference in references
+            if reference.get("source_document_key") is not None
+            and str(reference.get("source_document_key")).strip()
+        }
+        for input_path, default_program, default_plan, document_keys, source_identity in selected_sources:
+            selected_references = [
+                reference
+                for reference in references
+                if not all_evidence_keys
+                or not document_keys
+                or reference.get("source_document_key") is None
+                or str(reference.get("source_document_key")).strip() in document_keys
+            ]
+            source_document_keys: list[str] = []
+            source_pages = list(embedded_pages)
+            for reference in selected_references:
+                key = reference.get("source_document_key")
+                if key is not None and str(key).strip():
+                    key_text = str(key).strip()
+                    reference["source_document_key"] = key_text
+                    source_document_keys.append(key_text)
+                page = reference.get("source_page")
+                if page is not None:
+                    source_pages.append(page)
+
+            selected_chunk = dict(chunk)
+            selected_chunk["provenance"] = selected_references
+            selected_chunk["original_chunk_id"] = chunk.get("chunk_id")
+            selected_chunk["source_file_identity"] = source_identity
+            selected_chunk["source_filename"] = input_path.name
+            selected_chunk["program"] = default_program
+            selected_chunk["plan"] = default_plan
+            selected_chunk["course_code"] = _one_or_many(course_code_values)
+            selected_chunk["source_page"] = _unique_values(source_pages)
+            selected_chunk["source_document_key"] = _one_or_many(
+                source_document_keys
+            )
+            enriched.append(selected_chunk)
     return enriched
 
 
@@ -662,16 +763,15 @@ def ensure_index(
             supplemental_json_paths["program_requirements"],
             database_path,
         )
-    source_by_catalog_id = {
-        catalog_id: (
-            source_path,
-            *_document_metadata(source_path),
-            source_row[0],
+    source_by_catalog_id: defaultdict[
+        int, list[tuple[Path, str, str, list[str], str]]
+    ] = defaultdict(list)
+    for source_path, catalog_id, source_row in zip(
+        source_paths, catalog_ids, source_rows[: len(source_paths)], strict=True
+    ):
+        source_by_catalog_id[catalog_id].append(
+            (source_path, *_document_metadata(source_path), source_row[0])
         )
-        for source_path, catalog_id, source_row in zip(
-            source_paths, catalog_ids, source_rows[: len(source_paths)], strict=True
-        )
-    }
     all_chunks = _enrich_chunks(
         database_path,
         build_chunks(database_path),

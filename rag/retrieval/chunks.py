@@ -58,6 +58,7 @@ def _provenance_map(
             provenance.source_page,
             provenance.document_page,
             provenance.document_category,
+            provenance.source_document_key,
             provenance.source_uri,
             provenance.source_locator,
             provenance.excerpt
@@ -77,6 +78,7 @@ def _provenance_map(
                 "source_page",
                 "document_page",
                 "document_category",
+                "source_document_key",
                 "source_uri",
                 "source_locator",
                 "excerpt",
