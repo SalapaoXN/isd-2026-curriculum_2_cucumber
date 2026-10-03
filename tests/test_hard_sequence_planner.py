@@ -123,8 +123,9 @@ class HardSequencePlannerTest(unittest.TestCase):
         )
         connection.execute(
             """INSERT INTO program_requirements
-               (requirement_id, program_code, requirement_type, operator, value, unit)
-               VALUES (1, 'TST', 'total_program_credits', '=', 15, 'credits')"""
+               (requirement_id, catalog_id, program_code, requirement_type,
+                operator, value, unit)
+               VALUES (1, 1, 'TST', 'total_program_credits', '=', 15, 'credits')"""
         )
         connection.execute("INSERT INTO program_requirement_provenance VALUES (1, 331)")
         connection.execute(

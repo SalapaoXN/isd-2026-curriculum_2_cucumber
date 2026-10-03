@@ -298,5 +298,17 @@
         "field": "name_en",
         "before": "PROJECT IN BUSINESS INFORMATION TECNOLOGY 2",
         "after": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2"
+    },
+    {
+        "course_code": "96644042",
+        "field": "note",
+        "before": null,
+        "after": "กลุ่มวิชาที่กำหนดโดยคณะ"
+    },
+    {
+        "course_code": "96642033",
+        "field": "note",
+        "before": null,
+        "after": "กลุ่มวิชาที่กำหนดโดยคณะ"
     }
 ]

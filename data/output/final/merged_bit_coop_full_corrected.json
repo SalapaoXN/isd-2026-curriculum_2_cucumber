@@ -8,7 +8,7 @@
     {
       "code": "06036100",
       "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
-      "name_en": "INFORMATION TECHNOLOGV FUNDAMENTALS",
+      "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -70,7 +70,7 @@
     {
       "code": "06036118",
       "name_th": "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
-      "name_en": "PROBLEM SOLNG IN INFORMATION TECHNOLOGV",
+      "name_en": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -100,7 +100,7 @@
     },
     {
       "code": "96641001",
-      "name_th": "โรงเรียนสรางเสนห์",
+      "name_th": "โรงเรียนสร้างเสน่ห์",
       "name_en": "CHARM SCHOOL",
       "credits": "2(1-2-3)",
       "category": "หมวดวิชาเฉพาะ",
@@ -123,7 +123,7 @@
     {
       "code": "96641003",
       "name_th": "กีฬาและนันทนาการ",
-      "name_en": "SPORTS AND RECREATIONAL ACTIITIES",
+      "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
       "credits": "1(0-3-2)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -173,7 +173,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": null,
+      "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
       "year": 1,
       "semester": 1,
       "source_provenance": [
@@ -220,7 +220,7 @@
     {
       "code": "06036109",
       "name_th": "กระบวนการและโมเดลทางธุรกิจ",
-      "name_en": "BUSINESS PROCESSES AND BUSIESS MODEL",
+      "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -251,7 +251,7 @@
     {
       "code": "06036119",
       "name_th": "พื้นฐานการเขียนโปรแกรม",
-      "name_en": "PROCRAMMNG FUNDAMENTALS",
+      "name_en": "PROGRAMMING FUNDAMENTALS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -282,7 +282,7 @@
     {
       "code": "06036125",
       "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
-      "name_en": "COMPUTER ARCHITECTURE AND OPERATING SSTEM",
+      "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -342,7 +342,7 @@
     {
       "code": "96641002",
       "name_th": "ความฉลาดทางดิจิทัล",
-      "name_en": "DIGITAL ITELLIGENCE QUOTIENT",
+      "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -432,8 +432,8 @@
     },
     {
       "code": "06036105",
-      "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญริ",
-      "name_en": "FINANCAL ACCOUNTING FOR NON ACCOUNTANTS",
+      "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
+      "name_en": "FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -502,7 +502,7 @@
     {
       "code": "06036120",
       "name_th": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
-      "name_en": "DATA STRUCTURES AND ALGORTHMS PRINCIPLES",
+      "name_en": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -602,7 +602,7 @@
     {
       "code": "06036111",
       "name_th": "เทคโนโลยีดิจิทัลสำหรับธุรกิจ",
-      "name_en": "DIGITAL TECHNOLOCY FOR BUSIESS",
+      "name_en": "DIGITAL TECHNOLOGY FOR BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -633,7 +633,7 @@
     {
       "code": "06036112",
       "name_th": "แนวคิดระบบฐานข้อมูล",
-      "name_en": "DATABASE SVSTEM CONCEPTS",
+      "name_en": "DATABASE SYSTEM CONCEPTS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -670,8 +670,8 @@
     },
     {
       "code": "06036113",
-      "name_th": "การออกแจเบบส่วนต่อประสานกับมนุษย์",
-      "name_en": "HUMAN ITERFACE DESIGN",
+      "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
+      "name_en": "HUMAN INTERFACE DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -702,7 +702,7 @@
     {
       "code": "06036124",
       "name_th": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น",
-      "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITV",
+      "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -755,7 +755,7 @@
     {
       "code": "06036107",
       "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
-      "name_en": "INFORMATION TECHNOLOGV PROJECT MANAGEMENT",
+      "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -786,7 +786,7 @@
     {
       "code": "06036110",
       "name_th": "การวางแผนทรัพยากรองค์กร",
-      "name_en": "ENTERPRISE RESOURCE PLANNNG",
+      "name_en": "ENTERPRISE RESOURCE PLANNING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -817,7 +817,7 @@
     {
       "code": "06036114",
       "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
-      "name_en": "WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS",
+      "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -848,7 +848,7 @@
     {
       "code": "06036121",
       "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ",
-      "name_en": "BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN",
+      "name_en": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -879,7 +879,7 @@
     {
       "code": "06036123",
       "name_th": "เทคโนโลยีกลุ่มเมฆ",
-      "name_en": "CLOUD TECHNOLOCY",
+      "name_en": "CLOUD TECHNOLOGY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -993,7 +993,7 @@
     },
     {
       "code": "96643021",
-      "name_th": "ผูประกอบการสมัยใหม่",
+      "name_th": "ผู้ประกอบการสมัยใหม่",
       "name_en": "MODERN ENTREPRENEURS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -1059,8 +1059,8 @@
     },
     {
       "code": "06036115",
-      "name_th": "ความมนคงของระบบสารสนเทศ",
-      "name_en": "INFORMATION SYSTEM SECURIT",
+      "name_th": "ความมั่นคงของระบบสารสนเทศ",
+      "name_en": "INFORMATION SYSTEM SECURITY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1090,14 +1090,14 @@
     },
     {
       "code": "96642033",
-      "name_th": "กฎหมายสำหรับคนรุนใหม่",
+      "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
       "name_en": "LAW FOR NEW GENERATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": null,
+      "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
       "year": 4,
       "semester": 1,
       "source_provenance": [

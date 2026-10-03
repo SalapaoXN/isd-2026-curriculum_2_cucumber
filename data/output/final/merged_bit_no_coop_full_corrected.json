@@ -38,7 +38,7 @@
         },
         {
             "code": "06036101",
-            "name_th": "สถิติศาสตร์ สำหรับธุรกิจ",
+            "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
             "name_en": "MATHEMATICS FOR BUSINESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -166,14 +166,14 @@
         },
         {
             "code": "96644042",
-            "name_th": "กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ",
+            "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
             "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
-            "note": null,
+            "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
             "year": 1,
             "semester": 1,
             "source_provenance": [
@@ -1107,14 +1107,14 @@
         },
         {
             "code": "96642033",
-            "name_th": "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
+            "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
             "name_en": "LAW FOR NEW GENERATION",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
-            "note": null,
+            "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
             "year": 4,
             "semester": 1,
             "source_provenance": [

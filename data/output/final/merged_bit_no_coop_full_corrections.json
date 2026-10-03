@@ -316,5 +316,35 @@
         "field": "name_en",
         "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIE EDUCATION",
         "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
+    },
+    {
+        "course_code": "06036101",
+        "field": "name_th",
+        "before": "สถิติศาสตร์ สำหรับธุรกิจ",
+        "after": "คณิตศาสตร์สำหรับธุรกิจ"
+    },
+    {
+        "course_code": "96644042",
+        "field": "name_th",
+        "before": "กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ",
+        "after": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
+    },
+    {
+        "course_code": "96644042",
+        "field": "note",
+        "before": null,
+        "after": "กลุ่มวิชาที่กำหนดโดยคณะ"
+    },
+    {
+        "course_code": "96642033",
+        "field": "name_th",
+        "before": "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
+        "after": "กฎหมายสำหรับคนรุ่นใหม่"
+    },
+    {
+        "course_code": "96642033",
+        "field": "note",
+        "before": null,
+        "after": "กลุ่มวิชาที่กำหนดโดยคณะ"
     }
 ]

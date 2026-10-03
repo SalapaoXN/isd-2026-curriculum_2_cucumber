@@ -1522,5 +1522,9 @@
                 }
             ]
         }
-    ]
+    ],
+    "catalog": {
+        "catalog_key": "ait-2566",
+        "academic_year": "2566"
+    }
 }

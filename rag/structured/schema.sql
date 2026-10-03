@@ -48,12 +48,13 @@ CREATE TABLE policy_fact_provenance (
 
 CREATE TABLE program_requirements (
     requirement_id INTEGER PRIMARY KEY,
+    catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
     program_code TEXT NOT NULL,
     requirement_type TEXT NOT NULL,
     operator TEXT NOT NULL,
     value NUMERIC NOT NULL,
     unit TEXT NOT NULL,
-    UNIQUE (program_code, requirement_type)
+    UNIQUE (catalog_id, program_code, requirement_type)
 );
 
 CREATE TABLE program_requirement_provenance (

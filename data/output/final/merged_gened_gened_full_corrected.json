@@ -7866,5 +7866,9 @@
             "desc_th": "ฝึกการใช้คำศัพท์ สำนวน การใช้ภาษามาเลย์เชิงท่องเทียว การสนทนาในสถานการณ์ต่างๆ ระหว่างการ\nเดินทาง  รวมทัง การสือสารข้ามวัฒนธรรม",
             "desc_en": "PRACTICE OF MALAY VOCABULARY AS WELL\nAS\nEXPRESSIONS, LANGUAGE\nUSE\nOF MALAY FOR TRAVEL,\nCONVERSATIONS IN VARIOUS SITUATIONS DURING TRIPS, AND INTERCULTURAL COMMUNICATION."
         }
-    ]
+    ],
+    "catalog": {
+        "catalog_key": "gened-2557",
+        "academic_year": "2557"
+    }
 }

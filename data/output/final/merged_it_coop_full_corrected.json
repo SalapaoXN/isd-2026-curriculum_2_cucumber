@@ -2918,5 +2918,9 @@
         }
       ]
     }
-  ]
+  ],
+  "catalog": {
+    "catalog_key": "it-2565",
+    "academic_year": "2565"
+  }
 }

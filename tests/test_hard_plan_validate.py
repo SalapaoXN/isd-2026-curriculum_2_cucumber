@@ -74,8 +74,9 @@ class HardPlanValidateTest(unittest.TestCase):
         )
         connection.execute(
             """INSERT INTO program_requirements
-               (requirement_id, program_code, requirement_type, operator, value, unit)
-               VALUES (1, 'TST', 'total_program_credits', '=', 20, 'credits')"""
+               (requirement_id, catalog_id, program_code, requirement_type,
+                operator, value, unit)
+               VALUES (1, 1, 'TST', 'total_program_credits', '=', 20, 'credits')"""
         )
         connection.executemany(
             """INSERT INTO provenance
@@ -309,7 +310,7 @@ class HardPlanValidateTest(unittest.TestCase):
         self.assertIsNone(result["credit_requirements"][0]["measured_value"])
         self.assertFalse(result.get("graduation_verdict"))
 
-    def test_dsba_2560_does_not_inherit_2565_program_credit_requirement(self):
+    def test_dsba_editions_use_their_own_program_credit_requirements(self):
         db_path = Path("cucumber_outputs/runtime/curriculum.db")
         if not db_path.exists():
             self.skipTest("runtime curriculum DB is not present")
@@ -321,7 +322,19 @@ class HardPlanValidateTest(unittest.TestCase):
             db_path, "DSBA", "coop", catalog_key="dsba-2565"
         )
 
-        self.assertEqual(old_edition["credit_requirements"], [])
+        old_total = next(
+            requirement for requirement in old_edition["credit_requirements"]
+            if requirement["requirement_type"] == "total_program_credits"
+        )
+        self.assertEqual(old_total["required_value"], 126)
+        self.assertTrue(old_total["provenance"])
+        self.assertNotEqual(old_total["required_value"], 132)
+        self.assertTrue(
+            all(
+                reference["source_filename"].startswith("dsba2560_page_")
+                for reference in old_total["provenance"]
+            )
+        )
         old_credit_check = next(
             check for check in old_edition["checks"]
             if check["check"] == "program_credit_requirements"
@@ -334,10 +347,108 @@ class HardPlanValidateTest(unittest.TestCase):
         self.assertEqual(current_total["required_value"], 132)
         self.assertTrue(
             any(
-                reference.get("source_page") == 6
+                reference.get("source_page") in {32, 39}
                 for reference in current_total["provenance"]
             )
         )
+
+    def test_degree_program_totals_are_catalog_scoped_and_provenanced(self):
+        db_path = Path("cucumber_outputs/runtime/curriculum.db")
+        if not db_path.exists():
+            self.skipTest("runtime curriculum DB is not present")
+
+        expected = {
+            ("DSBA", "dsba-2560"): 126,
+            ("DSBA", "dsba-2565"): 132,
+            ("IT", "it-2565"): 129,
+            ("BIT", "bit-2565"): 126,
+            ("AIT", "ait-2566"): 120,
+        }
+        with closing(sqlite3.connect(db_path)) as connection:
+            rows = connection.execute(
+                """SELECT catalog_key, program_code, value, requirement_id
+                   FROM program_requirements
+                   JOIN catalogs USING (catalog_id)
+                   WHERE requirement_type = 'total_program_credits'
+                   ORDER BY catalog_key"""
+            ).fetchall()
+            self.assertEqual(
+                {(program, catalog): value for catalog, program, value, _ in rows},
+                expected,
+            )
+            for _, _, _, requirement_id in rows:
+                provenance = connection.execute(
+                    """SELECT document_category, source_page
+                       FROM program_requirement_provenance
+                       JOIN provenance USING (provenance_id)
+                       WHERE requirement_id = ?""",
+                    (requirement_id,),
+                ).fetchall()
+                self.assertTrue(provenance)
+                self.assertTrue(all(category == "plan" and page for category, page in provenance))
+
+            self.assertEqual(
+                connection.execute(
+                    """SELECT COUNT(*) FROM program_requirements
+                       WHERE program_code = 'GENED'
+                         AND requirement_type = 'total_program_credits'"""
+                ).fetchone()[0],
+                0,
+            )
+
+        plans = {
+            ("DSBA", "dsba-2560"): "coop",
+            ("DSBA", "dsba-2565"): "coop",
+            ("IT", "it-2565"): "no_coop",
+            ("BIT", "bit-2565"): "no_coop",
+            ("AIT", "ait-2566"): "default",
+        }
+        for (program, catalog_key), plan in plans.items():
+            with self.subTest(program=program, catalog_key=catalog_key):
+                result = validate_curriculum_plan_structure(
+                    db_path, program, plan, catalog_key=catalog_key
+                )
+                total = next(
+                    requirement for requirement in result["credit_requirements"]
+                    if requirement["requirement_type"] == "total_program_credits"
+                )
+                self.assertEqual(total["required_value"], expected[(program, catalog_key)])
+                self.assertTrue(total["provenance"])
+
+    def test_requirement_selection_is_catalog_scoped_and_unscoped_is_ambiguous(self):
+        from backend.hard_plan_validate import _program_requirements
+
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.row_factory = sqlite3.Row
+            connection.execute(
+                "INSERT INTO catalogs(catalog_id, catalog_key) VALUES (2, 'fixture-2')"
+            )
+            connection.execute("INSERT INTO programs VALUES (2, 2, 'TST', 'tst')")
+            connection.execute(
+                """INSERT INTO program_requirements
+                   (catalog_id, program_code, requirement_type, operator, value, unit)
+                   VALUES (2, 'TST', 'total_program_credits', '=', 30, 'credits')"""
+            )
+            connection.execute(
+                """INSERT INTO provenance
+                   (provenance_id, source_document_key, program, source_filename,
+                    source_page, document_category)
+                   VALUES (542, 'fixture-2-requirement', 'TST', 'requirements-2.pdf',
+                           31, 'program_requirement')"""
+            )
+            connection.execute("INSERT INTO program_requirement_provenance VALUES (2, 542)")
+            connection.commit()
+            unscoped, unscoped_complete = _program_requirements(connection, "TST")
+            first, first_complete = _program_requirements(
+                connection, "TST", "fixture"
+            )
+            second, second_complete = _program_requirements(
+                connection, "TST", "fixture-2"
+            )
+
+        self.assertEqual((unscoped, unscoped_complete), ([], False))
+        self.assertEqual((first[0]["required_value"], first_complete), (20, True))
+        self.assertEqual((second[0]["required_value"], second_complete), (30, True))
 
 
 if __name__ == "__main__":

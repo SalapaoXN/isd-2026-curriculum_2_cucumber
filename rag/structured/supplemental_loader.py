@@ -187,6 +187,7 @@ def _load_program_requirements(
         if not isinstance(raw_requirement, Mapping):
             raise ValueError("program requirement must be an object")
         program = _required_text(raw_requirement.get("program"), "program")
+        catalog_key = _required_text(raw_requirement.get("catalog_key"), "catalog_key")
         requirement_type = _required_text(
             raw_requirement.get("requirement_type"), "requirement_type"
         )
@@ -200,23 +201,53 @@ def _load_program_requirements(
             or any(not isinstance(reference, Mapping) for reference in references)
         ):
             raise ValueError("program requirement is missing source provenance")
+        if any(
+            reference.get("document_category") not in {"plan", "program_requirement"}
+            for reference in references
+        ):
+            raise ValueError("program requirement provenance must cite an authoritative plan")
+        if any(
+            reference.get("program") not in (None, program)
+            for reference in references
+        ):
+            raise ValueError("program requirement provenance has a mismatched program")
+
+        catalog_rows = connection.execute(
+            "SELECT catalog_id FROM catalogs WHERE catalog_key = ? ORDER BY catalog_id",
+            (catalog_key,),
+        ).fetchall()
+        if len(catalog_rows) != 1:
+            raise ValueError(
+                f"program requirement catalog_key must resolve exactly once: {catalog_key!r}"
+            )
+        catalog_id = int(catalog_rows[0][0])
+        program_rows = connection.execute(
+            """SELECT program_id FROM programs
+               WHERE catalog_id = ? AND UPPER(program_code_normalized) = UPPER(?)
+               ORDER BY program_id""",
+            (catalog_id, program),
+        ).fetchall()
+        if len(program_rows) != 1:
+            raise ValueError(
+                f"program {program!r} must exist exactly once in catalog {catalog_key!r}"
+            )
         refs = _provenance_ids(
             connection,
             references,
             program,
             _source_document_key({"source": path.name}),
             provenance_cache,
-            allowed_categories=_SUPPLEMENTAL_DOCUMENT_CATEGORIES,
+            allowed_categories={"plan", "program_requirement"},
         )
         if not refs:
             raise ValueError("program requirement has no provenance")
         cursor = connection.execute(
             """
             INSERT INTO program_requirements
-                (program_code, requirement_type, operator, value, unit)
-            VALUES (?, ?, ?, ?, ?)
+                (catalog_id, program_code, requirement_type, operator, value, unit)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (program, requirement_type, operator, value, unit),
+            (catalog_id, program, requirement_type, operator, value, unit),
         )
         requirement_id = int(cursor.lastrowid)
         connection.executemany(

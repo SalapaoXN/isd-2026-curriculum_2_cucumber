@@ -15,15 +15,20 @@ DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curricul
 
 
 class RagPolicyTest(unittest.TestCase):
-    def test_dsba_total_requirement_requires_catalog_provenance(self):
-        for catalog_key in ("dsba-2560", "dsba-2565"):
+    def test_dsba_total_requirement_is_selected_by_catalog(self):
+        expected = {"dsba-2560": 126, "dsba-2565": 132}
+        for catalog_key, total in expected.items():
             answer = answer_policy_question(
                 DB_PATH,
                 "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
                 catalog_key=catalog_key,
             )
-            self.assertEqual(answer.status, "insufficient_evidence")
-            self.assertEqual(answer.provenance, ())
+            self.assertEqual(answer.status, "complete")
+            self.assertEqual(answer.value, total)
+            self.assertTrue(answer.provenance)
+            self.assertTrue(
+                all(reference["document_category"] == "plan" for reference in answer.provenance)
+            )
 
             result = ask(
                 DB_PATH,
@@ -33,8 +38,8 @@ class RagPolicyTest(unittest.TestCase):
                 ),
             )
             grounded = result["result"]
-            self.assertNotEqual(grounded.status, "answer")
-            self.assertNotIn("132", grounded.final_answer)
+            self.assertEqual(grounded.status, "answer")
+            self.assertIn(str(total), grounded.final_answer)
 
         unscoped = route_policy_question(
             DB_PATH, "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต"
@@ -80,17 +85,27 @@ class RagPolicyTest(unittest.TestCase):
         self.assertEqual(cleared.condition, "at_least")
         self.assertNotEqual(entry.condition, cleared.condition)
 
-    def test_program_totals_come_from_program_requirements(self):
-        expected = {"AIT": 120, "BIT": 126, "DSBA": 132, "IT": 129}
-        for program, value in expected.items():
-            answer = answer_policy_question(DB_PATH, f"{program} ต้องเรียนกี่หน่วยกิต")
+    def test_program_totals_come_from_catalog_scoped_program_requirements(self):
+        expected = {
+            ("AIT", "ait-2566"): 120,
+            ("BIT", "bit-2565"): 126,
+            ("DSBA", "dsba-2560"): 126,
+            ("DSBA", "dsba-2565"): 132,
+            ("IT", "it-2565"): 129,
+        }
+        for (program, catalog_key), value in expected.items():
+            answer = answer_policy_question(
+                DB_PATH,
+                f"{program} ต้องเรียนกี่หน่วยกิต",
+                catalog_key=catalog_key,
+            )
             self.assertEqual(answer.status, "complete")
             self.assertEqual(answer.value, value)
             self.assertEqual(answer.program, program)
             self.assertIsNone(answer.source_rule_id)
             self.assertTrue(answer.provenance)
-            self.assertEqual(
-                answer.provenance[0]["document_category"], "program_requirement"
+            self.assertTrue(
+                all(reference["document_category"] == "plan" for reference in answer.provenance)
             )
 
     def test_honors_and_reentry_use_source_supported_facts(self):

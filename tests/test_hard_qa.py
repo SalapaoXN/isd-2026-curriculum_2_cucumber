@@ -123,7 +123,15 @@ class HardQaTests(unittest.TestCase):
                     )
                     self.assertEqual(h4["status"], "incomplete_evidence")
                     if catalog_key == "dsba-2560":
-                        self.assertEqual(h2["credit_requirements"], [])
+                        total_requirement = next(
+                            item for item in h2["credit_requirements"]
+                            if item["requirement_type"] == "total_program_credits"
+                        )
+                        self.assertEqual(total_requirement["required_value"], 126)
+                        self.assertTrue(
+                            {item["source_page"] for item in total_requirement["provenance"]}
+                            >= {29, 34}
+                        )
                         self.assertNotEqual(h4.get("required_program_credits"), 132)
                     else:
                         total_requirement = next(
@@ -133,7 +141,7 @@ class HardQaTests(unittest.TestCase):
                         self.assertEqual(total_requirement["required_value"], 132)
                         self.assertTrue(
                             any(
-                                item["source_filename"] == "dsba_page_006.png"
+                                item["source_page"] in {32, 39}
                                 for item in total_requirement["provenance"]
                             )
                         )
@@ -541,16 +549,16 @@ class HardQaTests(unittest.TestCase):
         self.assertEqual(result["status"], "clarification_required")
         self.assertIn("ระบุรหัสหลักสูตร", result["answer"])
 
-    def test_old_new_comparison_fails_closed_for_unordered_multiple_editions(self):
+    def test_old_new_comparison_fails_closed_when_only_one_edition_exists(self):
         result = answer_hard_question(
             DB_PATH,
             "วิชาที่มีในหลักสูตรเก่า IT ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
             {"program": "IT"},
-            lambda prompt: self.fail("ambiguous edition must not call interpreter"),
+            lambda prompt: self.fail("missing edition pair must not call interpreter"),
         )
 
-        self.assertEqual(result["status"], "clarification_required")
-        self.assertEqual(result["action"], "ambiguous_edition")
+        self.assertEqual(result["status"], "no_data")
+        self.assertEqual(result["action"], "insufficient_editions")
 
     def test_provenance_pages_are_only_canonical_fields_and_answer_uses_no_model(self):
         answer_callable_calls = []

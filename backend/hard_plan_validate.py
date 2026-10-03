@@ -14,9 +14,6 @@ from rag.structured.queries import _merge_provenance, _provenance_for
 _MANDATORY = "บังคับ"
 _ELECTIVE = "เลือก"
 _GRADUATION_CATEGORY = "เกณฑ์การสำเร็จการศึกษา"
-_EDITION_SCOPED_PROGRAM_REQUIREMENTS = frozenset(
-    {("DSBA", "dsba-2565", "2565")}
-)
 
 
 def _failure(status: str, program: Any, plan: Any, limitation: str) -> dict[str, Any]:
@@ -557,25 +554,16 @@ def _program_requirements(
             return [], False
         selected = matching_catalogs[0]
     else:
-        if len(catalog_rows) > 1:
+        if len(catalog_rows) != 1:
             return [], False
-        selected = catalog_rows[0] if catalog_rows else None
-
-    if len(catalog_rows) > 1:
-        identity = (
-            program.strip().upper(),
-            str(selected["catalog_key"]).strip() if selected is not None else "",
-            str(selected["academic_year"]).strip() if selected is not None else "",
-        )
-        if identity not in _EDITION_SCOPED_PROGRAM_REQUIREMENTS:
-            return [], False
+        selected = catalog_rows[0]
 
     rows = connection.execute(
         """SELECT requirement_id, program_code, requirement_type, operator, value, unit
            FROM program_requirements
-           WHERE UPPER(program_code) = ?
+           WHERE catalog_id = ? AND UPPER(program_code) = ?
            ORDER BY requirement_type, requirement_id""",
-        (program.upper(),),
+        (int(selected["catalog_id"]), program.upper()),
     ).fetchall()
     result = []
     complete = True
@@ -588,7 +576,7 @@ def _program_requirements(
             requirement_id,
         )
         if not references or any(
-            reference.get("document_category") != "program_requirement"
+            reference.get("document_category") not in {"program_requirement", "plan"}
             for reference in references
         ):
             complete = False
