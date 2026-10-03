@@ -134,6 +134,23 @@ class LlmSqlApiTests(unittest.TestCase):
         )
         self.assertEqual(response.json()["next_context"]["catalog_key"], "dsba-2560")
 
+    def test_selected_2565_catalog_is_forwarded_and_preserved_in_context(self):
+        response = self.client.post(
+            "/api/ask",
+            json={
+                "question": "DSBA มีวิชาอะไรบ้าง",
+                "conversation_context": {
+                    "program": "DSBA",
+                    "catalog_key": "dsba-2565",
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        forwarded = self.sql_service.call_args.kwargs["conversation_context"]
+        self.assertEqual(forwarded["catalog_key"], "dsba-2565")
+        self.assertEqual(response.json()["next_context"]["catalog_key"], "dsba-2565")
+
     def test_nonexistent_catalog_key_is_rejected_by_api(self):
         response = self.client.post(
             "/api/ask",

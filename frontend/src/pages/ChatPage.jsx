@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { askQuestion, fetchPrograms } from "../api";
+import {
+  buildConversationContext,
+  defaultCatalogKey,
+  resetContextForEdition,
+} from "../chatScope";
 
 const STORAGE_KEY = "cucumber-chat-sessions-v1";
 const HARD_STATUS_LABELS = {
@@ -27,10 +32,11 @@ function loadStored() {
   }
 }
 
-function newSession(program) {
+function newSession(program, catalogKey = "") {
   return {
     id: `s-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
     program: program || "",
+    catalogKey,
     title: "New chat",
     messages: [],
     context: null,
@@ -69,6 +75,34 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
+    if (programs.length === 0) return;
+    setSessions((previous) =>
+      previous.map((session) => {
+        const program = programs.find(
+          (item) => item.program_code === session.program
+        );
+        const editions = program?.editions || [];
+        const existing = session.catalogKey || session.context?.catalog_key || "";
+        const isAvailable = editions.some(
+          (edition) => edition.catalog_key === existing
+        );
+        const catalogKey = isAvailable
+          ? existing
+          : defaultCatalogKey(session.program, programs);
+        if (catalogKey === session.catalogKey) return session;
+        const changedEdition = Boolean(existing && existing !== catalogKey);
+        return {
+          ...session,
+          catalogKey,
+          context: changedEdition
+            ? resetContextForEdition(session.program, catalogKey)
+            : session.context,
+        };
+      })
+    );
+  }, [programs]);
+
+  useEffect(() => {
     try {
       localStorage.setItem(
         STORAGE_KEY,
@@ -93,7 +127,8 @@ export default function ChatPage() {
   }
 
   function handleNewChat() {
-    const session = newSession(active?.program || "IT");
+    const program = active?.program || "IT";
+    const session = newSession(program, defaultCatalogKey(program, programs));
     setSessions((prev) => [session, ...prev]);
     setActiveId(session.id);
     setQuestion("");
@@ -104,7 +139,8 @@ export default function ChatPage() {
     setSessions((prev) => {
       const next = prev.filter((s) => s.id !== id);
       if (next.length === 0) {
-        const fresh = newSession(active?.program || "IT");
+        const program = active?.program || "IT";
+        const fresh = newSession(program, defaultCatalogKey(program, programs));
         setActiveId(fresh.id);
         return [fresh];
       }
@@ -117,7 +153,20 @@ export default function ChatPage() {
     // Keep the current session and its history; only the scope changes.
     // Context is cleared so the next question is seeded with the new
     // program instead of chaining the previous program's scope.
-    updateActive({ program, context: null });
+    updateActive({
+      program,
+      catalogKey: defaultCatalogKey(program, programs),
+      context: null,
+    });
+    setQuestion("");
+    setError("");
+  }
+
+  function handleCatalogChange(catalogKey) {
+    updateActive({
+      catalogKey,
+      context: resetContextForEdition(active.program, catalogKey),
+    });
     setQuestion("");
     setError("");
   }
@@ -130,11 +179,17 @@ export default function ChatPage() {
       setError("กรุณาพิมพ์คำถามอย่างน้อย 2 ตัวอักษร");
       return;
     }
+    const selectedProgram = programs.find(
+      (item) => item.program_code === active.program
+    );
+    if ((selectedProgram?.editions?.length || 0) > 1 && !active.catalogKey) {
+      setError("กรุณาเลือกปีหลักสูตรก่อนส่งคำถาม");
+      return;
+    }
     setLoading(true);
     try {
-      // Seed the first turn with the chosen program so the user does not
-      // have to type it in every question; later turns chain next_context.
-      const seed = active.context || (active.program ? { program: active.program } : null);
+      // The selected catalog is authoritative over any stale follow-up context.
+      const seed = buildConversationContext(active);
       const data = await askQuestion(q, seed);
       const entry = {
         id: Date.now(),
@@ -146,7 +201,7 @@ export default function ChatPage() {
       };
       updateActive({
         messages: [...active.messages, entry],
-        context: data.next_context || null,
+        context: buildConversationContext({ ...active, context: data.next_context }),
         title:
           active.messages.length === 0
             ? q.length > 42
@@ -163,6 +218,11 @@ export default function ChatPage() {
   }
 
   if (!active) return null;
+
+  const selectedProgram = programs.find(
+    (item) => item.program_code === active.program
+  );
+  const editions = selectedProgram?.editions || [];
 
   return (
     <div className="page">
@@ -215,6 +275,7 @@ export default function ChatPage() {
               <select
                 id="chatProgram"
                 value={active.program}
+                disabled={loading}
                 onChange={(e) => handleProgramChange(e.target.value)}
               >
                 <option value="">All programs</option>
@@ -225,6 +286,33 @@ export default function ChatPage() {
                 ))}
               </select>
             </div>
+            {editions.length > 0 && (
+              <div className="field field-inline">
+                <label htmlFor="chatCatalog">Curriculum year</label>
+                <select
+                  id="chatCatalog"
+                  value={active.catalogKey || ""}
+                  disabled={loading || editions.length === 1}
+                  onChange={(e) => handleCatalogChange(e.target.value)}
+                >
+                  {editions.length > 1 && !active.catalogKey && (
+                    <option value="" disabled>
+                      Select a year
+                    </option>
+                  )}
+                  {editions.map((edition) => (
+                    <option key={edition.catalog_key} value={edition.catalog_key}>
+                      {edition.academic_year || edition.catalog_key}
+                      {editions.filter(
+                        (item) => item.academic_year === edition.academic_year
+                      ).length > 1
+                        ? ` (${edition.catalog_key})`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <span className="hint">
               คำถามในห้องนี้จะใช้ {active.program || "ทุกหลักสูตร"} เป็นขอบเขต
               ไม่ต้องพิมพ์ชื่อหลักสูตรทุกครั้ง
