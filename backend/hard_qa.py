@@ -625,6 +625,131 @@ def _response(
     return response
 
 
+def _course_label(course: dict[str, Any]) -> str:
+    names = [
+        value.strip()
+        for value in (course.get("name_th"), course.get("name_en"))
+        if isinstance(value, str) and value.strip()
+    ]
+    name = " / ".join(dict.fromkeys(names))
+    code = course.get("course_code") or course.get("course_code_normalized") or "ไม่ทราบรหัส"
+    return f"{code} ({name})" if name else str(code)
+
+
+def _render_old_new_comparison(comparison: dict[str, Any]) -> str:
+    older = comparison.get("older") or {}
+    newer = comparison.get("newer") or {}
+    categories = comparison.get("categories") or {}
+    counts = comparison.get("counts") or {}
+    old_year = older.get("academic_year", "ไม่ทราบปี")
+    new_year = newer.get("academic_year", "ไม่ทราบปี")
+    selected_plan = comparison.get("plan")
+    if selected_plan:
+        plan_line = f"ขอบเขตแผน: {selected_plan}"
+    else:
+        observed_plans: set[str] = set()
+        for category_name in ("shared_same_code", "unresolved_non_concrete"):
+            for item in categories.get(category_name, []):
+                for side in ("older", "newer"):
+                    observed_plans.update(
+                        plan
+                        for course in item.get(side, [])
+                        for plan in course.get("plans", [])
+                    )
+        for category_name in ("old_only_by_code", "new_only_by_code"):
+            for item in categories.get(category_name, []):
+                observed_plans.update(
+                    plan
+                    for course in item.get("courses", [])
+                    for plan in course.get("plans", [])
+                )
+        for candidate in categories.get("same_name_changed_code_candidates", []):
+            for side in ("older", "newer"):
+                observed_plans.update(candidate.get(side, {}).get("plans", []))
+        observed_plans = sorted(observed_plans, key=str.casefold)
+        plan_line = "ขอบเขตแผน: รวมแผนที่ปรากฏในข้อมูล"
+        if observed_plans:
+            plan_line += f" ({', '.join(observed_plans)})"
+
+    candidates = categories.get("same_name_changed_code_candidates", [])
+    old_candidate_codes = {
+        candidate.get("older", {}).get("course_code_normalized")
+        for candidate in candidates
+    }
+    new_candidate_codes = {
+        candidate.get("newer", {}).get("course_code_normalized")
+        for candidate in candidates
+    }
+    old_only = categories.get("old_only_by_code", [])
+    new_only = categories.get("new_only_by_code", [])
+    old_unpaired = [
+        item for item in old_only
+        if item.get("course_code_normalized") not in old_candidate_codes
+    ]
+    new_unpaired = [
+        item for item in new_only
+        if item.get("course_code_normalized") not in new_candidate_codes
+    ]
+    lines = [
+        f"เปรียบเทียบหลักสูตร {comparison.get('program', '')} พ.ศ. {old_year} "
+        f"({older.get('catalog_key', 'ไม่ทราบ catalog')}) กับ พ.ศ. {new_year} "
+        f"({newer.get('catalog_key', 'ไม่ทราบ catalog')})",
+        plan_line,
+        f"รายวิชาที่ใช้รหัสเดียวกันในทั้งสองหลักสูตร: {counts.get('shared_same_code', 0)} รหัส",
+        (
+            "รายวิชาที่ชื่อเดียวกันหรือชื่อที่ตรงกันตามการปรับรูปแบบข้อความ "
+            f"แต่รหัสวิชาเปลี่ยน: {counts.get('same_name_changed_code_candidates', 0)} คู่"
+        ),
+    ]
+    if candidates:
+        lines.append(
+            "รายการนี้เป็นเพียงตัวเลือกที่อาจเป็นการเปลี่ยนรหัสวิชา "
+            "ยังไม่ถือว่าเป็นการยืนยันว่ารายวิชาทั้งสองเทียบเท่ากัน"
+        )
+    for candidate in candidates[:5]:
+        lines.append(
+            f"- {_course_label(candidate.get('older', {}))} → "
+            f"{_course_label(candidate.get('newer', {}))}"
+        )
+    if len(candidates) > 5:
+        lines.append(f"- แสดงตัวอย่าง 5 จาก {len(candidates)} คู่")
+
+    lines.extend(
+        [
+            (
+                f"รหัสวิชาที่พบเฉพาะในหลักสูตร พ.ศ. {old_year}: "
+                f"{len(old_only)} รหัส (เทียบจากรหัสเท่านั้น ไม่ได้สรุปว่ารายวิชาถูกยกเลิก)"
+            ),
+            (
+                f"รหัสวิชาที่พบเฉพาะในหลักสูตร พ.ศ. {new_year}: "
+                f"{len(new_only)} รหัส (เทียบจากรหัสเท่านั้น ไม่ได้สรุปว่าเป็นรายวิชาใหม่)"
+            ),
+            f"รหัสฝั่งหลักสูตร {old_year} ที่ไม่อยู่ในคู่ candidate จากชื่อ: {len(old_unpaired)}",
+            f"รหัสฝั่งหลักสูตร {new_year} ที่ไม่อยู่ในคู่ candidate จากชื่อ: {len(new_unpaired)}",
+            f"อัตลักษณ์รหัสที่ไม่เป็นรหัสรายวิชารูปแบบปกติ: {counts.get('unresolved_non_concrete', 0)} รายการ",
+        ]
+    )
+    placeholders = categories.get("unresolved_non_concrete", [])
+    if placeholders:
+        lines.append(
+            "ตัวอย่างอัตลักษณ์ที่แสดงแยกต่างหาก: "
+            + ", ".join(item.get("course_code", "") for item in placeholders[:5])
+        )
+    if old_unpaired:
+        lines.append(
+            f"ตัวอย่างรหัสฝั่ง {old_year}: "
+            + ", ".join(item.get("course_code_normalized", "") for item in old_unpaired[:5])
+        )
+    if new_unpaired:
+        lines.append(
+            f"ตัวอย่างรหัสฝั่ง {new_year}: "
+            + ", ".join(item.get("course_code_normalized", "") for item in new_unpaired[:5])
+        )
+    if comparison.get("status") != "complete":
+        lines.insert(0, "การเปรียบเทียบยังมีหลักฐานไม่ครบ")
+    return "\n".join(lines)
+
+
 def _answer_old_new_comparison(
     db_path: str | Path,
     question: str,
@@ -670,7 +795,47 @@ def _answer_old_new_comparison(
             {},
         )
 
-    comparison = compare_curriculum_editions(db_path, program)
+    program_scopes = [item for item in scopes if _same(item["program"], program)]
+    available_plans = sorted(
+        {item["plan"] for item in program_scopes}, key=str.casefold
+    )
+    explicit_plans = _mentioned_values(question, scopes, "plan")
+    context_plan = _canonical_match(context.get("plan"), available_plans)
+    if context.get("plan") is not None and context_plan is None:
+        return _response(
+            "clarification_required",
+            "แผนในบริบทไม่ตรงกับแผนของหลักสูตรนี้ กรุณายืนยันแผนหลักสูตร",
+            "old_new_comparison",
+            {"program": program},
+            action="invalid_plan_context",
+        )
+    if len(explicit_plans) > 1:
+        return _response(
+            "clarification_required",
+            "โปรดระบุแผนหลักสูตรเดียวที่ต้องการเปรียบเทียบ",
+            "old_new_comparison",
+            {"program": program},
+        )
+    if explicit_plans and context_plan and not _same(explicit_plans[0], context_plan):
+        return _response(
+            "context_conflict",
+            "แผนในคำถามขัดกับแผนในบริบท กรุณายืนยันแผนหลักสูตร",
+            "old_new_comparison",
+            {"program": program},
+            action="plan_context_conflict",
+        )
+    selected_plan = explicit_plans[0] if explicit_plans else context_plan
+
+    comparison = compare_curriculum_editions(db_path, program, plan=selected_plan)
+    if comparison["status"] == "plan_unavailable":
+        return _response(
+            "clarification_required",
+            "ไม่พบแผนที่ระบุในหลักฐานของหลักสูตรทั้งสองฉบับ กรุณาตรวจสอบแผนหรือเลือกเปรียบเทียบทุกแผน",
+            "old_new_comparison",
+            {"program": program},
+            action="plan_unavailable_in_both_editions",
+            comparison=comparison,
+        )
     if comparison["status"] == "ambiguous_edition":
         return _response(
             "clarification_required",
@@ -693,18 +858,7 @@ def _answer_old_new_comparison(
     newer = comparison.get("newer") or {}
     counts = comparison.get("counts") or {}
     status = "answer" if comparison["status"] == "complete" else "incomplete_evidence"
-    answer = (
-        f"เปรียบเทียบหลักสูตร {program} ปี {older.get('academic_year')} "
-        f"กับปี {newer.get('academic_year')} โดยรวมแผน coop/no_coop ภายในแต่ละฉบับแล้ว\n"
-        f"รหัสที่พบทั้งสองฉบับ: {counts.get('shared_same_code', 0)} รหัส\n"
-        f"รหัสที่พบเฉพาะฉบับเก่า: {counts.get('old_only_by_code', 0)} รหัส\n"
-        f"รหัสที่พบเฉพาะฉบับใหม่: {counts.get('new_only_by_code', 0)} รหัส\n"
-        f"คู่ชื่อวิชาที่ตรงกันแต่เปลี่ยนรหัสและเป็นเพียง candidate: "
-        f"{counts.get('same_name_changed_code_candidates', 0)} คู่\n"
-        "candidate ชื่อเหมือนกันยังไม่ยืนยันว่าเป็นวิชาเดียวกัน"
-    )
-    if comparison["status"] != "complete":
-        answer = "การเปรียบเทียบยังมีหลักฐานไม่ครบ\n" + answer
+    answer = _render_old_new_comparison(comparison)
     return _response(
         status,
         answer,
@@ -713,6 +867,7 @@ def _answer_old_new_comparison(
             "program": program,
             "older": older,
             "newer": newer,
+            "plan": selected_plan,
         },
         comparison.get("provenance"),
         comparison=comparison,

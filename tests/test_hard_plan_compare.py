@@ -299,6 +299,141 @@ class HardPlanCompareTest(unittest.TestCase):
         self.assertFalse(candidate["equivalence_proven"])
         self.assertTrue(candidate["older"]["provenance"])
         self.assertTrue(candidate["newer"]["provenance"])
+        self.assertEqual(
+            categories["old_only_by_code"][0]["candidate_code_changes"],
+            [{"course_code_normalized": "00000003", "equivalence_proven": False}],
+        )
+        self.assertEqual(
+            categories["new_only_by_code"][0]["candidate_code_changes"],
+            [{"course_code_normalized": "00000001", "equivalence_proven": False}],
+        )
+
+    def test_old_new_comparison_can_preserve_a_requested_plan_scope(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2560' WHERE catalog_id=1"
+            )
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2565' WHERE catalog_id=2"
+            )
+            connection.execute(
+                "INSERT INTO curriculum_plans (plan_id,catalog_id,program_id,program_code,plan_key) "
+                "VALUES (3,2,2,'DSBA','coop')"
+            )
+            connection.execute(
+                "INSERT INTO plan_placements (placement_id,plan_id,course_id,year_number,semester_number) "
+                "VALUES (23,3,3,1,1)"
+            )
+            connection.execute(
+                "INSERT INTO plan_placement_provenance VALUES (23,122)"
+            )
+            connection.commit()
+
+        result = compare_curriculum_editions(self.db_path, "DSBA", plan="coop")
+
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["plan"], "coop")
+        for category in ("shared_same_code", "old_only_by_code", "new_only_by_code"):
+            for bucket in result["categories"][category]:
+                courses = bucket.get("courses", []) or bucket.get("older", []) + bucket.get("newer", [])
+                for course in courses:
+                    self.assertEqual(course["plans"], ["coop"])
+
+    def test_old_new_comparison_fails_closed_when_plan_is_missing_from_an_edition(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2560' WHERE catalog_id=1"
+            )
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2565' WHERE catalog_id=2"
+            )
+            connection.execute(
+                "INSERT INTO curriculum_plans (plan_id,catalog_id,program_id,program_code,plan_key) "
+                "VALUES (3,2,2,'DSBA','coop')"
+            )
+            connection.execute(
+                "INSERT INTO plan_placements (placement_id,plan_id,course_id,year_number,semester_number) "
+                "VALUES (23,3,3,1,1)"
+            )
+            connection.execute(
+                "INSERT INTO plan_placement_provenance VALUES (23,122)"
+            )
+            connection.commit()
+
+        result = compare_curriculum_editions(self.db_path, "DSBA", plan="gened")
+
+        self.assertEqual(result["status"], "plan_unavailable")
+        self.assertIn("not present in both", result["limitations"][0])
+
+    def test_old_new_comparison_keeps_unmatched_codes_and_placeholders_separate(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2560' WHERE catalog_id=1"
+            )
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2565' WHERE catalog_id=2"
+            )
+            connection.executemany(
+                """INSERT INTO courses
+                   (course_id,catalog_id,course_code,course_code_normalized,name_th,name_en)
+                   VALUES (?,?,?,?,?,?)""",
+                [
+                    (5, 1, "00000004", "00000004", "วิชาเก่าที่ไม่ตรง", "Old unmatched"),
+                    (6, 2, "00000005", "00000005", "วิชาใหม่ที่ไม่ตรง", "New unmatched"),
+                    (7, 1, "060261xx", "060261XX", "กลุ่มวิชา", "Course group"),
+                ],
+            )
+            connection.executemany(
+                """INSERT INTO plan_placements
+                   (placement_id,plan_id,course_id,year_number,semester_number)
+                   VALUES (?,?,?,?,?)""",
+                [(14, 1, 5, 2, 1), (24, 2, 6, 2, 1), (15, 1, 7, 2, 1)],
+            )
+            connection.executemany(
+                """INSERT INTO provenance
+                   (provenance_id,source_document_key,program,source_filename,
+                    source_page,document_page,document_category)
+                   VALUES (?,?,?,?,?,?, 'plan')""",
+                [
+                    (133, "old-unmatched", "DSBA", "left.pdf", 10, 10),
+                    (134, "new-unmatched", "DSBA", "right.pdf", 11, 11),
+                    (135, "placeholder", "DSBA", "left.pdf", 12, 12),
+                ],
+            )
+            connection.executemany(
+                "INSERT INTO plan_placement_provenance VALUES (?,?)",
+                [(14, 133), (24, 134), (15, 135)],
+            )
+            connection.executemany(
+                "INSERT INTO course_provenance(course_id,provenance_id) VALUES (?,?)",
+                [(5, 133), (6, 134), (7, 135)],
+            )
+            connection.commit()
+
+        result = compare_curriculum_editions(self.db_path, "DSBA")
+        categories = result["categories"]
+        old_unmatched = next(
+            item for item in categories["old_only_by_code"]
+            if item["course_code_normalized"] == "00000004"
+        )
+        new_unmatched = next(
+            item for item in categories["new_only_by_code"]
+            if item["course_code_normalized"] == "00000005"
+        )
+
+        self.assertEqual(old_unmatched["candidate_code_changes"], [])
+        self.assertEqual(new_unmatched["candidate_code_changes"], [])
+        self.assertEqual(
+            [item["course_code"] for item in categories["unresolved_non_concrete"]],
+            ["060261XX"],
+        )
+        self.assertNotIn(
+            "060261XX",
+            {item["course_code_normalized"] for item in categories["old_only_by_code"]},
+        )
+        source_files = {item["source_filename"] for item in result["provenance"]}
+        self.assertIn("left.pdf", source_files)
+        self.assertIn("right.pdf", source_files)
 
     def test_old_new_comparison_requires_exactly_two_distinct_editions(self):
         with closing(sqlite3.connect(self.db_path)) as connection:

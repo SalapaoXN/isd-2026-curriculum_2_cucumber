@@ -416,7 +416,85 @@ class HardQaTests(unittest.TestCase):
             and candidate["newer"]["course_code"] == "06066300"
             for candidate in comparison["categories"]["same_name_changed_code_candidates"]
         ))
-        self.assertIn("candidate ชื่อเหมือนกันยังไม่ยืนยัน", result["answer"])
+        answer = result["answer"]
+        self.assertIn("หลักสูตร DSBA พ.ศ. 2560", answer)
+        self.assertIn("พ.ศ. 2565", answer)
+        self.assertIn("ขอบเขตแผน: รวมแผนที่ปรากฏในข้อมูล", answer)
+        self.assertIn("รายวิชาที่ใช้รหัสเดียวกันในทั้งสองหลักสูตร: 0 รหัส", answer)
+        self.assertIn(
+            "รายวิชาที่ชื่อเดียวกันหรือชื่อที่ตรงกันตามการปรับรูปแบบข้อความ แต่รหัสวิชาเปลี่ยน: 30 คู่",
+            answer,
+        )
+        self.assertIn("ตัวเลือกที่อาจเป็นการเปลี่ยนรหัสวิชา", answer)
+        self.assertIn("ยังไม่ถือว่าเป็นการยืนยันว่ารายวิชาทั้งสองเทียบเท่ากัน", answer)
+        self.assertIn("06026106", answer)
+        self.assertIn("06066300", answer)
+        self.assertTrue(
+            all(
+                "06026106" not in line
+                for line in answer.splitlines()
+                if line.startswith("ตัวอย่างรหัสฝั่ง 2560:")
+            )
+        )
+        self.assertTrue(
+            all(
+                "06066300" not in line
+                for line in answer.splitlines()
+                if line.startswith("ตัวอย่างรหัสฝั่ง 2565:")
+            )
+        )
+        placeholder = comparison["categories"]["unresolved_non_concrete"][0]["course_code"]
+        self.assertIn(placeholder, answer)
+        self.assertIn("รหัสวิชาที่พบเฉพาะในหลักสูตร พ.ศ. 2560: 75 รหัส", answer)
+        self.assertIn("ไม่ได้สรุปว่ารายวิชาถูกยกเลิก", answer)
+        self.assertIn("รหัสวิชาที่พบเฉพาะในหลักสูตร พ.ศ. 2565: 79 รหัส", answer)
+        self.assertIn("ไม่ได้สรุปว่าเป็นรายวิชาใหม่", answer)
+        self.assertNotIn("วิชาที่ถูกยกเลิก", answer)
+        self.assertNotIn("วิชาใหม่:", answer)
+        self.assertTrue(result["provenance"])
+
+        repeated = answer_hard_question(
+            DB_PATH,
+            "วิชาที่มีในหลักสูตรเก่า DSBA ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
+            {"program": "DSBA"},
+            lambda prompt: self.fail("old/new request should not call interpreter"),
+        )
+        self.assertEqual(repeated["answer"], answer)
+
+    def test_old_new_comparison_preserves_explicit_plan_scope(self):
+        result = answer_hard_question(
+            DB_PATH,
+            "วิชาใดในหลักสูตรเก่า DSBA coop ไม่พบในหลักสูตรใหม่",
+            {"program": "DSBA"},
+            lambda prompt: self.fail("old/new request should not call interpreter"),
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(result["scope"]["plan"], "coop")
+        self.assertEqual(result["comparison"]["plan"], "coop")
+        self.assertIn("ขอบเขตแผน: coop", result["answer"])
+        for category in (
+            "shared_same_code", "old_only_by_code", "new_only_by_code",
+            "same_name_changed_code_candidates",
+        ):
+            for bucket in result["comparison"]["categories"][category]:
+                courses = bucket.get("courses", []) or [
+                    bucket.get("older", {}), bucket.get("newer", {})
+                ]
+                for course in courses:
+                    if course:
+                        self.assertEqual(course["plans"], ["coop"])
+
+    def test_old_new_comparison_clarifies_invalid_plan_context(self):
+        result = answer_hard_question(
+            DB_PATH,
+            "วิชาใดในหลักสูตรเก่า DSBA ไม่พบในหลักสูตรใหม่",
+            {"program": "DSBA", "plan": "gened"},
+            lambda prompt: self.fail("old/new request should not call interpreter"),
+        )
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "invalid_plan_context")
 
     def test_old_new_question_without_program_requests_scope(self):
         result = answer_hard_question(

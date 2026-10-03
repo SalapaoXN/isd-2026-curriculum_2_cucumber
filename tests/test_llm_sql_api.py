@@ -286,6 +286,9 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(payload["comparison"]["older"]["catalog_key"], "dsba-2560")
         self.assertEqual(payload["comparison"]["newer"]["catalog_key"], "dsba-2565")
         self.assertIn("same_name_changed_code_candidates", payload["comparison"]["categories"])
+        self.assertIn("หลักสูตร DSBA พ.ศ. 2560", payload["answer"])
+        self.assertIn("ตัวเลือกที่อาจเป็นการเปลี่ยนรหัสวิชา", payload["answer"])
+        self.assertIn("ยังไม่ถือว่าเป็นการยืนยัน", payload["answer"])
         self.assertTrue(payload["provenance"])
         provider.assert_not_called()
 

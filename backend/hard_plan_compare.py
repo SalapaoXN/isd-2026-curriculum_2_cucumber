@@ -420,7 +420,10 @@ def _normalized_course_name(value: Any) -> str | None:
 
 
 def _courses_in_edition(
-    connection: sqlite3.Connection, catalog_id: int, program: str
+    connection: sqlite3.Connection,
+    catalog_id: int,
+    program: str,
+    plan: str | None = None,
 ) -> tuple[dict[str, list[dict[str, Any]]], bool]:
     rows = connection.execute(
         """SELECT cp.plan_key, pl.placement_id, c.course_id,
@@ -430,6 +433,7 @@ def _courses_in_edition(
            JOIN plan_placements pl ON pl.plan_id=cp.plan_id
            JOIN courses c ON c.course_id=pl.course_id
            WHERE cp.catalog_id=? AND UPPER(p.program_code_normalized)=?
+             AND (? IS NULL OR LOWER(cp.plan_key)=LOWER(?))
            UNION ALL
            SELECT cp.plan_key, pl.placement_id, c.course_id,
                   c.course_code, c.course_code_normalized, c.name_th, c.name_en
@@ -440,8 +444,9 @@ def _courses_in_edition(
              ON m.alternative_group_id=pl.alternative_group_id
            JOIN courses c ON c.course_id=m.course_id
            WHERE cp.catalog_id=? AND UPPER(p.program_code_normalized)=?
+             AND (? IS NULL OR LOWER(cp.plan_key)=LOWER(?))
            ORDER BY 5, 3, 1, 2""",
-        (catalog_id, program.upper(), catalog_id, program.upper()),
+        (catalog_id, program.upper(), plan, plan, catalog_id, program.upper(), plan, plan),
     ).fetchall()
     by_course_id: dict[int, dict[str, Any]] = {}
     course_provenance: dict[int, list[dict[str, Any]]] = {}
@@ -491,12 +496,15 @@ def _courses_in_edition(
 
 
 def compare_curriculum_editions(
-    db_path: str | Path, program: str
+    db_path: str | Path, program: str, *, plan: str | None = None
 ) -> dict[str, Any]:
     """Compare course-code sets in the two canonical editions of one program."""
     if not isinstance(program, str) or not program.strip():
         return _edition_failure("invalid_scope", program, "program must be explicit")
+    if plan is not None and (not isinstance(plan, str) or not plan.strip()):
+        return _edition_failure("invalid_scope", program, "plan must be a non-empty string")
     normalized_program = program.strip().upper()
+    normalized_plan = plan.strip() if isinstance(plan, str) else None
     try:
         uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
         with closing(sqlite3.connect(uri, uri=True)) as connection:
@@ -549,11 +557,28 @@ def compare_curriculum_editions(
                     "curriculum editions do not have distinct academic_year values",
                 )
             older, newer = sorted(editions, key=lambda item: item["year_number"])
+            if normalized_plan is not None:
+                for edition in (older, newer):
+                    available = connection.execute(
+                        """SELECT 1
+                           FROM curriculum_plans cp
+                           JOIN programs p ON p.program_id=cp.program_id AND p.catalog_id=cp.catalog_id
+                           WHERE cp.catalog_id=?
+                             AND UPPER(p.program_code_normalized)=?
+                             AND LOWER(cp.plan_key)=LOWER(?)
+                           LIMIT 1""",
+                        (edition["catalog_id"], normalized_program, normalized_plan),
+                    ).fetchone()
+                    if available is None:
+                        return _edition_failure(
+                            "plan_unavailable", normalized_program,
+                            "the selected plan is not present in both curriculum editions",
+                        )
             old_courses, old_complete = _courses_in_edition(
-                connection, older["catalog_id"], normalized_program
+                connection, older["catalog_id"], normalized_program, normalized_plan
             )
             new_courses, new_complete = _courses_in_edition(
-                connection, newer["catalog_id"], normalized_program
+                connection, newer["catalog_id"], normalized_program, normalized_plan
             )
     except (OSError, sqlite3.Error, ValueError) as error:
         return _edition_failure(
@@ -632,6 +657,23 @@ def compare_curriculum_editions(
                                 "equivalence_proven": False,
                             }
                         )
+    old_candidate_codes: dict[str, set[str]] = {}
+    new_candidate_codes: dict[str, set[str]] = {}
+    for candidate in categories["same_name_changed_code_candidates"]:
+        old_code = candidate["older"]["course_code_normalized"]
+        new_code = candidate["newer"]["course_code_normalized"]
+        old_candidate_codes.setdefault(old_code, set()).add(new_code)
+        new_candidate_codes.setdefault(new_code, set()).add(old_code)
+    for bucket in categories["old_only_by_code"]:
+        bucket["candidate_code_changes"] = [
+            {"course_code_normalized": code, "equivalence_proven": False}
+            for code in sorted(old_candidate_codes.get(bucket["course_code_normalized"], set()))
+        ]
+    for bucket in categories["new_only_by_code"]:
+        bucket["candidate_code_changes"] = [
+            {"course_code_normalized": code, "equivalence_proven": False}
+            for code in sorted(new_candidate_codes.get(bucket["course_code_normalized"], set()))
+        ]
     categories["same_name_changed_code_candidates"].sort(
         key=lambda item: (
             item["older"]["course_code_normalized"],
@@ -651,6 +693,7 @@ def compare_curriculum_editions(
         "program": normalized_program,
         "older": {key: older[key] for key in ("catalog_key", "academic_year")},
         "newer": {key: newer[key] for key in ("catalog_key", "academic_year")},
+        "plan": normalized_plan,
         "categories": categories,
         "counts": {key: len(value) for key, value in categories.items()},
         "provenance": provenance,
