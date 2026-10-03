@@ -208,6 +208,110 @@ def _install_course_scope(
         connection.execute(f"CREATE TEMP VIEW {name} AS {query}")
 
 
+def _install_catalog_scope(
+    connection: sqlite3.Connection, catalog_key: str
+) -> None:
+    matches = connection.execute(
+        "SELECT catalog_id, catalog_key FROM main.catalogs "
+        "WHERE lower(trim(catalog_key)) = ?",
+        (catalog_key.strip().casefold(),),
+    ).fetchall()
+    if len(matches) != 1 or not matches[0][1]:
+        raise ValueError("catalog_key does not resolve to one canonical catalog")
+    catalog_id = int(matches[0][0])
+    connection.execute(
+        "CREATE TEMP TABLE _qa_selected_catalog (catalog_id INTEGER PRIMARY KEY)"
+    )
+    connection.execute(
+        "INSERT INTO _qa_selected_catalog (catalog_id) VALUES (?)", (catalog_id,)
+    )
+    views = (
+        (
+            "catalogs",
+            "SELECT catalog.* FROM main.catalogs AS catalog "
+            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+        ),
+        (
+            "programs",
+            "SELECT program.* FROM main.programs AS program "
+            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+        ),
+        (
+            "curriculum_plans",
+            "SELECT plan.* FROM main.curriculum_plans AS plan "
+            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+        ),
+        (
+            "courses",
+            "SELECT course.* FROM main.courses AS course "
+            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+        ),
+        (
+            "alternative_course_groups",
+            "SELECT course_group.* FROM main.alternative_course_groups AS course_group "
+            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+        ),
+        (
+            "alternative_course_group_members",
+            "SELECT member.* FROM main.alternative_course_group_members AS member "
+            "WHERE member.alternative_group_id IN "
+            "(SELECT alternative_group_id FROM alternative_course_groups)",
+        ),
+        (
+            "plan_placements",
+            "SELECT placement.* FROM main.plan_placements AS placement "
+            "WHERE placement.plan_id IN (SELECT plan_id FROM curriculum_plans)",
+        ),
+        (
+            "prerequisites",
+            "SELECT prerequisite.* FROM main.prerequisites AS prerequisite "
+            "WHERE prerequisite.course_id IN (SELECT course_id FROM courses) "
+            "AND (prerequisite.prerequisite_course_id IS NULL OR "
+            "prerequisite.prerequisite_course_id IN (SELECT course_id FROM courses)) "
+            "AND (prerequisite.alternative_group_id IS NULL OR "
+            "prerequisite.alternative_group_id IN "
+            "(SELECT alternative_group_id FROM alternative_course_groups))",
+        ),
+        (
+            "v_plan_courses",
+            "SELECT plan_course_view.* FROM main.v_plan_courses AS plan_course_view "
+            "JOIN main.curriculum_plans AS plan ON plan.plan_id = plan_course_view.plan_id "
+            "JOIN _qa_selected_catalog AS selected USING (catalog_id)",
+        ),
+        (
+            "v_prerequisite_edges",
+            "SELECT edge.* FROM main.v_prerequisite_edges AS edge "
+            "WHERE edge.source_course_id IN (SELECT course_id FROM courses) "
+            "AND (edge.prerequisite_course_id IS NULL OR "
+            "edge.prerequisite_course_id IN (SELECT course_id FROM courses))",
+        ),
+        (
+            "v_semester_credits",
+            "WITH counted_courses AS (SELECT * FROM v_plan_courses "
+            "WHERE alternative_group_id IS NULL OR "
+            "(alternative_member_order IS NOT NULL "
+            "AND alternative_member_order <= minimum_choices)) "
+            "SELECT plan_id, program, plan, year, semester, "
+            "COALESCE(SUM(credit_units), 0) AS total_credits "
+            "FROM counted_courses GROUP BY plan_id, program, plan, year, semester",
+        ),
+    )
+    for name, query in views:
+        connection.execute(f"CREATE TEMP VIEW {name} AS {query}")
+
+    tables = {
+        row[0]
+        for row in connection.execute(
+            "SELECT name FROM main.sqlite_master WHERE type = 'table'"
+        )
+    }
+    if "program_requirements" in tables:
+        connection.execute(
+            "CREATE TEMP VIEW program_requirements AS "
+            "SELECT * FROM main.program_requirements WHERE 0"
+        )
+
+
 def validate_readonly_sql(
     db_path: str | Path,
     sql: str,
@@ -230,6 +334,7 @@ def execute_readonly(
     course_scope: Iterable[
         tuple[str, str] | tuple[str | None, str, str]
     ] | None = None,
+    catalog_key: str | None = None,
 ) -> tuple[list[str], list[tuple[Any, ...]]]:
     """Execute one guarded SELECT/WITH query without opening a writable DB."""
     safe_sql = guard_sql(sql)
@@ -241,6 +346,8 @@ def execute_readonly(
     with closing(sqlite3.connect(read_only_uri, uri=True)) as connection:
         if course_scope is not None:
             _install_course_scope(connection, course_scope)
+        elif catalog_key is not None:
+            _install_catalog_scope(connection, catalog_key)
         cursor = connection.execute(safe_sql)
         columns = [description[0] for description in cursor.description or ()]
         rows = cursor.fetchall()

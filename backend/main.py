@@ -122,6 +122,32 @@ def _connect_ro(db_path: Path) -> sqlite3.Connection:
     return con
 
 
+def _validate_catalog_context(
+    db_path: Path, catalog_key: str, program: str | None
+) -> str:
+    con = _connect_ro(db_path)
+    try:
+        rows = con.execute(
+            """SELECT catalogs.catalog_id, catalogs.catalog_key,
+                      programs.program_code_normalized
+               FROM catalogs
+               LEFT JOIN programs USING (catalog_id)
+               WHERE lower(trim(catalogs.catalog_key)) = ?""",
+            (catalog_key.strip().casefold(),),
+        ).fetchall()
+    finally:
+        con.close()
+    catalog_ids = {row["catalog_id"] for row in rows}
+    if len(catalog_ids) != 1 or not rows or not rows[0]["catalog_key"]:
+        raise ValueError("catalog_key does not identify exactly one available catalog")
+    if program is not None and not any(
+        row["program_code_normalized"] == program.strip().casefold()
+        for row in rows
+    ):
+        raise ValueError("program is not available in the selected catalog")
+    return str(rows[0]["catalog_key"]).strip()
+
+
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return _serve_spa()
@@ -357,19 +383,33 @@ def ask(request: AskRequest) -> dict:
         raise HTTPException(status_code=422, detail=f"invalid conversation_context: {exc}") from exc
 
     program = parsed_context.program if parsed_context is not None else None
+    catalog_key = parsed_context.catalog_key if parsed_context is not None else None
+    if catalog_key is not None:
+        try:
+            catalog_key = _validate_catalog_context(db_path, catalog_key, program)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(
+                status_code=422,
+                detail=f"invalid conversation_context: {exc}",
+            ) from exc
     try:
-        focus_course = parse_focus_course_context(raw_focus, program)
+        focus_course = parse_focus_course_context(
+            raw_focus, program, catalog_key
+        )
         parsed_results = parse_result_courses_context(
             raw_result_courses,
             raw_result_scope if has_result_scope else program,
             program,
             raw_result_set_empty,
+            catalog_key,
         )
     except (TypeError, ValueError) as exc:
         raise HTTPException(
             status_code=422, detail=f"invalid conversation_context: {exc}"
         ) from exc
     service_context: dict | None = {}
+    if catalog_key is not None:
+        service_context["catalog_key"] = catalog_key
     if focus_course is not None:
         service_context["focus_course"] = focus_course
     if parsed_results is not None:
@@ -424,7 +464,7 @@ def ask(request: AskRequest) -> dict:
             hard_context["course_code"] = parsed_context.course_code
         result = None
         # Hard QA does not accept bounded result-course context; SQL QA does.
-        if parsed_results is None:
+        if parsed_results is None and catalog_key is None:
             result = answer_hard_question(
                 db_path,
                 request.question,
@@ -464,6 +504,8 @@ def ask(request: AskRequest) -> dict:
     fallback_context: dict = {}
     if program is not None:
         fallback_context["program"] = program
+    if catalog_key is not None:
+        fallback_context["catalog_key"] = catalog_key
     if focus_course is not None:
         fallback_context["focus_course"] = focus_course
     if parsed_results is not None:

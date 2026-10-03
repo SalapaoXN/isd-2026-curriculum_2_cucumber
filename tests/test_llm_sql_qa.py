@@ -195,6 +195,106 @@ class LlmSqlQaTest(unittest.TestCase):
         self.assertEqual(result["status"], "answer")
         self.assertEqual(len(result["rows"]), 3)
 
+    def test_selected_catalog_scope_filters_rows_and_aggregates(self):
+        db_path = self._build_edition_scope_db()
+        context = {"catalog_key": "dsba-2560"}
+        rows_result = ask_sql(
+            db_path,
+            "แสดงรายวิชา",
+            "DSBA",
+            lambda _prompt: "SELECT course_id, course_code FROM courses ORDER BY course_id",
+            lambda _prompt: "พบข้อมูล",
+            conversation_context=context,
+        )
+        count_result = ask_sql(
+            db_path,
+            "มีวิชากี่วิชา",
+            "DSBA",
+            lambda _prompt: "SELECT COUNT(*) AS total FROM courses",
+            lambda _prompt: "พบ 2 วิชา",
+            conversation_context=context,
+        )
+
+        self.assertEqual(rows_result["rows"], [
+            {"course_id": 1, "course_code": "C101"},
+            {"course_id": 3, "course_code": "C202"},
+        ])
+        self.assertEqual(count_result["rows"], [{"total": 2}])
+
+    def test_selected_catalog_invalidates_stale_focus_and_persists_scope(self):
+        db_path = self._build_edition_scope_db()
+        result = ask_sql(
+            db_path,
+            "วิชานี้มีอะไรบ้าง",
+            "DSBA",
+            lambda _prompt: "SELECT course_id, course_code FROM courses ORDER BY course_id",
+            lambda _prompt: "พบข้อมูล",
+            conversation_context={
+                "catalog_key": "dsba-2565",
+                "focus_course": {
+                    "catalog_key": "dsba-2560",
+                    "program": "DSBA",
+                    "course_code": "C101",
+                },
+            },
+        )
+
+        self.assertEqual(result["rows"], [{"course_id": 2, "course_code": "C101"}])
+        self.assertEqual(result["next_context"]["catalog_key"], "dsba-2565")
+
+    def test_selected_catalog_invalidates_stale_result_set(self):
+        db_path = self._build_edition_scope_db()
+        result = ask_sql(
+            db_path,
+            "ในวิชาเหล่านี้มีอะไรบ้าง",
+            "DSBA",
+            lambda _prompt: "SELECT course_id, course_code FROM courses ORDER BY course_id",
+            lambda _prompt: "พบข้อมูล",
+            conversation_context={
+                "catalog_key": "dsba-2565",
+                "result_courses": [
+                    {"catalog_key": "dsba-2560", "program": "DSBA", "course_code": "C101"}
+                ],
+                "result_scope_program": "DSBA",
+            },
+        )
+
+        self.assertEqual(result["rows"], [{"course_id": 2, "course_code": "C101"}])
+        self.assertEqual(result["next_context"]["catalog_key"], "dsba-2565")
+
+    def test_nonexistent_catalog_key_fails_before_sql_model(self):
+        db_path = self._build_edition_scope_db()
+        result = ask_sql(
+            db_path,
+            "แสดงรายวิชา",
+            "DSBA",
+            lambda _prompt: self.fail("invalid catalog must fail before SQL generation"),
+            lambda _prompt: self.fail("invalid catalog must not reach answer model"),
+            conversation_context={"catalog_key": "dsba-9999"},
+        )
+
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["error"]["code"], "invalid_context")
+
+    def test_selected_catalog_key_is_added_to_next_focus_context(self):
+        db_path = self._build_edition_scope_db()
+        result = ask_sql(
+            db_path,
+            "DSBA C202 คืออะไร",
+            "DSBA",
+            lambda _prompt: (
+                "SELECT plan_rows.program, plan_rows.course_code "
+                "FROM v_plan_courses AS plan_rows WHERE plan_rows.course_id = 3"
+            ),
+            lambda _prompt: "พบข้อมูล",
+            conversation_context={"catalog_key": "dsba-2560"},
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(
+            result["next_context"]["focus_course"]["catalog_key"], "dsba-2560"
+        )
+
     def test_catalog_scope_keeps_read_only_sql_guard(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(

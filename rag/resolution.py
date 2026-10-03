@@ -41,14 +41,17 @@ class QueryContext:
     category: str | None = None
     course_code: str | None = None
     operations: tuple[str, ...] = ()
+    catalog_key: str | None = None
 
     def __post_init__(self) -> None:
-        for field_name in ("program", "plan", "category", "course_code"):
+        for field_name in ("program", "catalog_key", "plan", "category", "course_code"):
             value = getattr(self, field_name)
             if value is not None and (
                 not isinstance(value, str) or not value.strip()
             ):
                 raise ValueError(f"{field_name} must be None or a non-empty string")
+        if self.catalog_key is not None and len(self.catalog_key.strip()) > 128:
+            raise ValueError("catalog_key must be at most 128 characters")
         for field_name in ("years", "semesters", "operations"):
             value = getattr(self, field_name)
             if not isinstance(value, tuple):

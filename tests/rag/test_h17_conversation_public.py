@@ -9,7 +9,11 @@ from fastapi.testclient import TestClient
 import rag.qa as qa_module
 from backend import main
 from rag.grounded_answer import GroundedAnswerResult
-from rag.hybrid_demo import answer_question_once
+from rag.hybrid_demo import (
+    answer_question_once,
+    conversation_context_to_dict,
+    parse_conversation_context,
+)
 from rag.resolution import QueryContext
 
 
@@ -22,6 +26,22 @@ FORBIDDEN_KEYS = (
 
 
 class H17PublicHelperE2E(unittest.TestCase):
+    def test_catalog_key_is_structural_context_and_round_trips(self):
+        context = parse_conversation_context(
+            {"program": "DSBA", "catalog_key": " dsba-2560 "}
+        )
+        self.assertEqual(context.catalog_key, "dsba-2560")
+        self.assertEqual(
+            conversation_context_to_dict(context),
+            {"program": "DSBA", "catalog_key": "dsba-2560"},
+        )
+
+    def test_invalid_catalog_key_is_rejected_in_structural_context(self):
+        for catalog_key in (" ", "x" * 129, 2560):
+            with self.subTest(catalog_key=catalog_key):
+                with self.assertRaises((TypeError, ValueError)):
+                    parse_conversation_context({"catalog_key": catalog_key})
+
     def test_count_followup_via_public_helper(self):
         t1 = answer_question_once(DB_PATH, "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา")
         nc = t1.get("next_context")

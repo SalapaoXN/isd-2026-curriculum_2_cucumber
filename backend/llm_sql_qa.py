@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import json
 import math
+from contextlib import closing
 from pathlib import Path
 import re
 import sqlite3
@@ -170,7 +171,9 @@ _RESULT_COURSE_KEYS = frozenset(
 
 
 def parse_focus_course_context(
-    value: Any, selected_program: str | None
+    value: Any,
+    selected_program: str | None,
+    selected_catalog_key: str | None = None,
 ) -> dict[str, str | None] | None:
     """Validate the small service-owned course focus and invalidate stale scope."""
     if value is None:
@@ -199,6 +202,11 @@ def parse_focus_course_context(
         or len(catalog_key.strip()) > 128
     ):
         raise ValueError("focus_course.catalog_key must be a non-empty string or null")
+    if selected_catalog_key is not None and (
+        catalog_key is None
+        or catalog_key.strip().casefold() != selected_catalog_key.casefold()
+    ):
+        return None
     normalized: dict[str, str | None] = {
         "course_code": course_code.strip(),
         "program": selected_program,
@@ -223,6 +231,7 @@ def parse_result_courses_context(
     result_scope_program: Any,
     selected_program: str | None,
     result_set_empty: Any = False,
+    selected_catalog_key: str | None = None,
 ) -> tuple[list[dict[str, str | None]], str | None] | None:
     """Validate a bounded result set and discard it when its program scope is stale."""
     if value is None:
@@ -272,6 +281,11 @@ def parse_result_courses_context(
         ):
             raise ValueError("result_courses.catalog_key is invalid or too long")
         catalog_key = catalog_key.strip() if catalog_key is not None else None
+        if selected_catalog_key is not None and (
+            catalog_key is None
+            or catalog_key.casefold() != selected_catalog_key.casefold()
+        ):
+            return None
         if course_name is not None and (
             not isinstance(course_name, str)
             or not course_name.strip()
@@ -455,14 +469,27 @@ def _next_conversation_context(
     rows: list[dict[str, Any]],
     *,
     establish_empty_result_set: bool = False,
+    selected_catalog_key: str | None = None,
 ) -> dict[str, Any] | None:
     result_courses, over_bound = _result_courses_from_rows(rows, selected_program)
     context: dict[str, Any] = {}
     if selected_program is not None:
         context["program"] = selected_program
+    if selected_catalog_key is not None:
+        context["catalog_key"] = selected_catalog_key
     if over_bound:
         return context or None
     if result_courses is not None:
+        if selected_catalog_key is not None:
+            if any(
+                course.get("catalog_key") is not None
+                and str(course["catalog_key"]).strip().casefold()
+                != selected_catalog_key.casefold()
+                for course in result_courses
+            ):
+                return context or None
+            for course in result_courses:
+                course["catalog_key"] = selected_catalog_key
         if len(result_courses) == 1:
             course = result_courses[0]
             context["focus_course"] = {
@@ -687,9 +714,31 @@ def ask_sql(
     if conversation_context is not None and (
         not isinstance(conversation_context, dict)
         or set(conversation_context)
-        - {"focus_course", "result_courses", "result_scope_program", "result_set_empty"}
+        - {"catalog_key", "focus_course", "result_courses", "result_scope_program", "result_set_empty"}
     ):
         return _failure("invalid_context")
+    selected_catalog_key = None
+    if conversation_context is not None and "catalog_key" in conversation_context:
+        raw_catalog_key = conversation_context["catalog_key"]
+        if (
+            not isinstance(raw_catalog_key, str)
+            or not raw_catalog_key.strip()
+            or len(raw_catalog_key.strip()) > 128
+        ):
+            return _failure("invalid_context")
+        try:
+            database_uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
+            with closing(sqlite3.connect(database_uri, uri=True)) as connection:
+                catalog_rows = connection.execute(
+                    "SELECT catalog_key FROM catalogs "
+                    "WHERE lower(trim(catalog_key)) = ?",
+                    (raw_catalog_key.strip().casefold(),),
+                ).fetchall()
+        except sqlite3.Error:
+            return _failure("invalid_context")
+        if len(catalog_rows) != 1 or not catalog_rows[0][0]:
+            return _failure("invalid_context")
+        selected_catalog_key = str(catalog_rows[0][0]).strip()
     if conversation_context is not None and (
         "result_scope_program" in conversation_context
         and "result_courses" not in conversation_context
@@ -710,6 +759,7 @@ def ask_sql(
             if conversation_context is not None
             else None,
             selected_program,
+            selected_catalog_key,
         )
         parsed_results = parse_result_courses_context(
             conversation_context.get("result_courses")
@@ -722,6 +772,7 @@ def ask_sql(
             conversation_context.get("result_set_empty", False)
             if conversation_context is not None
             else False,
+            selected_catalog_key,
         )
     except (TypeError, ValueError):
         return _failure("invalid_context")
@@ -775,7 +826,11 @@ def ask_sql(
             "columns": [],
             "rows": [],
             "next_context": _next_conversation_context(
-                selected_program, prior_focus, prior_result_courses, []
+                selected_program,
+                prior_focus,
+                prior_result_courses,
+                [],
+                selected_catalog_key=selected_catalog_key,
             ),
         }
 
@@ -801,6 +856,11 @@ def ask_sql(
             f"\nSelected program: {selected_program}. "
             "This is the active curriculum scope and must constrain the SQL."
         )
+    if selected_catalog_key is not None:
+        generation_question += (
+            f"\nSelected catalog_key: {selected_catalog_key}. "
+            "This is the active curriculum edition and must constrain the SQL."
+        )
 
     def call_sql_model(prompt: str) -> str:
         try:
@@ -813,6 +873,12 @@ def ask_sql(
                 f"{_LOGICAL_COURSE_COUNTING_GUIDANCE}\n\n"
                 f"{_conversation_focus_guidance(prior_focus)}"
                 f"{_conversation_result_set_guidance(prior_result_courses, selected_program)}"
+                + (
+                    f"Selected curriculum catalog_key: {selected_catalog_key}. "
+                    "Curriculum relations are bounded to this catalog.\n"
+                    if selected_catalog_key is not None
+                    else ""
+                )
             )
         except Exception as exc:
             raise _SqlModelFailure from exc
@@ -913,7 +979,9 @@ def ask_sql(
 
     try:
         if course_scope is None:
-            columns, raw_rows = execute_readonly(db_path, safe_sql)
+            columns, raw_rows = execute_readonly(
+                db_path, safe_sql, catalog_key=selected_catalog_key
+            )
         else:
             columns, raw_rows = execute_readonly(
                 db_path, safe_sql, course_scope=course_scope
@@ -930,7 +998,9 @@ def ask_sql(
 
         try:
             if course_scope is None:
-                columns, raw_rows = execute_readonly(db_path, safe_sql)
+                columns, raw_rows = execute_readonly(
+                    db_path, safe_sql, catalog_key=selected_catalog_key
+                )
             else:
                 columns, raw_rows = execute_readonly(
                     db_path, safe_sql, course_scope=course_scope
@@ -982,6 +1052,7 @@ def ask_sql(
                 prior_result_courses,
                 [],
                 establish_empty_result_set=establish_empty_result_set,
+                selected_catalog_key=selected_catalog_key,
             ),
         }
 
@@ -1009,6 +1080,7 @@ def ask_sql(
             prior_focus,
             prior_result_courses,
             rows,
+            selected_catalog_key=selected_catalog_key,
         ),
     }
 

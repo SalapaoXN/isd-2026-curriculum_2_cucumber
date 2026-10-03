@@ -114,6 +114,41 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(response.json()["status"], "no_data")
         self.assertEqual(response.json()["next_context"], None)
 
+    def test_selected_catalog_is_validated_and_forwarded_to_sql(self):
+        response = self.client.post(
+            "/api/ask",
+            json={
+                "question": "DSBA coop กับ no_coop ต่างกันอย่างไร",
+                "conversation_context": {
+                    "program": "DSBA",
+                    "catalog_key": "dsba-2560",
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["route"], "llm_sql")
+        self.assertEqual(
+            self.sql_service.call_args.kwargs["conversation_context"]["catalog_key"],
+            "dsba-2560",
+        )
+        self.assertEqual(response.json()["next_context"]["catalog_key"], "dsba-2560")
+
+    def test_nonexistent_catalog_key_is_rejected_by_api(self):
+        response = self.client.post(
+            "/api/ask",
+            json={
+                "question": "DSBA มีวิชาอะไรบ้าง",
+                "conversation_context": {
+                    "program": "DSBA",
+                    "catalog_key": "dsba-9999",
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.sql_service.assert_not_called()
+
     def test_controlled_service_failure_maps_to_existing_response_contract(self):
         self.sql_service.return_value = {
             "status": "error",
