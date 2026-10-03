@@ -239,6 +239,22 @@ class LlmSqlApiTests(unittest.TestCase):
             "OCR extraction / Academic Plan - IT no_coop",
         )
 
+    def test_dsba_course_details_resolve_inside_selected_edition(self):
+        cases = (
+            ("06026100", "dsba-2560", "2560"),
+            ("06066300", "dsba-2565", "2565"),
+        )
+        for course_code, catalog_key, academic_year in cases:
+            with self.subTest(catalog_key=catalog_key, course_code=course_code):
+                response = self.client.get(
+                    f"/api/courses/{course_code}",
+                    params={"program": "DSBA", "catalog_key": catalog_key},
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json()["course"]["catalog_key"], catalog_key)
+                self.assertEqual(response.json()["course"]["academic_year"], academic_year)
+
     def test_curriculum_endpoint_remains_available(self):
         response = self.client.get("/api/curriculum", params={"program": "IT", "limit": 1})
 

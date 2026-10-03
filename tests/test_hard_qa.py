@@ -87,6 +87,17 @@ class HardQaTests(unittest.TestCase):
             )
             self.assertEqual(comparison["status"], "complete")
             self.assertEqual(comparison["catalog_key"], catalog_key)
+            expected_source_prefix = (
+                "dsba2560_page_" if catalog_key == "dsba-2560" else "dsba_page_"
+            )
+            for side in ("left_plan_evidence", "right_plan_evidence"):
+                self.assertTrue(comparison[side])
+                self.assertTrue(
+                    all(
+                        item["source_filename"].startswith(expected_source_prefix)
+                        for item in comparison[side]
+                    )
+                )
             for plan in ("coop", "no_coop"):
                 with self.subTest(catalog_key=catalog_key, plan=plan):
                     h2 = validate_curriculum_plan_structure(
@@ -103,6 +114,29 @@ class HardQaTests(unittest.TestCase):
                     self.assertNotEqual(h4["status"], "ambiguous_plan")
                     self.assertEqual(h2["catalog_key"], catalog_key)
                     self.assertEqual(h3["catalog_key"], catalog_key)
+                    self.assertTrue(h3["provenance"])
+                    self.assertTrue(
+                        all(
+                            item["source_filename"].startswith(expected_source_prefix)
+                            for item in h3["provenance"]
+                        )
+                    )
+                    self.assertEqual(h4["status"], "incomplete_evidence")
+                    if catalog_key == "dsba-2560":
+                        self.assertEqual(h2["credit_requirements"], [])
+                        self.assertNotEqual(h4.get("required_program_credits"), 132)
+                    else:
+                        total_requirement = next(
+                            item for item in h2["credit_requirements"]
+                            if item["requirement_type"] == "total_program_credits"
+                        )
+                        self.assertEqual(total_requirement["required_value"], 132)
+                        self.assertTrue(
+                            any(
+                                item["source_filename"] == "dsba_page_006.png"
+                                for item in total_requirement["provenance"]
+                            )
+                        )
 
     def test_h4_does_not_claim_to_schedule_when_no_terms_are_supported(self):
         status, answer, _ = _format_h4(

@@ -221,6 +221,185 @@ class LlmSqlQaTest(unittest.TestCase):
         ])
         self.assertEqual(count_result["rows"], [{"total": 2}])
 
+    def test_canonical_dsba_editions_scope_course_aggregate_and_followup_queries(self):
+        db_path = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
+
+        for catalog_key, academic_year in (
+            ("dsba-2560", "2560"),
+            ("dsba-2565", "2565"),
+        ):
+            for plan in ("coop", "no_coop"):
+                with self.subTest(catalog_key=catalog_key, plan=plan):
+                    course_sql = (
+                        "SELECT catalogs.catalog_key, catalogs.academic_year, "
+                        "plan_rows.program, plan_rows.plan, plan_rows.course_code, "
+                        "plan_rows.year, plan_rows.semester "
+                        "FROM v_plan_courses AS plan_rows "
+                        "JOIN courses ON courses.course_id = plan_rows.course_id "
+                        "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
+                        f"WHERE plan_rows.program = 'DSBA' AND plan_rows.plan = '{plan}' "
+                        "ORDER BY plan_rows.course_code LIMIT 5"
+                    )
+                    first = ask_sql(
+                        db_path,
+                        f"แสดงรายวิชา DSBA {plan}",
+                        "DSBA",
+                        lambda _prompt, sql=course_sql: sql,
+                        lambda _prompt: "พบรายวิชา",
+                        conversation_context={"catalog_key": catalog_key},
+                    )
+
+                    self.assertEqual(first["status"], "answer")
+                    self.assertTrue(first["rows"])
+                    self.assertTrue(
+                        all(
+                            row["catalog_key"] == catalog_key
+                            and row["academic_year"] == academic_year
+                            and row["plan"] == plan
+                            and row["year"] is not None
+                            and row["semester"] is not None
+                            for row in first["rows"]
+                        )
+                    )
+                    self.assertEqual(first["next_context"]["catalog_key"], catalog_key)
+                    self.assertTrue(
+                        all(
+                            item["catalog_key"] == catalog_key
+                            for item in first["next_context"]["result_courses"]
+                        )
+                    )
+
+                    aggregate_sql = (
+                        "SELECT catalogs.catalog_key, catalogs.academic_year, "
+                        "COUNT(DISTINCT plan_rows.course_code) AS course_count "
+                        "FROM v_plan_courses AS plan_rows "
+                        "JOIN courses ON courses.course_id = plan_rows.course_id "
+                        "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
+                        f"WHERE plan_rows.program = 'DSBA' AND plan_rows.plan = '{plan}' "
+                        "GROUP BY catalogs.catalog_id, catalogs.catalog_key, catalogs.academic_year"
+                    )
+                    aggregate = ask_sql(
+                        db_path,
+                        f"DSBA {plan} มีวิชากี่วิชา",
+                        "DSBA",
+                        lambda _prompt, sql=aggregate_sql: sql,
+                        lambda _prompt: "นับรายวิชาแล้ว",
+                        conversation_context={"catalog_key": catalog_key},
+                    )
+                    self.assertEqual(aggregate["status"], "answer")
+                    self.assertEqual(len(aggregate["rows"]), 1)
+                    self.assertEqual(aggregate["rows"][0]["catalog_key"], catalog_key)
+                    self.assertEqual(aggregate["rows"][0]["academic_year"], academic_year)
+
+                    follow_up_sql = (
+                        "SELECT catalogs.catalog_key, plan_rows.program, plan_rows.course_code "
+                        "FROM v_plan_courses AS plan_rows "
+                        "JOIN courses ON courses.course_id = plan_rows.course_id "
+                        "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
+                        "ORDER BY plan_rows.course_code"
+                    )
+                    follow_up = ask_sql(
+                        db_path,
+                        "ในวิชาเหล่านี้มีอะไรบ้าง",
+                        "DSBA",
+                        lambda _prompt, sql=follow_up_sql: sql,
+                        lambda _prompt: "พบวิชาจากผลก่อนหน้า",
+                        conversation_context={
+                            key: value
+                            for key, value in first["next_context"].items()
+                            if key in {
+                                "catalog_key", "focus_course", "result_courses",
+                                "result_scope_program", "result_set_empty",
+                            }
+                        },
+                    )
+                    self.assertEqual(follow_up["status"], "answer")
+                    self.assertTrue(follow_up["rows"])
+                    self.assertTrue(
+                        all(row["catalog_key"] == catalog_key for row in follow_up["rows"])
+                    )
+
+    def test_canonical_course_in_both_dsba_plans_has_single_edition_identity(self):
+        db_path = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
+        sql = (
+            "SELECT catalogs.catalog_key, plan_rows.program, plan_rows.plan, "
+            "plan_rows.course_code FROM v_plan_courses AS plan_rows "
+            "JOIN courses ON courses.course_id = plan_rows.course_id "
+            "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
+            "WHERE plan_rows.program = 'DSBA' AND plan_rows.course_code = '06026100' "
+            "ORDER BY plan_rows.plan"
+        )
+
+        result = ask_sql(
+            db_path,
+            "DSBA course 06026100 is in which selected-edition plans?",
+            "DSBA",
+            lambda _prompt: sql,
+            lambda _prompt: "พบในแผนของฉบับที่เลือก",
+            conversation_context={"catalog_key": "dsba-2560"},
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(
+            {row["plan"] for row in result["rows"]}, {"coop", "no_coop"}
+        )
+        self.assertEqual(result["next_context"]["catalog_key"], "dsba-2560")
+        self.assertEqual(
+            result["next_context"]["focus_course"],
+            {
+                "catalog_key": "dsba-2560",
+                "program": "DSBA",
+                "course_code": "06026100",
+            },
+        )
+
+    def test_canonical_catalog_change_invalidates_prior_edition_result_rows(self):
+        db_path = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
+        query = (
+            "SELECT catalogs.catalog_key, catalogs.academic_year, "
+            "plan_rows.program, plan_rows.course_code "
+            "FROM v_plan_courses AS plan_rows "
+            "JOIN courses ON courses.course_id = plan_rows.course_id "
+            "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id "
+            "WHERE plan_rows.program = 'DSBA' AND plan_rows.plan = 'coop' "
+            "ORDER BY plan_rows.course_code LIMIT 5"
+        )
+
+        for selected_catalog, selected_year, prior_catalog in (
+            ("dsba-2560", "2560", "dsba-2565"),
+            ("dsba-2565", "2565", "dsba-2560"),
+        ):
+            context = {
+                "catalog_key": selected_catalog,
+                "result_courses": [
+                    {
+                        "catalog_key": prior_catalog,
+                        "program": "DSBA",
+                        "course_code": "06026100" if prior_catalog == "dsba-2560" else "06066300",
+                    }
+                ],
+                "result_scope_program": "DSBA",
+            }
+            result = ask_sql(
+                db_path,
+                "ในวิชาเหล่านี้มีอะไรบ้าง",
+                "DSBA",
+                lambda _prompt: query,
+                lambda _prompt: "พบรายวิชาในฉบับที่เลือก",
+                conversation_context=context,
+            )
+
+            self.assertEqual(result["status"], "answer")
+            self.assertTrue(result["rows"])
+            self.assertTrue(
+                all(
+                    row["catalog_key"] == selected_catalog
+                    and row["academic_year"] == selected_year
+                    for row in result["rows"]
+                )
+            )
+            self.assertEqual(result["next_context"]["catalog_key"], selected_catalog)
+
     def test_selected_catalog_invalidates_stale_focus_and_persists_scope(self):
         db_path = self._build_edition_scope_db()
         result = ask_sql(
