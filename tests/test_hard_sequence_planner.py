@@ -364,6 +364,23 @@ class HardSequencePlannerTest(unittest.TestCase):
         self.assertEqual(result["status"], "incomplete_evidence")
         self.assertFalse(result.get("graduation_guaranteed", False))
 
+    def test_runtime_sequence_never_uses_2565_credits_for_2560(self):
+        db_path = Path("cucumber_outputs/runtime/curriculum.db")
+        if not db_path.exists():
+            self.skipTest("runtime curriculum DB is not present")
+
+        for catalog_key in ("dsba-2560", "dsba-2565"):
+            for plan in ("coop", "no_coop"):
+                with self.subTest(catalog_key=catalog_key, plan=plan):
+                    result = plan_curriculum_sequence(
+                        db_path, "DSBA", plan, catalog_key=catalog_key
+                    )
+                    value = result.get("required_program_credits")
+                    if catalog_key == "dsba-2560":
+                        self.assertNotEqual(value, 132)
+                    else:
+                        self.assertIn(value, (None, 132))
+
 
 if __name__ == "__main__":
     unittest.main()

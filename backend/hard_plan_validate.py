@@ -14,6 +14,9 @@ from rag.structured.queries import _merge_provenance, _provenance_for
 _MANDATORY = "บังคับ"
 _ELECTIVE = "เลือก"
 _GRADUATION_CATEGORY = "เกณฑ์การสำเร็จการศึกษา"
+_EDITION_SCOPED_PROGRAM_REQUIREMENTS = frozenset(
+    {("DSBA", "dsba-2565", "2565")}
+)
 
 
 def _failure(status: str, program: Any, plan: Any, limitation: str) -> dict[str, Any]:
@@ -532,8 +535,41 @@ def _placement_quality(
 
 
 def _program_requirements(
-    connection: sqlite3.Connection, program: str
+    connection: sqlite3.Connection,
+    program: str,
+    catalog_key: str | None = None,
 ) -> tuple[list[dict[str, Any]], bool]:
+    catalog_rows = connection.execute(
+        """SELECT DISTINCT c.catalog_id, c.catalog_key, c.academic_year
+           FROM catalogs c
+           JOIN programs p ON p.catalog_id=c.catalog_id
+           WHERE UPPER(p.program_code_normalized)=?
+           ORDER BY c.catalog_id""",
+        (program.strip().casefold().upper(),),
+    ).fetchall()
+    if catalog_key is not None:
+        matching_catalogs = [
+            row for row in catalog_rows
+            if isinstance(row["catalog_key"], str)
+            and row["catalog_key"].strip().casefold() == catalog_key.strip().casefold()
+        ]
+        if len(matching_catalogs) != 1:
+            return [], False
+        selected = matching_catalogs[0]
+    else:
+        if len(catalog_rows) > 1:
+            return [], False
+        selected = catalog_rows[0] if catalog_rows else None
+
+    if len(catalog_rows) > 1:
+        identity = (
+            program.strip().upper(),
+            str(selected["catalog_key"]).strip() if selected is not None else "",
+            str(selected["academic_year"]).strip() if selected is not None else "",
+        )
+        if identity not in _EDITION_SCOPED_PROGRAM_REQUIREMENTS:
+            return [], False
+
     rows = connection.execute(
         """SELECT requirement_id, program_code, requirement_type, operator, value, unit
            FROM program_requirements
@@ -764,7 +800,7 @@ def validate_curriculum_plan_structure(
             groups, groups_complete = _alternative_groups(connection, resolved)
             quality, unresolved_timing = _placement_quality(connection, placements)
             requirements, requirements_complete = _program_requirements(
-                connection, resolved["program"]
+                connection, resolved["program"], resolved["catalog_key"]
             )
             unassessable, policy_complete = _unassessable_requirements(connection)
 

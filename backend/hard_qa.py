@@ -10,7 +10,10 @@ from contextlib import closing
 from pathlib import Path
 from typing import Any, Callable
 
-from backend.hard_plan_compare import compare_plan_course_sets
+from backend.hard_plan_compare import (
+    compare_curriculum_editions,
+    compare_plan_course_sets,
+)
 from backend.hard_plan_validate import validate_curriculum_plan_structure
 from backend.hard_prerequisite_validate import validate_plan_prerequisite_sequence
 from backend.hard_sequence_planner import plan_curriculum_sequence
@@ -598,6 +601,7 @@ def _response(
     provenance: list[dict[str, Any]] | None = None,
     *,
     action: str | None = None,
+    comparison: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     next_context = {key: value for key, value in scope.items() if key in {"catalog_key", "program", "plan", "target_course_code"} and value is not None}
     public_scope = {
@@ -606,7 +610,7 @@ def _response(
     }
     if "target_course_code" in next_context:
         next_context["course_code"] = next_context.pop("target_course_code")
-    return {
+    response = {
         "status": status,
         "answer": answer,
         "action": action,
@@ -616,6 +620,103 @@ def _response(
         "provenance": provenance or [],
         "next_context": next_context or None,
     }
+    if comparison is not None:
+        response["comparison"] = comparison
+    return response
+
+
+def _answer_old_new_comparison(
+    db_path: str | Path,
+    question: str,
+    context: dict[str, str],
+) -> dict[str, Any]:
+    try:
+        scopes = _load_scopes(db_path)
+    except (OSError, sqlite3.Error, ValueError):
+        return _response(
+            "incomplete_evidence",
+            "ไม่สามารถอ่านขอบเขตหลักสูตรที่ยืนยันได้",
+            "old_new_comparison",
+            {},
+            action="canonical_scope_unavailable",
+        )
+    programs = sorted({item["program"] for item in scopes}, key=str.casefold)
+    explicit_programs = _mentioned_values(question, scopes, "program")
+    context_program = _canonical_match(context.get("program"), programs)
+    if len(explicit_programs) > 1:
+        return _response(
+            "clarification_required",
+            "โปรดระบุหลักสูตรเดียวที่ต้องการเปรียบเทียบ",
+            "old_new_comparison",
+            {},
+        )
+    if explicit_programs:
+        program = explicit_programs[0]
+        if context_program is not None and not _same(context_program, program):
+            return _response(
+                "context_conflict",
+                "หลักสูตรในคำถามขัดกับหลักสูตรในบริบท กรุณายืนยันหลักสูตร",
+                "old_new_comparison",
+                {},
+                action="program_context_conflict",
+            )
+    else:
+        program = context_program
+    if program is None:
+        return _response(
+            "clarification_required",
+            "โปรดระบุรหัสหลักสูตรที่ต้องการเปรียบเทียบ เช่น DSBA",
+            "old_new_comparison",
+            {},
+        )
+
+    comparison = compare_curriculum_editions(db_path, program)
+    if comparison["status"] == "ambiguous_edition":
+        return _response(
+            "clarification_required",
+            "มีหลักสูตรมากกว่าสองฉบับหรือระบุปีหลักสูตรไม่ได้ กรุณาระบุฉบับที่ต้องการเปรียบเทียบ",
+            "old_new_comparison",
+            {"program": program},
+            action="ambiguous_edition",
+            comparison=comparison,
+        )
+    if comparison["status"] == "insufficient_editions":
+        return _response(
+            "no_data",
+            "ยังไม่มีหลักสูตรสองฉบับที่ยืนยันได้สำหรับการเปรียบเทียบ",
+            "old_new_comparison",
+            {"program": program},
+            action="insufficient_editions",
+            comparison=comparison,
+        )
+    older = comparison.get("older") or {}
+    newer = comparison.get("newer") or {}
+    counts = comparison.get("counts") or {}
+    status = "answer" if comparison["status"] == "complete" else "incomplete_evidence"
+    answer = (
+        f"เปรียบเทียบหลักสูตร {program} ปี {older.get('academic_year')} "
+        f"กับปี {newer.get('academic_year')} โดยรวมแผน coop/no_coop ภายในแต่ละฉบับแล้ว\n"
+        f"รหัสที่พบทั้งสองฉบับ: {counts.get('shared_same_code', 0)} รหัส\n"
+        f"รหัสที่พบเฉพาะฉบับเก่า: {counts.get('old_only_by_code', 0)} รหัส\n"
+        f"รหัสที่พบเฉพาะฉบับใหม่: {counts.get('new_only_by_code', 0)} รหัส\n"
+        f"คู่ชื่อวิชาที่ตรงกันแต่เปลี่ยนรหัสและเป็นเพียง candidate: "
+        f"{counts.get('same_name_changed_code_candidates', 0)} คู่\n"
+        "candidate ชื่อเหมือนกันยังไม่ยืนยันว่าเป็นวิชาเดียวกัน"
+    )
+    if comparison["status"] != "complete":
+        answer = "การเปรียบเทียบยังมีหลักฐานไม่ครบ\n" + answer
+    return _response(
+        status,
+        answer,
+        "old_new_comparison",
+        {
+            "program": program,
+            "older": older,
+            "newer": newer,
+        },
+        comparison.get("provenance"),
+        comparison=comparison,
+    )
 
 
 def answer_hard_question(
@@ -673,12 +774,7 @@ def answer_hard_question(
     )
 
     if _old_new_question(question):
-        return _response(
-            "unsupported",
-            "ฐานข้อมูลที่มีไม่ระบุปีหรือรุ่นหลักสูตรเพียงพอสำหรับเปรียบเทียบหลักสูตรเก่ากับใหม่",
-            "unsupported_old_new",
-            {"catalog_key": catalog_key, "program": context_program, "plan": context_plan},
-        )
+        return _answer_old_new_comparison(db_path, question, context)
 
     raw = interpretation_model(_interpretation_prompt(question, scopes, context))
     try:

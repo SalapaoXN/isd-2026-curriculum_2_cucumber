@@ -19,6 +19,7 @@ class AskResponse(BaseModel):
     hard_task_type: str | None = None
     provenance: list[dict[str, Any]] = Field(default_factory=list)
     next_context: dict[str, Any] | None = None
+    comparison: dict[str, Any] | None = None
 
 
 class PlanInfo(BaseModel):

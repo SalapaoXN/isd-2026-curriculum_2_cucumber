@@ -5,7 +5,10 @@ from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
-from backend.hard_plan_compare import compare_plan_course_sets
+from backend.hard_plan_compare import (
+    compare_curriculum_editions,
+    compare_plan_course_sets,
+)
 
 
 class HardPlanCompareTest(unittest.TestCase):
@@ -261,6 +264,54 @@ class HardPlanCompareTest(unittest.TestCase):
                 )
                 self.assertEqual(result["status"], "complete")
                 self.assertEqual(result["catalog_key"], catalog_key)
+
+    def test_old_new_comparison_returns_four_deterministic_code_categories(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2560' WHERE catalog_id=1"
+            )
+            connection.execute(
+                "UPDATE catalogs SET academic_year='2565' WHERE catalog_id=2"
+            )
+            connection.commit()
+
+        first = compare_curriculum_editions(self.db_path, "DSBA")
+        second = compare_curriculum_editions(self.db_path, "DSBA")
+
+        self.assertEqual(first, second)
+        self.assertEqual(first["status"], "complete")
+        categories = first["categories"]
+        self.assertEqual(
+            {item["course_code_normalized"] for item in categories["shared_same_code"]},
+            {"00000002"},
+        )
+        self.assertEqual(
+            {item["course_code_normalized"] for item in categories["old_only_by_code"]},
+            {"00000001"},
+        )
+        self.assertEqual(
+            {item["course_code_normalized"] for item in categories["new_only_by_code"]},
+            {"00000003"},
+        )
+        candidate = categories["same_name_changed_code_candidates"][0]
+        self.assertEqual(candidate["older"]["course_code"], "00000001")
+        self.assertEqual(candidate["newer"]["course_code"], "00000003")
+        self.assertFalse(candidate["equivalence_proven"])
+        self.assertTrue(candidate["older"]["provenance"])
+        self.assertTrue(candidate["newer"]["provenance"])
+
+    def test_old_new_comparison_requires_exactly_two_distinct_editions(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                "INSERT INTO catalogs(catalog_id,catalog_key,academic_year) VALUES (3,'third','2570')"
+            )
+            connection.execute("INSERT INTO programs VALUES (3,3,'DSBA','dsba')")
+            connection.commit()
+
+        result = compare_curriculum_editions(self.db_path, "DSBA")
+
+        self.assertEqual(result["status"], "ambiguous_edition")
+        self.assertTrue(result["limitations"])
 
 
 if __name__ == "__main__":

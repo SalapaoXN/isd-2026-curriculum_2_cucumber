@@ -586,4 +586,5 @@ def ask(request: AskRequest) -> dict:
         "hard_task_type": result.get("hard_task_type"),
         "provenance": result.get("provenance", []) if isinstance(result.get("provenance"), list) else [],
         "next_context": next_context,
+        "comparison": result.get("comparison") if isinstance(result.get("comparison"), dict) else None,
     }

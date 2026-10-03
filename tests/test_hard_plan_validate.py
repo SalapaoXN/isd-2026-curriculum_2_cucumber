@@ -309,6 +309,36 @@ class HardPlanValidateTest(unittest.TestCase):
         self.assertIsNone(result["credit_requirements"][0]["measured_value"])
         self.assertFalse(result.get("graduation_verdict"))
 
+    def test_dsba_2560_does_not_inherit_2565_program_credit_requirement(self):
+        db_path = Path("cucumber_outputs/runtime/curriculum.db")
+        if not db_path.exists():
+            self.skipTest("runtime curriculum DB is not present")
+
+        old_edition = validate_curriculum_plan_structure(
+            db_path, "DSBA", "coop", catalog_key="dsba-2560"
+        )
+        current_edition = validate_curriculum_plan_structure(
+            db_path, "DSBA", "coop", catalog_key="dsba-2565"
+        )
+
+        self.assertEqual(old_edition["credit_requirements"], [])
+        old_credit_check = next(
+            check for check in old_edition["checks"]
+            if check["check"] == "program_credit_requirements"
+        )
+        self.assertEqual(old_credit_check["status"], "incomplete_evidence")
+        current_total = next(
+            requirement for requirement in current_edition["credit_requirements"]
+            if requirement["requirement_type"] == "total_program_credits"
+        )
+        self.assertEqual(current_total["required_value"], 132)
+        self.assertTrue(
+            any(
+                reference.get("source_page") == 6
+                for reference in current_total["provenance"]
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -386,17 +386,59 @@ class HardQaTests(unittest.TestCase):
         self.assertEqual(result["scope"], {"program": "AIT", "plan": None})
         self.assertIn("เลือกแผนหลักสูตร", result["answer"])
 
-    def test_old_new_curriculum_comparison_is_unsupported_not_plan_comparison(self):
+    def test_old_new_curriculum_comparison_uses_canonical_editions_without_llm(self):
+        result = answer_hard_question(
+            DB_PATH,
+            "วิชาที่มีในหลักสูตรเก่า DSBA ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
+            {"program": "DSBA"},
+            lambda prompt: self.fail("old/new request should not call interpreter"),
+        )
+
+        self.assertEqual(result["hard_task_type"], "old_new_comparison")
+        self.assertEqual(result["status"], "answer")
+        comparison = result["comparison"]
+        self.assertEqual(comparison["older"], {"catalog_key": "dsba-2560", "academic_year": "2560"})
+        self.assertEqual(comparison["newer"], {"catalog_key": "dsba-2565", "academic_year": "2565"})
+        self.assertEqual(
+            set(comparison["categories"]),
+            {
+                "shared_same_code", "old_only_by_code", "new_only_by_code",
+                "same_name_changed_code_candidates", "unresolved_non_concrete",
+            },
+        )
+        self.assertTrue(comparison["provenance"])
+        self.assertTrue(all(
+            candidate["equivalence_proven"] is False
+            for candidate in comparison["categories"]["same_name_changed_code_candidates"]
+        ))
+        self.assertTrue(any(
+            candidate["older"]["course_code"] == "06026106"
+            and candidate["newer"]["course_code"] == "06066300"
+            for candidate in comparison["categories"]["same_name_changed_code_candidates"]
+        ))
+        self.assertIn("candidate ชื่อเหมือนกันยังไม่ยืนยัน", result["answer"])
+
+    def test_old_new_question_without_program_requests_scope(self):
         result = answer_hard_question(
             DB_PATH,
             "วิชาที่มีในหลักสูตรเก่า ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
             None,
-            lambda prompt: self.fail("old/new request should not call interpreter"),
+            lambda prompt: self.fail("program clarification must not call interpreter"),
         )
 
-        self.assertEqual(result["hard_task_type"], "unsupported_old_new")
-        self.assertEqual(result["status"], "unsupported")
-        self.assertNotIn("H1", result["answer"])
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertIn("ระบุรหัสหลักสูตร", result["answer"])
+
+    def test_old_new_comparison_fails_closed_for_unordered_multiple_editions(self):
+        result = answer_hard_question(
+            DB_PATH,
+            "วิชาที่มีในหลักสูตรเก่า IT ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
+            {"program": "IT"},
+            lambda prompt: self.fail("ambiguous edition must not call interpreter"),
+        )
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "ambiguous_edition")
 
     def test_provenance_pages_are_only_canonical_fields_and_answer_uses_no_model(self):
         answer_callable_calls = []

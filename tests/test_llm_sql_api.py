@@ -267,6 +267,28 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(provider.call_args.kwargs["response_json_schema"], HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA)
         self.assertNotIn("response_schema", provider.call_args.kwargs)
 
+    def test_old_new_comparison_api_returns_structured_categories_without_model(self):
+        with patch.object(
+            main, "_lazy_provider", side_effect=AssertionError("comparison is deterministic")
+        ) as provider:
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "วิชาที่มีในหลักสูตรเก่า DSBA ไม่มีในหลักสูตรใหม่มีอะไรบ้าง",
+                    "conversation_context": {"program": "DSBA"},
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["route"], "hard")
+        self.assertEqual(payload["hard_task_type"], "old_new_comparison")
+        self.assertEqual(payload["comparison"]["older"]["catalog_key"], "dsba-2560")
+        self.assertEqual(payload["comparison"]["newer"]["catalog_key"], "dsba-2565")
+        self.assertIn("same_name_changed_code_candidates", payload["comparison"]["categories"])
+        self.assertTrue(payload["provenance"])
+        provider.assert_not_called()
+
     def test_rejected_hard_interpretation_does_not_fall_through_to_sql_service(self):
         with patch.object(main, "_lazy_provider", return_value="not JSON") as provider:
             response = self.client.post(
