@@ -1,0 +1,153 @@
+name: Student language smoke once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/student-language-smoke-once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy sqlite-vec google-genai python-dotenv fastapi httpx uvicorn transformers sentencepiece
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run student-language smoke matrix
+        run: |
+          python - <<'PY'
+          import json
+          from rag.hybrid_demo import answer_question_once
+          from rag.query_spec import parse_query_spec
+
+          DB = "cucumber_outputs/runtime/curriculum.db"
+
+          cases = [
+              # curriculum listing / placement / credits
+              ("IT ปี1เทอม1 เรียนไรบ้างอะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("เทอมแรกปีสองมีตัวไหนบ้าง", {"program":"IT","catalog_key":"it-2565","years":[2]}),
+              ("ปี3 เทอม1 หนักกี่หน่วย", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("ปีสามเทอมแรกเรียนรวมกี่หน่วยอะ", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("06016414 เรียนตอนไหน", {"program":"IT","catalog_key":"it-2565"}),
+              ("06016414 มันกี่หน่วยวะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("วิชา database ตัวไหนอยู่ปีไหนบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("พวกวิชาเว็บมีตัวไหนบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("มีตัวไหนเรียนเกี่ยวกับ cloud บ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("วิชาแนว security มีอะไรมั่ง", {"program":"IT","catalog_key":"it-2565"}),
+              ("อยากหาเรียนแนว machine learning มีตัวไหน", {"program":"IT","catalog_key":"it-2565"}),
+              ("มีวิชาเกี่ยวกับ data center ปะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("พวก data sci มีอะไรเรียนบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("มีอะไรสายเกมมั่ง", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้าอยากเรียน ux มีตัวไหนเกี่ยว", {"program":"IT","catalog_key":"it-2565"}),
+              ("มีวิชาเกี่ยวกับ network security ไหม", {"program":"IT","catalog_key":"it-2565"}),
+
+              # plan / program totals
+              ("IT สหกิจนี่รวมกี่หน่วยนะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้าไม่สหกิจต้องเก็บกี่หน่วยทั้งหมด", {"program":"IT","catalog_key":"it-2565"}),
+              ("DSBA coop รวมทั้งหมดเท่าไหร่", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("dsba ไม่ coop ต้องเรียนกี่หน่วยอะ", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("หลักสูตรนี้ทั้งหมดกี่หน่วย", {"program":"IT","catalog_key":"it-2565"}),
+
+              # prerequisite / describe
+              ("06026212 ต้องผ่านตัวไหนมาก่อน", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("06026212 เรียนเกี่ยวกับไรอะ", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("nosql ต้องเรียนอะไรมาก่อนปะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("วิชา AI มันเรียนประมาณไหน", {"program":"IT","catalog_key":"it-2565"}),
+              ("data center design เรียนไร", {"program":"IT","catalog_key":"it-2565"}),
+
+              # policy natural language
+              ("ปกติเทอมนึงลงได้มากสุดกี่หน่วยอะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้าจะลง24หน่วยได้ปะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("ซัมเมอร์ลงได้สุดเท่าไหร่", {"program":"IT","catalog_key":"it-2565"}),
+              ("gpa เท่าไหร่ถึงติดโปร", {"program":"IT","catalog_key":"it-2565"}),
+              ("แล้วเท่าไหร่ถึงหลุดโปร", {"program":"IT","catalog_key":"it-2565"}),
+              ("ลาออกต้องทำไงบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้าจะพักเรียนต้องทำยังไง", {"program":"IT","catalog_key":"it-2565"}),
+              ("โอนหน่วยกิตจากที่อื่นได้มั้ย", {"program":"IT","catalog_key":"it-2565"}),
+              ("โกงข้อสอบโดนอะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("โทษวินัยมีอะไรมั่ง", {"program":"IT","catalog_key":"it-2565"}),
+              ("โดนลงโทษแล้วจะอุทธรณ์ต้องยื่นกี่วัน", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้าจะอุทธรณ์คำสั่งลงโทษต้องทำไง", {"program":"IT","catalog_key":"it-2565"}),
+              ("จะจบต้อง gpa เท่าไหร่", {"program":"IT","catalog_key":"it-2565"}),
+              ("จบต้องสอบ exit english ปะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("ติดหนี้สถาบันอยู่จบได้มั้ย", {"program":"IT","catalog_key":"it-2565"}),
+              ("พ้นสภาพมีกรณีไหนบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("gpa ต่ำกว่าเท่าไหร่ถึงพ้นสภาพ", {"program":"IT","catalog_key":"it-2565"}),
+              ("ความผิดหนักๆทางวินัยมีอะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+              ("นักศึกษามีกฎเรื่องความประพฤติอะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
+
+              # ambiguous / should not hallucinate
+              ("กี่หน่วยอะ", {"program":"IT","catalog_key":"it-2565"}),
+              ("ตัวนี้เรียนตอนไหน", {"program":"IT","catalog_key":"it-2565"}),
+              ("ผ่านกี่คะแนน", {"program":"IT","catalog_key":"it-2565"}),
+              ("exit exam ต้องได้เท่าไหร่", {"program":"IT","catalog_key":"it-2565"}),
+              ("เทอมหน้าวิชานี้เปิดมั้ย", {"program":"IT","catalog_key":"it-2565"}),
+              ("กูติดหนี้100บาทยังจบได้มั้ย", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้าโดนวินัยจะโดนอะไร", {"program":"IT","catalog_key":"it-2565"}),
+              ("อุทธรณ์ได้กี่วัน", {"program":"IT","catalog_key":"it-2565"}),
+              ("B+ ได้กี่แต้ม", {"program":"IT","catalog_key":"it-2565"}),
+              ("ถ้า gpa .95 จะโดนให้ออกวันไหน", {"program":"IT","catalog_key":"it-2565"}),
+
+              # noisy spacing / code mixing
+              ("IT y2 term1 มีวิชาอะไร", {"program":"IT","catalog_key":"it-2565"}),
+              ("dsba ปี 1 เทอม 2 รวม credits เท่าไร", {"program":"DSBA","catalog_key":"dsba-2565"}),
+              ("มี course แนว cybersecurity มั้ย", {"program":"IT","catalog_key":"it-2565"}),
+              ("หา subject เกี่ยวกับ big data ให้หน่อย", {"program":"IT","catalog_key":"it-2565"}),
+              ("06016460 prerequisite คือไร", {"program":"IT","catalog_key":"it-2565"}),
+              ("06016460 อยู่ year ไหน", {"program":"IT","catalog_key":"it-2565"}),
+          ]
+
+          rows=[]
+          suspicious=[]
+          for idx,(q,ctx) in enumerate(cases,1):
+              try:
+                  spec=parse_query_spec(q, has_validated_context_scope=True)
+                  result=answer_question_once(DB,q,conversation_context=ctx)
+                  status=result.get("status")
+                  answer=result.get("final_answer") or ""
+                  prov=result.get("provenance") or ()
+                  row={
+                      "n":idx,
+                      "q":q,
+                      "status":status,
+                      "topic":spec.topic,
+                      "ops":list(spec.operations),
+                      "plans":list(spec.plans),
+                      "years":list(spec.years),
+                      "semesters":list(spec.semesters),
+                      "answer_lines":len(answer.splitlines()) if answer else 0,
+                      "provenance":len(prov),
+                      "answer_preview":answer.replace("\n"," | ")[:240],
+                  }
+                  rows.append(row)
+                  if status=="answer" and not prov:
+                      suspicious.append((idx,"answer_without_provenance",q))
+                  if status=="answer" and len(answer.splitlines())>90:
+                      suspicious.append((idx,"very_broad_answer",q))
+                  if status=="answer" and not answer.strip():
+                      suspicious.append((idx,"empty_answer",q))
+              except Exception as e:
+                  rows.append({"n":idx,"q":q,"exception":repr(e)})
+                  suspicious.append((idx,"exception",q))
+
+          counts={}
+          for r in rows:
+              k=r.get("status","exception")
+              counts[k]=counts.get(k,0)+1
+
+          print("STUDENT_SMOKE_COUNTS="+json.dumps(counts,ensure_ascii=False))
+          print("SUSPICIOUS="+json.dumps(suspicious,ensure_ascii=False))
+          for r in rows:
+              print("CASE="+json.dumps(r,ensure_ascii=False))
+          PY
