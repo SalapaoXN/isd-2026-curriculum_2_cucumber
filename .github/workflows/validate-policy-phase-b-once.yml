@@ -2,6 +2,7 @@ name: Validate policy phase B once
 # rerun after shared-rule fix
 # rerun after graduation policy coverage
 # rerun after answer rendering fix
+# broader QA/API regression
 
 on:
   push:
@@ -24,7 +25,7 @@ jobs:
       - name: Install focused runtime dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install numpy sqlite-vec google-genai python-dotenv
+          python -m pip install numpy sqlite-vec google-genai python-dotenv fastapi httpx
 
       - name: Run policy regression suite
         run: |
@@ -33,4 +34,9 @@ jobs:
             tests.rag.test_h25_policy_routing \
             tests.rag.test_h25p3_policy_collisions \
             tests.rag.test_rag_policy_combined \
+            tests.rag.test_rag_qa \
+            tests.rag.test_rag_structured_qa \
+            tests.test_llm_sql_api \
+            tests.test_llm_sql_qa \
+            tests.test_hard_qa \
             -v
