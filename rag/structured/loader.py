@@ -80,7 +80,7 @@ def _flexible_year_semester_values(value: Any) -> tuple[int | None, int | None, 
 
 def _credit_values(value: Any) -> tuple[int | None, str | None]:
     raw_value = _as_text(value)
-    if raw_value is None:
+    if raw_value is None or not raw_value.strip():
         return None, None
     match = _CREDIT_UNITS.fullmatch(raw_value)
     if match is None:
