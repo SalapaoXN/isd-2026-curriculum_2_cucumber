@@ -62,12 +62,22 @@ class StudentLanguageSmokeRegressionTest(unittest.TestCase):
         )
 
     def test_compound_topics_do_not_truncate_to_legacy_single_tokens(self):
-        cases = (
-            ("มีวิชาเกี่ยวกับ network security ไหม", "060164"),
-            ("มีวิชาเกี่ยวกับ data center ปะ", "06016465"),
+        for question in (
+            "มีวิชาเกี่ยวกับ network security ไหม",
+            "มีวิชาเกี่ยวกับ data center ปะ",
+        ):
+            with self.subTest(question=question):
+                result = ask_it(question)
+                self.assertEqual(result["status"], "answer", result)
+                self.assertTrue(result["provenance"])
+                self.assertIn("existence: true", result["final_answer"])
+                self.assertLess(len(result["final_answer"].splitlines()), 10)
+
+        list_cases = (
+            ("มีวิชาเกี่ยวกับ data center อะไรบ้าง", "06016465"),
             ("หา subject เกี่ยวกับ big data ให้หน่อย", "06016471"),
         )
-        for question, expected in cases:
+        for question, expected in list_cases:
             with self.subTest(question=question):
                 result = ask_it(question)
                 self.assertEqual(result["status"], "answer", result)
