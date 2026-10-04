@@ -3054,9 +3054,55 @@ def ask(
             if program and edition_catalog_keys_for_program(db_path, program)
             else None
         ),
+        program_context=program if isinstance(program, str) else None,
     )
     if policy_result is not None:
         return {"route": None, "result": policy_result}
+
+    operations = tuple(getattr(spec, "operations", ()))
+    has_structural_target = bool(
+        tuple(getattr(spec, "plans", ()))
+        or tuple(getattr(spec, "years", ()))
+        or tuple(getattr(spec, "semesters", ()))
+        or tuple(getattr(spec, "course_codes", ()))
+        or getattr(spec, "course_name", None)
+        or getattr(spec, "category", None)
+        or getattr(spec, "topic", None)
+    )
+    explicit_program_mentions = {
+        match.group(0).upper()
+        for match in re.finditer(
+            r"(?<![A-Za-z0-9_])(?:AIT|BIT|DSBA|IT)(?![A-Za-z0-9_])",
+            question,
+            re.IGNORECASE,
+        )
+    }
+    if (
+        operations == ("sum_credits",)
+        and not has_structural_target
+        and len(explicit_program_mentions) <= 1
+    ):
+        # A bare follow-up such as "กี่หน่วยอะ" with only program/catalog
+        # context does not identify a semester, course, plan, or program-total
+        # requirement. Never widen it to every term in the curriculum.
+        # Explicit multi-program wording is excluded: that is a real
+        # comparison shape handled by the existing structured path.
+        return _intent_failure_result(question)
+    if operations == ("existence",) and not has_structural_target:
+        # Existence without an entity/filter otherwise degenerates into
+        # "does this curriculum contain anything?" and can mask a missed
+        # policy/topic parse.
+        return _intent_failure_result(question)
+    if (
+        operations == ("placement",)
+        and not (
+            tuple(getattr(spec, "course_codes", ()))
+            or getattr(spec, "course_name", None)
+            or getattr(spec, "topic", None)
+        )
+        and re.search(r"(?:ตัวนี้|วิชานี้|อันนี้)", question, re.IGNORECASE)
+    ):
+        return _intent_failure_result(question)
 
     resolution_context = (
         QueryContext(catalog_key=catalog_key)

@@ -1500,6 +1500,44 @@ def _execute_topic_dependent_credit(
     )
 
 
+def _execute_topic_dependent_placement(
+    db_path: str,
+    request: EvidenceRequest,
+    dependency: EvidenceExecutionResult,
+) -> EvidenceExecutionResult:
+    """Restrict placement facts to the already-grounded topic candidates."""
+
+    scope = dependency.effective_scope
+    if dependency.status == "insufficient_evidence":
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state=dependency.primitive_state or "dependency_insufficient",
+        )
+    if dependency.status == "valid_empty":
+        return _result(
+            request,
+            scope,
+            "valid_empty",
+            {"status": "no_data", "courses": ()},
+            "empty_topic_candidates",
+        )
+    targets = _topic_credit_targets(dependency.payload)
+    if targets is None:
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            primitive_state="malformed_topic_dependency",
+        )
+    return _execute_placement(
+        db_path,
+        request,
+        replace(scope, course_targets=targets),
+    )
+
+
 def _topic_prerequisite_targets(
     payload: Any,
 ) -> tuple[Mapping[str, Any], ...] | None:
@@ -1922,6 +1960,64 @@ def execute_evidence_plan(
                                     dependency,
                                 )
                             )
+        elif request.kind == "placement_facts" and any(
+            request_by_id.get(dependency_id, None) is not None
+            and request_by_id[dependency_id].kind == "topic_matches"
+            for dependency_id in request.depends_on
+        ):
+            topic_dependency_ids = tuple(
+                dependency_id
+                for dependency_id in request.depends_on
+                if request_by_id.get(dependency_id, None) is not None
+                and request_by_id[dependency_id].kind == "topic_matches"
+            )
+            if len(request.depends_on) != 1 or len(topic_dependency_ids) != 1:
+                request_results = [
+                    _result(
+                        request,
+                        request.scope,
+                        "insufficient_evidence",
+                        primitive_state="invalid_topic_dependency",
+                    )
+                ]
+            else:
+                dependency_results = by_request.get(topic_dependency_ids[0], ())
+                if not dependency_results:
+                    request_results = [
+                        _result(
+                            request,
+                            request.scope,
+                            "insufficient_evidence",
+                            primitive_state="missing_topic_dependency",
+                        )
+                    ]
+                else:
+                    request_results = []
+                    requested_plans = tuple(request.scope.plans)
+                    for dependency in dependency_results:
+                        effective_plans = tuple(dependency.effective_scope.plans)
+                        if (
+                            requested_plans
+                            and effective_plans
+                            and not set(requested_plans).intersection(effective_plans)
+                        ):
+                            continue
+                        request_results.append(
+                            _execute_topic_dependent_placement(
+                                db_path,
+                                request,
+                                dependency,
+                            )
+                        )
+                    if not request_results:
+                        request_results = [
+                            _result(
+                                request,
+                                request.scope,
+                                "insufficient_evidence",
+                                primitive_state="missing_matching_topic_scope",
+                            )
+                        ]
         elif request.kind == "prerequisite_facts" and any(
             request_by_id.get(dependency_id, None) is not None
             and request_by_id[dependency_id].kind == "course_set"

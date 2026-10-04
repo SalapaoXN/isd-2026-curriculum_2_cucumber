@@ -14,7 +14,7 @@ from rag.query_spec import parse_query_spec
 from rag.structured.queries import edition_catalog_keys_for_program
 
 from .answer import PolicyAnswer, answer_policy_question
-from .query import parse_policy_question
+from .query import looks_like_policy_question, parse_policy_question
 
 
 POLICY_ROUTE_ALLOWLIST = frozenset(
@@ -117,13 +117,20 @@ def route_policy_question(
     question: str,
     *,
     catalog_key: str | None = None,
+    program_context: str | None = None,
 ) -> GroundedAnswerResult | None:
     """Answer routed policy questions, or return None to keep existing behavior."""
-    query = parse_policy_question(question)
+    query = parse_policy_question(question, program_context=program_context)
     if query is None:
+        if looks_like_policy_question(question):
+            return adapt_policy_answer(PolicyAnswer(status="unsupported"))
         return None
+    if query.kind == "unsupported_policy_shape":
+        return adapt_policy_answer(
+            PolicyAnswer(status="unsupported", query_type=query.kind)
+        )
     if query.kind in POLICY_ROUTE_ALLOWLIST:
-        return adapt_policy_answer(answer_policy_question(db_path, question))
+        return adapt_policy_answer(answer_policy_question(db_path, question, program_context=program_context))
     if query.kind == "program_total_credits":
         # Program-total questions may carry exactly one explicit plan.  The
         # canonical program requirement is plan-aware through source provenance;
@@ -138,7 +145,12 @@ def route_policy_question(
                 PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
             )
         return adapt_policy_answer(
-            answer_policy_question(db_path, question, catalog_key=catalog_key)
+            answer_policy_question(
+                db_path,
+                question,
+                catalog_key=catalog_key,
+                program_context=program_context,
+            )
         )
     if query.kind == "registration_compare":
         # H25-P3 R2: a ("list",) parse would be a genuine dual (filtered list
@@ -149,7 +161,7 @@ def route_policy_question(
             return adapt_policy_answer(
                 PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
             )
-        return adapt_policy_answer(answer_policy_question(db_path, question))
+        return adapt_policy_answer(answer_policy_question(db_path, question, program_context=program_context))
     return None
 
 
