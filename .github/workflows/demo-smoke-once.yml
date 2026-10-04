@@ -1,4 +1,5 @@
 name: Demo smoke test once
+# rerun after topic and total fixes
 
 on:
   push:
@@ -56,31 +57,62 @@ jobs:
           from rag.query_spec import parse_query_spec
 
           DB = "cucumber_outputs/runtime/curriculum.db"
-          cases = [
-              ("IT แผนสหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"IT","catalog_key":"it-2565"}),
-              ("IT แผนไม่สหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"IT","catalog_key":"it-2565"}),
-              ("DSBA แผนสหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"DSBA","catalog_key":"dsba-2565"}),
-              ("DSBA แผนไม่สหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"DSBA","catalog_key":"dsba-2565"}),
-              ("มีวิชาเกี่ยวกับ data อะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
-              ("มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
-              ("มีวิชาเกี่ยวกับ AI อะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
-              ("มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง", {"program":"IT","catalog_key":"it-2565"}),
-          ]
 
-          for question, context in cases:
+          total_cases = [
+              ("IT แผนสหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"IT","catalog_key":"it-2565"}, 129, "coop"),
+              ("IT แผนไม่สหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"IT","catalog_key":"it-2565"}, 129, "no_coop"),
+              ("DSBA แผนสหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"DSBA","catalog_key":"dsba-2565"}, 132, "coop"),
+              ("DSBA แผนไม่สหกิจ รวมทั้งหมดกี่หน่วยกิต", {"program":"DSBA","catalog_key":"dsba-2565"}, 132, "no_coop"),
+          ]
+          for question, context, expected_total, expected_plan in total_cases:
               spec = parse_query_spec(question)
               result = answer_question_once(DB, question, conversation_context=context)
+              answer = result.get("final_answer") or ""
+              provenance = result.get("provenance") or ()
               print("\nQUESTION:", question)
-              print("PARSE:", {
-                  "program": spec.program,
-                  "plans": spec.plans,
-                  "years": spec.years,
-                  "semesters": spec.semesters,
-                  "topic": spec.topic,
-                  "operations": spec.operations,
-              })
-              print("STATUS:", result.get("status") or getattr(result.get("result"), "status", None))
-              print("ANSWER:", result.get("final_answer") or result.get("answer") or result.get("result"))
-              prov = result.get("provenance") or ()
-              print("PROVENANCE_COUNT:", len(prov))
+              print("PARSE:", {"plans": spec.plans, "operations": spec.operations})
+              print("ANSWER:", answer)
+              print("PROVENANCE:", provenance)
+              assert result.get("status") == "answer", result
+              assert str(expected_total) in answer, answer
+              assert "ปี 1 ภาคเรียน" not in answer, answer
+              assert provenance, result
+              assert all(ref.get("plan") == expected_plan for ref in provenance), provenance
+
+          topic_cases = [
+              ("มีวิชาเกี่ยวกับ data อะไรบ้าง", "data"),
+              ("มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง", "database"),
+              ("มีวิชาเกี่ยวกับ AI อะไรบ้าง", "AI"),
+              ("มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง", "cybersecurity"),
+              ("วิชาที่เกี่ยวกับ machine learning มีอะไรบ้าง", "machine learning"),
+          ]
+          for question, expected_topic in topic_cases:
+              spec = parse_query_spec(question, has_validated_context_scope=True)
+              result = answer_question_once(
+                  DB,
+                  question,
+                  conversation_context={"program":"IT","catalog_key":"it-2565"},
+              )
+              answer = result.get("final_answer") or ""
+              provenance = result.get("provenance") or ()
+              print("\nQUESTION:", question)
+              print("PARSE:", {"topic": spec.topic, "operations": spec.operations})
+              print("STATUS:", result.get("status"))
+              print("ANSWER_LINES:", len(answer.splitlines()))
+              print("ANSWER:", answer)
+              assert spec.topic == expected_topic, spec
+              assert spec.operations == ("list",), spec
+              assert result.get("status") == "answer", result
+              assert provenance, result
+              # A topic query must not silently widen to the entire IT plan.
+              assert len(answer.splitlines()) < 80, len(answer.splitlines())
           PY
+
+      - name: Focused regression
+        run: |
+          python -m unittest \
+            tests.rag.test_query_spec \
+            tests.rag.test_rag_policy \
+            tests.rag.test_rag_qa \
+            tests.test_llm_sql_api \
+            -v
