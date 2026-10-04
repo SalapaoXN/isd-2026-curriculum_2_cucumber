@@ -39,8 +39,57 @@ POLICY_ROUTE_ALLOWLIST = frozenset(
         "graduation_gpa",
         "graduation_english_exit",
         "graduation_no_debt",
+        "student_status_termination_reasons",
+        "student_status_termination_gpa",
+        "gpa_calculation_method",
+        "assessment_method",
+        "student_conduct_rules",
+        "serious_disciplinary_offenses",
     }
 )
+
+POLICY_GT_CATEGORY_COVERAGE = {
+    "เกณฑ์การสำเร็จการศึกษา": frozenset(
+        {
+            "graduation_requirements",
+            "graduation_gpa",
+            "graduation_english_exit",
+            "graduation_no_debt",
+            "program_total_credits",
+        }
+    ),
+    "เกณฑ์เกียรตินิยม": frozenset({"honors_first", "honors_second"}),
+    "เกณฑ์พ้นสภาพนักศึกษา": frozenset(
+        {"student_status_termination_reasons", "student_status_termination_gpa"}
+    ),
+    "เกณฑ์ภาคทัณฑ์ (probation)": frozenset(
+        {"probation_entry", "probation_cleared"}
+    ),
+    "ระบบเกรด/การคิดคะแนน": frozenset({"gpa_calculation_method"}),
+    "เกณฑ์การลงทะเบียน": frozenset(
+        {
+            "registration_regular_max",
+            "registration_regular_min",
+            "registration_exception_max",
+            "registration_special_max",
+            "registration_compare",
+        }
+    ),
+    "การลาพักการศึกษา": frozenset({"leave_of_absence"}),
+    "การลาออก": frozenset({"resignation"}),
+    "การสอบ/วัดผล": frozenset({"assessment_method"}),
+    "การทุจริตทางวิชาการ": frozenset({"exam_dishonesty_penalty"}),
+    "ระเบียบความประพฤติ": frozenset(
+        {"student_conduct_rules", "serious_disciplinary_offenses"}
+    ),
+    "บทลงโทษทางวินัย": frozenset({"disciplinary_penalties"}),
+    "การอุทธรณ์": frozenset(
+        {"sanction_appeal_deadline", "sanction_appeal_procedure"}
+    ),
+    "การกลับเข้าศึกษา": frozenset({"reentry_limit"}),
+    "การเทียบโอนหน่วยกิต": frozenset({"credit_transfer"}),
+}
+
 
 _POLICY_STATUS_MAP = {
     "complete": "answer",
@@ -116,6 +165,7 @@ def _has_explicit_curriculum_axis(spec: object) -> bool:
 
 
 __all__ = [
+    "POLICY_GT_CATEGORY_COVERAGE",
     "POLICY_ROUTE_ALLOWLIST",
     "adapt_policy_answer",
     "route_policy_question",
