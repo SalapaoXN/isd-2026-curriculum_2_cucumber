@@ -196,6 +196,18 @@ def _pending_catalog_context(query_spec, program: str, parsed_context=None) -> d
     return payload
 
 
+def _is_unsupported_retake_timing_question(question: str) -> bool:
+    """Match only explicit failure/withdrawal + retake + timing requests."""
+    return all(
+        re.search(pattern, question, re.IGNORECASE) is not None
+        for pattern in (
+            r"ถอน|ตก|ไม่ผ่าน",
+            r"(?:ลง\s*(?:เรียน\s*)?|เรียน\s*)(?:ใหม่|อีกที|อีกครั้ง|ซ้ำ)",
+            r"ตอนไหน|เมื่อไหร่|เมื่อไร|เทอมไหน|ภาค(?:เรียน)?ไหน",
+        )
+    )
+
+
 def _pending_catalog_query(context: dict) -> str | None:
     """Rebuild the supported list request from bounded pending fields."""
     if context.get("operations") != ["list"]:
@@ -756,6 +768,33 @@ def ask(request: AskRequest) -> dict:
         raise HTTPException(
             status_code=422, detail=f"invalid conversation_context: {exc}"
         ) from exc
+    if _is_unsupported_retake_timing_question(request.question):
+        next_context: dict = {}
+        if program is not None:
+            next_context["program"] = program
+        if catalog_key is not None:
+            next_context["catalog_key"] = catalog_key
+        if (
+            parsed_context is not None
+            and parsed_context.plan is not None
+            and parsed_context.program == program
+        ):
+            next_context["plan"] = parsed_context.plan
+        return {
+            "question": request.question,
+            "answer": (
+                "CUCUMBER มีข้อมูลโครงสร้างและตำแหน่งรายวิชาในหลักสูตร "
+                "แต่ไม่มีข้อมูลการเปิดสอนจริงในแต่ละภาคเรียน จึงยืนยันไม่ได้ว่า "
+                "หลังถอนหรือสอบไม่ผ่านจะลงเรียนวิชานี้ซ้ำได้เมื่อใด "
+                "โปรดตรวจสอบระบบเปิดรายวิชาหรือระบบลงทะเบียนของมหาวิทยาลัย"
+            ),
+            "status": "insufficient_evidence",
+            "action": "course_offering_data_required",
+            "route": "llm_sql",
+            "provenance": [],
+            "next_context": next_context or None,
+            "comparison": None,
+        }
     service_context: dict | None = {}
     if program is not None:
         service_context["program"] = program

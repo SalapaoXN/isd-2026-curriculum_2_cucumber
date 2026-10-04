@@ -36,6 +36,87 @@ class LlmSqlApiTests(unittest.TestCase):
         self.db_patch.stop()
         main._provider = None
 
+    def test_retake_timing_question_fails_closed_without_offering_data(self):
+        question = (
+            "ถ้าถอนวิชา FUNDAMENTAL WEB PROGRAMMING ตอนปี 2 เทอม 1 "
+            "ต้องลงเรียนอีกทีตอนไหน เทอมไหน"
+        )
+        contexts = (
+            {"program": "DSBA", "catalog_key": "dsba-2565"},
+            {
+                "program": "DSBA",
+                "catalog_key": "dsba-2565",
+                "plan": "no_coop",
+                "years": [2],
+                "semesters": [1],
+                "operations": ["placement"],
+            },
+        )
+        with (
+            patch.object(main, "answer_hard_question") as hard_qa,
+            patch.object(main, "_lazy_provider") as provider,
+        ):
+            for context in contexts:
+                response = self.client.post(
+                    "/api/ask",
+                    json={"question": question, "conversation_context": context},
+                )
+                self.assertEqual(response.status_code, 200, response.json())
+                payload = response.json()
+                self.assertEqual(payload["status"], "insufficient_evidence")
+                self.assertEqual(payload["action"], "course_offering_data_required")
+                self.assertEqual(payload["route"], "llm_sql")
+                self.assertEqual(payload["provenance"], [])
+                self.assertIn("ไม่มีข้อมูลการเปิดสอนจริง", payload["answer"])
+                self.assertIn("ระบบลงทะเบียนของมหาวิทยาลัย", payload["answer"])
+                next_context = payload["next_context"]
+                self.assertEqual(next_context["program"], "DSBA")
+                self.assertEqual(next_context["catalog_key"], "dsba-2565")
+                self.assertEqual(
+                    next_context.get("plan"), context.get("plan")
+                )
+                for key in (
+                    "years",
+                    "semesters",
+                    "operations",
+                    "result_courses",
+                    "focus_course",
+                ):
+                    self.assertNotIn(key, next_context)
+        self.sql_service.assert_not_called()
+        hard_qa.assert_not_called()
+        provider.assert_not_called()
+
+    def test_retake_timing_guard_does_not_capture_supported_question_families(self):
+        questions = (
+            "06066300 เรียนปีไหน เทอมไหน",
+            "FUNDAMENTAL WEB PROGRAMMING อยู่ปีไหน",
+            "ถอนรายวิชาได้ถึงเมื่อไหร่",
+            "06066300 ต้องเรียนอะไรมาก่อน",
+            "DSBA ปี 2 เทอม 1 มีวิชาอะไรบ้าง",
+        )
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=AssertionError("unexpected model call")),
+        ):
+            for question in questions:
+                with self.subTest(question=question):
+                    response = self.client.post(
+                        "/api/ask",
+                        json={
+                            "question": question,
+                            "conversation_context": {
+                                "program": "DSBA",
+                                "catalog_key": "dsba-2565",
+                            },
+                        },
+                    )
+                    self.assertEqual(response.status_code, 200, response.json())
+                    self.assertNotEqual(
+                        response.json().get("action"),
+                        "course_offering_data_required",
+                    )
+
     def test_api_ask_uses_sql_service_with_question_and_selected_program(self):
         with patch("rag.hybrid_demo.answer_question_once") as old_rag:
             response = self.client.post(
