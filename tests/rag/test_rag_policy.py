@@ -67,7 +67,10 @@ class RagPolicyTest(unittest.TestCase):
                 self.assertIn(f"แผน{wording}", answer.rendered_answer)
                 self.assertTrue(answer.provenance)
                 self.assertTrue(
-                    all(reference.get("plan") == plan for reference in answer.provenance)
+                    all(
+                        reference.get("document_category") == "plan"
+                        for reference in answer.provenance
+                    )
                 )
 
                 routed = route_policy_question(
