@@ -130,11 +130,6 @@ export default function CurriculumPage() {
     }
   }
 
-  useEffect(() => {
-    load(applied);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   function handleSearch(e) {
     e?.preventDefault();
     const params = {
