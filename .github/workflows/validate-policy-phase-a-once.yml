@@ -1,4 +1,5 @@
 name: Validate policy phase A once
+# rerun after parser ordering fix
 
 on:
   push:
