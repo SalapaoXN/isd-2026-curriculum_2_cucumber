@@ -237,7 +237,11 @@ class LlmSpellCorrectorTests(unittest.TestCase):
             ): "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
             ("GENED", "90642056", "name_en", "ST EPLDEMICS IN THE 21 CENTURV"):
                 "EPIDEMICS IN THE 21ST CENTURY",
-            ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+            ("GENED", "90642045", "name_en", "BE MV BEV."): "BE MY BEV.",
+            ("IT", "06066302", "name_th", "การเขียนโปรแกรมเจ็"):
+                "การเขียนโปรแกรมเว็บพื้นฐาน",
+            ("IT", "06016465", "name_th", "การออกแบบศูนย์"):
+                "การออกแบบศูนย์ข้อมูล",
             ("IT", "06016418", "name_th", "การพัฒนาเว็บฝังเซิร์ฟเวอร์"):
                 "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
             (
