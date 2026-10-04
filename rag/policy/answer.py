@@ -494,9 +494,9 @@ def _sanction_appeal_procedure_answer(
         provenance=provenance,
         verification_status=deadline.verification_status,
         rendered_answer=(
-            "นักศึกษาที่ถูกสั่งลงโทษตามข้อ 38 หรือข้อ 39 มีสิทธิอุทธรณ์"
-            "ต่ออธิการบดี โดยต้องอุทธรณ์เป็นหนังสือลงลายมือชื่อ และยื่นภายใน "
-            f"{deadline.value} {deadline.unit} นับตั้งแต่วันทราบคำสั่ง"
+            "ตามข้อ 43 นักศึกษาที่ถูกสั่งลงโทษตามข้อ 38 หรือข้อ 39 มีสิทธิ"
+            "อุทธรณ์ต่ออธิการบดี โดยต้องอุทธรณ์เป็นหนังสือลงลายมือชื่อ "
+            f"และยื่นภายใน {deadline.value} {deadline.unit} นับตั้งแต่วันทราบคำสั่ง"
         ),
     )
 
@@ -512,6 +512,8 @@ def _graduation_gpa_answer(
         raise ValueError("graduation GPA evidence is incomplete")
     ordered = tuple(by_key[key] for key in required)
     provenance = _combined_provenance(ordered)
+    structure_gpa = f"{float(ordered[0].value):.2f}"
+    cumulative_gpa = f"{float(ordered[1].value):.2f}"
     return PolicyAnswer(
         status="complete",
         query_type=query.kind,
@@ -523,7 +525,7 @@ def _graduation_gpa_answer(
         provenance=provenance,
         rendered_answer=(
             f"การสำเร็จการศึกษาต้องมี GPA ตามโครงสร้างหลักสูตรอย่างน้อย "
-            f"{ordered[0].value} และ GPA สะสมอย่างน้อย {ordered[1].value}"
+            f"{structure_gpa} และ GPA สะสมอย่างน้อย {cumulative_gpa}"
         ),
     )
 
@@ -592,6 +594,8 @@ def _graduation_requirements_answer(
         raise ValueError("graduation supporting rules are incomplete")
 
     provenance = _combined_provenance(ordered, rules)
+    structure_gpa = f"{float(by_key['GPA โครงสร้างหลักสูตร'].value):.2f}"
+    cumulative_gpa = f"{float(by_key['GPA สะสม'].value):.2f}"
     return PolicyAnswer(
         status="complete",
         query_type=query.kind,
@@ -601,8 +605,8 @@ def _graduation_requirements_answer(
         rendered_answer=(
             "เกณฑ์สำเร็จการศึกษาที่มีหลักฐานรองรับ ได้แก่\n"
             f"- เรียนครบหน่วยกิตและสอบผ่านทุกรายวิชาตามโครงสร้างหลักสูตร "
-            f"โดย GPA ตามโครงสร้างหลักสูตรไม่น้อยกว่า {by_key['GPA โครงสร้างหลักสูตร'].value}\n"
-            f"- GPA สะสมไม่น้อยกว่า {by_key['GPA สะสม'].value}\n"
+            f"โดย GPA ตามโครงสร้างหลักสูตรไม่น้อยกว่า {structure_gpa}\n"
+            f"- GPA สะสมไม่น้อยกว่า {cumulative_gpa}\n"
             "- มีข้อกำหนดการสอบภาษาอังกฤษ (English Exit Exam) ตามประกาศสถาบัน\n"
             "- เป็นผู้มีเกียรติและศักดิ์ของนักศึกษาตามข้อ 25.3\n"
             "- ไม่มีหนี้สินหรือภาระผูกพันกับสถาบัน\n"
