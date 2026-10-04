@@ -147,18 +147,23 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("sanction_appeal_procedure")
 
     amount_match = _AMOUNT_RE.search(text)
-    if amount_match and re.search(r"(?:ได้ไหม|ได้หรือไม่|ได้หรือเปล่า)\s*[?？]?$", text):
-        if "หน่วยกิต" not in text or text.count("หน่วยกิต") != 1:
-            return None
+    if amount_match and re.search(
+        r"(?:ได้ไหม|ได้มั้ย|ได้ปะ|ได้ป่ะ|ได้หรือไม่|ได้หรือเปล่า)\s*[?？]?$",
+        text,
+    ):
         return PolicyQuery("registration_compare", amount=int(amount_match.group("amount")))
 
-    if "หน่วยกิต" in text:
+    if re.search(r"(?:ซัมเมอร์|ภาคฤดูร้อน|ภาคพิเศษ)", text) and re.search(
+        r"(?:กี่|สูงสุด|มากสุด|ได้สุด|เท่าไร|เท่าไหร่)", text
+    ):
+        return PolicyQuery("registration_special_max")
+
+    credit_wording = bool(
+        re.search(r"(?:หน่วยกิต|กี่\s*หน่วย(?:กิต)?|\d+\s*หน่วย(?:กิต)?)", text)
+    )
+    if credit_wording:
         if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):
             return PolicyQuery("registration_exception_max")
-        if re.search(r"(?:ซัมเมอร์|ภาคฤดูร้อน|ภาคพิเศษ)", text) and re.search(
-            r"(?:กี่|สูงสุด|เท่าไร|เท่าไหร่)", text
-        ):
-            return PolicyQuery("registration_special_max")
         if re.search(r"(?:ปกติ|ภาคปกติ)", text) and re.search(
             r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text
         ):
@@ -167,7 +172,11 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("registration_regular_min")
         if _is_bare_regular_max(text, question):
             return PolicyQuery("registration_regular_max")
-        if program and re.search(r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด)", text):
+        if program and re.search(
+            r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด|รวม\s*กี่\s*หน่วย(?:กิต)?|"
+            r"ต้องเรียน\s*กี่\s*หน่วย(?:กิต)?)",
+            text,
+        ):
             spec = parse_query_spec(question)
             if (
                 getattr(spec, "years", ())
@@ -186,6 +195,23 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
                 plan=plans[0] if len(plans) == 1 else None,
             )
         return None
+
+    if program and re.search(r"(?:รวมทั้งหมด|เรียนทั้งหมด)", text):
+        spec = parse_query_spec(question)
+        if (
+            not getattr(spec, "years", ())
+            and not getattr(spec, "semesters", ())
+            and not getattr(spec, "category", None)
+            and not getattr(spec, "course_codes", ())
+            and getattr(spec, "course_name", None) is None
+        ):
+            plans = tuple(getattr(spec, "plans", ()))
+            if len(plans) <= 1:
+                return PolicyQuery(
+                    "program_total_credits",
+                    program=program,
+                    plan=plans[0] if plans else None,
+                )
 
     if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("registration_exception_max")
