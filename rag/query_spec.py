@@ -23,7 +23,7 @@ _PROGRAM_PATTERN = re.compile(
 
 _PLAN_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])(no_coop|coop|default|gened)(?![A-Za-z0-9_])"
-    r"|ไม่สหกิจ|แผนปกติ|สหกิจ",
+    r"|ไม่\s*coop|ไม่สหกิจ|แผนปกติ|สหกิจ",
     re.IGNORECASE,
 )
 _PLAN_ALIASES = (
@@ -65,9 +65,9 @@ _BARE_COURSE_NAME_PATTERN = re.compile(
     r"^\s*(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
     r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
     r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
-    r"เรียนเรื่อง|เรียนเกี่ยวกับ|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
+    r"เรียนเรื่อง|เรียนเกี่ยวกับ|เรียนไร|เรียนประมาณไหน|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
     r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร|"
-    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|ต้องเรียนอะไรต่อ(?:ไหม)?|"
+    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|ต้อง(?:เรียน|ผ่าน).{0,30}มาก่อน|ต้องเรียนอะไรต่อ(?:ไหม|มั้ย|ปะ)?|"
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร(?:อะไร|ไหน)(?:บ้าง)?))",
     re.IGNORECASE,
 )
@@ -81,17 +81,51 @@ _TOPIC_PATTERN = re.compile(
     r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
     re.IGNORECASE,
 )
-_GENERIC_TOPIC_COLLECTION_PATTERN = re.compile(
-    r"(?:มี\s*)?(?:ราย)?วิชา(?:ที่)?\s*(?:(?:เรียน|สอน)\s*)?เกี่ยวกับ\s*"
-    r"(?P<topic>[^?？\n]{1,80}?)"
-    r"(?=\s*(?:มีอะไรบ้าง|อะไรบ้าง|ตัวไหนบ้าง|มีไหม|มีมั้ย|ไหม|มั้ย|หรือไม่|[?？]|$))",
-    re.IGNORECASE,
+_GENERIC_TOPIC_COLLECTION_PATTERNS = (
+    re.compile(
+        r"(?:มี\s*)?(?:(?:ราย)?วิชา(?:ที่)?|ตัวไหน|วิชาไหน)\s*"
+        r"(?:(?:เรียน|สอน)\s*)?เกี่ยวกับ\s*(?P<topic>[^?？\n]{1,80}?)"
+        r"(?=\s*(?:มีอะไรบ้าง|อะไรบ้าง|ตัวไหนบ้าง|บ้าง|มั่ง|มีไหม|มีมั้ย|"
+        r"ไหม|มั้ย|ปะ|ป่ะ|หรือไม่|[?？]|$))",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:มี\s*)?(?:course|subject|(?:ราย)?วิชา)?\s*แนว\s*"
+        r"(?P<topic>[^?？\n]{1,80}?)"
+        r"(?=\s*(?:มีอะไร|มีตัวไหน|อะไรบ้าง|ตัวไหนบ้าง|บ้าง|มั่ง|ไหม|มั้ย|ปะ|ป่ะ|[?？]|$))",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:อยากหา(?:เรียน)?|หา)\s*แนว\s*(?P<topic>[^?？\n]{1,80}?)"
+        r"(?=\s*(?:มีตัวไหน|มีอะไร|ตัวไหน|บ้าง|มั่ง|[?？]|$))",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"พวก\s*(?P<topic>[^?？\n]{1,80}?)\s*"
+        r"(?:มีอะไร(?:เรียน)?บ้าง|มีตัวไหนบ้าง|มีอะไรมั่ง)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"มีอะไร\s*สาย\s*(?P<topic>[^?？\n]{1,80}?)"
+        r"(?=\s*(?:บ้าง|มั่ง|ไหม|มั้ย|ปะ|ป่ะ|[?？]|$))",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"ถ้าอยากเรียน\s*(?P<topic>[^?？\n]{1,80}?)\s*มีตัวไหนเกี่ยว",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"หา\s*(?:course|subject|(?:ราย)?วิชา)\s*เกี่ยวกับ\s*"
+        r"(?P<topic>[^?？\n]{1,80}?)"
+        r"(?=\s*(?:ให้หน่อย|หน่อย|บ้าง|มั่ง|[?？]|$))",
+        re.IGNORECASE,
+    ),
 )
 _OPERATION_PATTERNS = (
     (
         "list",
         re.compile(
-            r"เรียนอะไรบ้าง|มีอะไรบ้าง|มีวิชา(?:อะไร|ไหน)|มีวิชา.*?(?:อะไร|ไหน)(?:บ้าง)?|"
+            r"เรียน(?:อะไร|ไร)บ้าง(?:อะ|นะ)?|มีอะไรบ้าง|มีอะไรมั่ง|มีวิชา(?:อะไร|ไหน)|มีวิชา.*?(?:อะไร|ไหน)(?:บ้าง)?|"
             r"ต้องเรียนอะไรบ้าง|วิชาอะไรบ้าง|"
             r"ขอ\s*รายวิชา(?:[^?\n]{0,60}(?:อะไร|ไหน|บ้าง))?|"
             r"มี(?:วิชา)?[^?\n]{0,40}ตัวไหนบ้าง|เรียนตัวไหนกันบ้าง|"
@@ -104,7 +138,8 @@ _OPERATION_PATTERNS = (
     (
         "describe",
         re.compile(
-            r"เรียน(?:เกี่ยวกับ|เรื่อง)|สอน(?:เกี่ยวกับ|เรื่อง)|เนื้อหาเป็นอย่างไร|ชื่ออะไร|เรียนอะไร(?!บ้าง|กัน)",
+            r"เรียน(?:เกี่ยวกับ|เรื่อง)|สอน(?:เกี่ยวกับ|เรื่อง)|เนื้อหาเป็นอย่างไร|"
+            r"ชื่ออะไร|เรียนอะไร(?!บ้าง|กัน)|เรียนไร(?:อะ)?|เรียนประมาณไหน",
             re.IGNORECASE,
         ),
     ),
@@ -119,14 +154,14 @@ _OPERATION_PATTERNS = (
         "sum_credits",
         re.compile(
             r"หน่วยกิต|เครดิต|\bcredits?\b|"
-            r"กี่\s*หน่วย(?:กิต)?(?:อะ|นะ|ครับ|คะ)(?![ก-๙A-Za-z0-9_])|"
+            r"กี่\s*หน่วย(?:กิต)?(?:อะ|นะ|วะ|ครับ|คะ)(?![ก-๙A-Za-z0-9_])|"
             r"หนัก\s*กี่\s*หน่วย(?:กิต)?(?![ก-๙A-Za-z0-9_])",
             re.IGNORECASE,
         ),
     ),
     (
         "existence",
-        re.compile(r"(?:มี|อยู่|พบ).{0,40}(?:ไหม|มั้ย|หรือไม่)|\b(?:exists?|whether)\b", re.IGNORECASE),
+        re.compile(r"(?:มี|อยู่|พบ).{0,40}(?:ไหม|มั้ย|ปะ|ป่ะ|หรือไม่)|\b(?:exists?|whether)\b", re.IGNORECASE),
     ),
     (
         "compare",
@@ -139,7 +174,7 @@ _OPERATION_PATTERNS = (
     (
         "placement",
         re.compile(
-            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|"
+            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)\s*year\s*ไหน|"
             r"ปีใด|ภาคเรียนใด|เทอมอะไร|จัดไว้ปีไหน|ลงทะเบียนช่วงไหน|"
             r"(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เรียนช่วงเดียวกัน|เปิดให้ลง|ลงช่วง|"
             r"(?:ลง|เรียน|อยู่).{0,20}ตอนไหน|(?:ลง|เรียน|อยู่).{0,20}เมื่อไหร่|"
@@ -285,7 +320,12 @@ def _extract_plans(question: str) -> tuple[str, ...]:
             r"วิชา\s*gened\b|gened\s+อะไร", question, re.IGNORECASE
         ):
             continue
-        canonical = next(canonical for alias, canonical in _PLAN_ALIASES if alias == value)
+        if re.fullmatch(r"ไม่\s*coop", value, re.IGNORECASE):
+            canonical = "no_coop"
+        else:
+            canonical = next(
+                canonical for alias, canonical in _PLAN_ALIASES if alias == value
+            )
         matches.append((match.start(), canonical))
     return _ordered_unique(value for _, value in sorted(matches))
 
@@ -397,6 +437,32 @@ def _extract_topic(
     if course_name is not None:
         return None
 
+    # Collection wording owns the full literal span first so compound topics
+    # such as "network security", "data center", and "big data" are not
+    # truncated by the legacy single-token topic aliases below.
+    if not course_codes:
+        for pattern in _GENERIC_TOPIC_COLLECTION_PATTERNS:
+            generic = pattern.search(question)
+            if generic is None:
+                continue
+            topic = re.sub(r"\s+", " ", generic.group("topic")).strip(" \t,;:.-")
+            if not topic or len(topic) > 80:
+                continue
+            if topic.casefold() in {
+                "อะไร",
+                "อะไรบ้าง",
+                "เรื่องอะไร",
+                "เกี่ยวกับอะไร",
+                "ด้านไหน",
+                "เรื่องไหน",
+            }:
+                continue
+            if topic == "เขียนโปรแกรม":
+                return "programming"
+            if topic == "ฐานข้อมูล":
+                return "database"
+            return topic
+
     match = _TOPIC_PATTERN.search(question)
     if match:
         if match.group(0) == "เขียนโปรแกรม":
@@ -404,30 +470,7 @@ def _extract_topic(
         if match.group(0) == "ฐานข้อมูล":
             return "database"
         return match.group(0)
-
-    # Bounded generic collection wording such as
-    # "มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง".  The parser owns only the
-    # literal topic span; relevance is still decided by the existing
-    # description/vector evidence path.  Exact-course questions are excluded
-    # so "0601... เรียนเกี่ยวกับอะไร" remains a course-description request.
-    if course_codes:
-        return None
-    generic = _GENERIC_TOPIC_COLLECTION_PATTERN.search(question)
-    if generic is None:
-        return None
-    topic = re.sub(r"\s+", " ", generic.group("topic")).strip(" \t,;:.-")
-    if not topic or len(topic) > 80:
-        return None
-    if topic.casefold() in {
-        "อะไร",
-        "อะไรบ้าง",
-        "เรื่องอะไร",
-        "เกี่ยวกับอะไร",
-        "ด้านไหน",
-        "เรื่องไหน",
-    }:
-        return None
-    return topic
+    return None
 
 
 def _surface_operation_matches(
