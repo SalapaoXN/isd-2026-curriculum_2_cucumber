@@ -120,6 +120,164 @@ class RagPolicyTest(unittest.TestCase):
         self.assertTrue(all(f.source_rule_id for f in first.facts))
         self.assertTrue(all(f.provenance for f in (*first.facts, *second.facts, *reentry.facts)))
 
+    def test_text_policy_answers_use_exact_regulation_rules_and_provenance(self):
+        cases = (
+            (
+                "ลาพักการศึกษาต้องทำอย่างไร",
+                ("rule:31.1", "rule:31.2", "rule:31.3", "rule:31.4"),
+                ("ข้อ 31.1", "ข้อ 31.4"),
+            ),
+            (
+                "ลาออกต้องทำอย่างไร",
+                ("rule:32",),
+                ("ข้อ 32", "ไม่มีหนี้สิน"),
+            ),
+            (
+                "เทียบโอนหน่วยกิตมีหลักเกณฑ์อะไรบ้าง",
+                ("rule:28", "rule:29"),
+                ("ข้อ 28", "ข้อ 29"),
+            ),
+        )
+        for question, expected_rule_ids, expected_text in cases:
+            with self.subTest(question=question):
+                answer = answer_policy_question(DB_PATH, question)
+                self.assertEqual(answer.status, "complete")
+                self.assertEqual(
+                    tuple(rule.rule_id for rule in answer.rules),
+                    expected_rule_ids,
+                )
+                self.assertTrue(answer.provenance)
+                self.assertTrue(
+                    all(
+                        reference["document_category"] == "rule"
+                        for reference in answer.provenance
+                    )
+                )
+                for text in expected_text:
+                    self.assertIn(text, answer.rendered_answer)
+
+    def test_phase_b_policy_answers_are_grounded_and_bounded(self):
+        exam = answer_policy_question(DB_PATH, "ทุจริตในการสอบมีโทษอย่างไร")
+        self.assertEqual(exam.status, "complete")
+        self.assertEqual(tuple(rule.rule_id for rule in exam.rules), ("rule:20",))
+        self.assertIn("ข้อ 20", exam.rendered_answer)
+        self.assertTrue(exam.provenance)
+
+        discipline = answer_policy_question(DB_PATH, "โทษทางวินัยมีอะไรบ้าง")
+        self.assertEqual(discipline.status, "complete")
+        self.assertEqual(
+            tuple(rule.rule_id for rule in discipline.rules),
+            (
+                "rule:38",
+                "rule:38.1",
+                "rule:38.2",
+                "rule:38.3",
+                "rule:39",
+                "rule:39.1",
+                "rule:39.2",
+                "rule:39.3",
+            ),
+        )
+        for text in ("ว่ากล่าวตักเตือน", "ภาคทัณฑ์", "พักการเรียน", "ให้ออก", "ไล่ออก"):
+            self.assertIn(text, discipline.rendered_answer)
+
+        deadline = answer_policy_question(
+            DB_PATH, "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน"
+        )
+        self.assertEqual(deadline.status, "complete")
+        self.assertEqual(deadline.value, 30)
+        self.assertEqual(deadline.unit, "วัน")
+        self.assertEqual(deadline.source_rule_id, "rule:43")
+        self.assertIn("30 วัน", deadline.rendered_answer)
+        self.assertTrue(deadline.provenance)
+
+        procedure = answer_policy_question(
+            DB_PATH, "อุทธรณ์คำสั่งลงโทษต้องทำอย่างไร"
+        )
+        self.assertEqual(procedure.status, "complete")
+        self.assertEqual(tuple(rule.rule_id for rule in procedure.rules), ("rule:43",))
+        self.assertIn("ข้อ 43", procedure.rendered_answer)
+        self.assertTrue(procedure.provenance)
+
+    def test_phase_b_ambiguous_questions_fail_closed(self):
+        for question in (
+            "อุทธรณ์ต้องยื่นภายในกี่วัน",
+            "โดนลงโทษแล้วทำยังไง",
+            "ทำผิดวินัยจะโดนอะไร",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
+    def test_phase_c_graduation_policy_answers(self):
+        gpa = answer_policy_question(DB_PATH, "สำเร็จการศึกษาต้องมี GPA เท่าไร")
+        self.assertEqual(gpa.status, "complete")
+        self.assertEqual(set(gpa.value), {2})
+        self.assertIn("GPA ตามโครงสร้างหลักสูตร", gpa.rendered_answer)
+        self.assertIn("GPA สะสม", gpa.rendered_answer)
+        self.assertTrue(gpa.provenance)
+
+        english = answer_policy_question(
+            DB_PATH, "จบการศึกษาต้องสอบ English Exit Exam ไหม"
+        )
+        self.assertEqual(english.status, "complete")
+        self.assertEqual(english.source_rule_id, "rule:25.2")
+        self.assertIn("English Exit Exam", english.rendered_answer)
+        self.assertTrue(english.provenance)
+
+        debt = answer_policy_question(DB_PATH, "จบการศึกษาต้องไม่มีหนี้สินไหม")
+        self.assertEqual(debt.status, "complete")
+        self.assertEqual(debt.source_rule_id, "rule:25.4")
+        self.assertIn("ไม่มีหนี้สิน", debt.rendered_answer)
+        self.assertTrue(debt.provenance)
+
+        requirements = answer_policy_question(
+            DB_PATH, "เกณฑ์สำเร็จการศึกษามีอะไรบ้าง"
+        )
+        self.assertEqual(requirements.status, "complete")
+        self.assertIn("2.0", requirements.rendered_answer)
+        self.assertIn("English Exit Exam", requirements.rendered_answer)
+        self.assertIn("ข้อ 25.3", requirements.rendered_answer)
+        self.assertIn("ข้อ 25.5", requirements.rendered_answer)
+        self.assertTrue(requirements.provenance)
+
+    def test_phase_c_graduation_queries_remain_bounded(self):
+        for question in (
+            "จบการศึกษาต้องครบกี่หน่วยกิต",
+            "English Exit Exam ผ่านกี่คะแนน",
+            "จบได้ไหมถ้าผมติดหนี้อยู่ 100 บาท",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
+    def test_text_policy_queries_remain_bounded(self):
+        for question in (
+            "ลาออกแล้วได้เงินคืนไหม",
+            "ลาพัก 2 เทอมได้ไหม",
+            "เทียบโอนวิชานี้ได้ไหม",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
+    def test_text_policy_missing_required_rule_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "policy.db"
+            shutil.copy2(DB_PATH, path)
+            with closing(sqlite3.connect(path)) as connection:
+                connection.execute("DELETE FROM regulation_rules WHERE rule_id = 'rule:31.2'")
+                connection.commit()
+            answer = answer_policy_question(path, "ลาพักการศึกษาต้องทำอย่างไร")
+            self.assertEqual(answer.status, "insufficient_evidence")
+            self.assertEqual(answer.provenance, ())
+
     def test_unsupported_and_unknown_program_fail_closed(self):
         self.assertEqual(
             answer_policy_question(DB_PATH, "นโยบายที่ไม่มีในขอบเขตคืออะไร").status,

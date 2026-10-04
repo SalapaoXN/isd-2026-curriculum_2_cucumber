@@ -28,6 +28,17 @@ POLICY_ROUTE_ALLOWLIST = frozenset(
         "honors_first",
         "honors_second",
         "reentry_limit",
+        "leave_of_absence",
+        "resignation",
+        "credit_transfer",
+        "exam_dishonesty_penalty",
+        "disciplinary_penalties",
+        "sanction_appeal_deadline",
+        "sanction_appeal_procedure",
+        "graduation_requirements",
+        "graduation_gpa",
+        "graduation_english_exit",
+        "graduation_no_debt",
     }
 )
 

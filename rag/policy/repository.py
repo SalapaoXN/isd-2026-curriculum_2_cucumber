@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from collections.abc import Iterable
 from contextlib import closing
@@ -11,6 +12,7 @@ from typing import Any
 
 _REQUIRED_TABLES = frozenset(
     {
+        "regulation_rules",
         "policy_facts",
         "policy_fact_provenance",
         "program_requirements",
@@ -137,6 +139,61 @@ def fetch_policy_facts(
         )
 
 
+def fetch_regulation_rules(
+    db_path: str | Path,
+    *,
+    category: str,
+    rule_ids: tuple[str, ...],
+) -> tuple[dict[str, Any], ...]:
+    """Fetch an exact bounded set of regulation rules with source provenance."""
+
+    if not isinstance(category, str) or not category.strip():
+        raise ValueError("category is required")
+    if (
+        not isinstance(rule_ids, tuple)
+        or not rule_ids
+        or any(not isinstance(rule_id, str) or not rule_id.strip() for rule_id in rule_ids)
+    ):
+        raise ValueError("rule_ids must be a non-empty tuple of rule IDs")
+
+    with closing(_open(db_path)) as connection:
+        placeholders = ", ".join("?" for _ in rule_ids)
+        # The same canonical rule can support more than one mapped policy
+        # category. regulation_rules is keyed by rule_id, so the first mapped
+        # category wins during supplemental loading. Exact rule IDs are therefore
+        # the stable authority boundary here; filtering by category would make a
+        # shared rule disappear from later policy families.
+        rows = connection.execute(
+            f"""
+            SELECT rule_id, section_number, parent_rule_id, category,
+                   rule_text, references_json
+            FROM regulation_rules
+            WHERE rule_id IN ({placeholders})
+            """,
+            rule_ids,
+        ).fetchall()
+
+    by_id: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        record = dict(row)
+        raw_references = json.loads(record.pop("references_json"))
+        references = raw_references.get("source_provenance")
+        if (
+            not isinstance(references, list)
+            or not references
+            or any(
+                not isinstance(reference, dict)
+                or reference.get("document_category") != "rule"
+                for reference in references
+            )
+        ):
+            raise ValueError(f"regulation rule {record['rule_id']} has no provenance")
+        record["provenance"] = tuple(dict(reference) for reference in references)
+        by_id[record["rule_id"]] = record
+
+    return tuple(by_id[rule_id] for rule_id in rule_ids if rule_id in by_id)
+
+
 def fetch_program_requirement(
     db_path: str | Path,
     program: str,
@@ -180,4 +237,4 @@ def fetch_program_requirement(
         return records[0]
 
 
-__all__ = ["fetch_policy_facts", "fetch_program_requirement"]
+__all__ = ["fetch_policy_facts", "fetch_program_requirement", "fetch_regulation_rules"]

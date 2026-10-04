@@ -53,6 +53,17 @@ class H25PolicyRoutingTests(unittest.TestCase):
                     "honors_first",
                     "honors_second",
                     "reentry_limit",
+                    "leave_of_absence",
+                    "resignation",
+                    "credit_transfer",
+                    "exam_dishonesty_penalty",
+                    "disciplinary_penalties",
+                    "sanction_appeal_deadline",
+                    "sanction_appeal_procedure",
+                    "graduation_requirements",
+                    "graduation_gpa",
+                    "graduation_english_exit",
+                    "graduation_no_debt",
                 }
             ),
         )
@@ -70,6 +81,17 @@ class H25PolicyRoutingTests(unittest.TestCase):
             ("เกียรตินิยมอันดับหนึ่ง GPA เท่าไร", ("3.75", "3.5")),
             ("เกียรตินิยมอันดับสอง GPA เท่าไร", ("3.25",)),
             ("กลับเข้าศึกษาได้ภายในกี่ปี", ("1",)),
+            ("ลาพักการศึกษาต้องทำอย่างไร", ("ข้อ 31.1", "ข้อ 31.4")),
+            ("ลาออกต้องทำอย่างไร", ("ข้อ 32", "ไม่มีหนี้สิน")),
+            ("เทียบโอนหน่วยกิตมีหลักเกณฑ์อะไรบ้าง", ("ข้อ 28", "ข้อ 29")),
+            ("ทุจริตในการสอบมีโทษอย่างไร", ("ข้อ 20",)),
+            ("โทษทางวินัยมีอะไรบ้าง", ("ว่ากล่าวตักเตือน", "ไล่ออก")),
+            ("อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", ("30 วัน",)),
+            ("อุทธรณ์คำสั่งลงโทษต้องทำอย่างไร", ("ข้อ 43",)),
+            ("สำเร็จการศึกษาต้องมี GPA เท่าไร", ("2",)),
+            ("จบการศึกษาต้องสอบ English Exit Exam ไหม", ("English Exit Exam",)),
+            ("จบการศึกษาต้องไม่มีหนี้สินไหม", ("ไม่มีหนี้สิน",)),
+            ("เกณฑ์สำเร็จการศึกษามีอะไรบ้าง", ("English Exit Exam", "ข้อ 25.3")),
         )
         for question, expected in cases:
             with self.subTest(question=question):

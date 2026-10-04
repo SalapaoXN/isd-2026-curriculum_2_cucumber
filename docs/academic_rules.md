@@ -74,6 +74,13 @@ policy QA ใช้ deterministic parsing / lookup / arithmetic สำหรั�
 - หน่วยกิตขั้นต่ำ/สูงสุดในการลงทะเบียน
 - เงื่อนไขบางประเภทตามข้อบังคับ
 - เกียรตินิยม / probation / re-entry ที่มี fact รองรับ
+- ลาพักการศึกษา — ดึงข้อ 31.1–31.4 จาก `regulation_rules`
+- การลาออก — ดึงข้อ 32 จาก `regulation_rules`
+- การเทียบโอนหน่วยกิต — ดึงข้อ 28–29 จาก `regulation_rules`
+- การทุจริตในการสอบ — ดึงข้อ 20 แบบ bounded text-backed answer
+- บทลงโทษทางวินัย — ดึงข้อ 38–39 และข้อย่อยที่ระบุประเภทโทษ
+- การอุทธรณ์คำสั่งลงโทษ — รองรับขั้นตอนจากข้อ 43 และ deadline 30 วันจาก structured fact ที่ผูกกับข้อ 43
+- เกณฑ์การสำเร็จการศึกษา — รองรับ GPA ตามโครงสร้าง/GPA สะสม, English Exit Exam, เงื่อนไขไม่มีหนี้สิน และภาพรวมข้อ 25
 - total program credits ตาม edition
 - semester-load comparison ที่มี curriculum + policy evidence ครบ
 
@@ -103,4 +110,6 @@ python -m unittest tests.pipeline.test_run_rules
 python -m unittest tests.rag.test_rag_policy tests.rag.test_rag_policy_combined
 ```
 
-ข้อจำกัดหลัก: policy QA ตอบได้เฉพาะ fact ที่อยู่ใน authority files ปัจจุบันและไม่อนุมานกฎที่ไม่มีหลักฐาน
+คำถามแบบ text-backed ด้านลาพัก/ลาออก/เทียบโอน ใช้ bounded deterministic routing และส่งข้อความกฎจาก canonical `regulation_rules` พร้อม provenance โดยตรง ไม่เรียก LLM เพื่อสร้างข้อเท็จจริง
+
+ข้อจำกัดหลัก: policy QA ตอบได้เฉพาะ fact/rule family ที่มี route รองรับและอยู่ใน authority files ปัจจุบัน; ระบบไม่อนุมานกฎที่ไม่มีหลักฐาน

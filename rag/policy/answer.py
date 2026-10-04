@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from .query import PolicyQuery, parse_policy_question
-from .repository import fetch_policy_facts, fetch_program_requirement
+from .repository import (
+    fetch_policy_facts,
+    fetch_program_requirement,
+    fetch_regulation_rules,
+)
 
 
 DEFAULT_POLICY_DB_PATH = (
@@ -33,10 +37,20 @@ class PolicyFact:
 
 
 @dataclass(frozen=True, slots=True)
+class PolicyRuleEvidence:
+    rule_id: str
+    section_number: str
+    category: str
+    rule_text: str
+    provenance: tuple[dict[str, Any], ...]
+
+
+@dataclass(frozen=True, slots=True)
 class PolicyAnswer:
     status: str
     query_type: str | None = None
     facts: tuple[PolicyFact, ...] = ()
+    rules: tuple[PolicyRuleEvidence, ...] = ()
     value: Any = None
     unit: str | None = None
     operator: str | None = None
@@ -69,6 +83,120 @@ def _fact(record: dict[str, Any]) -> PolicyFact:
         program=record.get("program"),
         verification_status=record.get("verification_status"),
         provenance=references,
+    )
+
+
+_TEXT_RULE_SPECS = {
+    "leave_of_absence": (
+        "การลาพักการศึกษา",
+        ("rule:31.1", "rule:31.2", "rule:31.3", "rule:31.4"),
+        "ข้อบังคับที่เกี่ยวกับการลาพักการศึกษาระบุว่า",
+    ),
+    "resignation": (
+        "การลาออก",
+        ("rule:32",),
+        "ข้อบังคับที่เกี่ยวกับการลาออกระบุว่า",
+    ),
+    "credit_transfer": (
+        "การเทียบโอนหน่วยกิต",
+        ("rule:28", "rule:29"),
+        "ข้อบังคับที่เกี่ยวกับการเทียบโอนหน่วยกิตระบุว่า",
+    ),
+    "exam_dishonesty_penalty": (
+        "การทุจริตทางวิชาการ",
+        ("rule:20",),
+        "ข้อบังคับเกี่ยวกับการทุจริตในการสอบระบุว่า",
+    ),
+    "disciplinary_penalties": (
+        "บทลงโทษทางวินัย",
+        (
+            "rule:38",
+            "rule:38.1",
+            "rule:38.2",
+            "rule:38.3",
+            "rule:39",
+            "rule:39.1",
+            "rule:39.2",
+            "rule:39.3",
+        ),
+        "ข้อบังคับแบ่งโทษทางวินัยไว้ดังนี้",
+    ),
+    "sanction_appeal_procedure": (
+        "การอุทธรณ์",
+        ("rule:43",),
+        "ข้อบังคับเกี่ยวกับการอุทธรณ์คำสั่งลงโทษระบุว่า",
+    ),
+}
+
+
+def _rule(record: dict[str, Any]) -> PolicyRuleEvidence:
+    references = tuple(record.get("provenance", ()))
+    if not references:
+        raise ValueError("regulation rule has no provenance")
+    return PolicyRuleEvidence(
+        rule_id=record["rule_id"],
+        section_number=record["section_number"],
+        category=record["category"],
+        rule_text=record["rule_text"],
+        provenance=references,
+    )
+
+
+def _normalized_rule_text(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _dedupe_provenance(
+    rules: tuple[PolicyRuleEvidence, ...],
+) -> tuple[dict[str, Any], ...]:
+    result: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for rule in rules:
+        for reference in rule.provenance:
+            identity = (
+                reference.get("source_filename"),
+                reference.get("source_page"),
+                reference.get("document_page"),
+                reference.get("document_category"),
+                reference.get("source_uri"),
+                reference.get("source_locator"),
+            )
+            if identity in seen:
+                continue
+            seen.add(identity)
+            result.append(reference)
+    return tuple(result)
+
+
+def _text_rule_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
+    spec = _TEXT_RULE_SPECS.get(query.kind)
+    if spec is None:
+        raise ValueError("unsupported text policy query")
+    category, expected_rule_ids, intro = spec
+    rows = fetch_regulation_rules(
+        db_path,
+        category=category,
+        rule_ids=expected_rule_ids,
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != expected_rule_ids:
+        raise ValueError("required regulation rule evidence is missing")
+
+    provenance = _dedupe_provenance(rules)
+    if not provenance:
+        raise ValueError("text policy answer has no provenance")
+
+    rendered_rules = "\n".join(
+        f"ข้อ {rule.section_number}: {_normalized_rule_text(rule.rule_text)}"
+        for rule in rules
+    )
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        rules=rules,
+        source_rule_id=rules[0].rule_id if len(rules) == 1 else None,
+        provenance=provenance,
+        rendered_answer=f"{intro}\n{rendered_rules}",
     )
 
 
@@ -128,6 +256,36 @@ def _facts(db_path: str | Path, query: PolicyQuery) -> tuple[PolicyFact, ...]:
             category="การกลับเข้าศึกษา",
             condition="at_most",
         )
+    elif query.kind == "sanction_appeal_deadline":
+        rows = fetch_policy_facts(
+            db_path,
+            category="การอุทธรณ์",
+            fact_key="ยื่นอุทธรณ์คำสั่งลงโทษ",
+            condition="deadline",
+            context="student_sanction_appeal",
+        )
+    elif query.kind == "graduation_gpa":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์การสำเร็จการศึกษา",
+            fact_key_contains="GPA",
+            condition="at_least",
+            context_any=True,
+        )
+    elif query.kind == "graduation_english_exit":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์การสำเร็จการศึกษา",
+            fact_key="การสอบภาษาอังกฤษ English Exit Exam",
+            condition="required",
+        )
+    elif query.kind == "graduation_no_debt":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์การสำเร็จการศึกษา",
+            fact_key="ไม่มีหนี้สินหรือภาระผูกพันต่อสถาบัน",
+            condition="required",
+        )
     else:
         return ()
     return tuple(_fact(row) for row in rows)
@@ -149,6 +307,7 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         "probation_entry": "การเข้าภาคทัณฑ์",
         "probation_cleared": "การพ้นภาคทัณฑ์",
         "reentry_limit": "การกลับเข้าศึกษา",
+        "sanction_appeal_deadline": "การอุทธรณ์คำสั่งลงโทษ",
     }
     subject = labels[query.kind]
     if query.kind == "registration_regular_max":
@@ -163,6 +322,8 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         answer = f"{subject}เมื่อ GPA ต่ำกว่า {fact.value}"
     elif query.kind == "probation_cleared":
         answer = f"{subject}เมื่อ GPA ตั้งแต่ {fact.value} ขึ้นไป"
+    elif query.kind == "sanction_appeal_deadline":
+        answer = f"{subject}ต้องยื่นภายใน {fact.value} {fact.unit} นับตั้งแต่วันทราบคำสั่ง"
     else:
         answer = f"{subject}ได้ภายใน {fact.value} {fact.unit}"
     return PolicyAnswer(
@@ -277,6 +438,183 @@ def _honors_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
     )
 
 
+def _combined_provenance(
+    facts: tuple[PolicyFact, ...] = (),
+    rules: tuple[PolicyRuleEvidence, ...] = (),
+) -> tuple[dict[str, Any], ...]:
+    result: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for reference in (
+        reference
+        for item in (*facts, *rules)
+        for reference in item.provenance
+    ):
+        identity = (
+            reference.get("source_filename"),
+            reference.get("source_page"),
+            reference.get("document_page"),
+            reference.get("document_category"),
+            reference.get("source_uri"),
+            reference.get("source_locator"),
+        )
+        if identity in seen:
+            continue
+        seen.add(identity)
+        result.append(reference)
+    return tuple(result)
+
+
+def _sanction_appeal_procedure_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    deadline = _single_fact(db_path, PolicyQuery("sanction_appeal_deadline"))
+    if deadline is None:
+        raise ValueError("sanction appeal deadline is missing")
+    rows = fetch_regulation_rules(
+        db_path,
+        category="การอุทธรณ์",
+        rule_ids=("rule:43",),
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != ("rule:43",):
+        raise ValueError("sanction appeal rule is missing")
+    provenance = _combined_provenance((deadline,), rules)
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=(deadline,),
+        rules=rules,
+        value=deadline.value,
+        unit=deadline.unit,
+        operator=deadline.operator,
+        condition=deadline.condition,
+        context=deadline.context,
+        source_rule_id="rule:43",
+        provenance=provenance,
+        verification_status=deadline.verification_status,
+        rendered_answer=(
+            "ตามข้อ 43 นักศึกษาที่ถูกสั่งลงโทษตามข้อ 38 หรือข้อ 39 มีสิทธิ"
+            "อุทธรณ์ต่ออธิการบดี โดยต้องอุทธรณ์เป็นหนังสือลงลายมือชื่อ "
+            f"และยื่นภายใน {deadline.value} {deadline.unit} นับตั้งแต่วันทราบคำสั่ง"
+        ),
+    )
+
+
+def _graduation_gpa_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    facts = _facts(db_path, query)
+    by_key = {fact.fact_key: fact for fact in facts}
+    required = ("GPA โครงสร้างหลักสูตร", "GPA สะสม")
+    if any(key not in by_key for key in required):
+        raise ValueError("graduation GPA evidence is incomplete")
+    ordered = tuple(by_key[key] for key in required)
+    provenance = _combined_provenance(ordered)
+    structure_gpa = f"{float(ordered[0].value):.2f}"
+    cumulative_gpa = f"{float(ordered[1].value):.2f}"
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=ordered,
+        value=tuple(fact.value for fact in ordered),
+        unit="GPA",
+        operator="at_least",
+        context="graduation",
+        provenance=provenance,
+        rendered_answer=(
+            f"การสำเร็จการศึกษาต้องมี GPA ตามโครงสร้างหลักสูตรอย่างน้อย "
+            f"{structure_gpa} และ GPA สะสมอย่างน้อย {cumulative_gpa}"
+        ),
+    )
+
+
+def _graduation_single_requirement_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    fact = _single_fact(db_path, query)
+    if fact is None:
+        raise ValueError("graduation requirement is missing")
+    if query.kind == "graduation_english_exit":
+        rendered = (
+            "การสำเร็จการศึกษามีข้อกำหนดการสอบภาษาอังกฤษ "
+            "(English Exit Exam) ตามประกาศสถาบัน"
+        )
+    elif query.kind == "graduation_no_debt":
+        rendered = "การสำเร็จการศึกษาต้องไม่มีหนี้สินหรือภาระผูกพันกับสถาบัน"
+    else:
+        raise ValueError("unsupported graduation requirement")
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=(fact,),
+        value=fact.value,
+        unit=fact.unit,
+        operator=fact.operator,
+        condition=fact.condition,
+        context=fact.context,
+        source_rule_id=fact.source_rule_id,
+        provenance=fact.provenance,
+        verification_status=fact.verification_status,
+        rendered_answer=rendered,
+    )
+
+
+def _graduation_requirements_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    rows = fetch_policy_facts(
+        db_path,
+        category="เกณฑ์การสำเร็จการศึกษา",
+        context_any=True,
+    )
+    facts = tuple(_fact(row) for row in rows)
+    by_key = {fact.fact_key: fact for fact in facts}
+    required_keys = (
+        "GPA โครงสร้างหลักสูตร",
+        "การสำเร็จโครงสร้างหลักสูตร",
+        "GPA สะสม",
+        "การสอบภาษาอังกฤษ English Exit Exam",
+        "ไม่มีหนี้สินหรือภาระผูกพันต่อสถาบัน",
+    )
+    if any(key not in by_key for key in required_keys):
+        raise ValueError("graduation requirement evidence is incomplete")
+    ordered = tuple(by_key[key] for key in required_keys)
+
+    rows = fetch_regulation_rules(
+        db_path,
+        category="เกณฑ์การสำเร็จการศึกษา",
+        rule_ids=("rule:25.3", "rule:25.5"),
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != ("rule:25.3", "rule:25.5"):
+        raise ValueError("graduation supporting rules are incomplete")
+
+    provenance = _combined_provenance(ordered, rules)
+    structure_gpa = f"{float(by_key['GPA โครงสร้างหลักสูตร'].value):.2f}"
+    cumulative_gpa = f"{float(by_key['GPA สะสม'].value):.2f}"
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=ordered,
+        rules=rules,
+        provenance=provenance,
+        rendered_answer=(
+            "เกณฑ์สำเร็จการศึกษาที่มีหลักฐานรองรับ ได้แก่\n"
+            f"- เรียนครบหน่วยกิตและสอบผ่านทุกรายวิชาตามโครงสร้างหลักสูตร "
+            f"โดย GPA ตามโครงสร้างหลักสูตรไม่น้อยกว่า {structure_gpa}\n"
+            f"- GPA สะสมไม่น้อยกว่า {cumulative_gpa}\n"
+            "- มีข้อกำหนดการสอบภาษาอังกฤษ (English Exit Exam) ตามประกาศสถาบัน\n"
+            "- เป็นผู้มีเกียรติและศักดิ์ของนักศึกษาตามข้อ 25.3\n"
+            "- ไม่มีหนี้สินหรือภาระผูกพันกับสถาบัน\n"
+            "- หลักเกณฑ์อื่นให้เป็นไปตามประกาศสถาบันตามข้อ 25.5"
+        ),
+    )
+
+
 def answer_policy_question(
     db_path: str | Path,
     question: str,
@@ -289,6 +627,16 @@ def answer_policy_question(
     if query is None:
         return PolicyAnswer(status="unsupported")
     try:
+        if query.kind == "sanction_appeal_procedure":
+            return _sanction_appeal_procedure_answer(db_path, query)
+        if query.kind == "graduation_requirements":
+            return _graduation_requirements_answer(db_path, query)
+        if query.kind == "graduation_gpa":
+            return _graduation_gpa_answer(db_path, query)
+        if query.kind in {"graduation_english_exit", "graduation_no_debt"}:
+            return _graduation_single_requirement_answer(db_path, query)
+        if query.kind in _TEXT_RULE_SPECS:
+            return _text_rule_answer(db_path, query)
         if query.kind == "program_total_credits":
             return _program_answer(db_path, query, catalog_key=catalog_key)
         if query.kind == "registration_compare":
@@ -300,4 +648,9 @@ def answer_policy_question(
         return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
 
 
-__all__ = ["PolicyAnswer", "PolicyFact", "answer_policy_question"]
+__all__ = [
+    "PolicyAnswer",
+    "PolicyFact",
+    "PolicyRuleEvidence",
+    "answer_policy_question",
+]
