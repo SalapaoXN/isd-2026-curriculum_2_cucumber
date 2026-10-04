@@ -94,7 +94,8 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         return None
 
     general_text_policy = re.search(
-        r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ต้องทำไง|ทำอย่างไร|ทำยังไง|ทำไง|มีขั้นตอนอะไร|"
+        r"(?:ต้องทำอย่างไร(?:บ้าง)?|ต้องทำยังไง(?:บ้าง)?|ต้องทำไง(?:บ้าง)?|"
+        r"ทำอย่างไร(?:บ้าง)?|ทำยังไง(?:บ้าง)?|ทำไง(?:บ้าง)?|มีขั้นตอนอะไร|"
         r"มีเงื่อนไขอะไร|เงื่อนไขเป็นอย่างไร|มีหลักเกณฑ์อะไรบ้าง|"
         r"หลักเกณฑ์(?:เป็นอย่างไร|มีอะไรบ้าง|อะไรบ้าง)|"
         r"ทำได้ไหม|ทำได้มั้ย|ทำได้ปะ|ทำได้หรือไม่|ได้ไหม|ได้มั้ย|ได้ปะ|"
@@ -295,7 +296,7 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     if "GPA" in text.upper() and _GPA_RE.search(question):
         if "พ้นสภาพ" in text:
             return PolicyQuery("student_status_termination_gpa")
-        if "สำเร็จการศึกษา" in text or "จบการศึกษา" in text:
+        if graduation_wording:
             return PolicyQuery("graduation_gpa")
         if "ติดโปร" in text or "ภาคทัณฑ์" in text:
             return PolicyQuery("probation_entry")
