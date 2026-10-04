@@ -84,7 +84,7 @@ python -m rag.build_index
 
 ต้องใช้ Python 3.10+ และ Node.js
 
-> สำหรับเครื่องที่เพิ่ง clone repo ใหม่ ต้องทำ **ทุกขั้นตามลำดับ** ด้านล่าง โดยเฉพาะ `npm run build` ก่อนเปิดเว็บผ่าน FastAPI ที่พอร์ต `8001`
+> สำหรับเครื่องที่เพิ่ง clone repo ใหม่ ต้องทำ **ทุกขั้นตามลำดับ** ด้านล่าง โดยเฉพาะ `npm run build` ก่อนเปิดเว็บผ่าน FastAPI ที่พอร์ต `8000`
 
 ### 3.1 Python environment
 
@@ -138,15 +138,15 @@ FastAPI จะ serve React bundle จาก `frontend/dist/` หากยัง�
 หลังจาก build frontend แล้ว ให้กลับมาที่ root repo และรัน:
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8001
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
 เปิด:
 
 ```text
-http://127.0.0.1:8001/chat
-http://127.0.0.1:8001/curriculum
-http://127.0.0.1:8001/api/health
+http://127.0.0.1:8000/chat
+http://127.0.0.1:8000/curriculum
+http://127.0.0.1:8000/api/health
 ```
 
 ถ้า log มี:
@@ -167,7 +167,7 @@ GET /src/main.jsx 404 Not Found
 2. เข้า `frontend` แล้วรัน `npm run dev`
 3. เปิดเว็บที่ `http://127.0.0.1:5173`
 
-Vite config ปัจจุบัน proxy `/api` ไปที่ `http://127.0.0.1:8000`
+ทั้งโหมด built frontend และ Vite development ใช้ backend ที่พอร์ต `8000` เหมือนกัน โดย Vite config ปัจจุบัน proxy `/api` ไปที่ `http://127.0.0.1:8000`
 
 ---
 
