@@ -1,4 +1,5 @@
 name: Validate catalog rebuild once
+# rerun after BIT shared-fact fixes
 
 on:
   push:
