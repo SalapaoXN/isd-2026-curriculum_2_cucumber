@@ -1,28 +1,84 @@
 # Reports
 
-โฟลเดอร์นี้เก็บผลการประเมินคุณภาพข้อมูลและ benchmark ของ CUCUMBER
+โฟลเดอร์นี้เก็บผลการประเมินคุณภาพข้อมูลและ runtime benchmark ของ CUCUMBER
 
-## 1. Curriculum evaluation
+## 1. Current curriculum evaluation
 
-Source:
+รายงานปัจจุบันถูก regenerate เมื่อ **2026-10-04** จาก canonical corrected files ที่มี Ground Truth ตรงกันโดยตรง
 
-```text
-data/output/final/*_corrected.json
-        +
-ground_truth/
-        ↓
-src.pipeline.tools.evaluation.evaluate
-        ↓
-reports/evaluation/
-```
+ประเมินทั้งหมด 8 scopes:
 
-รันใหม่ด้วย:
+- AIT
+- BIT / coop
+- BIT / no_coop
+- DSBA / coop
+- DSBA / no_coop
+- GENED / gened
+- IT / coop
+- IT / no_coop
+
+ผล record coverage:
+
+| Metric | Result |
+| --- | ---: |
+| Ground Truth records | 839 |
+| Prediction records | 839 |
+| Matched records | 839 |
+| Missing | 0 |
+| Extra | 0 |
+| Precision | 100% |
+| Recall | 100% |
+| F1 | 100% |
+
+**หมายเหตุ:** 100% ด้านบนคือ record coverage เท่านั้น ไม่ได้หมายความว่าทุกข้อความ/field ตรง 100%
+
+Weighted field quality across 839 matched records:
+
+| Field | Character Accuracy | Word Accuracy |
+| --- | ---: | ---: |
+| code | 100.00% | N/A |
+| name_th | 99.11% | 98.00% |
+| name_en | 99.16% | 94.71% |
+| credits | 99.59% | N/A |
+| prerequisite | 99.98% | 99.90% |
+
+รายละเอียด error จริงอยู่ใน `evaluation_errors.csv`
+
+## 2. Evaluation scope boundary
+
+`data/output/final/` ปัจจุบันมี corrected files หลาย curriculum editions รวมถึง historical editions เช่น 2560/2557
+
+แต่ Ground Truth ปัจจุบันมีเพียงหนึ่ง accepted GT ต่อ program/plan scope และยัง **ไม่มี edition-specific GT สำหรับ historical editions ทุกชุด**
+
+ดังนั้น report ปัจจุบันตั้งใจใช้เฉพาะ 8 prediction/GT pairs ที่ตรงกับ GT ที่มีอยู่ และ **ไม่เอา historical edition files มาเทียบกับ GT ของอีก edition**
+
+นี่ทำให้ metric ชุดนี้เป็น:
+
+> คุณภาพของ current GT-backed evaluation set
+
+ไม่ใช่:
+
+> coverage/accuracy ของทุก catalog edition ใน runtime DB
+
+ถ้าจะวัด historical editions เพิ่ม ต้องสร้างและตรวจ edition-specific Ground Truth ก่อน
+
+## 3. Reproduce current report
+
+ใช้ explicit pairs เพื่อป้องกัน cross-edition evaluation:
 
 ```powershell
-python -m src.pipeline.tools.evaluation.evaluate
+python -m src.pipeline.tools.evaluation.evaluate `
+  --pair data/output/final/merged_ait_no_plan_full_corrected.json ground_truth/AIT/AIT_academic_plan.json `
+  --pair data/output/final/merged_bit_coop_full_corrected.json ground_truth/BIT/BIT_academic_plan_coop.json `
+  --pair data/output/final/merged_bit_no_coop_full_corrected.json ground_truth/BIT/BIT_academic_plan_no_coop.json `
+  --pair data/output/final/merged_dsba_coop_full_corrected.json ground_truth/DSBA/DSBA_academic_plan_coop.json `
+  --pair data/output/final/merged_dsba_no_coop_full_corrected.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json `
+  --pair data/output/final/merged_gened_gened_edition-gened-2564_full_corrected.json ground_truth/general_education_ground_truth.json `
+  --pair data/output/final/merged_it_coop_full_corrected.json ground_truth/IT/IT_academic_plan_coop.json `
+  --pair data/output/final/merged_it_no_coop_full_corrected.json ground_truth/IT/IT_academic_plan_no_coop.json
 ```
 
-ผลที่ได้:
+ผลลัพธ์เขียนลง:
 
 ```text
 reports/evaluation/
@@ -32,80 +88,45 @@ reports/evaluation/
 └── evaluation.json
 ```
 
-### `evaluation_summary.csv`
+- `evaluation_summary.csv` — record coverage
+- `field_metrics.csv` — CER/WER และ accuracy ต่อ field
+- `evaluation_errors.csv` — รายการค่าที่ไม่ตรง
+- `evaluation.json` — รายละเอียดเต็ม
 
-ใช้ดู record coverage ต่อ program/plan:
-
-- `gt_total`
-- `pred_total`
-- `tp`, `fn`, `fp`
-- precision / recall / F1
-
-### `field_metrics.csv`
-
-ใช้วัดคุณภาพระดับ field เช่นชื่อวิชาและ prerequisite:
-
-- CER
-- Character Accuracy
-- WER
-- Word Accuracy
-
-### `evaluation_errors.csv`
-
-ใช้ดู record/field ที่ไม่ตรง Ground Truth เพื่อ debug
-
-### `evaluation.json`
-
-ผลแบบเต็มสำหรับตรวจรายละเอียดหรือวิเคราะห์ต่อด้วย script
-
-## 2. Current-report rule
-
-**ก่อนใช้ตัวเลขใน `reports/evaluation/` เป็นผลสุดท้ายของโปรเจกต์ ต้อง rerun evaluator จาก canonical data ปัจจุบันอีกครั้ง**
-
-เหตุผลคือ runtime/canonical data มีการพัฒนาต่อจาก evaluation snapshot เดิม และไม่ควรอ้างตัวเลขเก่าว่าเป็นผลปัจจุบันโดยไม่ regenerate
-
-หลัง rerun ให้ตรวจอย่างน้อย:
-
-1. ทุก scope ที่ตั้งใจประเมินมีอยู่ครบ
-2. coverage metrics
-3. CER/WER
-4. error rows
-5. ไม่มีการใช้ Ground Truth เป็น production factual authority
-
-## 3. Evaluation reference
+## 4. Historical reference
 
 ```text
 reports/evaluation_reference/
 ```
 
-เป็น historical/reference snapshot สำหรับเทียบพฤติกรรม ไม่ใช่ current evaluation และไม่ควรถูกเขียนทับโดย evaluator ปกติ
+เป็น snapshot เก่าสำหรับเปรียบเทียบเท่านั้น ไม่ใช่ current result และไม่ควรถูก evaluator ปกติเขียนทับ
 
-## 4. Runtime benchmark
+## 5. Runtime benchmark
 
 ```text
 reports/runtime_benchmark.md
 ```
 
-เป็น benchmark ของ runtime QA latency โดยแยก local deterministic work ออกจาก external model latency
+วัด runtime QA latency แยก local deterministic work ออกจาก external model latency
 
-script:
+รันด้วย:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/benchmark_runtime.py --runs 5
 ```
 
-snapshot ที่บันทึกไว้ชี้ว่า parsing/SQLite เร็วมากเมื่อเทียบกับ API path ที่ต้องเรียก external model
+snapshot ล่าสุดแสดงว่า parsing/SQLite เร็วมากเมื่อเทียบกับ API path ที่ต้องเรียก external model
 
-## 5. Authority
+## 6. Authority
 
-reports เป็น **ผลการวัด** ไม่ใช่ source of truth
+reports และ Ground Truth เป็น **evaluation artifacts** ไม่ใช่ production factual authority
 
-production authority ยังคงเป็น:
+production flow คือ:
 
 ```text
-canonical curriculum/policy data
+canonical curriculum / policy data
 → runtime SQLite
 → grounded QA
 ```
 
-Ground Truth ใช้สำหรับ evaluation/test เท่านั้น
+ประวัติการแก้ Ground Truth ดูที่ `ground_truth/GT_FIXED.md`

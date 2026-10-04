@@ -241,25 +241,20 @@ python -m src.pipeline.run --program it --pages 32-38
 python -m unittest discover -s tests -t .
 ```
 
-evaluation ของ curriculum data สร้างจาก:
+evaluation ล่าสุดถูก regenerate เมื่อ 2026-10-04 จาก **8 GT-backed current scopes** ที่มี Ground Truth ตรงกัน
+
+ผล record coverage:
 
 ```text
-data/output/final/*_corrected.json
-        +
-ground_truth/
-        ↓
-reports/evaluation/
+GT records:         839
+Prediction records: 839
+Matched:            839
+Precision/Recall/F1: 100%
 ```
 
-regenerate:
+100% ตรงนี้หมายถึง **record coverage** ไม่ได้หมายความว่าทุก field ตรง 100%; รายละเอียด CER/WER และ error rows อยู่ที่ `reports/README.md` และ `reports/evaluation/`
 
-```powershell
-python -m src.pipeline.tools.evaluation.evaluate
-```
-
-**ก่อนใช้ตัวเลข evaluation เป็นผลสุดท้ายของโปรเจกต์ ให้ rerun จาก canonical data ปัจจุบันอีกครั้ง**
-
-อ่านวิธีวัดและ artifact ที่ `reports/README.md`
+ไฟล์ corrected ของ historical editions ที่ยังไม่มี edition-specific Ground Truth จะไม่ถูกนำมาปนกับ metric ชุดนี้ เพื่อหลีกเลี่ยงการเทียบคนละฉบับหลักสูตร
 
 Runtime benchmark ล่าสุดอยู่ที่ `reports/runtime_benchmark.md` โดย snapshot ปัจจุบันชี้ว่า local parsing/SQLite ใช้เวลาเพียงระดับ sub-ms ถึงไม่กี่ ms ขณะที่ latency หลักมาจาก external model call
 

@@ -102,11 +102,9 @@ pipeline สามารถประเมิน canonical data เทียบ 
 reports/evaluation/
 ```
 
-รัน evaluator โดยตรง:
+runtime ปัจจุบันมีหลาย curriculum editions แต่ Ground Truth ยังไม่ได้มีแยกทุก edition ดังนั้น final report ต้องประเมินเฉพาะ prediction/GT pairs ที่ตรงกันอย่างชัดเจน ไม่ใช้ no-argument discovery เพื่อเอา historical editions มาปนกับ metric
 
-```powershell
-python -m src.pipeline.tools.evaluation.evaluate
-```
+คำสั่งและ scope ที่ใช้สร้าง report ปัจจุบันดูที่ `reports/README.md`
 
 `ground_truth/` ใช้สำหรับ evaluation/test เท่านั้น ไม่ถูกใช้เป็น production factual source
 
