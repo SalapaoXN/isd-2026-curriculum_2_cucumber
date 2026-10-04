@@ -1,0 +1,45 @@
+name: Validate final GT policy coverage once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/validate-final-policy-gt-once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy sqlite-vec google-genai python-dotenv fastapi httpx transformers sentencepiece
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run focused policy and GT coverage tests
+        run: |
+          python -m unittest \
+            tests.rag.test_rag_policy \
+            tests.rag.test_h25_policy_routing \
+            tests.rag.test_h25p3_policy_collisions \
+            tests.rag.test_rag_policy_combined \
+            tests.rag.test_policy_gt_coverage \
+            -v
+
+      - name: Run broader QA and API regression
+        run: |
+          python -m unittest \
+            tests.rag.test_rag_qa \
+            tests.rag.test_rag_structured_qa \
+            tests.test_llm_sql_api \
+            tests.test_llm_sql_qa \
+            tests.test_hard_qa \
+            -v
