@@ -17,12 +17,31 @@ class PolicyQuery:
 
 
 _PROGRAM_RE = re.compile(r"\b(?P<program>AIT|BIT|DSBA|IT)\b", re.IGNORECASE)
-_AMOUNT_RE = re.compile(r"(?:ลงทะเบียน|ลง|เรียน)\s*(?P<amount>\d+)\s*หน่วยกิต")
-_GPA_RE = re.compile(r"GPA\s*(?:เท่าไร|เท่าไหร่|กี่คะแนน)", re.IGNORECASE)
+_AMOUNT_RE = re.compile(
+    r"(?:ลงทะเบียน|ลง|เรียน)\s*(?P<amount>\d+)\s*หน่วย(?:กิต)?"
+)
+_GPA_RE = re.compile(
+    r"GPA[^?？\n]{0,40}(?:เท่าไร|เท่าไหร่|กี่คะแนน)",
+    re.IGNORECASE,
+)
+_POLICY_SHAPE_RE = re.compile(
+    r"(?:ลาออก|ลาพักการศึกษา|พักเรียน|โอนหน่วยกิต|โอนผลการเรียน|"
+    r"ทุจริต.{0,20}สอบ|โกง.{0,20}สอบ|วินัย|อุทธรณ์|ติดโปร|พ้นโปร|หลุดโปร|"
+    r"พ้นสภาพ|เกียรตินิยม|สำเร็จการศึกษา|english\s+exit|exit\s+english|"
+    r"หนี้สิน|ภาระผูกพัน|(?:จะจบ|จบต้อง|จบได้))",
+    re.IGNORECASE,
+)
 
 
 def _normalized(question: str) -> str:
     return re.sub(r"\s+", " ", question.strip().lower())
+
+
+def looks_like_policy_question(question: str) -> bool:
+    """Return True only for strong institution-policy surface markers."""
+    if not isinstance(question, str) or not question.strip():
+        return False
+    return bool(_POLICY_SHAPE_RE.search(_normalized(question)))
 
 
 def _program(question: str) -> str | None:
@@ -234,4 +253,4 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     return None
 
 
-__all__ = ["PolicyQuery", "parse_policy_question"]
+__all__ = ["PolicyQuery", "looks_like_policy_question", "parse_policy_question"]
