@@ -20,7 +20,7 @@ class PolicyGtCoverageTest(unittest.TestCase):
 
         presence_by_category: dict[str, set[bool | None]] = {}
         for program_records in ground_truth["programs"].values():
-            for record in program_records.values():
+            for record in program_records:
                 presence_by_category.setdefault(record["category"], set()).add(
                     record.get("present")
                 )
@@ -43,7 +43,7 @@ class PolicyGtCoverageTest(unittest.TestCase):
         ground_truth = json.loads(GT_PATH.read_text(encoding="utf-8"))
         presence_by_category: dict[str, set[bool | None]] = {}
         for program_records in ground_truth["programs"].values():
-            for record in program_records.values():
+            for record in program_records:
                 presence_by_category.setdefault(record["category"], set()).add(
                     record.get("present")
                 )
