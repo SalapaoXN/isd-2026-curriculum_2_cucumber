@@ -93,6 +93,48 @@ class RagPolicyTest(unittest.TestCase):
             )
         )
 
+    def test_contextual_whole_program_total_is_bounded(self):
+        cases = (
+            (
+                "ถ้าไม่สหกิจต้องเก็บกี่หน่วยทั้งหมด",
+                "IT",
+                "it-2565",
+                "no_coop",
+                129,
+            ),
+            (
+                "หลักสูตรนี้ทั้งหมดกี่หน่วย",
+                "IT",
+                "it-2565",
+                None,
+                129,
+            ),
+        )
+        for question, program, catalog_key, plan, expected in cases:
+            with self.subTest(question=question):
+                routed = route_policy_question(
+                    DB_PATH,
+                    question,
+                    catalog_key=catalog_key,
+                    program_context=program,
+                )
+                self.assertIsNotNone(routed)
+                self.assertEqual(routed.status, "answer")
+                self.assertIn(str(expected), routed.final_answer)
+                if plan == "no_coop":
+                    self.assertIn("แผนไม่สหกิจ", routed.final_answer)
+                self.assertTrue(routed.provenance)
+
+        # Without a validated program context, an anaphoric whole-program
+        # question must still fail closed.
+        self.assertIsNone(
+            route_policy_question(
+                DB_PATH,
+                "หลักสูตรนี้ทั้งหมดกี่หน่วย",
+                catalog_key="it-2565",
+            )
+        )
+
     def test_registration_facts_are_canonical_and_provenanced(self):
         maximum = answer_policy_question(DB_PATH, "ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต")
         minimum = answer_policy_question(DB_PATH, "ขั้นต่ำกี่หน่วยกิต")
