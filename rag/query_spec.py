@@ -488,12 +488,6 @@ def _extract_topic(
                 topic,
                 flags=re.IGNORECASE,
             ).strip()
-            topic_aliases = {
-                "data sci": "data science",
-                "datasci": "data science",
-            }
-            topic = topic_aliases.get(topic.casefold(), topic)
-
             if not topic or topic.casefold() in {
                 "อะไร",
                 "อะไรบ้าง",
