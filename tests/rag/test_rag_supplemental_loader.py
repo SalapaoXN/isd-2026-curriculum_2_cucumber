@@ -148,6 +148,57 @@ class RagSupplementalLoaderTest(unittest.TestCase):
             self.assertEqual(provenance[0], "rule")
             self.assertIsNotNone(provenance[1])
 
+    def test_repository_corrected_documents_resolve_program_requirements(self):
+        sources = sorted(
+            (self.root / "data" / "output" / "final").glob("*_corrected.json")
+        )
+        self.assertGreater(len(sources), 0)
+
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "curriculum.db"
+            load_jsons_to_sqlite(sources, database)
+            load_supplemental_jsons_to_sqlite(
+                self.policy,
+                self.requirements,
+                database,
+            )
+
+            with closing(sqlite3.connect(database)) as connection:
+                catalogs = connection.execute(
+                    """
+                    SELECT catalog_key, COUNT(*)
+                    FROM catalogs
+                    WHERE catalog_key IN (
+                        'ait-2566',
+                        'bit-2560',
+                        'bit-2565',
+                        'dsba-2560',
+                        'dsba-2565',
+                        'it-2560',
+                        'it-2565'
+                    )
+                    GROUP BY catalog_key
+                    ORDER BY catalog_key
+                    """
+                ).fetchall()
+                requirement_count = connection.execute(
+                    "SELECT COUNT(*) FROM program_requirements"
+                ).fetchone()[0]
+
+        self.assertEqual(
+            catalogs,
+            [
+                ("ait-2566", 1),
+                ("bit-2560", 1),
+                ("bit-2565", 1),
+                ("dsba-2560", 1),
+                ("dsba-2565", 1),
+                ("it-2560", 1),
+                ("it-2565", 1),
+            ],
+        )
+        self.assertEqual(requirement_count, 7)
+
     def test_unsupported_supplemental_provenance_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
