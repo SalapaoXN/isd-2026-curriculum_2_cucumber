@@ -92,6 +92,29 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         ):
             return PolicyQuery("credit_transfer")
 
+    if (
+        "ทุจริต" in text
+        and "สอบ" in text
+        and re.search(r"(?:มีโทษ|โทษ|ลงโทษ|เป็นอย่างไร|เป็นยังไง|เกิดอะไร)", text)
+    ):
+        return PolicyQuery("exam_dishonesty_penalty")
+
+    if (
+        ("โทษทางวินัย" in text or ("วินัย" in text and "โทษ" in text))
+        and re.search(r"(?:มีอะไรบ้าง|อะไรบ้าง|มีอะไร|เป็นอย่างไร|เป็นยังไง)", text)
+    ):
+        return PolicyQuery("disciplinary_penalties")
+
+    if "อุทธรณ์" in text and "ลงโทษ" in text:
+        if re.search(r"(?:ภายในกี่วัน|กี่วัน|ภายในเท่าไร|ภายในเท่าไหร่)", text):
+            return PolicyQuery("sanction_appeal_deadline")
+        if re.search(
+            r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ทำอย่างไร|ทำยังไง|"
+            r"มีขั้นตอนอะไร|ขั้นตอนเป็นอย่างไร|ขั้นตอนเป็นยังไง)",
+            text,
+        ):
+            return PolicyQuery("sanction_appeal_procedure")
+
     amount_match = _AMOUNT_RE.search(text)
     if amount_match and re.search(r"(?:ได้ไหม|ได้หรือไม่|ได้หรือเปล่า)\s*[?？]?$", text):
         if "หน่วยกิต" not in text or text.count("หน่วยกิต") != 1:
