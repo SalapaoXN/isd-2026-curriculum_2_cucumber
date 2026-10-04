@@ -775,10 +775,11 @@ def answer_policy_question(
     question: str,
     *,
     catalog_key: str | None = None,
+    program_context: str | None = None,
 ) -> PolicyAnswer:
     """Answer one supported policy question using only the canonical runtime DB."""
 
-    query = parse_policy_question(question)
+    query = parse_policy_question(question, program_context=program_context)
     if query is None:
         return PolicyAnswer(status="unsupported")
     try:
