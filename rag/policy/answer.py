@@ -782,6 +782,8 @@ def answer_policy_question(
     if query is None:
         return PolicyAnswer(status="unsupported")
     try:
+        if query.kind == "unsupported_policy_shape":
+            return PolicyAnswer(status="unsupported", query_type=query.kind)
         if query.kind == "student_status_termination_reasons":
             return _student_status_termination_reasons_answer(db_path, query)
         if query.kind == "gpa_calculation_method":
