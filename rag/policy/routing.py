@@ -35,6 +35,10 @@ POLICY_ROUTE_ALLOWLIST = frozenset(
         "disciplinary_penalties",
         "sanction_appeal_deadline",
         "sanction_appeal_procedure",
+        "graduation_requirements",
+        "graduation_gpa",
+        "graduation_english_exit",
+        "graduation_no_debt",
     }
 )
 
