@@ -3069,10 +3069,24 @@ def ask(
         or getattr(spec, "category", None)
         or getattr(spec, "topic", None)
     )
-    if operations == ("sum_credits",) and not has_structural_target:
+    explicit_program_mentions = {
+        match.group(0).upper()
+        for match in re.finditer(
+            r"(?<![A-Za-z0-9_])(?:AIT|BIT|DSBA|IT)(?![A-Za-z0-9_])",
+            question,
+            re.IGNORECASE,
+        )
+    }
+    if (
+        operations == ("sum_credits",)
+        and not has_structural_target
+        and len(explicit_program_mentions) <= 1
+    ):
         # A bare follow-up such as "กี่หน่วยอะ" with only program/catalog
         # context does not identify a semester, course, plan, or program-total
         # requirement. Never widen it to every term in the curriculum.
+        # Explicit multi-program wording is excluded: that is a real
+        # comparison shape handled by the existing structured path.
         return _intent_failure_result(question)
     if operations == ("existence",) and not has_structural_target:
         # Existence without an entity/filter otherwise degenerates into
