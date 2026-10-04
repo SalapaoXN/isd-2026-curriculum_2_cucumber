@@ -1,6 +1,7 @@
 name: Demo smoke test once
 # rerun after topic and total fixes
 # rerun after runtime provenance adjustment
+# rerun after localized unit test update
 
 on:
   push:
