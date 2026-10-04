@@ -83,13 +83,27 @@ def _is_bare_regular_max(text: str, question: str) -> bool:
     )
 
 
-def parse_policy_question(question: str) -> PolicyQuery | None:
-    """Return a supported policy query, or ``None`` for unsupported/ambiguous text."""
+def parse_policy_question(
+    question: str,
+    *,
+    program_context: str | None = None,
+) -> PolicyQuery | None:
+    """Return a supported policy query, or ``None`` for unsupported/ambiguous text.
+
+    ``program_context`` is used only when the question itself does not name a
+    program. This lets bounded whole-program wording such as "หลักสูตรนี้ทั้งหมด
+    กี่หน่วย" reuse an already validated UI/conversation scope without treating
+    arbitrary context as factual authority.
+    """
 
     if not isinstance(question, str) or not question.strip():
         return None
     text = _normalized(question)
     program = _program(question)
+    if program is None and isinstance(program_context, str):
+        candidate = program_context.strip().upper()
+        if candidate in {"AIT", "BIT", "DSBA", "IT"}:
+            program = candidate
     if re.search(r"(?:IT|AIT|BIT|DSBA)\s+.*(?:IT|AIT|BIT|DSBA)", question, re.IGNORECASE):
         return None
 
@@ -174,8 +188,10 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         if _is_bare_regular_max(text, question):
             return PolicyQuery("registration_regular_max")
         if program and re.search(
-            r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด|รวม\s*กี่\s*หน่วย(?:กิต)?|"
-            r"ต้องเรียน\s*กี่\s*หน่วย(?:กิต)?)",
+            r"(?:ต้อง(?:เรียน|เก็บ)\s*กี่\s*หน่วย(?:กิต)?(?:\s*ทั้งหมด)?|"
+            r"เรียนทั้งหมด|รวมทั้งหมด|"
+            r"(?:หลักสูตรนี้\s*)?ทั้งหมด\s*กี่\s*หน่วย(?:กิต)?|"
+            r"รวม\s*กี่\s*หน่วย(?:กิต)?)",
             text,
         ):
             spec = parse_query_spec(question)
