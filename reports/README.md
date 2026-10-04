@@ -37,12 +37,23 @@ Weighted field quality across 839 matched records:
 | Field | Character Accuracy | Word Accuracy |
 | --- | ---: | ---: |
 | code | 100.00% | N/A |
-| name_th | 99.11% | 98.00% |
-| name_en | 99.16% | 94.71% |
+| name_th | 99.27% | 98.18% |
+| name_en | 99.24% | 94.83% |
 | credits | 99.59% | N/A |
 | prerequisite | 99.98% | 99.90% |
 
 รายละเอียด error จริงอยู่ใน `evaluation_errors.csv`
+
+### Verified data fixes
+
+หลังตรวจ error ที่มีผลต่อข้อมูลจริง แก้เฉพาะรายการที่มีหลักฐานรองรับชัดเจน:
+
+- IT `06066302`: ชื่อไทย → `การเขียนโปรแกรมเว็บพื้นฐาน`
+- IT `06016465`: ชื่อไทย → `การออกแบบศูนย์ข้อมูล`
+- GENED `90642045`: `BE MV BEV.` → `BE MY BEV.`
+
+focused correction tests, fail-closed credit tests, canonical assertions และ evaluation regression checks ผ่านทั้งหมด ส่วน BIT `06036135` credits ยังเว้นว่างโดยตั้งใจ เพราะยังไม่มี source-verified production evidence เพียงพอให้เติมค่าจาก Ground Truth
+
 
 ## 2. Evaluation scope boundary
 
