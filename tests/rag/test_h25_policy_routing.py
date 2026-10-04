@@ -56,6 +56,10 @@ class H25PolicyRoutingTests(unittest.TestCase):
                     "leave_of_absence",
                     "resignation",
                     "credit_transfer",
+                    "exam_dishonesty_penalty",
+                    "disciplinary_penalties",
+                    "sanction_appeal_deadline",
+                    "sanction_appeal_procedure",
                 }
             ),
         )
@@ -76,6 +80,10 @@ class H25PolicyRoutingTests(unittest.TestCase):
             ("ลาพักการศึกษาต้องทำอย่างไร", ("ข้อ 31.1", "ข้อ 31.4")),
             ("ลาออกต้องทำอย่างไร", ("ข้อ 32", "ไม่มีหนี้สิน")),
             ("เทียบโอนหน่วยกิตมีหลักเกณฑ์อะไรบ้าง", ("ข้อ 28", "ข้อ 29")),
+            ("ทุจริตในการสอบมีโทษอย่างไร", ("ข้อ 20",)),
+            ("โทษทางวินัยมีอะไรบ้าง", ("ว่ากล่าวตักเตือน", "ไล่ออก")),
+            ("อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", ("30 วัน",)),
+            ("อุทธรณ์คำสั่งลงโทษต้องทำอย่างไร", ("ข้อ 43",)),
         )
         for question, expected in cases:
             with self.subTest(question=question):
