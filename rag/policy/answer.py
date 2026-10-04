@@ -278,6 +278,13 @@ def _facts(db_path: str | Path, query: PolicyQuery) -> tuple[PolicyFact, ...]:
             category="การกลับเข้าศึกษา",
             condition="at_most",
         )
+    elif query.kind == "student_status_termination_gpa":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์พ้นสภาพนักศึกษา",
+            fact_key="GPA ที่เป็นเกณฑ์พ้นสภาพนักศึกษา",
+            condition="below",
+        )
     elif query.kind == "sanction_appeal_deadline":
         rows = fetch_policy_facts(
             db_path,
