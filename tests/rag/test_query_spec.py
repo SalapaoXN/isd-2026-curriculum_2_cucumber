@@ -88,6 +88,36 @@ class QuerySpecSkeletonTests(unittest.TestCase):
 
 
 class QuerySpecEntityTests(unittest.TestCase):
+    def test_surface_operations_are_admitted_only_with_validated_context_scope(self):
+        question = "วิชาเลือกมีอะไรบ้าง"
+        self.assertEqual(parse_query_spec(question).operations, ())
+        contextual = parse_query_spec(
+            question,
+            has_validated_context_scope=True,
+        )
+        self.assertEqual(contextual.category, "วิชาเลือก")
+        self.assertEqual(contextual.operations, ("list",))
+        self.assertEqual(
+            parse_query_spec(
+                "ข้อความทั่วไป",
+                has_validated_context_scope=True,
+            ).operations,
+            (),
+        )
+
+    def test_positive_prerequisite_collection_forms_are_recognized_without_entity_scope(self):
+        for question in (
+            "วิชาใดมีวิชาบังคับก่อนบ้าง",
+            "มีวิชาอะไรที่มี prerequisite บ้าง",
+            "รายวิชาใดต้องเรียนวิชาอื่นมาก่อนบ้าง",
+            "วิชาใดมีวิชาบังคับก่อนบ้าง บอกชื่อและรหัสวิชามา",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).operations, ("prerequisite",))
+
+        # Recognition alone does not authorize an arbitrary unresolved reference.
+        self.assertEqual(parse_query_spec("ตัวไหนมีวิชาบังคับก่อน").operations, ())
+
     def test_explicit_previous_result_set_anchors_are_detected_conservatively(self):
         for question in (
             "ในวิชาเหล่านี้รวมกี่หน่วยกิต",

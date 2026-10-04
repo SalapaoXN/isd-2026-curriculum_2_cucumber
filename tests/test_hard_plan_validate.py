@@ -194,6 +194,135 @@ class HardPlanValidateTest(unittest.TestCase):
         self.assertEqual(required["placement_ids"], [101, 102])
         self.assertEqual(result["mandatory_courses"]["count"], 1)
 
+    def test_source_backed_placeholder_placements_are_selection_slots_not_courses(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.executemany(
+                """INSERT INTO courses
+                   (course_id, catalog_id, course_code, course_code_normalized,
+                    course_identity_discriminator, name_th, name_en, credit_units)
+                   VALUES (?, 1, ?, ?, ?, ?, ?, NULL)""",
+                [
+                    (20, "06026xxx", "06026XXX", "slot-a", "วิชาเลือกกลุ่มข้อมูล 1", "DATA ELECTIVE SLOT 1"),
+                    (21, "06026xxx", "06026XXX", "slot-b", "วิชาเลือกกลุ่มข้อมูล 2", "DATA ELECTIVE SLOT 2"),
+                ],
+            )
+            connection.executemany(
+                """INSERT INTO plan_placements
+                   (placement_id, plan_id, course_id, year_number, semester_number,
+                    category, requirement_type, credits_override)
+                   VALUES (?, 1, ?, ?, ?, ?, 'บังคับ', ?)""",
+                [
+                    (106, 20, 3, 1, "หมวดวิชาเฉพาะ", "3 credits"),
+                    (107, 21, 3, 2, "หมวดวิชาเฉพาะ", None),
+                ],
+            )
+            connection.executemany(
+                """INSERT INTO provenance
+                   (provenance_id, source_document_key, program, source_filename,
+                    source_page, document_page, document_category)
+                   VALUES (?, ?, 'TST', 'plan.pdf', ?, ?, 'plan')""",
+                [(550, "slot-106", 50, 40), (551, "slot-107", 51, 41)],
+            )
+            connection.executemany(
+                "INSERT INTO plan_placement_provenance VALUES (?, ?)",
+                [(106, 550), (107, 551)],
+            )
+            connection.commit()
+
+        result = validate_curriculum_plan_structure(self.db_path, "TST", "default")
+
+        self.assertEqual(result["mandatory_courses"]["status"], "complete")
+        self.assertEqual(result["mandatory_courses"]["count"], 1)
+        self.assertEqual(
+            [course["course_code_normalized"] for course in result["mandatory_courses"]["courses"]],
+            ["10000001"],
+        )
+        slots = result["required_selection_slots"]
+        self.assertEqual([slot["placement_id"] for slot in slots], [106, 107])
+        self.assertEqual([slot["term_index"] for slot in slots], [5, 6])
+        self.assertEqual(slots[0]["credits_override"], "3 credits")
+        self.assertIsNone(slots[1]["credits_override"])
+        self.assertEqual([slot["label_en"] for slot in slots], ["DATA ELECTIVE SLOT 1", "DATA ELECTIVE SLOT 2"])
+        self.assertTrue(all(slot["provenance"] for slot in slots))
+        self.assertEqual(
+            {reference["source_page"] for slot in slots for reference in slot["provenance"]},
+            {50, 51},
+        )
+
+    def test_placeholder_selection_slot_without_placement_provenance_fails_closed(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                """INSERT INTO courses
+                   (course_id, catalog_id, course_code, course_code_normalized,
+                    name_th, name_en)
+                   VALUES (20, 1, 'xxxxxxxx', 'XXXXXXXX', 'วิชาเลือกเสรี', 'FREE ELECTIVE')"""
+            )
+            connection.execute(
+                """INSERT INTO plan_placements
+                   (placement_id, plan_id, course_id, year_number, semester_number,
+                    requirement_type)
+                   VALUES (106, 1, 20, 4, 1, 'บังคับ')"""
+            )
+            connection.execute(
+                """INSERT INTO provenance
+                   (provenance_id, source_document_key, program, source_filename,
+                    source_page, document_page, document_category)
+                   VALUES (550, 'course-20', 'TST', 'description.pdf', 50, 40,
+                           'description')"""
+            )
+            connection.execute(
+                "INSERT INTO course_provenance(course_id, provenance_id) VALUES (20, 550)"
+            )
+            connection.commit()
+
+        result = validate_curriculum_plan_structure(self.db_path, "TST", "default")
+
+        self.assertEqual(result["mandatory_courses"]["status"], "incomplete_evidence")
+        self.assertEqual(
+            [item["provenance_id"] for item in result["required_selection_slots"][0]["provenance"]],
+            [550],
+        )
+        self.assertEqual(result["required_selection_slots"][0]["placement_provenance"], [])
+        self.assertTrue(any(
+            item["placement_id"] == 106
+            and item["reason"] == "required selection slot lacks linked plan placement provenance"
+            for item in result["mandatory_courses"]["unresolved_placements"]
+        ))
+
+    def test_concrete_mandatory_identity_name_conflict_still_fails_closed(self):
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                """INSERT INTO courses
+                   (course_id, catalog_id, course_code, course_code_normalized,
+                    course_identity_discriminator, name_th, name_en, credit_units)
+                   VALUES (20, 1, '10000001', '10000001', 'conflicting-source',
+                           'ชื่อวิชาขัดแย้ง', 'Conflicting Name', 3)"""
+            )
+            connection.execute(
+                """INSERT INTO plan_placements
+                   (placement_id, plan_id, course_id, year_number, semester_number,
+                    requirement_type)
+                   VALUES (106, 1, 20, 2, 1, 'บังคับ')"""
+            )
+            connection.execute(
+                """INSERT INTO provenance
+                   (provenance_id, source_document_key, program, source_filename,
+                    source_page, document_page, document_category)
+                   VALUES (550, 'conflict-placement', 'TST', 'plan.pdf', 50, 40, 'plan')"""
+            )
+            connection.execute("INSERT INTO plan_placement_provenance VALUES (106, 550)")
+            connection.commit()
+
+        result = validate_curriculum_plan_structure(self.db_path, "TST", "default")
+
+        self.assertEqual(result["mandatory_courses"]["status"], "incomplete_evidence")
+        conflict = next(
+            course for course in result["mandatory_courses"]["courses"]
+            if course["course_code_normalized"] == "10000001"
+        )
+        self.assertTrue(conflict["identity_or_name_conflict"])
+        self.assertEqual(result["required_selection_slots"], [])
+
     def test_fixed_flexible_and_untimed_placements_are_distinguished(self):
         result = validate_curriculum_plan_structure(self.db_path, "TST", "default")
         quality = result["placement_quality"]

@@ -1035,6 +1035,33 @@ class RagRetrieveTest(unittest.TestCase):
         finally:
             directory.cleanup()
 
+    def test_placeholder_without_description_is_not_a_topic_match(self):
+        directory, database_path = self._course_chunk_database(
+            [("metadata-placeholder", {"chunk_type": "metadata", "course_id": 1})]
+        )
+        candidate = {
+            "course_id": 1,
+            "course_code": "FREE ELECTIVE COURSE",
+            "name_en": "FREE ELECTIVE COURSE",
+        }
+        try:
+            with patch("rag.retrieval.retrieve.embed_texts") as embed_mock, patch(
+                "rag.retrieval.retrieve.score_candidate_vectors"
+            ) as score_mock:
+                result = retrieve_constrained_topic_evidence(
+                    database_path,
+                    "data",
+                    [candidate],
+                )
+
+            self.assertEqual(result.status, "description_missing")
+            self.assertEqual(result.scored_candidates, ())
+            self.assertEqual(result.missing_description_course_ids, (1,))
+            embed_mock.assert_not_called()
+            score_mock.assert_not_called()
+        finally:
+            directory.cleanup()
+
     def test_constrained_topic_retrieval_preserves_missing_and_invalid_vector_state(self):
         directory, database_path = self._course_chunk_database(
             [

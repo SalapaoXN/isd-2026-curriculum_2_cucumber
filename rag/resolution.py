@@ -214,6 +214,7 @@ def resolve_query_spec(
             course_code=reference if reference_type == "course_code" else None,
             course_name=reference if reference_type == "course_name" else None,
             program=reference_program,
+            catalog_key=context.catalog_key,
             exact_title=(program_discovery or pure_identity)
             and reference_type == "course_name",
         )

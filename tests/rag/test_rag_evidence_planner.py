@@ -310,6 +310,43 @@ class EvidencePlannerModelTests(unittest.TestCase):
         self.assertEqual(plan.requests[1].depends_on, ("course_set",))
         self.assertEqual(plan.requests[0].scope, plan.requests[1].scope)
 
+    def test_topic_describe_without_exact_target_plans_topic_collection(self):
+        plan = plan_evidence(
+            self._spec(topic="data", operations=("describe",)),
+            self._resolution(),
+            catalog_key="dsba-2565",
+        )
+
+        self.assertEqual(
+            [request.kind for request in plan.requests],
+            ["course_set", "topic_matches"],
+        )
+        self.assertEqual(plan.scope.catalog_key, "dsba-2565")
+        self.assertEqual(plan.requests[1].topic, "data")
+        self.assertEqual(plan.requests[1].depends_on, ("course_set",))
+
+    def test_exact_course_describe_still_plans_only_description_evidence(self):
+        candidate = {
+            "program": "DSBA",
+            "course_code": "06026212",
+            "course_id": 212,
+        }
+        plan = plan_evidence(
+            self._spec(
+                topic="data",
+                course_codes=("06026212",),
+                operations=("describe",),
+            ),
+            self._resolution(program="DSBA", candidates=(candidate,)),
+            catalog_key="dsba-2565",
+        )
+
+        self.assertEqual(
+            [request.kind for request in plan.requests],
+            ["description_evidence"],
+        )
+        self.assertEqual(plan.requests[0].course_targets, (candidate,))
+
     def test_nq_036_reuses_full_structural_course_set_for_credits(self):
         plan = plan_evidence(
             self._spec(

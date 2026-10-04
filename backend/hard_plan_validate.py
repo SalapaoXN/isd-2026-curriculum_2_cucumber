@@ -24,6 +24,7 @@ def _failure(status: str, program: Any, plan: Any, limitation: str) -> dict[str,
         "plan": plan,
         "checks": [],
         "mandatory_courses": {"status": "incomplete_evidence", "count": 0, "courses": []},
+        "required_selection_slots": [],
         "alternative_groups": [],
         "credit_requirements": [],
         "placement_quality": {},
@@ -133,7 +134,7 @@ def _placement_rows(
                   pl.year_number, pl.semester_number,
                   pl.flexible_year_number, pl.flexible_semester_number,
                   pl.flexible_year_semester_raw, pl.category, pl.requirement_type,
-                  pl.raw_text, c.catalog_id AS course_catalog_id,
+                  pl.credits_override, pl.raw_text, c.catalog_id AS course_catalog_id,
                   c.course_code, c.course_code_normalized, c.name_th, c.name_en,
                   ag.catalog_id AS group_catalog_id, ag.plan_id AS group_plan_id
            FROM plan_placements AS pl
@@ -150,14 +151,32 @@ def _unique_name(values: set[str]) -> str | None:
     return next(iter(values)) if len(values) == 1 else None
 
 
+def _is_placeholder_course_identity(code: str) -> bool:
+    normalized = code.strip().upper()
+    return bool(normalized) and "X" in normalized and all(
+        character.isdigit() or character == "X" for character in normalized
+    )
+
+
+def _placement_term_index(year: Any, semester: Any) -> int | None:
+    if (
+        isinstance(year, int) and not isinstance(year, bool) and 1 <= year <= 5
+        and isinstance(semester, int) and not isinstance(semester, bool)
+        and semester in (1, 2)
+    ):
+        return (year - 1) * 2 + semester
+    return None
+
+
 def _mandatory_courses(
     connection: sqlite3.Connection,
     plan: dict[str, Any],
     rows: list[sqlite3.Row],
-) -> tuple[dict[str, Any], list[dict[str, Any]], bool]:
+) -> tuple[dict[str, Any], list[dict[str, Any]], bool, list[dict[str, Any]]]:
     identities: dict[str, dict[str, Any]] = {}
     labels_by_identity: dict[str, set[str]] = {}
     unresolved: list[dict[str, Any]] = []
+    selection_slots: list[dict[str, Any]] = []
     complete = True
     for row in rows:
         if row["alternative_group_id"] is not None:
@@ -211,6 +230,70 @@ def _mandatory_courses(
                 "requirement_type": req_type,
                 "raw_text": row["raw_text"],
                 "provenance": references,
+            })
+            continue
+        if _is_placeholder_course_identity(code):
+            if req_type != _MANDATORY:
+                continue
+            label_th = str(row["name_th"]).strip() if row["name_th"] else None
+            label_en = str(row["name_en"]).strip() if row["name_en"] else None
+            raw_text = str(row["raw_text"]).strip() if row["raw_text"] else None
+            placement_references = _provenance_for(
+                connection,
+                "plan_placement_provenance",
+                "placement_id",
+                placement_id,
+            )
+            if req_type == _MANDATORY and not any(
+                reference.get("document_category") == "plan"
+                and reference.get("source_filename")
+                and reference.get("source_page") is not None
+                for reference in placement_references
+            ):
+                complete = False
+                if not any(
+                    entry.get("placement_id") == placement_id
+                    and entry.get("reason") == "placement lacks linked source evidence"
+                    for entry in unresolved
+                ):
+                    unresolved.append({
+                        "placement_id": placement_id,
+                        "course_code_normalized": code,
+                        "reason": "required selection slot lacks linked plan placement provenance",
+                        "requirement_type": req_type,
+                        "raw_text": row["raw_text"],
+                        "provenance": references,
+                    })
+            if not (label_th or label_en or raw_text):
+                complete = False
+                unresolved.append({
+                    "placement_id": placement_id,
+                    "course_code_normalized": code,
+                    "reason": "required selection slot has no source-backed label",
+                    "requirement_type": req_type,
+                    "raw_text": row["raw_text"],
+                    "provenance": references,
+                })
+            selection_slots.append({
+                "placement_id": placement_id,
+                "plan": plan["plan"],
+                "year": row["year_number"],
+                "semester": row["semester_number"],
+                "flexible_year": row["flexible_year_number"],
+                "flexible_semester": row["flexible_semester_number"],
+                "flexible_year_semester_raw": row["flexible_year_semester_raw"],
+                "term_index": _placement_term_index(
+                    row["year_number"], row["semester_number"]
+                ),
+                "category": row["category"],
+                "requirement_type": req_type,
+                "required": True,
+                "label_th": label_th,
+                "label_en": label_en,
+                "raw_text": row["raw_text"],
+                "credits_override": row["credits_override"],
+                "provenance": references,
+                "placement_provenance": placement_references,
             })
             continue
         labels_by_identity.setdefault(code, set()).add(str(req_type))
@@ -270,7 +353,7 @@ def _mandatory_courses(
         "count": len(courses),
         "courses": courses,
         "unresolved_placements": unresolved,
-    }, unresolved, complete
+    }, unresolved, complete, selection_slots
 
 
 def _alternative_groups(
@@ -782,7 +865,7 @@ def validate_curriculum_plan_structure(
                 )
 
             placements = _placement_rows(connection, resolved["plan_id"])
-            mandatory, unresolved_mandatory, _mandatory_complete = _mandatory_courses(
+            mandatory, unresolved_mandatory, _mandatory_complete, selection_slots = _mandatory_courses(
                 connection, resolved, placements
             )
             groups, groups_complete = _alternative_groups(connection, resolved)
@@ -880,6 +963,7 @@ def validate_curriculum_plan_structure(
 
             evidence_groups = [plan_refs]
             evidence_groups.extend(course["provenance"] for course in mandatory["courses"])
+            evidence_groups.extend(slot["provenance"] for slot in selection_slots)
             evidence_groups.extend(group["provenance"] for group in groups)
             evidence_groups.extend(
                 candidate["provenance"]
@@ -907,6 +991,7 @@ def validate_curriculum_plan_structure(
                 "catalog_key": resolved["catalog_key"],
                 "checks": checks,
                 "mandatory_courses": mandatory,
+                "required_selection_slots": selection_slots,
                 "alternative_groups": groups,
                 "credit_requirements": requirements,
                 "placement_quality": quality,

@@ -60,6 +60,24 @@ _SEMESTER_CREDIT_VIEW_SEMANTICS = (
     "v_semester_credits.credit_units. Sum total_credits only when intentionally "
     "combining distinct, well-defined plan rows and that combination is requested."
 )
+_PLAN_COURSES_VIEW_SEMANTICS = (
+    "Canonical view semantics for v_plan_courses:\n"
+    "- v_plan_courses has no catalog_id column. Never reference "
+    "v_plan_courses.catalog_id.\n"
+    "- When selected_catalog_key is present, the execution environment already "
+    "restricts canonical relations to that catalog. Never query outside the "
+    "scoped relation set or add catalog predicates to relations that do not "
+    "expose catalog identity.\n"
+    "- To project catalog_key, join v_plan_courses.course_id to "
+    "courses.course_id, then courses.catalog_id to catalogs.catalog_id."
+)
+_SELECTED_CATALOG_SQL_GUIDANCE = (
+    "Selected-catalog execution contract:\n"
+    "- selected_catalog_key is the authoritative application scope. The "
+    "execution environment already restricts canonical relations to it.\n"
+    "- Never query outside the scoped relation set or invent catalog predicates "
+    "on relations that do not expose catalog identity."
+)
 _MAX_RESULT_ROWS = 100
 _MAX_PROMPT_ROWS = 20
 _MAX_PROMPT_CELL_CHARS = 500
@@ -97,8 +115,9 @@ _PROGRAM_SCOPE_GUIDANCE = (
     "- When selected_program is supplied, scope results to that program only.\n"
     "- When no active selected program is supplied, all programs remain eligible. "
     "Never infer or choose a program from a course title, course code, or question wording.\n"
-    "- For a title or code lookup that may match across programs or catalogs, preserve "
-    "all canonical matches across programs and catalogs; do not use LIMIT 1 to choose "
+    "- For an unscoped title or code lookup that may match across programs or catalogs, "
+    "preserve all canonical matches across programs and catalogs. When execution scope "
+    "is supplied, preserve all matches within that scope. Do not use LIMIT 1 to choose "
     "an arbitrary match.\n"
     "- Include program identity in the result columns whenever multiple program matches "
     "may exist (use program or program_code). DISTINCT may remove true duplicate rows "
@@ -631,8 +650,22 @@ def _unsupported_course_code_literal(
 
 def _repairable_sqlite_error(error: sqlite3.OperationalError) -> str | None:
     """Return a sanitized SQL-generation error category, if repairable."""
-    message = str(error).casefold()
+    raw_message = str(error)
+    message = raw_message.casefold()
     if "no such column:" in message:
+        missing_column = re.search(
+            r"no such column:\s*(.*?)\s*$", raw_message, re.IGNORECASE
+        )
+        identifier = missing_column.group(1).strip() if missing_column else ""
+        if re.fullmatch(
+            r"(?:[A-Za-z_][A-Za-z0-9_]{0,63}\.)?[A-Za-z_][A-Za-z0-9_]{0,63}",
+            identifier,
+        ):
+            return (
+                "SQLite schema validation error: column "
+                f"{json.dumps(identifier)} does not exist in the supplied schema. "
+                "Repair the query using only columns exposed by the supplied relations."
+            )
         return "SQLite schema validation error: no such column"
     if "ambiguous column name:" in message:
         return "SQLite schema validation error: ambiguous column name"
@@ -657,7 +690,9 @@ def _canonical_schema() -> str:
             selected.append(statement.strip() + ";")
     if not selected:
         raise RuntimeError("canonical curriculum schema is unavailable")
-    return "\n\n".join((*selected, _SEMESTER_CREDIT_VIEW_SEMANTICS))
+    return "\n\n".join(
+        (*selected, _SEMESTER_CREDIT_VIEW_SEMANTICS, _PLAN_COURSES_VIEW_SEMANTICS)
+    )
 
 
 def _json_safe(value: Any) -> Any:
@@ -1083,7 +1118,10 @@ def ask_sql(
     if selected_catalog_key is not None:
         generation_question += (
             f"\nSelected catalog_key: {selected_catalog_key}. "
-            "This is the active curriculum edition and must constrain the SQL."
+            "This is the authoritative application scope. The execution "
+            "environment already restricts canonical relations to this catalog. "
+            "Never query outside the scoped relation set or add catalog predicates "
+            "to relations that do not expose catalog identity."
         )
     if focus_scope:
         generation_question += (
@@ -1111,7 +1149,7 @@ def ask_sql(
                 )
                 + (
                     f"Selected curriculum catalog_key: {selected_catalog_key}. "
-                    "Curriculum relations are bounded to this catalog.\n"
+                    f"{_SELECTED_CATALOG_SQL_GUIDANCE}\n"
                     if selected_catalog_key is not None
                     else ""
                 )

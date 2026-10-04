@@ -352,7 +352,7 @@ class HardSequencePlannerTest(unittest.TestCase):
         self.assertIsNone(result["sequence_feasible"])
         self.assertEqual(result["status"], "incomplete_evidence")
 
-    def test_runtime_plan_returns_structure_without_guaranteeing_graduation(self):
+    def test_runtime_plan_returns_seven_term_skeleton_without_guaranteeing_graduation(self):
         db_path = Path("cucumber_outputs/runtime/curriculum.db")
         if not db_path.exists():
             self.skipTest("runtime curriculum DB is not present")
@@ -361,9 +361,73 @@ class HardSequencePlannerTest(unittest.TestCase):
         )
 
         self.assertNotEqual(result["status"], "ambiguous_plan")
-        self.assertEqual(result["terms"], [])
+        self.assertEqual(len(result["terms"]), 7)
+        self.assertTrue(any(term["courses"] for term in result["terms"]))
+        self.assertTrue(result["evidence"])
         self.assertEqual(result["status"], "incomplete_evidence")
         self.assertFalse(result.get("graduation_guaranteed", False))
+
+    def test_dsba2565_required_placeholder_slots_are_visible_in_seven_term_plans(self):
+        db_path = Path("cucumber_outputs/runtime/curriculum.db")
+        if not db_path.exists():
+            self.skipTest("runtime curriculum DB is not present")
+
+        expected_slot_counts = {"coop": 9, "no_coop": 11}
+        for plan, expected_count in expected_slot_counts.items():
+            with self.subTest(plan=plan):
+                result = plan_curriculum_sequence(
+                    db_path, "DSBA", plan, catalog_key="dsba-2565"
+                )
+
+                self.assertEqual(result["status"], "incomplete_evidence")
+                self.assertEqual(len(result["terms"]), 7)
+                self.assertTrue(any(term["courses"] for term in result["terms"]))
+                slots = result["required_selection_slots"]
+                self.assertEqual(len(slots), expected_count)
+                self.assertTrue(all(slot["provenance"] for slot in slots))
+                self.assertTrue(all(
+                    slot.get("label_th") or slot.get("label_en")
+                    for slot in slots
+                ))
+                self.assertEqual(
+                    sum(len(term["required_selection_slots"]) for term in result["terms"]),
+                    sum(slot["term_index"] <= 7 for slot in slots),
+                )
+                self.assertTrue(all(
+                    term["required_selection_slots"]
+                    for term in result["terms"]
+                    if any(
+                        slot["term_index"] == term["term_index"]
+                        for slot in slots
+                    )
+                ))
+                concrete_codes = {
+                    course["course_code"]
+                    for term in result["terms"]
+                    for course in term["courses"]
+                }
+                self.assertNotIn("06026xxx", concrete_codes)
+                self.assertNotIn("xxxxxxxx", concrete_codes)
+                self.assertFalse(any(
+                    slot.get("candidates") for slot in slots
+                ))
+                slot_refs = {
+                    ref["provenance_id"]
+                    for slot in slots
+                    for ref in slot["provenance"]
+                }
+                evidence_refs = {
+                    ref["provenance_id"] for ref in result["evidence"]
+                }
+                self.assertTrue(slot_refs <= evidence_refs)
+                self.assertTrue(any(slot["term_index"] == 8 for slot in slots) == (plan == "no_coop"))
+                self.assertEqual(
+                    sum(
+                        item["type"] == "required_selection_slot"
+                        for item in result["unresolved_requirements"]
+                    ),
+                    expected_count,
+                )
 
     def test_runtime_sequence_never_uses_2565_credits_for_2560(self):
         db_path = Path("cucumber_outputs/runtime/curriculum.db")

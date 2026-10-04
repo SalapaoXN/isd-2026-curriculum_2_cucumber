@@ -2397,9 +2397,137 @@ class LlmSqlQaTest(unittest.TestCase):
         self.assertIn("Selected program: IT", sql_prompts[1])
         self.assertIn("Schema:", sql_prompts[1])
         self.assertIn("Failed SQL:", sql_prompts[1])
-        self.assertIn("no such column", sql_prompts[1].casefold())
+        self.assertIn(
+            'column "nonexistent_column" does not exist',
+            sql_prompts[1].casefold(),
+        )
         self.assertEqual(result["rows"][0]["course_code"], "C101")
         self.assertEqual(len(answer_prompts), 1)
+
+    def test_v_plan_courses_contract_and_selected_catalog_prompt_guidance(self):
+        schema = llm_sql_qa._canonical_schema()
+        view_body = schema.split("CREATE VIEW v_plan_courses AS", 1)[1].split(";", 1)[0]
+        self.assertNotIn("catalog_id", view_body.casefold())
+        self.assertIn("v_plan_courses has no catalog_id column", schema.casefold())
+        self.assertIn("never reference v_plan_courses.catalog_id", schema.casefold())
+        self.assertIn("courses.catalog_id", schema.casefold())
+        self.assertIn("catalogs.catalog_id", schema.casefold())
+
+        db_path = self._build_edition_scope_db()
+        prompts = []
+        result = ask_sql(
+            db_path,
+            "แสดงรหัสวิชา",
+            "DSBA",
+            lambda prompt: prompts.append(prompt)
+            or "SELECT course_code FROM v_plan_courses",
+            lambda _prompt: "พบข้อมูล",
+            conversation_context={"catalog_key": "dsba-2565"},
+        )
+
+        self.assertEqual(result["status"], "answer")
+        generation_prompt = prompts[0].casefold()
+        self.assertIn(
+            "execution environment already restricts canonical relations",
+            generation_prompt,
+        )
+        self.assertIn("never query outside the scoped relation set", generation_prompt)
+        self.assertNotIn(
+            "selected catalog_key: dsba-2565. this is the active curriculum edition "
+            "and must constrain the sql",
+            generation_prompt,
+        )
+
+    def test_scoped_v_plan_courses_missing_catalog_id_is_repaired_with_identifier(self):
+        db_path = self._build_edition_scope_db()
+        prompts = []
+        queries = iter(
+            [
+                "SELECT v_plan_courses_alias.catalog_id "
+                "FROM v_plan_courses AS v_plan_courses_alias",
+                "SELECT v_plan_courses_alias.course_code "
+                "FROM v_plan_courses AS v_plan_courses_alias",
+            ]
+        )
+
+        result = ask_sql(
+            db_path,
+            "แสดงรายวิชา DSBA",
+            "DSBA",
+            lambda prompt: prompts.append(prompt) or next(queries),
+            lambda _prompt: "พบข้อมูล",
+            conversation_context={"catalog_key": "dsba-2565"},
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(len(prompts), 2)
+        repair_prompt = prompts[1].casefold()
+        self.assertIn(
+            'column "v_plan_courses_alias.catalog_id" does not exist',
+            repair_prompt,
+        )
+        self.assertIn("only columns exposed by the supplied relations", repair_prompt)
+        self.assertTrue(result["rows"])
+        self.assertEqual(result["columns"], ["course_code"])
+
+    def test_sqlite_missing_column_detail_accepts_only_bounded_identifiers(self):
+        self.assertIn(
+            'column "t1.catalog_id" does not exist',
+            llm_sql_qa._repairable_sqlite_error(
+                sqlite3.OperationalError("no such column: t1.catalog_id")
+            ),
+        )
+        self.assertEqual(
+            llm_sql_qa._repairable_sqlite_error(
+                sqlite3.OperationalError("no such column: x; DROP TABLE courses")
+            ),
+            "SQLite schema validation error: no such column",
+        )
+
+    def test_identical_invalid_sql_is_still_repaired_only_once(self):
+        db_path = self._build_edition_scope_db()
+        prompts = []
+        broken_sql = (
+            "SELECT v_plan_courses_alias.catalog_id "
+            "FROM v_plan_courses AS v_plan_courses_alias"
+        )
+
+        result = ask_sql(
+            db_path,
+            "แสดงรายวิชา DSBA",
+            "DSBA",
+            lambda prompt: prompts.append(prompt) or broken_sql,
+            lambda _prompt: "ไม่ควรถูกเรียก",
+            conversation_context={"catalog_key": "dsba-2565"},
+        )
+
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["error"]["code"], "sqlite_error")
+        self.assertEqual(len(prompts), 2)
+
+    def test_catalog_key_projection_uses_scoped_course_catalog_join(self):
+        db_path = self._build_edition_scope_db()
+        sql = (
+            "SELECT catalogs.catalog_key, plan_rows.course_code "
+            "FROM v_plan_courses AS plan_rows "
+            "JOIN courses ON courses.course_id = plan_rows.course_id "
+            "JOIN catalogs ON catalogs.catalog_id = courses.catalog_id"
+        )
+
+        result = ask_sql(
+            db_path,
+            "แสดงรหัสวิชาและฉบับหลักสูตร DSBA",
+            "DSBA",
+            lambda _prompt: sql,
+            lambda _prompt: "พบข้อมูล",
+            conversation_context={"catalog_key": "dsba-2565"},
+        )
+
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["rows"])
+        self.assertEqual(
+            {row["catalog_key"] for row in result["rows"]}, {"dsba-2565"}
+        )
 
     def test_answer_model_failure_is_controlled(self):
         result = ask_sql(

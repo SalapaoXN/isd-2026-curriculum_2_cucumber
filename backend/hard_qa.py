@@ -553,11 +553,48 @@ def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
                         slots.append(f"ทางเลือก: เลือก {minimum} วิชาจาก {' หรือ '.join(choices)}")
                     else:
                         slots.append(f"ทางเลือก: {' หรือ '.join(choices)}")
+        required_slots = []
+        for slot in term.get("required_selection_slots", []):
+            if isinstance(slot, dict):
+                slot_label = slot.get("label_th") or slot.get("label_en") or slot.get("raw_text")
+                if isinstance(slot_label, str) and slot_label.strip():
+                    required_slots.append(
+                        f"ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง: {slot_label.strip()}"
+                    )
         lines.append(f"{label}:")
-        for course in courses + slots:
+        for course in courses + slots + required_slots:
             lines.append(f"- {course}")
-        if not courses and not slots:
+        if not courses and not slots and not required_slots:
             lines.append("- ไม่มีรายวิชาที่แทนได้")
+    placed_slot_ids = {
+        slot.get("placement_id")
+        for term in terms if isinstance(term, dict)
+        for slot in term.get("required_selection_slots", [])
+        if isinstance(slot, dict)
+    }
+    unplaced_slots = [
+        slot for slot in result.get("required_selection_slots", [])
+        if isinstance(slot, dict) and slot.get("placement_id") not in placed_slot_ids
+    ]
+    for slot in unplaced_slots:
+        slot_label = slot.get("label_th") or slot.get("label_en") or slot.get("raw_text")
+        if isinstance(slot_label, str) and slot_label.strip():
+            year = slot.get("year")
+            semester = slot.get("semester")
+            if (
+                isinstance(year, int) and not isinstance(year, bool)
+                and isinstance(semester, int) and not isinstance(semester, bool)
+            ):
+                placement_label = f"ปี {year} เทอม {semester} อยู่นอกโครงร่าง 7 เทอม"
+            else:
+                placement_label = "ยังไม่ทราบภาคเรียน"
+            lines.append(
+                f"ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง ({placement_label}): {slot_label.strip()}"
+            )
+    if result.get("required_selection_slots"):
+        lines.append(
+            "โครงร่าง 7 เทอมนี้ไม่ใช่ข้อพิสูจน์ว่าครบเงื่อนไขจบ; ช่องวิชาเลือกยังไม่ได้ระบุวิชาจริง"
+        )
     relevant_limitations = [item.casefold() for item in result.get("limitations", []) if isinstance(item, str)]
     concise_limitations = []
     if status == "incomplete_evidence":
@@ -1015,7 +1052,15 @@ def answer_hard_question(
                 return _response("clarification_required", "ไม่สามารถใช้แผนที่ไม่ได้ระบุในคำถามหรือบริบทที่เลือกไว้ได้ โปรดระบุแผน", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
         else:
             plan = context_plan
-        if plan is None:
+        evaluate_all_seven_term_plans = (
+            task_type == "seven_term_plan"
+            and plan is None
+            and context.get("plan") is None
+            and intent.get("plan") is None
+            and not explicit_plans
+            and len(plans_for_program) > 1
+        )
+        if plan is None and not evaluate_all_seven_term_plans:
             return _response("clarification_required", "โปรดเลือกแผนหลักสูตรที่ต้องการตรวจสอบ เช่น coop หรือ no_coop", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
         if task_type == "prerequisite_sequence":
             current_codes = list(dict.fromkeys(
@@ -1061,6 +1106,52 @@ def answer_hard_question(
         elif task_type == "seven_term_plan":
             if intent.get("horizon_terms") != _HORIZON_TERMS:
                 return _response("unsupported", "รองรับเฉพาะการจัดลำดับ 7 ภาคเรียนปกติสำหรับกรณี 3.5 ปี", task_type, {"program": program, "plan": plan})
+            if plan is None:
+                plan_results = []
+                combined_provenance = []
+                for applicable_plan in plans_for_program:
+                    plan_result = plan_curriculum_sequence(
+                        db_path,
+                        program,
+                        applicable_plan,
+                        horizon_terms=_HORIZON_TERMS,
+                        catalog_key=catalog_key,
+                    )
+                    plan_status, plan_answer, plan_provenance = _format_h4(
+                        plan_result
+                    )
+                    plan_results.append({
+                        "plan": applicable_plan,
+                        "scope": {
+                            "catalog_key": catalog_key,
+                            "program": program,
+                            "plan": applicable_plan,
+                        },
+                        "status": plan_status,
+                        "answer": _append_citation_summary(
+                            plan_answer, plan_provenance
+                        ),
+                        "provenance": plan_provenance,
+                    })
+                    combined_provenance.extend(plan_provenance)
+                aggregate_status = (
+                    "complete"
+                    if all(item["status"] == "complete" for item in plan_results)
+                    else "incomplete_evidence"
+                )
+                combined_answer = "\n\n".join(
+                    f"ผลแผน {item['plan']} (สถานะ: {item['status']}):\n{item['answer']}"
+                    for item in plan_results
+                )
+                response = _response(
+                    aggregate_status,
+                    combined_answer,
+                    task_type,
+                    {"catalog_key": catalog_key, "program": program, "plan": None},
+                    combined_provenance,
+                )
+                response["plan_results"] = plan_results
+                return response
             hard_result = plan_curriculum_sequence(
                 db_path, program, plan, horizon_terms=_HORIZON_TERMS,
                 catalog_key=catalog_key,

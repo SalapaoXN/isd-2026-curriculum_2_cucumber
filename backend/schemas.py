@@ -20,6 +20,7 @@ class AskResponse(BaseModel):
     provenance: list[dict[str, Any]] = Field(default_factory=list)
     next_context: dict[str, Any] | None = None
     comparison: dict[str, Any] | None = None
+    plan_results: list[dict[str, Any]] | None = None
 
 
 class PlanInfo(BaseModel):

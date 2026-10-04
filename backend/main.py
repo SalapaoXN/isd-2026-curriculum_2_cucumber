@@ -131,6 +131,90 @@ def _connect_ro(db_path: Path) -> sqlite3.Connection:
     return con
 
 
+def _catalog_keys_for_academic_year(
+    db_path: Path, program: str, academic_year: str
+) -> tuple[str, ...]:
+    """Return only edition catalogs for this program and exact academic year."""
+    allowed = set(edition_catalog_keys_for_program(db_path, program))
+    if not allowed:
+        return ()
+    con = _connect_ro(db_path)
+    try:
+        rows = con.execute(
+            """
+            SELECT DISTINCT c.catalog_key
+            FROM curriculum_plans cp
+            JOIN catalogs c ON c.catalog_id = cp.catalog_id
+            JOIN programs p ON p.program_id = cp.program_id
+            WHERE lower(trim(p.program_code)) = lower(trim(?))
+              AND trim(c.academic_year) = ?
+            ORDER BY c.catalog_key
+            """,
+            (program, academic_year),
+        ).fetchall()
+    finally:
+        con.close()
+    return tuple(
+        row["catalog_key"]
+        for row in rows
+        if isinstance(row["catalog_key"], str) and row["catalog_key"] in allowed
+    )
+
+
+def _pending_catalog_context(query_spec, program: str, parsed_context=None) -> dict:
+    """Keep only parsed curriculum scope while an edition is unresolved."""
+    payload: dict = {"program": program, "pending_catalog_selection": True}
+    plan = query_spec.plans[0] if len(query_spec.plans) == 1 else None
+    plan = plan or (parsed_context.plan if parsed_context is not None else None)
+    years = query_spec.years or (parsed_context.years if parsed_context is not None else ())
+    semesters = query_spec.semesters or (
+        parsed_context.semesters if parsed_context is not None else ()
+    )
+    operations = query_spec.operations or (
+        parsed_context.operations if parsed_context is not None else ()
+    )
+    category = query_spec.category or (
+        parsed_context.category if parsed_context is not None else None
+    )
+    course_code = (
+        query_spec.course_codes[0]
+        if len(query_spec.course_codes) == 1
+        else parsed_context.course_code if parsed_context is not None else None
+    )
+    if plan is not None:
+        payload["plan"] = plan
+    if years:
+        payload["years"] = list(years)
+    if semesters:
+        payload["semesters"] = list(semesters)
+    if operations:
+        payload["operations"] = list(operations)
+    if category is not None:
+        payload["category"] = category
+    if course_code is not None:
+        payload["course_code"] = course_code
+    return payload
+
+
+def _pending_catalog_query(context: dict) -> str | None:
+    """Rebuild the supported list request from bounded pending fields."""
+    if context.get("operations") != ["list"]:
+        return None
+    parts = [context["program"]]
+    if isinstance(context.get("plan"), str):
+        parts.append(context["plan"])
+    for year in context.get("years", []):
+        parts.append(f"ปี {year}")
+    for semester in context.get("semesters", []):
+        parts.append(f"เทอม {semester}")
+    if isinstance(context.get("category"), str):
+        parts.append(context["category"])
+    if isinstance(context.get("course_code"), str):
+        parts.append(context["course_code"])
+    parts.append("มีวิชาอะไรบ้าง")
+    return " ".join(parts)
+
+
 def _validate_catalog_context(
     db_path: Path, catalog_key: str, program: str | None
 ) -> str:
@@ -422,10 +506,11 @@ def course_detail(
     }
 
 
-@app.post("/api/ask", response_model=AskResponse)
+@app.post("/api/ask", response_model=AskResponse, response_model_exclude_unset=True)
 def ask(request: AskRequest) -> dict:
     db_path = _curriculum_db()
     query_spec = parse_query_spec(request.question)
+    effective_question = request.question
 
     try:
         raw_context = request.conversation_context
@@ -439,6 +524,49 @@ def ask(request: AskRequest) -> dict:
         focus_catalog_key = None
         if isinstance(raw_context, dict):
             legacy_context = dict(raw_context)
+            if "pending_catalog_selection" in legacy_context:
+                pending_marker = legacy_context.pop("pending_catalog_selection")
+                if pending_marker is not True or legacy_context.get("catalog_key") is not None:
+                    raise ValueError("pending catalog context is invalid")
+                pending_context = parse_conversation_context(legacy_context)
+                if pending_context is None or pending_context.program is None:
+                    raise ValueError("pending catalog context requires a program")
+                year_reply = re.fullmatch(
+                    r"\s*(?:(?:ของ\s*)?(?:ปี\s*)?)?(\d{4})\s*",
+                    request.question,
+                )
+                selected_keys = (
+                    _catalog_keys_for_academic_year(
+                        db_path,
+                        pending_context.program,
+                        year_reply.group(1),
+                    )
+                    if year_reply is not None
+                    else ()
+                )
+                if len(selected_keys) != 1:
+                    available = list(
+                        edition_catalog_keys_for_program(db_path, pending_context.program)
+                    )
+                    pending_payload = dict(legacy_context)
+                    pending_payload["pending_catalog_selection"] = True
+                    return {
+                        "question": request.question,
+                        "answer": (
+                            f"โปรดเลือกฉบับหลักสูตรของ {pending_context.program}: "
+                            + ", ".join(available)
+                        ),
+                        "status": "clarification_required",
+                        "action": "catalog_required",
+                        "route": "llm_sql",
+                        "provenance": [],
+                        "next_context": pending_payload,
+                        "comparison": None,
+                    }
+                legacy_context["catalog_key"] = selected_keys[0]
+                effective_question = _pending_catalog_query(legacy_context) or (
+                    request.question + " อีกที"
+                )
             raw_focus = legacy_context.pop("focus_course", None)
             focus_catalog_key = legacy_context.pop("focus_catalog_key", None)
             raw_result_courses = legacy_context.pop("result_courses", None)
@@ -604,7 +732,9 @@ def ask(request: AskRequest) -> dict:
                 "action": "catalog_required",
                 "route": "llm_sql",
                 "provenance": [],
-                "next_context": None,
+                "next_context": _pending_catalog_context(
+                    query_spec, scope_program, parsed_context
+                ),
                 "comparison": None,
             }
     try:
@@ -636,6 +766,10 @@ def ask(request: AskRequest) -> dict:
             service_context["semesters"] = list(parsed_context.semesters)
         if parsed_context.operations:
             service_context["operations"] = list(parsed_context.operations)
+        if parsed_context.category is not None:
+            service_context["category"] = parsed_context.category
+        if parsed_context.course_code is not None:
+            service_context["course_code"] = parsed_context.course_code
         if focus_catalog_key is not None:
             service_context["focus_catalog_key"] = focus_catalog_key.strip()
     if focus_course is not None:
@@ -748,12 +882,13 @@ def ask(request: AskRequest) -> dict:
                 return answer_question_once(
                     db_path,
                     current_question,
+                    intent_model_callable=model_provider,
                     conversation_context=grounding_context or None,
                 )
 
             result = ask_sql(
                 db_path,
-                request.question,
+                effective_question,
                 program,
                 model_provider,
                 model_provider,
@@ -795,6 +930,10 @@ def ask(request: AskRequest) -> dict:
             fallback_context["semesters"] = list(parsed_context.semesters)
         if parsed_context.operations:
             fallback_context["operations"] = list(parsed_context.operations)
+        if parsed_context.category is not None:
+            fallback_context["category"] = parsed_context.category
+        if parsed_context.course_code is not None:
+            fallback_context["course_code"] = parsed_context.course_code
         if focus_catalog_key is not None:
             fallback_context["focus_catalog_key"] = focus_catalog_key.strip()
     if focus_course is not None:
@@ -806,7 +945,7 @@ def ask(request: AskRequest) -> dict:
             fallback_context["result_set_empty"] = True
     next_context = result.get("next_context", fallback_context or None)
 
-    return {
+    response = {
         "question": request.question,
         "answer": result.get("answer") if isinstance(result.get("answer"), str) else "",
         "status": status,
@@ -817,3 +956,6 @@ def ask(request: AskRequest) -> dict:
         "next_context": next_context,
         "comparison": result.get("comparison") if isinstance(result.get("comparison"), dict) else None,
     }
+    if isinstance(result.get("plan_results"), list):
+        response["plan_results"] = result["plan_results"]
+    return response

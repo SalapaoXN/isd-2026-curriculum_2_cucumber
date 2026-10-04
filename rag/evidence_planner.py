@@ -144,6 +144,7 @@ class EvidenceRequest:
     course_targets: tuple[Mapping[str, Any], ...] = ()
     topic: str | None = None
     provenance_required: bool = True
+    positive_prerequisite_collection: bool = False
 
     def __post_init__(self) -> None:
         if self.kind not in EVIDENCE_PRIMITIVES:
@@ -152,6 +153,8 @@ class EvidenceRequest:
             raise ValueError("request_id must be a non-empty string")
         if not isinstance(self.provenance_required, bool):
             raise ValueError("provenance_required must be a boolean")
+        if not isinstance(self.positive_prerequisite_collection, bool):
+            raise ValueError("positive_prerequisite_collection must be a boolean")
         dependencies = _ordered_unique(self.depends_on)
         if any(not isinstance(value, str) or not value for value in dependencies):
             raise ValueError("depends_on must contain non-empty request IDs")
@@ -306,6 +309,7 @@ def _request(
     depends_on: tuple[str, ...] = (),
     course_targets: tuple[Mapping[str, Any], ...] = (),
     topic: str | None = None,
+    positive_prerequisite_collection: bool = False,
 ) -> EvidenceRequest:
     return EvidenceRequest(
         request_id=request_id,
@@ -315,6 +319,7 @@ def _request(
         course_targets=course_targets,
         topic=topic,
         provenance_required=True,
+        positive_prerequisite_collection=positive_prerequisite_collection,
     )
 
 
@@ -387,7 +392,11 @@ def plan_evidence(
     topic_target_id: str | None = None
     collection_operations = {"list", "count", "sum_credits", "existence"}
     needs_collection = bool(collection_operations & set(query_spec.operations))
-    if query_spec.topic is not None and needs_collection:
+    needs_topic_collection = query_spec.topic is not None and (
+        needs_collection
+        or (not exact_targets and "describe" in query_spec.operations)
+    )
+    if needs_topic_collection:
         add(_request("course_set", "course_set", scope))
         add(
             _request(
@@ -415,6 +424,7 @@ def plan_evidence(
                 "prerequisite_facts",
                 scope,
                 depends_on=("course_set",),
+                positive_prerequisite_collection=True,
             )
         )
 

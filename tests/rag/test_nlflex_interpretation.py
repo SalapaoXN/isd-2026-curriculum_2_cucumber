@@ -76,7 +76,7 @@ class NLFlexPublicPathTests(unittest.TestCase):
         self.assertEqual(status, "answer")
         self.assertEqual(calls, [])
 
-    def test_unscoped_prerequisite_collection_interprets_then_clarifies(self):
+    def test_unscoped_prerequisite_collection_clarifies_without_interpretation(self):
         calls = []
         response = ask(
             DB_PATH,
@@ -86,19 +86,38 @@ class NLFlexPublicPathTests(unittest.TestCase):
 
         status = response.get("status") if isinstance(response, dict) else response.status
         self.assertEqual(status, "clarify_program")
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls, [])
 
-    def test_scoped_interpreted_prerequisite_list_fails_closed_on_unknown_candidate(self):
+    def test_scoped_prerequisite_collection_answers_confirmed_positives_with_caveat(self):
         calls = []
         response = ask(
             DB_PATH,
             "วิชาที่มีวิชาบังคับก่อนมีอะไรบ้าง",
             intent_model_callable=lambda prompt: calls.append(prompt) or _proposal(),
-            context=QueryContext(program="IT", years=(3,), semesters=(1,)),
+            context=QueryContext(
+                program="IT",
+                catalog_key="it-2565",
+                years=(3,),
+                semesters=(1,),
+            ),
         )["result"]
 
-        self.assertEqual(response.status, "insufficient_evidence")
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(response.status, "answer")
+        self.assertTrue(response.claims)
+        placements = [placement for claim in response.claims for placement in claim.value]
+        self.assertTrue(placements)
+        self.assertTrue(
+            any(
+                placement.get("prerequisite_state") == "required"
+                and placement.get("prerequisites")
+                for placement in placements
+            )
+        )
+        self.assertTrue(all(placement.get("prerequisite_state") != "explicit_none" for placement in placements))
+        self.assertTrue(any(placement.get("prerequisite_collection_incomplete") for placement in placements))
+        self.assertTrue(response.provenance)
+        self.assertIn("จึงสรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", response.final_answer)
+        self.assertEqual(calls, [])
 
     def test_surface_complete_scoped_prerequisite_list_stays_deterministic(self):
         calls = []
@@ -109,8 +128,20 @@ class NLFlexPublicPathTests(unittest.TestCase):
             context=QueryContext(program="IT", catalog_key="it-2565"),
         )["result"]
 
-        self.assertEqual(response.status, "insufficient_evidence")
-        self.assertFalse(any(claim.status == "complete" for claim in response.claims))
+        self.assertEqual(response.status, "answer")
+        placements = [placement for claim in response.claims for placement in claim.value]
+        self.assertTrue(placements)
+        self.assertTrue(
+            any(
+                placement.get("prerequisite_state") == "required"
+                and placement.get("prerequisites")
+                for placement in placements
+            )
+        )
+        self.assertTrue(all(placement.get("prerequisite_state") != "explicit_none" for placement in placements))
+        self.assertTrue(any(placement.get("prerequisite_collection_incomplete") for placement in placements))
+        self.assertTrue(response.provenance)
+        self.assertIn("จึงสรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", response.final_answer)
         self.assertEqual(calls, [])
 
     def test_flexible_exact_course_placement_uses_literal_title_then_canonical_evidence(self):
@@ -148,7 +179,8 @@ class NLFlexPublicPathTests(unittest.TestCase):
 
             result = ask(
                 DB_PATH,
-                "วิชาที่มีวิชาบังคับก่อนมีอะไรบ้าง",
+                "ปีไหนเรียน Calculus 2 ใน DSBA",
+                context=QueryContext(program="DSBA", catalog_key="dsba-2565"),
                 intent_model_callable=counted,
             )["result"]
             status = result.get("status") if isinstance(result, dict) else result.status

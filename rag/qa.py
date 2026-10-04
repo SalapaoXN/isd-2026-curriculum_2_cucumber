@@ -1404,6 +1404,28 @@ def _claim_for_scope_prerequisite(
     course_result = matching_courses[0]
     if course_result.status not in {"complete", "valid_empty"}:
         return _claim("list", course_result, status="insufficient_evidence")
+    if prerequisite_result.planned_request.positive_prerequisite_collection:
+        if prerequisite_result.status == "valid_empty":
+            return _claim(
+                "list",
+                prerequisite_result,
+                value=(),
+                evidence=(),
+                status="valid_empty",
+            )
+        if prerequisite_result.status != "complete":
+            return _claim("list", prerequisite_result, status="insufficient_evidence")
+        records = _payload_records(prerequisite_result)
+        provenance = _provenance_from_records(records or ())
+        if records is None or not records or not provenance:
+            return _claim("list", prerequisite_result, status="insufficient_evidence")
+        return _claim(
+            "list",
+            prerequisite_result,
+            value=records,
+            evidence=records,
+            provenance=provenance,
+        )
     if prerequisite_result.status != "complete":
         if prerequisite_result.status == "valid_empty":
             payload = prerequisite_result.payload
@@ -2706,6 +2728,13 @@ def _compose_evidence_claims(
     if not isinstance(bundle, EvidenceBundle) or query_spec is None:
         return ()
     operations = tuple(getattr(query_spec, "operations", ()))
+    topic_collection_description = bool(
+        getattr(query_spec, "topic", None) is not None
+        and not getattr(query_spec, "course_codes", ())
+        and getattr(query_spec, "course_name", None) is None
+        and "describe" in operations
+        and not ({"list", "count", "sum_credits", "existence"} & set(operations))
+    )
     judgement = getattr(query_spec, "judgement", "none")
     if judgement in {"quantity", "workload", "preference"} and judgement not in operations:
         operations += (judgement,)
@@ -2797,10 +2826,21 @@ def _compose_evidence_claims(
                     for result in prerequisite_results
                 )
         elif operation == "describe":
-            claims.extend(
-                _claim_for_description_operation(operation, result)
-                for result in description_results
-            )
+            if topic_collection_description:
+                claims.extend(
+                    claim
+                    for result in _execution_results(bundle, "topic_matches")
+                    if (
+                        claim := _claim_for_relation_operation(
+                            "list", result, course_cache
+                        )
+                    ) is not None
+                )
+            else:
+                claims.extend(
+                    _claim_for_description_operation(operation, result)
+                    for result in description_results
+                )
         elif operation in {"quantity", "workload", "preference"}:
             judgement_results = (
                 relation_results
@@ -2939,8 +2979,17 @@ def ask(
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
 
-    spec = parse_query_spec(question)
     conversation_mode = conversation_context is not None
+    parser_context = conversation_context if conversation_mode else context
+    has_validated_context_scope = bool(
+        isinstance(parser_context, QueryContext)
+        and isinstance(parser_context.program, str)
+        and parser_context.program.strip()
+    )
+    spec = parse_query_spec(
+        question,
+        has_validated_context_scope=has_validated_context_scope,
+    )
     if conversation_mode:
         spec = _merge_conversation_context(spec, conversation_context)
     active_context = conversation_context if conversation_mode else context
@@ -3009,10 +3058,15 @@ def ask(
     if policy_result is not None:
         return {"route": None, "result": policy_result}
 
+    resolution_context = (
+        QueryContext(catalog_key=catalog_key)
+        if conversation_mode and catalog_key is not None
+        else None if conversation_mode else context
+    )
     resolution = resolve_query_spec(
         spec,
         db_path,
-        context=None if conversation_mode else context,
+        context=resolution_context,
     )
     completeness = _classify_structured_parse_completeness(
         spec,
@@ -3051,7 +3105,7 @@ def ask(
             compiled_resolution = resolve_query_spec(
                 compiled_spec,
                 db_path,
-                context=None if conversation_mode else context,
+                context=resolution_context,
             )
         except Exception:
             return _intent_failure_result(question)

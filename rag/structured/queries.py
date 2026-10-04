@@ -972,6 +972,7 @@ def exact_course_candidates(
     course_code: str | None = None,
     course_name: str | None = None,
     program: str | None = None,
+    catalog_key: str | None = None,
     exact_title: bool = False,
 ) -> list[dict[str, Any]]:
     """Return exact relational course identities for one code or name reference.
@@ -992,6 +993,12 @@ def exact_course_candidates(
         normalized_program = program.strip().casefold()
     else:
         normalized_program = None
+    if catalog_key is not None:
+        if not isinstance(catalog_key, str) or not catalog_key.strip():
+            raise ValueError("catalog_key must be a non-empty string when provided")
+        normalized_catalog_key = catalog_key.strip()
+    else:
+        normalized_catalog_key = None
 
     if course_code is not None:
         if not isinstance(course_code, str):
@@ -1010,6 +1017,9 @@ def exact_course_candidates(
         if normalized_program is not None:
             where.append("programs.program_code_normalized = ?")
             parameters.append(normalized_program)
+        if normalized_catalog_key is not None:
+            where.append("catalogs.catalog_key = ?")
+            parameters.append(normalized_catalog_key)
         rows = connection.execute(
             f"""
             SELECT
@@ -1023,6 +1033,7 @@ def exact_course_candidates(
                 programs.program_code_normalized
             FROM courses
             JOIN programs ON programs.catalog_id = courses.catalog_id
+            JOIN catalogs ON catalogs.catalog_id = courses.catalog_id
             {f"WHERE {' AND '.join(where)}" if where else ""}
             ORDER BY programs.program_code_normalized,
                      courses.course_code_normalized,

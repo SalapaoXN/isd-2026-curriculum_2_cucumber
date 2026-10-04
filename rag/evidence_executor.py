@@ -1659,6 +1659,131 @@ def _execute_course_set_dependent_prerequisites(
             "insufficient_evidence",
             primitive_state="malformed_course_set_dependency",
         )
+    if request.positive_prerequisite_collection:
+        courses = dependency.payload.get("courses")
+        if not isinstance(courses, (list, tuple)):
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="malformed_course_set_dependency",
+            )
+        states: dict[int, Mapping[str, Any]] = {}
+        unknown_count = 0
+        for target in targets:
+            course_id = target["course_id"]
+            state = prerequisite_state(db_path, course_id)
+            if not isinstance(state, Mapping):
+                return _result(
+                    request,
+                    scope,
+                    "insufficient_evidence",
+                    primitive_state="invalid_prerequisite_state",
+                )
+            state_name = state.get("state")
+            if state_name == "unknown":
+                unknown_count += 1
+            elif state_name == "required":
+                if (
+                    _burden_provenance(state.get("provenance")) is None
+                    or not isinstance(state.get("records"), (list, tuple))
+                    or not state["records"]
+                    or any(
+                        not isinstance(record, Mapping)
+                        or _burden_provenance(record.get("provenance")) is None
+                        for record in state["records"]
+                    )
+                ):
+                    return _result(
+                        request,
+                        scope,
+                        "insufficient_evidence",
+                        primitive_state="positive_prerequisite_provenance_missing",
+                    )
+            elif state_name != "explicit_none":
+                return _result(
+                    request,
+                    scope,
+                    "insufficient_evidence",
+                    primitive_state="invalid_prerequisite_state",
+                )
+            states[course_id] = state
+
+        confirmed: list[Mapping[str, Any]] = []
+
+        def append_if_confirmed(candidate: Mapping[str, Any], fallback_program: Any) -> None:
+            candidate_id = candidate.get("course_id")
+            state = states.get(candidate_id) if isinstance(candidate_id, int) else None
+            if state is None or state.get("state") != "required":
+                return
+            candidate_provenance = _burden_provenance(candidate.get("provenance"))
+            state_provenance = _burden_provenance(state.get("provenance"))
+            if candidate_provenance is None or state_provenance is None:
+                raise ValueError("positive prerequisite course provenance is missing")
+            record_provenance = tuple(
+                reference
+                for record in state["records"]
+                for reference in _burden_provenance(record.get("provenance")) or ()
+            )
+            program = candidate.get("program") or fallback_program
+            row = dict(candidate)
+            row["program"] = program
+            row["prerequisite_state"] = "required"
+            row["prerequisite_collection_incomplete"] = bool(unknown_count)
+            row["prerequisites"] = tuple(state["records"])
+            row["provenance"] = _merge_burden_provenance(
+                candidate_provenance,
+                state_provenance,
+                record_provenance,
+            )
+            confirmed.append(row)
+
+        try:
+            for course in courses:
+                if course.get("is_alternative"):
+                    members = course.get("alternative_courses")
+                    if not isinstance(members, (list, tuple)) or not members:
+                        raise ValueError("alternative course members are missing")
+                    for member in members:
+                        if not isinstance(member, Mapping):
+                            raise ValueError("alternative course member is malformed")
+                        member_row = dict(member)
+                        member_row.setdefault("partition", course.get("partition"))
+                        append_if_confirmed(member_row, course.get("program"))
+                else:
+                    append_if_confirmed(course, course.get("program"))
+        except (TypeError, ValueError):
+            return _result(
+                request,
+                scope,
+                "insufficient_evidence",
+                primitive_state="malformed_positive_prerequisite_course",
+            )
+
+        if not confirmed:
+            if unknown_count:
+                return _result(
+                    request,
+                    scope,
+                    "insufficient_evidence",
+                    primitive_state="no_confirmed_positive_prerequisite_with_unknown_candidates",
+                )
+            return _result(
+                request,
+                scope,
+                "valid_empty",
+                (),
+                "no_positive_prerequisites",
+            )
+        status = _status_for_payload(confirmed)
+        return _result(
+            request,
+            scope,
+            status,
+            tuple(confirmed) if status == "complete" else None,
+            "positive_prerequisite_collection",
+        )
+
     burden = build_direct_prerequisite_burden(db_path, targets)
     return _result(
         request,

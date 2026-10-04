@@ -2739,8 +2739,13 @@ class RagQaTest(unittest.TestCase):
             ),
             structured_model_callable=selector,
         )["result"]
-        self.assertEqual(old_result.claims[0].status, "valid_empty")
-        self.assertEqual(old_result.claims[0].effective_scope.catalog_key, "dsba-2560")
+        self.assertIsInstance(old_result, dict)
+        self.assertEqual(old_result["status"], "no_data")
+        self.assertEqual(len(old_result["course_references"]), 1)
+        self.assertEqual(old_result["course_references"][0]["reference"], "06026212")
+        self.assertEqual(old_result["course_references"][0]["candidates"], [])
+        self.assertNotIn("claims", old_result)
+        self.assertNotIn("provenance", old_result)
 
         current_result = _ask(
             DB_PATH,
@@ -2750,10 +2755,12 @@ class RagQaTest(unittest.TestCase):
             ),
             structured_model_callable=selector,
         )["result"]
+        self.assertIsInstance(current_result, GroundedAnswerResult)
         self.assertEqual(current_result.claims[0].status, "complete")
         self.assertEqual(
             current_result.claims[0].effective_scope.catalog_key, "dsba-2565"
         )
+        self.assertEqual(current_result.claims[0].operation, "placement")
         self.assertTrue(current_result.provenance)
 
     def test_explicit_placement_plan_keeps_only_that_plan(self):
@@ -2933,6 +2940,72 @@ class RagQaTest(unittest.TestCase):
 
         self.assertEqual(result["result"]["status"], "clarify_program")
         self.assertEqual(result["result"]["action"], "clarify_program")
+
+    def test_contextual_program_prerequisite_collection_is_positive_and_catalog_scoped(self):
+        question = "วิชาใดมีวิชาบังคับก่อนบ้าง บอกชื่อและรหัสวิชามา"
+        expected_by_catalog = {
+            "dsba-2560": {
+                "06026107", "06026108", "06026111", "06026113", "06026114",
+                "06026115", "06026116", "06026120", "06026121", "06026126",
+                "06026128", "06026132", "06026133", "06026142", "06026145",
+                "06026146", "06026147", "06026153", "06026156", "06026157",
+            },
+            "dsba-2565": {
+                "06026201", "06026212", "06026213", "06026215", "06066102",
+            },
+        }
+
+        actual_by_catalog = {}
+        for catalog_key, expected_codes in expected_by_catalog.items():
+            with self.subTest(catalog_key=catalog_key):
+                result = ask(
+                    DB_PATH,
+                    question,
+                    conversation_context=QueryContext(
+                        program="DSBA",
+                        catalog_key=catalog_key,
+                        operations=("list",),
+                    ),
+                )["result"]
+                self.assertEqual(result.status, "answer")
+                self.assertTrue(result.provenance)
+                self.assertIn(
+                    "สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้",
+                    result.final_answer,
+                )
+                self.assertTrue(result.claims)
+                self.assertTrue(
+                    all(
+                        claim.operation == "list"
+                        and claim.status == "complete"
+                        and claim.effective_scope.program == "DSBA"
+                        and claim.effective_scope.catalog_key == catalog_key
+                        for claim in result.claims
+                    )
+                )
+                self.assertEqual(
+                    {claim.effective_scope.plans[0] for claim in result.claims},
+                    {"coop", "no_coop"},
+                )
+                courses = [
+                    course
+                    for claim in result.claims
+                    for course in claim.value
+                ]
+                actual_codes = {course["course_code"] for course in courses}
+                self.assertEqual(actual_codes, expected_codes)
+                self.assertTrue(
+                    all(
+                        course.get("prerequisite_state") == "required"
+                        and course.get("prerequisites")
+                        and course.get("provenance")
+                        and all(record.get("provenance") for record in course["prerequisites"])
+                        for course in courses
+                    )
+                )
+                actual_by_catalog[catalog_key] = actual_codes
+
+        self.assertTrue(actual_by_catalog["dsba-2560"].isdisjoint(actual_by_catalog["dsba-2565"]))
 
     def test_explicit_unknown_prerequisite_is_insufficient_evidence(self):
         result = ask(DB_PATH, "GENED 90641001 มีวิชาบังคับก่อนคืออะไร")

@@ -30,6 +30,7 @@ def _failure(status: str, program: Any, plan: Any, horizon_terms: Any, reason: s
         "plan": plan,
         "horizon_terms": horizon_terms,
         "terms": [],
+        "required_selection_slots": [],
         "moved_from_baseline": [],
         "prerequisite_validation": {"status": "not_run", "validations": []},
         "represented_credit_total": None,
@@ -483,6 +484,9 @@ def plan_curriculum_sequence(
             return _failure(structure["status"], program, plan, horizon_terms, "H2 could not resolve the explicit canonical plan")
         if structure.get("mandatory_courses", {}).get("status") != "complete":
             return _failure("incomplete_evidence", structure.get("program"), structure.get("plan"), horizon_terms, "H2 could not establish a complete mandatory course set")
+        required_selection_slots = list(
+            structure.get("required_selection_slots", [])
+        )
 
         with closing(_read_only(db_path)) as connection:
             scope, scope_error = _resolve_plan(
@@ -549,6 +553,17 @@ def plan_curriculum_sequence(
                         "candidate_placement_count": item.get("candidate_placement_count"),
                         "provenance": item.get("provenance", []),
                     })
+            for slot in required_selection_slots:
+                unresolved.append({
+                    "type": "required_selection_slot",
+                    "placement_id": slot["placement_id"],
+                    "term_index": slot.get("term_index"),
+                    "category": slot.get("category"),
+                    "label_th": slot.get("label_th"),
+                    "label_en": slot.get("label_en"),
+                    "reason": "the required elective slot does not identify a concrete course",
+                    "provenance": slot.get("provenance", []),
+                })
             if not requirement_rows:
                 unresolved.append({"type": "program_credit_total_missing", "reason": "H2 found no canonical total program-credit requirement"})
 
@@ -562,6 +577,7 @@ def plan_curriculum_sequence(
             ]
             if cap is not None and (nodes_credit_total > cap * _HORIZON_TERMS or individually_over_cap):
                 terms = _empty_terms()
+                _attach_required_selection_slots(terms, required_selection_slots)
                 evidence = _evidence_bundle(connection, scope, structure, h3_plan, max_policy, minimum_policy, exception_policy, nodes, slots)
                 return {
                     "status": "infeasible",
@@ -570,6 +586,7 @@ def plan_curriculum_sequence(
                     "plan": scope["plan"],
                     "horizon_terms": _HORIZON_TERMS,
                     "terms": terms,
+                    "required_selection_slots": required_selection_slots,
                     "moved_from_baseline": [],
                     "prerequisite_validation": {"status": "not_run_credit_lower_bound_exceeds_capacity", "validations": []},
                     "represented_credit_total": nodes_credit_total if all(node["credit_units"] is not None for node in nodes.values()) else None,
@@ -589,13 +606,16 @@ def plan_curriculum_sequence(
                 return _failure("incomplete_evidence", scope["program"], scope["plan"], horizon_terms, "prerequisite ordering graph could not be topologically arranged")
             assignments, scheduling_issues = _assign_terms(ordered, graph, nodes, slots, cap)
             if assignments is None:
+                terms = _empty_terms()
+                _attach_required_selection_slots(terms, required_selection_slots)
                 return {
                     "status": "incomplete_evidence",
                     "sequence_feasible": None,
                     "program": scope["program"],
                     "plan": scope["plan"],
                     "horizon_terms": _HORIZON_TERMS,
-                    "terms": _empty_terms(),
+                    "terms": terms,
+                    "required_selection_slots": required_selection_slots,
                     "moved_from_baseline": [],
                     "prerequisite_validation": {"status": "not_run_no_assignment", "validations": []},
                     "represented_credit_total": nodes_credit_total if all(node["credit_units"] is not None for node in nodes.values()) else None,
@@ -712,6 +732,7 @@ def plan_curriculum_sequence(
                 overall_status = "feasible" if structure.get("status") == "complete" else "incomplete_evidence"
 
             terms = _build_terms(assignments, nodes, slots, cap)
+            _attach_required_selection_slots(terms, required_selection_slots)
             moved = _moved_from_baseline(assignments, nodes, slots)
             evidence = _evidence_bundle(connection, scope, structure, h3_plan, max_policy, minimum_policy, exception_policy, nodes, slots)
             for combo in combination_results:
@@ -746,6 +767,7 @@ def plan_curriculum_sequence(
                 "plan": scope["plan"],
                 "horizon_terms": _HORIZON_TERMS,
                 "terms": terms,
+                "required_selection_slots": required_selection_slots,
                 "moved_from_baseline": moved,
                 "prerequisite_validation": {
                     "status": "satisfied" if valid_count else ("incomplete_evidence" if sequence_feasible is None else "violation"),
@@ -770,11 +792,36 @@ def plan_curriculum_sequence(
 def _empty_terms() -> list[dict[str, Any]]:
     return [
         {"term_index": index, "year": (index - 1) // 2 + 1, "semester": (index - 1) % 2 + 1,
-         "courses": [], "choice_slots": [], "total_known_credits": 0,
+         "courses": [], "choice_slots": [], "required_selection_slots": [],
+         "total_known_credits": 0,
          "minimum_possible_credits": 0,
          "maximum_possible_credits": 0}
         for index in range(1, _HORIZON_TERMS + 1)
     ]
+
+
+def _attach_required_selection_slots(
+    terms: list[dict[str, Any]], slots: list[dict[str, Any]]
+) -> None:
+    for slot in slots:
+        term_index = slot.get("term_index")
+        if (
+            isinstance(term_index, int) and not isinstance(term_index, bool)
+            and 1 <= term_index <= len(terms)
+        ):
+            terms[term_index - 1]["required_selection_slots"].append({
+                "placement_id": slot["placement_id"],
+                "label_th": slot.get("label_th"),
+                "label_en": slot.get("label_en"),
+                "raw_text": slot.get("raw_text"),
+                "category": slot.get("category"),
+                "credits_override": slot.get("credits_override"),
+                "provenance": list(slot.get("provenance", [])),
+            })
+    for term in terms:
+        term["required_selection_slots"].sort(
+            key=lambda item: item["placement_id"]
+        )
 
 
 def _build_terms(
@@ -891,6 +938,10 @@ def _evidence_bundle(
     groups: list[list[dict[str, Any]]] = [
         _provenance_for(connection, "curriculum_plan_provenance", "plan_id", scope["plan_id"]),
     ]
+    groups.extend(
+        slot.get("provenance", [])
+        for slot in structure.get("required_selection_slots", [])
+    )
     placement_ids = {placement_id for node in nodes.values() for placement_id in node["baseline_placement_ids"]}
     placement_ids.update(placement_id for slot in slots.values() for placement_id in slot["baseline_placement_ids"])
     for relationship in h3.get("relationships", []):

@@ -8,6 +8,7 @@ from backend.hard_qa import (
     _format_h4,
     answer_hard_question,
 )
+from backend.hard_sequence_planner import plan_curriculum_sequence
 
 
 DB_PATH = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -299,7 +300,7 @@ class HardQaTests(unittest.TestCase):
         self.assertEqual(result["action"], "hard_interpretation_failure")
         self.assertNotIn("ผ่านครบ", result["answer"])
 
-    def test_seven_term_answer_is_narrow_and_unconfirmed_sequence_is_not_called_feasible(self):
+    def test_seven_term_answer_shows_concrete_courses_and_unresolved_plan_slots(self):
         result, _ = self.run_hard(
             "ถ้าจะจบใน 3.5 ปี แต่ละเทอมต้องลงวิชาอะไร",
             _intent("seven_term_plan", program="DSBA", plan="coop", horizon_terms=7),
@@ -309,25 +310,18 @@ class HardQaTests(unittest.TestCase):
         self.assertEqual(result["hard_task_type"], "seven_term_plan")
         self.assertEqual(result["status"], "incomplete_evidence")
         self.assertTrue(result["answer"].startswith(
-            "หลักฐานที่มีไม่เพียงพอสำหรับจัดทำโครงร่าง 7 เทอม"
+            "จากข้อมูลหลักสูตรที่มี สามารถจัดลำดับรายวิชาเป็นโครงร่าง 7 เทอม"
         ))
-        self.assertNotIn("ยังยืนยันความเป็นไปได้ของแผนไม่ได้", result["answer"])
-        self.assertIn("ยังระบุลำดับรายวิชาไม่ได้", result["answer"])
-        self.assertNotIn("ปี 1 เทอม 1", result["answer"])
-        self.assertNotIn("ยังไม่ได้ตรวจสอบการเปิดสอนจริงในแต่ละภาคเรียน", result["answer"])
-        self.assertNotIn("จบได้แน่นอน", result["answer"])
-        self.assertNotIn("GPA", result["answer"])
+        self.assertIn("ปี 1 เทอม 1:", result["answer"])
+        self.assertIn("ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง", result["answer"])
+        self.assertIn("โครงร่าง 7 เทอมนี้ไม่ใช่ข้อพิสูจน์ว่าครบเงื่อนไขจบ", result["answer"])
+        self.assertIn("ยังไม่ได้ตรวจสอบการเปิดสอนจริงในแต่ละภาคเรียน", result["answer"])
         self.assertNotIn("incomplete_evidence", result["answer"])
-        self.assertNotIn("mandatory course", result["answer"])
-        self.assertNotIn("credit load is not known", result["answer"])
         self.assertNotIn("06026xxx", result["answer"])
         self.assertNotIn("90644xxx", result["answer"])
         self.assertNotIn("9064xxxx", result["answer"])
         self.assertNotIn("xxxxxxxx", result["answer"])
-        self.assertNotIn("วิชาเลือกเสรี 1", result["answer"])
-        self.assertNotIn("06026200", result["answer"])
-        self.assertNotIn("06026201", result["answer"])
-        self.assertFalse(result["provenance"])
+        self.assertTrue(result["provenance"])
 
     def test_h4_does_not_invent_missing_choice_minimum(self):
         terms = [
@@ -393,18 +387,121 @@ class HardQaTests(unittest.TestCase):
         self.assertEqual(len(result["provenance"]), 6)
         self.assertEqual(len({item["provenance_id"] for item in result["provenance"]}), 6)
 
-    def test_missing_plan_asks_only_for_plan_and_does_not_infer_from_program(self):
+    def test_unselected_seven_term_plan_evaluates_each_applicable_plan_separately(self):
+        planner_calls = []
+
+        def deterministic_planner(
+            _db_path, program, plan, *, horizon_terms, catalog_key
+        ):
+            planner_calls.append((program, plan, horizon_terms, catalog_key))
+            provenance_id = len(planner_calls)
+            return {
+                "status": "complete" if plan == "coop" else "incomplete_evidence",
+                "sequence_feasible": True if plan == "coop" else None,
+                "terms": [],
+                "limitations": [],
+                "evidence": [{
+                    "provenance_id": provenance_id,
+                    "program": program,
+                    "source_filename": f"dsba_{plan}_page_033.png",
+                    "source_page": 33,
+                    "document_page": 28,
+                    "document_category": "plan",
+                }],
+                "actual_course_offering_unverified": True,
+            }
+
+        with patch(
+            "backend.hard_qa.plan_curriculum_sequence",
+            side_effect=deterministic_planner,
+        ):
+            result, prompts = self.run_hard(
+                "ถ้าอยากเรียนจบใน 3.5 ปีต้องทำยังไง",
+                _intent("seven_term_plan", program="DSBA", horizon_terms=7),
+                context={"program": "DSBA", "catalog_key": "dsba-2565"},
+            )
+
+        self.assertEqual(
+            planner_calls,
+            [
+                ("DSBA", "coop", 7, "dsba-2565"),
+                ("DSBA", "no_coop", 7, "dsba-2565"),
+            ],
+        )
+        self.assertEqual(result["hard_task_type"], "seven_term_plan")
+        self.assertEqual(result["status"], "incomplete_evidence")
+        self.assertEqual(result["scope"]["plan"], None)
+        self.assertEqual(
+            [(item["plan"], item["status"]) for item in result["plan_results"]],
+            [("coop", "complete"), ("no_coop", "incomplete_evidence")],
+        )
+        self.assertTrue(all(item["provenance"] for item in result["plan_results"]))
+        self.assertEqual(
+            [item["provenance"][0]["source_filename"] for item in result["plan_results"]],
+            ["dsba_coop_page_033.png", "dsba_no_coop_page_033.png"],
+        )
+        self.assertIn("แผน coop", result["answer"])
+        self.assertIn("แผน no_coop", result["answer"])
+        self.assertEqual(len(prompts), 1)
+
+    def test_dsba2565_no_plan_seven_term_answer_shows_both_slot_aware_skeletons(self):
         result, prompts = self.run_hard(
-            "ถ้าจะจบใน 3.5 ปี แต่ละเทอมต้องลงอะไร",
-            _intent("seven_term_plan", horizon_terms=7),
+            "ถ้าอยากเรียนจบใน 3.5 ปีต้องทำยังไง",
+            _intent("seven_term_plan", program="DSBA", horizon_terms=7),
             context={"program": "DSBA", "catalog_key": "dsba-2565"},
         )
 
-        self.assertEqual(result["status"], "clarification_required")
-        self.assertEqual(result["scope"], {"catalog_key": "dsba-2565", "program": "DSBA", "plan": None})
-        self.assertIn("เลือกแผนหลักสูตร", result["answer"])
-        self.assertIsNone(result["scope"]["plan"])
+        self.assertEqual(result["hard_task_type"], "seven_term_plan")
+        self.assertEqual(result["scope"]["plan"], None)
+        self.assertEqual(result["status"], "incomplete_evidence")
+        self.assertEqual(
+            [item["plan"] for item in result["plan_results"]],
+            ["coop", "no_coop"],
+        )
+        for plan_result in result["plan_results"]:
+            with self.subTest(plan=plan_result["plan"]):
+                self.assertEqual(plan_result["status"], "incomplete_evidence")
+                self.assertTrue(plan_result["provenance"])
+                self.assertIn("ปี 1 เทอม 1:", plan_result["answer"])
+                self.assertIn("ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง", plan_result["answer"])
+                self.assertIn("โครงร่าง 7 เทอมนี้ไม่ใช่ข้อพิสูจน์ว่าครบเงื่อนไขจบ", plan_result["answer"])
+                self.assertNotIn("H2 could not establish a complete mandatory course set", plan_result["answer"])
+                for placeholder in ("06026xxx", "90644xxx", "9064xxxx", "xxxxxxxx"):
+                    self.assertNotIn(placeholder, plan_result["answer"])
+        self.assertIn(
+            "ปี 4 เทอม 2 อยู่นอกโครงร่าง 7 เทอม",
+            result["plan_results"][1]["answer"],
+        )
         self.assertEqual(len(prompts), 1)
+
+    def test_explicit_seven_term_plan_runs_only_selected_plan(self):
+        for plan in ("coop", "no_coop"):
+            with self.subTest(plan=plan):
+                with patch(
+                    "backend.hard_qa.plan_curriculum_sequence",
+                    wraps=plan_curriculum_sequence,
+                ) as planner:
+                    result, _ = self.run_hard(
+                        f"ถ้าเลือกแผน {plan} แล้วอยากเรียนจบใน 3.5 ปีต้องทำยังไง",
+                        _intent("seven_term_plan", program="DSBA", horizon_terms=7),
+                        context={"program": "DSBA", "catalog_key": "dsba-2565"},
+                    )
+
+                self.assertEqual(result["scope"]["plan"], plan)
+                planner.assert_called_once()
+                self.assertEqual(planner.call_args.args[2], plan)
+
+    def test_unrecognized_seven_term_plan_remains_fail_closed(self):
+        with patch("backend.hard_qa.plan_curriculum_sequence") as planner:
+            result, _ = self.run_hard(
+                "ถ้าอยากเรียนจบใน 3.5 ปีต้องทำยังไง",
+                _intent("seven_term_plan", program="DSBA", plan="mystery", horizon_terms=7),
+                context={"program": "DSBA", "catalog_key": "dsba-2565"},
+            )
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertIn("เลือกแผนหลักสูตร", result["answer"])
+        planner.assert_not_called()
 
     def test_trusted_program_and_plan_context_are_reused(self):
         result, _ = self.run_hard(

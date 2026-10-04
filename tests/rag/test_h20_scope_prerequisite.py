@@ -563,11 +563,31 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
 
         self.assertEqual(answer.status, "insufficient_evidence")
 
-    def test_flagship_it_y3s1_prerequisite_query_remains_insufficient(self):
+    def test_flagship_it_y3s1_prerequisite_query_returns_confirmed_positives_with_caveat(self):
         first = ask(DB_PATH, "IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง")
         result = ask(DB_PATH, "ตัวไหนมี prerequisite", conversation_context=first["next_context"])
 
-        self.assertEqual(result["result"].status, "insufficient_evidence")
+        answer = result["result"]
+        self.assertEqual(answer.status, "answer")
+        self.assertTrue(answer.provenance)
+        self.assertIn("สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", answer.final_answer)
+
+        positive_claims = [claim for claim in answer.claims if claim.operation == "list"]
+        self.assertTrue(positive_claims)
+        self.assertTrue(all(claim.status == "complete" for claim in positive_claims))
+        courses = [course for claim in positive_claims for course in claim.value]
+        self.assertTrue(courses)
+        self.assertTrue(
+            all(
+                course.get("prerequisite_state") == "required"
+                and course.get("prerequisites")
+                and course.get("provenance")
+                for course in courses
+            )
+        )
+        self.assertFalse(
+            any(course.get("prerequisite_state") == "explicit_none" for course in courses)
+        )
 
     def test_exact_course_prerequisite_claim_remains_unchanged(self):
         result = ask(DB_PATH, "IT 06016454 มี prerequisite ไหม")

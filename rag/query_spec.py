@@ -90,7 +90,8 @@ _OPERATION_PATTERNS = (
             r"ขอ\s*รายวิชา(?:[^?\n]{0,60}(?:อะไร|ไหน|บ้าง))?|"
             r"มี(?:วิชา)?[^?\n]{0,40}ตัวไหนบ้าง|เรียนตัวไหนกันบ้าง|"
             r"เรียนอะไรกัน(?:บ้าง)?|"
-            r"ลงเรียนวิชา\s*(?:gened|ศึกษาทั่วไป)\s*อะไรได้บ้าง",
+            r"ลงเรียนวิชา\s*(?:gened|ศึกษาทั่วไป)\s*อะไรได้บ้าง|"
+            r"(?:รายวิชา|วิชา)(?:ที่(?:สอน|เรียน))?\s*ในปี",
             re.IGNORECASE,
         ),
     ),
@@ -200,6 +201,12 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
 _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
     r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
+    re.IGNORECASE,
+)
+_PREREQUISITE_COLLECTION_PATTERN = re.compile(
+    r"(?:วิชา|รายวิชา)\s*(?:ใด|ไหน)|"
+    r"มี\s*(?:วิชา|รายวิชา)\s*อะไร|"
+    r"(?:วิชา|รายวิชา).{0,40}บ้าง",
     re.IGNORECASE,
 )
 _PREREQUISITE_BURDEN_PREFERENCE_PATTERN = re.compile(
@@ -437,6 +444,13 @@ def _extract_operations(
         or re.search(r"เรียน(?:เกี่ยวกับ|เรื่อง)?อะไร(?:อะ|บ้าง)?", question)
     )
     prerequisite_object_request = bool(_PREREQUISITE_OBJECT_PATTERN.search(question))
+    prerequisite_collection_request = bool(
+        _PREREQUISITE_COLLECTION_PATTERN.search(question)
+        and any(
+            operation == "prerequisite"
+            for _, _, operation in _surface_operation_matches(question)
+        )
+    )
     prerequisite_burden_preference = (
         judgement == "preference"
         and bool(_PREREQUISITE_BURDEN_PREFERENCE_PATTERN.search(question))
@@ -447,6 +461,8 @@ def _extract_operations(
         and bool(_COURSE_CONTENT_COMPARISON_PATTERN.search(question))
     )
     for start, _, operation in _surface_operation_matches(question):
+        if operation == "list" and prerequisite_collection_request:
+            continue
         if operation in {"list", "describe"} and prerequisite_object_request:
             continue
         if operation == "count" and prerequisite_burden_preference:
@@ -576,10 +592,16 @@ class QuerySpec:
     references_previous_result_set: bool = False
 
 
-def parse_query_spec(question: str) -> QuerySpec:
+def parse_query_spec(
+    question: str,
+    *,
+    has_validated_context_scope: bool = False,
+) -> QuerySpec:
     """Parse deterministic surface entities into a QuerySpec."""
     if not isinstance(question, str):
         raise TypeError("question must be a string")
+    if not isinstance(has_validated_context_scope, bool):
+        raise TypeError("has_validated_context_scope must be a boolean")
 
     normalized_question = normalize_thai_surface(question)
     program = _extract_program(normalized_question)
@@ -604,6 +626,11 @@ def parse_query_spec(question: str) -> QuerySpec:
         or bool(course_codes)
         or course_name is not None
         or topic is not None
+        or has_validated_context_scope
+        or (
+            bool(_PREREQUISITE_COLLECTION_PATTERN.search(normalized_question))
+            and "prerequisite" in detect_surface_operations(normalized_question)
+        )
     )
 
     operations = _extract_operations(
