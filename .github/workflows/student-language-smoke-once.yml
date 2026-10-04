@@ -2,6 +2,7 @@ name: Student language smoke once
 # rerun after contextual total and topic normalization
 # rerun after literal-topic contract repair
 # final broad regression after student-language smoke
+# rerun after multi-program guard repair
 # rerun after bounded robustness fixes
 # rerun after regression repairs
 # rerun after Thai topic residue fix
