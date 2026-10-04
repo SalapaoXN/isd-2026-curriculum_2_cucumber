@@ -779,6 +779,99 @@ class LlmSqlApiTests(unittest.TestCase):
 
         print("EASY_MEDIUM_E2E_DIAGNOSTICS=" + json.dumps(diagnostics, ensure_ascii=False))
 
+    def test_thai_exact_course_credit_overrides_previous_term_aggregation(self):
+        exact_question = "แคลคูลัส 2 มีหน่วยกิตเท่าไหร่"
+        parsed_exact = parse_query_spec(
+            exact_question,
+            has_validated_context_scope=True,
+        )
+        self.assertEqual(parsed_exact.course_name, "แคลคูลัส 2")
+        self.assertEqual(parsed_exact.operations, ("sum_credits",))
+
+        def deterministic_sql_provider(_prompt, **_options):
+            return (
+                "SELECT course_code, program, plan_key, year, semester "
+                "FROM v_plan_courses"
+            )
+
+        exact_contexts = []
+
+        def real_sql_service(
+            db_path,
+            question,
+            program,
+            sql_model,
+            answer_model,
+            *,
+            conversation_context=None,
+            **kwargs,
+        ):
+            if question == exact_question:
+                exact_contexts.append(conversation_context)
+            return run_ask_sql(
+                db_path,
+                question,
+                program,
+                sql_model,
+                answer_model,
+                conversation_context=conversation_context,
+                **kwargs,
+            )
+
+        initial_context = {"program": "DSBA", "catalog_key": "dsba-2565"}
+        broad_question = (
+            "DSBA no_coop ปี 1 ปี 2 ปี 3 ปี 4 เทอม 1 เทอม 2 "
+            "แต่ละเทอมรวมกี่หน่วยกิต"
+        )
+        with (
+            patch.object(main, "ask_sql", side_effect=real_sql_service),
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=deterministic_sql_provider),
+        ):
+            previous = self.client.post(
+                "/api/ask",
+                json={"question": broad_question, "conversation_context": initial_context},
+            )
+            self.assertEqual(previous.status_code, 200, previous.json())
+            previous_context = previous.json()["next_context"]
+            self.assertEqual(previous_context["plan"], "no_coop")
+            self.assertEqual(previous_context["years"], [1, 2, 3, 4])
+            self.assertEqual(previous_context["semesters"], [1, 2])
+            self.assertEqual(previous_context["operations"], ["sum_credits"])
+
+            fresh = self.client.post(
+                "/api/ask",
+                json={"question": exact_question, "conversation_context": initial_context},
+            )
+            same_session = self.client.post(
+                "/api/ask",
+                json={"question": exact_question, "conversation_context": previous_context},
+            )
+
+        for response in (fresh, same_session):
+            self.assertEqual(response.status_code, 200, response.json())
+            payload = response.json()
+            self.assertEqual(payload["status"], "answer", payload)
+            self.assertEqual(payload["route"], "llm_sql")
+            self.assertIn("06026201", payload["answer"])
+            self.assertIn("3 หน่วยกิต", payload["answer"])
+            self.assertNotIn("ลงทะเบียนรวม", payload["answer"])
+            self.assertLessEqual(payload["answer"].count("06026201"), 2)
+            self.assertTrue(payload["provenance"])
+            next_context = payload["next_context"]
+            self.assertEqual(next_context["catalog_key"], "dsba-2565")
+            self.assertEqual(next_context["course_code"], "06026201")
+            self.assertNotIn("years", next_context)
+            self.assertNotIn("semesters", next_context)
+            self.assertNotIn("plan", next_context)
+        self.assertEqual(
+            exact_contexts,
+            [
+                {"program": "DSBA", "catalog_key": "dsba-2565"},
+                {"program": "DSBA", "catalog_key": "dsba-2565"},
+            ],
+        )
+
     def test_it_semester_followup_keeps_program_and_year_scope(self):
         def deterministic_sql_service(
             db_path, question, program, _sql_model, answer_model, *,

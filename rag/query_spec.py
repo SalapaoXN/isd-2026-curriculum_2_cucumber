@@ -203,6 +203,11 @@ _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
     re.IGNORECASE,
 )
+_THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
+    r"^\s*(?:วิชา\s*)?(?P<name>[\u0E00-\u0E7F][\u0E00-\u0E7F0-9 \t]*?)"
+    r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
+    re.IGNORECASE,
+)
 _PREREQUISITE_COLLECTION_PATTERN = re.compile(
     r"(?:วิชา|รายวิชา)\s*(?:ใด|ไหน)|"
     r"มี\s*(?:วิชา|รายวิชา)\s*อะไร|"
@@ -321,6 +326,15 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
         match = _BARE_COURSE_NAME_PATTERN.search(question)
     if match is None:
         match = _prefix_name_to_code_title_match(question)
+    if match is None:
+        thai_credit_match = _THAI_COURSE_CREDIT_NAME_PATTERN.match(question)
+        if thai_credit_match is not None:
+            thai_name = thai_credit_match.group("name").strip()
+            # The bounded credit-question grammar can otherwise mistake a
+            # bare quantifier such as "กี่หน่วยกิต" for a course title.
+            thai_name_letters = re.sub(r"[\s\d]", "", thai_name)
+            if len(thai_name_letters) >= 4 and thai_name not in {"มี", "กี่"}:
+                return thai_name
     if not match:
         return None
     name = match.group("name").strip()

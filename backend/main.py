@@ -645,6 +645,10 @@ def ask(request: AskRequest) -> dict:
         query_spec.program
         or (parsed_context.program if parsed_context is not None else None)
     )
+    explicit_course_credit = bool(
+        (query_spec.course_codes or query_spec.course_name is not None)
+        and "sum_credits" in query_spec.operations
+    )
     catalog_key = parsed_context.catalog_key if parsed_context is not None else None
     if catalog_key is not None:
         try:
@@ -758,23 +762,23 @@ def ask(request: AskRequest) -> dict:
     if catalog_key is not None:
         service_context["catalog_key"] = catalog_key
     if parsed_context is not None:
-        if parsed_context.plan is not None:
+        if parsed_context.plan is not None and not explicit_course_credit:
             service_context["plan"] = parsed_context.plan
-        if parsed_context.years:
+        if parsed_context.years and not explicit_course_credit:
             service_context["years"] = list(parsed_context.years)
-        if parsed_context.semesters:
+        if parsed_context.semesters and not explicit_course_credit:
             service_context["semesters"] = list(parsed_context.semesters)
-        if parsed_context.operations:
+        if parsed_context.operations and not explicit_course_credit:
             service_context["operations"] = list(parsed_context.operations)
-        if parsed_context.category is not None:
+        if parsed_context.category is not None and not explicit_course_credit:
             service_context["category"] = parsed_context.category
-        if parsed_context.course_code is not None:
+        if parsed_context.course_code is not None and not explicit_course_credit:
             service_context["course_code"] = parsed_context.course_code
         if focus_catalog_key is not None:
             service_context["focus_catalog_key"] = focus_catalog_key.strip()
-    if focus_course is not None:
+    if focus_course is not None and not explicit_course_credit:
         service_context["focus_course"] = focus_course
-    if parsed_results is not None:
+    if parsed_results is not None and not explicit_course_credit:
         service_context["result_courses"] = parsed_results[0]
         service_context["result_scope_program"] = parsed_results[1]
         if not parsed_results[0]:
@@ -846,9 +850,18 @@ def ask(request: AskRequest) -> dict:
             hard_context["program"] = program
         if catalog_key is not None:
             hard_context["catalog_key"] = catalog_key
-        if parsed_context is not None and parsed_context.plan is not None and parsed_context.program == program:
+        if (
+            parsed_context is not None
+            and parsed_context.plan is not None
+            and parsed_context.program == program
+            and not explicit_course_credit
+        ):
             hard_context["plan"] = parsed_context.plan
-        if parsed_context is not None and parsed_context.course_code is not None:
+        if (
+            parsed_context is not None
+            and parsed_context.course_code is not None
+            and not explicit_course_credit
+        ):
             hard_context["course_code"] = parsed_context.course_code
         result = None
         # Hard QA does not accept bounded result-course context; SQL QA does.
@@ -922,23 +935,23 @@ def ask(request: AskRequest) -> dict:
     if catalog_key is not None:
         fallback_context["catalog_key"] = catalog_key
     if parsed_context is not None:
-        if parsed_context.plan is not None:
+        if parsed_context.plan is not None and not explicit_course_credit:
             fallback_context["plan"] = parsed_context.plan
-        if parsed_context.years:
+        if parsed_context.years and not explicit_course_credit:
             fallback_context["years"] = list(parsed_context.years)
-        if parsed_context.semesters:
+        if parsed_context.semesters and not explicit_course_credit:
             fallback_context["semesters"] = list(parsed_context.semesters)
-        if parsed_context.operations:
+        if parsed_context.operations and not explicit_course_credit:
             fallback_context["operations"] = list(parsed_context.operations)
-        if parsed_context.category is not None:
+        if parsed_context.category is not None and not explicit_course_credit:
             fallback_context["category"] = parsed_context.category
-        if parsed_context.course_code is not None:
+        if parsed_context.course_code is not None and not explicit_course_credit:
             fallback_context["course_code"] = parsed_context.course_code
         if focus_catalog_key is not None:
             fallback_context["focus_catalog_key"] = focus_catalog_key.strip()
-    if focus_course is not None:
+    if focus_course is not None and not explicit_course_credit:
         fallback_context["focus_course"] = focus_course
-    if parsed_results is not None:
+    if parsed_results is not None and not explicit_course_credit:
         fallback_context["result_courses"] = parsed_results[0]
         fallback_context["result_scope_program"] = parsed_results[1]
         if not parsed_results[0]:
