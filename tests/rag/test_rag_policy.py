@@ -156,6 +156,61 @@ class RagPolicyTest(unittest.TestCase):
                 for text in expected_text:
                     self.assertIn(text, answer.rendered_answer)
 
+    def test_phase_b_policy_answers_are_grounded_and_bounded(self):
+        exam = answer_policy_question(DB_PATH, "ทุจริตในการสอบมีโทษอย่างไร")
+        self.assertEqual(exam.status, "complete")
+        self.assertEqual(tuple(rule.rule_id for rule in exam.rules), ("rule:20",))
+        self.assertIn("ข้อ 20", exam.rendered_answer)
+        self.assertTrue(exam.provenance)
+
+        discipline = answer_policy_question(DB_PATH, "โทษทางวินัยมีอะไรบ้าง")
+        self.assertEqual(discipline.status, "complete")
+        self.assertEqual(
+            tuple(rule.rule_id for rule in discipline.rules),
+            (
+                "rule:38",
+                "rule:38.1",
+                "rule:38.2",
+                "rule:38.3",
+                "rule:39",
+                "rule:39.1",
+                "rule:39.2",
+                "rule:39.3",
+            ),
+        )
+        for text in ("ว่ากล่าวตักเตือน", "ภาคทัณฑ์", "พักการเรียน", "ให้ออก", "ไล่ออก"):
+            self.assertIn(text, discipline.rendered_answer)
+
+        deadline = answer_policy_question(
+            DB_PATH, "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน"
+        )
+        self.assertEqual(deadline.status, "complete")
+        self.assertEqual(deadline.value, 30)
+        self.assertEqual(deadline.unit, "วัน")
+        self.assertEqual(deadline.source_rule_id, "rule:43")
+        self.assertIn("30 วัน", deadline.rendered_answer)
+        self.assertTrue(deadline.provenance)
+
+        procedure = answer_policy_question(
+            DB_PATH, "อุทธรณ์คำสั่งลงโทษต้องทำอย่างไร"
+        )
+        self.assertEqual(procedure.status, "complete")
+        self.assertEqual(tuple(rule.rule_id for rule in procedure.rules), ("rule:43",))
+        self.assertIn("ข้อ 43", procedure.rendered_answer)
+        self.assertTrue(procedure.provenance)
+
+    def test_phase_b_ambiguous_questions_fail_closed(self):
+        for question in (
+            "อุทธรณ์ต้องยื่นภายในกี่วัน",
+            "โดนลงโทษแล้วทำยังไง",
+            "ทำผิดวินัยจะโดนอะไร",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
     def test_text_policy_queries_remain_bounded(self):
         for question in (
             "ลาออกแล้วได้เงินคืนไหม",
