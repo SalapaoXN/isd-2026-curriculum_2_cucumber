@@ -236,6 +236,8 @@ class QuerySpecEntityTests(unittest.TestCase):
             ("วิชาที่เกี่ยวกับ machine learning มีอะไรบ้าง", "machine learning"),
             ("มีรายวิชาที่เกี่ยวกับ ความปลอดภัยบนคลาวด์ ตัวไหนบ้าง", "ความปลอดภัยบนคลาวด์"),
             ("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง", "ข้อมูล"),
+            ("พวกวิชาเว็บมีตัวไหนบ้าง", "เว็บ"),
+            ("พวก data sci มีอะไรเรียนบ้าง", "data science"),
         )
         for question, expected_topic in cases:
             with self.subTest(question=question):
