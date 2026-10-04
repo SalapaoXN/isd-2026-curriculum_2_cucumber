@@ -438,6 +438,179 @@ def _honors_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
     )
 
 
+def _combined_provenance(
+    facts: tuple[PolicyFact, ...] = (),
+    rules: tuple[PolicyRuleEvidence, ...] = (),
+) -> tuple[dict[str, Any], ...]:
+    result: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for reference in (
+        reference
+        for item in (*facts, *rules)
+        for reference in item.provenance
+    ):
+        identity = (
+            reference.get("source_filename"),
+            reference.get("source_page"),
+            reference.get("document_page"),
+            reference.get("document_category"),
+            reference.get("source_uri"),
+            reference.get("source_locator"),
+        )
+        if identity in seen:
+            continue
+        seen.add(identity)
+        result.append(reference)
+    return tuple(result)
+
+
+def _sanction_appeal_procedure_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    deadline = _single_fact(db_path, PolicyQuery("sanction_appeal_deadline"))
+    if deadline is None:
+        raise ValueError("sanction appeal deadline is missing")
+    rows = fetch_regulation_rules(
+        db_path,
+        category="การอุทธรณ์",
+        rule_ids=("rule:43",),
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != ("rule:43",):
+        raise ValueError("sanction appeal rule is missing")
+    provenance = _combined_provenance((deadline,), rules)
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=(deadline,),
+        rules=rules,
+        value=deadline.value,
+        unit=deadline.unit,
+        operator=deadline.operator,
+        condition=deadline.condition,
+        context=deadline.context,
+        source_rule_id="rule:43",
+        provenance=provenance,
+        verification_status=deadline.verification_status,
+        rendered_answer=(
+            "นักศึกษาที่ถูกสั่งลงโทษตามข้อ 38 หรือข้อ 39 มีสิทธิอุทธรณ์"
+            "ต่ออธิการบดี โดยต้องอุทธรณ์เป็นหนังสือลงลายมือชื่อ และยื่นภายใน "
+            f"{deadline.value} {deadline.unit} นับตั้งแต่วันทราบคำสั่ง"
+        ),
+    )
+
+
+def _graduation_gpa_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    facts = _facts(db_path, query)
+    by_key = {fact.fact_key: fact for fact in facts}
+    required = ("GPA โครงสร้างหลักสูตร", "GPA สะสม")
+    if any(key not in by_key for key in required):
+        raise ValueError("graduation GPA evidence is incomplete")
+    ordered = tuple(by_key[key] for key in required)
+    provenance = _combined_provenance(ordered)
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=ordered,
+        value=tuple(fact.value for fact in ordered),
+        unit="GPA",
+        operator="at_least",
+        context="graduation",
+        provenance=provenance,
+        rendered_answer=(
+            f"การสำเร็จการศึกษาต้องมี GPA ตามโครงสร้างหลักสูตรอย่างน้อย "
+            f"{ordered[0].value} และ GPA สะสมอย่างน้อย {ordered[1].value}"
+        ),
+    )
+
+
+def _graduation_single_requirement_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    fact = _single_fact(db_path, query)
+    if fact is None:
+        raise ValueError("graduation requirement is missing")
+    if query.kind == "graduation_english_exit":
+        rendered = (
+            "การสำเร็จการศึกษามีข้อกำหนดการสอบภาษาอังกฤษ "
+            "(English Exit Exam) ตามประกาศสถาบัน"
+        )
+    elif query.kind == "graduation_no_debt":
+        rendered = "การสำเร็จการศึกษาต้องไม่มีหนี้สินหรือภาระผูกพันกับสถาบัน"
+    else:
+        raise ValueError("unsupported graduation requirement")
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=(fact,),
+        value=fact.value,
+        unit=fact.unit,
+        operator=fact.operator,
+        condition=fact.condition,
+        context=fact.context,
+        source_rule_id=fact.source_rule_id,
+        provenance=fact.provenance,
+        verification_status=fact.verification_status,
+        rendered_answer=rendered,
+    )
+
+
+def _graduation_requirements_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    rows = fetch_policy_facts(
+        db_path,
+        category="เกณฑ์การสำเร็จการศึกษา",
+        context_any=True,
+    )
+    facts = tuple(_fact(row) for row in rows)
+    by_key = {fact.fact_key: fact for fact in facts}
+    required_keys = (
+        "GPA โครงสร้างหลักสูตร",
+        "การสำเร็จโครงสร้างหลักสูตร",
+        "GPA สะสม",
+        "การสอบภาษาอังกฤษ English Exit Exam",
+        "ไม่มีหนี้สินหรือภาระผูกพันต่อสถาบัน",
+    )
+    if any(key not in by_key for key in required_keys):
+        raise ValueError("graduation requirement evidence is incomplete")
+    ordered = tuple(by_key[key] for key in required_keys)
+
+    rows = fetch_regulation_rules(
+        db_path,
+        category="เกณฑ์การสำเร็จการศึกษา",
+        rule_ids=("rule:25.3", "rule:25.5"),
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != ("rule:25.3", "rule:25.5"):
+        raise ValueError("graduation supporting rules are incomplete")
+
+    provenance = _combined_provenance(ordered, rules)
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        facts=ordered,
+        rules=rules,
+        provenance=provenance,
+        rendered_answer=(
+            "เกณฑ์สำเร็จการศึกษาที่มีหลักฐานรองรับ ได้แก่\n"
+            f"- เรียนครบหน่วยกิตและสอบผ่านทุกรายวิชาตามโครงสร้างหลักสูตร "
+            f"โดย GPA ตามโครงสร้างหลักสูตรไม่น้อยกว่า {by_key['GPA โครงสร้างหลักสูตร'].value}\n"
+            f"- GPA สะสมไม่น้อยกว่า {by_key['GPA สะสม'].value}\n"
+            "- มีข้อกำหนดการสอบภาษาอังกฤษ (English Exit Exam) ตามประกาศสถาบัน\n"
+            "- เป็นผู้มีเกียรติและศักดิ์ของนักศึกษาตามข้อ 25.3\n"
+            "- ไม่มีหนี้สินหรือภาระผูกพันกับสถาบัน\n"
+            "- หลักเกณฑ์อื่นให้เป็นไปตามประกาศสถาบันตามข้อ 25.5"
+        ),
+    )
+
+
 def answer_policy_question(
     db_path: str | Path,
     question: str,
@@ -450,6 +623,14 @@ def answer_policy_question(
     if query is None:
         return PolicyAnswer(status="unsupported")
     try:
+        if query.kind == "sanction_appeal_procedure":
+            return _sanction_appeal_procedure_answer(db_path, query)
+        if query.kind == "graduation_requirements":
+            return _graduation_requirements_answer(db_path, query)
+        if query.kind == "graduation_gpa":
+            return _graduation_gpa_answer(db_path, query)
+        if query.kind in {"graduation_english_exit", "graduation_no_debt"}:
+            return _graduation_single_requirement_answer(db_path, query)
         if query.kind in _TEXT_RULE_SPECS:
             return _text_rule_answer(db_path, query)
         if query.kind == "program_total_credits":
