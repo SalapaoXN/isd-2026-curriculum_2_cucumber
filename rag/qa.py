@@ -3054,6 +3054,7 @@ def ask(
             if program and edition_catalog_keys_for_program(db_path, program)
             else None
         ),
+        program_context=program if isinstance(program, str) else None,
     )
     if policy_result is not None:
         return {"route": None, "result": policy_result}
