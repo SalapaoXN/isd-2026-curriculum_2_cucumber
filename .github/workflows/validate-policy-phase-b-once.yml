@@ -3,6 +3,7 @@ name: Validate policy phase B once
 # rerun after graduation policy coverage
 # rerun after answer rendering fix
 # broader QA/API regression
+# rerun with embedding runtime
 
 on:
   push:
@@ -25,7 +26,8 @@ jobs:
       - name: Install focused runtime dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install numpy sqlite-vec google-genai python-dotenv fastapi httpx
+          python -m pip install numpy sqlite-vec google-genai python-dotenv fastapi httpx transformers sentencepiece
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Run policy regression suite
         run: |
