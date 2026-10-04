@@ -1,4 +1,5 @@
 name: Student language smoke once
+# rerun after bounded robustness fixes
 
 on:
   push:
@@ -151,3 +152,14 @@ jobs:
           for r in rows:
               print("CASE="+json.dumps(r,ensure_ascii=False))
           PY
+
+      - name: Focused regression
+        run: |
+          python -m unittest \
+            tests.rag.test_query_spec \
+            tests.rag.test_rag_policy \
+            tests.rag.test_student_language_smoke_regressions \
+            tests.rag.test_rag_evidence_planner \
+            tests.rag.test_rag_evidence_executor \
+            tests.rag.test_rag_qa \
+            -v
