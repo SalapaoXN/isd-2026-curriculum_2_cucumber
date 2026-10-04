@@ -1,6 +1,7 @@
 name: Student language smoke once
 # rerun after bounded robustness fixes
 # rerun after regression repairs
+# rerun after Thai topic residue fix
 
 on:
   push:
