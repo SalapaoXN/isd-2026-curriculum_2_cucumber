@@ -1,5 +1,6 @@
 name: Validate policy phase B once
 # rerun after shared-rule fix
+# rerun after graduation policy coverage
 
 on:
   push:
