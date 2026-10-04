@@ -732,6 +732,19 @@ def parse_query_spec(
         course_name=course_name,
     )
     if (
+        topic is not None
+        and not operations
+        and any(
+            pattern.search(normalized_question)
+            for pattern in _GENERIC_TOPIC_COLLECTION_PATTERNS
+        )
+    ):
+        # Every generic topic grammar above is explicitly collection-shaped.
+        # If its colloquial tail did not hit a narrower surface operation,
+        # keep the semantics bounded to a topic list instead of widening to
+        # the whole curriculum or invoking an LLM.
+        operations = ("list",)
+    if (
         credit_units is not None
         and "sum_credits" in operations
         and not _CREDIT_TOTAL_PATTERN.search(normalized_question)
