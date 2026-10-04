@@ -64,6 +64,12 @@ class H25PolicyRoutingTests(unittest.TestCase):
                     "graduation_gpa",
                     "graduation_english_exit",
                     "graduation_no_debt",
+                    "student_status_termination_reasons",
+                    "student_status_termination_gpa",
+                    "gpa_calculation_method",
+                    "assessment_method",
+                    "student_conduct_rules",
+                    "serious_disciplinary_offenses",
                 }
             ),
         )
@@ -92,6 +98,12 @@ class H25PolicyRoutingTests(unittest.TestCase):
             ("จบการศึกษาต้องสอบ English Exit Exam ไหม", ("English Exit Exam",)),
             ("จบการศึกษาต้องไม่มีหนี้สินไหม", ("ไม่มีหนี้สิน",)),
             ("เกณฑ์สำเร็จการศึกษามีอะไรบ้าง", ("English Exit Exam", "ข้อ 25.3")),
+            ("พ้นสภาพนักศึกษามีกรณีอะไรบ้าง", ("ข้อ 33.1", "ข้อ 33.12")),
+            ("GPA เท่าไรถึงพ้นสภาพนักศึกษา", ("GPA สะสมต่ำกว่า 1",)),
+            ("การคิด GPA มีกี่ประเภท", ("3 ประเภท",)),
+            ("การวัดผลการศึกษาทำได้อย่างไร", ("การสอบหรือวิธีอื่น",)),
+            ("นักศึกษาต้องปฏิบัติตัวอย่างไร", ("แต่งกายให้สุภาพ", "ไม่เสพสุรา")),
+            ("ความผิดวินัยร้ายแรงมีอะไรบ้าง", ("ทุจริตในการสอบ", "เล่นการพนัน")),
         )
         for question, expected in cases:
             with self.subTest(question=question):
