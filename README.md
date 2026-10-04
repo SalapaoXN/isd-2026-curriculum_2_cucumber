@@ -144,6 +144,61 @@ IT ปี 3 อยากเน้น data มีวิชาไหนที่�
 ถ้าหลักฐานหรือขอบเขตฉบับหลักสูตรไม่พอ ระบบจะขอให้ระบุ
 program/edition/plan เพิ่ม หรือคืนสถานะไม่พบข้อมูลแทนการเดา
 
+### 2.4 Run the web app
+
+ต้องใช้ Python **3.10 ขึ้นไป** และ Node.js สำหรับ build frontend
+
+1. สร้าง environment และติดตั้ง dependency (PowerShell ที่ root ของ repository):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m pip install -r backend/requirements.txt
+```
+
+2. สร้างไฟล์ `.env` ที่ root ของ repository:
+
+```dotenv
+GEMINI_API_KEY=your_key_here
+```
+
+3. ติดตั้งและ build frontend:
+
+```powershell
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+4. Start backend (ที่ root ของ repository):
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8001
+```
+
+5. เปิดในเบราว์เซอร์:
+
+```text
+http://127.0.0.1:8001/chat
+http://127.0.0.1:8001/curriculum
+```
+
+6. เช็กสถานะ:
+
+```text
+http://127.0.0.1:8001/api/health
+```
+
+Runtime database คือ `cucumber_outputs/runtime/curriculum.db`
+(repository มีมาให้แล้ว ไม่ต้องสร้างใหม่)
+สร้าง database ใหม่เฉพาะเมื่อแก้ canonical data ใน `data/output/final/`:
+
+```powershell
+python -m rag.build_index
+```
+
 ---
 
 ## 3. Runtime database
