@@ -37,12 +37,23 @@ Weighted field quality across 839 matched records:
 | Field | Character Accuracy | Word Accuracy |
 | --- | ---: | ---: |
 | code | 100.00% | N/A |
-| name_th | 99.27% | 98.18% |
-| name_en | 99.24% | 94.83% |
+| name_th | 99.29% | 98.35% |
+| name_en | 99.36% | 95.58% |
 | credits | 99.59% | N/A |
 | prerequisite | 99.98% | 99.90% |
 
 รายละเอียด error จริงอยู่ใน `evaluation_errors.csv`
+
+### Rebuild integrity fix
+
+การ rebuild runtime DB ถูกทดสอบกับ corrected files ปัจจุบันทั้งชุดแล้ว โดยแก้:
+
+- เติม `catalog_key = bit-2565` ให้ BIT 2565 ทั้ง `coop` และ `no_coop`
+- ทำให้ shared-course facts ของ BIT 2565 สอดคล้องกันก่อน merge ข้ามแผน
+- ให้ blank credit ถูกตีความเป็น missing value แทน raw empty string เพื่อไม่สร้าง false conflict; ถ้าอีกแผนของ course เดียวกันมีค่า canonical ที่ยืนยันได้ loader จึงใช้ shared course fact นั้นได้
+- เพิ่ม regression test ที่โหลด corrected files จริงทั้งหมดร่วมกับ `program_requirements.json`
+
+default rebuild path ผ่าน end-to-end test ด้วย deterministic test embeddings และ program requirement ของ `bit-2565` resolve ได้เพียงหนึ่ง catalog ตาม contract
 
 ### Verified data fixes
 
