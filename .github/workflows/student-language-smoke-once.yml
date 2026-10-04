@@ -1,4 +1,5 @@
 name: Student language smoke once
+# rerun after contextual total and topic normalization
 # rerun after bounded robustness fixes
 # rerun after regression repairs
 # rerun after Thai topic residue fix
