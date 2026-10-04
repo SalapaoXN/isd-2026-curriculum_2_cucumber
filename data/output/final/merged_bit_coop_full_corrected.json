@@ -42,7 +42,7 @@
     },
     {
       "code": "06036101",
-      "name_th": "คณิตศาสตร์ สำหรับธุรกิจ",
+      "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
       "name_en": "MATHEMATICS FOR BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -170,7 +170,7 @@
     },
     {
       "code": "96644042",
-      "name_th": "การสือสารและการนำเสนออยางมืออาชีพ",
+      "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
       "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -1183,7 +1183,7 @@
     {
       "code": "06036147 หรือ 06036148",
       "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
-      "name_en": "COOPERATIE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+      "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
       "credits": "6(0-35-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1214,7 +1214,7 @@
     {
       "code": "06036126",
       "name_th": "วิศวกรรมความต้องการ",
-      "name_en": "REOULREMENT ENGINEERING",
+      "name_en": "REQUIREMENT ENGINEERING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1238,7 +1238,7 @@
     {
       "code": "06036127",
       "name_th": "ระบบฐานข้อมูลขั้นสูง",
-      "name_en": "ADVANCED DATABASE SVSTEMS",
+      "name_en": "ADVANCED DATABASE SYSTEMS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1269,7 +1269,7 @@
     {
       "code": "06036128",
       "name_th": "การเรียนรู้ของเครื่องจักร",
-      "name_en": "MACHINE LEARNNG",
+      "name_en": "MACHINE LEARNING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1317,7 +1317,7 @@
     {
       "code": "06036130",
       "name_th": "เทคโนโลยีเชิงอ็อบเจกต์",
-      "name_en": "OBECT ORLEMTED TECHOLOGV",
+      "name_en": "OBJECT ORIENTED TECHNOLOGY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1365,7 +1365,7 @@
     {
       "code": "06036132",
       "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 1",
-      "name_en": "SPECAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 1",
+      "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 1",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1389,7 +1389,7 @@
     {
       "code": "06036133",
       "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
-      "name_en": "SPECAL TOPICS I BUSINESS INFORMATION TECHNOLOGY 2",
+      "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 2",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1413,7 +1413,7 @@
     {
       "code": "06036134",
       "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 1",
-      "name_en": "SPECAL WORKSHOP IN BUSIESS INFORMATION TECHNOLOCY 1",
+      "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 1",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1437,7 +1437,7 @@
     {
       "code": "06036135",
       "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
-      "name_en": "SPECAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2",
+      "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2",
       "credits": "",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1492,7 +1492,7 @@
     {
       "code": "06036137",
       "name_th": "การวิเคราะห์ธุรกิจและการพัฒนาข้อกำหนด",
-      "name_en": "BUSINESS ANALYSIS AND DEVELOPING REOUIREMENTS",
+      "name_en": "BUSINESS ANALYSIS AND DEVELOPING REQUIREMENTS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1516,7 +1516,7 @@
     {
       "code": "06036138",
       "name_th": "การจัดการความรู้ระดับองค์กร",
-      "name_en": "ORGAMZATONAL KNOWLEDGE MANAGEMENT",
+      "name_en": "ORGANIZATIONAL KNOWLEDGE MANAGEMENT",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1595,7 +1595,7 @@
     {
       "code": "06036141",
       "name_th": "เครื่องมือและเทคนิคสำหรับการตลาดเชิงดิจิทัล",
-      "name_en": "DIGITAL MARKETING TOOLS AND TECHMIQUES",
+      "name_en": "DIGITAL MARKETING TOOLS AND TECHNIQUES",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1643,7 +1643,7 @@
     {
       "code": "06036143",
       "name_th": "การเก็บความต้องการและสร้างต้นแบบในด้านยูเอ็กซ์ยูไอ",
-      "name_en": "UX / UL REOULREMENT AND PROTOTPNG",
+      "name_en": "UX / UI REQUIREMENT AND PROTOTYPING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1666,8 +1666,8 @@
     },
     {
       "code": "06036144",
-      "name_th": "การประเมินส่วนต่อประสานฺผู้ใช้",
-      "name_en": "EVAL UATING USER INTERFACE",
+      "name_th": "การประเมินส่วนต่อประสานผู้ใช้",
+      "name_en": "EVALUATING USER INTERFACE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1698,7 +1698,7 @@
     {
       "code": "06036145",
       "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1",
-      "name_en": "PROJECT I BUSINESS INFORMATIOM TECNOLOGY 1",
+      "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1",
       "credits": "3(0-9-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1722,7 +1722,7 @@
     {
       "code": "06036146",
       "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
-      "name_en": "PROJECT IN BUSINESS INFORMATION TECNOLOGY 2",
+      "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
       "credits": "3(0-9-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
