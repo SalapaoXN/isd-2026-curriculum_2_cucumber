@@ -81,6 +81,12 @@ _TOPIC_PATTERN = re.compile(
     r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
     re.IGNORECASE,
 )
+_GENERIC_TOPIC_COLLECTION_PATTERN = re.compile(
+    r"(?:มี\s*)?(?:ราย)?วิชา(?:ที่)?\s*(?:(?:เรียน|สอน)\s*)?เกี่ยวกับ\s*"
+    r"(?P<topic>[^?？\n]{1,80}?)"
+    r"(?=\s*(?:มีอะไรบ้าง|อะไรบ้าง|ตัวไหนบ้าง|มีไหม|มีมั้ย|ไหม|มั้ย|หรือไม่|[?？]|$))",
+    re.IGNORECASE,
+)
 _OPERATION_PATTERNS = (
     (
         "list",
@@ -383,17 +389,45 @@ def _extract_credit_units(question: str) -> int | None:
         return None
 
 
-def _extract_topic(question: str, course_name: str | None) -> str | None:
+def _extract_topic(
+    question: str,
+    course_name: str | None,
+    course_codes: tuple[str, ...] = (),
+) -> str | None:
     if course_name is not None:
         return None
+
     match = _TOPIC_PATTERN.search(question)
-    if not match:
+    if match:
+        if match.group(0) == "เขียนโปรแกรม":
+            return "programming"
+        if match.group(0) == "ฐานข้อมูล":
+            return "database"
+        return match.group(0)
+
+    # Bounded generic collection wording such as
+    # "มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง".  The parser owns only the
+    # literal topic span; relevance is still decided by the existing
+    # description/vector evidence path.  Exact-course questions are excluded
+    # so "0601... เรียนเกี่ยวกับอะไร" remains a course-description request.
+    if course_codes:
         return None
-    if match.group(0) == "เขียนโปรแกรม":
-        return "programming"
-    if match.group(0) == "ฐานข้อมูล":
-        return "database"
-    return match.group(0)
+    generic = _GENERIC_TOPIC_COLLECTION_PATTERN.search(question)
+    if generic is None:
+        return None
+    topic = re.sub(r"\s+", " ", generic.group("topic")).strip(" \t,;:.-")
+    if not topic or len(topic) > 80:
+        return None
+    if topic.casefold() in {
+        "อะไร",
+        "อะไรบ้าง",
+        "เรื่องอะไร",
+        "เกี่ยวกับอะไร",
+        "ด้านไหน",
+        "เรื่องไหน",
+    }:
+        return None
+    return topic
 
 
 def _surface_operation_matches(
@@ -625,7 +659,7 @@ def parse_query_spec(
     course_codes = _extract_course_codes(normalized_question)
     course_name = _extract_course_name(normalized_question, course_codes)
     category = _extract_category(normalized_question)
-    topic = _extract_topic(normalized_question, course_name)
+    topic = _extract_topic(normalized_question, course_name, course_codes)
     judgement = _extract_judgement(normalized_question)
     credit_units = _extract_credit_units(normalized_question)
     if _INVALID_YEAR_PATTERN.search(normalized_question):
