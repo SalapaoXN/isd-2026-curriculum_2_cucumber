@@ -139,7 +139,7 @@ _OPERATION_PATTERNS = (
         "describe",
         re.compile(
             r"เรียน(?:เกี่ยวกับ|เรื่อง)|สอน(?:เกี่ยวกับ|เรื่อง)|เนื้อหาเป็นอย่างไร|"
-            r"ชื่ออะไร|เรียนอะไร(?!บ้าง|กัน)|เรียนไร(?:อะ)?|เรียนประมาณไหน",
+            r"ชื่ออะไร|เรียนอะไร(?!บ้าง|กัน)|เรียนไร(?!บ้าง|กัน)(?:อะ)?|เรียนประมาณไหน",
             re.IGNORECASE,
         ),
     ),
@@ -448,7 +448,39 @@ def _extract_topic(
             topic = re.sub(r"\s+", " ", generic.group("topic")).strip(" \t,;:.-")
             if not topic or len(topic) > 80:
                 continue
-            if topic.casefold() in {
+
+            # Do not treat an anaphoric phrase such as "วิชาแนวนี้ตั้งแต่ปีไหน"
+            # as a new semantic topic. In those forms a real topic may already
+            # be present earlier in the question and is handled by the legacy
+            # bounded aliases below.
+            if re.match(r"^(?:นี้|นั้น|โน้น|พวกนี้|พวกนั้น)(?:\s|$)", topic):
+                continue
+
+            # Generic topic grammars deliberately capture a free text span.
+            # Trim only known question/comparison/scope residue from its tail;
+            # keep meaningful compounds such as "network security",
+            # "data center", and "big data" intact.
+            topic = re.sub(
+                r"\s+(?:กี่\s*(?:วิชา|รายวิชา)|เยอะ(?:สุด)?|มาก(?:สุด)?|น้อย(?:สุด)?)\s*$",
+                "",
+                topic,
+                flags=re.IGNORECASE,
+            ).strip()
+            topic = re.sub(
+                r"\s+(?:มากกว่า|น้อยกว่า|ต่างจาก|เทียบกับ)\s*"
+                r"(?:แผน)?(?:สหกิจ|ไม่สหกิจ|ปกติ|coop|no_coop).*$",
+                "",
+                topic,
+                flags=re.IGNORECASE,
+            ).strip()
+            topic = re.sub(
+                r"\s+(?:ใน|ของ)\s+(?:AIT|BIT|DSBA|GENED|IT)\s*$",
+                "",
+                topic,
+                flags=re.IGNORECASE,
+            ).strip()
+
+            if not topic or topic.casefold() in {
                 "อะไร",
                 "อะไรบ้าง",
                 "เรื่องอะไร",
