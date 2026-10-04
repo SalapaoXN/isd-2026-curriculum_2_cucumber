@@ -46,6 +46,53 @@ class RagPolicyTest(unittest.TestCase):
         )
         self.assertEqual(unscoped.status, "insufficient_evidence")
 
+    def test_plan_scoped_program_total_uses_requirement_and_plan_provenance(self):
+        cases = (
+            ("IT", "it-2565", "สหกิจ", "coop", 129),
+            ("IT", "it-2565", "ไม่สหกิจ", "no_coop", 129),
+            ("DSBA", "dsba-2565", "สหกิจ", "coop", 132),
+            ("DSBA", "dsba-2565", "ไม่สหกิจ", "no_coop", 132),
+        )
+        for program, catalog_key, wording, plan, total in cases:
+            question = f"{program} แผน{wording} รวมทั้งหมดกี่หน่วยกิต"
+            with self.subTest(question=question):
+                answer = answer_policy_question(
+                    DB_PATH,
+                    question,
+                    catalog_key=catalog_key,
+                )
+                self.assertEqual(answer.status, "complete")
+                self.assertEqual(answer.value, total)
+                self.assertIn(str(total), answer.rendered_answer)
+                self.assertIn(f"แผน{wording}", answer.rendered_answer)
+                self.assertTrue(answer.provenance)
+                self.assertTrue(
+                    all(
+                        reference.get("document_category") == "plan"
+                        for reference in answer.provenance
+                    )
+                )
+
+                routed = route_policy_question(
+                    DB_PATH,
+                    question,
+                    catalog_key=catalog_key,
+                )
+                self.assertIsNotNone(routed)
+                self.assertEqual(routed.status, "answer")
+                self.assertIn(str(total), routed.final_answer)
+                self.assertTrue(routed.provenance)
+
+        # A semester/year total remains a curriculum aggregation, not the
+        # whole-program requirement.
+        self.assertIsNone(
+            route_policy_question(
+                DB_PATH,
+                "IT แผนสหกิจ ปี 1 เทอม 1 รวมทั้งหมดกี่หน่วยกิต",
+                catalog_key="it-2565",
+            )
+        )
+
     def test_registration_facts_are_canonical_and_provenanced(self):
         maximum = answer_policy_question(DB_PATH, "ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต")
         minimum = answer_policy_question(DB_PATH, "ขั้นต่ำกี่หน่วยกิต")
@@ -375,7 +422,7 @@ class RagPolicyTest(unittest.TestCase):
     def test_no_provider_or_curriculum_planner_is_required(self):
         answer = answer_policy_question(DB_PATH, "AIT ต้องเรียนกี่หน่วยกิต")
         self.assertEqual(answer.status, "complete")
-        self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 credits")
+        self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 หน่วยกิต")
 
     def test_multi_edition_program_total_without_catalog_fails_closed(self):
         # IT now has two catalog editions (it-2560: 130, it-2565: 129), so

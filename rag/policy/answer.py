@@ -423,6 +423,14 @@ def _program_answer(
     )
     if record is None:
         return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
+    # The runtime provenance table preserves the canonical source/page
+    # references but not supplemental metadata such as the source plan label.
+    # One total-program requirement record is authoritative for the catalog and
+    # is sourced from both plan pages when both plans exist, so keep the full
+    # provenance set while using the deterministically parsed plan only for the
+    # answer scope label.
+    provenance = tuple(record["provenance"])
+
     fact = PolicyFact(
         category="program_requirement",
         fact_key=record["requirement_type"],
@@ -434,8 +442,20 @@ def _program_answer(
         source_rule_id=None,
         program=record["program_code"],
         verification_status=None,
-        provenance=tuple(record["provenance"]),
+        provenance=provenance,
     )
+    plan_label = {
+        "coop": "แผนสหกิจ",
+        "no_coop": "แผนไม่สหกิจ",
+        "default": "แผนปกติ",
+        "gened": "หมวดศึกษาทั่วไป",
+    }.get(query.plan)
+    scope_label = (
+        f"หลักสูตร {fact.program} {plan_label}"
+        if plan_label
+        else f"หลักสูตร {fact.program}"
+    )
+    unit_label = "หน่วยกิต" if str(fact.unit).casefold() == "credits" else fact.unit
     return PolicyAnswer(
         status="complete",
         query_type=query.kind,
@@ -445,7 +465,7 @@ def _program_answer(
         operator=fact.operator,
         program=fact.program,
         provenance=fact.provenance,
-        rendered_answer=f"หลักสูตร {fact.program} ต้องเรียนทั้งหมด {fact.value} {fact.unit}",
+        rendered_answer=f"{scope_label} ต้องเรียนทั้งหมด {fact.value} {unit_label}",
     )
 
 

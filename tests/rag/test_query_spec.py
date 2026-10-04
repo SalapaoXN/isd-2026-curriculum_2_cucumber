@@ -230,6 +230,34 @@ class QuerySpecEntityTests(unittest.TestCase):
                 self.assertEqual(spec.topic, topic)
         self.assertIsNone(parse_query_spec("06016414 เรียนเกี่ยวกับอะไร").course_name)
 
+    def test_arbitrary_topic_collection_is_bounded_and_deterministic(self):
+        cases = (
+            ("มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง", "cybersecurity"),
+            ("วิชาที่เกี่ยวกับ machine learning มีอะไรบ้าง", "machine learning"),
+            ("มีรายวิชาที่เกี่ยวกับ ความปลอดภัยบนคลาวด์ ตัวไหนบ้าง", "ความปลอดภัยบนคลาวด์"),
+            ("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง", "ข้อมูล"),
+        )
+        for question, expected_topic in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.topic, expected_topic)
+                self.assertEqual(spec.operations, ("list",))
+                self.assertIsNone(spec.course_name)
+
+        # Exact-course description questions must not be reinterpreted as
+        # arbitrary collection-topic searches.
+        exact = parse_query_spec("06016414 เรียนเกี่ยวกับอะไร")
+        self.assertEqual(exact.course_codes, ("06016414",))
+        self.assertIsNone(exact.topic)
+
+        for question in (
+            "ข้อมูลทั่วไปของหลักสูตร",
+            "ช่วยอธิบาย cybersecurity",
+            "เกี่ยวกับอะไร",
+        ):
+            with self.subTest(question=question):
+                self.assertIsNone(parse_query_spec(question).topic)
+
     def test_bare_course_name_extraction_is_bounded(self):
         project = parse_query_spec("PROJECT 1 เรียนปีไหน?")
         self.assertEqual(project.course_name, "PROJECT 1")
@@ -297,7 +325,14 @@ class QuerySpecEntityTests(unittest.TestCase):
             ("list",),
         )
         self.assertIsNone(parse_query_spec("ข้อมูลทั่วไปของหลักสูตร").topic)
-        self.assertEqual(parse_query_spec("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง").operations, ())
+        self.assertEqual(
+            parse_query_spec("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง").operations,
+            ("list",),
+        )
+        self.assertEqual(
+            parse_query_spec("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง").topic,
+            "ข้อมูล",
+        )
 
     def test_category_is_explicit_and_can_coexist_with_topic(self):
         spec = parse_query_spec("วิชาเลือกของ IT ที่เกี่ยวกับ AI")

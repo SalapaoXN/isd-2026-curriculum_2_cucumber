@@ -13,6 +13,7 @@ class PolicyQuery:
     kind: str
     program: str | None = None
     amount: int | None = None
+    plan: str | None = None
 
 
 _PROGRAM_RE = re.compile(r"\b(?P<program>AIT|BIT|DSBA|IT)\b", re.IGNORECASE)
@@ -137,7 +138,23 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         if _is_bare_regular_max(text, question):
             return PolicyQuery("registration_regular_max")
         if program and re.search(r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด)", text):
-            return PolicyQuery("program_total_credits", program=program)
+            spec = parse_query_spec(question)
+            if (
+                getattr(spec, "years", ())
+                or getattr(spec, "semesters", ())
+                or getattr(spec, "category", None)
+                or getattr(spec, "course_codes", ())
+                or getattr(spec, "course_name", None)
+            ):
+                return None
+            plans = tuple(getattr(spec, "plans", ()))
+            if len(plans) > 1:
+                return None
+            return PolicyQuery(
+                "program_total_credits",
+                program=program,
+                plan=plans[0] if len(plans) == 1 else None,
+            )
         return None
 
     if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):

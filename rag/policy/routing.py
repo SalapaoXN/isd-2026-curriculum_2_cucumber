@@ -125,8 +125,9 @@ def route_policy_question(
     if query.kind in POLICY_ROUTE_ALLOWLIST:
         return adapt_policy_answer(answer_policy_question(db_path, question))
     if query.kind == "program_total_credits":
-        # H25-P3 R1: axis-free shapes ask the graduation requirement (policy);
-        # any explicit curriculum axis keeps the existing scoped-sum path.
+        # Program-total questions may carry exactly one explicit plan.  The
+        # canonical program requirement is plan-aware through source provenance;
+        # year/semester/category/course axes still keep the scoped curriculum sum.
         spec = parse_query_spec(question)
         if _has_explicit_curriculum_axis(spec):
             return None
@@ -157,7 +158,6 @@ def _has_explicit_curriculum_axis(spec: object) -> bool:
     return bool(
         getattr(spec, "years", ())
         or getattr(spec, "semesters", ())
-        or getattr(spec, "plans", ())
         or getattr(spec, "category", None)
         or getattr(spec, "course_codes", ())
         or getattr(spec, "course_name", None)
