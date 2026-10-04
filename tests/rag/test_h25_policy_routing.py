@@ -60,6 +60,10 @@ class H25PolicyRoutingTests(unittest.TestCase):
                     "disciplinary_penalties",
                     "sanction_appeal_deadline",
                     "sanction_appeal_procedure",
+                    "graduation_requirements",
+                    "graduation_gpa",
+                    "graduation_english_exit",
+                    "graduation_no_debt",
                 }
             ),
         )
@@ -84,6 +88,10 @@ class H25PolicyRoutingTests(unittest.TestCase):
             ("โทษทางวินัยมีอะไรบ้าง", ("ว่ากล่าวตักเตือน", "ไล่ออก")),
             ("อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", ("30 วัน",)),
             ("อุทธรณ์คำสั่งลงโทษต้องทำอย่างไร", ("ข้อ 43",)),
+            ("สำเร็จการศึกษาต้องมี GPA เท่าไร", ("2",)),
+            ("จบการศึกษาต้องสอบ English Exit Exam ไหม", ("English Exit Exam",)),
+            ("จบการศึกษาต้องไม่มีหนี้สินไหม", ("ไม่มีหนี้สิน",)),
+            ("เกณฑ์สำเร็จการศึกษามีอะไรบ้าง", ("English Exit Exam", "ข้อ 25.3")),
         )
         for question, expected in cases:
             with self.subTest(question=question):
