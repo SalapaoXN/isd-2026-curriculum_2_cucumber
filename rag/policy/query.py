@@ -143,6 +143,43 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("registration_exception_max")
 
+    if (
+        "พ้นสภาพ" in text
+        and "นักศึกษา" in text
+        and re.search(r"(?:กรณีอะไรบ้าง|มีกรณีอะไร|สาเหตุอะไรบ้าง|มีสาเหตุอะไร|เพราะอะไรบ้าง)", text)
+    ):
+        return PolicyQuery("student_status_termination_reasons")
+
+    if (
+        ("คิด gpa" in text or "คำนวณ gpa" in text or "การคิด gpa" in text)
+        and re.search(r"(?:อย่างไร|ยังไง|แบบไหน|มีกี่ประเภท|กี่ประเภท)", text)
+    ):
+        return PolicyQuery("gpa_calculation_method")
+
+    if (
+        ("การวัดผล" in text or "วัดผลการศึกษา" in text)
+        and re.search(r"(?:ทำได้อย่างไร|ทำได้ยังไง|มีวิธีอะไร|วิธีการ|ใคร.*อนุมัติ|ผู้อนุมัติ)", text)
+    ):
+        return PolicyQuery("assessment_method")
+
+    if (
+        ("ความผิดวินัย" in text or "ผิดวินัย" in text)
+        and "ร้ายแรง" in text
+        and re.search(r"(?:มีอะไรบ้าง|อะไรบ้าง|มีอะไร|คืออะไร)", text)
+    ):
+        return PolicyQuery("serious_disciplinary_offenses")
+
+    if (
+        (
+            "ระเบียบความประพฤติ" in text
+            or "ข้อปฏิบัติของนักศึกษา" in text
+            or "นักศึกษาต้องปฏิบัติตัว" in text
+            or "นักศึกษาต้องประพฤติตัว" in text
+        )
+        and re.search(r"(?:อย่างไร|ยังไง|มีอะไรบ้าง|อะไรบ้าง|คืออะไร)", text)
+    ):
+        return PolicyQuery("student_conduct_rules")
+
     graduation_wording = "สำเร็จการศึกษา" in text or "จบการศึกษา" in text
     if graduation_wording:
         if (
@@ -159,6 +196,8 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("graduation_requirements")
 
     if "GPA" in text.upper() and _GPA_RE.search(question):
+        if "พ้นสภาพ" in text and "นักศึกษา" in text:
+            return PolicyQuery("student_status_termination_gpa")
         if "สำเร็จการศึกษา" in text or "จบการศึกษา" in text:
             return PolicyQuery("graduation_gpa")
         if "ติดโปร" in text or "ภาคทัณฑ์" in text:

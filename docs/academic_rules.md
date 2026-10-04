@@ -81,6 +81,10 @@ policy QA ใช้ deterministic parsing / lookup / arithmetic สำหรั�
 - บทลงโทษทางวินัย — ดึงข้อ 38–39 และข้อย่อยที่ระบุประเภทโทษ
 - การอุทธรณ์คำสั่งลงโทษ — รองรับขั้นตอนจากข้อ 43 และ deadline 30 วันจาก structured fact ที่ผูกกับข้อ 43
 - เกณฑ์การสำเร็จการศึกษา — รองรับ GPA ตามโครงสร้าง/GPA สะสม, English Exit Exam, เงื่อนไขไม่มีหนี้สิน และภาพรวมข้อ 25
+- เกณฑ์พ้นสภาพนักศึกษา — รองรับกรณีพ้นสภาพตามข้อ 33 และ threshold GPA สะสมต่ำกว่า 1.00 จากข้อ 33.12; จุด OCR ที่ตัวเลขไม่ครบจะไม่ถูกเดาค่า
+- ระบบเกรด/การคิดคะแนน — รองรับวิธีคำนวณ GPA และ 3 ประเภทของค่าเฉลี่ยจากข้อ 21 โดยไม่เปิด grade-point ที่ OCR ยังไม่น่าเชื่อถือ
+- การสอบ/วัดผล — รองรับวิธีการวัดผลและผู้อนุมัติจากข้อ 19.1–19.2
+- ระเบียบความประพฤติ — รองรับข้อปฏิบัติข้อ 37.1–37.5 และความผิดวินัยร้ายแรงข้อ 37.6–37.6.10
 - total program credits ตาม edition
 - semester-load comparison ที่มี curriculum + policy evidence ครบ
 
@@ -108,7 +112,10 @@ python -m rag.build_index
 python -m unittest tests.tools.test_rule_extractor tests.tools.test_rules_policy_mapper tests.tools.test_program_requirements
 python -m unittest tests.pipeline.test_run_rules
 python -m unittest tests.rag.test_rag_policy tests.rag.test_rag_policy_combined
+python -m unittest tests.rag.test_policy_gt_coverage
 ```
+
+`test_policy_gt_coverage` ตรวจว่า taxonomy/presence ของ canonical policy ตรงกับ `ground_truth/rules_ground_truth.json` และทุก category ที่ GT ระบุ `present=true` มี QA coverage contract อย่างน้อยหนึ่งเส้นทาง ส่วน `ระเบียบอื่น ๆ` ที่ GT ระบุ `present=null` ไม่ถูกบังคับให้สร้างคำตอบ
 
 คำถามแบบ text-backed ด้านลาพัก/ลาออก/เทียบโอน ใช้ bounded deterministic routing และส่งข้อความกฎจาก canonical `regulation_rules` พร้อม provenance โดยตรง ไม่เรียก LLM เพื่อสร้างข้อเท็จจริง
 

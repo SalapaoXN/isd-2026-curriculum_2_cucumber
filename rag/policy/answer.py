@@ -126,6 +126,28 @@ _TEXT_RULE_SPECS = {
         ("rule:43",),
         "ข้อบังคับเกี่ยวกับการอุทธรณ์คำสั่งลงโทษระบุว่า",
     ),
+    "student_conduct_rules": (
+        "ระเบียบความประพฤติ",
+        ("rule:37.1", "rule:37.2", "rule:37.3", "rule:37.4", "rule:37.5"),
+        "ข้อปฏิบัติด้านความประพฤติของนักศึกษาระบุว่า",
+    ),
+    "serious_disciplinary_offenses": (
+        "ระเบียบความประพฤติ",
+        (
+            "rule:37.6",
+            "rule:37.6.1",
+            "rule:37.6.2",
+            "rule:37.6.3",
+            "rule:37.6.4",
+            "rule:37.6.5",
+            "rule:37.6.6",
+            "rule:37.6.7",
+            "rule:37.6.8",
+            "rule:37.6.9",
+            "rule:37.6.10",
+        ),
+        "ข้อบังคับระบุความผิดวินัยอย่างร้ายแรงไว้ดังนี้",
+    ),
 }
 
 
@@ -256,6 +278,13 @@ def _facts(db_path: str | Path, query: PolicyQuery) -> tuple[PolicyFact, ...]:
             category="การกลับเข้าศึกษา",
             condition="at_most",
         )
+    elif query.kind == "student_status_termination_gpa":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์พ้นสภาพนักศึกษา",
+            fact_key="GPA ที่เป็นเกณฑ์พ้นสภาพนักศึกษา",
+            condition="below",
+        )
     elif query.kind == "sanction_appeal_deadline":
         rows = fetch_policy_facts(
             db_path,
@@ -307,6 +336,7 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         "probation_entry": "การเข้าภาคทัณฑ์",
         "probation_cleared": "การพ้นภาคทัณฑ์",
         "reentry_limit": "การกลับเข้าศึกษา",
+        "student_status_termination_gpa": "การพ้นสภาพนักศึกษา",
         "sanction_appeal_deadline": "การอุทธรณ์คำสั่งลงโทษ",
     }
     subject = labels[query.kind]
@@ -322,6 +352,8 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         answer = f"{subject}เมื่อ GPA ต่ำกว่า {fact.value}"
     elif query.kind == "probation_cleared":
         answer = f"{subject}เมื่อ GPA ตั้งแต่ {fact.value} ขึ้นไป"
+    elif query.kind == "student_status_termination_gpa":
+        answer = f"{subject}มีเกณฑ์ GPA สะสมต่ำกว่า {fact.value}"
     elif query.kind == "sanction_appeal_deadline":
         answer = f"{subject}ต้องยื่นภายใน {fact.value} {fact.unit} นับตั้งแต่วันทราบคำสั่ง"
     else:
@@ -462,6 +494,109 @@ def _combined_provenance(
         seen.add(identity)
         result.append(reference)
     return tuple(result)
+
+
+def _required_rules(
+    db_path: str | Path,
+    *,
+    category: str,
+    rule_ids: tuple[str, ...],
+) -> tuple[PolicyRuleEvidence, ...]:
+    rows = fetch_regulation_rules(
+        db_path,
+        category=category,
+        rule_ids=rule_ids,
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != rule_ids:
+        raise ValueError("required regulation rule evidence is missing")
+    return rules
+
+
+def _student_status_termination_reasons_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    rule_ids = tuple(f"rule:33.{index}" for index in range(1, 13))
+    rules = _required_rules(
+        db_path,
+        category="เกณฑ์พ้นสภาพนักศึกษา",
+        rule_ids=rule_ids,
+    )
+    provenance = _dedupe_provenance(rules)
+    rendered: list[str] = ["กรณีพ้นสภาพนักศึกษาตามข้อ 33 มีดังนี้"]
+    for rule in rules:
+        if rule.rule_id == "rule:33.8":
+            rendered.append(
+                "ข้อ 33.8: ข้อความ canonical กล่าวถึงการทุจริตในการสอบ "
+                "แต่ตัวเลขจำนวนครั้งจาก OCR อ่านไม่ครบ จึงไม่ยืนยันจำนวนครั้ง"
+            )
+        else:
+            rendered.append(
+                f"ข้อ {rule.section_number}: {_normalized_rule_text(rule.rule_text)}"
+            )
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        rules=rules,
+        provenance=provenance,
+        rendered_answer="\n".join(rendered),
+    )
+
+
+def _gpa_calculation_method_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    rules = _required_rules(
+        db_path,
+        category="ระบบเกรด/การคิดคะแนน",
+        rule_ids=(
+            "rule:21.1",
+            "rule:21.2",
+            "rule:21.2.1",
+            "rule:21.2.2",
+            "rule:21.2.3",
+        ),
+    )
+    provenance = _dedupe_provenance(rules)
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        rules=rules,
+        provenance=provenance,
+        rendered_answer=(
+            "การคิด GPA ตามข้อ 21 ใช้ผลรวมของหน่วยกิตคูณแต้มของแต่ละรายวิชา "
+            "หารด้วยจำนวนหน่วยกิตรวม และรายงานทศนิยมสองตำแหน่งโดยปัดตามหลักคณิตศาสตร์\n"
+            "ข้อ 21.2 แบ่งค่าเฉลี่ยเป็น 3 ประเภท ได้แก่\n"
+            "- ค่าเฉลี่ยประจำภาคการศึกษา\n"
+            "- ค่าเฉลี่ยสะสม (GPA)\n"
+            "- ค่าเฉลี่ยสะสมตามโครงสร้างหลักสูตร"
+        ),
+    )
+
+
+def _assessment_method_answer(
+    db_path: str | Path,
+    query: PolicyQuery,
+) -> PolicyAnswer:
+    rules = _required_rules(
+        db_path,
+        category="การสอบ/วัดผล",
+        rule_ids=("rule:19.1", "rule:19.2"),
+    )
+    provenance = _dedupe_provenance(rules)
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        rules=rules,
+        provenance=provenance,
+        rendered_answer=(
+            "การวัดผลการศึกษาทำได้โดยการสอบหรือวิธีอื่น โดยต้องได้รับความเห็นชอบ "
+            "จากคณะกรรมการประจำส่วนงานที่รับผิดชอบหรือเป็นเจ้าของรายวิชา "
+            "และคณะกรรมการดังกล่าวเป็นผู้พิจารณาอนุมัติการวัดผล"
+        ),
+    )
 
 
 def _sanction_appeal_procedure_answer(
@@ -627,6 +762,12 @@ def answer_policy_question(
     if query is None:
         return PolicyAnswer(status="unsupported")
     try:
+        if query.kind == "student_status_termination_reasons":
+            return _student_status_termination_reasons_answer(db_path, query)
+        if query.kind == "gpa_calculation_method":
+            return _gpa_calculation_method_answer(db_path, query)
+        if query.kind == "assessment_method":
+            return _assessment_method_answer(db_path, query)
         if query.kind == "sanction_appeal_procedure":
             return _sanction_appeal_procedure_answer(db_path, query)
         if query.kind == "graduation_requirements":
