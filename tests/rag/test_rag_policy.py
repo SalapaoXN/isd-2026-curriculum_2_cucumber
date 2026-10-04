@@ -120,6 +120,65 @@ class RagPolicyTest(unittest.TestCase):
         self.assertTrue(all(f.source_rule_id for f in first.facts))
         self.assertTrue(all(f.provenance for f in (*first.facts, *second.facts, *reentry.facts)))
 
+    def test_text_policy_answers_use_exact_regulation_rules_and_provenance(self):
+        cases = (
+            (
+                "ลาพักการศึกษาต้องทำอย่างไร",
+                ("rule:31.1", "rule:31.2", "rule:31.3", "rule:31.4"),
+                ("ข้อ 31.1", "ข้อ 31.4"),
+            ),
+            (
+                "ลาออกต้องทำอย่างไร",
+                ("rule:32",),
+                ("ข้อ 32", "ไม่มีหนี้สิน"),
+            ),
+            (
+                "เทียบโอนหน่วยกิตมีหลักเกณฑ์อะไรบ้าง",
+                ("rule:28", "rule:29"),
+                ("ข้อ 28", "ข้อ 29"),
+            ),
+        )
+        for question, expected_rule_ids, expected_text in cases:
+            with self.subTest(question=question):
+                answer = answer_policy_question(DB_PATH, question)
+                self.assertEqual(answer.status, "complete")
+                self.assertEqual(
+                    tuple(rule.rule_id for rule in answer.rules),
+                    expected_rule_ids,
+                )
+                self.assertTrue(answer.provenance)
+                self.assertTrue(
+                    all(
+                        reference["document_category"] == "rule"
+                        for reference in answer.provenance
+                    )
+                )
+                for text in expected_text:
+                    self.assertIn(text, answer.rendered_answer)
+
+    def test_text_policy_queries_remain_bounded(self):
+        for question in (
+            "ลาออกแล้วได้เงินคืนไหม",
+            "ลาพัก 2 เทอมได้ไหม",
+            "เทียบโอนวิชานี้ได้ไหม",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
+    def test_text_policy_missing_required_rule_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "policy.db"
+            shutil.copy2(DB_PATH, path)
+            with closing(sqlite3.connect(path)) as connection:
+                connection.execute("DELETE FROM regulation_rules WHERE rule_id = 'rule:31.2'")
+                connection.commit()
+            answer = answer_policy_question(path, "ลาพักการศึกษาต้องทำอย่างไร")
+            self.assertEqual(answer.status, "insufficient_evidence")
+            self.assertEqual(answer.provenance, ())
+
     def test_unsupported_and_unknown_program_fail_closed(self):
         self.assertEqual(
             answer_policy_question(DB_PATH, "นโยบายที่ไม่มีในขอบเขตคืออะไร").status,

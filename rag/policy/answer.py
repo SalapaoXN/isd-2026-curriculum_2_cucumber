@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from .query import PolicyQuery, parse_policy_question
-from .repository import fetch_policy_facts, fetch_program_requirement
+from .repository import (
+    fetch_policy_facts,
+    fetch_program_requirement,
+    fetch_regulation_rules,
+)
 
 
 DEFAULT_POLICY_DB_PATH = (
@@ -33,10 +37,20 @@ class PolicyFact:
 
 
 @dataclass(frozen=True, slots=True)
+class PolicyRuleEvidence:
+    rule_id: str
+    section_number: str
+    category: str
+    rule_text: str
+    provenance: tuple[dict[str, Any], ...]
+
+
+@dataclass(frozen=True, slots=True)
 class PolicyAnswer:
     status: str
     query_type: str | None = None
     facts: tuple[PolicyFact, ...] = ()
+    rules: tuple[PolicyRuleEvidence, ...] = ()
     value: Any = None
     unit: str | None = None
     operator: str | None = None
@@ -69,6 +83,96 @@ def _fact(record: dict[str, Any]) -> PolicyFact:
         program=record.get("program"),
         verification_status=record.get("verification_status"),
         provenance=references,
+    )
+
+
+_TEXT_RULE_SPECS = {
+    "leave_of_absence": (
+        "การลาพักการศึกษา",
+        ("rule:31.1", "rule:31.2", "rule:31.3", "rule:31.4"),
+        "ข้อบังคับที่เกี่ยวกับการลาพักการศึกษาระบุว่า",
+    ),
+    "resignation": (
+        "การลาออก",
+        ("rule:32",),
+        "ข้อบังคับที่เกี่ยวกับการลาออกระบุว่า",
+    ),
+    "credit_transfer": (
+        "การเทียบโอนหน่วยกิต",
+        ("rule:28", "rule:29"),
+        "ข้อบังคับที่เกี่ยวกับการเทียบโอนหน่วยกิตระบุว่า",
+    ),
+}
+
+
+def _rule(record: dict[str, Any]) -> PolicyRuleEvidence:
+    references = tuple(record.get("provenance", ()))
+    if not references:
+        raise ValueError("regulation rule has no provenance")
+    return PolicyRuleEvidence(
+        rule_id=record["rule_id"],
+        section_number=record["section_number"],
+        category=record["category"],
+        rule_text=record["rule_text"],
+        provenance=references,
+    )
+
+
+def _normalized_rule_text(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _dedupe_provenance(
+    rules: tuple[PolicyRuleEvidence, ...],
+) -> tuple[dict[str, Any], ...]:
+    result: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for rule in rules:
+        for reference in rule.provenance:
+            identity = (
+                reference.get("source_filename"),
+                reference.get("source_page"),
+                reference.get("document_page"),
+                reference.get("document_category"),
+                reference.get("source_uri"),
+                reference.get("source_locator"),
+            )
+            if identity in seen:
+                continue
+            seen.add(identity)
+            result.append(reference)
+    return tuple(result)
+
+
+def _text_rule_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
+    spec = _TEXT_RULE_SPECS.get(query.kind)
+    if spec is None:
+        raise ValueError("unsupported text policy query")
+    category, expected_rule_ids, intro = spec
+    rows = fetch_regulation_rules(
+        db_path,
+        category=category,
+        rule_ids=expected_rule_ids,
+    )
+    rules = tuple(_rule(row) for row in rows)
+    if tuple(rule.rule_id for rule in rules) != expected_rule_ids:
+        raise ValueError("required regulation rule evidence is missing")
+
+    provenance = _dedupe_provenance(rules)
+    if not provenance:
+        raise ValueError("text policy answer has no provenance")
+
+    rendered_rules = "\n".join(
+        f"ข้อ {rule.section_number}: {_normalized_rule_text(rule.rule_text)}"
+        for rule in rules
+    )
+    return PolicyAnswer(
+        status="complete",
+        query_type=query.kind,
+        rules=rules,
+        source_rule_id=rules[0].rule_id if len(rules) == 1 else None,
+        provenance=provenance,
+        rendered_answer=f"{intro}\n{rendered_rules}",
     )
 
 
@@ -289,6 +393,8 @@ def answer_policy_question(
     if query is None:
         return PolicyAnswer(status="unsupported")
     try:
+        if query.kind in _TEXT_RULE_SPECS:
+            return _text_rule_answer(db_path, query)
         if query.kind == "program_total_credits":
             return _program_answer(db_path, query, catalog_key=catalog_key)
         if query.kind == "registration_compare":
@@ -300,4 +406,9 @@ def answer_policy_question(
         return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
 
 
-__all__ = ["PolicyAnswer", "PolicyFact", "answer_policy_question"]
+__all__ = [
+    "PolicyAnswer",
+    "PolicyFact",
+    "PolicyRuleEvidence",
+    "answer_policy_question",
+]

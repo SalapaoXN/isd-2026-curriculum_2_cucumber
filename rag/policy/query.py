@@ -116,6 +116,24 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     if "กลับเข้าศึกษา" in text and re.search(r"(?:กี่ปี|ภายในกี่ปี|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("reentry_limit")
 
+    general_text_policy = re.search(
+        r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ทำอย่างไร|ทำยังไง|มีขั้นตอนอะไร|"
+        r"มีเงื่อนไขอะไร|เงื่อนไขเป็นอย่างไร|หลักเกณฑ์(?:เป็นอย่างไร|มีอะไรบ้าง)|"
+        r"ทำได้ไหม|ทำได้หรือไม่|ได้ไหม|ได้หรือไม่|คืออะไร|เป็นอย่างไร)\s*[?？]?$",
+        text,
+    )
+    if general_text_policy:
+        if "ลาพักการศึกษา" in text:
+            return PolicyQuery("leave_of_absence")
+        if "ลาออก" in text:
+            return PolicyQuery("resignation")
+        if (
+            "เทียบโอนหน่วยกิต" in text
+            or "โอนหน่วยกิต" in text
+            or "โอนผลการเรียน" in text
+        ):
+            return PolicyQuery("credit_transfer")
+
     return None
 
 

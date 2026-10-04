@@ -53,6 +53,9 @@ class H25PolicyRoutingTests(unittest.TestCase):
                     "honors_first",
                     "honors_second",
                     "reentry_limit",
+                    "leave_of_absence",
+                    "resignation",
+                    "credit_transfer",
                 }
             ),
         )
@@ -70,6 +73,9 @@ class H25PolicyRoutingTests(unittest.TestCase):
             ("เกียรตินิยมอันดับหนึ่ง GPA เท่าไร", ("3.75", "3.5")),
             ("เกียรตินิยมอันดับสอง GPA เท่าไร", ("3.25",)),
             ("กลับเข้าศึกษาได้ภายในกี่ปี", ("1",)),
+            ("ลาพักการศึกษาต้องทำอย่างไร", ("ข้อ 31.1", "ข้อ 31.4")),
+            ("ลาออกต้องทำอย่างไร", ("ข้อ 32", "ไม่มีหนี้สิน")),
+            ("เทียบโอนหน่วยกิตมีหลักเกณฑ์อะไรบ้าง", ("ข้อ 28", "ข้อ 29")),
         )
         for question, expected in cases:
             with self.subTest(question=question):

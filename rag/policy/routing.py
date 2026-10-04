@@ -28,6 +28,9 @@ POLICY_ROUTE_ALLOWLIST = frozenset(
         "honors_first",
         "honors_second",
         "reentry_limit",
+        "leave_of_absence",
+        "resignation",
+        "credit_transfer",
     }
 )
 
