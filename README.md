@@ -277,6 +277,7 @@ Runtime benchmark ล่าสุดอยู่ที่ `reports/runtime_bench
 - `rag/README.md` — QA/RAG architecture ปัจจุบัน
 - `src/pipeline/README.md` — OCR → canonical data → DB
 - `docs/academic_rules.md` — policy/rules subsystem
+- `docs/wireframes/` — Week 11 low-fidelity wireframes และ user flow
 - `reports/README.md` — วิธี evaluation และ report artifacts
 - `reports/runtime_benchmark.md` — latency benchmark
 - `ground_truth/GT_FIXED.md` — audit log ของการแก้ Ground Truth
