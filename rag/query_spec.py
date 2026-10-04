@@ -453,7 +453,10 @@ def _extract_topic(
             # as a new semantic topic. In those forms a real topic may already
             # be present earlier in the question and is handled by the legacy
             # bounded aliases below.
-            if re.match(r"^(?:นี้|นั้น|โน้น|พวกนี้|พวกนั้น)(?:\s|$)", topic):
+            if re.match(
+                r"^(?:นี้|นั้น|โน้น|พวกนี้|พวกนั้น)(?:\s|ตั้งแต่|อยู่|ปี|เทอม|$)",
+                topic,
+            ):
                 continue
 
             # Generic topic grammars deliberately capture a free text span.
@@ -461,20 +464,20 @@ def _extract_topic(
             # keep meaningful compounds such as "network security",
             # "data center", and "big data" intact.
             topic = re.sub(
-                r"\s+(?:กี่\s*(?:วิชา|รายวิชา)|เยอะ(?:สุด)?|มาก(?:สุด)?|น้อย(?:สุด)?)\s*$",
+                r"\s*(?:กี่\s*(?:วิชา|รายวิชา)|เยอะ(?:สุด)?|มาก(?:สุด)?|น้อย(?:สุด)?)\s*$",
                 "",
                 topic,
                 flags=re.IGNORECASE,
             ).strip()
             topic = re.sub(
-                r"\s+(?:มากกว่า|น้อยกว่า|ต่างจาก|เทียบกับ)\s*"
+                r"\s*(?:มากกว่า|น้อยกว่า|ต่างจาก|เทียบกับ)\s*"
                 r"(?:แผน)?(?:สหกิจ|ไม่สหกิจ|ปกติ|coop|no_coop).*$",
                 "",
                 topic,
                 flags=re.IGNORECASE,
             ).strip()
             topic = re.sub(
-                r"\s+(?:ใน|ของ)\s+(?:AIT|BIT|DSBA|GENED|IT)\s*$",
+                r"\s*(?:ใน|ของ)\s*(?:AIT|BIT|DSBA|GENED|IT)\s*$",
                 "",
                 topic,
                 flags=re.IGNORECASE,
