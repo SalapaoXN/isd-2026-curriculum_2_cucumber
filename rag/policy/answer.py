@@ -336,6 +336,7 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         "probation_entry": "การเข้าภาคทัณฑ์",
         "probation_cleared": "การพ้นภาคทัณฑ์",
         "reentry_limit": "การกลับเข้าศึกษา",
+        "student_status_termination_gpa": "การพ้นสภาพนักศึกษา",
         "sanction_appeal_deadline": "การอุทธรณ์คำสั่งลงโทษ",
     }
     subject = labels[query.kind]
@@ -351,6 +352,8 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         answer = f"{subject}เมื่อ GPA ต่ำกว่า {fact.value}"
     elif query.kind == "probation_cleared":
         answer = f"{subject}เมื่อ GPA ตั้งแต่ {fact.value} ขึ้นไป"
+    elif query.kind == "student_status_termination_gpa":
+        answer = f"{subject}มีเกณฑ์ GPA สะสมต่ำกว่า {fact.value}"
     elif query.kind == "sanction_appeal_deadline":
         answer = f"{subject}ต้องยื่นภายใน {fact.value} {fact.unit} นับตั้งแต่วันทราบคำสั่ง"
     else:
