@@ -84,6 +84,8 @@ python -m rag.build_index
 
 ต้องใช้ Python 3.10+ และ Node.js
 
+> สำหรับเครื่องที่เพิ่ง clone repo ใหม่ ต้องทำ **ทุกขั้นตามลำดับ** ด้านล่าง โดยเฉพาะ `npm run build` ก่อนเปิดเว็บผ่าน FastAPI ที่พอร์ต `8001`
+
 ### 3.1 Python environment
 
 ```powershell
@@ -109,7 +111,9 @@ provider ปัจจุบันใช้:
 gemini-3.5-flash-lite
 ```
 
-### 3.3 Build frontend
+### 3.3 Build frontend — ห้ามข้ามเมื่อรันผ่าน FastAPI
+
+รันจาก root repo:
 
 ```powershell
 cd frontend
@@ -118,7 +122,20 @@ npm run build
 cd ..
 ```
 
+หลัง build สำเร็จควรมีไฟล์ประมาณนี้:
+
+```text
+frontend/
+└─ dist/
+   ├─ index.html
+   └─ assets/
+```
+
+FastAPI จะ serve React bundle จาก `frontend/dist/` หากยังไม่มี `dist` ระบบจะ fallback ไปที่ `frontend/index.html` ซึ่งเป็น Vite development entry และ browser จะร้องขอ `/src/main.jsx`; FastAPI production-style server ไม่ได้ serve path นี้ จึงจะเห็น `GET /src/main.jsx 404 Not Found`
+
 ### 3.4 Start backend
+
+หลังจาก build frontend แล้ว ให้กลับมาที่ root repo และรัน:
 
 ```powershell
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8001
@@ -132,7 +149,25 @@ http://127.0.0.1:8001/curriculum
 http://127.0.0.1:8001/api/health
 ```
 
-สำหรับ frontend development mode: Vite ใช้ `5173` และ proxy `/api` ไป backend ที่ `8000`
+ถ้า log มี:
+
+```text
+GET /src/main.jsx 404 Not Found
+```
+
+ให้หยุด server แล้วรัน `npm install` และ `npm run build` ในโฟลเดอร์ `frontend` ก่อน จากนั้นจึง start backend ใหม่
+
+`GET /favicon.ico 404 Not Found` ไม่กระทบการทำงานของเว็บ
+
+### 3.5 Frontend development mode
+
+ถ้าต้องการใช้ Vite dev server แทน built frontend:
+
+1. รัน backend ที่พอร์ต `8000`
+2. เข้า `frontend` แล้วรัน `npm run dev`
+3. เปิดเว็บที่ `http://127.0.0.1:5173`
+
+Vite config ปัจจุบัน proxy `/api` ไปที่ `http://127.0.0.1:8000`
 
 ---
 
