@@ -423,18 +423,13 @@ def _program_answer(
     )
     if record is None:
         return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
+    # The runtime provenance table preserves the canonical source/page
+    # references but not supplemental metadata such as the source plan label.
+    # One total-program requirement record is authoritative for the catalog and
+    # is sourced from both plan pages when both plans exist, so keep the full
+    # provenance set while using the deterministically parsed plan only for the
+    # answer scope label.
     provenance = tuple(record["provenance"])
-    if query.plan is not None:
-        provenance = tuple(
-            reference
-            for reference in provenance
-            if isinstance(reference, dict) and reference.get("plan") == query.plan
-        )
-        if not provenance:
-            return PolicyAnswer(
-                status="insufficient_evidence",
-                query_type=query.kind,
-            )
 
     fact = PolicyFact(
         category="program_requirement",
