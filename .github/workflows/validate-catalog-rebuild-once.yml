@@ -48,6 +48,7 @@ jobs:
               db = ensure_index(
                   _default_sources(),
                   index_path=Path(directory) / "curriculum.db",
+                  artifact_dir=Path(directory),
                   embed_texts_callable=fake_embed,
                   embedding_model_identity="catalog-rebuild-test",
                   vector_dimension=384,
