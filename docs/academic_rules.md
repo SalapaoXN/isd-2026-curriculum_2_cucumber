@@ -77,6 +77,9 @@ policy QA ใช้ deterministic parsing / lookup / arithmetic สำหรั�
 - ลาพักการศึกษา — ดึงข้อ 31.1–31.4 จาก `regulation_rules`
 - การลาออก — ดึงข้อ 32 จาก `regulation_rules`
 - การเทียบโอนหน่วยกิต — ดึงข้อ 28–29 จาก `regulation_rules`
+- การทุจริตในการสอบ — ดึงข้อ 20 แบบ bounded text-backed answer
+- บทลงโทษทางวินัย — ดึงข้อ 38–39 และข้อย่อยที่ระบุประเภทโทษ
+- การอุทธรณ์คำสั่งลงโทษ — รองรับขั้นตอนจากข้อ 43 และ deadline 30 วันจาก structured fact ที่ผูกกับข้อ 43
 - total program credits ตาม edition
 - semester-load comparison ที่มี curriculum + policy evidence ครบ
 
