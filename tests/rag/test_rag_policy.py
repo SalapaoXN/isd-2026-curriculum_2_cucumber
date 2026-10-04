@@ -370,6 +370,72 @@ class RagPolicyTest(unittest.TestCase):
                     "unsupported",
                 )
 
+    def test_colloquial_student_policy_wording_is_bounded(self):
+        cases = (
+            ("ถ้าจะลง24หน่วยได้ปะ", "registration_compare", ("24",)),
+            ("ซัมเมอร์ลงได้สุดเท่าไหร่", "registration_special_max", ("9",)),
+            ("ลาออกต้องทำไงบ้าง", "resignation", ("ข้อ 32",)),
+            ("ถ้าจะพักเรียนต้องทำยังไง", "leave_of_absence", ("ข้อ 31.1",)),
+            ("โอนหน่วยกิตจากที่อื่นได้มั้ย", "credit_transfer", ("ข้อ 28",)),
+            ("โกงข้อสอบโดนอะไรบ้าง", "exam_dishonesty_penalty", ("ข้อ 20",)),
+            (
+                "ถ้าจะอุทธรณ์คำสั่งลงโทษต้องทำไง",
+                "sanction_appeal_procedure",
+                ("ข้อ 43",),
+            ),
+            ("จะจบต้อง gpa เท่าไหร่", "graduation_gpa", ("GPA",)),
+            (
+                "จบต้องสอบ exit english ปะ",
+                "graduation_english_exit",
+                ("English Exit Exam",),
+            ),
+            (
+                "พ้นสภาพมีกรณีไหนบ้าง",
+                "student_status_termination_reasons",
+                ("ข้อ 33.1", "ข้อ 33.12"),
+            ),
+            (
+                "gpa ต่ำกว่าเท่าไหร่ถึงพ้นสภาพ",
+                "student_status_termination_gpa",
+                ("ต่ำกว่า 1",),
+            ),
+            (
+                "ความผิดหนักๆทางวินัยมีอะไรบ้าง",
+                "serious_disciplinary_offenses",
+                ("ทุจริตในการสอบ",),
+            ),
+            (
+                "นักศึกษามีกฎเรื่องความประพฤติอะไรบ้าง",
+                "student_conduct_rules",
+                ("แต่งกายให้สุภาพ",),
+            ),
+        )
+        for question, query_type, expected_text in cases:
+            with self.subTest(question=question):
+                answer = answer_policy_question(DB_PATH, question)
+                self.assertEqual(answer.status, "complete", answer)
+                self.assertEqual(answer.query_type, query_type)
+                self.assertTrue(answer.provenance)
+                for text in expected_text:
+                    self.assertIn(text, answer.rendered_answer)
+
+        personal = route_policy_question(
+            DB_PATH,
+            "กูติดหนี้100บาทยังจบได้มั้ย",
+            catalog_key="it-2565",
+        )
+        self.assertIsNotNone(personal)
+        self.assertEqual(personal.status, "unsupported")
+        self.assertEqual(personal.provenance, ())
+
+        ambiguous_appeal = route_policy_question(
+            DB_PATH,
+            "อุทธรณ์ได้กี่วัน",
+            catalog_key="it-2565",
+        )
+        self.assertIsNotNone(ambiguous_appeal)
+        self.assertEqual(ambiguous_appeal.status, "unsupported")
+
     def test_text_policy_queries_remain_bounded(self):
         for question in (
             "ลาออกแล้วได้เงินคืนไหม",
