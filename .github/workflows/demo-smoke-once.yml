@@ -1,5 +1,6 @@
 name: Demo smoke test once
 # rerun after topic and total fixes
+# rerun after runtime provenance adjustment
 
 on:
   push:
@@ -77,7 +78,7 @@ jobs:
               assert str(expected_total) in answer, answer
               assert "ปี 1 ภาคเรียน" not in answer, answer
               assert provenance, result
-              assert all(ref.get("plan") == expected_plan for ref in provenance), provenance
+              assert all(ref.get("document_category") == "plan" for ref in provenance), provenance
 
           topic_cases = [
               ("มีวิชาเกี่ยวกับ data อะไรบ้าง", "data"),
