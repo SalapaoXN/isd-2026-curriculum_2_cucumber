@@ -31,6 +31,10 @@ POLICY_ROUTE_ALLOWLIST = frozenset(
         "leave_of_absence",
         "resignation",
         "credit_transfer",
+        "exam_dishonesty_penalty",
+        "disciplinary_penalties",
+        "sanction_appeal_deadline",
+        "sanction_appeal_procedure",
     }
 )
 
