@@ -422,7 +422,7 @@ class RagPolicyTest(unittest.TestCase):
     def test_no_provider_or_curriculum_planner_is_required(self):
         answer = answer_policy_question(DB_PATH, "AIT ต้องเรียนกี่หน่วยกิต")
         self.assertEqual(answer.status, "complete")
-        self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 credits")
+        self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 หน่วยกิต")
 
     def test_multi_edition_program_total_without_catalog_fails_closed(self):
         # IT now has two catalog editions (it-2560: 130, it-2565: 129), so
