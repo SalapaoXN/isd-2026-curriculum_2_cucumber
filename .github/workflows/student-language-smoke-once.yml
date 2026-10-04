@@ -1,5 +1,6 @@
 name: Student language smoke once
 # rerun after bounded robustness fixes
+# rerun after regression repairs
 
 on:
   push:
