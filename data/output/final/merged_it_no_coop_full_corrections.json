@@ -123,7 +123,7 @@
         "course_code": "06066302",
         "field": "name_th",
         "before": "การเขียนโปรแกรมเจ็",
-        "after": "การเขียนโปรแกรมเชิงวัตถุ"
+        "after": "การเขียนโปรแกรมเว็บพื้นฐาน"
     },
     {
         "course_code": "06066302",
@@ -424,6 +424,12 @@
         "field": "name_en",
         "before": "PRACTICAL CYBER SECURIT",
         "after": "PRACTICAL CYBER SECURITY"
+    },
+    {
+        "course_code": "06016465",
+        "field": "name_th",
+        "before": "การออกแบบศูนย์",
+        "after": "การออกแบบศูนย์ข้อมูล"
     },
     {
         "course_code": "06016465",
