@@ -8,6 +8,7 @@ from typing import Any
 
 from rag.intent_interpreter import (
     IntentInterpretation,
+    QueryStructureInterpretation,
     validate_execution_scope,
 )
 from rag.query_spec import QuerySpec
@@ -339,9 +340,76 @@ def _require_single_course_target(spec: QuerySpec) -> None:
         raise IntentCompilerError("intent requires one exact course target")
 
 
+def _compile_query_structure(
+    base_spec: QuerySpec,
+    interpretation: QueryStructureInterpretation,
+) -> QuerySpec:
+    if base_spec.judgement == "unsupported":
+        raise IntentCompilerError("base QuerySpec has unsupported judgement")
+    if interpretation.predicate == "has_prerequisite":
+        if base_spec.topic is not None or base_spec.judgement not in (None, "none"):
+            raise IntentCompilerError(
+                "has_prerequisite cannot combine with topic or judgement"
+            )
+        if tuple(base_spec.operations) not in {
+            (),
+            ("list",),
+            ("list", "prerequisite"),
+        }:
+            raise IntentCompilerError(
+                "has_prerequisite conflicts with deterministic operations"
+            )
+
+    proposed_operations = tuple(interpretation.operations)
+    deterministic_operations = tuple(base_spec.operations)
+    if deterministic_operations:
+        equivalent_prerequisite_list = (
+            interpretation.predicate == "has_prerequisite"
+            and deterministic_operations in {
+                ("list",),
+                ("list", "prerequisite"),
+            }
+            and proposed_operations == ("list",)
+        )
+        if (
+            proposed_operations
+            and proposed_operations != deterministic_operations
+            and not equivalent_prerequisite_list
+        ):
+            raise IntentCompilerError(
+                "query-shape interpretation conflicts with deterministic operations"
+            )
+        operations = deterministic_operations
+    else:
+        operations = proposed_operations
+
+    if interpretation.predicate == "has_prerequisite":
+        if operations != ("list",):
+            raise IntentCompilerError(
+                "has_prerequisite is supported only for list operations"
+            )
+        operations = ("list", "prerequisite")
+
+    course_name = base_spec.course_name
+    if interpretation.course_name_span is not None:
+        if course_name is not None:
+            raise IntentCompilerError(
+                "course-name span conflicts with deterministic course name"
+            )
+        from rag.query_spec import parse_query_spec
+
+        course_name = parse_query_spec(
+            f"วิชา {interpretation.course_name_span} คืออะไร"
+        ).course_name
+        if course_name is None:
+            raise IntentCompilerError("course-name span is not a bounded title")
+
+    return replace(base_spec, course_name=course_name, operations=operations)
+
+
 def compile_intent_to_query_spec(
     base_spec: QuerySpec,
-    interpretation: IntentInterpretation,
+    interpretation: IntentInterpretation | QueryStructureInterpretation,
     *,
     authoritative_program: str | None = None,
     authoritative_plans: tuple[str, ...] = (),
@@ -352,6 +420,8 @@ def compile_intent_to_query_spec(
     """Compile a validated intent proposal without external side effects."""
     if not isinstance(base_spec, QuerySpec):
         raise TypeError("base_spec must be a QuerySpec")
+    if isinstance(interpretation, QueryStructureInterpretation):
+        return _compile_query_structure(base_spec, interpretation)
     if not isinstance(interpretation, IntentInterpretation):
         raise TypeError("interpretation must be an IntentInterpretation")
 

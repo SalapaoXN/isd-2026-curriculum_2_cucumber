@@ -30,10 +30,10 @@ from rag import qa as qa_module
 from rag.qa import (
     _classify_structured_parse_completeness,
     _placement_shadow_candidate,
-    ask,
+    ask as _ask,
 )
 from rag.query_spec import parse_query_spec
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 
 
 DB_PATH = str(
@@ -42,6 +42,35 @@ DB_PATH = str(
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Pin legacy single-edition cases to their authored catalog edition.
+
+    Every fixture question predates multi-edition IT/BIT/GENED; the UI
+    edition selector now supplies the scope the questions leave implicit.
+    """
+    authored_edition = {
+        "DSBA": "dsba-2565",
+        "IT": "it-2565",
+        "BIT": "bit-2565",
+        "GENED": "gened-2564",
+        "AIT": "ait-2566",
+    }
+    program = parse_query_spec(question).program
+    # Auto-pinning applies only to the shared runtime DB. Temp-DB tests
+    # construct their own catalogs and must keep exact behavior.
+    try:
+        is_shared = Path(db_path).resolve() == Path(DB_PATH).resolve()
+    except (OSError, ValueError):
+        is_shared = False
+    if program in authored_edition and is_shared and not any(
+        name in kwargs for name in ("context", "conversation_context")
+    ):
+        kwargs["conversation_context"] = QueryContext(
+            program=program, catalog_key=authored_edition[program]
+        )
+    return _ask(db_path, question, *args, **kwargs)
 
 
 def placement_payload(**overrides):

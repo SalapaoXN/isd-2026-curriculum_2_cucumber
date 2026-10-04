@@ -251,10 +251,9 @@ class EvidenceExecutorTests(unittest.TestCase):
         for result in results:
             self.assertEqual(result.effective_scope.course_targets, (left,))
             self.assertTrue(result.payload)
-            expected_course_id = 632 if result.effective_scope.plans == ("coop",) else 736
             self.assertEqual(
-                {evidence["course_id"] for evidence in result.payload},
-                {expected_course_id},
+                {evidence["course_code"] for evidence in result.payload},
+                {left["course_code"]},
             )
             self.assertTrue(all(
                 evidence["course_code"] == left["course_code"]
@@ -308,15 +307,9 @@ class EvidenceExecutorTests(unittest.TestCase):
                     result.effective_scope.course_targets,
                     (left if expected_code == left["course_code"] else right,),
                 )
-                expected_course_id = {
-                    ("06016414", "coop"): 632,
-                    ("06016414", "no_coop"): 736,
-                    ("06016419", "coop"): 634,
-                    ("06016419", "no_coop"): 738,
-                }[(expected_code, result.effective_scope.plans[0])]
                 self.assertEqual(
-                    {evidence["course_id"] for evidence in result.payload},
-                    {expected_course_id},
+                    {evidence["course_code"] for evidence in result.payload},
+                    {expected_code},
                 )
                 self.assertTrue(all(
                     evidence["course_code"] == expected_code
@@ -462,7 +455,9 @@ class EvidenceExecutorTests(unittest.TestCase):
 
         self.assertEqual(result.status, "valid_empty")
         self.assertEqual(result.effective_scope.years, (5,))
-        get_credits.assert_called_once_with(DB_PATH, "IT", "coop", 5, 1)
+        get_credits.assert_called_once_with(
+            DB_PATH, "IT", "coop", 5, 1, catalog_key=None
+        )
 
     def test_credit_facts_keep_authoritative_components_and_provenance(self):
         scope = self._scope()
@@ -573,7 +568,9 @@ class EvidenceExecutorTests(unittest.TestCase):
             result = execute_evidence_plan(DB_PATH, self._plan(request)).results[0]
 
         self.assertEqual(result.status, "complete")
-        get_credits.assert_called_once_with(DB_PATH, "IT", "coop", 2, 1)
+        get_credits.assert_called_once_with(
+            DB_PATH, "IT", "coop", 2, 1, catalog_key=None
+        )
 
     def test_exact_course_credit_forwards_target_to_term_query(self):
         target = {
@@ -618,6 +615,7 @@ class EvidenceExecutorTests(unittest.TestCase):
             2,
             1,
             course_targets=(target,),
+            catalog_key=None,
         )
 
     def test_exact_course_credit_without_term_uses_direct_course_fact(self):
@@ -702,7 +700,16 @@ class EvidenceExecutorTests(unittest.TestCase):
             }
             return {"status": "ok", "courses": (candidate,), "provenance": provenance}
 
-        def credit_result(_db_path, _program, plan_key, _year, _semester, *, course_targets):
+        def credit_result(
+            _db_path,
+            _program,
+            plan_key,
+            _year,
+            _semester,
+            *,
+            course_targets,
+            catalog_key=None,
+        ):
             calls.append((plan_key, tuple(target["plan_key"] for target in course_targets)))
             provenance = ({"source_page": 20 if plan_key == "coop" else 21},)
             return {
@@ -798,7 +805,7 @@ class EvidenceExecutorTests(unittest.TestCase):
         self.assertEqual(result.status, "insufficient_evidence")
         self.assertEqual(result.primitive_state, "prerequisite_state_unknown")
 
-    def test_prerequisite_facts_remap_physical_course_per_plan(self):
+    def test_prerequisite_facts_share_course_row_with_plan_partitioned_evidence(self):
         target = {
             "course_id": 635,
             "program": "IT",
@@ -824,27 +831,40 @@ class EvidenceExecutorTests(unittest.TestCase):
         ])
         self.assertEqual(
             [
-                (result.payload[0]["course_id"], result.payload[0]["prerequisite_course_id"])
+                result.payload[0]["prerequisite_code"]
                 for result in results
             ],
-            [(635, 624), (739, 728)],
+            ["06016413", "06016413"],
         )
-        provenance_ids = [
+        self.assertTrue(
+            all(record.get("provenance") for result in results for record in result.payload)
+        )
+        plan_sources = [
             {
-                reference.get("provenance_id")
+                reference.get("source_filename")
                 for record in result.payload
                 for reference in record.get("provenance", ())
             }
             for result in results
         ]
-        self.assertIn(196, provenance_ids[0])
-        self.assertIn(191, provenance_ids[0])
-        self.assertNotIn(236, provenance_ids[0])
-        self.assertNotIn(235, provenance_ids[0])
-        self.assertIn(236, provenance_ids[1])
-        self.assertIn(235, provenance_ids[1])
-        self.assertNotIn(196, provenance_ids[1])
-        self.assertNotIn(191, provenance_ids[1])
+        self.assertIn("it_page_042.png", plan_sources[0])
+        self.assertIn("it_page_035.png", plan_sources[1])
+        # Prerequisite facts are catalog-scoped: the shared prerequisite
+        # course row retains genuine sources from both plans of the same
+        # edition, so each plan's evidence must stay within that retained
+        # source set and keep its own plan page.
+        genuine_sources = {
+            "it_page_034.png",
+            "it_page_035.png",
+            "it_page_041.png",
+            "it_page_042.png",
+            "it_page_333.png",
+            "it_page_334.png",
+            "it_page_338.png",
+        }
+        for sources in plan_sources:
+            self.assertTrue(sources)
+            self.assertTrue(sources <= genuine_sources)
 
     def test_direct_description_evidence_preserves_partition(self):
         scope = self._scope(

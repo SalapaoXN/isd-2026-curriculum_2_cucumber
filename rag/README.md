@@ -2,14 +2,14 @@
 
 ## ภาพรวม
 ส่วนนี้รับคำถามภาษาไทย แล้วตอบโดยอ้างอิงหลักฐานจากฐานข้อมูล
-SQLite ทางการ พร้อมบอกแหล่งที่มาของข้อมูลทุกครั้ง ทางเข้า
+SQLite ทางการ พร้อม provenance สำหรับคำตอบเชิงข้อเท็จจริง ทางเข้า
 หลักคือ `rag.qa.ask()` (มี `rag.hybrid_demo.answer_question_once()`
 หุ้มไว้อีกชั้นหนึ่ง)
 
 ## ข้อมูลนำเข้า
 รับข้อความคำถามหนึ่งข้อ กับ `QueryContext`
 (`rag/resolution.py`) ที่บรรจุได้เฉพาะโครงสร้างอ้างอิง
-(program/plan/ปี/เทอม/หมวด/วิชา/operation) เท่านั้น —
+(`catalog_key`/program/plan/ปี/เทอม/หมวด/วิชา/operation) เท่านั้น —
 ห้ามเก็บคำตอบ — พร้อม model callable ที่ส่งเข้ามาจากภายนอก
 (ถ้ามี)
 
@@ -48,11 +48,12 @@ SQLite ทางการ พร้อมบอกแหล่งที่มา
 ## ผลลัพธ์
 `GroundedAnswerResult` ประกอบด้วยสถานะ (`answer`,
 `insufficient_evidence`, `valid_empty`, `no_data`,
-`clarify_program`, `context_conflict`, `unsupported`)
+`clarify_program`, `clarify_catalog`, `context_conflict`, `unsupported`)
 ข้อความตอบสุดท้าย claim ที่มีชนิด และแหล่งอ้างอิงของข้อมูล
 (program + เลขหน้า) การสนทนาหลายเทิร์นใช้วิธีส่ง
 `next_context` จาก response กลับมาเป็น
-`conversation_context` ของครั้งถัดไป
+`conversation_context` ของครั้งถัดไป โดยคง `catalog_key` และขอบเขตอื่นที่
+ตรวจสอบแล้ว
 
 ## กลุ่มคำถามที่รองรับ
 รายชื่อวิชา / จำนวนวิชา / มีวิชานี้ไหม / วิชานี้เรียนตอนไหน
@@ -93,6 +94,12 @@ Robustness 50/50 PASS (ชุดเสริมด้านสำนวนภา
 ## ข้อจำกัด
 - ข้อเท็จจริงทางการคือหลักฐาน SQLite/deterministic ส่วนผล
   จาก LLM ไม่ใช่ข้อเท็จจริงไม่ว่ากรณีใด
+- `catalog_key` คือ identity ของฉบับหลักสูตร; `academic_year` ใช้แสดงผล/
+  เรียงลำดับ และ `plan` เป็น variant ภายในฉบับ
+- คำถามของ program ที่มีหลายฉบับต้องระบุฉบับ มิฉะนั้นระบบจะขอให้เลือกแทนการรวม
+  หลักฐานข้ามฉบับ
+- ข้อกำหนดหน่วยกิตรวมของ DSBA 2560 ยังไม่มีใน runtime requirements จึงตอบแบบ
+  fail closed
 - ห้ามแก้ runtime DB จากเส้นทาง QA
 - ตั้งใจไม่รองรับ: ผลรวมรายหมวดนอก scope ปี+เทอมชัด
   นโยบายแบบหลายเทิร์น earliest-year สำนวน credit ภาษาอังกฤษ/

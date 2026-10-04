@@ -6,12 +6,46 @@ from contextlib import closing
 from pathlib import Path
 
 from rag.policy import answer_policy_question
+from rag.policy.routing import route_policy_question
+from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
 
 
 class RagPolicyTest(unittest.TestCase):
+    def test_dsba_total_requirement_is_selected_by_catalog(self):
+        expected = {"dsba-2560": 126, "dsba-2565": 132}
+        for catalog_key, total in expected.items():
+            answer = answer_policy_question(
+                DB_PATH,
+                "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+                catalog_key=catalog_key,
+            )
+            self.assertEqual(answer.status, "complete")
+            self.assertEqual(answer.value, total)
+            self.assertTrue(answer.provenance)
+            self.assertTrue(
+                all(reference["document_category"] == "plan" for reference in answer.provenance)
+            )
+
+            result = ask(
+                DB_PATH,
+                "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+                conversation_context=QueryContext(
+                    program="DSBA", catalog_key=catalog_key
+                ),
+            )
+            grounded = result["result"]
+            self.assertEqual(grounded.status, "answer")
+            self.assertIn(str(total), grounded.final_answer)
+
+        unscoped = route_policy_question(
+            DB_PATH, "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต"
+        )
+        self.assertEqual(unscoped.status, "insufficient_evidence")
+
     def test_registration_facts_are_canonical_and_provenanced(self):
         maximum = answer_policy_question(DB_PATH, "ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต")
         minimum = answer_policy_question(DB_PATH, "ขั้นต่ำกี่หน่วยกิต")
@@ -51,17 +85,29 @@ class RagPolicyTest(unittest.TestCase):
         self.assertEqual(cleared.condition, "at_least")
         self.assertNotEqual(entry.condition, cleared.condition)
 
-    def test_program_totals_come_from_program_requirements(self):
-        expected = {"AIT": 120, "BIT": 126, "DSBA": 132, "IT": 129}
-        for program, value in expected.items():
-            answer = answer_policy_question(DB_PATH, f"{program} ต้องเรียนกี่หน่วยกิต")
+    def test_program_totals_come_from_catalog_scoped_program_requirements(self):
+        expected = {
+            ("AIT", "ait-2566"): 120,
+            ("BIT", "bit-2560"): 126,
+            ("BIT", "bit-2565"): 126,
+            ("DSBA", "dsba-2560"): 126,
+            ("DSBA", "dsba-2565"): 132,
+            ("IT", "it-2560"): 130,
+            ("IT", "it-2565"): 129,
+        }
+        for (program, catalog_key), value in expected.items():
+            answer = answer_policy_question(
+                DB_PATH,
+                f"{program} ต้องเรียนกี่หน่วยกิต",
+                catalog_key=catalog_key,
+            )
             self.assertEqual(answer.status, "complete")
             self.assertEqual(answer.value, value)
             self.assertEqual(answer.program, program)
             self.assertIsNone(answer.source_rule_id)
             self.assertTrue(answer.provenance)
-            self.assertEqual(
-                answer.provenance[0]["document_category"], "program_requirement"
+            self.assertTrue(
+                all(reference["document_category"] == "plan" for reference in answer.provenance)
             )
 
     def test_honors_and_reentry_use_source_supported_facts(self):
@@ -101,9 +147,25 @@ class RagPolicyTest(unittest.TestCase):
             self.assertEqual(answer.provenance, ())
 
     def test_no_provider_or_curriculum_planner_is_required(self):
-        answer = answer_policy_question(DB_PATH, "IT ต้องเรียนกี่หน่วยกิต")
+        answer = answer_policy_question(DB_PATH, "AIT ต้องเรียนกี่หน่วยกิต")
         self.assertEqual(answer.status, "complete")
-        self.assertEqual(answer.rendered_answer, "หลักสูตร IT ต้องเรียนทั้งหมด 129 credits")
+        self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 credits")
+
+    def test_multi_edition_program_total_without_catalog_fails_closed(self):
+        # IT now has two catalog editions (it-2560: 130, it-2565: 129), so
+        # an edition-ambiguous total must fail closed instead of guessing.
+        answer = answer_policy_question(DB_PATH, "IT ต้องเรียนกี่หน่วยกิต")
+        self.assertEqual(answer.status, "insufficient_evidence")
+        legacy = answer_policy_question(
+            DB_PATH, "IT ต้องเรียนกี่หน่วยกิต", catalog_key="it-2560"
+        )
+        self.assertEqual(legacy.status, "complete")
+        self.assertEqual(legacy.value, 130)
+        current = answer_policy_question(
+            DB_PATH, "IT ต้องเรียนกี่หน่วยกิต", catalog_key="it-2565"
+        )
+        self.assertEqual(current.status, "complete")
+        self.assertEqual(current.value, 129)
 
 
 if __name__ == "__main__":

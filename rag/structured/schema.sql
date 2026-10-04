@@ -48,12 +48,13 @@ CREATE TABLE policy_fact_provenance (
 
 CREATE TABLE program_requirements (
     requirement_id INTEGER PRIMARY KEY,
+    catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
     program_code TEXT NOT NULL,
     requirement_type TEXT NOT NULL,
     operator TEXT NOT NULL,
     value NUMERIC NOT NULL,
     unit TEXT NOT NULL,
-    UNIQUE (program_code, requirement_type)
+    UNIQUE (catalog_id, program_code, requirement_type)
 );
 
 CREATE TABLE program_requirement_provenance (
@@ -86,6 +87,7 @@ CREATE TABLE courses (
     catalog_id INTEGER NOT NULL REFERENCES catalogs(catalog_id),
     course_code TEXT NOT NULL,
     course_code_normalized TEXT NOT NULL,
+    course_identity_discriminator TEXT NOT NULL DEFAULT '',
     name_th TEXT,
     name_en TEXT,
     credits TEXT,
@@ -97,7 +99,7 @@ CREATE TABLE courses (
     course_type TEXT,
     prerequisite_text TEXT,
     notes TEXT,
-    UNIQUE (catalog_id, course_code_normalized)
+    UNIQUE (catalog_id, course_code_normalized, course_identity_discriminator)
 );
 
 CREATE TABLE curriculum_plans (

@@ -1,0 +1,3017 @@
+{
+    "source": "OCR extraction / Academic Plan - IT no_coop",
+    "description": "OCR-extracted curriculum records for IT (plan no_coop)",
+    "program": "IT",
+    "plan": "no_coop",
+    "total_courses": 110,
+    "courses": [
+        {
+            "code": "06016397",
+            "name_th": "สหกิจศึกษาทางด้านการพัฒนาสื่อประสมและเกม",
+            "name_en": "COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
+            "credits": "6(0-36-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_269.png",
+                    "source_page": 269,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ที่\nยินยอมใ\nเห้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ และ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND THE ENTERPRISES.\nAFTER COMPLETION,\nSTUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE."
+        },
+        {
+            "code": "06016398",
+            "name_th": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสื่อประสมและเกม",
+            "name_en": "OVERSEAS COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
+            "credits": "6(0-36-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "F NONE",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_269.png",
+                    "source_page": 269,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน ต่างๆ ที่\nยินยอมให้นักศึกษาได้นำความรู้ตที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะ=\nและ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL. WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND THE ENTERPRISES. AFTER COMPLETION, STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nวท.="
+        },
+        {
+            "code": "06016301",
+            "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
+            "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_223.png",
+                    "source_page": 223,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "วิวัฒนาการของเทคโนโลยีสารสนเทศ องค์ประกอบของระบบคอมพิวเตอร์ ระบบประมวลผลข้อมูล\nฮาร์ดแวร์และซอฟต์แวร์ ภาพรวมการทำงานของระบบปฏิบัติการ ข้อมูลและการแทนค่าข้อมูล การจัดการ\nข้อมูล แนวคิดพื้นฐานสำหรับการสร้างโปรแกรม เทคโนโลยีฐานข้อมูล การสื่อสารข้อมูล ระบบเครือข่าย\nคอมพิวเตอร์และอินเทอร์เน็ต ประเด็นทางด้านจริยธรรมและสังคมกับเทคโนโลยีสารสนเทศ",
+            "desc_en": "EVOLUTION\nOF\nINFORMATION  TECHNOLOGY;\nCOMPONENTS\nOF\nCOMPUTER\nSYSTEMS;\nDATA\nPROCESSING SYSTEMS; HARDWARE AND SOFTWARE; OVERVIEW OF OPERATING SYSTEM; DATA  AND  DATA\nREPRESENTATION; DATA\nMANAGEMENT; BASIC CONCEPTS FOR  PROGRAMMING; DATABASE TECHNOLOGY;\nDATA COMMUNICATION; COMPUTER NETWORK SYSTEMS AND THE INTERNET; ETHICAL AND SOCIAL ISSUES\nIN INFORMATION TECHNOLOGY."
+        },
+        {
+            "code": "06016314",
+            "name_th": "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
+            "name_en": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_229.png",
+                    "source_page": 229,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "กลยุทธ์และหลักการแก้ปัญหาการคิดแบบขั้นตอนวิธี ผังงาน แนวคิดและเกริ่นนำการเขียน ฺโปรแกรม\nคอมพิวเตอร์",
+            "desc_en": "PROBLEM  SOLVING  STRATEGIES  AND CONCEPTS; ALGORITHMIC THINKING; FOWCHART; CONCEPTS\nAND INTRODUCTION TO COMPUTER PROGRAMMING.\nวท.="
+        },
+        {
+            "code": "06016319",
+            "name_th": "ระบบคอมพิวเตอร์เบื้องต้น",
+            "name_en": "INTRODUCTION TO COMPUTER SYSTEMS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_231.png",
+                    "source_page": 231,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_232.png",
+                    "source_page": 232,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ระบบจำนวน ระบบฐานสอง พีชคณิตบูลีน เทคนิคการออกแบบเชิงดิจิทัล ลอจิกเกตและการลด\nจำนวน วงจรเชิงผสมเบื้องต้น ฺหน่วยคำนวณและตรรกะ วิวัฒนาการของคอมพิวเตอร์ องค์ประกอบของระบบ\nคอมพิวเตอร์และการเชือมต่อระหว่างกัน วิธีการคำนวณทางคณิตศาสตร์ของเครื่องคอมพิวเตอร์\nวท.=",
+            "desc_en": "NUMBER SYSTEMS, BINARY SYSTEM,\nBOOLEAN  ALGEBRAS, DIGITAL  DESIGN  TECHNIQUES, LOGIC\nAND\nMINIMIZATION,\nBASIC\nCOMBINATIONAL\nCIRCUITS,\nARITHMETIC\nLOGIC\nUNITS,\nCOMPUTER\nEVOLUTION., COMPUTER FUNCTION AND INTERCONNECTION., COMPUTER ARITHMETIC."
+        },
+        {
+            "code": "90101007",
+            "name_th": "คณิตเศรษฐศาสตร์เบื้องต้น",
+            "name_en": "INTRODUCTION TO MATHEMATICAL ECONOMICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90201001",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+            "name_en": "FOUNDATION ENGLISH 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90401013",
+            "name_th": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ",
+            "name_en": "GENERAL BUSINESS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_027.png",
+                    "source_page": 27,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016302",
+            "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
+            "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_223.png",
+                    "source_page": 223,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ลิมิตและความต่อเนื่อง  อนุพันธ์ของฟังก์ชัน  อนุพันธ์อันดับสูง  การประยุกต์ของอนุพันธํ ปัญหา\nค่าสูงสุดและต่ำสุดของฟังก์ชัน\nการอินทิเกรตและเทคนิคของการอินทเกรตการประยุกต์ของการอินทิเกรต\nฟังก์ชันสองตัวแปร  อนุพันธ์ย่อยพีชคณิตเชิงเส้น เมทริกซ์และดีเทอร์มิเนนท์  ระบบสมการเชิงเส้น\nและการ\nหาผลเฉลยของระบบสมการเชิงเส้น เวกเตอร์สเปซ การแปลงเชิงเส้น การแปลงเมทริกช์ เมทริกซ์เชิงตั้งฉาก",
+            "desc_en": "LIMIT AND CONTINUITY., DERIVATIVE OF FUNCTIONS, HIGHER DERIVATIVES, APPLICATIONS OF\nDERIVATIVE,\nMAXIMA AND MINIMA OF FUNCTIONS, INTEGRATION AND TECHNIQUES OF INTEGRATION,\nAPPLICATIONS OF INTEGRATION., FUNCTIONS OF TWO VARIABLES, PARTIAL DERIVATIVES, LINEAR ALGEBRA,\nMATRICES AND DETERMINANTS, SYSTEM OF LINEAR EQUATIONS AND ITS SOLUTIONS, VECTOR SPACES, LINEAR\nTRANSFORMATIONS, MATRIX TRANSFORMATION., ORTHOGONAL MATRIX.\nวท.="
+        },
+        {
+            "code": "06016311",
+            "name_th": "เทคโนโลยีสื่อประสม",
+            "name_en": "MULTIMEDIA TECHNOLOGY",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_228.png",
+                    "source_page": 228,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ระบบเสื่อประสม ประเภทข้อมูลของสื่อประสมฺการสร้างสื่อประสม ฺการประมวลผลข้อมูลสื่อประสม\nการส่งผ่านข้อมูลสื่อประสม ประเภทของไฟล์สื่อประสม ฺอุปกรณ์การเก็บข้อมูลสื่อประสมฺการนำเสนอข้อมูล\nสื่อประสม แอพลิเคชั่นสื่อประสม เครื่องมือการประพันธ์สื่อประสม",
+            "desc_en": "MULTIMEDIA SYSTEMS; TYPES OF MULTIMEDIA DATA; CREATION OF MULTIMEDIA; MULTIMEDIA\nDATA\nPROCESSING;\nMULTIMEDIA\nDATA  TRANSMISSION;\nMULTIMEDIA FILE FORMATS; MULTIMEDIA\nDATA\nSTORAGE\nDEVICES;\nMULTIMEDIA\nDATA\nPRESENTATION;  APPLICATIONS\nOF  MULTIMEDIA;\nMULTIMEDIA\nAUTHORING TOOLS."
+        },
+        {
+            "code": "06016315",
+            "name_th": "การสร้างโปรแกรมคอมพิวเตอร์",
+            "name_en": "COMPUTER PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_230.png",
+                    "source_page": 230,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนะนำภาษาการสร้างโปรแกรม ฺการเขียนผังงาน แนวคิดของโปรแกรมภาษาซี ข้อมูลและชนิดของ\nข้อมูลในภาษาซี ฟังก์ชันเบื้องต้นและข้อความสั่งกำหนดค่า โครงสร้างการวนซ้ำและเงื่อนไข อาร์เรย์ การ\nประมวลผลสตริง การเขียนการเขียนฟังก์ชัน ตัวชี้ การเขียนข้อมูลชนิดโครงสร้างการกำหนดคุณสมบัติของตัว\nแปร การจัดการหน่วยความจำ\nแฟ้มอินพุตและเอาต์พุตฺการประยุกต์ใช้กับไมโครคอนโทรลเลอร์",
+            "desc_en": "INTRODUCTION\nTO\nPROGRAMMING  LANGUAGES;\nFLOWCHART;\nCONCEPTS\nOF\nC\nPROGRAMMING\nLANGUAGE; DATA AND DATA TYPES IN C; ASSIGNMENT STATEMENT AND BASIC FUNCTIONS; CONDITIONAL\nAND LOOP STRUCTURES; ARRAY; STRING; FUNCTION; POINTER; STRUCTURE; VARIABLE STORAGE CLASS; MEMORY\nMANAGEMENT; FILE INPUT AND OUTPUT; MICRO CONTROLLER PROGRAMMING."
+        },
+        {
+            "code": "06016320",
+            "name_th": "โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ",
+            "name_en": "COMPUTER SYSTEMS ORGANIZATION AND OPERATING SYSTEM",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_232.png",
+                    "source_page": 232,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "องค์ประกอบของคอมพิวเตอร์ หน่วยประมวลผลกลาง หน่วยความจำอินพุตและเอาต์พุตฺการทำงาน\nร่วมกันขององค์ประกอบต่างๆ ฺภาพรวมการทำงานของระบบปฏิบัติการ กระบวนการ โพรเซสและเธรด การ\nสลับการทำงาน การจัดการหน่วยความจำหน่วยความจำเสมือน การจัดการแฟ้ม อินพุตและเอาต์พุต",
+            "desc_en": "COMPUTER COMPONENTS; CPU; MEMORY; V/O; COMPONENTS  CO OPERATION; OVERVIEW OF\nOPERATING SYSTEM; PROCESS AND THREAD; PROCESSING SWITCHING; MEMORY MANAGEMENT; VIRTUAL\nMEMORY; FILE; INPUT/OUTPUT MANAGEMENT."
+        },
+        {
+            "code": "90201002",
+            "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+            "name_en": "FOUNDATION ENGLISH 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_page": 23,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "90201012",
+            "name_th": "การพัฒนาทักษะการอ่านและเขียนภาษาอังกฤษ",
+            "name_en": "DEVELOPMENT OF READING AND WRITING SKILL IN ENGLISH",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_page": 23,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016303",
+            "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
+            "name_en": "DISCRETE MATHEMATICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_224.png",
+                    "source_page": 224,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ระบบตัวเลขฺ ฺตรรกและเซ็ท ความสัมพันธ์และฟังก์ชัน คอมบินาทอรีส์ กราฟและทรี พีชคณิตบูลีน\nระบบทพีชคณิต ฺทฤษฎีสารสนเทศและการเข้ารหัสและระบบสถานะจำกัด",
+            "desc_en": "NUMBER SYSTEMS, LOGIC AND SETS, RELATIONS AND FUNCTIONS, COMBINATORIES, GRAPHS AND\nTREES, BOOLEAN ALGEBRA, ALGEBRAIC SYSTEMS, CODING AND INFORMATION THEORIES, AND FINITE STATE\nAUTOMATA."
+        },
+        {
+            "code": "06016305",
+            "name_th": "ระบบสารสนเทศเพื่อการจัดการ",
+            "name_en": "MANAGEMENT INFORMATION SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "90401013",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_225.png",
+                    "source_page": 225,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "บทบาทของเทคโนโลยีสารสนเทศในธุรกิจ แนวคิดระบบสารสนเทศและการจัดการ กลยุทธ์ทาง\nเทคโนโลยีสารสนเทศ การวางแผนเทคโนโลยีสารสนเทศเชิงกลยุทธ์ ความสอดคล้องของเทคโนโลยีสารสนเทศ\nกับกลยุทธ์ทางธุรกิจ การได้มาซึ่งระบบสารสนเทศ ระบบสารสนเทศตามลักษณะที่สนับสนุนการทำงาน ระบบ\nสารสนเทศระดับองค์กร  แนวโน้มการประยุกต์ใช้เทคโนโลยีสารสนเทศ จริยธรรมและประเด็นทางสังคม",
+            "desc_en": "ROLES\nOF  INFORMATION  TECHNOLOGY\nIN\nBUSINESS;\nINFORMATION\nSYSTEM\nCONCEPTS\nAND\nMANAGEMENT; IT STRATEGY; STRATEGIC INFORMATION TECHNOLOGY PLANNING; ALIGNING IT WITH BUSINESS\nSTRATEGY; INFORMATION SYSTEM ACQUISITION; FUNCTIONAL INFORMATION SYSTEMS; ENTERPRISE SYSTEMS;\nTRENDS IN\nAPPLICATIONS OF INFORMATION TECHNOLOGY; ETHICAL AND SOCIAL ISSUES."
+        },
+        {
+            "code": "06016312",
+            "name_th": "เทคโนโลยีเว็บ",
+            "name_en": "WEB TECHNOLOGY",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_228.png",
+                    "source_page": 228,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "องค์ประกอบและแนวคิดพื้นฐานของระบบเว็บ เหลักการทำงานของระบบเว็บ แนะนำเทคโนโลยี เว็บ\nฝั่งไคลแอนท์ ได้แก่ เอชทีเอ็มแอล ซีเอสเอส ฺจาวาสคริปต์ และ ดีโอเอ็ม เทคโนโลยี เว็บฝั่งเชิร์ฟเวอร์สำหรับ\nการสร้างหน้าเว็บแบบปรับเปลี่ยนเนื้อหาได้ เครื่องมือสำหรับการออกแบบและพัฒนาเว็บ บริการทั่วไปบน\nอินเทอร์เน็ตและเว็บ เช่น เซิร์จเอ็นจินต์ บริการวีดีโอสตรีมมิง บริการแผนทีและการระบุตำแหน่ง",
+            "desc_en": "COMPONENTS\nAND\nBASIC\nCONCEPTS\nOF A  WEB  SYSTEM;\nHOW\nA\nWEB\nSYSTEM\nWORKS;\nINTRODUCTION\nTO\nCLIENT SIDE\nWEB\nTECHNOLOGIES\nI.E.\nHTML,\nCSS,\nJAVASCRIPT\nAND\nDOM;\nTECHNOLOGIES\nFOR\nCREATING\nSERVER SIDE\nDYNAMIC\nWEB\nPAGES;\nTOOLS\nFOR\nWEB\nDESIGN\nAND\nDEVELOPMENT;\nCOMMON\nINTERNET\nAND\nWEB\nSERVICES\nE.G.\nSEARCH\nENGINES,\nVIDEO  STREAMING\nSERVICES,\nAND LOCATION SERVICES.\nวท.="
+        },
+        {
+            "code": "06016313",
+            "name_th": "เครือข่ายคอมพิวเตอร์เบื้องต้น",
+            "name_en": "INTRODUCTION TO COMPUTER NETWORKS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_229.png",
+                    "source_page": 229,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "หลักการพื้นฐานเครือข่ายคอมพิวเตอร์และการสื่อสารข้อมูล ฺสถาปัตยกรรมเครือข่าย การแบ่ง\nระดับชั้นการทำงานเครือข่ายแบบโอเอสไอและทีชีพีไอพี โพรโทคอลระดับแอพลิเคชัน สถาปัตยกรรมแอพลิเค\nโพรโทคอลระดับทรานสปอร์ต รูปแบบการส่งข้อมูลให้น่าเชื่อถือ การควบคุมความคับคั่ง โพรโทคอลระดับ\nเครือข่าย เครือข่ายเซอร์กิตสวิทชิงและแพ็คเก็ตสวิทชิง โพรโทคอลอินเตอร์เน็ต รูปแบบการหาเส้นทาง โพรโท\nคอลระดับดาต้าลิงก์ การควบคุมการเข้าถึงสื่อ ระบบหมายเลขที่อยู่บนเครือข่าย เทคโนโลยีอีเทอร์เน็ต\nเครือข่ายท้องถิ่น เครือข่ายเสมือน เครือข่ายพื้นที่กว้าง เครือข่ายท้องถิ่นแบบไร้สายโพรโทคอลและฟังก์ชั่น\nการทำงานระดับกายภาพ",
+            "desc_en": "BASIC\nCONCEPTS\nOF\nCOMPUTER\nNETWORKS\nAND\nDATA\nCOMMUNICATIONS;\nNETWORK\nARCHITECTURE; OSI AND TCP/P NETWORK LAYERING MODEL; APPLICATION LAYER PROTOCOLS, APPLICATION\nARCHITECTURE;  TRANSPORT\nPROTOCOLS,\nRELIABLE\nDATA\nTRANSFER\nMODEL, CONGESTION\nCONTROL;\nส.\nNETWORK LAYER  PROTOCOLS,\nCIRCUIT AND  PACKET  SWITCHING NETWORKS,\nINTERNET  PROTOCOL, ROUTING\nMODELS;\nDATA\nLINK  LAYER  PROTOCOLS,\nMEDIUM\nACCESS\nCONTROL,\nNETWORK  ADDRESSING SYSTEMS,\nETHERNET TECHNOLOGY,\nLOCAL  AREA NETWORK (LAN), VIRTUAL LAN (VLAN),\nWIRELESS LAN, AND WIDE\nAREA NETWORK (WAN); PHYSICAL LAYER PROTOCOLS AND ITS FUNCTIONS.\nข"
+        },
+        {
+            "code": "06016316",
+            "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
+            "name_en": "DATA STRUCTURES AND ALGORITHMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016315",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_230.png",
+                    "source_page": 230,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ชนิดของข้อมูล โครงสร้างข้อมูลและชนิดข้อมูลแบบนามธรรม ฺโครงสร้างข้อมูลพื้นฐาน เช่น ลิสท์\nสแต็ก และคิว โครงสร้างข้อมูลแบบพลวัต คำศัพท์เฉพาะเกี่ยวกับทรี ไบนารีทรี ไบนารีเสิร์ชทรี เอวีแอลทรี\nกราฟ การวิเคราะห์โปรแกรมเร็\nเชิงเวลาและพื้นที่ อัลกอริทึมการเรียงลำดับและการค้นหาข้อมูล อัลกอริทึมแบบ\nละโมบ\nอัลกอริทึมแบบแบ่งเพื่อเอาชนะ อัลกอริทึมเกี่ยวกับกราฟ และการเขียนโปรแกรมพลวัต",
+            "desc_en": "DATA TYPES; DATA STRUCTURES AND\nABSTRACT DATA TYPES; BASIC DATA STRUCTURES\nE.G. LIST,\nSTACK, AND QUEUE; DYNAMIC DATA STRUCTURES; TERMINOLOGY OF TREES; BINARY TREES; BINARY SEARCH\nTREES;\nAVL\nTREES;\nGRAPH;\nTIME\nAND\nSPACE\nANALYSIS\nOF  PROGRAMS;\nSORTING\nAND\nSEARCHING\nALGORITHMS; GREEDY ALGORITHM; DIVIDE AND CONQUER ALGORITHM;\nALGORITHMS; AND DYNAMIC\nPROGRAMMING.\nวท.="
+        },
+        {
+            "code": "06016317",
+            "name_th": "การสร้างโปรแกรมเชิงอ็อบเจกต์",
+            "name_en": "OBJECT ORIENTED PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016315",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_028.png",
+                    "source_page": 28,
+                    "document_category": "plan",
+                    "document_page": 23
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_231.png",
+                    "source_page": 231,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การออกแบบและพัฒนาโปรแกรมเชิงอ็อบเจกต์ หลักการห่อหุ้ม คลาสและอ็อบเจกต์ เมธอดและการ\nส่งสาร การสืบทอดคุณลักษณะ ภาวะพหุสัณฐาน การพัฒนาส่วนต่อประสานกราฟิกกับผู้ใช้ และการจัดการ\nกับเหตุการณ์. อาร์เรย์และคอลเลคชัน การจัดการกับสิ่งผิดปกติ คลาสที่เกี่ยวข้องกับอินพุตและเอาต์พุต เธรด",
+            "desc_en": "OBJECT ORIENTED\nPROGRAM\nDESIGN\nAND\nDEVELOPMENT;\nENCAPSULATION;\nCLASSES\nAND\nOBJECTS;\nMETHODS\nAND\nMESSAGE\nPASSING;\nINHERITANCE\nAND  POLYMORPHISM;\nUSER\nINTERFACE DEVELOPMENT AND EVENT HANDLING; DATA STRUCTURES: ARRAYS AND COLLECTIONS; EXCEPTION\nHANDLING; INPUT OUTPUT CLASSES; THREADS."
+        },
+        {
+            "code": "06016304",
+            "name_th": "ความน่าจะเป็นและสถิติ",
+            "name_en": "PROBABILITY AND STATISTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_224.png",
+                    "source_page": 224,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความน่าจะเป็นและตัวแปรสุ่ม การแจกแจงความน่าจะเป็นแบบไม่ต่อเนื่องและแบบ ต่อเนื่อง ฟังก์ชัน\nของตัวแปรสุ่ม การแจกแจงของตัวอย่างการประมาณค่าการทดสอบสมมติฐาน การถดถอยอย่างง่ายและการ\nถดถอย เชิง ซ้อนในตัวแบบ\nชิงเส้น การวิเคราะห์สหสัมพันธ์",
+            "desc_en": "PROBABILITY AND RANDOM VARIABLES, SOME DISCRETE AND CONTINUOUS PROBABILITY\nDISTRIBUTIONS, FUNCTIONS OF RANDOM VARIABLES, SAMPLING DISTRIBUTION,\nESTIMATION AND TEST OF\nHYPOTHESES, SIMPLE AND MULTIPLE LINEAR REGRESSION AND CORRELATION ANALYSES.\nเอัมเกลาร\nวท.="
+        },
+        {
+            "code": "06016306",
+            "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ",
+            "name_en": "INFORMATION SYSTEMS ANALYSIS AND DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016317",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_225.png",
+                    "source_page": 225,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การพัฒนาระบบเชิง\nเอ็อบเจกต์ การวิเคราะห์และออกแบบ การเลือกโครงการและการจัดการ\nโครงการสารสนเทศ กำหนดความต้องการระบบ\nการวิเคราะห์ ด้วยยูสเคส แบบจำลองกระบวนการ\nแบบจำลองข้อมูล การออกแบบสถาปัตยกรรมและกลยุทธการออก การออกแบบส่วนติดต่อกับผู้ใช้ การ\nออกแบบส่วนจัดเก็บข้อมูล ฺการออกแบบโปรแกรม คลาสและเมธอด การสร้างและการติดตั้งระบบ\nวบ",
+            "desc_en": "OBJECT ORIENTED  APPROACHES  TO  SYSTEM\nDEVELOPMENT; SYSTEM  ANALYSIS\nAND  DESIGN;\nPROJECT SELECTION AND MANAGEMENT; SYSTEM REQUIREMENT DETERMINATION;\nUSE\nCASE ANALYSIS;\nPROCESS MODEL; DATA MODEL; DESIGN STRATEGY AND ARCHITECTURE DESIGN; USER INTERFACE DESIGN;\nDATA\nSTORAGE  DESIGN;\nPROGRAM,\nCLASS,\nAND\nMETHOD  DESIGN;  SYSTEM  IMPLEMENTATION\nAND\nINSTALLATION.\nวท.="
+        },
+        {
+            "code": "06016308",
+            "name_th": "แนวคิดระบบฐานข้อมูล",
+            "name_en": "DATABASE SYSTEM CONCEPTS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016316",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_226.png",
+                    "source_page": 226,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนะ\nนำฐานข้อมูลและระบบจัดการฐานข้อมูล ระบบแฟ้มข้อมูล ระบบฐานข้อมูลและสภาพ แวดล้อม\nระบบจัดการฐานข้อมูล ฺชนิดของฐานข้อมูล แบบจำลองข้อมูล แบบจำลองฐานข้อมูลเชิงสัมพันธ์ ตาราง คีย์\nกฎบูรณภาพ พจนานุกรมข้อมูล แบบจำลองความสัมพันธ์ระหว่างเอนทิตี นอร์มัลไลซ์เซชัน เอสคิวแอล\nแนะนำการจัดการทรานแซคชันและการบริหารฐาน\nปฏิบัติการด้านการจำลองข้อมูลและภาษา\nฐานข้อมูล แนะนำข้อมูลสนันสนุนการตัดสินใจสำหรับระดับบริหารและระบบคลังข้อมูล",
+            "desc_en": "INTRODUCTION\nTO\nTHE\nDATABASE\nAND\nDBMS;\nFILE  SYSTEMS;\nDATABASE  SYSTEMS\nAND\nENVIRONMENT; DATABASE MANAGEMENT SYSTEMS; TYPES OF DATABASES; DATA MODELS; RELATIONAL\nDATABASE\nMODEL;  TABLES;  KEYS; INTEGRITY  RULES;\nDATA  DICTIONARY;  ENTITY  RELATIONSHIP\nMODEL;\nNORMALIZATION; SOL; INTRODUCTION TO TRANSACTION MANAGEMENT AND DATABASE ADMINISTRATION;\nDATA MODELING AND DATABASE LANGUAGE LABORATORY; INTRODUCTION TO DECISION SUPPORT DATA FOR\nMANAGEMENT LEVEL AND DATA WAREHOUSE.\nวท.="
+        },
+        {
+            "code": "90201026",
+            "name_th": "ภาษาอังกฤษเพื่อการสื่อสาร",
+            "name_en": "ENGLISH FOR COMMUNICATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_page": 24,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016321",
+            "name_th": "วิศวกรรมซอฟต์แวร์",
+            "name_en": "SOFTWARE ENGINEERING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016306",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_232.png",
+                    "source_page": 232,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความรู้เบื้องต้นเกี่ยวกับวิศวกรรมซอฟต์แวร์ กลุ่มซอฟต์แวร์และแนวโน้มความเปลี่ยนแปลง กรอบ\nงานของกระบวนการวิศวกรรมซอฟต์แวร์ กระบวนการพัฒนาซอฟต์แวร์แบบอไจล์ แม่แบบสำหรับการ\nออกแบบ\nวิธีปฏิบัติด้านวิศวกรรมซอฟต์แวร์\nสภาพแวดล้อมการพัฒนาซอฟต์แวร์โดยใช้เวอร์ชันคอนโทรล\nแบบจำลองวุฒิภาวะและความสามารถเชิงบูรณาการ (เซีเอ็มเอ็มไอ) วิศวกรรมความต้องการ วิศวกรรมการ\nวิเคราะห์และออกแบบ\nความุ`รู้.เบื้องต้นเกี่ยวกับการทดสอบซอฟ\nต์แวร์ กระบวนการยูนิฟาย์ การประเมิน\nกระบวนการ\nและแบบจำลองกระบวนการเชิงบัญญัติและเชิงวิวัฒน์",
+            "desc_en": "INTRODUCTION\nTO  SOFTWARE  ENGINEERING;  SOFTWARE  CATEGORIES\nAND  EVOLUTION;  SOFTWARE\nENGINEERING PROCESS FRAMEWORK; AGILE SOFTWARE DEVELOPMENT METHODOLOGY; DESIGN  PATTERN;\nSOFTWARE\nENGINEERING  PRACTICE; SOFTWARE  DEVELOPMENT\nENVIRONMENT  USING\nVERSION\nCONTROL;\nCAPABILITY MATURITY MODEL INTEGRATION (CMMI); REQUIREMENT ENGINEERING; ANALYSIS AND DESIGN\nENGINEERING;\nINTRODUCTION\nTO\nSOFTWARE  TESTING;\nUNIFIED\nPROCESS;\nPROCESS\nEVALUATION;\nAND\nPRESCRIPTIVE AND EVOLUTIONARY PROCESS MODELS.\nวท.="
+        },
+        {
+            "code": "06016322",
+            "name_th": "การสร้างโปรแกรมเว็บ",
+            "name_en": "WEB PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016317",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_233.png",
+                    "source_page": 233,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การพัฒนาไดนามิกเว็บเพจโพรโทคอลเอชทีทีพี  แม่ข่ายเว็บ การพัฒนาโปรแกรมเว็บฝั่งแม่ข่าย การ\nจัดการคุ้กกี้  การติดตามเซสชัน  ฺการพัฒนาโปรแกรมเว็บติดต่อกับฐานข้อมูลฺฺจาวาสคริปต์และเทคโนโลยีเอ\nแจ๊กซ์",
+            "desc_en": "DYNAMIC  WEB  PAGES  DEVELOPMENT;\nHTTP  PROTOCOL;  WEB  SERVERS;  SEWER-SIDE\nWEB\nPROGRAMMING; COOKIES  HANDLING; SESSION  TRACKING;\nWEB  DATABASE  APPLICATION  DEVELOPMENT;\nJAVASCRIPT AND AAX TECHNOLOGY."
+        },
+        {
+            "code": "06016331",
+            "name_th": "เครือข่ายคอมพิวเตอร์ภาคปฏิบัติ",
+            "name_en": "PRACTICAL COMPUTER NETWORKING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_237.png",
+                    "source_page": 237,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การนำทฤษฎีการเชื่อมโยงเครือข่ายคอมพิวเตอร์ไปปฏิบัติกับอุปกรณ์เชื่อมโยงเครือข่าย เช่น อุปกรณ์\nหาเส้นทาง\nและอุปกรณ์สวิทชิ่ง\nและ\nระบบปลายทางอย่างระบบเครือข่ายไอพี ทั้งแบบเซกเมนต์เดียว และ\nหลายเซกเมนต์ โพรโทคอลการหาเส้นทางแบบสถิตและพลวัตการควบคุมการเข้าถึงเครือข่าย การสร้าง\nเครือข่ายด้วยอุปกรณ์แลนสวิทชิง การสร้างเครือข่ายแลนเสมือนโพรโทคอลชั้นทรานสปอร์ตต่างๆ ไอพีเวอร์"
+        },
+        {
+            "code": "06016332",
+            "name_th": "การเชื่อมต่อเครือข่ายสื่อสาร",
+            "name_en": "INTERCONNECTED COMMUNICATION NETWORKS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_237.png",
+                    "source_page": 237,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความต้องการการเชื่อมต่อเครือข่ายสื่อสารในการใช้งานจริง โพรโตคอลเพื่อรองรับการทำงาน\nผิดพลาดในเครือข่าย โพรโตตอลเลือกเส้นทางแบบพลวัต เช่น อาร์ไอพี โอเอสพีเอฟไอเอสไอเอส บีจีพี เป็น\nแนวคิดเครือข่ายพื้นที่กว้าง เช่น พีพีพี เฟรมรีเลย์ เอ็มพีแอลเอส\nการติดตั้งที่อยู่และการเปลี่ยนแปลงของ\nไอพีเวอร์ชั่น 6  ความมั่นคงบนเครือข่าย การควบคุมการเข้าถึงเครือข่าย โพรโตคอลของการสื่อสารเครือข่าย\nไร้สาย",
+            "desc_en": "REQUIREMENTS\nFOR\nINTERCONNECTED\nNETWORKS\nIN\nPRACTICAL\nSCENARIOS;\nNETWORK\nREDUNDANCY PROTOCOLS; DYNAMIC ROUTING  PROTOCOLS SUCH\nAS\nRIP,\nOSPF, IS-IS AND  BGP; WIDE\nAREA\nNETWORK  (WAN)\nTECHNOLOGIES, SUCH\nAS\nPPP, FRAME RELAY., MPLS; IPV6  ADDRESSING\nAND\nTRANSITION; NETWORK SECURITY; NETWORK ACCESS CONTROL; WIRELESS LAN COMMUNICATION PROTOCOLS.\nวท.="
+        },
+        {
+            "code": "06016341",
+            "name_th": "การโปรแกรมสื่อประสม",
+            "name_en": "MULTIMEDIA PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_242.png",
+                    "source_page": 242,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนวคิดพื้นฐานโปรแกรมประยุกต์ สื่อประสมบนเว็บไ\nซต์และมือถือ ได้แก่ แพลทฟอร์ม ฺสถาปัตยกรรม\nและกระบวนการพัฒนา เทคนิคการโปรแกรมสำหรับการจัดการและควบคุมสื่อดิจิทัล การโปรแกรมอนิเมชั่น\nแบบมีปฏิสัมพันธ์ การโปรแกรมอนิเมชั่นสองมิติการโปรแกรมเกม ฺและการโปรแกรมแบบเชิงเหตุการณ์ การ\nพัฒนาโปรแกรมส่วนเชื่อมต่อประสานกับผู้ไช้แบบหลากหลายสื่อ เครื่องมือในการพัฒนา ไลบรารี่ และ\nมาตรฐานการเชื่อมต่อกับโปรแกรมประยุกต์สื่อประสมฺการฝึกปฏิบัติเพื่อการพัฒนาทักษะในการสร้างเนื้อหา\nและโปรแกรมประยุกต์เสื่อประสม",
+            "desc_en": "BASIC\nCONCEPTS\nIN\nMULTIMEDIA\nAPPLICATIONS\nFOR\nWEB\nAND\nMOBILE\nI.E.\nPLATFORMS,\nARCHITECTURES,\nAND\nDEVELOPMENT\nPROCESS;\nPROGRAMMING  TECHNIQUES\nFOR\nHANDLING\nAND\nMANIPULATING DIGITAL MULTIMEDIA; INTERACTIVE ANIMATION PROGRAMMING; 2D ANIMATION; GAME AND\nEVENT  DRIVEN\nPROGRAMMING;  DEVELOPMENT\nOF RICH\nMEDIA\nUSER  INTERFACE;  TECHNOLOGIES\nAND\nSTANDARD\nFOR\nWEB\nAND\nMOBILE\nBASED\nAPPLICATIONS\nDEVELOPMENT;\nMULTIMEDIA\nSOFTWARE\nDEVELOPMENT TOOLS; LIBRARIES AND APPLICATIONS PROGRAMMING INTERFACES; HAND-ON DEVELOPMENT\nOF SKILLS FOR MULTIMEDIA CONTENT AND APPLICATION DEVELOPMENT.\nวท.="
+        },
+        {
+            "code": "06016342",
+            "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
+            "name_en": "COMPUTER GRAPHICS AND ANIMATION",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 2,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_029.png",
+                    "source_page": 29,
+                    "document_category": "plan",
+                    "document_page": 24
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_243.png",
+                    "source_page": 243,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "กราฟิกแบบราสเตอร์และแบบเวกเตอร์ การจัดเก็บข้อมูลรูปทรงวัตถุแบบสองและสามมิติ\nกระบวนการสร้างภาพสามมิติ เทคนิคการฉายภาพและการแปลง เทคนิคด้านแสงและแสงเงาสามมิติ เทคนิค\nการสร้างลวดลายของพื้นผิวสามมิติ เทคนิคการเรนเดอร์ภาพสามมิติ แนวคิดพื้นฐานการสร้างภาพเคลื่อนไหว\nด้วยคอมพิวเตอร์แบบสองและสามมิติ การใช้งานซอฟต์แวร์สร้างภาพกราฟิกสามมิติและการสร้าง\nภาพเคลื่อนไหวสามมิติเบื้องต้น",
+            "desc_en": "RASTER AND VECTOR\n2D AND 3D OBJECT REPRESENTATIONS; 3D RENDERING PIPELINE;\n3D PROJECTION AND TRANSFORMATION TECHNIQUES; 3D LIGHTING AND SHADING TECHNIQUES; 3D TEXTURE\nMAPPING  TECHNIQUES;\n3D  RENDERING  TECHNIQUES;\nBASIC\n2D\nAND\n3D  COMPUTER\nANIMATION\nCONCEPTS;\nUSE\nOF\n3D  COMPUTER  GRAPHICS  APPLICATION  SOFTWARE FOR  BASIC\n3D MODELING\nAND\nANIMATION."
+        },
+        {
+            "code": "06016309",
+            "name_th": "ความมั่นคงของระบบสารสนเทศและกฎหมายไอที",
+            "name_en": "INFORMATION SYSTEM SECURITY AND IT LAWS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_227.png",
+                    "source_page": 227,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความมนคงของระบบสารสนเทศ\nภัยคุกคาม ฺช่องโหว่ การประเมินและวิเคราะห์ความเสียง ฺนโยบาย\nรักษาความปลอดภัยของระบบสารสนเทศ การจัดการความปลอดภัยของระบบสารสนเทศ การเข้ารหัสและ\nถอดรหัสเพื่อความปลอดภัยของข้อมูล ฺการพิสูจน์ตัวตนฺการควบคุมการเข้าถึงข้อมูล ฺการรักษาความปลอดภัย\nของเครือข่ายคอมพิวเตอร์ กฎหมายและปัญหาจริยธรรมที่เกี่ยวข้องกับเทคโนโลยีสารสนเทศ ความเป็นส่วนตัว\nและความลับ ฺอาชญากรรมคอมพิวเตอร์",
+            "desc_en": "INFORMATION  SYSTEM  SECURITY; THREATS,\nVULNERABILITIES,\nRISK  ASSESSMENT\nAND\nANALYSIS;\nINFORMATION SYSTEM SECURITY POLICIES; INFORMATION SYSTEM SECURITY MANAGEMENT; CRYPTOGRAPHY;\nAUTHENTICATION; ACCESS CONTROL; NETWORK SECURITY;\nIT\nLAWS\nAND ETHICAL  PROBLEMS  ASSOCIATED\nWITH INFORMATION TECHNOLOGY; PRIVACY AND CONFIDENTIALITY; COMPUTER CRIME."
+        },
+        {
+            "code": "06016310",
+            "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
+            "name_en": "HUMAN INTERFACE DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_227.png",
+                    "source_page": 227,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "หลักการออกแบบโดยอาศัย|ผู้ใช้เป็นศูนย์กลาง ปัจจัยที่เกี่ยวกับมนุษย์และหลักการทางจิตวิทยา\nสำหรับการออกแบบส่วนต่อประสานกับผู้ใช้ เทคโนโลยีในการต่อประสานระหว่างมนุษย์และเครื่อง\nแบบจำลองการปฏิสัมพันธ์\nรูปแบบของการปฏิสัมพันธ์ ขอบเขตของการออกแบบการเซือมต่อกับผู้ไข้และการ\nออกแบบประสบการณ์ในการใช้งาน กระบวนการใ\nนการออกแบบการเชื่อมต่อกับผู้ใช้ เครื่องมือในการ\nออกแบบ\nหลักการและข้อควรปฏิบัติในการออกแบบ เทคนิคการประเมิน การออกแบบการเชื่อมต่อกับผู้ใช้บน\nระบบปฏิบัติการสมัยใหม่และอุปกรณ์คอมพิวเตอร์พกพาได้แบบต่าง",
+            "desc_en": "PRINCIPLES OF USER CENTERED  DESIGN; HUMAN FACTORS  AND  PSYCHOLOGICAL  PRINCIPLES FOR\nUSER INTERFACE DESIGN; HUMAN MACHINE INTERFACE TECHNOLOGIES; INTERACTION MODELS; INTERACTION\nSTYLES; SCOPE  OF\nUSER  INTERFACE  DESIGN\nAND\nUSER\nEXPERIENCE  DESIGN;\nUSER  INTERFACE  DESIGN\nPROCESS;  DESIGN TOOLS; DESIGN PRINCIPLES AND GUIDELINES; EVALUATION TECHNIQUES; USER INTERFACE\nDESIGN FOR MODERN OPERATING SYSTEMS AND MOBILE COMPUTING DEVICES.\nวท.="
+        },
+        {
+            "code": "90304004",
+            "name_th": "การเขียนรายงาน",
+            "name_en": "REPORT WRITING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_page": 25,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016323",
+            "name_th": "การโปรแกรมอุปกรณ์เคลื่อนที่",
+            "name_en": "MOBILE DEVICE PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016317",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_233.png",
+                    "source_page": 233,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การแนะนำเทคโนโลยีและการเจ\nเขียนโปรแกรมที่เกี่ยวข้องกับอุปกรณ์เคลื่อนที่ ได้แก่ มือถือแบบสมาร์ท\nโฟน แพด และแทบเลต การพัฒนาและทดสอบโปรแกรมประยุกต์ สำหรับอุปกรณ์\nเคลื่อนที่โดยการทำงานจริง\nบนเครื่องจำลอง",
+            "desc_en": "INTRODUCTION\nTO\nTECHNOLOGY\nAND\nTHE\nPROGRAMMING\nOF\nAPPLICATIONS\nFOR\nMOBILE\n.\nCOMPUTING  INCLUDING\nDEVICES\nI.E.\nSMART  PHONES,\nPADS,\nAND\nTABLETS;  DEVELOPING\nMOBILE\nAPPLICATIONS AND USING DEVICE EMULATORS FOR CODING AND TESTING."
+        },
+        {
+            "code": "06016324",
+            "name_th": "วิศวกรรมความต้องการ",
+            "name_en": "REQUIREMENT ENGINEERING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_233.png",
+                    "source_page": 233,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_234.png",
+                    "source_page": 234,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "เทคนิคการจัดการความต้องการ การวิเคราะห์ปัญหา การเข้าถึงและเก็บเกี่ยวความต้องการจาก ฺผู้ที่มี\nส่วนได้ส่วนเสีย การจัดทำเอกสารโดยใช้ยูสเคสโมเดล ฺการจัดลำดับชันของเอกสาร การกำหนดระดับของ\nความต้องการ การนิยามระบบ การจัดการขอบเขตและความคาดหวัง การกลั่นกรองความชัดเจนของระบบ\nคุณลักษณะของความต้องการ การติดตามย้อนรอยความต้องการ การบริหารจัดการการเปลี่ยนแปลงความ\nต้องการ การนำความต้องการมาขับเคลือนการออกแบบ การทดสอบ การจัดทำเอกสารสำหรับผู้ ใช้งาน\nวท.=",
+            "desc_en": "REQUIREMENTS\nMANAGEMENT\nTECHNIQUE;\nPROBLEM\nANALYSIS;\nSTAKEHOLDER\nNEEDS;\nDOCUMENT REQUIREMENTS WITH USE CASE MODEL; DOCUMENT HIERARCHY AND STANDARD FOR DEFINE\nREQUIREMENTS\nLEVEL;\nSYSTEM\nDEFINITION;\nSCOPE\nMANAGING;\nREQUIREMENT\nATTRIBUTES\nAND\nTRACEABILITY; MANAGE  CHANGE; USING  REQUIREMENTS  TO  DRIVE  ONGOING  DESIGN,  TEST,\nAND\nUSER\nDOCUMENTATION."
+        },
+        {
+            "code": "06016325",
+            "name_th": "การโปรแกรมเชิงบริการ",
+            "name_en": "SERVICE ORIENTED PROGRAMMING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_234.png",
+                    "source_page": 234,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนวคิดและโครงสร้างของเว็บเซอร์วิสฺมาตรฐานเว็บเซอร์วิสการพัฒนาและติดตั้งโปรแกรม ประยุกต์\nเว็บเซอร์วิส ฺหลักการออกแบบสถาปัตยกรรมเชิงบริการ ลักษณะและประโยชน์ของตัวกลาง เชื่อมต่อบริการ\nของระบบ ต่างๆ การจัดการกระบวนการทางธุรกิจ",
+            "desc_en": "CONCEPTS AND STRUCTURES OF WEB SERVICES; WEB SERVICES STANDARDS; DEVELOPMENT AND\nDEPLOYMENT OF WEB SERVICE APPLICATIONS; CONCEPTS  OF SERVICE ORIENTED ARCHITECTURE (SOA);\nFEATURES AND BENEFITS OF ENTERPRISE SERVICE BUS (ESB); BUSINESS PROCESS MANAGEMENT (BPM)."
+        },
+        {
+            "code": "06016333",
+            "name_th": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
+            "name_en": "INTERNET SERVICE TECHNOLOGY",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_238.png",
+                    "source_page": 238,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความุรู้พื้นฐานของการให้บริการอินเตอร์เน็ต การให้บริการเชื่อมต่อเครือข่ายอินเตอร์เน็ต เหลักการ\nทำงานและการประยุกต์ใช้งานของ เทลเน็ต เอฟทีพี ระบบดีเอ็นเอส ระบบจดหมายอิเล็กทรอนิกส์ โพรโทคอล\nเอสเอ็มทีพี พีโอพี ไอเอ็มเอพี ระบบเว็บและโพรโทคอลเอชทีทีพี ไฟร์วอลล์ และ การแปลงที่อยู่เครือข่าย\nกรณีศึกษาในห้องปฏิบัติการโดยใช้ซอฟท์แวร์ต่างๆ ที่ทำงานบนระบบปฏิบัติการลักษณะยูนิกส์ เพื่อให้สามารถ\nนำไปสร้างระบบสำหรับการให้บริการในระบบเครือข่ายอินเทอร์เน็ตได้",
+            "desc_en": "BASICS  OF INTERNET\nSERVICES;\nINTERNET  CONNECTIVITY  SERVICES;\nINTERNET  APPLICATIONS\nOF\nTELNET, FTP, DOMAIN NAME SYSTEM (DNS); ELECTRONIC MAIL SYSTEM WITH SMTP, POP AND IMAP;\nWEB\nSYSTEM\nWITH\nHTTP;\nFIREWALL;\nNETWORK\nADDRESS\nTRANSLATION\n(NAT);\nCASE\nSTUDIES\nIN\nLABORATORIES WITH SOFTWARE ON UNIX BASED OPERATING SYSTEM FOR CREATING INTERNET SERVICES."
+        },
+        {
+            "code": "06016334",
+            "name_th": "เทคโนโลยีเครือข่ายไร้สาย",
+            "name_en": "WIRELESS NETWORK TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_238.png",
+                    "source_page": 238,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ภาพรวมของเทคโนโลยีเครือข่ายไร้สายและการประยุกต์`ใช้งาน พื้นฐานการส่งผ่านแบบไร้สายการ\nแพร่กระจายคลื่นวิทยฺุเสาอากาศ การม้อดดูเลทฺ การมัลติเพล็กซ์ การควบคุมการเข้าถึงแบบหลายทางพร้อม\nกน\nเครือข่ายท้องถินแบบไร้สายฺมาตรฐาน IEEE\n802.11\nการสำรวจสถานที่ การวางแผน การออกแบบและ\nการปรับใช้เครือข่ายท้องถิ่นแบบไร้สาย ความปลอดภัยบนเครือข่ายท้องถิ่นแบบไร้สายและมาตรฐานที่\nเกียวข้อง เครือข่ายส่วนบุคคลแบบไร้สาย เครือข่ายเมืองแบบไร้สาย เครือข่ายระยะไกลแบบไร้สายการจัดการ\nและการแก้ปัญหาเครือข่ายไร้สายเบื้องต้น",
+            "desc_en": "AN OVERVIEW OF WIRELESS NETWORK TECHNOLOGIES AND APPLICATIONS; WIRELESS TRANSMISSION\nBASIS:\nRADIO\nPROPAGATION.,\nANTENNAS,\nMODULATION,\nMULTIPLEXING,\nMULTIPLE\nACCESS\nCONTROL;\nWIRELESS LOCAL AREA NETWORK (WLAN); IEEE 802.11 STANDARD; SITE SURVEY; PLANNING; DESIGN AND\nDEPLOYING\nWLAN;\nWLAN\nSECURITY\nAND  RELATED  STANDARDS;\nWIRELESS  PERSONAL\nAREA\nNETWORK\n(WPAN); WIRELESS METROPOLITAN AREA\nNETWORK (WMAN); WIRELESS WIDE\nAREA\nNETWORK (WWAN);\nMANAGING AND TROUBLESHOOTING WIRELESS NETWORK BASICS.\nวท.="
+        },
+        {
+            "code": "06016335",
+            "name_th": "เทคโนโลยีกลุ่มเมฆเบื้องต้น",
+            "name_en": "INTRODUCTION TO CLOUD COMPUTING",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_239.png",
+                    "source_page": 239,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "การแนะ\nนำโครงสร้างของระบบคลาวด์., ภรูปแบบการให้บริการของระบบคลาวด์, ภรูปแบบการติดตั้ง\nระบบคลาวด์, เทคโนโลยีที่ใช้ในการสร้างระบบคลาวด์,การบริหารจัดการระบบคลาวด์., ความปลอดภัย\nสำหรับระบบคลาวด์., ค่าชี้วัดประสิทธิภาพของการบริการ และ\nค่าชี้วัดในทางธุรกิจเ\nและรูปแบบการคิด\nค่าบริการของบริการของระบบคลาวด์",
+            "desc_en": "INTRODUCTION\nTO\nCLOUD\nARCHITECTURE,\nCLOUD\nDELIVERY\nMODELS,\nCLOUD\nDEPLOYMENT\nMODELS,  CLOUD ENABLING  TECHNOLOGY,\nCLOUD\nMANAGEMENT,\nCLOUD\nSECURITY,\nSERVICE\nQUALITY\nMETRICS, AND BUSINESS COST METRICS AND PRICING MODELS\nFOR CLOUD SERVICES"
+        },
+        {
+            "code": "06016343",
+            "name_th": "การออกแบบและพัฒนาเกม",
+            "name_en": "GAME DESIGN AND DEVELOPMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016342",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_243.png",
+                    "source_page": 243,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ประเภทของเกม แนวคิดและแนวปฏิบัติในการออกแบบเกม กระบวนการพัฒนาเกม ฺการออกแบบตัว\nละคร\nการออกแบบวิธีการเล่าเรื่องในเกม การออกแบบโครงสร้างหลักของเกม การออกแบบส่วนติดต่อกับผู้ใช้\nการออกแบบกลไกหลักของเกม การออกแบบระดับชั้นของเกม ระเบียบวิธีคิดที่สำคัญสำหรับการพัฒนาเกม\nการพัฒนาเกมคอมพิวเตอร์เบื้องต้น",
+            "desc_en": "GAME  GENRES;\nDESIGN  CONCEPTS  AND  GUIDELINES;\nDEVELOPMENT  PROCESS;\nSTOR TELLING  DESIGN;  GAMEPLAY  DESIGN;\nUSER  INTERFACE  DESIGN;\nCORE\nMECHANIC  DESIGN;\nLEVEL\nDESIGN; IMPORTANT ALGORITHMS FOR GAME; COMPUTER GAME DEVELOPMENT.\nวท.="
+        },
+        {
+            "code": "06016344",
+            "name_th": "หลักการออกแบบกราฟิกส์",
+            "name_en": "GRAPHICS DESIGN PRINCIPLES",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_244.png",
+                    "source_page": 244,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "แนะ\nนำศิลปะในรูปแบบต่าง\nหลักการและองค์ประกอบพื้นฐานของการออกแบบ ทฤษฎีสี หลักการ\nจัดองค์ประกอบศิลป์ ตัวพิมพ์ การร่างและวาดภาพ ประเภทของซอฟต์แวร์เพื่อการออกแบบกราฟิก เรียนรู้\nทักษะเชิงปฏิบัติในการสร้างเนื้อหากราฟิกสำหรับสื่อดิจิทัล",
+            "desc_en": "INTRODUCTION TO DIFFERENT ART FORMS,\nBASIC  PRINCIPLES  AND ELEMENTS  OF DESIGN, COLOR\nTHEORIES, COMPOSITION PRINCIPLES, TYPOGRAPHY., SKETCHING AND DRAWING, TYPES OF GRAPHICS DESIGN\nSOFTWARE TOOLS, LEARNING PRACTICAL SKILLS IN CREATING GRAPHICS FOR DIGITAL MEDIA."
+        },
+        {
+            "code": "06016345",
+            "name_th": "คอมพิวเตอร์แอนิเมชันสามมิติ",
+            "name_en": "3D COMPUTER ANIMATION",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016342",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_030.png",
+                    "source_page": 30,
+                    "document_category": "plan",
+                    "document_page": 25
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_244.png",
+                    "source_page": 244,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "หลักการพื้นฐานของการทำแธ\n,อนิเมชัน เทคนิคด้านแสงแล=\nเทคนิคการสร้าง\nภาพเคลือนไหวด้วยคอมพิวเตอร์สามมิติ แนวคิดและเจ\nเทตวิทเศรแลงขแสตสนละภทิพิเ์เิือยน\n,คลือนไหวของตัวละคร\nการใช้ซอฟต์แวร์คอมพิวเตอร์แอนิเมชันสามมิติในการสร้างภาพเคลือนไหวของตัวละครขันสูง การประมวลผล\nหลังการสร้างภาพสำหรับคอมพิวเตอร์แอนิเมชันสามมิติ",
+            "desc_en": "FUNDAMENTAL  PRINCIPLES  OF ANIMATION;\n3D\nCOM\nIPUTER ANIMATION  CONCEPTS; ADVANCED\nYS\nLIGHTING\nAND  SHADING  TECHNIQUES;  CONCEPTS\nAND  TECHNIQUES\nFOR  CHARACTER  MODELING\nAND\nANIMATION;\nUSE\nOF  3D  COMPUTER  ANIMATION\nSOFTWARE FOR  ADVANCE  CHARACTER MODELING\nAND\nANIMATION; POST PRODUCTION TECHNIQUES FOR 3D COMPUTER ANIMATION.\nวท.="
+        },
+        {
+            "code": "06016307",
+            "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
+            "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_226.png",
+                    "source_page": 226,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ธรรมชาติและวงจรชีวิตของโครงการ\nการศึกษาความเป็นไปได้ของโครงการ เทคนิคการเลือก\nโครงการ องค์ความรู้สำหรับการบริหารโครงการ การจัดทึมงาน การจัดการขอบเขตของโครงการ การ\nประมาณการโครงการ การจัดการตารางเวลา การจัดการคุณภาพ การจัดการความเสี่ยงการควบคุม โครงการ\nและประเมินผลโครงการ",
+            "desc_en": "NATURE\nAND\nLIFE  CYCLE  OF  INFORMATION  TECHNOLOGY\n(IT)  PROJECTS;  PROJECT  FEASIBILITY;\nPROJECT SELECTION TECHNIQUES; PROJECT MANAGEMENT BODY OF KNOWLEDGE; TEAM MANAGEMENT;\nPROJECT  SCOPE MANAGEMENT;  PROJECT  ESTIMATION;  PROJECT  SCHEDULING;  QUALITY  MANAGEMENT;\nCHANGE MANAGEMENT; PROJECT CONTROLLING; PROJECT EVALUATION."
+        },
+        {
+            "code": "06016318",
+            "name_th": "สัมมนาทางด้านทักษะการสื่อสารในวิชาชีพ",
+            "name_en": "SEMINAR ON PROFESSIONAL COMMUNICATION SKILLS",
+            "credits": "1(1-0-2)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "NONE G",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_231.png",
+                    "source_page": 231,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ทักษะต่างๆ สำหรับการสมัครงานและการประกอบอาชีพ เทคนิคการเขียนจดหมายสมัครงาน เทคนิค\nการสอบสัมภาษณ์งาน\nการพฒ\nเนาบุคลิกภาพและการแต่งกาย ทักษะในการนำเสนองานทางธุรกิจ  ทักษะใน\nการพูดและการสื่อสาร ฺมารยาทในการเข้าสังคมฺการบริหารอารมณ์\nค",
+            "desc_en": "SKILLS FOR APPLYING TO\nA\nJOB AND WORKING,\nRESUME AND APPLICATION LETTER WRITING., JOB\nINTERVIEW\nTECHNIQUES, WARDROBE AND PERSONALITY DEVELOPMENT, BUSINESS PRESENTATION SKILLS,\nVOICE COMMUNICATION SKILLS, SOCIAL ETIQUETTE, EC."
+        },
+        {
+            "code": "060163xx",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 1",
+            "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_page": 26,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016326",
+            "name_th": "การทวนสอบและตรวจสอบซอฟต์แวร์",
+            "name_en": "SOFTWARE VERIFICATION AND VALIDATION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016306",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_234.png",
+                    "source_page": 234,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "บทบาทของวีแอนด์วีในวิวัฒนาการของซอฟต์แวร์ การตรวจทานเชิงเทคนิค ระดับของการ ทดสอบ\nซอฟต์แวร์ เทคนิคการทดสอบซอฟต์แวร์ การพิสูจน์ความถูกต้อง การจำลองและการสร้างตัวแบบ การตาม\nรอยความต้องการ การวางแผนการทวนสอบและการตรวจสอบซอฟต์แวร์ กิจกรรมการตามรอยการทดสอบ\nการประเมินและติดตามปัญหา",
+            "desc_en": "ROLE OF VEV\nIN  SOFTWARE  EVOLUTION; SOFTWARE TECHNICAL  REVIEWS; LEVELS  OF SOFTWARE\nTESTING; TESTING TECHNIQUES;\nOF CORRECTNESS; SIMULATION AND PROTOTYPING; REQUIREMENTS\nTRACING; SOFTWARE V&V PLANNING; TRACKING TEST ACTIVITIES; PROBLEM TRACKING AND ASSESSMENT.\nวท.="
+        },
+        {
+            "code": "06016327",
+            "name_th": "การพัฒนาคลาวด์แอปพลิเคชันระดับองค์กร",
+            "name_en": "CLOUD BASED ENTERPRISE APPLICATION DEVELOPMENT",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016325",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_235.png",
+                    "source_page": 235,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความ รู้.เบื้องต้นของเทคโนโลยีคลาวด์ สถาปัตยกรรมคลาวด์ คุณลักษณะการสร้างเครื่องจำลองและ\nการให้บริการผู้ใช้หลายคนพร้อมกัน หลักการพัฒนาแอปพลิเคชันสำหรับองค์กรในคลาวด์ การพัฒนาแอป\nพลิเคชันโดยวิธีการประกาศและวิธีระบุปัญหา ข้อจำกัดของการกำกับดูแล ประเด็นที่พบบ่อยระหว่างการ\nพัฒนาคลาวด์แอปพลิเคชันแบบคลาวด์ ปัจจัยด้านความต้องการหรือความสามารถในการเลือกรูปแบบการ\nพัฒนาทีเหมาะสมฺการวิเคราะห์ ข้อมูลโดยใช้แพลตฟอร์มแบบคลาวด์ หลักการจัดการฐานข้อมูลคลาวด์ โนเอส\nคิวแอล",
+            "desc_en": "INTRODUCTION\nTO\nCLOUD  TECHNOLOGY,\nCLOUD\nARCHITECTURE,\nVIRTUALIZATION\nAND\nMULTI-\nTENANCY\nFEATURES,  PRINCIPLES  TO  DEVELOP ENTERPRISE APPLICATION\nIN CLOUD, DECLARATIVE\nAND\nPROBLEMATIC APPLICATION DEVELOPMENT, GOVERNANCE LIMITS,\nFREQUENTLY ENCOUNTERED  ISSUES\nDURING CLOUD BASED APPLICATION DEVELOPMENT, REQUIREMENT\nOR\nCAPABILITY FACTORS  TOWARDS\nTHE SELECTION OF APPROPRIATE DEVELOPMENT PARADIGMS, DATA ANALYTICS USING CLOUD PLATFORMS,\nPRINCIPLE TO CLOUD DATABASE MANAGEMENT, NOSOL"
+        },
+        {
+            "code": "06016328",
+            "name_th": "เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์",
+            "name_en": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_235.png",
+                    "source_page": 235,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "จ.\nหลักการเพื่อเป็นผู้เชี่ยวชาญด้านซอฟต์แวร์ บทบาทของแอพพลิเคชันในงานด้านวิศวกรรมซอฟต์แวร์\nเครื่องมือการพัฒนาซอฟต์แวร์แบบอไจล์ การติดตามความคืบหน้าของการพัฒนาผลิตภัณฑ์ การจัดการเวอร์\nชั่นและการกำหนดค่า เครื่องสำหรับสร้างและการบูรณาการอย่างต่อเนื่อง เครื่องสำหรับแก้จุดบกพร่องและ\nการรวบรวมข้อมูลเชิงประสิทธิภาพชองโปรแกรม ฺสภาพแวดล้อมแบบร่วมมือพัฒนา เครื่องมือสำหรับการควบ\nรวบรวมและติดตั้ง",
+            "desc_en": "PRINCIPLES TO SOFTWARE PROFESSIONALS, ROLES OF APPLICATIONS IN SOFTWARE ENGINEERING\nTASKS, AGILE SOFTWARE DEVELOPMENT TOOLS, PRODUCT DEVELOPMENT TRACKING, VERSION AND\nCONFIGURATION MANAGEMENT, BUILD AND CONTINUOUS INTEGRATION TOOLS, PROGRAM DEBUGGING AND\nPROFILING TOOLS, COLLABORATIVE DEVELOPMENT ENVIRONMENTS, PACKAGING AND DEPLOYMENT TOOLS\nวท.="
+        },
+        {
+            "code": "06016336",
+            "name_th": "การจัดการเครือข่ายและโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+            "name_en": "NETWORK AND INFORMATION TECHNOLOGY INFRASTRUCTURE MANAGEMENT",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_239.png",
+                    "source_page": 239,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_240.png",
+                    "source_page": 240,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "หลักการการจัดการเครือข่ายและโครงสร้างพื้นฐานไอทีเบื้องต้นองค์ประกอบและหน้าที่การทำงาน\nของเครือข่ายการจัดการระบบเครือข่ายและการจัดการเครือข่ายด้านต่างๆได้แก่การจัดการด้านการปรับตั้งค่า\nด้านความผิดพลาดด้านประสิทธิภาพด้านบัญชีและ\nเด้านความมั่นคงปลอดภัยสถาปัตยกรรมการจัดการ\nเครือข่ายระบบจัดการและกรอบการทำงานโพรโทคอลและมาตรฐานการจัดการเครือข่าย โพรโทคอลเอส\nเอ็นเอ็มพีตัวอย่างซอฟต์แวร์และผลิต\nภัณฑ์การจัดการเครือข่ายการจัดการโครงสร้างพื้นฐานทางด้าน\nเทคโนโลยีสารสนเทศองค์ประกอบและหน้าที่การทำงานของโครงสร้างพื้นฐานไอทีการจัดการโครงสร้าง\nพื้นฐานไอทีด้านต่างๆได้แก่โปรแกรมประยุกต์ซอฟท์แวร์ระดับกลางระบบปฏิบัติการระบบเครือข่ายและ\nสภาพแวดล้อมทางกายภาพรวมทั้งการพิจารณาด้านความมั่นคงปลอดภัยระบบสำหรับให้บริการในโครงสร้าง\nพื้นฐานได้แกระบบการจัดเก็บข้อมูล ระบบเครื่องคอมพิวเตอร์แบบเสมือน ระบบการให้บริการไดเร็คทอรีการ\nตรวจสอบยืนยันผู้ใช้การควบคุมสิทธิ์ในการทำงานการบันทึกและตรวจสอบการทำงานตลอดจนหัวข้อการ\nจัดการเครือข่ายและโครงสร้างพื้นฐานไอทีที่น่าสนใจอี่นท โดยมีการฝึกปฏิบัติการด้านการจัดการเครือข่ายและ\nหัวข้อที่สำคัญทางด้านโครงสร้างพื้นฐานไอทีด้วย",
+            "desc_en": "NETWORK\nAND\nIT\nINFRASTRUCTURE\nMANAGEMENT\nCONCEPT;\nNETWORK\nCOMPONENTS\nAND\nFUNCTIONS; NETWORK MANAGEMENT\nAND FUNCTIONS  SUCH\nAS\nCONFIGURATION, FAULT,  PERFORMANCE,\nACCOUNTING\nAND\nSECURITY\nMANAGEMENTS,\nNETWORK  MANAGEMENT  ARCHITECTURE,\nMANAGEMENT\nวท.=\nSYSTEM\nAND\nFRAMEWORK,\nNETWORK  MANAGEMENT  PROTOCOLS\nAND  STANDARDS,\nSNMP  PROTOCOL,\nEXAMPLES\nOF\nNETWORK\nMANAGEMENT\nSOFTWARE\nAND\nPRODUCTS;\nINFORMATION\nTECHNOLOGY\nINFRASTRUCTURE  MANAGEMENT; IT INFRASTRUCTURE  COMPONENTS\nAND  FUNCTIONS,\nIT INFRASTRUCTURE\nFUNCTIONS SUCH AS APPLICATION, MIDDLEWARE SOFTWARE, OPERATING SYSTEM, NETWORK AND PHYSICAL\nENVIRONMENTS,  INCLUDING  SECURITY\nCONSIDERATION;  INFRASTRUCTURE  SENICED  SYSTEMS\nSUCH\nAS\nSTORAGE SERVICES, VIRTUAL MACHINE SERVICES, DIRECTORY SERVICES, ACCESS CONTROL, AUTHENTICATION,\nAUTHORIZATION,\nAUDITING;\nCURRENT\nAND\nUPDATED\nTOPICS\nIN\nNETWORK\nAND\nIIT\nINFRASTRUCTURE\nMANAGEMENT;  PRACTICAL  WORKSHOP\nIN\nNETWORK\nMANAGEMENT\nAND\nSELECTED\nTOPICS\nFOR\nIT\nINFRASTRUCTURE."
+        },
+        {
+            "code": "06016337",
+            "name_th": "ประสิทธิภาพเครือข่าย",
+            "name_en": "NETWORK PERFORMANCE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_240.png",
+                    "source_page": 240,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "เครื่องมือและเทคโนโลยีสำหรับการประเมินและปรับปรุงประสิทธิภาพเครือข่ายสื่อสาร\nการวัด\nประสิทธิภาพ\nการสร้างแบบจำลอง และการวิเคราะห์ประสิทธิภาพเครือข่ายในด้านต่างๆ เช่น ความน่าเชื่อถือ\nการสูญเสียแพ็คเก็ต\nทรูพุทฺ ฺดีเลย์\nการรองรับการเพิมภาระงาน\nความพร้อมใช้  และความมั่นคงปลอดภัย\nปัจจัยที่มีผลกระทบต่อประสิทธิภาพ\nการวิเคราะห์ด้วยแบบจำลองทราฟฟิก  ห่วงโซ่มาร์คอฟ  และทฤษฎีคิว\nตัวอย่างโซลูชันจริง เช่น สถาปัตยกรรมเครือข่ายทนทาน กลไกควบคุมทราฟฟิกและรับประกันคุณภาพ และ\nการออกแบบเครือข่ายให้มันคงปลอดภัย",
+            "desc_en": "TOOLS\nAND\nTECHNOLOGIES\nFOR\nEVALUATING\nAND\nIMPROVING\nTHE\nPERFORMANCE\nOF\nค\nCOMMUNICATION  NETWORKS; MEASUREMENT, MODELING,\nAND  ANALYSIS  OF NETWORK  PERFORMANCE\nINCLUDING  RELIABILITY.,  PACKET  LOSS,  THROUGHPUT,  DELAY.,  SCALABILITY.,  AVAILABILITY,\nAND\nSECURITY;\nFACTORS AFFECTING NETWORK PERFORMANCE; QUANTITATIVE METHODS FOR PERFORMANCE ANALYSIS,\nTECHNIQUES FROM TRAFFIC MODELING, MARKOV CHAINS, AND QUEUEING THEORY; EXAMPLES OF PRACTICAL\nSOLUTIONS: RESILIENT NETWORK ARCHITECTURE, TRAFFIC CONTROL AND QOS MECHANISMS, AND NETWORK\nSECURITY DESIGN.\nวท.="
+        },
+        {
+            "code": "06016338",
+            "name_th": "การออกแบบระบบเครือข่ายเบื้องต้น",
+            "name_en": "INTRODUCTION TO NETWORK DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016313",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_241.png",
+                    "source_page": 241,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความเข้าใจโครงสร้างของระบบเครือข่าย ความต้องการของระบบเครือข่าย หลักการออกแบบระบบ\nเครือข่าย การออกแบบการจัดสรรที่อยู่ไอพีเวอร์ชั่น 4 และไอพีเวอร์ชั่น 6 การเลือกใช้โปรโตคอลสำหรับการ\nเลือกเส้นทาง การรองรับปัญหาเมื่อระบบเครือข่ายทำงานบกพร่อง การออกแบบระบบเครือข่ายสำหรับการใช้\nงานทีเฉพาะเจาะจง เช่น ระบบเครือข่ายไร้สาย และ ระบบเครือข่ายสำหรับกระแสเสียง",
+            "desc_en": "UNDERSTANDING\nARCHITECTURE\nOF\nNETWORK  SYSTEMS;\nNETWORK  REQUIREMENTS;\nNETWORK\nDESIGN\nMETHODOLOGY;\nDESIGNING\nIPV4\nAND\nIPV6  ADDRESSING;  SELECTING\nROUTING\nPROTOCOLS;\nPROVIDING NETWORK REDUNDANCY; DESIGNING NETWORK SYSTEMS FOR SPECIFIC APPLICATIONS, SUCH\nAS\nWIRELESS NETWORK AND VOICE NETWORK."
+        },
+        {
+            "code": "06016346",
+            "name_th": "การออกแบบและพัฒนาเว็บ",
+            "name_en": "WEB DESIGN AND DEVELOPMENT",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016312, 06016341",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_245.png",
+                    "source_page": 245,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "เทคโนโลยีเว็บสำหรับฝั่งไคลเอนท์  กระบวนการออกแบบเว็บโดยมี'ผู้ใช้เป็นศูนย์กลาง หลักการ\nออกแบบเว็บ การออกแบบเว็บแบบปรับการนำเสนอได้เอง การออกแบบเว็บสำหรับอุปกรณ์เคลื่อนที่ การ\nออกแบบเว็บสำหรับแอพลิเคชันแบบคงหน้าจอเดียว\nการพัฒนาเว็บส่วนเบื้องหน้าแบบมีปฏิสัมพันธ์ เฟรมเวิร์ค\nและเครื่องมือเพื่อการออกแบบและพัฒนาเว็บ สถาปัตยกรรมสารสนเทศ การเขียนสำหรับนำเสนอบนเว็บ การ\nพัฒนาเว็บโดยใช้เทคโนโลยีซีเอมเอส",
+            "desc_en": "CLIENT SIDE\nWEB  TECHNOLOGIES;\nUSER CENTERED\nWEB\nDESIGN\nPROCESS;\nWEB\nDESIGN\nPRINCIPLES; RESPONSIVE WEB DESIGN; WEB DESIGN FOR MOBILE DEVICES; WEB DESIGN FOR\nSINGLE-\nPAGE  APPLICATION; INTERACTIVE FRONT-END\nWEB  DEVELOPMENT; FRAMEWORKS  AND\nTOOLS FOR\nWEB\nDESIGN AND DEVELOPMENT; INFORMATION ARCHITECTURE; WRITING FOR WEB; WEB DEVELOPMENT USING\nCMS TECHNOLOGIES."
+        },
+        {
+            "code": "06016347",
+            "name_th": "พื้นฐานการเล่าเรื่องและถ่ายภาพยนตร์ดิจิทัล",
+            "name_en": "FUNDAMENTALS OF DIGITAL STORYTELLING AND CINEMATOGRAPHY",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_245.png",
+                    "source_page": 245,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "จอนเกลี\nภาพ\nรวมของการเล่าเรื่องด้วยภาพ เทคนิคในการเล่าเรื่อง เทคนิคการสร้างสรรค์แนวความคิด\nแนวคิดเบื้องต้นของการถ่ายภาพระบบดิจิทัล กระบวนการถ่ายภาพยนตร์ การจัดวางและเคลื่อนไหวกล้อง\nถ่ายภาพ การใช้เลนส์ การจัดแสง ความต่อเนื่องและการตัดต่อวีดีโอ\nความ รู้เรื่องเทคนิคพิเศษด้านภาพ\nเบื้องต้น",
+            "desc_en": "OVERVIEW  OF VISUAL  STORYTELLING;  STORTELLING  TECHNIQUES;\nIDEATION  TECHNIQUES;\nBASIC\nCONCEPTS\nOF\nDIGITAL\nPHOTOGRAPHY;\nCINEMATOGRAPHY\nPROCESS;\nCAMERA\nPLACEMENT\nAND\nMOVEMENT;\nUSE\nOF LENS; LIGHTING; VIDEO  CONTINUITY  AND  EDITING; BASIC  KNOWLEDGE  OF VISUAL\nEFFECTS.\nวท.="
+        },
+        {
+            "code": "06016348",
+            "name_th": "การพัฒนาเกมขั้นสูง",
+            "name_en": "ADVANCED GAME DEVELOPMENT",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016342",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_031.png",
+                    "source_page": 31,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_246.png",
+                    "source_page": 246,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ความ รู้ทางด้านคณิตศาสตร์และฟิสิกส์ที่จำเป็น ปัญญาประดิษฐ์ การออกแบบแผนที่เกมฺการสร้าง\nเอฟเฟคสำหรับภาพและเสียง ส่วนติดต่อกับผู้ใช้สำหรับเกม แพลตฟอร์มสำหรับเกมในปัจจุบันการพัฒนาเกม\nที่เชื่อมต่อเครือข่ายคอมพิวเตอร์ การพัฒนาเกมด้วยเทคโนโลยีความจริงเสริมฺการพัฒนาเกมสามมิติสำหรับ\nอุปกรณ์พกพา",
+            "desc_en": "ESSENTIAL\nMATHEMATICS\nAND\nPHYSICS;\nARTIFICIAL\nINTELLIGENCE;\nTILEMAPS;\nADVANCED\nGRAPHICAL AND AUDIO EFFECTS; NOVEL INTERFACES FOR GAME; CURRENT GAME PLATFORM; NETWORK GAME\nDEVELOPMENT; AUGMENTED  REALITY  GAME  DEVELOPMENT;\n3D  GAME  DEVELOPMENT FOR  MOBILE\nDEVICES."
+        },
+        {
+            "code": "060163xx",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 2",
+            "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2",
+            "credits": "3(3-0-6) หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_032.png",
+                    "source_page": 32,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 1",
+            "name_en": "FREE ELECTIVE COURSE 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_032.png",
+                    "source_page": 32,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 2",
+            "name_en": "FREE ELECTIVE COURSE 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_032.png",
+                    "source_page": 32,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016329",
+            "name_th": "โครงงานทางด้านวิศวกรรมซอฟต์แวร์ 1",
+            "name_en": "PROJECT IN SOFTWARE ENGINEERING 1",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_032.png",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_236.png",
+                    "source_page": 236,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางวิศวกรรมซอฟต์แวร์ ในรูปแบบโครงการ ที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำของ\nอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอ หัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการแก้ปัญหาเชิง\nปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN SOFTWARE ENGINEERING UNDERTAKING\nWORK  PROJECT  BASED\nBY  APPLYING  THE  THEORETICAL  ASPECTS\nOF  THE\nINFORMATION  TECHNOLOGY\nSTUDIES UNDER THE SUPERVISION OF A FACULTY MEMBER TO BE ABLE TO PRESENT A PROJECT PROPOSAL\nAND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS."
+        },
+        {
+            "code": "06016339",
+            "name_th": "โครงงานทางด้านเทคโนโลยีเครือข่ายและระบบ",
+            "name_en": "PROJECT IN NETWORK AND SYSTEM TECHNOLOGY",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_032.png",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_241.png",
+                    "source_page": 241,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันทีน่าสนใจทางเทคโนโลยีเครือข่ายและระบบ ในรูปแบบ\nโครงการ ที่สามารถประยุกต์ ใช้ทฤ\nุษฎีทีเกียวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ\nภาย\n:ใต้การดูแลและ\nแนะนำของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการ\nแก้ปัญหาเชิงปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
+            "desc_en": "STUDY\nOR\nRESEARCH  OF INTERESTING CURRENT TOPICS IN\nNETWORK AND SYSTEM  TECHNOLOGY\nUNDERTAKING\nWORK\nPROJECT  BASED BY\nAPPLYING\nTHE THEORETICAL  ASPECTS\nOF THE INFORMATION\nTECHNOLOGY STUDIES\nUNDER THE SUPERISION  OF\nA\nFACULTY MEMBER TO\nBE\nABLE TO  PRESENT\nA\nPROJECT PROPOSAL AND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS.\nวท.="
+        },
+        {
+            "code": "06016349",
+            "name_th": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 1",
+            "name_en": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 1",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_032.png",
+                    "source_page": 32,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_246.png",
+                    "source_page": 246,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันทีน่าสนใจทางด้านการพัฒนาสือประสมและเกม ในรูปแบบ\nโครงการ\nที่สามารถประยุกติใขช้ทฤษฎีที่เกียวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ\nภาย\nใต้การดูแลและ\nแนะ\nนำของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการ\nแก้ปัญหาเชิงปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ\nวค",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT\nUNDERTAKING\nA\nWORK\nPROJECT  BASED BY APPLYING THE THEORETICAL  ASPECTS OF THE INFORMATION\nTECHNOLOGY STUDIES\nUNDER THE SUPERISION  OF\nA\nFACULTY MEMBER TO\nBE\nABLE TO  PRESENT\nA\nPROJECT PROPOSAL AND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS.\nวท.="
+        },
+        {
+            "code": "90401011",
+            "name_th": "การประกอบการ",
+            "name_en": "ENTREPRENEURSHIP",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาศึกษาทั่วไป",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_033.png",
+                    "source_page": 33,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06016330",
+            "name_th": "โครงงานทางด้านวิศวกรรมซอฟต์แวร์ 2",
+            "name_en": "PROJECT IN SOFTWARE ENGINEERING 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016329",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_236.png",
+                    "source_page": 236,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ในหัวข้อปัจจุบันที่น่าสนใจทางวิศวกรรมซอฟต์แวร์ ในรูปแบบโครงการที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำของ\nอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ใ\nน\nหัวข้อที่ได้เสนอและศึกษา ต่อ\nเนื่องมาจากวิชาโครงงาน 1\nยมเกลาร",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN SOFTWARE  ENGINEERING UNDERTAKING A\nWORK PROJECT BASED BY APPLYING THE THEORETICAL ASPECTS OF THE INFORMATION TECHNOLOGY\nSTUDIES UNDER THE\nSUPERVISION OFA FACULTY MEMBER TO BE ABLE TO PRESENT A COMPLETE RESULT\nOF THE PROPOSED TOPIC AND STUDY AS CONTINUED FROM PROJECT 1.\nวท.="
+        },
+        {
+            "code": "06016340",
+            "name_th": "โครงงานทางด้านเทคโนโลยีเครือข่ายและระบบ 2",
+            "name_en": "PROJECT IN NETWORK AND SYSTEM TECHNOLOGY 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016339",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_242.png",
+                    "source_page": 242,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีเครือข่ายและระบบ ในรูปแบบ\nโครงการที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและ\nแนะนำของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอและศึกษา\nต่อเนืองมาจากวิชาโครงงาน"
+        },
+        {
+            "code": "06016350",
+            "name_th": "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 2",
+            "name_en": "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06016349",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_033.png",
+                    "source_page": 33,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_247.png",
+                    "source_page": 247,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ฺในหัวข้อปัจจุบันที่น่าสนใจทางด้านการพัฒนาสื่อประสมและเกม ในรูปแบบ\nโครงการที่สามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและ\nแนะนำของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอและศึกษา\nต่อเนืองมาจากวิชาโครงงาน"
+        },
+        {
+            "code": "06016351",
+            "name_th": "เทคโนโลยีเชิงวัตถุ",
+            "name_en": "OBJECT ORIENTED TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016306",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการเทคโนโลยีเชิงอ็อบเจกต์ การวิเคราะห์และออกแบบระบบเชิงอ็อบเจกต์ การสร้างแบบจำลอง\nซอฟต์แวร์เพือใช้ในงานพัฒนาระบบด้วยภาษายูเอ็มแอ\nล\nการพิจารณาสถาปัตยกรรม ฺซอฟต์แวร์ รูปแบบของ\nการออกแบบ\nการแจกแจงยูสเคส การใช้เครืองมือสำหรับพัฒนาซอฟต์แวร์ ระบบเชิงอ็อบเจกต์",
+            "desc_en": "OBJECT ORIENTED METHODOLOGIES; OBJECT ORIENTED ANALYSIS AND DESIGN; SOFTWARE MODEL\nWITH  UNIFIED MODELING LANGUAGE (UML); SOFTWARE ARCHITECTURE AND DESIGN  PATTERN;\nUSE CASE\nREALIZATION; OBJECT ORIENTED SOFTWARE DEVELOPMENT TOOLS.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_247.png",
+                    "source_page": 247,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016352",
+            "name_th": "ระบบฐานข้อมูลขั้นสูง",
+            "name_en": "ADVANCED DATABASE SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016308",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การจัดการรายการเปลี่ยนแปลง การกู้คืนโดยใช้เทคนิคลงบันทึกและการใช้แชโดว์เพจจิง การจัดการ\nบัฟเฟอร์ เทคนิคการควบคุมภาวะพร้อมกันแบบต่างๆ การกู้คืนจากความขัดข้องของรายการ เปลี่ยนแปลง\nการแก้ปัญหาภาวะติดตาย\nการประมวลผลข้อคำถาม ฺการปรับข้อคำถามให้เหมาะที่สุดฺฐานข้อมูลแบบ\nกระจาย\nฐานข้อมูลเชิงอ็อบเจกต์ หรือหัวข้ออื่นที่ผู้สอนเลือกตามความเหมาะสมกับเทคโนโลยี ปัจจุบัน",
+            "desc_en": "TRANSACTION\nMANAGEMENT;\nCRASH  RECOVERY  USING\nVARIOUS  LOG BASED  TECHNIQUES\nAND\nSHADOW  PAGING;\nBUFFER  MANAGEMENT;\nVARIOUS\nCONCURRENCY\nCONTROL  TECHNIQUES; TRANSACTION\nFAILURE\nRECOVERY;\nDEADLOCK  HANDLING;\nQUERY\nPROCESSING;\nQUERY\nOPTIMIZATION;\nDISTRIBUTED\nDATABASE;  OBJECT ORIENTED  DATABASES;\nTOPICS\nSELECTED\nBY\nINSTRUCTORS\nBASED\nCURRENT\nTECHNOLOGY.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_248.png",
+                    "source_page": 248,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016353",
+            "name_th": "การดูแลและบำรุงรักษาระบบฐานข้อมูล",
+            "name_en": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016308",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การสร้างวิวและลำดับ ตัวดำเนินการของเซ็ต\nการสรัางพีแอล/เอสคิวแอล การจัดการภับสิ่ง ผิดปราติ\nกระบวนงานและฟังก์ชัน การจัดการกับโปรแกรมย่อย แพ็คเก็จการจัดการกับอ็อบเจกต์ขนาดใหญ่ ทริกเกอร์\nสถาปัตยกรรมตัวบริการฐานข้อมูล ฺฺการจัดการฐานข้อมูล ฺที่เครื่องรับบริการ การสร้างฐานข้อมูล ฺพจนานุกรม\nข้อมูลและวิวแสดงการปฏิบัติการแบบพลวัต แฟ้มควบคุม แฟ้มรายการทำซ้ำการบำรุงรักษาเทเบิลสเปซและ\nแฟ้มข้อมูล โครงสร้างหน่วยเก็บ ข้อมูลทำกลับการบำรุงรักษาตารางการบำรุงรักษาดรรชนี บูรณภาพของ\nข้อมูล ฺการจัดการผู้ใช้งาน สิทธิ์การใช้งานและบทบาท การนำข้อมูลเข้าฐานข้อมูล ฺการสำรองและการกู้\nฐานข้อมูล ฺโปรแกรมอรรถประโยชน์สำหรับการนำเข้า และส่งออกข้อมูล",
+            "desc_en": "CREATING VIEWS AND SEQUENCE; SET OPERATORS; CREATING PL/SOL; HANDLING EXCEPTIONS;\nPROCEDURES\nAND  FUNCTIONS;  MANAGING  SUBPROGRAMS;  PACKAGES;\nMANIPULATING  LARGE  OBJECTS;\nTRIGGERS; DATABASE SERVER ARCHITECTURE; CLIENT DATABASE MANAGEMENT; CREATING DATABASES; DATA\nDICTIONARY\nAND\nDYNAMIC  PERFORMANCE\nVIEWS;\nCONTROL\nFILES;\nREDO\nLOG  FILES;  MAINTAINING\nTABLESPACES  AND\nDATA FILES; STORAGE  STRUCTURES;\nUNDO  DATA; MAINTAINING TABLES; MAINTAINING\nวท.=\nINDEXES; MANAGING USERS; PRIVILEGES AND ROLES; LOADING DATA INTO A DATABASE; DATABASE BACKUP\nAND RECOVERY; IMPORT AND EXPORT UTILITY.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_248.png",
+                    "source_page": 248,
+                    "document_category": "description",
+                    "document_page": null
+                },
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_249.png",
+                    "source_page": 249,
+                    "document_category": "description",
+                    "document_page": null
+                }
+            ]
+        },
+        {
+            "code": "06016354",
+            "name_th": "เมตริกซ์และการวัดซอฟต์แวร์",
+            "name_en": "SOFTWARE MEASUREMENT AND METRICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ทฤ\nดษฎีการวัด กรอบแนวคิดเชิงเป้าหมายสำหรับการวัดซอฟต์แวร์ การวิเคราะห์จีคิวเอ็ม เมตริกซ์\nผลิตภัณฑ์ซอฟต์แวร์ ลักษณะภายในของผลิตภัณฑ์ ลักษณะภายนอกของผลิตภัณฑ์ เมตริกซ์กระบวนการ\nซอฟต์แวร์ การวัดค่าใช้จ่ายและค่าแรง การวัดความน่าเชื่อถือของซอฟต์แวร์ เมตริกซ์การทดสอบซอฟต์แวร์\nเมตริกซ์เชิงวัตถุ",
+            "desc_en": "MEASUREMENT  THEORY.,  GOAL BASED\nFRAMEWORK\nFOR\nSOFTWARE\nMEASUREMENTS,\nGOM\nANALYSIS, SOFTWARE PRODUCT METRICS, INTERNAL  PRODUCT ATTRIBUTES, EXTERNAL  PRODUCT ATTRIBUTES,\nSOFTWARE PROCESS METRICS, MEASURING COST AND EFFORT, MEASURING SOFTWARE RELIABILITY., SOFTWARE\nTEST METRICS, OBJECT ORIENTED METRICS.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_249.png",
+                    "source_page": 249,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016355",
+            "name_th": "การค้นคืนสารสนเทศ",
+            "name_en": "INFORMATION RETRIEVAL",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความรู้เบื้องต้นเกี่ยวกับการค้นคืนสารสนเทศ สถาปัตยกรรมของระบบค้นคืนสารสนเทศ เครื่องมือ\nและการประเมินผลการค้นคืนสารสนเทศ\nแบบจำลองการจัดลำดับแบบพิ้นฐาน\nของการค้นคืนสารสนเทศ\nคำศัพท์และรายการของการจัดตำแหน่ง การสร้างดัชนีค้นหา การถ่วงค่าน้ำหนักของคำการปฏิสัมพันธ์\nระหว่างระบบค้นคืนสารสนเทศกับผู้ใช้ การค้นคืนสารสนเทศซึ่งเน้นความหลากหลายของข้อมูล และการ\nประเมินผล การตอบสนองที่เกี่ยวข้องความต้องการสารสนเทศ\nแบบจำลองการจัดลำดับขั้นสูง เของการค้นคืน\nสารสนเทศ การจัดกลุ่มและการจำแนกข้อความ\nการกรองข้อมูลสารสนเทศ การแนะนำและกรองข้อมูล\nสารสนเทศแบบความร่วมมือ\nการรวบรวมข้อมูลบนเว็บ การวิเคราะห์ข้อมูลบนเว็บ และการสืบค้นข้อมูลบน\nเว็บ",
+            "desc_en": "INTRODUCTION TO INFORMATION RETRIEVAL (IR); ARCHITECTURE OF IR SYSTEMS; IR EVALUATION AND\nTOOLS; BASIC IR RANKING MODELS; TERM VOCABULARY AND POSTINGS LIST; SEARCH INDEX CONSTRUCTION;\nTERM\nWEIGHTING; INTERACTIVE IR; DIVERSITY IR AND EVALUATION; RELEVANCE FEEDBACK; ADVANCED IR\nRANKING\nMODELS;\nTEXT  CLUSTERING\nAND\nCATEGORIZATION;\nINFORMATION  FILTERING;\nCOLLABORATIVE\nRECOMMENDATIONS/ FILTERING; WEB CRAWLING; WEB ANALYSIS AND WEB RETRIEVAL.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_249.png",
+                    "source_page": 249,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016356",
+            "name_th": "ระบบประมวลผลแบบกระจาย",
+            "name_en": "DISTRIBUTED COMPUTING SYSTEM",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการและคุณสมบัติของระบบแบบกระจาย ได้แก่ การติดต่อสื่อสาร กระบวนการทำงาน ระบบชื่อ\nการทำงานร่วมกัน การทำซำและการคงความเหมือนของทรัพยากร การทนต่อความผิดพลาดในการทำงาน\nความปลอดภัยของระบบแบบกระจาย หัวข้อที่น่าสนใจที่เกี่ยวข้องกับระบบแบบกระจาย เช่น เว็บเซอร์วิส\nการประมวลผลแบบกริด เพียร์ทูเพียร์ การกระจายภาระงานของเครื่องให้บริการ ตลอดจนการประมวลผล\nแบบกลุมเมฆ",
+            "desc_en": "PRINCIPLES\nAND\nCHARACTERISTICS\nOF\nDISTRIBUTED\nSYSTEMS,\nCONCEPTS\nIN\nDESIGN\nAND\nIMPLEMENTATION OF DISTRIBUTED SYSTEMS, COMMUNICATION., PROCESSES, NAMING, SYNCHRONIZATION.,\nREPLICATION\nWITH\nCONSISTENCY,\nFAULT  TOLERANCE,\nSECURITY.,\nCURRENT\nAND\nUPDATED\nTOPICS\nIN\nDISTRIBUTED  SYSTEMS\nSUCH\nAS\nWEB\nSERVICES,\nCOMPUTING,\nPEER-TO PEER,\nSERVER\nLOAD\nBALANCING, AND CLOUD COMPUTING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_250.png",
+                    "source_page": 250,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016357",
+            "name_th": "เทคโนโลยีการสื่อสารเคลื่อนที่",
+            "name_en": "MOBILE COMMUNICATION TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ภาพรวมของเครือข่ายและระบบโทรคมนาคมเคลื่อนที่ พื้นฐานการสื่อสารเคลื่อนที่ สถาปัตยกรรม\nและองค์ประกอบของระบบโทรศัพท์ .เคลื่อนที่ การทำงานของระบบโทรศัพท์.เคลื่อนที่ เทคโนโลยีจีเอสเอ็ม ที\nดีเอ็มเอ ซีดีเอ็มเอ แอลทีอี และเทคโนโลยีในอนาคต บริการข้อมูลในระบบโทรศัพท์เคลื่อนที่ กลไกความ\nปลอดภัยในระบบเสื่อสารเคลื่อนที่เบื้องต้น",
+            "desc_en": "AN\nOVERVIEW\nOF\nMOBILE\nTELECOMMUNICATION\nSYSTEMS\nAND\nNETWORKS;\nMOBILE\nCOMMUNICATION\nBASIS;\nMOBILE\nTELEPHONE  SYSTEM  COMPONENTS\nAND\nARCHITECTURE;\nMOBILE\nTELEPHONE SYSTEM OPERATION; GSM, TDMA, CDMA, LTE, AND FUTURE TECHNOLOGIES; DATA SERVICES\nIN MOBILE TELEPHONE SYSTEMS; BASIC SECURITY IN MOBILE COMMUNICATION SYSTEMS.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_250.png",
+                    "source_page": 250,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016358",
+            "name_th": "การจำลองด้วยคอมพิวเตอร์",
+            "name_en": "COMPUTER SIMULATION AND MODELING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการสร้างแบบจำลองเลียนแบบและแบบจำลองเชิงวิเคราะห์\nรวมไปถึงทฤษฎีที่เกี่ยวเนื่องกันอย่าง\nการจำลองแบบเชิงสถิติ และเชิงลำดับการสุ่ม ฺพื้นฐานทฤษฎีคิว กระบวนการสุ่ม กระบวนการเกิดดับ และ\nกระบวนการมาร์คอฟ การประยุกต์ในหลากหลายวัตถุประสงค์ ตัวอย่างเช่น การวิเคราะห์และทำนายผลใน\nการออกแบบระบบ\nหรือในการวางแผนกลยุทธทางธุรกิจและการจัดการ",
+            "desc_en": "SIMULATION AND ANALYTICAL MODELING PRINCIPLES AND INCLUDING THEIR ASSOCIATED THEORIES:\nSTATISTIC AND STOCHASTIC MODELING, QUEUING THEORY FUNDAMENTAL, RANDOM PROCESS, BIRTH DEATH\nPROCESS,\nAND\nMARKOV  PROCESS; APPLICATION  IN  VARIETY PURPOSES, FOR  EXAMPLE, ANALYSIS\nAND\nPREDICTION IN SYSTEM DESIGN, IN BUSINESS AND MANAGEMENT STRATEGIC PLANNING",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_251.png",
+                    "source_page": 251,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016359",
+            "name_th": "ระบบฝังตัวพื้นฐาน",
+            "name_en": "FUNDAMENTALS OF EMBEDDED SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะนำอุปกรณ์ระบบฝังตัวและอุปกรณ์เชือมต่อกับระบบเครือข่าย\nการเขียนโปรแกรมบนอุปกรณ์\nระบบ ฝังตัวพื้นฐาน การเชื่อมต่ออุปกรณ์อินพุ\nต\nเอาต์พุตฺการเชื่อมต่อแบบอนุกรมและแบบขนาน ฺการเชื่อมต่อ\nแบบซิงโครนัสและอะซิงโครนัส ตลอดจน ฺการเชือมต่อร\nกระหว่างสัญญาดิจิทัลกับสัญญาณอนาลอก การเชื่อมต่อ\nระบบ ฝังตัวกับโมดูลเชื่อมต่ออีเธอร์เนต\nซิกบี  บลูทูธ\nอาร์เอฟไอดี และ เทคโนโลยี อื่นต โดยที่ผู้สอนเป็นผู้\nคัดเลือก",
+            "desc_en": "INTRODUCTION TO EMBEDDED DEVICES AND NETWORK INTERFACE DEVICES;  PROGRAMMING\nBASIC\nEMBEDDED\nDEVICE;  INPUT\nAND\nOUTPUT  INTERFACING;  PARALLEL\nAND\nSERIAL  INTERFACING;\nSYNCHRONOUS\nAND\nASYNCHRONOUS  INTERFACING;\nD/A\nAND\nAD\nDEVICE  INTERFACING;  INTERFACING\nEMBEDDED DEVICE WITH ETHERNET MODULES, ZIGBEE, BLUETOOTH,\nRFID AND OTHER TECHNOLOGIES\nWHICH SELECTED BY A LECTURER.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_251.png",
+                    "source_page": 251,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016360",
+            "name_th": "ไมโครโปรเซสเซอร์",
+            "name_en": "MICROPROCESSORS",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016319, 06016320",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "สถาปัตยกรรมของไมโครโปรเซสเซอร์ ไมโครคอลโทรเลอร์ ชุดคำสั่ง ชนิดของหน่วยความจำไฟฟ้าและ\nแผนผังวงจร\nการเชื่อมต่ออุปกรณ์อินพุต เอาต์พุตฺการเชื่อมต่อแบบอนุกรมและแบบขนาน การเชื่อมต่อแบบ\nซิงโครนัสและอะชิงโครนัส การประยุกต์ สั่งงานอุปกรณ์อินพุต เอาต์พุตในลักษณะต่างๆ ตลอดจนฺ ฺการ\nเชื่อมต่อระหว่างสัญญาดิจิทัลกับสัญญาณแอนะล็อก",
+            "desc_en": "MICROPROCESSOR  ARCHITECTURE;  MICROCONTROLLER;\nINSTRUCTION\nSETS;  TYPES\nOF\nELECTRONIC\nMEMORIES\nAND\nTHEIR\nCIRCUIT  DIAGRAMS;\nINPUT\nAND\nOUTPUT  INTERFACING;  PARALLEL\nAND\nSERIAL\nINTERFACING;  SYNCHRONOUS\nAND  ASYNCHRONOUS  INTERFACING,\nAS\nWELL\nAS\nD/A\nAND\nAD\nDEVICE\nINTERFACING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_252.png",
+                    "source_page": 252,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016361",
+            "name_th": "หุ่นยนต์ศาสตร์ประยุกต์",
+            "name_en": "APPLIED ROBOTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016360",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "เทคโนโลยีของหุ่นยนต์ รูปแบบทางกลศาสตร์ ประเภทของแหล่งกำเนิดไฟฟ้าต่างๆ การควบคุมผ่าน\nวงจรอิเล็กทรอนิกส์ ตัวตรวจจับชนิดต่างๆ ที่ใช้ในการควบคุมหุ่นยนต์ ไมโครคอนโทรลเลอร์และการเชื่อมต่อ\nระบบหุ่นยนต์ พฤติกรรมของหุ่นยนต์ ที่เน้นการประยุกต์อัลกอริทึมเพื่อออกแบบการทำงานของหุ่นยนต์",
+            "desc_en": "ROBOT'S\nTECHNOLOGY; MECHANICAL  PLATFORMS, TYPES OF POWER SUPPLIES; CONTROLLING BY\nELECTRONIC CONTROL., SENSORS FOR CONTROLLING ROBOTS; MICROCONTROLLER AND INTERFACING FOR ROBOTICS;\nBEHAVIOR OF ROBOTICS BASES ON PRACTICAL ALGORITHM FOR ROBOTICS DESIGN.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_252.png",
+                    "source_page": 252,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016362",
+            "name_th": "ระบบสื่อสารดิจิตอล",
+            "name_en": "DIGITAL COMMUNICATION SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016301",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ภาพรวมของระบบเสื่อสารดิจิตอล สัญญาณและสเปกตรัม เทคนิคการมือดดูเลทสัญญาณดิจิตอล\nเบสแร\nเบนด์ ภาครับดิจิตอล เทคนิคการม้อดดูเลทและดีมือดดูเลทสัญญาณดิจิตอลแบนด์พาส เทคนิคการ\nมัลติเพล็กซ์ การแปลงสัญญาณอนาลอกเป็นดิจิตอลและดิจิตอลเป็นอนาลอก เทคนิคการสเปรดสเปกตรัม การ\nเข้ารหัสควบคุมข้อผิดพลาดเบื้องต้น",
+            "desc_en": "AN\nOVERVIEW\nOF\nDIGITAL\nCOMMUNICATION\nSYSTEMS;\nSIGNALS\nAND\nSPECTRUM;\nDIGITAL\nBASEBAND\nMODULATION\nTECHNIQUES;\nDIGITAL\nRECEIVERS;\nDIGITAL\nBANDPASS\nMODULATION\nAND\nDEMODULATION  TECHNIQUES; MULTIPLEXING  TECHNIQUES;  ANALOG-TO DIGITAL\nAND  DIGITAL -TO-ANALOS\nCONVERSION; SPREAD SPECTRUM TECHNIQUES; BASIC ERROR CONTROL CODING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_253.png",
+                    "source_page": 253,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016363",
+            "name_th": "การประมวลผลและสื่อสารผ่านอุปกรณ์พกพา",
+            "name_en": "MOBILE COMPUTING AND COMMUNICATIONS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016313",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนวคิดบ\nเพื้นฐานของการประมวลผลบนอุปกรณ์พกพาและอุปกรณ์ที่มีหน่วยประมวลผลฝังตัวอยู่,การ\nใช้ประโยชน์จากการประมวลผลบนอุปกรณ์พกพา, เทคโนโลยีอุปกรณ์พกพา, เทคโนโลยีการสื่อสารไร้สายผ่าน\nอุปกรณ์พกพาเบื้อง\nเครือข่ายที่มีโครงสร้างพื้นฐาน,  เครือข่ายเฉพาะกิจ,\nสถาปัตยกรรมระบบและ\nซอฟต์แวร์, ระบบสนับสนุนการทำงาน, และการพัฒนาแอพพลิเคชันบนอุปกรณ์พกพา",
+            "desc_en": "FUNDAMENTAL  CONCEPTS\nOF\nMOBILE\nAND  PERVASIVE  COMPUTING;\nMOBILE  COMPUTING\nAPPLICATION;\nMOBILE DEVICES TECHNOLOGIES; INTRODUCTION\nTO\nMOBILE WIRELESS  COMMUNICATION\nTECHNOLOGIES; INFRASTRUCTURE NETWORK;\nAD\nHOC NETWORK; SYSTEM  AND\nSOFTWARE ARCHITECTURES;\nSUPPORT SYSTEM;\nAND MOBILE\nAPPLICATION DEVELOPMENT\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_253.png",
+                    "source_page": 253,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016364",
+            "name_th": "การออกแบบวงจรดิจิตอล",
+            "name_en": "DIGITAL CIRCUIT DESIGN",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016319",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการออกวงจรดิจิตอล ในลักษณะสเตจแมชชิงตามหลักการของเมอรีและมัวล์\nหลัการพื้นฐานใน\nการเชื่อมต่อฮาร์ดแวร์พร้อมทั้งการออกแบบ รวมทั้งการเชื่อมต่อสู่ระบบสมองกลฝังตัวการออกแบบฮาร์ดแวร์\nด้วยภาษา HDL, ภาษา VHDL และภาษา VIRILOG อธิบายสถาปัตยกรรมและโครางสร้างของ FPGA\nการออกแบบ",
+            "desc_en": "DIGITAL CIRCUIT DESIGN; STAGE MACTHING (MERLY AND MOOLRE); HARDWARE INTERFACE STANDARD;\nHARDWARE\nINTERFACE  DESIGN;\nINTERFACE\nFOR\nEMBEDED\nSYSTEM;\nHARDWARE\nDESCRIPTION\n(HDL-\nLANGUAGE, VHDL LANGUAGE AND VERILOG LANGUAGE); FPGA STRUCTURE AND FPGA DESIGN.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_254.png",
+                    "source_page": 254,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016365",
+            "name_th": "คอมพิวเตอร์วิชัน",
+            "name_en": "COMPUTER VISION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "เทค\nานิคพื้นฐานในการประมวลผลภาพ\nการตรวจจับและตัดแยกคุณลักษณะเดนจากภาพ รูปแบบการ\nจัดเก็บข้อมูลรูปร่างของวัตถุในภาพ สีและความเข้มแสง การรู้จำวัตถุในภาพ วิชัน 3\nมิติ\nการวิเคราะห์ ข้อมูล\nเชิงพลวัตการประยุกต์?ใช้คอมพิวเตอร์วิชัน เช่นระบบตรวจผลผลิตในโรงงานอุตสาหกรรม ระบบวิเคราะห์ภาพ\nทางการแพทย์ ระบบรู้จำบุคคลโดยใช้เอกลักษณ์ของบุคคล ระบบขนส่งอัจฉริยะ ระบบรักษาความปลอดภัย",
+            "desc_en": "BASIC IMAGE  PROCESSING, FEATURE DETECTION AND SEGMENTATION., SHAPE REPRESENTATION,\nCOLOR AND SHADING, OBJECT RECOGNITION., 3D VISION., DYNAMIC VISION., SOME APPLICATIONS SUCH\nAS\nMACHINE\nVISION  SYSTEMS  FOR  INSPECTION,\nBIOMEDICAL  IMAGE  ANALYSIS,  BIOMETRICS, INTELLIGENT\nVEHICLE, AND SECURITY SYSTEMS.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_254.png",
+                    "source_page": 254,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016366",
+            "name_th": "การประมวลผลภาพ",
+            "name_en": "IMAGE PROCESSING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "องค์ประกอบของระบบประมวลผลภาพ การสร้างภาพและรูปแบบการจัดเก็บข้อมูลภาพ เทคนิค\nพื้นฐานสำหรับการวิเคราะห์และประมวลผลข้อมูลภาพ การรับภาพ การแปลงภาพ การปรับปรุงภาพโดยใช้\nหลักการของเอ็นฮานสเม้นท์และรีสทอเรชัน การบีบอัดข้อมูลภาพ การวิเคราะห์ภาพ เช่น การตัดแยกวัตถุ\nการวัดคุณสมบัติของวัตถุในภาพ การวิเคราะห์ฟูเรีย",
+            "desc_en": "IMAGE PROCESSING COMPONENTS, IMAGE FORMATION AND REPRESENTATION, BASIC TECHNIQUES\nFOR ANALYSIS AND MANIPULATION OF PICTORIAL  DATA, IMAGE TRANSFORMATION, IMAGE ENHANCEMENT\nAND\nRESTORATION;\nIMAGE\nCOMPRESSION;\nIMAGE\nANALYSIS\nSUCH\nAS\nSEGMENTATION,\nPROPERTY\nMEASUREMENT, FOURIER ANALYSIS",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_255.png",
+                    "source_page": 255,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016367",
+            "name_th": "ความเป็นจริงเสมือน",
+            "name_en": "VIRTUAL REALITY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความรู้|พื้นฐานเกี่ยวกับความเป็นจริงเสมือน เทคโนโลยีและการประยุกต์ใช้งาน ทฤษฎีคอมพิวเตอร์\nกราฟิก 3 มิติ การสร้างแบบจำลองเชิงเรขาคณิต ฺและการแปลงเชิงเรขาคณิต\nระบบความเป็นจริงเสมือนทั่วไป\nสภาพแวดล้อมเสมือนและสภาพแวดล้อมคอมพิวเตอร์\nโหมดการโต้ตอบ การทำให้เคลื่อนไหวใน\nสภาพแวดล้อมเสมือน การจำลองกายภาพ และปัจจัยของมนุษย์ ฮาร์ดแวร์ และซอฟต์แวร์ที่เกี่ยวข้องกับระบบ\nความเป็นจริงเสมือน รวมทั่งเครื่องมือในการพัฒนาการประยุกต์ ใช้งานความจริงเสมือน และโครงงานที่\nมอบหมาย",
+            "desc_en": "FUNDAMENTAL KNOWLEDGE OF VIRTUAL REALITY (VR), TECHNOLOGIES AND APPLICATIONS. 3D\nCOMPUTER GRAPHIC THEORY., GEOMETRIC MODELING, AND GEOMETRICAL TRANSFORMATIONS. GENERIC VR\nSYSTEMS, VIRTUAL ENVIRONMENT AND COMPUTER ENVIRONMENT, MODES OF INTERACTION, ANIMATING\nVIRTUAL ENVIRONMENT, PHYSICAL SIMULATION, AND HUMAN FACTORS.\nHARDWARE AND SOFTWARE RELATED\nTO VR SYSTEM, INCLUDING DEVELOPMENT TOOLS FOR VR APPLICATIONS AND HAND-ON PROJECT.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_255.png",
+                    "source_page": 255,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016368",
+            "name_th": "การรู้จำรูปแบบ",
+            "name_en": "PATTERN RECOGNITION",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ทฤษฎีความน่าจะเป็นแบบเบย์ ทฤษฎีการประมาณการ ฟังก์ชันดิสคริมิแนนต์เชิงเส้น ชัพพอร์ต\nเวกเตอร์แมชชีน โครงข่ายประสาท ต้นไม้ตัดสินใจ การจัดกลุ่ม",
+            "desc_en": "BAYESIAN DECISION THEORY; ESTIMATION\nLINEAR DISCRIMINATION FUNCTIONS; SUPPORT\nVECTOR MACHINES; NEURAL NETWORKS; DECISION TREES; CLUSTERING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_256.png",
+                    "source_page": 256,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016369",
+            "name_th": "เศรษฐศาสตร์เทคโนโลยีสารสนเทศ",
+            "name_en": "ECONOMICS OF INFORMATION TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการเศรษฐศาสตร์ เบื้องต้น แนวคิดและทฤษฎีเกี่ยวกับกระบวนนวัตกรรมและการเปลี่ยนแปลง\nเทคโนโลยี ตลาดเทคโนโลยีสารสนเทศ การประ\n;เมินการลงทุนทางด้านเทคโนโลยีสา=\nรสนเทศ ผลกระทบของ\nการพัฒนาและการเปลียนแปลงเทคโนโลยีต่อการพัฒ\nนาเศรษฐกิจและอุตสาหกรรม ฺการจ้างงาน การ\nเจริญเติบโตของธุรกิจ เผลิตภาพ การถ่ายทอดเทคโนโลยี การวิจัยและพัฒนาการปรับตัวเข้าสู่สังคมสารสนเทศ",
+            "desc_en": "FUNDAMENTAL\nECONOMIC\nPRINCIPLES;\nECONOMIC  THEORIES\nAND\nCONCEPTS  RELATING\nTO\nINNOVATION  PROCESS\nAND  TECHNICAL  CHANGE;  INFORMATION  TECHNOLOGY  MARKET;\nEVALUATION\nOF\nINFORMATION  TECHNOLOGY\nINVESTMENT;\nOF INFORMATION  TECHNOLOGY\nON\nECONOMIC\nAND\nINDUSTRIAL\nDEVELOPMENT;\nEMPLOYMENT;\nBUSINESS\nGROWTH;\nPRODUCTIVITY;\nTECHNOLOGY\nTRANSFER; RESEARCH AND DEVELOPMENT; SOCIAL TRANSFORMATION OF INFORMATION AGE.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_256.png",
+                    "source_page": 256,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016370",
+            "name_th": "อัจฉริยะทางธุรกิจเบื้องต้น",
+            "name_en": "INTRODUCTION TO BUSINESS INTELLIGENCE",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016305",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนวคิดพื้นฐานของอัจฉริยะทางธุรกิจ องค์ประกอบของอัจฉริยะทางธุรกิจ โครงสร้างพื้นฐานของ\nอัจฉริยะทางธุรกิจ คลังข้อมูล เหมืองข้อมูล ฺการบริหารสมรรถนะของธุรกิจ ฺบาลานซ์สกอร์การ์ด เครื่องมือ\nต่างๆ ในการสร้างอัจฉริยะทางธุรกิจในองค์กร การประยุกต์ใช้อัจฉริยะทางธุรกิจบนระบบสารสนเทศต่าง\nใน\nองค์กร แอพพลิเคชันต่างๆ ของอัจฉริยะทางธุรกิจที่ใช้ในปัจจุบัน",
+            "desc_en": "BASIC PRINCIPLES OF BUSINESS INTELLIGENCE (BI); COMPONENTS OF BI; BI INFRASTRUCTURE, DATA\nWAREHOUSING\nAND\nDATA\nMINING,\nBUSINESS  PERFORMANCE\nMANAGEMENT,\nBALANCED\nSCORECARD,\nDASHBOARD,\nTOOLS\nFOR  IMPLEMENTING\nBI\nIN\nAN\nORGANIZATION;\nBI\nAPPLICATIONS\nIN\nINFORMATION\nSYSTEM PLATFORMS; BL APPLICATIONS USED IN CURRENT BUSINESSES.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_257.png",
+                    "source_page": 257,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016371",
+            "name_th": "การจัดการโซ่อุปทานและโลจิสติกส์",
+            "name_en": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความจำเป็นในด้านการบูรณาการของโซ่อุปทานและในด้านการบริหารจัดการความซับซ้อนในส่วนต่อ\nประสานของระบบ หลักการของการวางแผน การวิเคราะห์ การออกแบบ การพัฒนาและการประเมินของการ\nบริหารโซ่อุปทาน กิจกรรมของการบริหารโร\nโซ่อุปทานที่นำมาซึงการบูรณาการของความสัมพันธ์ด้านการ\nไหลเวียนของข้อมูลและ\n,เดิบระหว่างองค์กรในโซ่อุปทาน รวมทั่งโช่อุปทานทั่วโลก บทบาทของผู้ค้า\nกระบวนการภาย\nในของโซ่อุปทาน และการจัดจำหน่าย",
+            "desc_en": "THE\nNEED FOR  SUPPLY  CHAIN  INTEGRATION\nAND\nTHE  CHALLENGES  OF MANAGING  COMPLEX\nINTERFACES;\nTHE  SYSTEMS  APPROACH\nTO\nTHE\nPLANNING,\nANALYSIS,  DESIGN.,  DEVELOPMENT,\nAND\nEVALUATION OF SCM; ACTIVITIES THAT LEAD TO INTEGRATION OF INFORMATION AND MATERIAL FLOWS ACROSS\nMULTIPLE ORGANIZATIONS IN THE SUPPLY CHAIN INCLUDING GLOBAL SUPPLY CHAINS,\nROLES OF SUPPLIERS,\nINTERNAL PROCESS, AND DISTRIBUTION CHANNELS.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_257.png",
+                    "source_page": 257,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016372",
+            "name_th": "วิศวกรรมและการจัดการความรู้",
+            "name_en": "KNOWLEDGE ENGINEERING AND MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ลำดับชั้นของข้อมูล ฺข่าวสารและความรู้ การแทนความรู้ เช่น ตรรกศาสตร์พรีดิเคต ตรรกศาสตร์\nโครงข่ายเชิงความหมาย เฟรมและวัตถฺุออนโทโลยีและเว็บเชิงความหมาย ระบบผู้เชี่ยวชาญฺ กฎ\nลูกโซไปข้างหน้าและย้อนกลับ การแก้ไขข้อขัดแย้งและการรวมกฎฺการใช้เหตุผลเชิงกรณี การใช้เหตุผลเชิง\nเงื่อนไข โครงข่ายประสาทเทียม ฺการเรียนรู้ของเครื่องจักร เทคนิคการเรียนรู้เชิงสถิติ หัวข้อวิจัยด้านวิศวกรรม\nข้อมูลและวิศวกรรมความรู้",
+            "desc_en": "HIERARCHY\nOF  DATA,  INFORMATION,\nAND\nKNOWLEDGE;\nKNOWLEDGE  REPRESENTATION,\nE.G.,\nPREDICATE LOGIC, FUZZY LOGIC, SEMANTIC NETWORK., FRAMES AND OBJECTS, ONTOLOGIES AND SEMANTIC\nWEB;\nEXPERT\nSYSTEMS;\nFORWARD\nAND\nBACKWARD\nCHAINING\nRULES;\nUNIFICATION\nAND\nCONFLICT\nRESOLUTION;\nCASE BASED\nREASONING;\nCONSTRAINT BASED\nREASONING;\nARTIFICIAL\nNEURAL\nNETWORK;\nMACHINE  LEARNING;  STATISTICAL  LEARNING  TECHNIQUES;\nRESEARCH  TOPICS  IN\nDATA\nAND  KNOWLEDGE\nENGINEERING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_258.png",
+                    "source_page": 258,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016373",
+            "name_th": "การบริหารระบบลูกค้าสัมพันธ์",
+            "name_en": "CUSTOMER RELATIONSHIP MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "การหามาได้ การเก็บรักษาและการขยายของฐานลูกค้า  ซึงมุ่งเน้นการเพิ่มผลกำไรในระยะ\nยาวของ ลูกค้าในองค์กร การบริหารลูกค้าอย่างมีประสิทธิภาพและมีประสิทธิผลโดยการนำอรรถประโยชน์ของ\nระบบสารสนเทศเข้ามาประยุกต์ ใช้",
+            "desc_en": "LDENTIFICATION (TARGETING); ACQUISITION; RETENTION., AND DEVELOPMENT (EXPANSION); AIMING\nTO\nINCREASE\nTHE\nLONG-TERM  PROFITABILITY\nOF\nTHE\nFIRM'S\nCUSTOMERS;\nEFFECTIVE\nAND\nEFFICIENT\nMANAGEMENT OF CUSTOMERS WITH UTILIZATION OF INFORMATION TECHNOLOGY.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_258.png",
+                    "source_page": 258,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016374",
+            "name_th": "การจัดการการปฏิบัติการ",
+            "name_en": "OPERATIONS MANAGEMENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "90401013",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ภาพรวมของการจัดการการปฏิบัติการ  โปรแกรมเชิงเส้น โปรแกรมเชิงจำนวนเต็ม การเลือกทำเล\nการวางแผนผังสถานทีประกอบการ การจัดการสินค้าคงคลัง ฺการควบคุมคุณภาพ  การจัดการโครงการ\nการพยากรณ์",
+            "desc_en": "OVERIEW\nOF  OPERATIONS\nMANAGEMENT;\nLINEAR\nPROGRAMMING;  INTEGER\nPROGRAMMING;\nLOCATION\nPLANNING;  FACILITY  LAYOUT;  INVENTORY\nMANAGEMENT;  QUALITY\nMANAGEMENT;  PROJECT\nMANAGEMENT; FORECASTING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_259.png",
+                    "source_page": 259,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016375",
+            "name_th": "ระบบสนับสนุนการตัดสินใจ",
+            "name_en": "DECISION SUPPORT SYSTEMS",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06016305",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "แนะ\nนำระบบสนับสนุนการตัดสินใจ ปกระบวนการตัดสินใจ คุณสมบัติและองค์ประกอบของระบบ\nสนับสนุนการตัดสินใจ การจำลองและการวิเคราะห์ ปัญญาธุรกิจ ฺการวิเคราะห์เชิงธุรกิจ ระบบสนับสนุนการ\nตัดสินใจแบบกลุ่ม ปัญญาประดิษฐ์และระบบผู้เจ\nระบบอัจฉริยะ การพัฒนาระบบสนับสนุนการ\nเดสินใจ การบูรณาการและทิศทางของระบบสนับสนุนการตัดสินใจ",
+            "desc_en": "INTRODUCTION  TO\nDECISION\nSYSTEMS;\n; DECISION\nMAKING  PROCESS;  CHARACTERISTICS\nAND COMPONENTS OF DECISION SUPPORT SYSTEMS; MODELING AND ANALYSIS; BUSINESS INTELLIGENCE;\nBUSINESS ANALYTICS; GROUP DECISION SUPPORT SYSTEMS; ARTIFICIAL INTELLIGENCE AND EXPERT SYSTEMS;\nINTELLIGENT SYSTEMS; DECISION SUPPORT SYSTEM DEVELOPMENT; INTEGRATION AND TREND OF DECISION\nSUPPORT SYSTEMS.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_259.png",
+                    "source_page": 259,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016376",
+            "name_th": "ปัญญาประดิษฐ์",
+            "name_en": "ARTIFICIAL INTELLIGENCE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "นิยามของปัญญาประดิษฐ์ ตรรกศาสตร์เชิงประพจน์ พรีดิเคตลอจิกลำดับที่หนึ่ง การแก้ปัญหาสำหรับ\nเกมและการค้นหา การใช้เหตุผลแบบคลุมเครือการประมวลผลภาษา ระบบผู้เชี่ยวชาญฺการเรียนรู้ของ\nเครื่องจักร การทำเหมืองข้อมูล โครงข่ายประสาทเทียม",
+            "desc_en": "DEFINITION\nOF\nARTIFICIAL.  INTELLIGENCE;  PROPOSITIONAL  LOGIC;  FIRST\nORDER  PREDICATE  LOGIC;\nPROBLEM SOLVING FOR\nAND  SEARCH; UNCERTAINTY  REASONING; LANGUAGE  PROCESSING; EXPERT\nSYSTEM; MACHINE LEARNING; DATA MINING; NEURAL NETWORK.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_260.png",
+                    "source_page": 260,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016377",
+            "name_th": "พื้นฐานวิทยาการข้อมูล",
+            "name_en": "FUNDAMENTALS OF DATA SCIENCE",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิทยาการข้อมูลกับแรงจูงใจเชิงธุรกิจ การจัดการข้อมูล การวิเคราะห์ข้อมูลโดยใช้สถิติและการเรียนรู้\nของเครื่องจักรการสร้างภาพเพื่อสื่อข่าวสาร การทำเหมืองข้อมูล การสกัดข่าวสารและความรู้จากข้อมูล การ\nค้นคืนข่าวสารและอัลกอริทึมการสืบค้น การประมวลผลข้อความและเสียง การจัดเก็บและวิเคราะห์ อภิมหา",
+            "desc_en": "DATA SCIENCE MOTIVATION FOR BUSINESS; DATA MANIPULATION; DATA ANALYSIS WITH STATISTICS\nAND MACHINE LEARNING; INFORMATION VISUALIZATION; DATA MINING; EXTRACTION OF INFORMATION AND\nKNOWLEDGE FROM DATA; INFORMATION RETRIEVAL  AND SEARCH ENGINE ALGORITHM; TEXT AND SPEECH\nPROCESSING; BIG DATA STORAGE AND ANALYTICS.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_260.png",
+                    "source_page": 260,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016378",
+            "name_th": "การประมวลผลภาษาธรรมชาติเบื้องต้น",
+            "name_en": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "โมดูลการประมวลผลภาษา นิพจน์ปกติและออโตมาต้า คำและเครืองจักรจำกัดสถานะ เอ็นแกรมและ\nการกำกับชนิดคำ\nโมเดลมาคอฟและเอนโทรปีสูงสุด การแจกแจงไวยากรณ์ การแจกแจงเชิงสถิติ คุณลักษณะ\nและการยูนิฟายด์ การแทนความหมาย อรรถศาสตร์เชิงคำนวณ การศึกษาความหมายของคำบทสนทนาเชิง\nคำนวณ การประยุกต์ใช้งานการประมวลผลภาษา",
+            "desc_en": "LANGUAGE  PROCESSING MODULES; REGULAR  EXPRESSIONS  AND  AUTOMATA; WORDS\nAND\nFINITE\nSTATE MACHINE; N-GRAMS AND  PART OF SPEECH TAGGING; HIDDEN\nMARKOV AND\nMAXIMUM\nENTROPY\nMODELS; SYNTACTIC  PARSING; STATISTICAL  PARSING; FEATURES AND  UNIFICATION; THE REPRESENTATION  OF\nMEANING; COMPUTATIONAL  SEMANTICS; LEXICAL\nSEMANTICS; COMPUTATIONAL  DISCOURSE; APPLICATION\nOF LANGUAGE PROCESSING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_261.png",
+                    "source_page": 261,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016379",
+            "name_th": "แบบจำลองธุรกิจและการตลาด",
+            "name_en": "BUSINESS MODEL AND MARKETING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "90401013",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "เครื่องมือในการคิดและสร้างแบบจำลองธุรกิจ ฺคุณค่าสินค้า/บริการ กลุ่มลูกค้าและความสัมพันธ์กับ\nการแบ่งส่วนตลาด ตลาดเป้าหมาย\nเบบและวิธีการสร้างรายได้ นวัตกรรมในการสร้างแบบจำลอง\nกรณีศึกษาของแบบจำลองธุรกิจต่างๆ นวัตกรรมของกลยุทธ์ทางการตลาด แบบจำลองการวิเคราะห์\nสภาวะการแข่งขัน กลยุทธ์การแข่งขัน",
+            "desc_en": "BUSINESS\nMODEL\nCANVAS;\nVALUE  PROPOSITIONS,\nCUSTOMER\nSEGMENTS\nAND\nCUSTOMER\nRELATIONSHIPS,\nMARKET  SEGMENTATION,  TARGET\nMARKET,\nREVENUE\nMODEL\nAND\nREVENUE\nSTREAM;\nINNOVATION IN BUSINESS MODEL.; CASE STUDIES OF SEVERAL BUSINESS MODELS; INNOVATIVE MARKETING\nSTRATEGIES; FIVE FORCES MODEL; COMPETITIVE STRATEGIES.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_261.png",
+                    "source_page": 261,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016380",
+            "name_th": "การบริหารจัดการพาณิชย์อิเล็กทรอนิกส์",
+            "name_en": "E COMMERCE MANAGEMENT",
+            "credits": "(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "หลักการพาณิชย์อิเล็กทรอนิกส์ โครงสร้างพื้นฐาน การประยุกต์ใช้ และส่วนสนับสนุนพาณิชย์\nอิเล็กทรอนิกส์; ระบบชำระเงินอิเล็กทรอนิกส์และระบบรักษาความปลอดภัยการโฆษณา รูปแบบการทำธุรกิจ\nสร้าง และการบริหารจัดการพาณิชย์อิเล็กทรอนิกส์",
+            "desc_en": "PRINCIPLES OF E COMMERCE; INFRASTRUCTURE, APPLICATIONS AND SUPPORTING SERVICES OF E-\nCOMMERCE;\nELECTRONIC  PAYMENT  SYSTEM\nAND\nSECURITY  SYSTEM;\nE COMMERCE\nADVERTISING;\nBUSINESS MODEL AND E COMMERCE MANAGEMENT.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_262.png",
+                    "source_page": 262,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016381",
+            "name_th": "เทคโนโลยีเครือข่าย",
+            "name_en": "NETWORKING TECHNOLOGY",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ความก้าวหน้าทางเทคโนโลยีการเชื่อมโยงเครือข่ายในปัจจุบัน การประยุกต์และบริการเครือข่ายในยุค\nหน้า\nผลกระทบต่อมวลมนุษยชาติ\nประโยชน์ต่อคุณภาพชีวิตและโอกาสทางธุรกิจ  ความเสี่ยงและภัยที่อาจ\nเกิดขึ้น รวมไปถึงการพัฒนาเทคโนโลยือย่างยั่งยืน",
+            "desc_en": "RECENT ADVANCES IN  NETWORKING TECHNOLOGIES;\nNEXT GENERATION  NETWORK APPLICATIONS\nเจ\nAND SERVICES; IMPACTS ON HUMAN SOCIETY, BENEFITS FOR PEOPLE'S QUALITY OF LIFE AND BUSINESS\nOPPORTUNITIES; POTENTIAL RISK AND THREATS; SUSTAINABLE TECHNOLOGY DEVELOPMENT.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_262.png",
+                    "source_page": 262,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036382",
+            "name_th": "การโปรแกรมอินเทอร์เน็ต",
+            "name_en": "INTERNET PROGRAMMING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "สถาปัตยกรรมและโพรโทคอลการติดต่อสื่อสาร การโปรแกรมเพื่อสร้างการเชื่อมต่อในชั้นต่าง\nเช่น แอพพลิเคชันและทรานสปอร์ตการต่อประสานซ็อกเก็ตชนิดทีซีพี ยูดีพี และรอว์ กระบวนการทำงาน\nทางผู้รับและผู้ให้บริการ และการเขียนโปรแกรมเพือสร้างแอพพลิเคชันบนเครือข่าย",
+            "desc_en": "COMMUNICATION ARCHITECTURE AND PROTOCOLS; NETWORK PROGRAMMING TO ESTABLISH A\nCONNECTION ON\nA\nSPECIFIC LAYER IN OSI MODEL (E.G. APPLICATION LAYER AND TRANSPORT LAYER);\nNETWORK PROGRAMMING USING TCP, UDP, AND RAW SOCKETS; PROCESS ON CLIENT /SERVER SIDES; AND\nNETWORK\nAPPLICATION PROGRAMMING.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_263.png",
+                    "source_page": 263,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016383",
+            "name_th": "หัวข้อพิเศษทางด้านวิศวกรรมซอฟต์แวร์",
+            "name_en": "SPECIAL TOPICS IN SOFTWARE ENGINEERING",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานีจะศึกษาในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจทางด้านการวิศวกรรมซอฟต์แวร์ โดย\nอาจารย์ผู้สอนทางด้านการวิศวกรรมซอฟต์แวร์เป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS IN SOFTWARE ENGINEERING, WHICH SELECTED BY\nLECTURER.\nพพระจอมเกล้าเจ้าาๆ",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_263.png",
+                    "source_page": 263,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016384",
+            "name_th": "หัวข้อพิเศษทางด้านวิศวกรรมซอฟต์แวร์ 2",
+            "name_en": "SPECIAL TOPICS IN SOFTWARE ENGINEERING 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานีจะศึกษาในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจทางด้านการวิศวกรรมซอฟต์แวร์ โดย\nอาจารย์ผู้สอนทางด้านการวิศวกรรมซอฟต์แวร์เป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS IN SOFTWARE ENGINEERING, WHICH SELECTED BY\nLECTURER.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_263.png",
+                    "source_page": 263,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016385",
+            "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีเครือข่ายและระบบ 1",
+            "name_en": "SPECIAL TOPICS IN NETWORK AND SYSTEM TECHNOLOGY 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาในหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจทางด้านเทคโนโลยีเครือข่ายและ\nระบบ\nโดยอาจารย์ ผู้สอนทางด้านเทคโนโลยีเครือข่ายและระบบเป็นผู้คัดเลือก",
+            "desc_en": "THIS  COURSE FOCUSES\nON  SELECTED TOPICS IN\nNETWORK AND SYSTEM  TECHNOLOGY, WHICH\nSELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_264.png",
+                    "source_page": 264,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016386",
+            "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีเครือข่ายและระบบ 2",
+            "name_en": "SPECIAL TOPICS IN NETWORK AND SYSTEM TECHNOLOGY 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานีจะศึกษาในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจทางด้านเทคโนโลยีเครือข่ายและ\nระบบ\nโดยอาจารย์ ผู้สอนทางด้านเทคโนโลยีเครือข่ายและระบบเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE FOCUSES\nON\nSELECTED TOPICS IN  NETWORK AND SYSTEM  TECHNOLOGY., WHICH\nSELECTED BY A LECTURER.\nจอมเกล้",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_264.png",
+                    "source_page": 264,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016387",
+            "name_th": "หัวข้อพิเศษทางด้านการพัฒนาสื่อประสมและเกม 1",
+            "name_en": "SPECIAL TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาในหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจทางด้านการพัฒนาสื่อประสมและ\nเกม\nโดยอาจารย์ผู้สอนทางด้านการพัฒนาสื่อประสมและเกมเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT, WHICH\nSELECTED BY A LECTURER.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_264.png",
+                    "source_page": 264,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016388",
+            "name_th": "หัวข้อพิเศษทางด้านการพัฒนาสื่อประสมและเกม 2",
+            "name_en": "SPECIAL TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาในหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจทางด้านการพัฒนาสื่อประสมและ\nเกม\nโดยอาจารย์ผู้สอนทางด้านการพัฒนาสื่อประสมและเกมเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE FOCUSES ON SELECTED TOPICS IN MULTIMEDIA AND GAME DEVELOPMENT, WHICH\nSELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_265.png",
+                    "source_page": 265,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016389",
+            "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศ 1",
+            "name_en": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานีจะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจ โดยอาจารย์ผู้สอนทางด้าน\nเทคโนโลยีสารสนเทศเป็นผู้คัดเลือก",
+            "desc_en": "E\nTHIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY THE\nINSTRUCTORS IN THE FELD OF INFORMATION TECHNOLOGY.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_265.png",
+                    "source_page": 265,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016390",
+            "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศ 2",
+            "name_en": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชานี้จะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจ โดยอาจารย์ผู้สอนทางด้าน\nเทคโนโลยีสารสนเทศเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST SELECTED BY THE\nINSTRUCTORS IN THE FELD OF INFORMATION TECHNOLOGY.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_265.png",
+                    "source_page": 265,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016391",
+            "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศ 1",
+            "name_en": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 1",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการที่น่าสนใจทางด้านเทคโนโลยี\nสารสนเทศ โดยอาจารย์ผู้สอนเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nFOCUSES\nON\nSELECTED\nTOPICS\nAND  PRACTICAL  WORKSHOP\nIN\nINFORMATION\nTECHNOLOGY., WHICH SELECTED BY A LECTURER.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_266.png",
+                    "source_page": 266,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016392",
+            "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศ 2",
+            "name_en": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 2",
+            "credits": "3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาและการฝึกภาคปฏิบัติในหัวข้อและความก้าวหน้าทางวิชาการทีน่าสนใจทางด้านเทคโนโลยี\nสารสนเทศ\nโดยอาจารย์ผู้สอนเป็นผู้คัดเลือก",
+            "desc_en": "THIS\nCOURSE\nFOCUSES\nON\nSELECTED\nTOPICS\nAND\nPRACTICAL  WORKSHOP\nIN\nINFORMATION\nTECHNOLOGY., WHICH SELECTED BY\nLECTURER.\nYAOU/\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_266.png",
+                    "source_page": 266,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016393",
+            "name_th": "สหกิจศึกษาทางด้านวิศวกรรมซอฟต์แวร์",
+            "name_en": "COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
+            "credits": "6(0-36-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ที่\nยินยอมใร\nเห้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ และ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND THE ENTERPRISES. AFTER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_267.png",
+                    "source_page": 267,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016394",
+            "name_th": "สหกิจศึกษาต่างประเทศทางด้านวิศวกรรมซอฟต์แวร์",
+            "name_en": "OVERSEAS COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
+            "credits": "6(0-36-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ที่\nยินยอม ให้นักศึกษาได้นำความรู้ตที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะ\nและ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_267.png",
+                    "source_page": 267,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016395",
+            "name_th": "สหกิจศึกษาทางด้านเทคโนโลยีเครือข่ายและระบบ",
+            "name_en": "COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY",
+            "credits": "6(0-36-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน ต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ตที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE.\nTHE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION, STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_268.png",
+                    "source_page": 268,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06016396",
+            "name_th": "สหกิจศึกษาต่างประเทศทางด้านเทคโนโลยีเครือข่ายและระบบ",
+            "name_en": "OVERSEAS COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY",
+            "credits": "6(0-36-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "3/1, 3/2, 4/1",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน ต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ตที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามทีได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ\nวท.=",
+            "source_provenance": [
+                {
+                    "program": "IT",
+                    "source_filename": "it2560_page_268.png",
+                    "source_page": 268,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        }
+    ],
+    "catalog": {
+        "catalog_key": "it-2560",
+        "academic_year": "2560"
+    }
+}

@@ -31,7 +31,7 @@ from rag.qa import (
     _fallback_scope,
     _is_placement_fallback_candidate,
     _should_use_intent_interpreter,
-    ask,
+    ask as _ask,
 )
 from rag.query_spec import parse_query_spec
 from rag.retrieval.retrieve import (
@@ -54,6 +54,49 @@ DB_PATH = (
     / "runtime"
     / "curriculum.db"
 )
+
+
+def ask(db_path, question, *args, **kwargs):
+    """Run legacy single-edition cases against the edition they covered.
+
+    Every case in this module was authored when each program had exactly one
+    catalog edition; the UI edition selector now supplies the scope that the
+    questions leave implicit. DSBA keeps its original pin; IT/BIT/GENED pin
+    to their current editions (legacy editions are covered by the dedicated
+    isolation suite).
+    """
+    authored_edition = {
+        "DSBA": "dsba-2565",
+        "IT": "it-2565",
+        "BIT": "bit-2565",
+        "GENED": "gened-2564",
+        "AIT": "ait-2566",
+    }
+    spec = parse_query_spec(question)
+    program = spec.program
+    # Auto-pinning applies only to the shared runtime DB. Temp-DB tests
+    # construct their own catalogs and must keep exact behavior.
+    try:
+        is_shared = Path(db_path).resolve() == Path(DB_PATH).resolve()
+    except (OSError, ValueError):
+        is_shared = False
+    if program in authored_edition and is_shared:
+        catalog_key = authored_edition[program]
+        context_field = next(
+            (name for name in ("conversation_context", "context") if name in kwargs),
+            None,
+        )
+        if context_field is None:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=catalog_key
+            )
+        else:
+            context = kwargs[context_field]
+            if isinstance(context, QueryContext) and context.program == program and not context.catalog_key:
+                kwargs[context_field] = replace(context, catalog_key=catalog_key)
+            elif isinstance(context, dict) and context.get("program") == program and not context.get("catalog_key"):
+                kwargs[context_field] = {**context, "catalog_key": catalog_key}
+    return _ask(db_path, question, *args, **kwargs)
 
 
 class RagQaTest(unittest.TestCase):
@@ -147,7 +190,7 @@ class RagQaTest(unittest.TestCase):
         result = ask(
             DB_PATH,
             "ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
-            context=QueryContext(program="IT"),
+            context=QueryContext(program="IT", catalog_key="it-2565"),
         )
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -188,7 +231,7 @@ class RagQaTest(unittest.TestCase):
         contextual = ask(
             DB_PATH,
             "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง",
-            context=QueryContext(program="IT"),
+            context=QueryContext(program="IT", catalog_key="it-2565"),
         )
 
         for result in (explicit, contextual):
@@ -359,6 +402,55 @@ class RagQaTest(unittest.TestCase):
         planner.assert_not_called()
         executor.assert_not_called()
 
+    def test_prefix_course_name_to_code_uses_canonical_identity_without_model(self):
+        model_calls = []
+
+        def forbidden_model(prompt):
+            model_calls.append(prompt)
+            raise AssertionError("course identity must not call a model")
+
+        cases = (
+            (
+                "รหัสของวิชา calculus 2 คืออะไร",
+                [("AIT", "06046401"), ("DSBA", "06026201")],
+            ),
+            (
+                "รหัสวิชาของ Calculus 2 คืออะไร",
+                [("AIT", "06046401"), ("DSBA", "06026201")],
+            ),
+            (
+                "รหัสของวิชา calculus 2 ใน DSBA คืออะไร",
+                [("DSBA", "06026201")],
+            ),
+            (
+                "รหัสของวิชา calculus 2 ใน AIT คืออะไร",
+                [("AIT", "06046401")],
+            ),
+        )
+
+        for question, expected_records in cases:
+            with self.subTest(question=question):
+                result = ask(
+                    DB_PATH,
+                    question,
+                    forbidden_model,
+                    answer_model_callable=forbidden_model,
+                    intent_model_callable=forbidden_model,
+                )
+
+                self.assertIsNone(result["route"])
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+                self.assertEqual(result["result"].status, "answer")
+                claim = result["result"].claims[0]
+                self.assertEqual(claim.operation, "identity")
+                self.assertEqual(
+                    [(row["program"], row["course_code"]) for row in claim.value],
+                    expected_records,
+                )
+                self.assertTrue(result["result"].provenance)
+
+        self.assertEqual(model_calls, [])
+
     def test_answerable_path_does_not_require_legacy_structured_callable(self):
         result = ask(DB_PATH, "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง")
         self.assertIsNone(result["route"])
@@ -474,7 +566,12 @@ class RagQaTest(unittest.TestCase):
         ), patch(
             "rag.qa.execute_exact_similarity_from_bundle", return_value=similarity
         ) as bridge:
-            result = ask(DB_PATH, "ignored", answer_model_callable=forbidden_model)
+            result = ask(
+                DB_PATH,
+                "ignored",
+                context=QueryContext(program="IT", catalog_key="it-2565"),
+                answer_model_callable=forbidden_model,
+            )
 
         self.assertIsNone(result["route"])
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -539,7 +636,7 @@ class RagQaTest(unittest.TestCase):
         result = ask(
             DB_PATH,
             "06016414 เรียนเกี่ยวกับอะไร",
-            context=QueryContext(program="IT", plan="no_coop"),
+            context=QueryContext(program="IT", plan="no_coop", catalog_key="it-2565"),
         )
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
@@ -551,18 +648,54 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(len(claims), 1)
         claim = claims[0]
         self.assertEqual(claim.operation, "describe")
-        self.assertEqual(len(claim.evidence), 1)
-        evidence = claim.evidence[0]
-        self.assertEqual(evidence["course_id"], 736)
+        # The shared course row surfaces one evidence row per plan; each row
+        # must be correctly plan-labeled with plan-scoped provenance.
+        by_plan = {row["plan"]: row for row in claim.evidence}
+        self.assertEqual(set(by_plan), {"coop", "no_coop"})
+        evidence = by_plan["no_coop"]
+        self.assertEqual(evidence["course_code"], "06016414")
         self.assertEqual(evidence["plan"], "no_coop")
         self.assertEqual(
             evidence["source_filename"],
             "merged_it_no_coop_full_corrected.json",
         )
         self.assertEqual(
-            {reference["provenance_id"] for reference in evidence["provenance"]},
-            {194, 236},
+            {reference["document_category"] for reference in evidence["provenance"]},
+            {"plan", "description"},
         )
+        self.assertTrue(
+            all(
+                reference.get("source_filename") and reference.get("source_page")
+                for reference in evidence["provenance"]
+            )
+        )
+        self.assertEqual(
+            {
+                reference["source_filename"]
+                for reference in evidence["provenance"]
+                if reference["document_category"] == "plan"
+            },
+            {"it_page_035.png"},
+        )
+        self.assertEqual(
+            by_plan["coop"]["source_filename"],
+            "merged_it_coop_full_corrected.json",
+        )
+        self.assertEqual(
+            {
+                reference["source_filename"]
+                for reference in by_plan["coop"]["provenance"]
+                if reference["document_category"] == "plan"
+            },
+            {"it_page_042.png"},
+        )
+        # No cross-edition leakage: every reference must come from the
+        # current-edition sources, never from another catalog edition.
+        for row in claim.evidence:
+            for reference in row["provenance"]:
+                self.assertFalse(
+                    str(reference.get("source_filename", "")).startswith("it2560_page_")
+                )
 
     def test_course_targeted_semantic_detail_reaches_typed_description_evidence(self):
         result = ask(
@@ -2584,30 +2717,74 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(len(model_calls), 1)
         self.assertEqual(claim.status, "complete")
         self.assertEqual(
-            [(record["placement_id"], record["plan_key"]) for record in claim.evidence],
-            [(211, "coop"), (300, "no_coop")],
+            {(record["course_code"], record["plan_key"]) for record in claim.evidence},
+            {("06026212", "coop"), ("06026212", "no_coop")},
         )
+        self.assertEqual(
+            claim.effective_scope.catalog_key, "dsba-2565"
+        )
+
+    def test_placement_fallback_keeps_explicit_edition_during_selection_and_grounding(self):
+        def selector(_prompt):
+            return (
+                "SELECT DISTINCT p.placement_id AS placement_id "
+                "FROM v_plan_courses AS p WHERE p.course_code = '06026212'"
+            )
+
+        old_result = _ask(
+            DB_PATH,
+            "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2560"
+            ),
+            structured_model_callable=selector,
+        )["result"]
+        self.assertIsInstance(old_result, dict)
+        self.assertEqual(old_result["status"], "no_data")
+        self.assertEqual(len(old_result["course_references"]), 1)
+        self.assertEqual(old_result["course_references"][0]["reference"], "06026212")
+        self.assertEqual(old_result["course_references"][0]["candidates"], [])
+        self.assertNotIn("claims", old_result)
+        self.assertNotIn("provenance", old_result)
+
+        current_result = _ask(
+            DB_PATH,
+            "DSBA 06026212 สามารถลงได้ช่วงไหนบ้าง",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2565"
+            ),
+            structured_model_callable=selector,
+        )["result"]
+        self.assertIsInstance(current_result, GroundedAnswerResult)
+        self.assertEqual(current_result.claims[0].status, "complete")
+        self.assertEqual(
+            current_result.claims[0].effective_scope.catalog_key, "dsba-2565"
+        )
+        self.assertEqual(current_result.claims[0].operation, "placement")
+        self.assertTrue(current_result.provenance)
 
     def test_explicit_placement_plan_keeps_only_that_plan(self):
         cases = (
-            ("DSBA แบบสหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", 211, "coop"),
-            ("DSBA แบบไม่สหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", 300, "no_coop"),
+            ("DSBA แบบสหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", "coop"),
+            ("DSBA แบบไม่สหกิจ 06026212 สามารถลงได้ช่วงไหนบ้าง", "no_coop"),
         )
-        for question, placement_id, plan_key in cases:
+        for question, plan_key in cases:
             with self.subTest(question=question):
                 result = ask(
                     DB_PATH,
                     question,
-                    structured_model_callable=lambda prompt, placement_id=placement_id: (
-                        f"SELECT {placement_id} AS placement_id"
+                    structured_model_callable=lambda prompt, plan_key=plan_key: (
+                        "SELECT DISTINCT p.placement_id AS placement_id "
+                        "FROM v_plan_courses AS p "
+                        f"WHERE p.course_code = '06026212' AND p.plan_key = '{plan_key}'"
                     ),
                 )["result"]
                 claim = result.claims[0]
 
                 self.assertEqual(claim.status, "complete")
                 self.assertEqual(
-                    [(record["placement_id"], record["plan_key"]) for record in claim.evidence],
-                    [(placement_id, plan_key)],
+                    {(record["course_code"], record["plan_key"]) for record in claim.evidence},
+                    {("06026212", plan_key)},
                 )
 
     def test_placement_fallback_rejects_selector_from_another_program(self):
@@ -2620,8 +2797,8 @@ class RagQaTest(unittest.TestCase):
             ),
         )["result"]
 
-        self.assertEqual(result.status, "insufficient_evidence")
-        self.assertEqual(result.claims[0].status, "insufficient_evidence")
+        self.assertEqual(result.status, "valid_empty")
+        self.assertEqual(result.claims[0].status, "valid_empty")
 
     def test_placement_fallback_failure_returns_insufficient_evidence(self):
         fallback_result = StructuredFallbackResult(
@@ -2763,6 +2940,72 @@ class RagQaTest(unittest.TestCase):
 
         self.assertEqual(result["result"]["status"], "clarify_program")
         self.assertEqual(result["result"]["action"], "clarify_program")
+
+    def test_contextual_program_prerequisite_collection_is_positive_and_catalog_scoped(self):
+        question = "วิชาใดมีวิชาบังคับก่อนบ้าง บอกชื่อและรหัสวิชามา"
+        expected_by_catalog = {
+            "dsba-2560": {
+                "06026107", "06026108", "06026111", "06026113", "06026114",
+                "06026115", "06026116", "06026120", "06026121", "06026126",
+                "06026128", "06026132", "06026133", "06026142", "06026145",
+                "06026146", "06026147", "06026153", "06026156", "06026157",
+            },
+            "dsba-2565": {
+                "06026201", "06026212", "06026213", "06026215", "06066102",
+            },
+        }
+
+        actual_by_catalog = {}
+        for catalog_key, expected_codes in expected_by_catalog.items():
+            with self.subTest(catalog_key=catalog_key):
+                result = ask(
+                    DB_PATH,
+                    question,
+                    conversation_context=QueryContext(
+                        program="DSBA",
+                        catalog_key=catalog_key,
+                        operations=("list",),
+                    ),
+                )["result"]
+                self.assertEqual(result.status, "answer")
+                self.assertTrue(result.provenance)
+                self.assertIn(
+                    "สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้",
+                    result.final_answer,
+                )
+                self.assertTrue(result.claims)
+                self.assertTrue(
+                    all(
+                        claim.operation == "list"
+                        and claim.status == "complete"
+                        and claim.effective_scope.program == "DSBA"
+                        and claim.effective_scope.catalog_key == catalog_key
+                        for claim in result.claims
+                    )
+                )
+                self.assertEqual(
+                    {claim.effective_scope.plans[0] for claim in result.claims},
+                    {"coop", "no_coop"},
+                )
+                courses = [
+                    course
+                    for claim in result.claims
+                    for course in claim.value
+                ]
+                actual_codes = {course["course_code"] for course in courses}
+                self.assertEqual(actual_codes, expected_codes)
+                self.assertTrue(
+                    all(
+                        course.get("prerequisite_state") == "required"
+                        and course.get("prerequisites")
+                        and course.get("provenance")
+                        and all(record.get("provenance") for record in course["prerequisites"])
+                        for course in courses
+                    )
+                )
+                actual_by_catalog[catalog_key] = actual_codes
+
+        self.assertTrue(actual_by_catalog["dsba-2560"].isdisjoint(actual_by_catalog["dsba-2565"]))
 
     def test_explicit_unknown_prerequisite_is_insufficient_evidence(self):
         result = ask(DB_PATH, "GENED 90641001 มีวิชาบังคับก่อนคืออะไร")

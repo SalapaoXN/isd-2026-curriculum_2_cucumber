@@ -26,6 +26,7 @@ DEFAULT_CURRICULUM_DB_PATH = ARTIFACTS_DIR / DEFAULT_INDEX_NAME
 _ALLOWED_CONTEXT_KEYS = frozenset(
     {
         "program",
+        "catalog_key",
         "plan",
         "plans",
         "year",
@@ -83,6 +84,8 @@ def conversation_context_to_dict(context: QueryContext | None) -> dict[str, Any]
     payload: dict[str, Any] = {}
     if context.program is not None:
         payload["program"] = context.program
+    if context.catalog_key is not None:
+        payload["catalog_key"] = context.catalog_key
     if context.plan is not None:
         payload["plan"] = context.plan
     if context.years:
@@ -132,6 +135,9 @@ def parse_conversation_context(
         return raw.strip()
 
     program = _opt_str("program")
+    catalog_key = _opt_str("catalog_key")
+    if catalog_key is not None and len(catalog_key) > 128:
+        raise ValueError("catalog_key must be at most 128 characters")
     category = _opt_str("category")
     course_code = _opt_str("course_code")
 
@@ -188,6 +194,7 @@ def parse_conversation_context(
     try:
         return QueryContext(
             program=program,
+            catalog_key=catalog_key,
             plan=plan,
             years=years,
             semesters=semesters,

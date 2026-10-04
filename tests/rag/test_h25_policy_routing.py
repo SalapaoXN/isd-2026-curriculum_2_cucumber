@@ -14,6 +14,7 @@ from rag.policy.routing import (
     route_policy_question,
 )
 from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -23,13 +24,17 @@ def _no_model(prompt: str) -> str:
     raise AssertionError("policy route must not call any model")
 
 
-def _ask(question: str, db_path: Path = DB_PATH) -> dict:
+def _ask(question: str, db_path: Path = DB_PATH, context=None) -> dict:
+    kwargs = {}
+    if context is not None:
+        kwargs["conversation_context"] = context
     return ask(
         db_path,
         question,
         structured_model_callable=_no_model,
         answer_model_callable=_no_model,
         intent_model_callable=_no_model,
+        **kwargs,
     )
 
 
@@ -81,7 +86,10 @@ class H25PolicyRoutingTests(unittest.TestCase):
                     self.assertEqual(reference.get("document_category"), "rule")
 
     def test_dual_whitelisted_shape_routes_to_policy_authority(self):
-        response = _ask("IT ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต")
+        response = _ask(
+            "IT ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต",
+            context=QueryContext(program="IT", catalog_key="it-2565"),
+        )
         result = response["result"]
         self.assertIsInstance(result, GroundedAnswerResult)
         self.assertEqual(result.status, "answer")
@@ -91,7 +99,10 @@ class H25PolicyRoutingTests(unittest.TestCase):
     def test_excluded_program_total_keeps_existing_behavior(self):
         # H25-P3 supersedes the axis-free pin below: unscoped totals now route
         # to policy (see test_h25p3). Scoped totals keep existing behavior.
-        response = _ask("IT ปี 3 เทอม 1 รวมทั้งหมดกี่หน่วยกิต")
+        response = _ask(
+            "IT ปี 3 เทอม 1 รวมทั้งหมดกี่หน่วยกิต",
+            context=QueryContext(program="IT", catalog_key="it-2565"),
+        )
         result = response["result"]
         self.assertIsInstance(result, GroundedAnswerResult)
         self.assertEqual(result.status, "answer")

@@ -9,7 +9,7 @@ from rag.intent_gate import run_exact_course_shadow
 from rag.intent_interpreter import parse_intent_payload
 from rag.query_spec import parse_query_spec
 from rag.qa import _classify_structured_parse_completeness, ask
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 
 
 DB_PATH = (
@@ -155,6 +155,9 @@ class H11ExactCourseEvaluationTest(unittest.TestCase):
             result = ask(
                 DB_PATH,
                 question,
+                conversation_context=QueryContext(
+                    program="DSBA", catalog_key="dsba-2565"
+                ),
                 shadow_intent=True,
                 intent_model_callable=lambda prompt: _payload(
                     "prerequisite_query", ("prerequisite",)
@@ -186,6 +189,9 @@ class H11ExactCourseEvaluationTest(unittest.TestCase):
             on = ask(
                 DB_PATH,
                 question,
+                conversation_context=QueryContext(
+                    program="DSBA", catalog_key="dsba-2565"
+                ),
                 shadow_intent=True,
                 intent_model_callable=lambda prompt: _payload(
                     "course_description", ("course_description",)
@@ -194,7 +200,13 @@ class H11ExactCourseEvaluationTest(unittest.TestCase):
         self.assertEqual(on["result"].status, "answer")
         self.assertTrue(on["description_shadow"].executed)
         self.assertTrue(on["result"].provenance)
-        native = ask(DB_PATH, "DSBA 06026212 เรียนเกี่ยวกับอะไร")
+        native = ask(
+            DB_PATH,
+            "DSBA 06026212 เรียนเกี่ยวกับอะไร",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2565"
+            ),
+        )
         self.assertEqual(native["result"].status, "answer")
         self.assertEqual(on["result"].final_answer, native["result"].final_answer)
 

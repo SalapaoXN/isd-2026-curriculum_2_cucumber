@@ -9,7 +9,7 @@ from rag.intent_gate import run_exact_course_shadow
 from rag.intent_interpreter import parse_intent_payload
 from rag.query_spec import parse_query_spec
 from rag.qa import _classify_structured_parse_completeness, ask
-from rag.resolution import resolve_query_spec
+from rag.resolution import QueryContext, resolve_query_spec
 
 
 DB_PATH = Path(__file__).resolve().parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -111,6 +111,9 @@ class H12BExactCourseTest(unittest.TestCase):
                      ):
                     result = ask(
                         DB_PATH, question, shadow_intent=True,
+                        conversation_context=QueryContext(
+                            program="DSBA", catalog_key="dsba-2565"
+                        ),
                         intent_model_callable=lambda prompt, family=family, facts=facts: _payload(family, facts),
                         answer_model_callable=lambda prompt: answer_calls.append(prompt),
                     )

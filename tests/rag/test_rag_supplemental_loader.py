@@ -5,7 +5,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from rag.structured.loader import load_json_to_sqlite
+from rag.structured.loader import load_json_to_sqlite, load_jsons_to_sqlite
 from rag.structured.supplemental_loader import load_supplemental_jsons_to_sqlite
 from rag.retrieval.index import ensure_index
 
@@ -26,6 +26,10 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                 {
                     "program": "TEST",
                     "plan": "regular",
+                    "catalog": {
+                        "catalog_key": "test-catalog",
+                        "academic_year": "test",
+                    },
                     "courses": [{"code": "C100"}],
                     "source_provenance": [
                         {
@@ -40,10 +44,54 @@ class RagSupplementalLoaderTest(unittest.TestCase):
         )
         return path
 
+    def _canonical_curricula(self, directory: Path) -> list[Path]:
+        editions = [
+            ("DSBA", "dsba-2560", "2560", "coop"),
+            ("DSBA", "dsba-2560", "2560", "no_coop"),
+            ("DSBA", "dsba-2565", "2565", "coop"),
+            ("DSBA", "dsba-2565", "2565", "no_coop"),
+            ("IT", "it-2560", "2560", "coop"),
+            ("IT", "it-2560", "2560", "no_coop"),
+            ("IT", "it-2565", "2565", "coop"),
+            ("IT", "it-2565", "2565", "no_coop"),
+            ("BIT", "bit-2560", "2560", "coop"),
+            ("BIT", "bit-2560", "2560", "no_coop"),
+            ("BIT", "bit-2565", "2565", "coop"),
+            ("BIT", "bit-2565", "2565", "no_coop"),
+            ("AIT", "ait-2566", "2566", "default"),
+            ("GENED", "gened-2564", "2564", "gened"),
+        ]
+        paths = []
+        for index, (program, catalog_key, academic_year, plan) in enumerate(editions):
+            path = directory / f"curriculum-{index:02d}.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "program": program,
+                        "plan": plan,
+                        "catalog": {
+                            "catalog_key": catalog_key,
+                            "academic_year": academic_year,
+                        },
+                        "courses": [{"code": f"C{index:03d}"}],
+                        "source_provenance": [{
+                            "program": program,
+                            "source_filename": f"{catalog_key}-{plan}.pdf",
+                            "source_page": 1,
+                            "document_category": "plan",
+                        }],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            paths.append(path)
+        return paths
+
     def test_real_canonical_documents_load_without_curriculum_masquerade(self):
         with tempfile.TemporaryDirectory() as directory:
-            database = Path(directory) / "curriculum.db"
-            load_json_to_sqlite(self._curriculum(Path(directory)), database)
+            root = Path(directory)
+            database = root / "curriculum.db"
+            load_jsons_to_sqlite(self._canonical_curricula(root), database)
             load_supplemental_jsons_to_sqlite(self.policy, self.requirements, database)
 
             with closing(sqlite3.connect(database)) as connection:
@@ -58,9 +106,10 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                 ).fetchone()
                 totals = connection.execute(
                     """
-                    SELECT program_code, value
+                    SELECT catalogs.catalog_key, program_code, value
                     FROM program_requirements
-                    ORDER BY program_code
+                    JOIN catalogs USING (catalog_id)
+                    ORDER BY catalogs.catalog_key
                     """
                 ).fetchall()
                 registration = connection.execute(
@@ -82,11 +131,73 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                     """
                 ).fetchone()
 
-            self.assertEqual(counts[2:], (4, 1))
-            self.assertEqual(totals, [("AIT", 120), ("BIT", 126), ("DSBA", 132), ("IT", 129)])
+            self.assertEqual(counts[2:], (7, 14))
+            self.assertEqual(
+                totals,
+                [
+                    ("ait-2566", "AIT", 120),
+                    ("bit-2560", "BIT", 126),
+                    ("bit-2565", "BIT", 126),
+                    ("dsba-2560", "DSBA", 126),
+                    ("dsba-2565", "DSBA", 132),
+                    ("it-2560", "IT", 130),
+                    ("it-2565", "IT", 129),
+                ],
+            )
             self.assertEqual(registration, (22, "<=", "rule:11"))
             self.assertEqual(provenance[0], "rule")
             self.assertIsNotNone(provenance[1])
+
+    def test_repository_corrected_documents_resolve_program_requirements(self):
+        sources = sorted(
+            (self.root / "data" / "output" / "final").glob("*_corrected.json")
+        )
+        self.assertGreater(len(sources), 0)
+
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "curriculum.db"
+            load_jsons_to_sqlite(sources, database)
+            load_supplemental_jsons_to_sqlite(
+                self.policy,
+                self.requirements,
+                database,
+            )
+
+            with closing(sqlite3.connect(database)) as connection:
+                catalogs = connection.execute(
+                    """
+                    SELECT catalog_key, COUNT(*)
+                    FROM catalogs
+                    WHERE catalog_key IN (
+                        'ait-2566',
+                        'bit-2560',
+                        'bit-2565',
+                        'dsba-2560',
+                        'dsba-2565',
+                        'it-2560',
+                        'it-2565'
+                    )
+                    GROUP BY catalog_key
+                    ORDER BY catalog_key
+                    """
+                ).fetchall()
+                requirement_count = connection.execute(
+                    "SELECT COUNT(*) FROM program_requirements"
+                ).fetchone()[0]
+
+        self.assertEqual(
+            catalogs,
+            [
+                ("ait-2566", 1),
+                ("bit-2560", 1),
+                ("bit-2565", 1),
+                ("dsba-2560", 1),
+                ("dsba-2565", 1),
+                ("it-2560", 1),
+                ("it-2565", 1),
+            ],
+        )
+        self.assertEqual(requirement_count, 7)
 
     def test_unsupported_supplemental_provenance_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -143,7 +254,7 @@ class RagSupplementalLoaderTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
             for directory in (Path(first), Path(second)):
                 database = directory / "curriculum.db"
-                load_json_to_sqlite(self._curriculum(directory), database)
+                load_jsons_to_sqlite(self._canonical_curricula(directory), database)
                 load_supplemental_jsons_to_sqlite(self.policy, self.requirements, database)
                 with closing(sqlite3.connect(database)) as connection:
                     rows.append(
@@ -156,8 +267,10 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                                 "ORDER BY rule_id, fact_id"
                             ).fetchall(),
                             connection.execute(
-                                "SELECT program_code, requirement_type, value "
-                                "FROM program_requirements ORDER BY program_code"
+                                "SELECT catalogs.catalog_key, program_code, "
+                                "requirement_type, value FROM program_requirements "
+                                "JOIN catalogs USING (catalog_id) "
+                                "ORDER BY catalogs.catalog_key"
                             ).fetchall(),
                         )
                     )
@@ -166,7 +279,7 @@ class RagSupplementalLoaderTest(unittest.TestCase):
     def test_index_build_loads_supplemental_inputs_explicitly(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            source = self._curriculum(root)
+            sources = self._canonical_curricula(root)
             artifact_dir = root / "runtime"
             embed_calls = []
 
@@ -176,7 +289,7 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                 return [[0.0] * 384 for _ in values]
 
             database = ensure_index(
-                source,
+                sources,
                 artifact_dir=artifact_dir,
                 supplemental_json_paths={
                     "institution_policy": self.policy,
@@ -190,6 +303,7 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                     "SELECT source_filename FROM semantic_index_sources "
                     "ORDER BY source_filename"
                 ).fetchall()
+                sources = [row[0] for row in sources]
                 rule_count = connection.execute(
                     "SELECT COUNT(*) FROM regulation_rules"
                 ).fetchone()[0]
@@ -199,13 +313,13 @@ class RagSupplementalLoaderTest(unittest.TestCase):
             self.assertEqual(
                 sources,
                 [
-                    ("curriculum.json",),
-                    ("institution_policy.json",),
-                    ("program_requirements.json",),
+                    *(f"curriculum-{index:02d}.json" for index in range(14)),
+                    "institution_policy.json",
+                    "program_requirements.json",
                 ],
             )
             self.assertGreater(rule_count, 0)
-            self.assertEqual(requirement_count, 4)
+            self.assertEqual(requirement_count, 7)
             self.assertEqual(len(embed_calls), 1)
 
 

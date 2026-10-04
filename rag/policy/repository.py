@@ -55,9 +55,14 @@ def _with_provenance(
     rows: Iterable[sqlite3.Row],
     join_table: str,
     key_name: str,
-    expected_category: str,
+    expected_category: str | set[str],
 ) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
+    expected_categories = (
+        {expected_category}
+        if isinstance(expected_category, str)
+        else expected_category
+    )
     for row in rows:
         record = dict(row)
         provenance_rows = connection.execute(
@@ -72,7 +77,8 @@ def _with_provenance(
         )
         references = [_provenance(provenance_row) for provenance_row in provenance_rows]
         if not references or any(
-            reference["document_category"] != expected_category for reference in references
+            reference["document_category"] not in expected_categories
+            for reference in references
         ):
             raise ValueError(f"policy record {record[key_name]} has no provenance")
         record["provenance"] = tuple(references)
@@ -131,25 +137,47 @@ def fetch_policy_facts(
         )
 
 
-def fetch_program_requirement(db_path: str | Path, program: str) -> dict[str, Any] | None:
+def fetch_program_requirement(
+    db_path: str | Path,
+    program: str,
+    *,
+    catalog_key: str | None = None,
+) -> dict[str, Any] | None:
     with closing(_open(db_path)) as connection:
+        catalog_id: int | None = None
+        if catalog_key is not None:
+            if not isinstance(catalog_key, str) or not catalog_key.strip():
+                return None
+            catalog_rows = connection.execute(
+                "SELECT catalog_id FROM catalogs WHERE lower(trim(catalog_key)) = ?",
+                (catalog_key.strip().casefold(),),
+            ).fetchall()
+            if len(catalog_rows) != 1:
+                return None
+            catalog_id = int(catalog_rows[0][0])
         rows = connection.execute(
             """
-            SELECT * FROM program_requirements
-            WHERE program_code = ? AND requirement_type = 'total_program_credits'
+            SELECT requirement.*
+            FROM program_requirements AS requirement
+            WHERE requirement.program_code = ?
+              AND requirement.requirement_type = 'total_program_credits'
+              AND (? IS NULL OR requirement.catalog_id = ?)
             """,
-            (program,),
+            (program, catalog_id, catalog_id),
         )
+        matching_rows = rows.fetchall()
+        if len(matching_rows) != 1:
+            return None
         records = _with_provenance(
             connection,
-            rows,
+            matching_rows,
             "program_requirement_provenance",
             "requirement_id",
-            "program_requirement",
+            {"program_requirement", "plan"},
         )
-        if len(records) > 1:
-            raise ValueError("program requirement is ambiguous")
-        return records[0] if records else None
+        if not records:
+            return None
+        return records[0]
 
 
 __all__ = ["fetch_policy_facts", "fetch_program_requirement"]

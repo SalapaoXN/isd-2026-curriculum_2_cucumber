@@ -1556,6 +1556,15 @@ def _course_list_text(claim: GroundedClaim) -> str | None:
         lines.append(f"- {text}")
     if not lines:
         return None
+    if any(
+        isinstance(entry, Mapping)
+        and entry.get("prerequisite_collection_incomplete") is True
+        for entry in entries
+    ):
+        lines.append(
+            "หมายเหตุ: แสดงเฉพาะวิชาที่มีหลักฐานวิชาบังคับก่อนที่ยืนยันได้ "
+            "ส่วนวิชาที่ไม่แสดงอาจมีข้อมูลไม่เพียงพอ จึงสรุปว่าไม่มีวิชาบังคับก่อนไม่ได้"
+        )
     header = _credit_scope_text(claim.effective_scope, prefix="")
     body = "\n".join(lines)
     return f"{header}:\n{body}" if header else body

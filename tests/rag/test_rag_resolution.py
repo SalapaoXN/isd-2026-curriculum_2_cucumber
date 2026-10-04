@@ -176,7 +176,11 @@ class ResolutionTest(unittest.TestCase):
                 (candidate["program"], candidate["course_code"])
                 for candidate in outcome.course_references[0].candidates
             },
-            {("IT", "06016414"), ("DSBA", "06026207")},
+            {
+                ("IT", "06016414"),
+                ("DSBA", "06026207"),
+                ("DSBA", "06026111"),
+            },
         )
 
     def test_program_scoped_course_facts_require_program_context(self):
@@ -239,12 +243,17 @@ class ResolutionTest(unittest.TestCase):
         )
 
         self.assertEqual(outcome.action, "answer")
+        # BIT 06036019 (bit-2560) is genuinely titled PROJECT 1 / โครงงาน 1
+        # (legacy description source), so strict matching now finds it too.
         self.assertEqual(
             [
                 (candidate["program"], candidate["course_code"])
                 for candidate in outcome.course_references[0].candidates
             ],
-            [("IT", "06016406")],
+            [
+                ("BIT", "06036019"),
+                ("IT", "06016406"),
+            ],
         )
 
     def test_program_discovery_unknown_reference_is_no_data(self):
@@ -336,7 +345,8 @@ class ResolutionTest(unittest.TestCase):
                 (candidate["program"], candidate["course_code"])
                 for candidate in unscoped.course_references[0].candidates
             },
-            {("AIT", "90641004"), ("IT", "06016406")},
+            # BIT 06036019 (bit-2560) genuinely shares the PROJECT 1 title.
+            {("AIT", "90641004"), ("BIT", "06036019"), ("IT", "06016406")},
         )
 
     def test_bare_charm_school_name_is_ambiguous_without_program(self):

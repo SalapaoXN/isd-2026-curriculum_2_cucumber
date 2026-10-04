@@ -1385,7 +1385,7 @@
         {
             "code": "90642045",
             "name_th": "เรื่องเหล้า",
-            "name_en": "BEVERAGE",
+            "name_en": "BE MY BEV.",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -7866,5 +7866,9 @@
             "desc_th": "ฝึกการใช้คำศัพท์ สำนวน การใช้ภาษามาเลย์เชิงท่องเทียว การสนทนาในสถานการณ์ต่างๆ ระหว่างการ\nเดินทาง  รวมทัง การสือสารข้ามวัฒนธรรม",
             "desc_en": "PRACTICE OF MALAY VOCABULARY AS WELL\nAS\nEXPRESSIONS, LANGUAGE\nUSE\nOF MALAY FOR TRAVEL,\nCONVERSATIONS IN VARIOUS SITUATIONS DURING TRIPS, AND INTERCULTURAL COMMUNICATION."
         }
-    ]
+    ],
+    "catalog": {
+        "catalog_key": "gened-2564",
+        "academic_year": "2564"
+    }
 }

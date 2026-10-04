@@ -24,6 +24,7 @@ EXPECTED_FIELDS = (
     "judgement",
     # H23-B: parser-owned integral per-course credit predicate.
     "credit_units",
+    "references_previous_result_set",
 )
 
 
@@ -58,6 +59,7 @@ class QuerySpecSkeletonTests(unittest.TestCase):
         self.assertEqual(spec.operations, ())
         self.assertEqual(spec.group_by, ())
         self.assertEqual(spec.judgement, "none")
+        self.assertFalse(spec.references_previous_result_set)
         for name in (
             "plans",
             "years",
@@ -86,6 +88,62 @@ class QuerySpecSkeletonTests(unittest.TestCase):
 
 
 class QuerySpecEntityTests(unittest.TestCase):
+    def test_surface_operations_are_admitted_only_with_validated_context_scope(self):
+        question = "วิชาเลือกมีอะไรบ้าง"
+        self.assertEqual(parse_query_spec(question).operations, ())
+        contextual = parse_query_spec(
+            question,
+            has_validated_context_scope=True,
+        )
+        self.assertEqual(contextual.category, "วิชาเลือก")
+        self.assertEqual(contextual.operations, ("list",))
+        self.assertEqual(
+            parse_query_spec(
+                "ข้อความทั่วไป",
+                has_validated_context_scope=True,
+            ).operations,
+            (),
+        )
+
+    def test_positive_prerequisite_collection_forms_are_recognized_without_entity_scope(self):
+        for question in (
+            "วิชาใดมีวิชาบังคับก่อนบ้าง",
+            "มีวิชาอะไรที่มี prerequisite บ้าง",
+            "รายวิชาใดต้องเรียนวิชาอื่นมาก่อนบ้าง",
+            "วิชาใดมีวิชาบังคับก่อนบ้าง บอกชื่อและรหัสวิชามา",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).operations, ("prerequisite",))
+
+        # Recognition alone does not authorize an arbitrary unresolved reference.
+        self.assertEqual(parse_query_spec("ตัวไหนมีวิชาบังคับก่อน").operations, ())
+
+    def test_explicit_previous_result_set_anchors_are_detected_conservatively(self):
+        for question in (
+            "ในวิชาเหล่านี้รวมกี่หน่วยกิต",
+            "ในวิชาเหล่านี้ตัวไหนมีวิชาบังคับก่อน",
+            "พวกนี้มีอะไรบ้าง",
+            "รายวิชาเหล่านี้, มีอะไรบ้าง",
+            "ในพวกนี้มีอะไรบ้าง",
+            "รายการเหล่านี้มีอะไรบ้าง",
+            "จากรายการก่อนหน้า มีอะไรบ้าง",
+            "จากวิชาก่อนหน้า มีอะไรบ้าง",
+        ):
+            with self.subTest(question=question):
+                self.assertTrue(parse_query_spec(question).references_previous_result_set)
+
+    def test_bare_references_and_unrelated_questions_are_not_previous_set_signals(self):
+        for question in (
+            "มีวิชาอะไรบ้าง",
+            "ตัวไหนมีวิชาบังคับก่อน",
+            "06046401 กี่หน่วยกิต",
+            "มีวิชาเกี่ยวกับฐานข้อมูลอะไรบ้าง",
+            "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
+        ):
+            with self.subTest(question=question):
+                self.assertFalse(parse_query_spec(question).references_previous_result_set)
+
+
     def test_program_aliases_are_explicit_and_boundary_safe(self):
         for alias, expected in (
             ("ait", "AIT"),
@@ -407,6 +465,57 @@ class QuerySpecEntityTests(unittest.TestCase):
 
         code_to_name_short = parse_query_spec("06016414 รหัสอะไร")
         self.assertEqual(code_to_name_short.operations, ())
+
+    def test_prefix_course_code_identity_question_extracts_bounded_course_name(self):
+        for question, expected_name in (
+            ("รหัสของวิชา calculus 2 คืออะไร", "calculus 2"),
+            ("รหัสของวิชา Calculus 2 คืออะไร", "Calculus 2"),
+            ("รหัสวิชา Calculus 2 คืออะไร", "Calculus 2"),
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.course_name, expected_name)
+                self.assertEqual(spec.operations, ("identity",))
+
+        suffix = parse_query_spec("วิชา Calculus 1 รหัสอะไร")
+        self.assertEqual(suffix.course_name, "Calculus 1")
+        self.assertEqual(suffix.operations, ("identity",))
+
+        generic = parse_query_spec("รหัสวิชาอะไร")
+        self.assertIsNone(generic.course_name)
+        self.assertEqual(generic.operations, ())
+
+    def test_reverse_identity_prefix_alias_and_program_qualifier_are_bounded(self):
+        cases = (
+            ("รหัสวิชาของ Calculus 2 คืออะไร", "Calculus 2", None),
+            (
+                "รหัสของวิชา calculus 2 ใน DSBA คืออะไร",
+                "calculus 2",
+                "DSBA",
+            ),
+            (
+                "รหัสของวิชา calculus 2 ใน AIT คืออะไร",
+                "calculus 2",
+                "AIT",
+            ),
+        )
+        for question, expected_name, expected_program in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.course_name, expected_name)
+                self.assertEqual(spec.program, expected_program)
+                self.assertEqual(spec.operations, ("identity",))
+
+        for question in (
+            "รหัสวิชาของอะไร",
+            "รหัสวิชาอะไร",
+            "รหัสของวิชาอะไร",
+            "ข้อความทั่วไปที่ไม่ระบุรายวิชา",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertIsNone(spec.course_name)
+                self.assertEqual(spec.operations, ())
 
     def test_language_specific_course_name_questions_request_identity(self):
         combined_en = parse_query_spec(

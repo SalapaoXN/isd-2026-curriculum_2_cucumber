@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from rag.qa import ask
+from rag.resolution import QueryContext
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "final_core_eval_v1.json"
 DB_PATH = Path(__file__).resolve().parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -96,12 +97,22 @@ class FinalCoreEvalTests(unittest.TestCase):
 
         context = None
         response = None
+        # Cases may pin an explicit curriculum edition (as the UI edition
+        # selector does). Without it, multi-edition programs fail closed
+        # with clarify_catalog instead of answering from one edition.
+        edition_context = case.get("edition_context")
         for turn in case["turns"]:
             kwargs = {
                 "structured_model_callable": structured_stub,
                 "answer_model_callable": answer_stub,
                 "intent_model_callable": intent_stub,
             }
+            if edition_context is not None and context is None and turn.get("context") != "previous":
+                kwargs["conversation_context"] = QueryContext(
+                    program=edition_context.get("program"),
+                    catalog_key=edition_context.get("catalog_key"),
+                    plan=edition_context.get("plan"),
+                )
             if turn.get("context") == "previous":
                 self.assertIsNotNone(context, f"{case['id']}: no context to reuse")
                 kwargs["conversation_context"] = context

@@ -5,7 +5,6 @@ AIT,,matched,90641009,name_th,ทักษะการสื่อสารภ�
 AIT,,matched,90641009,name_en,INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1,INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH,0.0426,0.1667
 AIT,,matched,06046440,name_th,วิชาสัมมนาปัญญาประดิษฐ์,วิชาสัมมนาปัญญาประะ,0.2174,1.0
 AIT,,matched,06046440,name_en,SEMINAR IN ARTIFICIAL INTELLIGENCE,SEMINAR IN ARTIFICIAL INTELLIGENCE 1,0.0588,0.25
-AIT,,matched,060464xx,credits,6(3-0-6),3(3-0-6),0.125,
 AIT,,matched,06046441,name_th,โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1,โครงงานเทคโนโลยีปัญญาประดิษฐ์,0.0645,0.25
 AIT,,matched,06046441,name_en,PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1,PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY,0.0426,0.1667
 AIT,,matched,xxxxxxxx,name_th,วิชาเลือกเสรี 1,วิชาเลือกเสรี,0.1333,0.5
@@ -14,29 +13,33 @@ AIT,,matched,06046443 หรือ 06046444,name_en,"COOPERATIVE EDUCATION IN AR
 OVERSEA COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY","COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY
 OVERSEAS COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY",0.0233,0.2308
 AIT,,matched,06046423,name_en,ARTIFICIAL INTELLIGIENCE SERVICE DESIGN,ARTIFICIAL INTELLIGENCE SERVICE DESIGN,0.0256,0.25
-BIT,coop,matched,06036101,name_th,คณิตศาสตร์สำหรับธุรกิจ,คณิตศาสตร์ สำหรับธุรกิจ,0.0455,0.0
 BIT,coop,matched,06036103,name_en,"INTEGRATION OF STATISTICALTECHNIQUES FOR
 BUSINESS",INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS,0.0204,0.4
 BIT,coop,matched,06036105,name_en,FINANCIAL ACCOUNTING FOR NON-ACCOUNTANTS,FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS,0.025,0.5
 BIT,coop,matched,06036122,name_en,VISUAL COMMUNICATION FORBUSINESS,VISUAL COMMUNICATION FOR BUSINESS,0.0312,0.6667
 BIT,coop,matched,9664xxxx,name_th,วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1,วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1,0.0189,0.0
+BIT,coop,matched,9664xxxx,name_en,GE ELECTIVE COURSE REQUIREMENT 1,GE ELECTIE COURSE REOULREMENT 1,0.0938,0.4
+BIT,coop,matched,96644XXX,name_th,วิชาเลือกด้านภาษาและการสื่อสาร,วิชาเลือกด้านภาษาและการสือสาร,0.0333,0.6
+BIT,coop,matched,96644XXX,name_en,ELECTIVE IN LANGUAGE AND COMMUNICATION,ELECTIE IN LANGUAGE AND COMMUNICATION,0.0263,0.2
 BIT,coop,matched,96644XXX,credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),0.4091,
 BIT,coop,matched,06036xxx,name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4,0.0323,0.0
 BIT,coop,matched,06036xxx,name_en,"ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY1 
 OR
-COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4,0.0286,0.4444
+COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOCY 1 OR COURSE GR0UP 1-4,0.0571,0.4444
 BIT,coop,matched,06036xxx,credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),0.4091,
 BIT,coop,matched,06036xxx,name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่ม วิชาที่ 1-4,0.0323,0.0
 BIT,coop,matched,06036xxx,name_en,"ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2
 OR
-COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4,0.0141,0.2
+COURSE GROUP1-4",ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGV 2 OR COURSE GR0UP 1-4,0.0423,0.3
 BIT,coop,matched,06036xxx,credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),0.4091,
+BIT,coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 2,FREE ELECTIE COURSE 2,0.0455,0.25
+BIT,coop,matched,9664xxxx,name_en,GE ELECTIVE COURSE REQUIREMENT 2,GE ELECTIE COURSE REOUIREMENT 2,0.0625,0.4
 BIT,coop,matched,"06036147
 หรือ
 06036148",name_th,"สหกิจศึกษา
@@ -53,10 +56,9 @@ BIT,coop,matched,06036132,name_en,SPECIALTOPICS IN BUSINESS INFORMATION TECHNOLO
 BIT,coop,matched,06036133,name_en,SPECIALTOPICS IN BUSINESS INFORMATION TECHNOLOGY2,SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 2,0.0408,0.8
 BIT,coop,matched,06036134,name_en,SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY1,SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 1,0.0192,0.3333
 BIT,coop,matched,06036135,name_en,SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY2,SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2,0.0192,0.3333
+BIT,coop,matched,06036135,credits,3(3-0-6),,1.0,
 BIT,coop,matched,06036143,name_en,UX/UI REQUIREMENT AND PROTOTYPING,UX / UI REQUIREMENT AND PROTOTYPING,0.0606,0.75
 BIT,coop,matched,06036144,name_en,EVALUATING USERINTERFACE,EVALUATING USER INTERFACE,0.0417,1.0
-BIT,no_coop,matched,06036101,name_th,คณิตศาสตร์สำหรับธุรกิจ,สถิติศาสตร์ สำหรับธุรกิจ,0.1818,0.3333
-BIT,no_coop,matched,96644042,name_th,การสื่อสารและการนำเสนออย่างมืออาชีพ,กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ,0.6857,1.0
 BIT,no_coop,matched,06036103,name_en,"INTEGRATION OF STATISTICALTECHNIQUES FOR
 BUSINESS",INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS,0.0204,0.4
 BIT,no_coop,matched,06036105,name_en,FINANCIAL ACCOUNTING FOR NON-ACCOUNTANTS,FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS,0.025,0.5
@@ -64,7 +66,6 @@ BIT,no_coop,matched,9664xxxx,name_th,วิชาเลือกหมวดว�
 BIT,no_coop,matched,96644XXX,credits,"3(3-0-6) 
 หรือ 
 3(2-2-5)",หรือ 3(2-2-5),0.4091,
-BIT,no_coop,matched,96642033,name_th,กฎหมายสำหรับคนรุ่นใหม่,กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่,1.0909,2.0
 BIT,no_coop,matched,06036xxx,name_th,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4,วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4,0.0323,0.0
 BIT,no_coop,matched,06036xxx,name_en,"ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY1 
 OR
@@ -97,10 +98,10 @@ BIT,no_coop,matched,"06036147
 06036148",name_en,"COOPERATIVE EDUCATION
 OR
 OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
-OVERSEAS COOPERATIVE EDUCATION",0.0741,0.3333
+OVERSEA COOPERATIVE EDUCATION",0.0556,0.1667
 DSBA,coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 1
 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1
-วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",วิชาเลือกกลุ่ม วิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1,0.0303,0.0625
+วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1,0.0202,0.0625
 DSBA,coop,matched,06026xxx,name_th,"วิชาเลือกกลุ่มวิทยาการข้อมูล 4
 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4
 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4,0.0303,0.125
@@ -139,7 +140,6 @@ GENED,gened,matched,90642030,name_en,ENGINEERING ETHICS AND LAWS,ENGINEERING ETH
 GENED,gened,matched,90642036,name_en,PRE-ACTIVITIES FOR ENGINEERS,PRE ACTIVITIES FOR ENGINEERS,0.0357,0.6667
 GENED,gened,matched,90642039,name_en,QUICK-FIX @ HOME,QUICK FIX HOME,0.1875,0.6667
 GENED,gened,matched,90642043,name_th,ศาสตร์ของเบอร์เกอร์,ศาสตร์ของเบอร์เกอร์ 3,0.1053,0.3333
-GENED,gened,matched,90642045,name_en,BE MY BEV.,BEVERAGE,0.7,1.0
 GENED,gened,matched,90642046,name_en,RICE-SARA,RICE SARA,0.1111,2.0
 GENED,gened,matched,90642052,name_th,จากเส้นสาย DNA สู่พันธุกรรม,จากเส้นสาย DNA,0.4815,0.4
 GENED,gened,matched,90642052,name_en,GENES & GENETICS : FROM HELIX TO HEREDITARY,GENES GENETICS FROM HELIX TO HEREDITARY,0.093,0.25
@@ -181,7 +181,6 @@ GENED,gened,matched,90644060,name_en,GERMAN FOR COMMUNUCATION,GERMAN FOR COMMUNI
 GENED,gened,matched,90644063,name_th,ภาษาญี่ปุ่นเพื่อการท่องเที่ยว,ภาษาญี่ปุ่นเพื่อการท่องเที่ยว 3,0.069,0.25
 IT,coop,matched,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,0.0303,0.0
 IT,coop,matched,06016408,name_en,OBJECT-ORIENTED PROGRAMMING,OBJECT ORIENTED PROGRAMMING,0.037,1.0
-IT,coop,matched,06066302,name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,0.3846,0.5
 IT,coop,matched,06016418,name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,coop,matched,06016423,name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,0.0196,0.0909
 IT,coop,matched,"06016481
@@ -198,10 +197,8 @@ OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
 OVERSEA COOPERATIVE EDUCATION",0.0556,0.1667
 IT,coop,matched,06016429,name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,coop,matched,06016448,name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน,0.0312,0.2857
-IT,coop,matched,06016465,name_th,การออกแบบศูนย์ข้อมูล,การออกแบบศูนย์,0.3,0.25
 IT,no_coop,matched,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,0.0303,0.0
 IT,no_coop,matched,06016408,name_en,OBJECT-ORIENTED PROGRAMMING,OBJECT ORIENTED PROGRAMMING,0.037,1.0
-IT,no_coop,matched,06066302,name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,0.3846,0.5
 IT,no_coop,matched,06016418,name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,no_coop,matched,06016423,name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,0.0196,0.0909
 IT,no_coop,matched,9064xxxx,name_th,วิชาเลือกหมวดศึกษาทั่วไป 1,วิชาเลือกหมวดศึกษาทั่วไป,0.0769,0.2
@@ -210,7 +207,6 @@ IT,no_coop,matched,xxxxxxxx,name_th,วิชาเลือกเสรี 1,�
 IT,no_coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 1,FREE ELECTIVE COURSE,0.0909,0.25
 IT,no_coop,matched,06016429,name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,no_coop,matched,06016448,name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน,0.0312,0.2857
-IT,no_coop,matched,06016465,name_th,การออกแบบศูนย์ข้อมูล,การออกแบบศูนย์,0.3,0.25
 IT,no_coop,matched,"06016481
 หรือ
 06016482",name_th,"สหกิจศึกษา

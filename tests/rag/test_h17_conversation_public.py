@@ -9,7 +9,12 @@ from fastapi.testclient import TestClient
 import rag.qa as qa_module
 from backend import main
 from rag.grounded_answer import GroundedAnswerResult
-from rag.hybrid_demo import answer_question_once
+from rag.hybrid_demo import (
+    answer_question_once as _answer_question_once,
+    conversation_context_to_dict,
+    parse_conversation_context,
+)
+from rag.query_spec import parse_query_spec
 from rag.resolution import QueryContext
 
 
@@ -21,7 +26,46 @@ FORBIDDEN_KEYS = (
 )
 
 
+def answer_question_once(db_path, question, *args, **kwargs):
+    """Pin scopeless first turns to their authored current edition.
+
+    Follow-up turns chain the returned next_context (which carries the
+    edition), so only the initial scopeless turn needs the UI-selector
+    equivalent scope.
+    """
+    if "conversation_context" not in kwargs:
+        authored_edition = {
+            "DSBA": "dsba-2565",
+            "IT": "it-2565",
+            "BIT": "bit-2565",
+            "GENED": "gened-2564",
+            "AIT": "ait-2566",
+        }
+        program = parse_query_spec(question).program
+        if program in authored_edition:
+            kwargs["conversation_context"] = QueryContext(
+                program=program, catalog_key=authored_edition[program]
+            )
+    return _answer_question_once(db_path, question, *args, **kwargs)
+
+
 class H17PublicHelperE2E(unittest.TestCase):
+    def test_catalog_key_is_structural_context_and_round_trips(self):
+        context = parse_conversation_context(
+            {"program": "DSBA", "catalog_key": " dsba-2560 "}
+        )
+        self.assertEqual(context.catalog_key, "dsba-2560")
+        self.assertEqual(
+            conversation_context_to_dict(context),
+            {"program": "DSBA", "catalog_key": "dsba-2560"},
+        )
+
+    def test_invalid_catalog_key_is_rejected_in_structural_context(self):
+        for catalog_key in (" ", "x" * 129, 2560):
+            with self.subTest(catalog_key=catalog_key):
+                with self.assertRaises((TypeError, ValueError)):
+                    parse_conversation_context({"catalog_key": catalog_key})
+
     def test_count_followup_via_public_helper(self):
         t1 = answer_question_once(DB_PATH, "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา")
         nc = t1.get("next_context")
@@ -64,9 +108,8 @@ class H17PublicHelperE2E(unittest.TestCase):
         t2 = answer_question_once(
             DB_PATH, "แล้ว DSBA ล่ะ", conversation_context=t1["next_context"]
         )
-        self.assertTrue(
-            all(c.effective_scope.program == "DSBA" for c in t2["result"].claims)
-        )
+        self.assertEqual(t2["result"]["status"], "clarify_catalog")
+        self.assertEqual(t2["result"]["program"], "DSBA")
 
     def test_next_context_has_no_factual_values(self):
         t1 = answer_question_once(DB_PATH, "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา")
@@ -95,7 +138,9 @@ class H17PublicHelperE2E(unittest.TestCase):
                     answer_question_once(DB_PATH, "แล้วเทอม 2 ล่ะ", conversation_context=bad)
 
     def test_object_input_still_accepted(self):
-        ctx = QueryContext(program="IT", years=(3,), operations=("count",))
+        ctx = QueryContext(
+            program="IT", catalog_key="it-2565", years=(3,), operations=("count",)
+        )
         r = answer_question_once(DB_PATH, "แล้วเทอม 1 ล่ะ", conversation_context=ctx)
         self.assertEqual(r["result"].status, "answer")
 
@@ -113,7 +158,11 @@ class H17Lab10E2E(unittest.TestCase):
 
     def test_two_turn_lab10(self):
         r1 = self.client.post(
-            "/api/ask", json={"question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา"}
+            "/api/ask",
+            json={
+                "question": "IT ปี 3 เทอม 1 มีทั้งหมดกี่วิชา",
+                "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+            },
         )
         self.assertEqual(r1.status_code, 200)
         nc = r1.json().get("next_context")

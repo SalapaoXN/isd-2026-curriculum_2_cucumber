@@ -158,6 +158,253 @@ class RagIndexTest(unittest.TestCase):
                 f"content:{hashlib.sha256(source_a.read_bytes()).hexdigest()}",
             )
 
+    def test_shared_catalog_keeps_plan_and_course_chunks_attributed_to_each_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifact_dir = root / "runtime"
+            source_documents = {
+                "coop.json": {
+                    "program": "DSBA",
+                    "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
+                    "plan": {"plan_code": "coop"},
+                    "source_provenance": [
+                        {"source_document_key": "dsba-coop", "source_filename": "coop.pdf", "source_page": 17, "document_category": "plan"}
+                    ],
+                    "courses": [
+                        {"code": "C101", "name_en": "Shared course", "description_en": "Shared description", "credits": "3", "year": 1, "semester": 1},
+                        {"code": "C102", "name_en": "Coop-only course", "credits": "3", "year": 2, "semester": 1},
+                    ],
+                },
+                "no_coop.json": {
+                    "program": "DSBA",
+                    "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
+                    "plan": {"plan_code": "no_coop"},
+                    "source_provenance": [
+                        {"source_document_key": "dsba-no-coop", "source_filename": "no-coop.pdf", "source_page": 27, "document_category": "plan"}
+                    ],
+                    "courses": [
+                        {"code": "C101", "name_en": "Shared course", "description_en": "Shared description", "credits": "3", "year": 1, "semester": 1},
+                        {"code": "C103", "name_en": "No-coop-only course", "credits": "3", "year": 2, "semester": 1},
+                    ],
+                },
+            }
+            source_paths = []
+            for name, document in source_documents.items():
+                path = root / name
+                path.write_text(json.dumps(document), encoding="utf-8")
+                source_paths.append(path)
+
+            with patch("rag.retrieval.index.insert_embeddings"):
+                index_path = ensure_index(
+                    source_paths,
+                    artifact_dir=artifact_dir,
+                    embed_texts_callable=self._fake_embeddings,
+                    embedding_model_identity="model-a",
+                )
+                with closing(sqlite3.connect(index_path)) as connection:
+                    first_chunks = connection.execute(
+                        "SELECT chunk_id, chunk_json, source_file_identity FROM semantic_chunks ORDER BY chunk_id"
+                    ).fetchall()
+                    source_rows = connection.execute(
+                        "SELECT source_file_identity, source_filename FROM semantic_index_sources ORDER BY source_filename"
+                    ).fetchall()
+                    catalog_count, shared_course_count = connection.execute(
+                        "SELECT (SELECT COUNT(*) FROM catalogs), (SELECT COUNT(*) FROM courses WHERE course_code = 'C101')"
+                    ).fetchone()
+
+                ensure_index(
+                    source_paths,
+                    artifact_dir=artifact_dir,
+                    embed_texts_callable=self._fake_embeddings,
+                    embedding_model_identity="model-b",
+                )
+                with closing(sqlite3.connect(index_path)) as connection:
+                    rebuilt_chunks = connection.execute(
+                        "SELECT chunk_id, chunk_json, source_file_identity FROM semantic_chunks ORDER BY chunk_id"
+                    ).fetchall()
+
+            self.assertEqual(
+                [row[1] for row in source_rows], ["coop.json", "no_coop.json"]
+            )
+            identities_by_name = {filename: identity for identity, filename in source_rows}
+            self.assertEqual((catalog_count, shared_course_count), (1, 1))
+            self.assertEqual(first_chunks, rebuilt_chunks)
+            chunks = [json.loads(row[1]) for row in first_chunks]
+            coop_only = next(chunk for chunk in chunks if chunk.get("course_code") == "C102")
+            no_coop_only = next(chunk for chunk in chunks if chunk.get("course_code") == "C103")
+            self.assertEqual((coop_only["source_filename"], coop_only["plan"]), ("coop.json", "coop"))
+            self.assertEqual((no_coop_only["source_filename"], no_coop_only["plan"]), ("no_coop.json", "no_coop"))
+            self.assertEqual(coop_only["source_document_key"], "dsba-coop")
+            self.assertEqual(no_coop_only["source_document_key"], "dsba-no-coop")
+            self.assertEqual(coop_only["source_page"], [17])
+            self.assertEqual(no_coop_only["source_page"], [27])
+            self.assertEqual(coop_only["source_file_identity"], identities_by_name["coop.json"])
+            self.assertEqual(no_coop_only["source_file_identity"], identities_by_name["no_coop.json"])
+
+            shared_descriptions = [
+                chunk
+                for chunk in chunks
+                if chunk.get("chunk_type") == "description"
+                and chunk.get("course_code") == "C101"
+            ]
+            self.assertEqual(
+                sorted(
+                    (chunk["source_filename"], chunk["source_document_key"])
+                    for chunk in shared_descriptions
+                ),
+                [("coop.json", "dsba-coop"), ("no_coop.json", "dsba-no-coop")],
+            )
+            self.assertEqual(
+                {
+                    (chunk["source_filename"], chunk["source_file_identity"])
+                    for chunk in shared_descriptions
+                },
+                set(identities_by_name.items()),
+            )
+
+    def test_shared_course_page_provenance_is_partitioned_by_source_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifact_dir = root / "runtime"
+            source_documents = {
+                "coop.json": {
+                    "program": "DSBA",
+                    "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
+                    "plan": {"plan_code": "coop"},
+                    "source_provenance": [
+                        {"source_filename": "dsba2560_page_030.png", "source_page": 30, "document_category": "plan"}
+                    ],
+                    "courses": [
+                        {
+                            "code": "C101",
+                            "name_en": "Shared course",
+                            "description_en": "Shared description",
+                            "credits": "3",
+                            "source_provenance": [
+                                {"source_filename": "dsba2560_page_030.png", "source_page": 30, "document_category": "plan"},
+                                {"source_filename": "dsba2560_page_176.png", "source_page": 176, "document_category": "description"},
+                            ],
+                        }
+                    ],
+                },
+                "no_coop.json": {
+                    "program": "DSBA",
+                    "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
+                    "plan": {"plan_code": "no_coop"},
+                    "source_provenance": [
+                        {"source_filename": "dsba2560_page_025.png", "source_page": 25, "document_category": "plan"}
+                    ],
+                    "courses": [
+                        {
+                            "code": "C101",
+                            "name_en": "Shared course",
+                            "description_en": "Shared description",
+                            "credits": "3",
+                            "source_provenance": [
+                                {"source_filename": "dsba2560_page_025.png", "source_page": 25, "document_category": "plan"},
+                                {"source_filename": "dsba2560_page_176.png", "source_page": 176, "document_category": "description"},
+                            ],
+                        }
+                    ],
+                },
+            }
+            source_paths = []
+            for name, document in source_documents.items():
+                path = root / name
+                path.write_text(json.dumps(document), encoding="utf-8")
+                source_paths.append(path)
+
+            with patch("rag.retrieval.index.insert_embeddings"):
+                index_path = ensure_index(
+                    source_paths,
+                    artifact_dir=artifact_dir,
+                    embed_texts_callable=self._fake_embeddings,
+                    embedding_model_identity="model-a",
+                )
+                with closing(sqlite3.connect(index_path)) as connection:
+                    first_chunks = connection.execute(
+                        "SELECT chunk_id, chunk_json, source_file_identity FROM semantic_chunks ORDER BY chunk_id"
+                    ).fetchall()
+                ensure_index(
+                    source_paths,
+                    artifact_dir=artifact_dir,
+                    embed_texts_callable=self._fake_embeddings,
+                    embedding_model_identity="model-b",
+                )
+                with closing(sqlite3.connect(index_path)) as connection:
+                    rebuilt_chunks = connection.execute(
+                        "SELECT chunk_id, chunk_json, source_file_identity FROM semantic_chunks ORDER BY chunk_id"
+                    ).fetchall()
+
+            self.assertEqual(first_chunks, rebuilt_chunks)
+            chunks = [json.loads(row[1]) for row in first_chunks]
+            shared_descriptions = [
+                chunk
+                for chunk in chunks
+                if chunk.get("chunk_type") == "description"
+                and chunk.get("course_code") == "C101"
+            ]
+            provenance_by_source = {
+                chunk["source_filename"]: sorted(
+                    reference["source_document_key"]
+                    for reference in chunk["provenance"]
+                )
+                for chunk in shared_descriptions
+            }
+            self.assertEqual(
+                provenance_by_source,
+                {
+                    "coop.json": ["dsba2560_page_030.png", "dsba2560_page_176.png"],
+                    "no_coop.json": ["dsba2560_page_025.png", "dsba2560_page_176.png"],
+                },
+            )
+            plan_sources = {
+                (chunk["source_filename"], chunk["plan"])
+                for chunk in chunks
+                if chunk.get("entity_type") == "course_placement"
+            }
+            self.assertTrue({("coop.json", "coop"), ("no_coop.json", "no_coop")} <= plan_sources)
+
+    def test_unknown_course_evidence_still_fails_source_attribution_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "program": "DSBA",
+                        "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
+                        "plan": {"plan_code": "coop"},
+                        "source_provenance": [
+                            {"source_filename": "actual.png", "source_page": 1, "document_category": "plan"}
+                        ],
+                        "courses": [
+                            {
+                                "code": "C101",
+                                "name_en": "Course",
+                                "source_provenance": [
+                                    {"source_filename": "actual.png", "source_page": 1, "document_category": "plan"},
+                                    {"source_filename": "orphan.png", "source_page": 2, "document_category": "description"},
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with patch.object(
+                index_module,
+                "_document_metadata",
+                return_value=("DSBA", "coop", ["actual.png"]),
+            ), patch("rag.retrieval.index.insert_embeddings"):
+                with self.assertRaisesRegex(ValueError, "unknown evidence keys=.*orphan.png"):
+                    ensure_index(
+                        [source],
+                        artifact_dir=root / "runtime",
+                        embed_texts_callable=self._fake_embeddings,
+                        embedding_model_identity="model-a",
+                    )
+
     def test_source_identity_is_portable(self):
         project_root = Path(__file__).resolve().parents[2]
         canonical_path = (

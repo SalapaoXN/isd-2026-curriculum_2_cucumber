@@ -80,7 +80,7 @@ def _flexible_year_semester_values(value: Any) -> tuple[int | None, int | None, 
 
 def _credit_values(value: Any) -> tuple[int | None, str | None]:
     raw_value = _as_text(value)
-    if raw_value is None:
+    if raw_value is None or not raw_value.strip():
         return None, None
     match = _CREDIT_UNITS.fullmatch(raw_value)
     if match is None:
@@ -127,8 +127,49 @@ def _normalized_identity(value: str) -> str:
     return value.strip().casefold()
 
 
+def _normalized_course_name(value: Any, *, casefold: bool) -> Any:
+    if not isinstance(value, str):
+        return value
+    normalized = " ".join(value.split())
+    return normalized.casefold() if casefold else normalized
+
+
+def _normalized_description(value: Any) -> str | None:
+    if value is None:
+        return None
+    normalized = " ".join(str(value).split())
+    return normalized or None
+
+
+def _compatible_value(existing: Any, incoming: Any, label: str) -> Any:
+    if existing is not None and incoming is not None and existing != incoming:
+        raise ValueError(
+            f"conflicting {label} for shared curriculum identity: "
+            f"{existing!r} != {incoming!r}"
+        )
+    return existing if existing is not None else incoming
+
+
 def _normalized_course_code(code: str) -> str:
     return _normalized_identity(code)
+
+
+def _is_placeholder_course_code(code: str) -> bool:
+    return "x" in code.casefold()
+
+
+def _course_identity_discriminator(
+    code: str, name_en: Any, name_th: Any
+) -> str:
+    if not _is_placeholder_course_code(code):
+        return ""
+    label = _as_text(name_en) or _as_text(name_th)
+    if label is None or not label.strip():
+        raise ValueError(
+            f"placeholder course {code!r} requires a course label for identity"
+        )
+    normalized_label = " ".join(label.casefold().split())
+    return f"placeholder:{normalized_label}"
 
 
 def _course_codes(course: Mapping[str, Any]) -> list[str]:
@@ -251,6 +292,38 @@ def _link_provenance(
     connection.executemany(
         sql, [(entity_id, provenance_id) for provenance_id, _ in references]
     )
+
+
+def _provenance_categories(
+    connection: sqlite3.Connection, references: list[tuple[int, int]]
+) -> set[str]:
+    provenance_ids = [provenance_id for provenance_id, _ in references]
+    if not provenance_ids:
+        return set()
+    placeholders = ", ".join("?" for _ in provenance_ids)
+    return {
+        str(row[0])
+        for row in connection.execute(
+            f"SELECT DISTINCT document_category FROM provenance "
+            f"WHERE provenance_id IN ({placeholders})",
+            provenance_ids,
+        )
+    }
+
+
+def _course_provenance_categories(
+    connection: sqlite3.Connection, course_id: int
+) -> set[str]:
+    return {
+        str(row[0])
+        for row in connection.execute(
+            """SELECT DISTINCT provenance.document_category
+               FROM course_provenance
+               JOIN provenance USING (provenance_id)
+               WHERE course_provenance.course_id = ?""",
+            (course_id,),
+        )
+    }
 
 
 def _link_catalog_and_plan(
@@ -392,23 +465,39 @@ def _insert_prerequisite(
     requirement_type: str,
     references: list[tuple[int, int]],
 ) -> None:
-    cursor = connection.execute(
-        """
-        INSERT INTO prerequisites (
-            course_id, prerequisite_course_id, alternative_group_id,
-            prerequisite_order, requirement_type, raw_text
-        ) VALUES (?, ?, ?, ?, ?, ?)
-        """,
+    existing = connection.execute(
+        """SELECT prerequisite_id FROM prerequisites
+           WHERE course_id = ? AND prerequisite_course_id IS ?
+             AND alternative_group_id IS ? AND requirement_type = ? AND raw_text = ?
+           ORDER BY prerequisite_id LIMIT 1""",
         (
             course_id,
             prerequisite_course_id,
             alternative_group_id,
-            1,
             requirement_type,
             raw_text,
         ),
-    )
-    prerequisite_id = int(cursor.lastrowid)
+    ).fetchone()
+    if existing is None:
+        cursor = connection.execute(
+            """
+            INSERT INTO prerequisites (
+                course_id, prerequisite_course_id, alternative_group_id,
+                prerequisite_order, requirement_type, raw_text
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                course_id,
+                prerequisite_course_id,
+                alternative_group_id,
+                1,
+                requirement_type,
+                raw_text,
+            ),
+        )
+        prerequisite_id = int(cursor.lastrowid)
+    else:
+        prerequisite_id = int(existing[0])
     _link_provenance(
         connection,
         "prerequisite_provenance",
@@ -513,10 +602,14 @@ def _load_json_to_sqlite(
     connection: sqlite3.Connection | None = None,
     initialize_schema: bool = True,
     provenance_cache: dict[tuple[Any, ...], int] | None = None,
+    ambiguous_course_fields: set[tuple[int, str]] | None = None,
+    commit: bool = True,
 ) -> int:
     """Load one consolidated document into an initialized SQLite database."""
     input_path = Path(input_json_path)
     output_path = Path(output_db_path)
+    if ambiguous_course_fields is None:
+        ambiguous_course_fields = set()
 
     with input_path.open("r", encoding="utf-8") as stream:
         document = json.load(stream)
@@ -535,8 +628,11 @@ def _load_json_to_sqlite(
         plan_data = document
 
     program = _as_text(_first_value(document, "program")) or "UNKNOWN"
-    catalog_key = _as_text(
-        _first_value(catalog_data, "catalog_key", "key", "source")
+    explicit_catalog_key = _as_text(_first_value(catalog_data, "catalog_key", "key"))
+    if explicit_catalog_key is None and catalog_data is not document:
+        explicit_catalog_key = _as_text(catalog_data.get("source"))
+    catalog_key = explicit_catalog_key or _as_text(
+        _first_value(catalog_data, "source")
     ) or program
     catalog_title = _as_text(
         _first_value(catalog_data, "title", "catalog_title", "description", "source")
@@ -571,45 +667,104 @@ def _load_json_to_sqlite(
         if initialize_schema:
             connection.executescript(schema)
 
-        catalog_cursor = connection.execute(
-            """
-            INSERT INTO catalogs (
-                catalog_key, title, academic_year, institution, notes
-            ) VALUES (?, ?, ?, ?, ?)
-            """,
-            (catalog_key, catalog_title, academic_year, institution, catalog_notes),
-        )
-        catalog_id = int(catalog_cursor.lastrowid)
+        catalog_id: int | None = None
+        if explicit_catalog_key is not None:
+            matches = connection.execute(
+                """SELECT catalog_id, title, academic_year, institution
+                   FROM catalogs WHERE catalog_key = ? ORDER BY catalog_id""",
+                (catalog_key,),
+            ).fetchall()
+            if len(matches) > 1:
+                raise ValueError(
+                    f"catalog_key {catalog_key!r} already identifies multiple catalogs"
+                )
+            if matches:
+                catalog_id = int(matches[0][0])
+                _, existing_title, existing_year, existing_institution = matches[0]
+                merged_title = _compatible_value(
+                    existing_title, catalog_title, "catalog title"
+                )
+                merged_year = _compatible_value(
+                    existing_year, academic_year, "academic_year"
+                )
+                merged_institution = _compatible_value(
+                    existing_institution, institution, "catalog institution"
+                )
+                connection.execute(
+                    """UPDATE catalogs SET title = ?, academic_year = ?, institution = ?,
+                       notes = COALESCE(notes, ?) WHERE catalog_id = ?""",
+                    (
+                        merged_title,
+                        merged_year,
+                        merged_institution,
+                        catalog_notes,
+                        catalog_id,
+                    ),
+                )
+        if catalog_id is None:
+            catalog_cursor = connection.execute(
+                """
+                INSERT INTO catalogs (
+                    catalog_key, title, academic_year, institution, notes
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (catalog_key, catalog_title, academic_year, institution, catalog_notes),
+            )
+            catalog_id = int(catalog_cursor.lastrowid)
 
-        program_cursor = connection.execute(
-            """
-            INSERT INTO programs (
-                catalog_id, program_code, program_code_normalized
-            ) VALUES (?, ?, ?)
-            """,
-            (catalog_id, program, program_code_normalized),
-        )
-        program_id = int(program_cursor.lastrowid)
+        program_row = connection.execute(
+            """SELECT program_id FROM programs
+               WHERE catalog_id = ? AND program_code_normalized = ?""",
+            (catalog_id, program_code_normalized),
+        ).fetchone()
+        if program_row is None:
+            program_cursor = connection.execute(
+                """
+                INSERT INTO programs (
+                    catalog_id, program_code, program_code_normalized
+                ) VALUES (?, ?, ?)
+                """,
+                (catalog_id, program, program_code_normalized),
+            )
+            program_id = int(program_cursor.lastrowid)
+        else:
+            program_id = int(program_row[0])
 
-        plan_cursor = connection.execute(
-            """
-            INSERT INTO curriculum_plans (
-                catalog_id, program_id, program_code, plan_key,
-                plan_code, plan_name, version, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                catalog_id,
-                program_id,
-                program,
-                plan_key,
-                plan_code,
-                plan_name,
-                plan_version,
-                plan_notes,
-            ),
-        )
-        plan_id = int(plan_cursor.lastrowid)
+        plan_row = connection.execute(
+            """SELECT plan_id, plan_code, plan_name, version FROM curriculum_plans
+               WHERE catalog_id = ? AND program_id = ? AND plan_key = ?""",
+            (catalog_id, program_id, plan_key),
+        ).fetchone()
+        if plan_row is None:
+            plan_cursor = connection.execute(
+                """
+                INSERT INTO curriculum_plans (
+                    catalog_id, program_id, program_code, plan_key,
+                    plan_code, plan_name, version, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    catalog_id,
+                    program_id,
+                    program,
+                    plan_key,
+                    plan_code,
+                    plan_name,
+                    plan_version,
+                    plan_notes,
+                ),
+            )
+            plan_id = int(plan_cursor.lastrowid)
+        else:
+            plan_id = int(plan_row[0])
+            merged_plan_code = _compatible_value(plan_row[1], plan_code, "plan code")
+            merged_plan_name = _compatible_value(plan_row[2], plan_name, "plan name")
+            merged_plan_version = _compatible_value(plan_row[3], plan_version, "plan version")
+            connection.execute(
+                """UPDATE curriculum_plans SET plan_code = ?, plan_name = ?, version = ?,
+                   notes = COALESCE(notes, ?) WHERE plan_id = ?""",
+                (merged_plan_code, merged_plan_name, merged_plan_version, plan_notes, plan_id),
+            )
 
         if provenance_cache is None:
             provenance_cache = {}
@@ -623,6 +778,15 @@ def _load_json_to_sqlite(
         _link_catalog_and_plan(connection, catalog_id, plan_id, root_references)
 
         code_to_ids: defaultdict[str, list[int]] = defaultdict(list)
+        identity_to_ids: defaultdict[tuple[str, str], list[int]] = defaultdict(list)
+        for existing_course_id, existing_code, discriminator in connection.execute(
+            """SELECT course_id, course_code_normalized, course_identity_discriminator
+               FROM courses WHERE catalog_id = ?""",
+            (catalog_id,),
+        ):
+            course_id = int(existing_course_id)
+            code_to_ids[existing_code].append(course_id)
+            identity_to_ids[(existing_code, discriminator)].append(course_id)
         records: list[dict[str, Any]] = []
 
         for placement_index, raw_course in enumerate(course_records, start=1):
@@ -642,6 +806,11 @@ def _load_json_to_sqlite(
                 default_source_document_key,
                 provenance_cache,
             )
+            source_categories = _provenance_categories(connection, references)
+            current_plan_backed = "plan" in source_categories
+            current_description_only = (
+                bool(source_categories) and source_categories <= {"description"}
+            )
             _link_catalog_and_plan(connection, catalog_id, plan_id, references)
 
             prerequisite = _raw_prerequisite(raw_course)
@@ -658,42 +827,154 @@ def _load_json_to_sqlite(
             course_ids: list[int] = []
             for member_index, code in enumerate(codes):
                 normalized_code = _normalized_course_code(code)
-                existing_ids = code_to_ids[normalized_code]
+                credits_value = _member_value(
+                    raw_course.get("credits"), member_index, len(codes)
+                )
+                credit_units, credits_raw = _credit_values(credits_value)
+                facts = {
+                    "name_th": _member_value(raw_course.get("name_th"), member_index, len(codes), True),
+                    "name_en": _member_value(raw_course.get("name_en"), member_index, len(codes), True),
+                    "credits": credits_value,
+                    "credit_units": credit_units,
+                    "credits_raw": credits_raw,
+                    "description_th": raw_course.get("desc_th", raw_course.get("description_th")),
+                    "description_en": raw_course.get("desc_en", raw_course.get("description_en")),
+                    "category": raw_course.get("category"),
+                    "course_type": raw_course.get("type", raw_course.get("course_type")),
+                    "prerequisite_text": _as_text(prerequisite),
+                    "notes": raw_course.get("note", raw_course.get("notes")),
+                }
+                discriminator = _course_identity_discriminator(
+                    code, facts["name_en"], facts["name_th"]
+                )
+                identity_key = (normalized_code, discriminator)
+                existing_ids = identity_to_ids[identity_key]
                 if existing_ids:
                     course_id = existing_ids[0]
-                else:
-                    credits_value = _member_value(
-                        raw_course.get("credits"), member_index, len(codes)
+                    existing_categories = _course_provenance_categories(
+                        connection, course_id
                     )
-                    credit_units, credits_raw = _credit_values(credits_value)
+                    existing_plan_backed = "plan" in existing_categories
+                    existing_description_only = (
+                        bool(existing_categories)
+                        and existing_categories <= {"description"}
+                    )
+                    fact_columns = tuple(facts)
+                    stored_facts = connection.execute(
+                        f"SELECT {', '.join(fact_columns)} FROM courses WHERE course_id = ?",
+                        (course_id,),
+                    ).fetchone()
+                    updates: dict[str, Any] = {}
+                    for column, existing, incoming in zip(
+                        fact_columns, stored_facts, facts.values(), strict=True
+                    ):
+                        if column in {
+                            "name_th",
+                            "name_en",
+                            "credits",
+                            "credit_units",
+                            "credits_raw",
+                        }:
+                            conflict_key = (course_id, column)
+                            compatible = existing == incoming
+                            if column in {"name_th", "name_en"}:
+                                compatible = _normalized_course_name(
+                                    existing, casefold=column == "name_en"
+                                ) == _normalized_course_name(
+                                    incoming, casefold=column == "name_en"
+                                )
+
+                            if current_plan_backed and existing_description_only:
+                                if incoming is not None:
+                                    updates[column] = incoming
+                                ambiguous_course_fields.discard(conflict_key)
+                                continue
+                            if current_description_only and existing_plan_backed:
+                                continue
+                            if current_description_only and existing_description_only:
+                                if existing is not None and incoming is not None and not compatible:
+                                    updates[column] = None
+                                    ambiguous_course_fields.add(conflict_key)
+                                elif (
+                                    conflict_key not in ambiguous_course_fields
+                                    and existing is None
+                                    and incoming is not None
+                                ):
+                                    updates[column] = incoming
+                                continue
+
+                            if existing is not None and incoming is not None and not compatible:
+                                raise ValueError(
+                                    f"conflicting {column} for shared course {code!r}: "
+                                    f"{existing!r} != {incoming!r}"
+                                )
+                            if existing is None and incoming is not None:
+                                updates[column] = incoming
+                            elif current_plan_backed and incoming is not None:
+                                updates[column] = incoming
+                            continue
+
+                        if column in {
+                            "description_th",
+                            "description_en",
+                            "notes",
+                            "category",
+                            "course_type",
+                            "prerequisite_text",
+                        }:
+                            conflict_key = (course_id, column)
+                            if conflict_key in ambiguous_course_fields:
+                                continue
+                            if column in {"description_th", "description_en", "notes"}:
+                                existing_value = _normalized_description(existing)
+                                incoming_value = _normalized_description(incoming)
+                            else:
+                                existing_value = existing
+                                incoming_value = incoming
+                            if existing_value is not None and incoming_value is not None:
+                                if existing_value != incoming_value:
+                                    updates[column] = None
+                                    ambiguous_course_fields.add(conflict_key)
+                            elif existing_value is None and incoming_value is not None:
+                                updates[column] = incoming
+                            continue
+
+                        compatible = existing == incoming
+                        if column in {"name_th", "name_en"}:
+                            compatible = _normalized_course_name(
+                                existing, casefold=column == "name_en"
+                            ) == _normalized_course_name(
+                                incoming, casefold=column == "name_en"
+                            )
+                        if existing is not None and incoming is not None and not compatible:
+                            raise ValueError(
+                                f"conflicting {column} for shared course {code!r}: "
+                                f"{existing!r} != {incoming!r}"
+                            )
+                        if existing is None and incoming is not None:
+                            updates[column] = incoming
+                    if updates:
+                        connection.execute(
+                            f"UPDATE courses SET {', '.join(f'{column} = ?' for column in updates)} "
+                            "WHERE course_id = ?",
+                            (*updates.values(), course_id),
+                        )
+                else:
                     cursor = connection.execute(
                         """
                         INSERT INTO courses (
                             catalog_id, course_code, course_code_normalized,
+                            course_identity_discriminator,
                             name_th, name_en, credits, credit_units, credits_raw,
                             description_th, description_en, category, course_type,
                             prerequisite_text, notes
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (
-                            catalog_id,
-                            code,
-                            normalized_code,
-                            _member_value(raw_course.get("name_th"), member_index, len(codes), True),
-                            _member_value(raw_course.get("name_en"), member_index, len(codes), True),
-                            credits_value,
-                            credit_units,
-                            credits_raw,
-                            raw_course.get("desc_th", raw_course.get("description_th")),
-                            raw_course.get("desc_en", raw_course.get("description_en")),
-                            raw_course.get("category"),
-                            raw_course.get("type", raw_course.get("course_type")),
-                            _as_text(prerequisite),
-                            raw_course.get("note", raw_course.get("notes")),
-                        ),
+                        (catalog_id, code, normalized_code, discriminator, *facts.values()),
                     )
                     course_id = int(cursor.lastrowid)
-                    existing_ids.append(course_id)
+                    identity_to_ids[identity_key].append(course_id)
+                    code_to_ids[normalized_code].append(course_id)
                 course_ids.append(course_id)
                 _link_provenance(
                     connection,
@@ -777,7 +1058,8 @@ def _load_json_to_sqlite(
             )
 
         _load_prerequisites(connection, records, code_to_ids, catalog_id, plan_id)
-        connection.commit()
+        if commit:
+            connection.commit()
     return catalog_id
 
 
@@ -797,14 +1079,23 @@ def load_jsons_to_sqlite(
 
     output_path = Path(output_db_path)
     provenance_cache: dict[tuple[Any, ...], int] = {}
+    ambiguous_course_fields: set[tuple[int, str]] = set()
     with closing(sqlite3.connect(str(output_path))) as connection:
-        return [
-            _load_json_to_sqlite(
-                input_path,
-                output_path,
-                connection=connection,
-                initialize_schema=index == 0,
-                provenance_cache=provenance_cache,
-            )
-            for index, input_path in enumerate(input_paths)
-        ]
+        try:
+            catalog_ids = [
+                _load_json_to_sqlite(
+                    input_path,
+                    output_path,
+                    connection=connection,
+                    initialize_schema=index == 0,
+                    provenance_cache=provenance_cache,
+                    ambiguous_course_fields=ambiguous_course_fields,
+                    commit=False,
+                )
+                for index, input_path in enumerate(input_paths)
+            ]
+            connection.commit()
+            return catalog_ids
+        except Exception:
+            connection.rollback()
+            raise

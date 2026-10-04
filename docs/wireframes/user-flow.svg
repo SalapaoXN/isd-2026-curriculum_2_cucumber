@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">CUCUMBER user flow — Week 11 wireframe</title>
+  <desc id="desc">Simple two-branch user flow: choose Chat to scope, ask, receive a grounded answer and view provenance; or choose Curriculum Document to filter, search, inspect results, select a course, and view details.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #252525; }
+      .title { font-size: 34px; font-weight: 700; } .sub { font-size: 17px; fill: #666; }
+      .node { fill: #fff; stroke: #555; stroke-width: 2; }
+      .branch { fill: #f1f1f1; stroke: #555; stroke-width: 2; }
+      .nodeText { font-size: 21px; font-weight: 600; text-anchor: middle; }
+      .branchText { font-size: 22px; font-weight: 700; text-anchor: middle; }
+      .arrow { fill: none; stroke: #555; stroke-width: 2.5; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker>
+  </defs>
+  <rect width="1600" height="900" fill="#f5f5f5"/>
+  <text x="800" y="62" text-anchor="middle" class="title">CUCUMBER — User Flow</text>
+  <text x="800" y="91" text-anchor="middle" class="sub">Week 11 low-fidelity design stage</text>
+  <g id="start-and-choice">
+    <rect x="650" y="126" width="300" height="58" rx="2" class="node"/>
+    <text x="800" y="163" class="nodeText">Start</text>
+    <path d="M800 184 V218" class="arrow"/>
+    <rect x="590" y="226" width="420" height="64" rx="2" class="branch"/>
+    <text x="800" y="266" class="branchText">Choose function</text>
+    <path d="M690 290 C650 315 480 312 405 349" class="arrow"/>
+    <path d="M910 290 C950 315 1120 312 1195 349" class="arrow"/>
+  </g>
+  <g id="chat-branch">
+    <rect x="150" y="356" width="420" height="62" rx="2" class="branch"/>
+    <text x="360" y="395" class="branchText">Chat</text>
+    <path d="M360 418 V455" class="arrow"/>
+    <rect x="150" y="463" width="420" height="62" rx="2" class="node"/>
+    <text x="360" y="502" class="nodeText">Select scope</text>
+    <path d="M360 525 V562" class="arrow"/>
+    <rect x="150" y="570" width="420" height="62" rx="2" class="node"/>
+    <text x="360" y="609" class="nodeText">Ask question</text>
+    <path d="M360 632 V669" class="arrow"/>
+    <rect x="150" y="677" width="420" height="62" rx="2" class="node"/>
+    <text x="360" y="716" class="nodeText">Grounded answer</text>
+    <path d="M360 739 V776" class="arrow"/>
+    <rect x="150" y="784" width="420" height="62" rx="2" class="node"/>
+    <text x="360" y="823" class="nodeText">View provenance</text>
+  </g>
+  <g id="curriculum-branch">
+    <rect x="1030" y="356" width="420" height="56" rx="2" class="branch"/>
+    <text x="1240" y="392" class="branchText">Curriculum Document</text>
+    <path d="M1240 412 V426" class="arrow"/>
+    <rect x="1030" y="434" width="420" height="56" rx="2" class="node"/>
+    <text x="1240" y="470" class="nodeText">Select filters</text>
+    <path d="M1240 490 V504" class="arrow"/>
+    <rect x="1030" y="512" width="420" height="56" rx="2" class="node"/>
+    <text x="1240" y="548" class="nodeText">Search courses</text>
+    <path d="M1240 568 V582" class="arrow"/>
+    <rect x="1030" y="590" width="420" height="56" rx="2" class="node"/>
+    <text x="1240" y="626" class="nodeText">View result table</text>
+    <path d="M1240 646 V660" class="arrow"/>
+    <rect x="1030" y="668" width="420" height="56" rx="2" class="node"/>
+    <text x="1240" y="704" class="nodeText">Select course</text>
+    <path d="M1240 724 V738" class="arrow"/>
+    <rect x="1030" y="746" width="420" height="56" rx="2" class="node"/>
+    <text x="1240" y="782" class="nodeText">View detail</text>
+  </g>
+  <g id="column-separator"><line x1="800" y1="350" x2="800" y2="852" stroke="#ccc" stroke-width="1" stroke-dasharray="5 8"/></g>
+</svg>

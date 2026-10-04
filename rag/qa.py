@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 import re
+import sqlite3
 from typing import Any
 
 from rag.aggregation import (
@@ -81,7 +82,12 @@ from rag.structured.fallback import (
     ground_placement,
     run_structured_fallback,
 )
-from rag.structured.queries import exact_course_candidates, prerequisite_state
+from rag.structured.queries import (
+    catalog_keys_for_program,
+    edition_catalog_keys_for_program,
+    exact_course_candidates,
+    prerequisite_state,
+)
 
 
 _STRUCTURED_FALLBACK_OPERATIONS = frozenset(
@@ -304,6 +310,7 @@ def _next_conversation_context(
     spec: Any,
     resolution: ResolutionOutcome,
     result: Any,
+    catalog_key: str | None = None,
 ) -> QueryContext | None:
     """Derive structural references only from an authoritative current turn."""
     if getattr(result, "status", None) != "answer" or resolution.action != "answer":
@@ -323,6 +330,7 @@ def _next_conversation_context(
     plans = tuple(getattr(spec, "plans", ())) or tuple(resolution.resolved_plans)
     return QueryContext(
         program=program,
+        catalog_key=catalog_key,
         plan=plans[0] if len(plans) == 1 else None,
         years=tuple(getattr(spec, "years", ())),
         semesters=tuple(getattr(spec, "semesters", ())),
@@ -339,14 +347,16 @@ def _is_course_list_fallback_candidate(
     """Allow only bounded course-list/filter residue into the SQL seam."""
     if getattr(spec, "topic", None) is not None:
         return False
-    if getattr(spec, "credit_units", None) is not None:
-        # H32-B (H23-R1): a per-course credit predicate is parser-owned and
-        # supported only for ("list",) on the deterministic path (which
-        # classifies complete and never reaches this seam). Any
-        # credit-bearing spec here is an unsupported op combo that must fail
-        # closed with 0 calls instead of entering unfiltered SQL fallback.
-        return False
     operations = tuple(getattr(spec, "operations", ()))
+    if getattr(spec, "credit_units", None) is not None:
+        # A parsed credit predicate normally stays on the deterministic path.
+        # When the requirement type is still unresolved, allow only the
+        # bounded list fallback to interpret the combined filter.
+        return (
+            completeness.classification == "partial"
+            and "requirement_type" in completeness.missing_filters
+            and operations == ("list",)
+        )
     if operations:
         if operations in {("count",), ("existence",)}:
             return True
@@ -503,6 +513,101 @@ def _should_use_intent_interpreter(
     )
 
 
+def _should_use_query_structure_interpreter(
+    spec: Any,
+    resolution: ResolutionOutcome,
+    question: str,
+    completeness: StructuredParseCompleteness,
+    context: QueryContext | None = None,
+) -> bool:
+    """Admit only bounded incomplete shapes with no model-owned scope."""
+    if getattr(resolution, "action", None) not in {"answer", "clarify_program"}:
+        return False
+    if (
+        getattr(spec, "topic", None) is not None
+        or getattr(spec, "judgement", None) not in {None, "none"}
+        or getattr(spec, "credit_units", None) is not None
+    ):
+        return False
+    surfaced = set(detect_surface_operations(question))
+    clarified_collection = bool(
+        getattr(resolution, "action", None) in {"answer", "clarify_program"}
+        and tuple(getattr(spec, "operations", ())) == ()
+        and getattr(spec, "program", None) is None
+        and not tuple(getattr(spec, "plans", ()))
+        and not tuple(getattr(spec, "years", ()))
+        and not tuple(getattr(spec, "semesters", ()))
+        and not tuple(getattr(spec, "course_codes", ()))
+        and getattr(spec, "course_name", None) is None
+        and getattr(spec, "topic", None) is None
+        and {"list", "prerequisite"}.issubset(surfaced)
+    )
+    if clarified_collection:
+        return True
+
+    if (
+        tuple(getattr(spec, "course_codes", ()))
+        or getattr(spec, "course_name", None) is not None
+        or getattr(spec, "category", None) is not None
+    ):
+        return False
+    has_scope = bool(
+        getattr(spec, "program", None)
+        or getattr(context, "program", None)
+        or tuple(getattr(spec, "plans", ()))
+        or tuple(getattr(spec, "years", ()))
+        or tuple(getattr(spec, "semesters", ()))
+        or tuple(getattr(spec, "course_codes", ()))
+        or getattr(spec, "course_name", None) is not None
+    )
+    program_labels = {"ait", "bit", "dsba", "gened", "it"}
+    has_non_program_ascii_word = any(
+        token.strip(".,?!:;()[]{}").isascii()
+        and token.strip(".,?!:;()[]{}").isalpha()
+        and token.strip(".,?!:;()[]{}").casefold() not in program_labels
+        for token in question.split()
+    )
+    scoped_prerequisite_candidate = bool(
+        getattr(resolution, "action", None) == "answer"
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured"}
+        and has_scope
+        and "prerequisite" in surfaced
+    )
+    unscoped_exact_course_candidate = bool(
+        getattr(resolution, "action", None) in {"answer", "clarify_program"}
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured"}
+        and tuple(getattr(spec, "operations", ())) == ()
+        and getattr(spec, "program", None) is None
+        and not tuple(getattr(spec, "course_codes", ()))
+        and getattr(spec, "course_name", None) is None
+        and getattr(spec, "topic", None) is None
+        and getattr(spec, "category", None) is None
+        and getattr(spec, "credit_units", None) is None
+        and surfaced.intersection(
+            {"prerequisite", "placement", "sum_credits", "describe", "existence"}
+        )
+        and has_non_program_ascii_word
+    )
+    flexible_exact_course_candidate = bool(
+        getattr(resolution, "action", None) == "answer"
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured"}
+        and (getattr(spec, "program", None) or getattr(context, "program", None))
+        and not tuple(getattr(spec, "plans", ()))
+        and not tuple(getattr(spec, "years", ()))
+        and not tuple(getattr(spec, "semesters", ()))
+        and not tuple(getattr(spec, "operations", ()))
+        and has_non_program_ascii_word
+    )
+    return (
+        scoped_prerequisite_candidate
+        or unscoped_exact_course_candidate
+        or flexible_exact_course_candidate
+    )
+
+
 def _should_use_course_list_interpreter(
     spec: Any,
     completeness: StructuredParseCompleteness,
@@ -626,6 +731,7 @@ def _fallback_scope(
     resolution: ResolutionOutcome,
     *,
     placement_code_identity: bool = False,
+    catalog_key: str | None = None,
 ) -> StructuredFallbackScope | None:
     """Build fallback scope only from deterministic parser/resolver state."""
     program = completeness.program or resolution.resolved_program
@@ -661,6 +767,7 @@ def _fallback_scope(
             semesters=completeness.semesters,
             course_ids=tuple(course_ids),
             course_codes=tuple(course_codes),
+            catalog_key=catalog_key,
         )
     except (TypeError, ValueError):
         return None
@@ -681,6 +788,7 @@ def _fallback_course_list_claim(
         plans=scope.plans,
         years=scope.years,
         semesters=scope.semesters,
+        catalog_key=scope.catalog_key,
     )
     if grounded.status == "insufficient_evidence":
         return GroundedClaim(
@@ -754,10 +862,12 @@ def _filtered_credit_plan(
     spec: Any,
     resolution: ResolutionOutcome,
     selected_targets: tuple[Mapping[str, Any], ...],
+    *,
+    catalog_key: str | None = None,
 ) -> EvidencePlan:
     """Build only the filtered credit request after selector grounding."""
     scope = replace(
-        build_structural_scope(spec, resolution),
+        build_structural_scope(spec, resolution, catalog_key=catalog_key),
         course_targets=selected_targets,
     )
     request = EvidenceRequest(
@@ -807,6 +917,7 @@ def _fallback_placement_claim(
         plans=scope.plans,
         years=scope.years,
         semesters=scope.semesters,
+        catalog_key=scope.catalog_key,
     )
     if grounded.status == "insufficient_evidence":
         return GroundedClaim(
@@ -843,6 +954,7 @@ def _fallback_course_credit_claim(
         plans=scope.plans,
         years=scope.years,
         semesters=scope.semesters,
+        catalog_key=scope.catalog_key,
         course_targets=tuple(
             {"course_code": course_code} for course_code in scope.course_codes
         ),
@@ -1292,6 +1404,28 @@ def _claim_for_scope_prerequisite(
     course_result = matching_courses[0]
     if course_result.status not in {"complete", "valid_empty"}:
         return _claim("list", course_result, status="insufficient_evidence")
+    if prerequisite_result.planned_request.positive_prerequisite_collection:
+        if prerequisite_result.status == "valid_empty":
+            return _claim(
+                "list",
+                prerequisite_result,
+                value=(),
+                evidence=(),
+                status="valid_empty",
+            )
+        if prerequisite_result.status != "complete":
+            return _claim("list", prerequisite_result, status="insufficient_evidence")
+        records = _payload_records(prerequisite_result)
+        provenance = _provenance_from_records(records or ())
+        if records is None or not records or not provenance:
+            return _claim("list", prerequisite_result, status="insufficient_evidence")
+        return _claim(
+            "list",
+            prerequisite_result,
+            value=records,
+            evidence=records,
+            provenance=provenance,
+        )
     if prerequisite_result.status != "complete":
         if prerequisite_result.status == "valid_empty":
             payload = prerequisite_result.payload
@@ -2594,6 +2728,13 @@ def _compose_evidence_claims(
     if not isinstance(bundle, EvidenceBundle) or query_spec is None:
         return ()
     operations = tuple(getattr(query_spec, "operations", ()))
+    topic_collection_description = bool(
+        getattr(query_spec, "topic", None) is not None
+        and not getattr(query_spec, "course_codes", ())
+        and getattr(query_spec, "course_name", None) is None
+        and "describe" in operations
+        and not ({"list", "count", "sum_credits", "existence"} & set(operations))
+    )
     judgement = getattr(query_spec, "judgement", "none")
     if judgement in {"quantity", "workload", "preference"} and judgement not in operations:
         operations += (judgement,)
@@ -2685,10 +2826,21 @@ def _compose_evidence_claims(
                     for result in prerequisite_results
                 )
         elif operation == "describe":
-            claims.extend(
-                _claim_for_description_operation(operation, result)
-                for result in description_results
-            )
+            if topic_collection_description:
+                claims.extend(
+                    claim
+                    for result in _execution_results(bundle, "topic_matches")
+                    if (
+                        claim := _claim_for_relation_operation(
+                            "list", result, course_cache
+                        )
+                    ) is not None
+                )
+            else:
+                claims.extend(
+                    _claim_for_description_operation(operation, result)
+                    for result in description_results
+                )
         elif operation in {"quantity", "workload", "preference"}:
             judgement_results = (
                 relation_results
@@ -2827,19 +2979,157 @@ def ask(
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
 
-    policy_result = route_policy_question(db_path, question)
+    conversation_mode = conversation_context is not None
+    parser_context = conversation_context if conversation_mode else context
+    has_validated_context_scope = bool(
+        isinstance(parser_context, QueryContext)
+        and isinstance(parser_context.program, str)
+        and parser_context.program.strip()
+    )
+    spec = parse_query_spec(
+        question,
+        has_validated_context_scope=has_validated_context_scope,
+    )
+    if conversation_mode:
+        spec = _merge_conversation_context(spec, conversation_context)
+    active_context = conversation_context if conversation_mode else context
+    program = getattr(spec, "program", None) or getattr(active_context, "program", None)
+    catalog_key = getattr(active_context, "catalog_key", None)
+    catalog_keys: tuple[str | None, ...] = ()
+    edition_keys: tuple[str, ...] = ()
+    if isinstance(program, str) and program.strip():
+        try:
+            catalog_keys = catalog_keys_for_program(db_path, program)
+            edition_keys = edition_catalog_keys_for_program(db_path, program)
+        except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError):
+            catalog_keys = ()
+            edition_keys = ()
+    curriculum_scoped = bool(
+        tuple(spec.operations)
+        or spec.plans
+        or spec.years
+        or spec.semesters
+        or spec.course_codes
+        or spec.course_name
+        or spec.topic
+    )
+    matching_catalog_key = next(
+        (
+            key for key in catalog_keys
+            if isinstance(key, str)
+            and isinstance(catalog_key, str)
+            and key.casefold() == catalog_key.strip().casefold()
+        ),
+        None,
+    )
+    if catalog_key is not None and matching_catalog_key is None:
+        return {
+            "route": None,
+            "result": {
+                "status": "clarify_catalog",
+                "action": "clarify_catalog",
+                "program": program,
+            },
+        }
+    if curriculum_scoped and edition_keys and catalog_key is None:
+        return {
+            "route": None,
+            "result": {
+                "status": "clarify_catalog",
+                "action": "clarify_catalog",
+                "program": program,
+                "catalog_keys": list(edition_keys),
+            },
+        }
+    if catalog_key is None and len(catalog_keys) == 1:
+        catalog_key = catalog_keys[0]
+    elif matching_catalog_key is not None:
+        catalog_key = matching_catalog_key
+
+    policy_result = route_policy_question(
+        db_path,
+        question,
+        catalog_key=(
+            catalog_key
+            if program and edition_catalog_keys_for_program(db_path, program)
+            else None
+        ),
+    )
     if policy_result is not None:
         return {"route": None, "result": policy_result}
 
-    spec = parse_query_spec(question)
-    conversation_mode = conversation_context is not None
-    if conversation_mode:
-        spec = _merge_conversation_context(spec, conversation_context)
+    resolution_context = (
+        QueryContext(catalog_key=catalog_key)
+        if conversation_mode and catalog_key is not None
+        else None if conversation_mode else context
+    )
     resolution = resolve_query_spec(
         spec,
         db_path,
-        context=None if conversation_mode else context,
+        context=resolution_context,
     )
+    completeness = _classify_structured_parse_completeness(
+        spec,
+        resolution,
+        context,
+    )
+    structural_interpreted = False
+    if (
+        not shadow_intent
+        and callable(intent_model_callable)
+        and _should_use_query_structure_interpreter(
+            spec,
+            resolution,
+            question,
+            completeness,
+            context,
+        )
+    ):
+        try:
+            structure = interpret_question_intent(
+                question,
+                intent_model_callable,
+                proposal_kind="query_structure",
+            )
+            if (
+                structure.predicate is None
+                and not getattr(spec, "course_codes", ())
+                and getattr(spec, "course_name", None) is None
+                and not tuple(getattr(spec, "plans", ()))
+                and not tuple(getattr(spec, "years", ()))
+                and not tuple(getattr(spec, "semesters", ()))
+                and structure.course_name_span is None
+            ):
+                return _intent_failure_result(question)
+            compiled_spec = compile_intent_to_query_spec(spec, structure)
+            compiled_resolution = resolve_query_spec(
+                compiled_spec,
+                db_path,
+                context=resolution_context,
+            )
+        except Exception:
+            return _intent_failure_result(question)
+        if compiled_resolution.action in {
+            "clarify_program",
+            "context_conflict",
+            "no_data",
+            "unsupported",
+        }:
+            return {"route": None, "result": _blocked_result(compiled_resolution)}
+        if compiled_resolution.action != "answer":
+            return _intent_failure_result(question)
+        if tuple(compiled_spec.operations) != ("identity",):
+            compiled_completeness = _classify_structured_parse_completeness(
+                compiled_spec,
+                compiled_resolution,
+                context,
+            )
+            if compiled_completeness.classification != "complete":
+                return _intent_failure_result(question)
+            completeness = compiled_completeness
+        spec = compiled_spec
+        resolution = compiled_resolution
+        structural_interpreted = True
     if resolution.action != "answer":
         if resolution.action == "clarify_program":
             consensus = _consensus_prerequisite_grounded_answer(
@@ -2883,16 +3173,19 @@ def ask(
             "route": None,
             "result": render_grounded_answer(grounded),
         }
-        next_context = _next_conversation_context(spec, resolution, response["result"])
+        next_context = _next_conversation_context(
+            spec, resolution, response["result"], catalog_key
+        )
         if next_context is not None:
             response["next_context"] = next_context
         return response
 
-    completeness = _classify_structured_parse_completeness(
-        spec,
-        resolution,
-        context,
-    )
+    if not structural_interpreted:
+        completeness = _classify_structured_parse_completeness(
+            spec,
+            resolution,
+            context,
+        )
     intent_shadow = (
         _run_placement_shadow(
             question,
@@ -3176,7 +3469,9 @@ def ask(
             diagnostics["existence_shadow"] = existence_shadow
         response = result if not diagnostics else {**result, **diagnostics}
         answer_result = response.get("result")
-        next_context = _next_conversation_context(spec, resolution, answer_result)
+        next_context = _next_conversation_context(
+            spec, resolution, answer_result, catalog_key
+        )
         if next_context is not None:
             response = {**response, "next_context": next_context}
         return response
@@ -3186,14 +3481,18 @@ def ask(
         completeness,
     )
     if filtered_credit_candidate:
-        filtered_scope = build_structural_scope(spec, resolution)
+        filtered_scope = build_structural_scope(
+            spec, resolution, catalog_key=catalog_key
+        )
         if not callable(structured_model_callable):
             claim = _filtered_credit_status_claim(
                 filtered_scope,
                 "insufficient_evidence",
             )
         else:
-            fallback_scope = _fallback_scope(completeness, resolution)
+            fallback_scope = _fallback_scope(
+                completeness, resolution, catalog_key=catalog_key
+            )
             if fallback_scope is None:
                 claim = _filtered_credit_status_claim(
                     filtered_scope,
@@ -3226,6 +3525,7 @@ def ask(
                         spec,
                         resolution,
                         grounded_list.selected_targets,
+                        catalog_key=catalog_key,
                     )
                     credit_bundle = execute_evidence_plan(
                         db_path,
@@ -3266,7 +3566,9 @@ def ask(
         and _is_course_list_fallback_candidate(spec, completeness)
     ):
         fallback_operation = _course_list_fallback_operation(spec)
-        fallback_scope = _fallback_scope(completeness, resolution)
+        fallback_scope = _fallback_scope(
+            completeness, resolution, catalog_key=catalog_key
+        )
         if fallback_scope is not None and fallback_operation is not None:
             fallback_result = run_structured_fallback(
                 db_path,
@@ -3303,6 +3605,7 @@ def ask(
             completeness,
             resolution,
             placement_code_identity=True,
+            catalog_key=catalog_key,
         )
         if fallback_scope is not None:
             fallback_result = run_structured_fallback(
@@ -3340,6 +3643,7 @@ def ask(
             completeness,
             resolution,
             placement_code_identity=True,
+            catalog_key=catalog_key,
         )
         if fallback_scope is not None:
             fallback_result = run_structured_fallback(
@@ -3368,7 +3672,7 @@ def ask(
                 ),
             })
 
-    intent_interpreted = shadow_executed
+    intent_interpreted = shadow_executed or structural_interpreted
     if (
         not shadow_intent
         and not intent_interpreted
@@ -3468,7 +3772,7 @@ def ask(
         })
 
     try:
-        plan = plan_evidence(spec, resolution)
+        plan = plan_evidence(spec, resolution, catalog_key=catalog_key)
         bundle = execute_evidence_plan(db_path, plan)
     except (FileNotFoundError, OSError, TypeError, ValueError, KeyError):
         grounded = compose_grounded_answer(

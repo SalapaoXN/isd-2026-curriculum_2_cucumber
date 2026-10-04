@@ -16,8 +16,11 @@ class AskResponse(BaseModel):
     status: str
     action: str | None = None
     route: str | None = None
+    hard_task_type: str | None = None
     provenance: list[dict[str, Any]] = Field(default_factory=list)
     next_context: dict[str, Any] | None = None
+    comparison: dict[str, Any] | None = None
+    plan_results: list[dict[str, Any]] | None = None
 
 
 class PlanInfo(BaseModel):
@@ -25,9 +28,16 @@ class PlanInfo(BaseModel):
     plan_name: str | None = None
 
 
+class EditionInfo(BaseModel):
+    catalog_key: str | None = None
+    academic_year: str | None = None
+    plans: list[PlanInfo] = Field(default_factory=list)
+
+
 class ProgramInfo(BaseModel):
     program_code: str
     plans: list[PlanInfo] = Field(default_factory=list)
+    editions: list[EditionInfo] = Field(default_factory=list)
 
 
 class ProgramsResponse(BaseModel):
@@ -35,6 +45,8 @@ class ProgramsResponse(BaseModel):
 
 
 class CurriculumItem(BaseModel):
+    catalog_key: str | None = None
+    academic_year: str | None = None
     program: str | None = None
     plan_key: str | None = None
     year: int | None = None

@@ -90,7 +90,8 @@ _OPERATION_PATTERNS = (
             r"ขอ\s*รายวิชา(?:[^?\n]{0,60}(?:อะไร|ไหน|บ้าง))?|"
             r"มี(?:วิชา)?[^?\n]{0,40}ตัวไหนบ้าง|เรียนตัวไหนกันบ้าง|"
             r"เรียนอะไรกัน(?:บ้าง)?|"
-            r"ลงเรียนวิชา\s*(?:gened|ศึกษาทั่วไป)\s*อะไรได้บ้าง",
+            r"ลงเรียนวิชา\s*(?:gened|ศึกษาทั่วไป)\s*อะไรได้บ้าง|"
+            r"(?:รายวิชา|วิชา)(?:ที่(?:สอน|เรียน))?\s*ในปี",
             re.IGNORECASE,
         ),
     ),
@@ -151,6 +152,15 @@ _OPERATION_PATTERNS = (
     ),
     ("similarity", re.compile(r"คล้าย|เหมือน|เนื้อหา.*กัน|\bsimilar(?:ity)?\b", re.IGNORECASE)),
 )
+_PREVIOUS_RESULT_SET_ANCHORS = (
+    "วิชาเหล่านี้",
+    "รายวิชาเหล่านี้",
+    "พวกนี้",
+    "ในพวกนี้",
+    "รายการเหล่านี้",
+    "จากรายการก่อนหน้า",
+    "จากวิชาก่อนหน้า",
+)
 _COURSE_DETAIL_PATTERN = re.compile(
     r"ลักษณะไหน|ด้าน(?:ไหน|ใด)(?:บ้าง)?|พูดถึง|อะไรบ้าง|อย่างไร|แบบไหน|"
     r"เนื้อหา.*?(?:ครอบคลุม|ช่วยจัดการ).*?เรื่องใด(?:บ้าง)?",
@@ -158,6 +168,13 @@ _COURSE_DETAIL_PATTERN = re.compile(
 )
 _IDENTITY_NAME_TO_CODE_PATTERN = re.compile(
     r"รหัส(?:วิชา)?\s*อะไร", re.IGNORECASE
+)
+_IDENTITY_PREFIX_NAME_TO_CODE_PATTERN = re.compile(
+    r"^\s*รหัส(?:ของวิชา|วิชาของ|วิชา)\s+", re.IGNORECASE
+)
+_IDENTITY_PREFIX_PROGRAM_QUALIFIER_PATTERN = re.compile(
+    r"\s+ใน\s+(?:AIT|BIT|DSBA|GENED|IT)\s+คืออะไร\s*\??\s*$",
+    re.IGNORECASE,
 )
 _IDENTITY_CODE_TO_NAME_PATTERN = re.compile(
     r"(?:ชื่อวิชา\s*อะไร|ชื่อ\s*อะไร|คือวิชา\s*อะไร|"
@@ -184,6 +201,17 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
 _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
     r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
+    re.IGNORECASE,
+)
+_THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
+    r"^\s*(?:วิชา\s*)?(?P<name>[\u0E00-\u0E7F][\u0E00-\u0E7F0-9 \t]*?)"
+    r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
+    re.IGNORECASE,
+)
+_PREREQUISITE_COLLECTION_PATTERN = re.compile(
+    r"(?:วิชา|รายวิชา)\s*(?:ใด|ไหน)|"
+    r"มี\s*(?:วิชา|รายวิชา)\s*อะไร|"
+    r"(?:วิชา|รายวิชา).{0,40}บ้าง",
     re.IGNORECASE,
 )
 _PREREQUISITE_BURDEN_PREFERENCE_PATTERN = re.compile(
@@ -268,18 +296,61 @@ def _extract_course_codes(question: str) -> tuple[str, ...]:
     return _ordered_unique(match.group(1) for match in _COURSE_CODE_PATTERN.finditer(question))
 
 
+def _prefix_name_to_code_title_match(question: str) -> re.Match[str] | None:
+    prefix = _IDENTITY_PREFIX_NAME_TO_CODE_PATTERN.match(question)
+    if prefix is None:
+        return None
+    remainder = question[prefix.end() :]
+    program_qualifier = _IDENTITY_PREFIX_PROGRAM_QUALIFIER_PATTERN.search(
+        remainder
+    )
+    title_text = (
+        remainder[: program_qualifier.start()] + " คืออะไร"
+        if program_qualifier is not None
+        else remainder
+    )
+    title = _BARE_COURSE_NAME_PATTERN.match(title_text)
+    if title is None:
+        return None
+    suffix = title_text[title.end() :]
+    if program_qualifier is None and not suffix.casefold().startswith("คืออะไร"):
+        return None
+    return title
+
+
 def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | None:
     if course_codes:
         return None
     match = _COURSE_NAME_PATTERN.search(question)
     if match is None:
         match = _BARE_COURSE_NAME_PATTERN.search(question)
+    if match is None:
+        match = _prefix_name_to_code_title_match(question)
+    if match is None:
+        thai_credit_match = _THAI_COURSE_CREDIT_NAME_PATTERN.match(question)
+        if thai_credit_match is not None:
+            thai_name = thai_credit_match.group("name").strip()
+            # The bounded credit-question grammar can otherwise mistake a
+            # bare quantifier such as "กี่หน่วยกิต" for a course title.
+            thai_name_letters = re.sub(r"[\s\d]", "", thai_name)
+            if len(thai_name_letters) >= 4 and thai_name not in {"มี", "กี่"}:
+                return thai_name
     if not match:
         return None
     name = match.group("name").strip()
     if name.casefold() in {"ait", "bit", "dsba", "gened", "it"}:
         return None
     return name
+
+
+def _is_prefix_name_to_code_request(
+    question: str,
+    course_name: str | None,
+) -> bool:
+    if course_name is None:
+        return False
+    title = _prefix_name_to_code_title_match(question)
+    return bool(title and title.group("name").casefold() == course_name.casefold())
 
 
 def _extract_category(question: str) -> str | None:
@@ -376,6 +447,7 @@ def _extract_operations(
             course_name
             and (
                 _IDENTITY_NAME_TO_CODE_PATTERN.search(question)
+                or _is_prefix_name_to_code_request(question, course_name)
                 or _IDENTITY_CODE_TO_NAME_PATTERN.search(question)
             )
         )
@@ -386,6 +458,13 @@ def _extract_operations(
         or re.search(r"เรียน(?:เกี่ยวกับ|เรื่อง)?อะไร(?:อะ|บ้าง)?", question)
     )
     prerequisite_object_request = bool(_PREREQUISITE_OBJECT_PATTERN.search(question))
+    prerequisite_collection_request = bool(
+        _PREREQUISITE_COLLECTION_PATTERN.search(question)
+        and any(
+            operation == "prerequisite"
+            for _, _, operation in _surface_operation_matches(question)
+        )
+    )
     prerequisite_burden_preference = (
         judgement == "preference"
         and bool(_PREREQUISITE_BURDEN_PREFERENCE_PATTERN.search(question))
@@ -396,6 +475,8 @@ def _extract_operations(
         and bool(_COURSE_CONTENT_COMPARISON_PATTERN.search(question))
     )
     for start, _, operation in _surface_operation_matches(question):
+        if operation == "list" and prerequisite_collection_request:
+            continue
         if operation in {"list", "describe"} and prerequisite_object_request:
             continue
         if operation == "count" and prerequisite_burden_preference:
@@ -462,6 +543,16 @@ def _extract_operations(
     )
 
 
+def _references_previous_result_set(question: str) -> bool:
+    """Recognize only explicit, high-confidence anchors to a prior result set."""
+    normalized = " ".join(question.casefold().split())
+    compact = "".join(normalized.split())
+    return any(
+        "".join(anchor.casefold().split()) in compact
+        for anchor in _PREVIOUS_RESULT_SET_ANCHORS
+    )
+
+
 def _extract_group_by(question: str, plans: tuple[str, ...], years: tuple[int, ...],
                       course_codes: tuple[str, ...], has_scope: bool) -> tuple[str, ...]:
     if not has_scope:
@@ -512,12 +603,19 @@ class QuerySpec:
     group_by: tuple[str, ...]
     judgement: str
     credit_units: int | None = None
+    references_previous_result_set: bool = False
 
 
-def parse_query_spec(question: str) -> QuerySpec:
+def parse_query_spec(
+    question: str,
+    *,
+    has_validated_context_scope: bool = False,
+) -> QuerySpec:
     """Parse deterministic surface entities into a QuerySpec."""
     if not isinstance(question, str):
         raise TypeError("question must be a string")
+    if not isinstance(has_validated_context_scope, bool):
+        raise TypeError("has_validated_context_scope must be a boolean")
 
     normalized_question = normalize_thai_surface(question)
     program = _extract_program(normalized_question)
@@ -542,6 +640,11 @@ def parse_query_spec(question: str) -> QuerySpec:
         or bool(course_codes)
         or course_name is not None
         or topic is not None
+        or has_validated_context_scope
+        or (
+            bool(_PREREQUISITE_COLLECTION_PATTERN.search(normalized_question))
+            and "prerequisite" in detect_surface_operations(normalized_question)
+        )
     )
 
     operations = _extract_operations(
@@ -577,6 +680,9 @@ def parse_query_spec(question: str) -> QuerySpec:
         group_by=_extract_group_by(normalized_question, plans, years, course_codes, has_scope),
         judgement=judgement,
         credit_units=credit_units,
+        references_previous_result_set=_references_previous_result_set(
+            normalized_question
+        ),
     )
 
 

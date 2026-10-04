@@ -13,10 +13,140 @@ from src.pipeline.utils.file_handler import save_ocr_results
 from src.pipeline.tools.ocr.engine import OCREngine
 from src.pipeline.utils.page_metadata import resolve_document_page
 from src.pipeline.tools.extraction.rules import RulePage
-from src.pipeline.tools.ocr.pipeline_runner import _document_page_for_ocr, run_ocr
+from src.pipeline.tools.ocr.pipeline_runner import (
+    _document_page_for_ocr,
+    parse_arguments as parse_ocr_runner_arguments,
+    run_ocr,
+)
 
 
 class OcrCliTests(unittest.TestCase):
+    @staticmethod
+    def _run_fake_ocr(input_dir, output_dir, program, plan, dataset_key=None):
+        class FakeOCREngine:
+            def __init__(self, **_kwargs):
+                pass
+
+            def extract_text(self, _image, detail=0):
+                return [{"text": "fixture OCR"}]
+
+        class FakeImage:
+            size = (640, 480)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+        with patch(
+            "src.pipeline.tools.ocr.pipeline_runner.OCREngine", FakeOCREngine
+        ), patch(
+            "src.pipeline.tools.ocr.pipeline_runner.Image.open",
+            return_value=FakeImage(),
+        ), redirect_stdout(io.StringIO()):
+            return run_ocr(
+                input_dir=input_dir,
+                output_dir=output_dir,
+                program=program,
+                pages=[175],
+                no_gpu=True,
+                plan=plan,
+                dataset_key=dataset_key,
+            )
+
+    def test_runner_accepts_dataset_key_option(self):
+        with patch(
+            "sys.argv",
+            ["pipeline_runner", "--dataset-key", "dsba2560"],
+        ):
+            args = parse_ocr_runner_arguments()
+        self.assertEqual(args.dataset_key, "dsba2560")
+
+    def test_explicit_dataset_key_routes_output_and_preserves_source_identity(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_dir = root / "data" / "input" / "dsba2560"
+            output_dir = root / "data" / "output"
+            input_dir.mkdir(parents=True)
+            (input_dir / "dsba2560_page_175.png").write_bytes(b"fixture")
+
+            result = self._run_fake_ocr(
+                input_dir, output_dir, "DSBA", "no_coop", "dsba2560"
+            )
+
+            self.assertEqual(result, output_dir / "ocr" / "dsba2560")
+            metadata = json.loads(
+                (result / "dsba2560_page_175_ocr.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(metadata["program"], "DSBA")
+            self.assertEqual(metadata["source_dataset"], "dsba2560")
+            self.assertEqual(metadata["source_page"], 175)
+            self.assertEqual(metadata["source_filename"], "dsba2560_page_175.png")
+
+    def test_plan_does_not_change_explicit_dataset_output_leaf(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_dir = root / "data" / "input" / "dsba2560"
+            input_dir.mkdir(parents=True)
+            (input_dir / "dsba2560_page_175.png").write_bytes(b"fixture")
+
+            coop_output = self._run_fake_ocr(
+                input_dir, root / "coop-output", "DSBA", "coop", "dsba2560"
+            )
+            no_coop_output = self._run_fake_ocr(
+                input_dir, root / "no-coop-output", "DSBA", "no_coop", "dsba2560"
+            )
+
+            self.assertEqual(coop_output.name, "dsba2560")
+            self.assertEqual(no_coop_output.name, "dsba2560")
+
+    def test_unsafe_dataset_keys_fail_before_creating_output(self):
+        unsafe_keys = [
+            "../dsba2560",
+            "foo/bar",
+            r"foo\bar",
+            "",
+            "   ",
+            "/tmp/dsba2560",
+            r"C:\temp\dsba2560",
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_dir = root / "input"
+            input_dir.mkdir()
+            (input_dir / "page_175.png").write_bytes(b"fixture")
+            for dataset_key in unsafe_keys:
+                with self.subTest(dataset_key=dataset_key):
+                    output_dir = root / f"output-{len(dataset_key)}"
+                    with self.assertRaisesRegex(ValueError, "Invalid dataset key"):
+                        run_ocr(
+                            input_dir=input_dir,
+                            output_dir=output_dir,
+                            program="DSBA",
+                            pages=[175],
+                            no_gpu=True,
+                            dataset_key=dataset_key,
+                        )
+                    self.assertFalse(output_dir.exists())
+
+    def test_omitted_dataset_key_keeps_legacy_output_and_metadata(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_dir = root / "data" / "input" / "dsba"
+            output_dir = root / "data" / "output"
+            input_dir.mkdir(parents=True)
+            (input_dir / "dsba_page_175.png").write_bytes(b"fixture")
+
+            result = self._run_fake_ocr(input_dir, output_dir, "DSBA", "no_coop")
+
+            self.assertEqual(result, output_dir / "ocr" / "dsba")
+            metadata = json.loads(
+                (result / "dsba_page_175_ocr.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(metadata["program"], "DSBA")
+            self.assertNotIn("source_dataset", metadata)
+
     def _run_wrapper(self, root: Path, *arguments: str) -> None:
         with patch.object(ocr, "BASE_DIR", root), patch.object(ocr, "run_ocr"):
             with patch.object(sys, "argv", ["ocr.py", *arguments]):

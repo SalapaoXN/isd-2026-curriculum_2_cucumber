@@ -312,6 +312,25 @@ def _safe_identifier(value: str, fallback: str = "input") -> str:
     return cleaned
 
 
+def edition_filename_token(catalog_key: str) -> str:
+    """Return a deterministic, filesystem-safe token without changing catalog_key."""
+    if not isinstance(catalog_key, str) or not catalog_key.strip():
+        raise ValueError("catalog_key must be a non-empty string")
+    safe = _safe_identifier(catalog_key, fallback="edition")
+    if len(safe) > 88:
+        digest = hashlib.sha256(catalog_key.encode("utf-8")).hexdigest()[:12]
+        safe = f"{safe[:72].rstrip('_')}_{digest}"
+    return f"edition-{safe}"
+
+
+def _write_merged_json(path: Path, document: dict, *, edition_mode: bool) -> None:
+    if edition_mode and path.exists():
+        raise FileExistsError(f"edition artifact already exists: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as stream:
+        json.dump(document, stream, ensure_ascii=False, indent=4)
+
+
 def _input_group_identifier(input_path: Path) -> str:
     parts = list(input_path.parts)
     input_indexes = [i for i, part in enumerate(parts) if part.casefold() in {"inputs", "input"}]
@@ -730,11 +749,15 @@ def merge_consecutive_files(
     pages: str = None,
     prefix: str = None,
     desc_pages: str = None,
+    catalog_key: str = None,
 ):
     """Group *_extracted.json files by plan + consecutive pages, dedupe courses by code, and merge."""
     input_path = Path(input_dir)
     output_folder = Path(output_dir)
     group_id = _safe_identifier(prefix) if prefix else _input_group_identifier(input_path)
+    edition_suffix = (
+        f"_{edition_filename_token(catalog_key)}" if catalog_key is not None else ""
+    )
 
     json_files = list(input_path.rglob("*_extracted.json"))
     if not json_files:
@@ -748,7 +771,9 @@ def merge_consecutive_files(
     records: List[Tuple[str, int, dict]] = []
     source_files: Dict[Tuple[str, int], Path] = {}
     for file in json_files:
-        if prefix and not file.name.startswith(prefix):
+        if prefix and not file.name.casefold().startswith(
+            f"{prefix.casefold().rstrip('_')}_"
+        ):
             continue
         page_num = extract_page_num(file)
         with open(file, "r", encoding="utf-8") as f:
@@ -886,15 +911,18 @@ def merge_consecutive_files(
 
             page_nums = [r[1] for r in group]
             safe_plan = _safe_identifier(plan_label(plan))
-            output_filename = f"merged_{group_id}_{safe_plan}_page_{min(page_nums):03d}-{max(page_nums):03d}.json"
+            output_filename = (
+                f"merged_{group_id}_{safe_plan}{edition_suffix}_page_"
+                f"{min(page_nums):03d}-{max(page_nums):03d}.json"
+            )
             page_output_folder = _merge_output_directory(
                 output_folder, first.get("program", ""), plan, "page_range"
             )
             output_file_path = page_output_folder / output_filename
 
-            page_output_folder.mkdir(parents=True, exist_ok=True)
-            with open(output_file_path, "w", encoding="utf-8") as f:
-                json.dump(base_metadata, f, ensure_ascii=False, indent=4)
+            _write_merged_json(
+                output_file_path, base_metadata, edition_mode=catalog_key is not None
+            )
 
             merged_count += 1
             print(
@@ -940,14 +968,14 @@ def merge_consecutive_files(
             )
 
             safe_plan = _safe_identifier(plan_label(plan))
-            output_filename = f"merged_{group_id}_{safe_plan}_full.json"
+            output_filename = f"merged_{group_id}_{safe_plan}{edition_suffix}_full.json"
             full_output_folder = _merge_output_directory(
                 output_folder, first.get("program", ""), plan, "full"
             )
             output_file_path = full_output_folder / output_filename
-            full_output_folder.mkdir(parents=True, exist_ok=True)
-            with open(output_file_path, "w", encoding="utf-8") as f:
-                json.dump(final, f, ensure_ascii=False, indent=4)
+            _write_merged_json(
+                output_file_path, final, edition_mode=catalog_key is not None
+            )
 
             combined_count += 1
             print(

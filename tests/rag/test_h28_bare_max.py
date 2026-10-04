@@ -10,6 +10,7 @@ from rag.grounded_answer import GroundedAnswerResult
 from rag.policy.query import parse_policy_question
 from rag.policy.routing import route_policy_question
 from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -28,13 +29,17 @@ def _no_model(prompt: str) -> str:
     raise AssertionError("policy route must not call any model")
 
 
-def _ask(question: str, db_path: Path = DB_PATH) -> dict:
+def _ask(question: str, db_path: Path = DB_PATH, context=None) -> dict:
+    kwargs = {}
+    if context is not None:
+        kwargs["conversation_context"] = context
     return ask(
         db_path,
         question,
         structured_model_callable=_no_model,
         answer_model_callable=_no_model,
         intent_model_callable=_no_model,
+        **kwargs,
     )
 
 
@@ -57,7 +62,10 @@ class H28BareMaxTests(unittest.TestCase):
     def test_bare_max_answers_through_public_ask_without_model_calls(self):
         for question in BARE_MAX_QUESTIONS:
             with self.subTest(question=question):
-                response = _ask(question)
+                context = None
+                if question.startswith("IT "):
+                    context = QueryContext(program="IT", catalog_key="it-2565")
+                response = _ask(question, context=context)
                 self.assertIsNone(response["route"])
                 result = response["result"]
                 self.assertIsInstance(result, GroundedAnswerResult)
@@ -72,7 +80,9 @@ class H28BareMaxTests(unittest.TestCase):
     def test_axis_bare_max_keeps_curriculum_path(self):
         question = "IT ปี 3 ลงทะเบียนได้สูงสุดกี่หน่วยกิต"
         self.assertIsNone(route_policy_question(DB_PATH, question))
-        result = _ask(question)["result"]
+        result = _ask(
+            question, context=QueryContext(program="IT", catalog_key="it-2565")
+        )["result"]
         self.assertIsInstance(result, GroundedAnswerResult)
         self.assertEqual(result.status, "answer")
         self.assertFalse(_has_policy_provenance(result))
@@ -94,22 +104,55 @@ class H28BareMaxTests(unittest.TestCase):
                 self.assertIsNotNone(query)
                 self.assertEqual(query.kind, kind)
         public_cases = (
-            ("ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต", "answer", "22", True),
-            ("ลงทะเบียนขั้นต่ำกี่หน่วยกิต", "answer", "9", True),
-            ("กรณีพิเศษลงได้สูงสุดเท่าไร", "answer", "27", True),
-            ("ลง 24 หน่วยกิตได้ไหม", "answer", "อาจทำได้เฉพาะกรณี", True),
-            ("IT ต้องเรียนกี่หน่วยกิต", "answer", "129", True),
-            ("IT ปี 3 เทอม 1 รวมทั้งหมดกี่หน่วยกิต", "answer", None, False),
-            ("IT วิชาเลือก รวมทั้งหมดกี่หน่วยกิต", "insufficient_evidence", None, False),
+            ("ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต", "answer", "22", True, None),
+            ("ลงทะเบียนขั้นต่ำกี่หน่วยกิต", "answer", "9", True, None),
+            ("กรณีพิเศษลงได้สูงสุดเท่าไร", "answer", "27", True, None),
+            ("ลง 24 หน่วยกิตได้ไหม", "answer", "อาจทำได้เฉพาะกรณี", True, None),
+            (
+                "IT ปี 3 เทอม 1 รวมทั้งหมดกี่หน่วยกิต",
+                "answer",
+                None,
+                False,
+                QueryContext(program="IT", catalog_key="it-2565"),
+            ),
+            (
+                "IT วิชาเลือก รวมทั้งหมดกี่หน่วยกิต",
+                "insufficient_evidence",
+                None,
+                False,
+                QueryContext(program="IT", catalog_key="it-2565"),
+            ),
         )
-        for question, status, text, policy in public_cases:
+        for question, status, text, policy, context in public_cases:
             with self.subTest(question=question):
-                result = _ask(question)["result"]
+                result = _ask(question, context=context)["result"]
                 self.assertIsInstance(result, GroundedAnswerResult)
                 self.assertEqual(result.status, status)
                 if text is not None:
                     self.assertIn(text, result.final_answer)
                 self.assertEqual(_has_policy_provenance(result), policy)
+
+    def test_program_total_uses_plan_cited_requirement_provenance(self):
+        # "IT ต้องเรียนกี่หน่วยกิต" is edition-ambiguous across it-2560 /
+        # it-2565, so it needs the explicit edition scope; the requirement
+        # provenance canonically cites the final academic-plan pages.
+        result = _ask(
+            "IT ต้องเรียนกี่หน่วยกิต",
+            context=QueryContext(program="IT", catalog_key="it-2565"),
+        )["result"]
+        self.assertIsInstance(result, GroundedAnswerResult)
+        self.assertEqual(result.status, "answer")
+        self.assertIn("129", result.final_answer)
+        self.assertTrue(result.provenance)
+        for reference in result.provenance:
+            self.assertIsInstance(reference, Mapping)
+            self.assertEqual(reference.get("document_category"), "plan")
+            self.assertTrue(reference.get("source_filename"))
+            self.assertTrue(reference.get("source_page"))
+        self.assertEqual(
+            {reference.get("source_filename") for reference in result.provenance},
+            {"it_page_038.png", "it_page_045.png"},
+        )
 
     def test_non_registration_max_wording_stays_unrouted(self):
         for question in (
@@ -135,7 +178,11 @@ class H28BareMaxTests(unittest.TestCase):
                 connection.execute("PRAGMA foreign_keys = ON")
                 connection.execute("DELETE FROM policy_facts WHERE fact_id = 28")
                 connection.commit()
-            result = _ask("IT ลงทะเบียนได้สูงสุดกี่หน่วยกิต", db_path=path)["result"]
+            result = _ask(
+                "IT ลงทะเบียนได้สูงสุดกี่หน่วยกิต",
+                db_path=path,
+                context=QueryContext(program="IT", catalog_key="it-2565"),
+            )["result"]
             self.assertIsInstance(result, GroundedAnswerResult)
             self.assertEqual(result.status, "insufficient_evidence")
 

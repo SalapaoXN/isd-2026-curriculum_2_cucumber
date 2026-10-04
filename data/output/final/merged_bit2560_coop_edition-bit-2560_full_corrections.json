@@ -1,0 +1,206 @@
+[
+    {
+        "course_code": "06036021",
+        "field": "name_en",
+        "before": "PROBLEM SOLVNG  IN INFORMATION TECHNOLOGY",
+        "after": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY"
+    },
+    {
+        "course_code": "06036027",
+        "field": "name_en",
+        "before": "COMPUTER SYSTEMS ORGANIZATION AND  OPERATING SYSTEM",
+        "after": "COMPUTER SYSTEMS ORGANIZATION AND OPERATING SYSTEM"
+    },
+    {
+        "course_code": "06036085",
+        "field": "name_th",
+        "before": "คณิตเศรษฐศาสตร์เบืองต้น",
+        "after": "คณิตเศรษฐศาสตร์เบื้องต้น"
+    },
+    {
+        "course_code": "06036002",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06036022",
+        "field": "name_en",
+        "before": "COMPUTER PROGRAMMNG",
+        "after": "COMPUTER PROGRAMMING"
+    },
+    {
+        "course_code": "06036090",
+        "field": "name_th",
+        "before": "ความรู้ ทั่วไปเกี่ยวกับธุรกิจ",
+        "after": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ"
+    },
+    {
+        "course_code": "06036003",
+        "field": "name_en",
+        "before": "PROBABILITX AND STATISTICS",
+        "after": "PROBABILITY AND STATISTICS"
+    },
+    {
+        "course_code": "06036023",
+        "field": "name_th",
+        "before": "พืนฐานของโครงสร้างข้อมูลและอัลกอริทึม",
+        "after": "พื้นฐานของโครงสร้างข้อมูลและอัลกอริทึม"
+    },
+    {
+        "course_code": "06036006",
+        "field": "name_th",
+        "before": "ระบบสารสนเทศเพือการจัดการ",
+        "after": "ระบบสารสนเทศเพื่อการจัดการ"
+    },
+    {
+        "course_code": "06036008",
+        "field": "name_en",
+        "before": "DIGITAL  BUSINESS TECHNOLOGY",
+        "after": "DIGITAL BUSINESS TECHNOLOGY"
+    },
+    {
+        "course_code": "06036011",
+        "field": "name_th",
+        "before": "แนวคิดระบบฐานข้อมูล จ",
+        "after": "แนวคิดระบบฐานข้อมูล"
+    },
+    {
+        "course_code": "06036013",
+        "field": "name_en",
+        "before": "WEB AND MULTMMEDLA TECHNOLOGY",
+        "after": "WEB AND MULTIMEDIA TECHNOLOGY"
+    },
+    {
+        "course_code": "06036007",
+        "field": "name_th",
+        "before": "การบริหารโครงการเทคโนโลยีสารสนสนเทศ",
+        "after": "การบริหารโครงการเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06036007",
+        "field": "name_en",
+        "before": "INFORMATION TECHNOLOGY PROECT MANAGEMENT",
+        "after": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
+    },
+    {
+        "course_code": "06036009",
+        "field": "name_th",
+        "before": "เศร ชษษฐศาสตร์เทคโนโลยีสารสนเทศ",
+        "after": "เศรษฐศาสตร์เทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06036010",
+        "field": "name_en",
+        "before": "BUSINESS PROCESSES AND ENTERPRISE RESOURCE PLANNNG",
+        "after": "BUSINESS PROCESSES AND ENTERPRISE RESOURCE PLANNING"
+    },
+    {
+        "course_code": "06036014",
+        "field": "name_th",
+        "before": "ความมนคงของระ เบบสารสนเทศและกฎหมายไอที",
+        "after": "ความมั่นคงของระบบสารสนเทศและกฎหมายไอที"
+    },
+    {
+        "course_code": "06036014",
+        "field": "name_en",
+        "before": "INFORMATION SYSTEM SECURITV AND IT LAWS",
+        "after": "INFORMATION SYSTEM SECURITY AND IT LAWS"
+    },
+    {
+        "course_code": "060360xx",
+        "field": "name_en",
+        "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 1",
+        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1"
+    },
+    {
+        "course_code": "06036016",
+        "field": "name_en",
+        "before": "BUSINESS INTELLIGENCE AND BIG  DATA",
+        "after": "BUSINESS INTELLIGENCE AND BIG DATA"
+    },
+    {
+        "course_code": "06036017",
+        "field": "name_th",
+        "before": "ระบบทีใช้ทังองค์กร ขอมเกล",
+        "after": "ระบบที่ใช้ทั้งองค์กร"
+    },
+    {
+        "course_code": "06036018",
+        "field": "name_th",
+        "before": "สือสังคม และเครือข่ายสังคม",
+        "after": "สื่อสังคมและเครือข่ายสังคม"
+    },
+    {
+        "course_code": "06036026",
+        "field": "name_th",
+        "before": "การพัฒนาโปรแกรมประยุกต์บนอุปกรณ์เคลือนที",
+        "after": "การพัฒนาโปรแกรมประยุกต์บนอุปกรณ์เคลื่อนที่"
+    },
+    {
+        "course_code": "060360xx",
+        "field": "name_en",
+        "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 2",
+        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2"
+    },
+    {
+        "course_code": "06036088",
+        "field": "name_en",
+        "before": "CREATIVE THINK NG",
+        "after": "CREATIVE THINKING"
+    },
+    {
+        "course_code": "06036029",
+        "field": "name_en",
+        "before": "REOULREMENT ENGINEERING",
+        "after": "REQUIREMENT ENGINEERING"
+    },
+    {
+        "course_code": "06036030",
+        "field": "name_th",
+        "before": "ระบบฐานข้อมูลขันสูง",
+        "after": "ระบบฐานข้อมูลขั้นสูง"
+    },
+    {
+        "course_code": "06036031",
+        "field": "name_en",
+        "before": "DATABASE SYSTEM MA NTENANCE AND ADMINISTRATION",
+        "after": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
+    },
+    {
+        "course_code": "06036033",
+        "field": "name_en",
+        "before": "SUPPLY CHA/N MANAGEMENT AND LOGISTICS",
+        "after": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS"
+    },
+    {
+        "course_code": "06036038",
+        "field": "name_th",
+        "before": "การบริหารสมรรถะของธุรกิจ",
+        "after": "การบริหารสมรรถนะของธุรกิจ"
+    },
+    {
+        "course_code": "06036041",
+        "field": "name_th",
+        "before": "พทัตพาสาพชีาEพพลีทNHททCาE",
+        "after": "การจัดการนวัตกรรมและความเปลี่ยนแปลง"
+    },
+    {
+        "course_code": "06036042",
+        "field": "name_en",
+        "before": "SPECAL TOPICS II INFORMATION TECHNOLOGY 1",
+        "after": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 1"
+    },
+    {
+        "course_code": "06036043",
+        "field": "name_en",
+        "before": "SPECAL TOPICS II INFORMATION TECHNOLOGY 2",
+        "after": "SPECIAL TOPICS IN INFORMATION TECHNOLOGY 2"
+    },
+    {
+        "course_code": "06036045",
+        "field": "name_en",
+        "before": "SPECAL WORKSHOP IN INFORMATION TECHNOLOGY 2",
+        "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 2"
+    }
+]

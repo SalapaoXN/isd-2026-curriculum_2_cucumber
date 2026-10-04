@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 
 from rag.qa import ask
+from rag.resolution import QueryContext
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "real_user_robustness_v1.json"
 DB_PATH = Path(__file__).resolve().parents[2] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -69,6 +70,7 @@ class RealUserRobustnessTests(unittest.TestCase):
         else:
             self.assertEqual(case["budget"]["intent"], 0, f"{case['id']}: intent budget")
             intent_stub = _raising_stub(calls["intent"], "intent")
+        initial_context = case.get("initial_context")
         context = None
         response = None
         for turn in case["turns"]:
@@ -80,6 +82,14 @@ class RealUserRobustnessTests(unittest.TestCase):
             if turn.get("context") == "previous":
                 self.assertIsNotNone(context, f"{case['id']}: no context to reuse")
                 kwargs["conversation_context"] = context
+            elif turn.get("context") == "initial":
+                self.assertIsNotNone(initial_context, f"{case['id']}: no initial context")
+                kwargs["conversation_context"] = QueryContext(
+                    **{
+                        key: tuple(value) if key in {"years", "semesters", "operations"} else value
+                        for key, value in initial_context.items()
+                    }
+                )
             response = ask(DB_PATH, turn["question"], **kwargs)
             context = response.get("next_context")
         result = response["result"]
@@ -133,6 +143,13 @@ class RealUserRobustnessTests(unittest.TestCase):
             with self.subTest(case_id=case["id"]):
                 self._run_case(case)
         self.assertEqual(len(self.cases), 50)
+
+    def test_dsba_multi_edition_ambiguity_cases_fail_closed(self):
+        for case in self.cases:
+            if case["id"] not in {"R15", "R23"}:
+                continue
+            with self.subTest(case_id=case["id"]):
+                self._run_case(case)
 
 
 if __name__ == "__main__":

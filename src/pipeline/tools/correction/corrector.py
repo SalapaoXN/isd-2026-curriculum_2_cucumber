@@ -20,7 +20,7 @@ MODEL = "gemini-3.5-flash-lite"
 BATCH_SIZE = 50
 TEXT_FIELDS_ORDER = ("name_th", "name_en")
 TEXT_FIELDS = frozenset(TEXT_FIELDS_ORDER)
-CORRECTION_FIELDS = frozenset(("name_th", "name_en", "desc_th", "desc_en"))
+CORRECTION_FIELDS = frozenset(("name_th", "name_en", "desc_th", "desc_en", "note"))
 UNIT_RESPONSE_FIELDS = frozenset(("unit_index", "field", "text"))
 CONSOLIDATED_DIR = Path("data/output/consolidated")
 LLM_OUTPUT_DIR = Path("data/output/final")
@@ -111,7 +111,19 @@ CANONICAL_NAME_CORRECTIONS = {
         "name_en",
         "ST EPLDEMICS IN THE 21 CENTURV",
     ): "EPIDEMICS IN THE 21ST CENTURY",
-    ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+    ("GENED", "90642045", "name_en", "BE MV BEV."): "BE MY BEV.",
+    (
+        "IT",
+        "06066302",
+        "name_th",
+        "การเขียนโปรแกรมเจ็",
+    ): "การเขียนโปรแกรมเว็บพื้นฐาน",
+    (
+        "IT",
+        "06016465",
+        "name_th",
+        "การออกแบบศูนย์",
+    ): "การออกแบบศูนย์ข้อมูล",
     (
         "IT",
         "06016418",
@@ -142,6 +154,177 @@ CANONICAL_NAME_CORRECTIONS = {
         "name_en",
         "KING MONGKUTS REIGN STUDV",
     ): "KING MONGKUTS REIGN STUDY",
+    # BIT 2565 names verified against the listed plan-page images. The exact
+    # OCR value and course identity keep these deterministic pins fail-closed.
+    ("BIT", "06036100", "name_en", "INFORMATION TECHNOLOGV FUNDAMENTALS"):
+        "INFORMATION TECHNOLOGY FUNDAMENTALS",
+    ("BIT", "06036118", "name_en", "PROBLEM SOLNG IN INFORMATION TECHNOLOGV"):
+        "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
+    ("BIT", "96641001", "name_th", "โรงเรียนสรางเสนห์"):
+        "โรงเรียนสร้างเสน่ห์",
+    ("BIT", "96641003", "name_en", "SPORTS AND RECREATIONAL ACTIITIES"):
+        "SPORTS AND RECREATIONAL ACTIVITIES",
+    ("BIT", "06036109", "name_en", "BUSINESS PROCESSES AND BUSIESS MODEL"):
+        "BUSINESS PROCESSES AND BUSINESS MODEL",
+    ("BIT", "06036119", "name_en", "PROCRAMMNG FUNDAMENTALS"):
+        "PROGRAMMING FUNDAMENTALS",
+    ("BIT", "06036125", "name_en", "COMPUTER ARCHITECTURE AND OPERATING SSTEM"):
+        "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
+    ("BIT", "96641002", "name_en", "DIGITAL ITELLIGENCE QUOTIENT"):
+        "DIGITAL INTELLIGENCE QUOTIENT",
+    ("BIT", "06036105", "name_th", "บัญชีการเงินสำหรับผู้มิใช่นักบัญริ"):
+        "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
+    ("BIT", "06036105", "name_en", "FINANCAL ACCOUNTING FOR NON ACCOUNTANTS"):
+        "FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS",
+    ("BIT", "06036120", "name_en", "DATA STRUCTURES AND ALGORTHMS PRINCIPLES"):
+        "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
+    ("BIT", "06036111", "name_en", "DIGITAL TECHNOLOCY FOR BUSIESS"):
+        "DIGITAL TECHNOLOGY FOR BUSINESS",
+    ("BIT", "06036112", "name_en", "DATABASE SVSTEM CONCEPTS"):
+        "DATABASE SYSTEM CONCEPTS",
+    ("BIT", "06036113", "name_th", "การออกแจเบบส่วนต่อประสานกับมนุษย์"):
+        "การออกแบบส่วนต่อประสานกับมนุษย์",
+    ("BIT", "06036113", "name_en", "HUMAN ITERFACE DESIGN"):
+        "HUMAN INTERFACE DESIGN",
+    (
+        "BIT",
+        "06036124",
+        "name_en",
+        "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITV",
+    ): "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
+    (
+        "BIT",
+        "06036107",
+        "name_en",
+        "INFORMATION TECHNOLOGV PROJECT MANAGEMENT",
+    ): "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+    ("BIT", "06036110", "name_en", "ENTERPRISE RESOURCE PLANNNG"):
+        "ENTERPRISE RESOURCE PLANNING",
+    (
+        "BIT",
+        "06036114",
+        "name_en",
+        "WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS",
+    ): "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+    (
+        "BIT",
+        "06036121",
+        "name_en",
+        "BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN",
+    ): "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
+    ("BIT", "06036123", "name_en", "CLOUD TECHNOLOCY"):
+        "CLOUD TECHNOLOGY",
+    ("BIT", "96643021", "name_th", "ผูประกอบการสมัยใหม่"):
+        "ผู้ประกอบการสมัยใหม่",
+    ("BIT", "06036115", "name_th", "ความมนคงของระบบสารสนเทศ"):
+        "ความมั่นคงของระบบสารสนเทศ",
+    ("BIT", "06036115", "name_en", "INFORMATION SYSTEM SECURIT"):
+        "INFORMATION SYSTEM SECURITY",
+    ("BIT", "96642033", "name_th", "กฎหมายสำหรับคนรุนใหม่"):
+        "กฎหมายสำหรับคนรุ่นใหม่",
+    ("BIT", "06036101", "name_th", "สถิติศาสตร์ สำหรับธุรกิจ"):
+        "คณิตศาสตร์สำหรับธุรกิจ",
+    (
+        "BIT",
+        "96644042",
+        "name_th",
+        "กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ",
+    ): "การสื่อสารและการนำเสนออย่างมืออาชีพ",
+    (
+        "BIT",
+        "96642033",
+        "name_th",
+        "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
+    ): "กฎหมายสำหรับคนรุ่นใหม่",
+    # Legacy IT/BIT 2560 pins verified against the listed legacy plan and
+    # description pages. Each exact OCR before-value keeps these deterministic
+    # pins fail-closed; they unify the coop/no_coop shared-course names that
+    # the runtime loader requires to agree within one catalog edition.
+    # IT 06016304: coop plan p036 truncated the title to 'PROBABILITV';
+    # no_coop plan p029 and description p224 give the full title.
+    ("IT", "06016304", "name_en", "PROBABILITV"):
+        "PROBABILITY AND STATISTICS",
+    # IT 06016329: no_coop plan p032 lost the terminal ' 1' to an OCR typo
+    # ('ENGINEERNG'); description p236 carries 'PROJECT IN SOFTWARE
+    # ENGINEERNNG 1' and the Thai name agrees with the numbered form.
+    ("IT", "06016329", "name_en", "PROJECT IN SOFTWARE ENGINEERNG"):
+        "PROJECT IN SOFTWARE ENGINEERING 1",
+    # IT 06016342: no_coop plan p029 row has no Thai name ('ไม่ระบุ');
+    # coop plan p036 and description p243 give the full Thai name.
+    ("IT", "06016342", "name_th", "ไม่ระบุ"):
+        "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
+    # IT 06016349: coop is description-only (p246, unnumbered) while the
+    # no_coop plan p032 row carries the project number ' 1'.
+    ("IT", "06016349", "name_th", "โครงงานทางด้านการพัฒนาสือประสมและเกม"):
+        "โครงงานทางด้านการพัฒนาสื่อประสมและเกม 1",
+    ("IT", "06016349", "name_en", "PROJECT IN MULTIMEDLA AND GAME DEVELOPMENT"):
+        "PROJECT IN MULTIMEDIA AND GAME DEVELOPMENT 1",
+    # IT 90101007: coop plan p034 abbreviates ('คณิต.เศรษฐศาสตร์เบื้องต้น');
+    # no_coop plan p027 and the English title fix the full course name.
+    # Rejects the unsupported LLM expansion to 'คณิตศาสตร์เศรษฐศาสตร์...'.
+    ("IT", "90101007", "name_th", "คณิต.เศรษฐศาสตร์เบื้องต้น"):
+        "คณิตเศรษฐศาสตร์เบื้องต้น",
+    # IT 90201002: coop plan p035 dropped 'พื้นฐาน' from the Y1S2 row;
+    # no_coop plan p028 carries the full name in the same slot.
+    ("IT", "90201002", "name_th", "ภาษาอังกฤษ 2"):
+        "ภาษาอังกฤษพื้นฐาน 2",
+    # BIT 06036019/06036020: no_coop plan p026 rows carry only the slot
+    # number ('ไม่ระบุ 1/2'); description p178 gives the project titles.
+    ("BIT", "06036019", "name_th", "ไม่ระบุ 1"): "โครงงาน 1",
+    ("BIT", "06036020", "name_th", "ไม่ระบุ 2"): "โครงงาน 2",
+    # BIT 06036085: no_coop plan p023 row carries an OCR-fragment suffix
+    # ('EAU'); the coop plan p027 row and the Thai name agree on the clean
+    # English title.
+    ("BIT", "06036085", "name_en", "INTRODUCTION TO MATHEMATICAL ECONOMICS EAU"):
+        "INTRODUCTION TO MATHEMATICAL ECONOMICS",
+}
+BIT_NAME_CORRECTION_SOURCE_PAGES = {
+    "06036100": 31,
+    "06036118": 31,
+    "96641001": 31,
+    "96641003": 31,
+    "06036109": 32,
+    "06036119": 32,
+    "06036125": 32,
+    "96641002": 32,
+    "06036105": 32,
+    "06036120": 32,
+    "06036111": 33,
+    "06036112": 33,
+    "06036113": 33,
+    "06036124": 33,
+    "06036107": 33,
+    "06036110": 33,
+    "06036114": 33,
+    "06036121": 33,
+    "06036123": 33,
+    "96643021": 34,
+    "06036115": 35,
+    "96642033": 35,
+    "06036101": 26,
+    "96644042": 26,
+}
+BIT_NAME_CORRECTION_SOURCE_PAGE_OVERRIDES = {
+    (
+        "96642033",
+        "name_th",
+        "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
+    ): 29,
+}
+# Legacy BIT 2560 pin sources. Unlike the current edition (whose plan
+# provenance cites the OCR JSON filename), legacy consolidated records cite
+# the source image filename, so these entries use the `.png` form exactly
+# as stored in `source_provenance`.
+BIT_LEGACY_NAME_CORRECTION_SOURCES = {
+    "06036019": ("bit2560_page_026.png", 26),
+    "06036020": ("bit2560_page_026.png", 26),
+    "06036085": ("bit2560_page_023.png", 23),
+}
+BIT_SOURCE_VERIFIED_PLACEMENT_NOTES = {
+    ("96644042", 26): "กลุ่มวิชาที่กำหนดโดยคณะ",
+    ("96644042", 31): "กลุ่มวิชาที่กำหนดโดยคณะ",
+    ("96642033", 29): "กลุ่มวิชาที่กำหนดโดยคณะ",
+    ("96642033", 35): "กลุ่มวิชาที่กำหนดโดยคณะ",
 }
 LITERAL_PRESERVE_VALUES = {
     ("GENED", "90642122", "name_th", "การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์"):
@@ -171,9 +354,8 @@ def _records_from_document(document: Any) -> list[dict[str, Any]]:
 
 
 def _record_course_code(record: dict[str, Any]) -> Any:
-    if "course_code" in record:
-        return record["course_code"]
-    return record.get("code")
+    course_code = record.get("course_code")
+    return course_code if course_code is not None else record.get("code")
 
 
 _SOURCE_SELECTOR_FIELDS = frozenset(
@@ -226,14 +408,58 @@ def _guard_correction_value(
     *,
     program: Any = None,
 ) -> str:
-    if field in TEXT_FIELDS and before in NON_CORRECTABLE_NAME_VALUES:
-        return before
     record_program = record.get("program")
     if record_program is None:
         record_program = program
     identity = (record_program, _record_course_code(record), field, before)
+    # Reviewed canonical pins take precedence: they carry explicit source
+    # evidence (see CANONICAL_NAME_CORRECTIONS), so they also apply to
+    # otherwise non-correctable placeholders such as bare 'ไม่ระบุ'.
+    # Unpinned placeholders remain fail-closed below.
+    pinned = (
+        identity in CANONICAL_NAME_CORRECTIONS
+        or identity in LITERAL_PRESERVE_VALUES
+    )
+    if not pinned and field in TEXT_FIELDS and before in NON_CORRECTABLE_NAME_VALUES:
+        return before
     canonical_after = CANONICAL_NAME_CORRECTIONS.get(identity)
     if canonical_after is not None:
+        if record_program == "BIT" and field in TEXT_FIELDS:
+            course_code = _record_course_code(record)
+            legacy_source = BIT_LEGACY_NAME_CORRECTION_SOURCES.get(course_code)
+            if legacy_source is not None:
+                expected_source = {
+                    "source_filename": legacy_source[0],
+                    "source_page": legacy_source[1],
+                    "document_category": "plan",
+                }
+                if not any(
+                    all(
+                        entry.get(key) == value
+                        for key, value in expected_source.items()
+                    )
+                    for entry in _record_source_entries(record)
+                ):
+                    return before
+                return canonical_after
+            source_page = BIT_NAME_CORRECTION_SOURCE_PAGE_OVERRIDES.get(
+                (course_code, field, before),
+                BIT_NAME_CORRECTION_SOURCE_PAGES.get(course_code),
+            )
+            if source_page is not None:
+                expected_source = {
+                    "source_filename": f"bit_page_{source_page:03d}_ocr.json",
+                    "source_page": source_page,
+                    "document_category": "plan",
+                }
+                if not any(
+                    all(
+                        entry.get(key) == value
+                        for key, value in expected_source.items()
+                    )
+                    for entry in _record_source_entries(record)
+                ):
+                    return before
         return canonical_after
     preserved_value = LITERAL_PRESERVE_VALUES.get(identity)
     if preserved_value is not None:
@@ -308,7 +534,14 @@ def apply_corrections(
             raise ValueError(
                 f"Correction {correction_index} course_code must be a non-empty string"
             )
-        if not isinstance(before, str) or not isinstance(after, str):
+        if field == "note":
+            valid_values = (
+                (before is None or isinstance(before, str))
+                and isinstance(after, str)
+            )
+        else:
+            valid_values = isinstance(before, str) and isinstance(after, str)
+        if not valid_values:
             raise ValueError(
                 f"Correction {correction_index} before/after must be strings"
             )
@@ -677,6 +910,36 @@ def _reconstruct_document(
                     "after": candidate_after,
                 }
             )
+        record_program = original_record.get("program")
+        if record_program is None and isinstance(document, dict):
+            record_program = document.get("program")
+        course_code = _record_course_code(original_record)
+        if record_program == "BIT":
+            placement_note = next(
+                (
+                    BIT_SOURCE_VERIFIED_PLACEMENT_NOTES[
+                        (course_code, entry["source_page"])
+                    ]
+                    for entry in _record_source_entries(original_record)
+                    if entry.get("program", "BIT") == "BIT"
+                    and entry.get("document_category") == "plan"
+                    and (course_code, entry.get("source_page"))
+                    in BIT_SOURCE_VERIFIED_PLACEMENT_NOTES
+                    and entry.get("source_filename")
+                    == f"bit_page_{entry.get('source_page'):03d}_ocr.json"
+                ),
+                None,
+            )
+            if placement_note is not None and not corrected_record.get("note"):
+                corrected_record["note"] = placement_note
+                corrections.append(
+                    {
+                        "course_code": course_code,
+                        "field": "note",
+                        "before": original_record.get("note"),
+                        "after": placement_note,
+                    }
+                )
     return corrected_document, corrections
 
 

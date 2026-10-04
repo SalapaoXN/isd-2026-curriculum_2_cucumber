@@ -1,4 +1,5 @@
 import argparse
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, List
@@ -18,6 +19,27 @@ from src.pipeline.config import (
 )
 
 BASE_DIR = Path(__file__).resolve().parents[4]
+
+
+def _validate_dataset_key(dataset_key: str | None) -> str | None:
+    """Require an explicit dataset key to be one safe directory component."""
+    if dataset_key is None:
+        return None
+    reserved_names = {
+        "CON", "PRN", "AUX", "NUL",
+        *(f"COM{number}" for number in range(1, 10)),
+        *(f"LPT{number}" for number in range(1, 10)),
+    }
+    if (
+        not isinstance(dataset_key, str)
+        or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", dataset_key) is None
+        or dataset_key.upper() in reserved_names
+    ):
+        raise ValueError(
+            f"Invalid dataset key {dataset_key!r}; use a non-empty, path-safe "
+            "single directory name containing only letters, digits, '_' or '-'."
+        )
+    return dataset_key
 
 
 def _normalize_ocr_detections(detections: Any) -> list[dict[str, Any]]:
@@ -120,6 +142,12 @@ def parse_arguments():
         help="Study plan: coop, no_coop, or gened; required where applicable"
     )
     parser.add_argument(
+        "--dataset-key",
+        type=str,
+        default=None,
+        help="Optional source-dataset key for edition-specific OCR output routing",
+    )
+    parser.add_argument(
         "--no-gpu",
         action="store_true",
         help="Force CPU mode"
@@ -134,8 +162,10 @@ def run_ocr(
     pages: List[int] | None = None,
     no_gpu: bool = False,
     plan: str | None = None,
+    dataset_key: str | None = None,
 ) -> Path:
     """Run only OCR and pre-cleaning, returning the OCR output directory."""
+    dataset_key = _validate_dataset_key(dataset_key)
     if pages is None:
         pages = discover_pages(input_dir)
     if not pages:
@@ -147,7 +177,8 @@ def run_ocr(
     if not any(page in page_files for page in pages):
         raise ValueError(f"None of the requested pages were found in '{input_dir}'.")
 
-    ocr_output_dir = output_dir / "ocr" / program.casefold()
+    output_key = dataset_key if dataset_key is not None else program.casefold()
+    ocr_output_dir = output_dir / "ocr" / output_key
     ocr_output_dir.mkdir(parents=True, exist_ok=True)
 
     print(" Starting the standalone OCR stage")
@@ -212,6 +243,7 @@ def run_ocr(
             detections=detections,
             image_width=image_width,
             image_height=image_height,
+            source_dataset=dataset_key,
         )
 
     print(f"\n Finished OCR stage! Files saved at: {ocr_output_dir.resolve()}")
@@ -235,6 +267,7 @@ def main():
             pages=pages,
             no_gpu=args.no_gpu,
             plan=plan,
+            dataset_key=getattr(args, "dataset_key", None),
         )
     except ValueError as exc:
         raise SystemExit(f"Error: {exc}") from exc

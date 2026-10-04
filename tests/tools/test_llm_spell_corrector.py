@@ -39,6 +39,30 @@ def make_record(
     }
 
 
+def add_bit_source_provenance(record, course_code, field, before, *, page_offset=0):
+    legacy = llm_spell_corrector.BIT_LEGACY_NAME_CORRECTION_SOURCES.get(course_code)
+    if legacy is not None:
+        filename, page = legacy
+        record["source_provenance"] = [{
+            "program": "BIT",
+            "source_filename": filename,
+            "source_page": page + page_offset,
+            "document_category": "plan",
+        }]
+        return
+    page = llm_spell_corrector.BIT_NAME_CORRECTION_SOURCE_PAGE_OVERRIDES.get(
+        (course_code, field, before),
+        llm_spell_corrector.BIT_NAME_CORRECTION_SOURCE_PAGES[course_code],
+    )
+    page += page_offset
+    record["source_provenance"] = [{
+        "program": "BIT",
+        "source_filename": f"bit_page_{page:03d}_ocr.json",
+        "source_page": page,
+        "document_category": "plan",
+    }]
+
+
 class FakeModels:
     def __init__(self, responses):
         self.responses = responses
@@ -160,6 +184,8 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 record = make_record(course_code=course_code)
                 record.pop("program")
                 record[field] = before
+                if program == "BIT":
+                    add_bit_source_provenance(record, course_code, field, before)
                 corrected, applied = llm_spell_corrector._reconstruct_document(
                     {"program": program, "courses": [record]},
                     {(field, before): "LLM candidate"},
@@ -175,6 +201,8 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 record = make_record(course_code=course_code)
                 record.pop("program")
                 record[field] = before
+                if program == "BIT":
+                    add_bit_source_provenance(record, course_code, field, before)
                 corrected, applied = llm_spell_corrector.apply_corrections(
                     {"program": program, "courses": [record]},
                     [{
@@ -209,7 +237,11 @@ class LlmSpellCorrectorTests(unittest.TestCase):
             ): "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS\nOVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
             ("GENED", "90642056", "name_en", "ST EPLDEMICS IN THE 21 CENTURV"):
                 "EPIDEMICS IN THE 21ST CENTURY",
-            ("GENED", "90642045", "name_en", "BE MV BEV."): "BEVERAGE",
+            ("GENED", "90642045", "name_en", "BE MV BEV."): "BE MY BEV.",
+            ("IT", "06066302", "name_th", "การเขียนโปรแกรมเจ็"):
+                "การเขียนโปรแกรมเว็บพื้นฐาน",
+            ("IT", "06016465", "name_th", "การออกแบบศูนย์"):
+                "การออกแบบศูนย์ข้อมูล",
             ("IT", "06016418", "name_th", "การพัฒนาเว็บฝังเซิร์ฟเวอร์"):
                 "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
             (
@@ -281,10 +313,106 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                         {"program": wrong_program, "courses": [record]},
                         {(wrong_name_field, current): "LLM candidate"},
                     )
+                    # Bare placeholders (e.g. exact 'ไม่ระบุ') are never
+                    # LLM-correctable, even off-pin: the guard keeps them
+                    # fail-closed. Only reviewed pins may replace them.
+                    if (
+                        isinstance(current, str)
+                        and current in llm_spell_corrector.NON_CORRECTABLE_NAME_VALUES
+                    ):
+                        self.assertEqual(
+                            corrected["courses"][0][wrong_name_field], current
+                        )
+                        self.assertEqual(applied, [])
+                        continue
                     self.assertEqual(
                         corrected["courses"][0][wrong_name_field], "LLM candidate"
                     )
                     self.assertEqual(len(applied), 1)
+
+    def test_bit_canonical_corrections_require_the_verified_plan_page(self):
+        for (program, course_code, field, before), after in (
+            llm_spell_corrector.CANONICAL_NAME_CORRECTIONS.items()
+        ):
+            if program != "BIT":
+                continue
+            with self.subTest(course_code=course_code, field=field):
+                record = make_record(course_code=course_code)
+                record.pop("program")
+                record[field] = before
+                add_bit_source_provenance(record, course_code, field, before)
+                corrected, applied = llm_spell_corrector._reconstruct_document(
+                    {"program": "BIT", "courses": [record]},
+                    {(field, before): "untrusted candidate"},
+                )
+                self.assertEqual(corrected["courses"][0][field], after)
+                self.assertEqual(applied[0]["after"], after)
+
+                wrong_source = make_record(course_code=course_code)
+                wrong_source.pop("program")
+                wrong_source[field] = before
+                add_bit_source_provenance(
+                    wrong_source, course_code, field, before, page_offset=1
+                )
+                rejected, rejected_log = llm_spell_corrector._reconstruct_document(
+                    {"program": "BIT", "courses": [wrong_source]},
+                    {(field, before): "untrusted candidate"},
+                )
+                self.assertEqual(rejected["courses"][0][field], before)
+                self.assertEqual(rejected_log, [])
+
+    def test_bit_group_heading_is_reconstructed_as_source_attributed_note(self):
+        record = make_record()
+        record.pop("program")
+        record["course_code"] = None
+        record["code"] = "96644042"
+        record["name_th"] = (
+            "กลุ่มวิชาที่กำหนดโดยคณะ "
+            "การสื่อสารและการนำเสนออย่างมืออาชีพ"
+        )
+        record["note"] = None
+        record["source_provenance"] = [{
+            "program": "BIT",
+            "source_filename": "bit_page_031_ocr.json",
+            "source_page": 31,
+            "document_category": "plan",
+        }]
+        record["plan_key"] = "coop"
+        corrected, corrections = llm_spell_corrector._reconstruct_document(
+            {"program": "BIT", "courses": [record]}, {}
+        )
+        self.assertEqual(
+            corrected["courses"][0]["note"], "กลุ่มวิชาที่กำหนดโดยคณะ"
+        )
+        self.assertEqual(llm_spell_corrector._record_course_code(record), "96644042")
+        self.assertIn(
+            {
+                "course_code": "96644042",
+                "field": "note",
+                "before": None,
+                "after": "กลุ่มวิชาที่กำหนดโดยคณะ",
+            },
+            corrections,
+        )
+
+        replayed, replay_log = llm_spell_corrector.apply_corrections(
+            {"program": "BIT", "courses": [record]},
+            [{
+                "course_code": "96644042",
+                "field": "note",
+                "before": None,
+                "after": "กลุ่มวิชาที่กำหนดโดยคณะ",
+                "program": "BIT",
+                "plan": "coop",
+                "source_filename": "bit_page_031_ocr.json",
+                "source_page": 31,
+                "document_category": "plan",
+            }],
+        )
+        self.assertEqual(
+            replayed["courses"][0]["note"], "กลุ่มวิชาที่กำหนดโดยคณะ"
+        )
+        self.assertEqual(replay_log[0]["field"], "note")
 
     def test_reconstruct_still_applies_unregistered_correction(self):
         record = make_record(name_en="Original name")
@@ -413,6 +541,18 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                         {"program": wrong_program, "courses": [record]},
                         {(wrong_name_field, current): "LLM candidate"},
                     )
+                    # Bare placeholders (e.g. exact 'ไม่ระบุ') are never
+                    # LLM-correctable, even off-pin: the guard keeps them
+                    # fail-closed. Only reviewed pins may replace them.
+                    if (
+                        isinstance(current, str)
+                        and current in llm_spell_corrector.NON_CORRECTABLE_NAME_VALUES
+                    ):
+                        self.assertEqual(
+                            corrected["courses"][0][wrong_name_field], current
+                        )
+                        self.assertEqual(applied, [])
+                        continue
                     self.assertEqual(
                         corrected["courses"][0][wrong_name_field], "LLM candidate"
                     )

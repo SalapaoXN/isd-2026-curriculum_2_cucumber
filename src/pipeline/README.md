@@ -1,74 +1,119 @@
-# src/pipeline — สายการผลิตข้อมูลหลักสูตร
+# src/pipeline — Data Pipeline
 
-## ภาพรวม
-ส่วนนี้ทำหน้าที่แปลงภาพหน้าหนังสือหลักสูตรให้กลายเป็น JSON
-มาตรฐานที่ผ่านการตรวจแก้แล้ว และสร้างฐานข้อมูล SQLite สำหรับ
-ระบบถาม-ตอบต่อไป ข้อมูลกฎระเบียบของสถาบัน (ภาพ `rule/`) ใช้ทาง
-เข้าอีกสายหนึ่งคือ `run_rules.py`
+ส่วนนี้แปลงภาพหลักสูตรให้เป็น canonical data ที่ใช้สร้าง runtime database
 
-## ข้อมูลนำเข้า
-- ภาพหน้าหนังสือ: `data/input/<program>/<program>_page_NNN.png`
-  (`ait`, `bit`, `dsba`, `gened`, `it`) และ `data/input/rule/`
-  (`rule_page_001.png` … `rule_page_013.png` พร้อมไฟล์ต้นทางของ
-  program requirement) สำหรับสาย rules
-- ไฟล์ตั้งค่า: `config/pipeline.yaml`, `config/programs.yaml`
-  ส่วนความลับต่าง ๆ เก็บในไฟล์ `.env` ที่ root
-
-## กระบวนการทำงาน
-คำสั่ง `python -m src.pipeline.run` ทำงานตามลำดับดังนี้
+## Flow
 
 ```text
-ocr → extract → merge → correct → (evaluate) → (build_index)
+OCR
+→ Extract
+→ Merge
+→ Correct
+→ Evaluate
+→ Build Index
 ```
 
-1. **ocr** (`tools/ocr/`) — อ่านตัวอักษรจากภาพด้วย EasyOCR
-   พร้อมบันทึก metadata ของแต่ละหน้า
-2. **extract** (`tools/extraction/engine.py` รวมทั้ง `rules.py` /
-   `program_requirements.py` สำหรับสาย rules) — สกัดรายวิชา,
-   แผนการจัดวาง, หน่วยกิต และวิชาบังคับก่อน
-3. **merge** (`tools/merge/consolidator.py`, `policy.py`) — รวม
-   ข้อมูลให้เป็นระเบียนเดียวต่อ program/plan
-4. **correct** (`tools/correction/`) — ใช้ LLM ช่วยแก้คำที่ OCR
-   อ่านผิด พร้อมบันทึก log การแก้ไขทุกจุด
-5. **evaluate** (`tools/evaluation/`) — ตรวจคุณภาพเป็นชั้น ๆ และ
-  ออกรายงาน (ข้ามได้ด้วย `--skip-eval`)
-6. **build_index** — ทำเฉพาะเมื่อใส่ `--with-index` โดยโหลด
-   `data/output/final/*_corrected.json` ลง `curriculum.db`
+entry point:
 
-## ผลลัพธ์
-- `data/output/final/*_corrected.json` (คู่กับ
-  `*_corrections.json`) — ชุดข้อมูลหลัก (corpus) ที่เป็นมาตรฐาน
-  และเป็น input เพียงอย่างเดียวที่ `rag.build_index` ใช้
-- `cucumber_outputs/runtime/curriculum.db` — เมื่อสั่งสร้าง index
-- ไฟล์ระหว่างทางจะอยู่แค่ใน temp แล้วลบทิ้ง ยกเว้นใส่
-  `--keep-intermediates` ซึ่งจะเก็บ `extracted/` + `consolidated/`
-  ไว้ใต้ `--output-dir`
+```powershell
+python -m src.pipeline.run
+```
 
-## องค์ประกอบหลัก
-- `run.py` — CLI และลำดับ stage ของสายหลักสูตร
-- `run_rules.py` — CLI ของสายกฎระเบียบ/ข้อกำหนดของหลักสูตร
-- `config.py`, `models.py` — การแยก program/plan และโครงระเบียน
-- `tools/preparation/`, `tools/ocr/`, `tools/extraction/`,
-  `tools/merge/`, `tools/correction/`, `tools/evaluation/`,
-  `tools/indexing/` — ดูแลทีละ stage ส่วน `utils/` เป็น helper
-  กลาง
+ตัวอย่าง:
 
-## วิธีใช้งาน
 ```powershell
 python -m src.pipeline.run --program it --dry-run
 python -m src.pipeline.run --program it --with-index
 python -m src.pipeline.run --program it --pages 32-38
 python -m src.pipeline.run --program it --no-gpu
 python -m src.pipeline.run --program it --from corrected --with-index
-python -m src.pipeline.run --only-index
 ```
-`--program` เลือกได้: `ait`, `bit`, `dsba`, `gened`, `it`
-(ค่าเริ่มต้นคือ `it`) ส่วน `--from` เลือกได้: `ocr`,
-`extracted`, `consolidated`, `corrected`
 
-## ข้อจำกัด
-- การรันเต็มรูปแบบต้องใช้ dependency ของ OCR/LLM และต้องมี
-  API credentials สำหรับขั้น correction ส่วน `--dry-run` แสดง
-  แค่ config/stage โดยไม่รันจริง
-- งาน QA ไม่จำเป็นต้องรัน pipeline ใหม่ เพราะ artifact ใต้
-  `data/output/final/` กับ runtime DB ที่มีอยู่เป็นปัจจุบันแล้ว
+program ที่รองรับ: `ait`, `bit`, `dsba`, `gened`, `it`
+
+## Inputs
+
+ภาพต้นฉบับ:
+
+```text
+data/input/<program>/<program>_page_NNN.png
+```
+
+ไฟล์ภาพขนาดใหญ่ไม่ได้เก็บครบใน repo ถ้าจะรัน OCR ใหม่ต้องเตรียม source images ก่อน
+
+## Canonical outputs
+
+ผลหลักสูตรปัจจุบันอยู่ที่:
+
+```text
+data/output/final/*_corrected.json
+data/output/final/*_corrections.json
+```
+
+- `*_corrected.json` = canonical curriculum corpus
+- `*_corrections.json` = audit log ของ correction
+
+สาย rules/policy สร้าง supplemental authority:
+
+```text
+data/output/final/institution_policy.json
+data/output/final/program_requirements.json
+```
+
+## Runtime DB
+
+สร้างด้วย:
+
+```powershell
+python -m rag.build_index
+```
+
+default build จะโหลด:
+
+1. canonical `*_corrected.json`
+2. `institution_policy.json`
+3. `program_requirements.json`
+
+แล้วสร้าง:
+
+```text
+cucumber_outputs/runtime/curriculum.db
+```
+
+QA อ่าน DB นี้แบบ runtime authority และไม่ควรแก้ DB ด้วยมือ
+
+## Intermediate data
+
+โดย default intermediate data ใช้สำหรับการประมวลผล/debug และไม่ใช่ factual authority ของ QA
+
+เมื่อต้องการเก็บ:
+
+```powershell
+python -m src.pipeline.run --program it --keep-intermediates
+```
+
+จะเก็บ extracted/consolidated output เพิ่มตาม configuration
+
+## Evaluation
+
+pipeline สามารถประเมิน canonical data เทียบ Ground Truth ได้ รายงานอยู่ใต้:
+
+```text
+reports/evaluation/
+```
+
+runtime ปัจจุบันมีหลาย curriculum editions แต่ Ground Truth ยังไม่ได้มีแยกทุก edition ดังนั้น final report ต้องประเมินเฉพาะ prediction/GT pairs ที่ตรงกันอย่างชัดเจน ไม่ใช้ no-argument discovery เพื่อเอา historical editions มาปนกับ metric
+
+คำสั่งและ scope ที่ใช้สร้าง report ปัจจุบันดูที่ `reports/README.md`
+
+`ground_truth/` ใช้สำหรับ evaluation/test เท่านั้น ไม่ถูกใช้เป็น production factual source
+
+## Rules pipeline
+
+ข้อกำหนดสถาบันใช้ entry point แยก:
+
+```powershell
+python -m src.pipeline.run_rules
+```
+
+รายละเอียดอยู่ที่ `docs/academic_rules.md`

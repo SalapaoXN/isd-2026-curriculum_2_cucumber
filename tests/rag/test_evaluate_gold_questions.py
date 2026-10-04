@@ -58,6 +58,11 @@ def _result(
 class GoldEvaluationTest(unittest.TestCase):
     def test_unseen_root_object_unwraps_items(self):
         path = Path(__file__).resolve().parents[2] / "ground_truth" / "rag" / "unseen_factual_v1.json"
+        if not path.is_file():
+            self.skipTest(
+                "authoritative unseen fixture ground_truth/rag/unseen_factual_v1.json "
+                "is not present locally"
+            )
 
         projected = _load_gold_questions(path)
 
@@ -228,6 +233,11 @@ class GoldEvaluationTest(unittest.TestCase):
 
     def test_unseen_comparison_items_project_to_native_shapes(self):
         path = Path(__file__).resolve().parents[2] / "ground_truth" / "rag" / "unseen_factual_v1.json"
+        if not path.is_file():
+            self.skipTest(
+                "authoritative unseen fixture ground_truth/rag/unseen_factual_v1.json "
+                "is not present locally"
+            )
         projected = {item["id"]: item for item in _load_gold_questions(path)}
 
         self.assertEqual(projected["U26"]["type"], "structured")

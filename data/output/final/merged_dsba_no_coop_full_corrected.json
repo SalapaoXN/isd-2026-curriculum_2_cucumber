@@ -2,6 +2,10 @@
     "source": "OCR extraction / Academic Plan - DSBA no_coop",
     "description": "OCR-extracted curriculum records for DSBA (plan no_coop)",
     "program": "DSBA",
+    "catalog": {
+        "catalog_key": "dsba-2565",
+        "academic_year": "2565"
+    },
     "plan": "no_coop",
     "total_courses": 90,
     "courses": [

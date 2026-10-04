@@ -81,6 +81,7 @@ class StructuralScope:
     unconstrained: tuple[str, ...] = ()
     course_targets: tuple[Mapping[str, Any], ...] = ()
     group_by: tuple[str, ...] = ()
+    catalog_key: str | None = None
 
     def __post_init__(self) -> None:
         plans = _ordered_unique(self.plans)
@@ -98,6 +99,12 @@ class StructuralScope:
             or not isinstance(self.credit_units, int)
         ):
             raise ValueError("credit_units must be None or an integer")
+        if self.catalog_key is not None and (
+            not isinstance(self.catalog_key, str)
+            or not self.catalog_key.strip()
+            or len(self.catalog_key.strip()) > 128
+        ):
+            raise ValueError("catalog_key must be None or a valid catalog key")
         if any(not isinstance(target, Mapping) for target in course_targets):
             raise ValueError("course_targets must contain mappings")
         overlap = set(expand_applicable) & set(unconstrained)
@@ -137,6 +144,7 @@ class EvidenceRequest:
     course_targets: tuple[Mapping[str, Any], ...] = ()
     topic: str | None = None
     provenance_required: bool = True
+    positive_prerequisite_collection: bool = False
 
     def __post_init__(self) -> None:
         if self.kind not in EVIDENCE_PRIMITIVES:
@@ -145,6 +153,8 @@ class EvidenceRequest:
             raise ValueError("request_id must be a non-empty string")
         if not isinstance(self.provenance_required, bool):
             raise ValueError("provenance_required must be a boolean")
+        if not isinstance(self.positive_prerequisite_collection, bool):
+            raise ValueError("positive_prerequisite_collection must be a boolean")
         dependencies = _ordered_unique(self.depends_on)
         if any(not isinstance(value, str) or not value for value in dependencies):
             raise ValueError("depends_on must contain non-empty request IDs")
@@ -205,6 +215,8 @@ def _resolved_course_targets(
 def build_structural_scope(
     query_spec: QuerySpec,
     resolution: ResolutionOutcome,
+    *,
+    catalog_key: str | None = None,
 ) -> StructuralScope:
     """Construct symbolic structural scope without querying or expanding data.
 
@@ -263,6 +275,7 @@ def build_structural_scope(
         unconstrained=tuple(unconstrained),
         course_targets=course_targets,
         group_by=group_by,
+        catalog_key=catalog_key,
     )
 
 
@@ -282,6 +295,7 @@ def _plan_partition_scopes(scope: StructuralScope) -> tuple[StructuralScope, ...
             unconstrained=scope.unconstrained,
             course_targets=scope.course_targets,
             group_by=scope.group_by,
+            catalog_key=scope.catalog_key,
         )
         for plan in scope.plans
     )
@@ -295,6 +309,7 @@ def _request(
     depends_on: tuple[str, ...] = (),
     course_targets: tuple[Mapping[str, Any], ...] = (),
     topic: str | None = None,
+    positive_prerequisite_collection: bool = False,
 ) -> EvidenceRequest:
     return EvidenceRequest(
         request_id=request_id,
@@ -304,6 +319,7 @@ def _request(
         course_targets=course_targets,
         topic=topic,
         provenance_required=True,
+        positive_prerequisite_collection=positive_prerequisite_collection,
     )
 
 
@@ -320,6 +336,8 @@ def _credit_request_targets(
 def plan_evidence(
     query_spec: QuerySpec,
     resolution: ResolutionOutcome,
+    *,
+    catalog_key: str | None = None,
 ) -> EvidencePlan:
     """Map a QuerySpec and answerable resolution to evidence requests.
 
@@ -327,7 +345,9 @@ def plan_evidence(
     parse natural language, access the database, execute vector search, or
     perform any aggregation or comparison.
     """
-    scope = build_structural_scope(query_spec, resolution)
+    scope = build_structural_scope(
+        query_spec, resolution, catalog_key=catalog_key
+    )
     requests: list[EvidenceRequest] = []
     by_kind: dict[str, list[str]] = {}
 
@@ -372,7 +392,11 @@ def plan_evidence(
     topic_target_id: str | None = None
     collection_operations = {"list", "count", "sum_credits", "existence"}
     needs_collection = bool(collection_operations & set(query_spec.operations))
-    if query_spec.topic is not None and needs_collection:
+    needs_topic_collection = query_spec.topic is not None and (
+        needs_collection
+        or (not exact_targets and "describe" in query_spec.operations)
+    )
+    if needs_topic_collection:
         add(_request("course_set", "course_set", scope))
         add(
             _request(
@@ -400,6 +424,7 @@ def plan_evidence(
                 "prerequisite_facts",
                 scope,
                 depends_on=("course_set",),
+                positive_prerequisite_collection=True,
             )
         )
 

@@ -2,6 +2,10 @@
     "source": "OCR extraction / Academic Plan - DSBA coop",
     "description": "OCR-extracted curriculum records for DSBA (plan coop)",
     "program": "DSBA",
+    "catalog": {
+        "catalog_key": "dsba-2565",
+        "academic_year": "2565"
+    },
     "plan": "coop",
     "total_courses": 89,
     "courses": [
@@ -878,7 +882,7 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่ม วิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
             "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",

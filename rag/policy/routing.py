@@ -11,6 +11,7 @@ from pathlib import Path
 
 from rag.grounded_answer import GroundedAnswerResult
 from rag.query_spec import parse_query_spec
+from rag.structured.queries import edition_catalog_keys_for_program
 
 from .answer import PolicyAnswer, answer_policy_question
 from .query import parse_policy_question
@@ -52,7 +53,10 @@ def adapt_policy_answer(answer: PolicyAnswer) -> GroundedAnswerResult:
 
 
 def route_policy_question(
-    db_path: str | Path, question: str
+    db_path: str | Path,
+    question: str,
+    *,
+    catalog_key: str | None = None,
 ) -> GroundedAnswerResult | None:
     """Answer routed policy questions, or return None to keep existing behavior."""
     query = parse_policy_question(question)
@@ -66,7 +70,15 @@ def route_policy_question(
         spec = parse_query_spec(question)
         if _has_explicit_curriculum_axis(spec):
             return None
-        return adapt_policy_answer(answer_policy_question(db_path, question))
+        if query.program and catalog_key is None and edition_catalog_keys_for_program(
+            db_path, query.program
+        ):
+            return adapt_policy_answer(
+                PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
+            )
+        return adapt_policy_answer(
+            answer_policy_question(db_path, question, catalog_key=catalog_key)
+        )
     if query.kind == "registration_compare":
         # H25-P3 R2: a ("list",) parse would be a genuine dual (filtered list
         # vs registration verdict) — fail closed without touching the DB.

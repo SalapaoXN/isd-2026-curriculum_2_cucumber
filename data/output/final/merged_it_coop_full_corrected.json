@@ -665,7 +665,7 @@
     },
     {
       "code": "06066302",
-      "name_th": "การเขียนโปรแกรมเชิงวัตถุ",
+      "name_th": "การเขียนโปรแกรมเว็บพื้นฐาน",
       "name_en": "FUNDAMENTAL WEB PROGRAMMING",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
@@ -2515,7 +2515,7 @@
     },
     {
       "code": "06016465",
-      "name_th": "การออกแบบศูนย์",
+      "name_th": "การออกแบบศูนย์ข้อมูล",
       "name_en": "DATA CENTER DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -2918,5 +2918,9 @@
         }
       ]
     }
-  ]
+  ],
+  "catalog": {
+    "catalog_key": "it-2565",
+    "academic_year": "2565"
+  }
 }

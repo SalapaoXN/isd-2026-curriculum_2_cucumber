@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">CUCUMBER Chat — Low-fidelity wireframe</title>
+  <desc id="desc">Week 11 grayscale desktop wireframe showing global navigation, chat scope and history, conversation, provenance, and composer.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #252525; }
+      .small { font-size: 15px; } .body { font-size: 18px; } .label { font-size: 16px; font-weight: 700; }
+      .section { font-size: 21px; font-weight: 700; } .heading { font-size: 29px; font-weight: 700; }
+      .muted { fill: #666; } .light { fill: #ccc; } .white { fill: #fff; }
+      .panel { fill: #fff; stroke: #777; stroke-width: 1.5; }
+      .control { fill: #f4f4f4; stroke: #888; stroke-width: 1.2; }
+      .rule { stroke: #aaa; stroke-width: 1; }
+    </style>
+  </defs>
+  <g id="page-background"><rect width="1600" height="900" fill="#ededed"/></g>
+  <g id="global-sidebar">
+    <rect x="0" y="0" width="220" height="900" fill="#333"/>
+    <rect x="22" y="24" width="42" height="42" fill="#f4f4f4" stroke="#aaa"/>
+    <text x="43" y="53" text-anchor="middle" class="section">C</text>
+    <text x="76" y="45" class="section white">CUCUMBER</text>
+    <text x="76" y="66" class="small white">Curriculum Assistant</text>
+    <rect x="16" y="112" width="188" height="48" fill="#555" stroke="#aaa"/>
+    <text x="36" y="143" class="body white">Chat</text>
+    <rect x="16" y="169" width="188" height="54" fill="none" stroke="#888"/>
+    <text x="36" y="192" class="small white">Curriculum</text><text x="36" y="212" class="small white">document</text>
+    <line x1="18" y1="824" x2="202" y2="824" stroke="#888"/>
+    <circle cx="31" cy="851" r="6" fill="#ddd"/>
+    <text x="47" y="856" class="small white">System status</text>
+    <text x="47" y="877" class="small light">Ready</text>
+  </g>
+  <g id="chat-context-panel">
+    <rect x="244" y="32" width="286" height="836" class="panel"/>
+    <text x="266" y="72" class="section">Search scope</text>
+    <text x="266" y="98" class="small muted">Answers follow the selected curriculum.</text>
+    <text x="266" y="143" class="small muted">Program</text>
+    <rect x="266" y="154" width="242" height="44" class="control"/>
+    <text x="280" y="182" class="body">IT</text><text x="486" y="182" class="body">⌄</text>
+    <text x="266" y="229" class="small muted">Curriculum Edition</text>
+    <rect x="266" y="240" width="242" height="44" class="control"/>
+    <text x="280" y="268" class="body">2024 edition</text><text x="486" y="268" class="body">⌄</text>
+    <rect x="266" y="301" width="242" height="72" fill="#f1f1f1" stroke="#aaa"/>
+    <text x="280" y="327" class="small muted">Current scope</text>
+    <text x="280" y="353" class="label">IT · 2024 edition</text>
+    <line x1="266" y1="394" x2="508" y2="394" class="rule"/>
+    <rect x="266" y="414" width="242" height="46" class="control"/>
+    <text x="387" y="443" text-anchor="middle" class="body">+  New chat</text>
+    <text x="266" y="498" class="label muted">Conversation history</text>
+    <rect x="266" y="513" width="242" height="50" fill="#e9e9e9" stroke="#999"/>
+    <text x="280" y="544" class="body">Course requirements</text>
+    <rect x="266" y="573" width="242" height="50" fill="#fff" stroke="#bbb"/>
+    <text x="280" y="604" class="body">Semester planning</text>
+    <rect x="266" y="633" width="242" height="50" fill="#fff" stroke="#bbb"/>
+    <text x="280" y="664" class="body">New chat</text>
+  </g>
+  <g id="chat-main">
+    <text x="566" y="64" class="heading">Curriculum Assistant</text>
+    <text x="566" y="94" class="body muted">Ask about courses and your curriculum.</text>
+    <rect x="1260" y="42" width="286" height="46" class="control"/>
+    <text x="1280" y="71" class="small muted">Current scope</text><text x="1400" y="71" class="label">IT · 2024</text>
+    <rect x="566" y="124" width="980" height="622" class="panel"/>
+    <g id="user-message">
+      <rect x="946" y="174" width="550" height="75" fill="#dedede" stroke="#888"/>
+      <text x="970" y="204" class="small muted">YOU</text>
+      <text x="970" y="231" class="body">Which courses are required in year two?</text>
+    </g>
+    <g id="assistant-answer">
+      <rect x="616" y="276" width="755" height="220" fill="#fafafa" stroke="#888"/>
+      <text x="640" y="309" class="small muted">CURRICULUM ASSISTANT</text>
+      <text x="640" y="350" class="body">The selected plan lists several required courses for year two.</text>
+      <text x="640" y="381" class="body">Review the course list for semester placement and credit details.</text>
+      <text x="640" y="436" class="small muted">Representative placeholder answer</text>
+      <rect x="640" y="457" width="196" height="26" fill="#eee" stroke="#999"/>
+      <text x="652" y="476" class="small">Answer status: answered</text>
+    </g>
+    <g id="provenance">
+      <rect x="616" y="520" width="420" height="54" fill="#f4f4f4" stroke="#999"/>
+      <text x="638" y="553" class="body">▸  Sources (2)</text>
+      <text x="1056" y="553" class="small muted">Expandable provenance</text>
+    </g>
+    <g id="composer">
+      <rect x="566" y="770" width="980" height="98" class="panel"/>
+      <rect x="588" y="790" width="810" height="56" class="control"/>
+      <text x="610" y="824" class="body muted">Type a curriculum question…</text>
+      <rect x="1414" y="790" width="110" height="56" fill="#d5d5d5" stroke="#777"/>
+      <text x="1469" y="824" text-anchor="middle" class="label">Send</text>
+    </g>
+  </g>
+</svg>

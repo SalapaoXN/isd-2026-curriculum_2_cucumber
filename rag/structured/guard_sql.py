@@ -92,7 +92,11 @@ def _tokenize(sql: str) -> list[_Token]:
             continue
 
         if character in "'\"`":
-            index = _skip_quoted(sql, index, character)
+            end = _skip_quoted(sql, index, character)
+            if character == "'":
+                value = sql[index + 1 : end - 1].replace("''", "'")
+                tokens.append(_Token(value, "string", index, end, depth))
+            index = end
             continue
         if character == "[":
             index = _skip_bracket_identifier(sql, index)
@@ -135,6 +139,64 @@ def _tokenize(sql: str) -> list[_Token]:
     return tokens
 
 
+def extract_column_predicate_literals(
+    sql: str,
+    column_names: Iterable[str],
+) -> tuple[str, ...]:
+    """Extract string/number literals from simple column equality and IN predicates."""
+    if not isinstance(sql, str):
+        raise TypeError("sql must be a string")
+    names = {
+        name.casefold()
+        for name in column_names
+        if isinstance(name, str) and name
+    }
+    tokens = _tokenize(sql)
+    literals: list[str] = []
+
+    for index, token in enumerate(tokens):
+        if token.kind != "word" or token.value.casefold() not in names:
+            continue
+        operator_index = index + 1
+        if operator_index >= len(tokens):
+            continue
+        operator = tokens[operator_index]
+        if operator.value == "=" and operator_index + 1 < len(tokens):
+            value = tokens[operator_index + 1]
+            if value.kind in {"string", "number"}:
+                literals.append(value.value)
+            continue
+        if (
+            operator.kind != "word"
+            or operator.value.casefold() != "in"
+            or operator_index + 1 >= len(tokens)
+            or tokens[operator_index + 1].value != "("
+        ):
+            continue
+
+        opening = tokens[operator_index + 1]
+        cursor = operator_index + 2
+        expecting_value = True
+        while cursor < len(tokens):
+            value = tokens[cursor]
+            if value.value == ")" and value.depth == opening.depth:
+                break
+            if value.depth != opening.depth + 1:
+                break
+            if expecting_value:
+                if value.kind not in {"string", "number"}:
+                    break
+                literals.append(value.value)
+                expecting_value = False
+            elif value.value == ",":
+                expecting_value = True
+            else:
+                break
+            cursor += 1
+
+    return tuple(literals)
+
+
 def _validate_statement(tokens: list[_Token]) -> None:
     if not tokens:
         raise ValueError("SQL must contain one SELECT or WITH statement")
@@ -162,7 +224,19 @@ def _validate_statement(tokens: list[_Token]) -> None:
 
 
 _RELATION_TERMINATORS: Final = frozenset(
-    {"WHERE", "GROUP", "ORDER", "HAVING", "LIMIT", "UNION", "JOIN", "ON"}
+    {
+        "WHERE",
+        "GROUP",
+        "ORDER",
+        "HAVING",
+        "LIMIT",
+        "UNION",
+        "INTERSECT",
+        "EXCEPT",
+        "SELECT",
+        "JOIN",
+        "ON",
+    }
 )
 
 
@@ -205,8 +279,10 @@ def _validate_cte_column_list(
         raise ValueError("malformed CTE column list")
 
 
-def _validate_with_structure(tokens: list[_Token]) -> None:
-    """Validate the supported WITH/CTE grammar before relation extraction."""
+def _parse_with_clause(
+    tokens: list[_Token],
+) -> tuple[list[tuple[str, list[_Token]]], list[_Token]]:
+    """Parse a non-recursive WITH clause and return its CTEs and main SELECT."""
     if not tokens or tokens[0].value.upper() != "WITH":
         raise ValueError("WITH must contain a valid CTE list")
 
@@ -216,14 +292,20 @@ def _validate_with_structure(tokens: list[_Token]) -> None:
         and tokens[index].kind == "word"
         and tokens[index].value.upper() == "RECURSIVE"
     ):
-        index += 1
+        raise ValueError("WITH RECURSIVE is not supported")
 
+    ctes: list[tuple[str, list[_Token]]] = []
+    seen_names: set[str] = set()
     while True:
         if index >= len(tokens) or tokens[index].kind != "word":
             raise ValueError("WITH must contain a valid CTE name")
         cte_name_depth = tokens[index].depth
         if cte_name_depth != 0:
             raise ValueError("WITH CTE name must be top-level")
+        cte_name = tokens[index].value.casefold()
+        if cte_name in seen_names:
+            raise ValueError("duplicate CTE name")
+        seen_names.add(cte_name)
         index += 1
 
         if index < len(tokens) and tokens[index].value == "(":
@@ -246,6 +328,7 @@ def _validate_with_structure(tokens: list[_Token]) -> None:
         if not body:
             raise ValueError("CTE body must contain SELECT or WITH")
         _validate_statement(body)
+        ctes.append((cte_name, body))
         index = body_end + 1
 
         if index < len(tokens) and tokens[index].value == ",":
@@ -260,29 +343,12 @@ def _validate_with_structure(tokens: list[_Token]) -> None:
         or tokens[index].value.upper() != "SELECT"
     ):
         raise ValueError("WITH must be followed by a main SELECT")
+    return ctes, _normalized_tokens(tokens[index:])
 
 
-def _cte_names(tokens: list[_Token]) -> set[str]:
-    names: set[str] = set()
-    for index, token in enumerate(tokens[:-2]):
-        if token.kind != "word":
-            continue
-        as_index = index + 1
-        if tokens[as_index].value == "(":
-            column_list_end = _matching_parenthesis(tokens, as_index)
-            as_index = column_list_end + 1
-        if as_index + 1 >= len(tokens):
-            continue
-        as_token = tokens[as_index]
-        opening = tokens[as_index + 1]
-        if (
-            as_token.kind == "word"
-            and as_token.value.upper() == "AS"
-            and opening.value == "("
-            and opening.depth == token.depth
-        ):
-            names.add(token.value.casefold())
-    return names
+def _validate_with_structure(tokens: list[_Token]) -> None:
+    """Validate the supported WITH/CTE grammar before relation extraction."""
+    _parse_with_clause(tokens)
 
 
 def _validate_relation_name(
@@ -299,7 +365,7 @@ def _validate_relation_name(
         if not nested_tokens:
             raise ValueError("ambiguous SQL parenthesized relation")
         _validate_statement(nested_tokens)
-        _validate_relations(nested_tokens, allowed)
+        _validate_relations(nested_tokens, allowed, cte_names)
         return closing_index + 1
     if tokens[index].kind != "word":
         raise ValueError("ambiguous SQL relation reference")
@@ -311,7 +377,11 @@ def _validate_relation_name(
     return index + 1
 
 
-def _validate_relations(tokens: list[_Token], allowed_relations: Iterable[str]) -> None:
+def _validate_relations(
+    tokens: list[_Token],
+    allowed_relations: Iterable[str],
+    visible_ctes: Iterable[str] = (),
+) -> None:
     allowed: set[str] = set()
     for relation in allowed_relations:
         if (
@@ -321,7 +391,15 @@ def _validate_relations(tokens: list[_Token], allowed_relations: Iterable[str]) 
             raise ValueError("allowed SQL relations must be simple identifiers")
         allowed.add(relation.casefold())
 
-    cte_names = _cte_names(tokens)
+    cte_names = set(visible_ctes)
+    if tokens and tokens[0].value.upper() == "WITH":
+        ctes, main_query = _parse_with_clause(tokens)
+        for cte_name, body in ctes:
+            _validate_relations(body, allowed, cte_names)
+            cte_names.add(cte_name)
+        _validate_relations(main_query, allowed, cte_names)
+        return
+
     for index, token in enumerate(tokens):
         if token.kind != "word" or token.value.upper() not in {"FROM", "JOIN"}:
             continue
@@ -462,4 +540,4 @@ def guard_sql(
     return f"{prefix} LIMIT {max_limit}{suffix}"
 
 
-__all__ = ["guard_sql"]
+__all__ = ["extract_column_predicate_literals", "guard_sql"]

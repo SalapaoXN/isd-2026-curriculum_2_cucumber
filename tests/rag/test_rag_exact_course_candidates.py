@@ -87,7 +87,11 @@ class ExactCourseCandidatesTest(unittest.TestCase):
 
         self.assertEqual(
             {(item["program"], item["course_code"]) for item in candidates},
-            {("IT", "06016414"), ("DSBA", "06026207")},
+            {
+                ("IT", "06016414"),
+                ("DSBA", "06026207"),
+                ("DSBA", "06026111"),
+            },
         )
 
         self.assertEqual(
@@ -117,7 +121,8 @@ class ExactCourseCandidatesTest(unittest.TestCase):
 
         self.assertEqual(
             {(item["program"], item["course_code"]) for item in candidates},
-            {("IT", "06016406"), ("AIT", "90641004")},
+            # BIT 06036019 (bit-2560) genuinely shares the PROJECT 1 title.
+            {("IT", "06016406"), ("AIT", "90641004"), ("BIT", "06036019")},
         )
 
     def test_strict_title_lookup_skips_token_subsequence_match(self):
@@ -128,7 +133,7 @@ class ExactCourseCandidatesTest(unittest.TestCase):
                     DB_PATH, course_name="PROJECT 1", exact_title=True
                 )
             },
-            {("IT", "06016406")},
+            {("IT", "06016406"), ("BIT", "06036019")},
         )
         self.assertEqual(
             {
