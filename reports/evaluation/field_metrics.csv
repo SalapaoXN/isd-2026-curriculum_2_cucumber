@@ -5,13 +5,13 @@ AIT,,name_en,56,0.0092,99.08,0.0264,97.36
 AIT,,credits,56,0.0,100.0,,
 AIT,,prerequisite,56,0.0,100.0,0.0,100.0
 BIT,coop,code,63,0.0,100.0,,
-BIT,coop,name_th,63,0.0062,99.38,0.036,96.4
-BIT,coop,name_en,63,0.026,97.4,0.2198,78.02
+BIT,coop,name_th,63,0.0041,99.59,0.0135,98.65
+BIT,coop,name_en,63,0.0108,98.92,0.1229,87.71
 BIT,coop,credits,63,0.0354,96.46,,
 BIT,coop,prerequisite,63,0.0,100.0,0.0,100.0
 BIT,no_coop,code,63,0.0,100.0,,
 BIT,no_coop,name_th,63,0.0033,99.67,0.004,99.6
-BIT,no_coop,name_en,63,0.0059,99.41,0.0867,91.33
+BIT,no_coop,name_en,63,0.0056,99.44,0.084,91.6
 BIT,no_coop,credits,63,0.0195,98.05,,
 BIT,no_coop,prerequisite,63,0.0,100.0,0.0,100.0
 DSBA,coop,code,89,0.0,100.0,,
