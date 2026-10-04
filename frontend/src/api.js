@@ -43,8 +43,16 @@ export async function fetchCurriculum(params) {
   return res.json();
 }
 
-export async function fetchCourseDetail(courseCode, program = null) {
-  const qs = program ? `?program=${encodeURIComponent(program)}` : "";
+export async function fetchCourseDetail(
+  courseCode,
+  program = null,
+  catalogKey = null
+) {
+  const params = new URLSearchParams();
+  if (program) params.set("program", program);
+  if (catalogKey) params.set("catalog_key", catalogKey);
+  const query = params.toString();
+  const qs = query ? `?${query}` : "";
   const res = await fetch(
     `/api/courses/${encodeURIComponent(courseCode)}${qs}`
   );
