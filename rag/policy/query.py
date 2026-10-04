@@ -94,14 +94,15 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         return None
 
     general_text_policy = re.search(
-        r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ทำอย่างไร|ทำยังไง|มีขั้นตอนอะไร|"
+        r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ต้องทำไง|ทำอย่างไร|ทำยังไง|ทำไง|มีขั้นตอนอะไร|"
         r"มีเงื่อนไขอะไร|เงื่อนไขเป็นอย่างไร|มีหลักเกณฑ์อะไรบ้าง|"
         r"หลักเกณฑ์(?:เป็นอย่างไร|มีอะไรบ้าง|อะไรบ้าง)|"
-        r"ทำได้ไหม|ทำได้หรือไม่|ได้ไหม|ได้หรือไม่|คืออะไร|เป็นอย่างไร)\s*[?？]?$",
+        r"ทำได้ไหม|ทำได้มั้ย|ทำได้ปะ|ทำได้หรือไม่|ได้ไหม|ได้มั้ย|ได้ปะ|"
+        r"ได้หรือไม่|คืออะไร|เป็นอย่างไร)\s*[?？]?$",
         text,
     )
     if general_text_policy:
-        if "ลาพักการศึกษา" in text:
+        if "ลาพักการศึกษา" in text or "พักเรียน" in text:
             return PolicyQuery("leave_of_absence")
         if "ลาออก" in text:
             return PolicyQuery("resignation")
@@ -113,11 +114,21 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("credit_transfer")
 
     if (
-        "ทุจริต" in text
+        ("ทุจริต" in text or "โกง" in text)
         and "สอบ" in text
-        and re.search(r"(?:มีโทษ|โทษ|ลงโทษ|เป็นอย่างไร|เป็นยังไง|เกิดอะไร)", text)
+        and re.search(
+            r"(?:มีโทษ|โทษ|ลงโทษ|เป็นอย่างไร|เป็นยังไง|เกิดอะไร|โดนอะไร)",
+            text,
+        )
     ):
         return PolicyQuery("exam_dishonesty_penalty")
+
+    if (
+        "วินัย" in text
+        and ("ร้ายแรง" in text or "หนัก" in text)
+        and re.search(r"(?:มีอะไรบ้าง|อะไรบ้าง|มีอะไร|คืออะไร)", text)
+    ):
+        return PolicyQuery("serious_disciplinary_offenses")
 
     if (
         ("โทษทางวินัย" in text or ("วินัย" in text and "โทษ" in text))
@@ -129,7 +140,7 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         if re.search(r"(?:ภายในกี่วัน|กี่วัน|ภายในเท่าไร|ภายในเท่าไหร่)", text):
             return PolicyQuery("sanction_appeal_deadline")
         if re.search(
-            r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ทำอย่างไร|ทำยังไง|"
+            r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ต้องทำไง|ทำอย่างไร|ทำยังไง|ทำไง|"
             r"มีขั้นตอนอะไร|ขั้นตอนเป็นอย่างไร|ขั้นตอนเป็นยังไง)",
             text,
         ):
