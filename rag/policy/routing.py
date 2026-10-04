@@ -14,7 +14,7 @@ from rag.query_spec import parse_query_spec
 from rag.structured.queries import edition_catalog_keys_for_program
 
 from .answer import PolicyAnswer, answer_policy_question
-from .query import parse_policy_question
+from .query import looks_like_policy_question, parse_policy_question
 
 
 POLICY_ROUTE_ALLOWLIST = frozenset(
@@ -121,7 +121,13 @@ def route_policy_question(
     """Answer routed policy questions, or return None to keep existing behavior."""
     query = parse_policy_question(question)
     if query is None:
+        if looks_like_policy_question(question):
+            return adapt_policy_answer(PolicyAnswer(status="unsupported"))
         return None
+    if query.kind == "unsupported_policy_shape":
+        return adapt_policy_answer(
+            PolicyAnswer(status="unsupported", query_type=query.kind)
+        )
     if query.kind in POLICY_ROUTE_ALLOWLIST:
         return adapt_policy_answer(answer_policy_question(db_path, question))
     if query.kind == "program_total_credits":
