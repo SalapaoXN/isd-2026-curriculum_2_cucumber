@@ -143,7 +143,24 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("registration_exception_max")
 
+    graduation_wording = "สำเร็จการศึกษา" in text or "จบการศึกษา" in text
+    if graduation_wording:
+        if (
+            ("english exit exam" in text or "สอบภาษาอังกฤษ" in text)
+            and re.search(r"(?:ต้อง|จำเป็น|ผ่าน|สอบ|มีไหม|หรือไม่|ไหม)", text)
+        ):
+            return PolicyQuery("graduation_english_exit")
+        if (
+            ("หนี้สิน" in text or "ภาระผูกพัน" in text)
+            and re.search(r"(?:ต้อง|มีได้ไหม|มีได้หรือไม่|ไม่มี|หรือไม่|ไหม)", text)
+        ):
+            return PolicyQuery("graduation_no_debt")
+        if re.search(r"(?:เกณฑ์|เงื่อนไข|ต้องมีอะไร|ต้องทำอะไร|มีอะไรบ้าง)", text):
+            return PolicyQuery("graduation_requirements")
+
     if "GPA" in text.upper() and _GPA_RE.search(question):
+        if "สำเร็จการศึกษา" in text or "จบการศึกษา" in text:
+            return PolicyQuery("graduation_gpa")
         if "ติดโปร" in text or "ภาคทัณฑ์" in text:
             return PolicyQuery("probation_entry")
         if "พ้นโปร" in text or "พ้นภาคทัณฑ์" in text:
