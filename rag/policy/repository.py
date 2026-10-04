@@ -158,15 +158,19 @@ def fetch_regulation_rules(
 
     with closing(_open(db_path)) as connection:
         placeholders = ", ".join("?" for _ in rule_ids)
+        # The same canonical rule can support more than one mapped policy
+        # category. regulation_rules is keyed by rule_id, so the first mapped
+        # category wins during supplemental loading. Exact rule IDs are therefore
+        # the stable authority boundary here; filtering by category would make a
+        # shared rule disappear from later policy families.
         rows = connection.execute(
             f"""
             SELECT rule_id, section_number, parent_rule_id, category,
                    rule_text, references_json
             FROM regulation_rules
-            WHERE category = ?
-              AND rule_id IN ({placeholders})
+            WHERE rule_id IN ({placeholders})
             """,
-            (category, *rule_ids),
+            rule_ids,
         ).fetchall()
 
     by_id: dict[str, dict[str, Any]] = {}
