@@ -211,6 +211,50 @@ class RagPolicyTest(unittest.TestCase):
                     "unsupported",
                 )
 
+    def test_phase_c_graduation_policy_answers(self):
+        gpa = answer_policy_question(DB_PATH, "สำเร็จการศึกษาต้องมี GPA เท่าไร")
+        self.assertEqual(gpa.status, "complete")
+        self.assertEqual(set(gpa.value), {2})
+        self.assertIn("GPA ตามโครงสร้างหลักสูตร", gpa.rendered_answer)
+        self.assertIn("GPA สะสม", gpa.rendered_answer)
+        self.assertTrue(gpa.provenance)
+
+        english = answer_policy_question(
+            DB_PATH, "จบการศึกษาต้องสอบ English Exit Exam ไหม"
+        )
+        self.assertEqual(english.status, "complete")
+        self.assertEqual(english.source_rule_id, "rule:25.2")
+        self.assertIn("English Exit Exam", english.rendered_answer)
+        self.assertTrue(english.provenance)
+
+        debt = answer_policy_question(DB_PATH, "จบการศึกษาต้องไม่มีหนี้สินไหม")
+        self.assertEqual(debt.status, "complete")
+        self.assertEqual(debt.source_rule_id, "rule:25.4")
+        self.assertIn("ไม่มีหนี้สิน", debt.rendered_answer)
+        self.assertTrue(debt.provenance)
+
+        requirements = answer_policy_question(
+            DB_PATH, "เกณฑ์สำเร็จการศึกษามีอะไรบ้าง"
+        )
+        self.assertEqual(requirements.status, "complete")
+        self.assertIn("2.0", requirements.rendered_answer)
+        self.assertIn("English Exit Exam", requirements.rendered_answer)
+        self.assertIn("ข้อ 25.3", requirements.rendered_answer)
+        self.assertIn("ข้อ 25.5", requirements.rendered_answer)
+        self.assertTrue(requirements.provenance)
+
+    def test_phase_c_graduation_queries_remain_bounded(self):
+        for question in (
+            "จบการศึกษาต้องครบกี่หน่วยกิต",
+            "English Exit Exam ผ่านกี่คะแนน",
+            "จบได้ไหมถ้าผมติดหนี้อยู่ 100 บาท",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
     def test_text_policy_queries_remain_bounded(self):
         for question in (
             "ลาออกแล้วได้เงินคืนไหม",
