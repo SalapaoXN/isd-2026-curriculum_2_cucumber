@@ -264,6 +264,28 @@ def _facts(db_path: str | Path, query: PolicyQuery) -> tuple[PolicyFact, ...]:
             condition="deadline",
             context="student_sanction_appeal",
         )
+    elif query.kind == "graduation_gpa":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์การสำเร็จการศึกษา",
+            fact_key_contains="GPA",
+            condition="at_least",
+            context_any=True,
+        )
+    elif query.kind == "graduation_english_exit":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์การสำเร็จการศึกษา",
+            fact_key="การสอบภาษาอังกฤษ English Exit Exam",
+            condition="required",
+        )
+    elif query.kind == "graduation_no_debt":
+        rows = fetch_policy_facts(
+            db_path,
+            category="เกณฑ์การสำเร็จการศึกษา",
+            fact_key="ไม่มีหนี้สินหรือภาระผูกพันต่อสถาบัน",
+            condition="required",
+        )
     else:
         return ()
     return tuple(_fact(row) for row in rows)
