@@ -1,0 +1,76 @@
+name: Refresh current evaluation once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/refresh-evaluation-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install evaluator dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "python-Levenshtein==0.27.4" "pythainlp==5.3.7"
+
+      - name: Regenerate GT-backed current evaluation
+        run: |
+          python -m src.pipeline.tools.evaluation.evaluate \
+            --pair data/output/final/merged_ait_no_plan_full_corrected.json ground_truth/AIT/AIT_academic_plan.json \
+            --pair data/output/final/merged_bit_coop_full_corrected.json ground_truth/BIT/BIT_academic_plan_coop.json \
+            --pair data/output/final/merged_bit_no_coop_full_corrected.json ground_truth/BIT/BIT_academic_plan_no_coop.json \
+            --pair data/output/final/merged_dsba_coop_full_corrected.json ground_truth/DSBA/DSBA_academic_plan_coop.json \
+            --pair data/output/final/merged_dsba_no_coop_full_corrected.json ground_truth/DSBA/DSBA_academic_plan_no_coop.json \
+            --pair data/output/final/merged_gened_gened_edition-gened-2564_full_corrected.json ground_truth/general_education_ground_truth.json \
+            --pair data/output/final/merged_it_coop_full_corrected.json ground_truth/IT/IT_academic_plan_coop.json \
+            --pair data/output/final/merged_it_no_coop_full_corrected.json ground_truth/IT/IT_academic_plan_no_coop.json \
+            > /tmp/current_evaluation.json
+
+      - name: Verify report scope
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path("reports/evaluation/evaluation_summary.csv")
+          rows = list(csv.DictReader(path.open(encoding="utf-8-sig")))
+          expected = {
+              ("AIT", ""),
+              ("BIT", "coop"),
+              ("BIT", "no_coop"),
+              ("DSBA", "coop"),
+              ("DSBA", "no_coop"),
+              ("GENED", "gened"),
+              ("IT", "coop"),
+              ("IT", "no_coop"),
+          }
+          actual = {(r["program"], r["plan"]) for r in rows}
+          assert len(rows) == 8, rows
+          assert actual == expected, (actual, expected)
+          print(path.read_text(encoding="utf-8-sig"))
+          PY
+
+      - name: Commit regenerated reports
+        run: |
+          if git diff --quiet -- reports/evaluation; then
+            echo "Evaluation reports already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/evaluation/evaluation.json \
+                  reports/evaluation/evaluation_summary.csv \
+                  reports/evaluation/field_metrics.csv \
+                  reports/evaluation/evaluation_errors.csv
+          git commit -m "reports: refresh current curriculum evaluation"
+          git push origin HEAD:heart
