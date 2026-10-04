@@ -19,6 +19,13 @@ const HARD_STATUS_LABELS = {
   unsupported: "ยังไม่รองรับคำถามนี้",
   error: "เกิดข้อผิดพลาดในการตรวจสอบ",
 };
+const CHAT_STATUS_LABELS = {
+  answer: "ตอบแล้ว",
+  insufficient_evidence: "หลักฐานยังไม่เพียงพอ",
+  clarification_required: "ต้องระบุข้อมูลเพิ่มเติม",
+  error: "เกิดข้อผิดพลาด",
+  incomplete_evidence: "ข้อมูลยังไม่ครบถ้วน",
+};
 
 function loadStored() {
   try {
@@ -223,44 +230,114 @@ export default function ChatPage() {
     (item) => item.program_code === active.program
   );
   const editions = selectedProgram?.editions || [];
+  const selectedEdition = editions.find(
+    (edition) => edition.catalog_key === active.catalogKey
+  );
+  const scopeLabel = active.program
+    ? `${active.program}${
+        selectedEdition
+          ? ` · ${selectedEdition.academic_year || selectedEdition.catalog_key}`
+          : active.catalogKey
+            ? ` · ${active.catalogKey}`
+            : editions.length > 1
+              ? " · เลือกฉบับหลักสูตร"
+              : ""
+      }`
+    : "ทุกหลักสูตร";
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <h1>Chat</h1>
-        <p>ระบบถาม–ตอบข้อมูลหลักสูตรจากฐานข้อมูล CUCUMBER</p>
-      </header>
-
+    <div className="page chat-page">
       <div className="chat-layout">
-        <aside className="card session-panel">
-          <button type="button" className="session-new" onClick={handleNewChat}>
-            + New chat
+        <aside className="card chat-context-panel" aria-label="ขอบเขตการค้นหา">
+          <div className="chat-context-intro">
+            <h1>ขอบเขตการค้นหา</h1>
+            <p>คำตอบอ้างอิงข้อมูลตามรายการที่เลือก</p>
+          </div>
+
+          <div className="field chat-scope-field">
+            <label htmlFor="chatProgram">หลักสูตร</label>
+            <select
+              id="chatProgram"
+              value={active.program}
+              disabled={loading}
+              onChange={(e) => handleProgramChange(e.target.value)}
+            >
+              <option value="">ทุกหลักสูตร</option>
+              {programs.map((p) => (
+                <option key={p.program_code} value={p.program_code}>
+                  {p.program_code}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {editions.length > 0 && (
+            <div className="field chat-scope-field">
+              <label htmlFor="chatCatalog">ฉบับหลักสูตร</label>
+              <select
+                id="chatCatalog"
+                value={active.catalogKey || ""}
+                disabled={loading || editions.length === 1}
+                onChange={(e) => handleCatalogChange(e.target.value)}
+              >
+                {editions.length > 1 && !active.catalogKey && (
+                  <option value="" disabled>
+                    เลือกฉบับหลักสูตร
+                  </option>
+                )}
+                {editions.map((edition) => (
+                  <option key={edition.catalog_key} value={edition.catalog_key}>
+                    {edition.academic_year || edition.catalog_key}
+                    {editions.filter(
+                      (item) => item.academic_year === edition.academic_year
+                    ).length > 1
+                      ? ` (${edition.catalog_key})`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="chat-current-scope">
+            <span>ขอบเขตปัจจุบัน</span>
+            <strong>{scopeLabel}</strong>
+          </div>
+
+          <div className="chat-context-divider" />
+
+          <button type="button" className="chat-new-session" onClick={handleNewChat}>
+            <span aria-hidden="true">＋</span> แชตใหม่
           </button>
-          <ul className="session-list">
+          <h2 className="chat-history-heading">ประวัติการสนทนา</h2>
+          <ul className="chat-session-list">
             {sessions.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  className={`session-item${s.id === active.id ? " active" : ""}`}
+                  className={`chat-session-item${s.id === active.id ? " active" : ""}`}
                   onClick={() => {
                     setActiveId(s.id);
                     setQuestion("");
                     setError("");
                   }}
                   title={s.title}
+                  aria-current={s.id === active.id ? "page" : undefined}
                 >
-                  <span className="session-program">{s.program || "All"}</span>
-                  <span className="session-title">{s.title}</span>
-                  <span className="session-count">{s.messages.length}</span>
+                  <span className="chat-session-program">{s.program || "All"}</span>
+                  <span className="chat-session-title">{s.title}</span>
+                  <span className="chat-session-count" aria-label={`${s.messages.length} ข้อความ`}>
+                    {s.messages.length}
+                  </span>
                 </button>
                 {sessions.length > 1 && (
                   <button
                     type="button"
-                    className="session-del"
-                    aria-label="Delete chat"
+                    className="chat-session-delete"
+                    aria-label={`ลบบทสนทนา ${s.title}`}
                     onClick={() => handleDeleteSession(s.id)}
                   >
-                    ✕
+                    ×
                   </button>
                 )}
               </li>
@@ -269,103 +346,76 @@ export default function ChatPage() {
         </aside>
 
         <div className="chat-main">
-          <section className="card program-bar">
-            <div className="field field-inline">
-              <label htmlFor="chatProgram">Program</label>
-              <select
-                id="chatProgram"
-                value={active.program}
-                disabled={loading}
-                onChange={(e) => handleProgramChange(e.target.value)}
-              >
-                <option value="">All programs</option>
-                {programs.map((p) => (
-                  <option key={p.program_code} value={p.program_code}>
-                    {p.program_code}
-                  </option>
-                ))}
-              </select>
+          <header className="chat-product-header">
+            <div>
+              <h1>Curriculum Assistant</h1>
+              <p>ถามเกี่ยวกับรายวิชา หลักสูตร และแผนการเรียน</p>
             </div>
-            {editions.length > 0 && (
-              <div className="field field-inline">
-                <label htmlFor="chatCatalog">Curriculum year</label>
-                <select
-                  id="chatCatalog"
-                  value={active.catalogKey || ""}
-                  disabled={loading || editions.length === 1}
-                  onChange={(e) => handleCatalogChange(e.target.value)}
-                >
-                  {editions.length > 1 && !active.catalogKey && (
-                    <option value="" disabled>
-                      Select a year
-                    </option>
-                  )}
-                  {editions.map((edition) => (
-                    <option key={edition.catalog_key} value={edition.catalog_key}>
-                      {edition.academic_year || edition.catalog_key}
-                      {editions.filter(
-                        (item) => item.academic_year === edition.academic_year
-                      ).length > 1
-                        ? ` (${edition.catalog_key})`
-                        : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <span className="hint">
-              คำถามในห้องนี้จะใช้ {active.program || "ทุกหลักสูตร"} เป็นขอบเขต
-              ไม่ต้องพิมพ์ชื่อหลักสูตรทุกครั้ง
-            </span>
-          </section>
+            <div className="chat-header-scope">
+              <span>ขอบเขตปัจจุบัน</span>
+              <strong>{scopeLabel}</strong>
+            </div>
+          </header>
 
-          <section className="card thread-card">
-            <div className="thread" ref={threadRef}>
+          <section className="card chat-thread-card" aria-label="บทสนทนา">
+            <div className="chat-thread" ref={threadRef}>
               {active.messages.length === 0 && (
-                <div className="empty">
-                  ยังไม่มีบทสนทนาในห้องนี้ เริ่มถามได้เลย
+                <div className="chat-empty-state">
+                  <span className="chat-empty-mark" aria-hidden="true">C</span>
+                  <strong>เริ่มถามเกี่ยวกับหลักสูตร</strong>
+                  <span>คำตอบจะแสดงพร้อมแหล่งอ้างอิงเมื่อมีข้อมูลรองรับ</span>
                 </div>
               )}
               {active.messages.map((m) => (
-                <div key={m.id}>
-                  <div className="msg-row user">
-                    <div className="bubble bubble-user">{m.question}</div>
+                <article className="chat-turn" key={m.id}>
+                  <div className="chat-user-row">
+                    <div className="chat-user-message">{m.question}</div>
                   </div>
-                  <div className="msg-row assistant">
-                    <div className="bubble bubble-assistant">{m.answer}</div>
-                  </div>
-                  <div className="msg-row assistant">
-                    <div className="meta">
-                      <span className={`badge status-${m.status}`}>
-                        {m.route === "hard"
-                          ? HARD_STATUS_LABELS[m.status] || "ผลการตรวจสอบหลักสูตร"
-                          : m.status}
-                      </span>
-                      {m.route !== "hard" && m.provenance.length > 0 && (
-                        <span className="hint">
-                          {m.provenance
-                            .map(
-                              (p) =>
-                                `${p.program || "-"} p.${p.source_page ?? "?"}`
-                            )
-                            .join(" · ")}
-                        </span>
-                      )}
+                  <div className="chat-assistant-row">
+                    <div className="chat-answer-card">
+                      <div className="chat-answer-label">CUCUMBER</div>
+                      <div className="chat-answer-text">{m.answer}</div>
                     </div>
                   </div>
-                </div>
+                  <div className="chat-message-meta">
+                    <span className={`chat-status-badge status-${m.status || "unknown"}`}>
+                      {m.route === "hard"
+                        ? HARD_STATUS_LABELS[m.status] || "ผลการตรวจสอบหลักสูตร"
+                        : CHAT_STATUS_LABELS[m.status] || m.status}
+                    </span>
+                  </div>
+                  {m.provenance.length > 0 && (
+                    <details className="chat-provenance">
+                      <summary>แหล่งอ้างอิง {m.provenance.length} รายการ</summary>
+                      <ul>
+                        {m.provenance.map((source, index) => (
+                          <li key={`${source.source_filename || source.source_page || source.program || "source"}-${index}`}>
+                            {source.program && <span>หลักสูตร {source.program}</span>}
+                            {source.source_filename && <span>{source.source_filename}</span>}
+                            {source.source_page != null && <span>หน้า {source.source_page}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </article>
               ))}
               {loading && (
-                <div className="msg-row assistant">
-                  <div className="bubble bubble-assistant typing">
-                    กำลังค้นหา...
+                <div className="chat-assistant-row" role="status" aria-live="polite">
+                  <div className="chat-loading-card">
+                    <span className="chat-loading-indicator" aria-hidden="true" />
+                    <div>
+                      <strong>กำลังค้นหาข้อมูลหลักสูตร...</strong>
+                      <span>กำลังตรวจสอบข้อมูลและแหล่งอ้างอิง</span>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="composer">
+            <div className="chat-composer">
               <textarea
+                aria-label="พิมพ์คำถาม"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={(e) => {
@@ -373,17 +423,18 @@ export default function ChatPage() {
                 }}
                 placeholder="พิมพ์คำถามได้เลย เช่น วิชา 06016454 กี่หน่วยกิต"
               />
-              <div className="actions">
+              <div className="chat-composer-actions">
+                <span className="chat-key-hint">กด Ctrl + Enter เพื่อส่งคำถาม</span>
                 <button
                   type="button"
+                  className="chat-send-button"
                   onClick={handleAsk}
                   disabled={loading}
                 >
                   {loading ? "กำลังค้นหา..." : "ส่ง"}
                 </button>
-                <span className="hint">กด Ctrl + Enter เพื่อส่งคำถาม</span>
               </div>
-              {error && <div className="error visible">{error}</div>}
+              {error && <div className="chat-error" role="alert">{error}</div>}
             </div>
           </section>
         </div>
