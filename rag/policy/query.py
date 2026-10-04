@@ -218,8 +218,11 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
 
     if (
         "พ้นสภาพ" in text
-        and "นักศึกษา" in text
-        and re.search(r"(?:กรณีอะไรบ้าง|มีกรณีอะไร|สาเหตุอะไรบ้าง|มีสาเหตุอะไร|เพราะอะไรบ้าง)", text)
+        and re.search(
+            r"(?:กรณีอะไรบ้าง|กรณีไหนบ้าง|มีกรณีอะไร|มีกรณีไหน|"
+            r"สาเหตุอะไรบ้าง|มีสาเหตุอะไร|เพราะอะไรบ้าง)",
+            text,
+        )
     ):
         return PolicyQuery("student_status_termination_reasons")
 
@@ -245,6 +248,7 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     if (
         (
             "ระเบียบความประพฤติ" in text
+            or "กฎเรื่องความประพฤติ" in text
             or "ข้อปฏิบัติของนักศึกษา" in text
             or "นักศึกษาต้องปฏิบัติตัว" in text
             or "นักศึกษาต้องประพฤติตัว" in text
@@ -253,29 +257,49 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     ):
         return PolicyQuery("student_conduct_rules")
 
-    graduation_wording = "สำเร็จการศึกษา" in text or "จบการศึกษา" in text
+    graduation_wording = bool(
+        "สำเร็จการศึกษา" in text
+        or "จบการศึกษา" in text
+        or re.search(r"(?:จะจบ|จบต้อง|จบได้)", text)
+    )
     if graduation_wording:
         if (
-            ("english exit exam" in text or "สอบภาษาอังกฤษ" in text)
-            and re.search(r"(?:ต้อง|จำเป็น|ผ่าน|สอบ|มีไหม|หรือไม่|ไหม)", text)
+            (
+                "english exit exam" in text
+                or "english exit" in text
+                or "exit english" in text
+                or "สอบภาษาอังกฤษ" in text
+            )
+            and re.search(
+                r"(?:ต้อง|จำเป็น|ผ่าน|สอบ|มีไหม|มีมั้ย|ปะ|หรือไม่|ไหม|มั้ย)",
+                text,
+            )
         ):
             return PolicyQuery("graduation_english_exit")
         if (
-            ("หนี้สิน" in text or "ภาระผูกพัน" in text)
-            and re.search(r"(?:ต้อง|มีได้ไหม|มีได้หรือไม่|ไม่มี|หรือไม่|ไหม)", text)
+            ("ติดหนี้" in text or re.search(r"หนี้\s*\d+", text))
+            and re.search(r"จบได้", text)
+        ):
+            return PolicyQuery("unsupported_policy_shape")
+        if (
+            ("หนี้สิน" in text or "ภาระผูกพัน" in text or "ติดหนี้" in text)
+            and re.search(
+                r"(?:ต้อง|มีได้ไหม|มีได้มั้ย|มีได้หรือไม่|ไม่มี|หรือไม่|ไหม|มั้ย)",
+                text,
+            )
         ):
             return PolicyQuery("graduation_no_debt")
         if re.search(r"(?:เกณฑ์|เงื่อนไข|ต้องมีอะไร|ต้องทำอะไร|มีอะไรบ้าง)", text):
             return PolicyQuery("graduation_requirements")
 
     if "GPA" in text.upper() and _GPA_RE.search(question):
-        if "พ้นสภาพ" in text and "นักศึกษา" in text:
+        if "พ้นสภาพ" in text:
             return PolicyQuery("student_status_termination_gpa")
         if "สำเร็จการศึกษา" in text or "จบการศึกษา" in text:
             return PolicyQuery("graduation_gpa")
         if "ติดโปร" in text or "ภาคทัณฑ์" in text:
             return PolicyQuery("probation_entry")
-        if "พ้นโปร" in text or "พ้นภาคทัณฑ์" in text:
+        if "พ้นโปร" in text or "หลุดโปร" in text or "พ้นภาคทัณฑ์" in text:
             return PolicyQuery("probation_cleared")
         if "เกียรตินิยม" in text:
             if "อันดับหนึ่ง" in text or "อันดับ 1" in text:
@@ -283,6 +307,12 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             if "อันดับสอง" in text or "อันดับ 2" in text:
                 return PolicyQuery("honors_second")
         return None
+
+    if (
+        ("พ้นโปร" in text or "หลุดโปร" in text or "พ้นภาคทัณฑ์" in text)
+        and re.search(r"(?:เท่าไร|เท่าไหร่|กี่คะแนน)", text)
+    ):
+        return PolicyQuery("probation_cleared")
 
     if "กลับเข้าศึกษา" in text and re.search(r"(?:กี่ปี|ภายในกี่ปี|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("reentry_limit")
