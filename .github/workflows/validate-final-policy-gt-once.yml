@@ -1,4 +1,5 @@
 name: Validate final GT policy coverage once
+# rerun after GT iteration fix
 
 on:
   push:
