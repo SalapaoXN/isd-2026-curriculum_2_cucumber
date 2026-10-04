@@ -80,6 +80,7 @@ policy QA ใช้ deterministic parsing / lookup / arithmetic สำหรั�
 - การทุจริตในการสอบ — ดึงข้อ 20 แบบ bounded text-backed answer
 - บทลงโทษทางวินัย — ดึงข้อ 38–39 และข้อย่อยที่ระบุประเภทโทษ
 - การอุทธรณ์คำสั่งลงโทษ — รองรับขั้นตอนจากข้อ 43 และ deadline 30 วันจาก structured fact ที่ผูกกับข้อ 43
+- เกณฑ์การสำเร็จการศึกษา — รองรับ GPA ตามโครงสร้าง/GPA สะสม, English Exit Exam, เงื่อนไขไม่มีหนี้สิน และภาพรวมข้อ 25
 - total program credits ตาม edition
 - semester-load comparison ที่มี curriculum + policy evidence ครบ
 
