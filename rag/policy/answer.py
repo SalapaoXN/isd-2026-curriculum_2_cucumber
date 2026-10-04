@@ -102,6 +102,30 @@ _TEXT_RULE_SPECS = {
         ("rule:28", "rule:29"),
         "ข้อบังคับที่เกี่ยวกับการเทียบโอนหน่วยกิตระบุว่า",
     ),
+    "exam_dishonesty_penalty": (
+        "การทุจริตทางวิชาการ",
+        ("rule:20",),
+        "ข้อบังคับเกี่ยวกับการทุจริตในการสอบระบุว่า",
+    ),
+    "disciplinary_penalties": (
+        "บทลงโทษทางวินัย",
+        (
+            "rule:38",
+            "rule:38.1",
+            "rule:38.2",
+            "rule:38.3",
+            "rule:39",
+            "rule:39.1",
+            "rule:39.2",
+            "rule:39.3",
+        ),
+        "ข้อบังคับแบ่งโทษทางวินัยไว้ดังนี้",
+    ),
+    "sanction_appeal_procedure": (
+        "การอุทธรณ์",
+        ("rule:43",),
+        "ข้อบังคับเกี่ยวกับการอุทธรณ์คำสั่งลงโทษระบุว่า",
+    ),
 }
 
 
@@ -232,6 +256,14 @@ def _facts(db_path: str | Path, query: PolicyQuery) -> tuple[PolicyFact, ...]:
             category="การกลับเข้าศึกษา",
             condition="at_most",
         )
+    elif query.kind == "sanction_appeal_deadline":
+        rows = fetch_policy_facts(
+            db_path,
+            category="การอุทธรณ์",
+            fact_key="ยื่นอุทธรณ์คำสั่งลงโทษ",
+            condition="deadline",
+            context="student_sanction_appeal",
+        )
     else:
         return ()
     return tuple(_fact(row) for row in rows)
@@ -253,6 +285,7 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         "probation_entry": "การเข้าภาคทัณฑ์",
         "probation_cleared": "การพ้นภาคทัณฑ์",
         "reentry_limit": "การกลับเข้าศึกษา",
+        "sanction_appeal_deadline": "การอุทธรณ์คำสั่งลงโทษ",
     }
     subject = labels[query.kind]
     if query.kind == "registration_regular_max":
@@ -267,6 +300,8 @@ def _answer_from_fact(query: PolicyQuery, fact: PolicyFact) -> PolicyAnswer:
         answer = f"{subject}เมื่อ GPA ต่ำกว่า {fact.value}"
     elif query.kind == "probation_cleared":
         answer = f"{subject}เมื่อ GPA ตั้งแต่ {fact.value} ขึ้นไป"
+    elif query.kind == "sanction_appeal_deadline":
+        answer = f"{subject}ต้องยื่นภายใน {fact.value} {fact.unit} นับตั้งแต่วันทราบคำสั่ง"
     else:
         answer = f"{subject}ได้ภายใน {fact.value} {fact.unit}"
     return PolicyAnswer(
