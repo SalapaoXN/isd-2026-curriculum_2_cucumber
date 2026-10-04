@@ -390,7 +390,14 @@ def plan_evidence(
                 )
 
     topic_target_id: str | None = None
-    collection_operations = {"list", "count", "sum_credits", "existence"}
+    collection_operations = {
+        "list",
+        "count",
+        "sum_credits",
+        "existence",
+        "placement",
+        "earliest",
+    }
     needs_collection = bool(collection_operations & set(query_spec.operations))
     needs_topic_collection = query_spec.topic is not None and (
         needs_collection
@@ -466,6 +473,7 @@ def plan_evidence(
                     f"placement_facts_{index}",
                     "placement_facts",
                     partition_scope,
+                    depends_on=(topic_target_id,) if topic_target_id else (),
                     course_targets=exact_targets,
                 )
             )
