@@ -1,4 +1,5 @@
 name: Validate policy phase B once
+# rerun after shared-rule fix
 
 on:
   push:
