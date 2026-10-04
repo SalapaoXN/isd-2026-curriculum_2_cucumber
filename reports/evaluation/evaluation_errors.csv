@@ -152,7 +152,6 @@ GENED,gened,matched,90642030,name_en,ENGINEERING ETHICS AND LAWS,ENGINEERING ETH
 GENED,gened,matched,90642036,name_en,PRE-ACTIVITIES FOR ENGINEERS,PRE ACTIVITIES FOR ENGINEERS,0.0357,0.6667
 GENED,gened,matched,90642039,name_en,QUICK-FIX @ HOME,QUICK FIX HOME,0.1875,0.6667
 GENED,gened,matched,90642043,name_th,ศาสตร์ของเบอร์เกอร์,ศาสตร์ของเบอร์เกอร์ 3,0.1053,0.3333
-GENED,gened,matched,90642045,name_en,BE MY BEV.,BEVERAGE,0.7,1.0
 GENED,gened,matched,90642046,name_en,RICE-SARA,RICE SARA,0.1111,2.0
 GENED,gened,matched,90642052,name_th,จากเส้นสาย DNA สู่พันธุกรรม,จากเส้นสาย DNA,0.4815,0.4
 GENED,gened,matched,90642052,name_en,GENES & GENETICS : FROM HELIX TO HEREDITARY,GENES GENETICS FROM HELIX TO HEREDITARY,0.093,0.25
@@ -194,7 +193,6 @@ GENED,gened,matched,90644060,name_en,GERMAN FOR COMMUNUCATION,GERMAN FOR COMMUNI
 GENED,gened,matched,90644063,name_th,ภาษาญี่ปุ่นเพื่อการท่องเที่ยว,ภาษาญี่ปุ่นเพื่อการท่องเที่ยว 3,0.069,0.25
 IT,coop,matched,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,0.0303,0.0
 IT,coop,matched,06016408,name_en,OBJECT-ORIENTED PROGRAMMING,OBJECT ORIENTED PROGRAMMING,0.037,1.0
-IT,coop,matched,06066302,name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,0.3846,0.5
 IT,coop,matched,06016418,name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,coop,matched,06016423,name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,0.0196,0.0909
 IT,coop,matched,"06016481
@@ -211,10 +209,8 @@ OVERSEA COOPERATIVE EDUCATION","COOPERATIVE EDUCATION
 OVERSEA COOPERATIVE EDUCATION",0.0556,0.1667
 IT,coop,matched,06016429,name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,coop,matched,06016448,name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน,0.0312,0.2857
-IT,coop,matched,06016465,name_th,การออกแบบศูนย์ข้อมูล,การออกแบบศูนย์,0.3,0.25
 IT,no_coop,matched,06016401,name_th,คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ,คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ,0.0303,0.0
 IT,no_coop,matched,06016408,name_en,OBJECT-ORIENTED PROGRAMMING,OBJECT ORIENTED PROGRAMMING,0.037,1.0
-IT,no_coop,matched,06066302,name_th,การเขียนโปรแกรมเว็บพื้นฐาน,การเขียนโปรแกรมเชิงวัตถุ,0.3846,0.5
 IT,no_coop,matched,06016418,name_en,SERVER-SIDE WEB DEVELOPMENT,SERVER SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,no_coop,matched,06016423,name_th,การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้,0.0196,0.0909
 IT,no_coop,matched,9064xxxx,name_th,วิชาเลือกหมวดศึกษาทั่วไป 1,วิชาเลือกหมวดศึกษาทั่วไป,0.0769,0.2
@@ -223,7 +219,6 @@ IT,no_coop,matched,xxxxxxxx,name_th,วิชาเลือกเสรี 1,�
 IT,no_coop,matched,xxxxxxxx,name_en,FREE ELECTIVE COURSE 1,FREE ELECTIVE COURSE,0.0909,0.25
 IT,no_coop,matched,06016429,name_en,CLIENT-SIDE WEB DEVELOPMENT,CLIENT SIDE WEB DEVELOPMENT,0.037,0.6667
 IT,no_coop,matched,06016448,name_th,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น,การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน,0.0312,0.2857
-IT,no_coop,matched,06016465,name_th,การออกแบบศูนย์ข้อมูล,การออกแบบศูนย์,0.3,0.25
 IT,no_coop,matched,"06016481
 หรือ
 06016482",name_th,"สหกิจศึกษา
