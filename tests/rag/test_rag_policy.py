@@ -255,6 +255,74 @@ class RagPolicyTest(unittest.TestCase):
                     "unsupported",
                 )
 
+    def test_remaining_gt_policy_families_are_grounded(self):
+        termination = answer_policy_question(
+            DB_PATH, "พ้นสภาพนักศึกษามีกรณีอะไรบ้าง"
+        )
+        self.assertEqual(termination.status, "complete")
+        self.assertEqual(len(termination.rules), 12)
+        self.assertIn("ข้อ 33.1", termination.rendered_answer)
+        self.assertIn("ข้อ 33.12", termination.rendered_answer)
+        self.assertIn("ไม่ยืนยันจำนวนครั้ง", termination.rendered_answer)
+        self.assertTrue(termination.provenance)
+
+        termination_gpa = answer_policy_question(
+            DB_PATH, "GPA เท่าไรถึงพ้นสภาพนักศึกษา"
+        )
+        self.assertEqual(termination_gpa.status, "complete")
+        self.assertEqual(termination_gpa.value, 1)
+        self.assertEqual(termination_gpa.condition, "below")
+        self.assertEqual(termination_gpa.source_rule_id, "rule:33.12")
+        self.assertIn("GPA สะสมต่ำกว่า 1", termination_gpa.rendered_answer)
+
+        gpa = answer_policy_question(DB_PATH, "การคิด GPA มีกี่ประเภท")
+        self.assertEqual(gpa.status, "complete")
+        self.assertIn("3 ประเภท", gpa.rendered_answer)
+        self.assertIn("ค่าเฉลี่ยสะสมตามโครงสร้างหลักสูตร", gpa.rendered_answer)
+        self.assertEqual(
+            tuple(rule.rule_id for rule in gpa.rules),
+            ("rule:21.1", "rule:21.2", "rule:21.2.1", "rule:21.2.2", "rule:21.2.3"),
+        )
+
+        assessment = answer_policy_question(DB_PATH, "การวัดผลการศึกษาทำได้อย่างไร")
+        self.assertEqual(assessment.status, "complete")
+        self.assertIn("การสอบหรือวิธีอื่น", assessment.rendered_answer)
+        self.assertIn("คณะกรรมการ", assessment.rendered_answer)
+        self.assertEqual(
+            tuple(rule.rule_id for rule in assessment.rules),
+            ("rule:19.1", "rule:19.2"),
+        )
+
+        conduct = answer_policy_question(
+            DB_PATH, "นักศึกษาต้องปฏิบัติตัวอย่างไร"
+        )
+        self.assertEqual(conduct.status, "complete")
+        self.assertIn("แต่งกายให้สุภาพ", conduct.rendered_answer)
+        self.assertIn("ไม่เสพสุรา", conduct.rendered_answer)
+        self.assertEqual(len(conduct.rules), 5)
+
+        serious = answer_policy_question(
+            DB_PATH, "ความผิดวินัยร้ายแรงมีอะไรบ้าง"
+        )
+        self.assertEqual(serious.status, "complete")
+        self.assertIn("ทุจริตในการสอบ", serious.rendered_answer)
+        self.assertIn("เล่นการพนัน", serious.rendered_answer)
+        self.assertEqual(len(serious.rules), 11)
+        self.assertTrue(serious.provenance)
+
+    def test_remaining_gt_policy_families_stay_bounded(self):
+        for question in (
+            "GPA 0.95 จะพ้นสภาพวันไหน",
+            "B+ ได้กี่แต้ม",
+            "ผมทำแบบนี้จะโดนไล่ออกไหม",
+            "สอบวิชานี้ใช้ข้อสอบแบบไหน",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(
+                    answer_policy_question(DB_PATH, question).status,
+                    "unsupported",
+                )
+
     def test_text_policy_queries_remain_bounded(self):
         for question in (
             "ลาออกแล้วได้เงินคืนไหม",
