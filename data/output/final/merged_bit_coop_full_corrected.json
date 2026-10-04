@@ -2,6 +2,10 @@
   "source": "h4-stage",
   "description": "OCR-extracted curriculum records for BIT (plan coop)",
   "program": "BIT",
+  "catalog": {
+    "catalog_key": "bit-2565",
+    "academic_year": "2565"
+  },
   "plan": "coop",
   "total_courses": 63,
   "courses": [
