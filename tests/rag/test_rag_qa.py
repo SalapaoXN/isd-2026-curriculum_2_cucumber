@@ -186,6 +186,38 @@ class RagQaTest(unittest.TestCase):
         planner.assert_not_called()
         executor.assert_not_called()
 
+    def test_context_program_answers_whole_program_total_without_scope_widening(self):
+        cases = (
+            (
+                "หลักสูตรนี้ทั้งหมดกี่หน่วย",
+                QueryContext(program="IT", catalog_key="it-2565"),
+                "129",
+            ),
+            (
+                "ถ้าไม่สหกิจต้องเก็บกี่หน่วยทั้งหมด",
+                QueryContext(program="IT", catalog_key="it-2565"),
+                "129",
+            ),
+        )
+        for question, query_context, expected in cases:
+            with self.subTest(question=question):
+                with patch(
+                    "rag.qa.plan_evidence",
+                    side_effect=AssertionError(
+                        "whole-program requirement must route before curriculum planning"
+                    ),
+                ) as planner:
+                    result = ask(
+                        DB_PATH,
+                        question,
+                        context=query_context,
+                    )
+                self.assertIsInstance(result["result"], GroundedAnswerResult)
+                self.assertEqual(result["result"].status, "answer")
+                self.assertIn(expected, result["result"].final_answer)
+                self.assertTrue(result["result"].provenance)
+                planner.assert_not_called()
+
     def test_context_program_executes_year_semester_list_without_question_program(self):
         result = ask(
             DB_PATH,

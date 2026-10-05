@@ -325,6 +325,8 @@ class QuerySpecEntityTests(unittest.TestCase):
             ("วิชาที่เกี่ยวกับ machine learning มีอะไรบ้าง", "machine learning"),
             ("มีรายวิชาที่เกี่ยวกับ ความปลอดภัยบนคลาวด์ ตัวไหนบ้าง", "ความปลอดภัยบนคลาวด์"),
             ("มีวิชาเกี่ยวกับข้อมูลอะไรบ้าง", "ข้อมูล"),
+            ("พวกวิชาเว็บมีตัวไหนบ้าง", "เว็บ"),
+            ("พวก data sci มีอะไรเรียนบ้าง", "data sci"),
         )
         for question, expected_topic in cases:
             with self.subTest(question=question):
@@ -346,6 +348,57 @@ class QuerySpecEntityTests(unittest.TestCase):
         ):
             with self.subTest(question=question):
                 self.assertIsNone(parse_query_spec(question).topic)
+
+    def test_student_colloquial_surfaces_remain_bounded(self):
+        first_term = parse_query_spec("IT ปี1เทอม1 เรียนไรบ้างอะ")
+        self.assertEqual(first_term.program, "IT")
+        self.assertEqual(first_term.years, (1,))
+        self.assertEqual(first_term.semesters, (1,))
+        self.assertEqual(first_term.operations, ("list",))
+
+        thai_first = parse_query_spec("ปีสามเทอมแรกเรียนรวมกี่หน่วยอะ")
+        self.assertEqual(thai_first.years, (3,))
+        self.assertEqual(thai_first.semesters, (1,))
+        self.assertEqual(thai_first.operations, ("sum_credits",))
+
+        no_coop = parse_query_spec("dsba ไม่ coop ต้องเรียนกี่หน่วยอะ")
+        self.assertEqual(no_coop.program, "DSBA")
+        self.assertEqual(no_coop.plans, ("no_coop",))
+        self.assertEqual(no_coop.operations, ("sum_credits",))
+
+        exact_credit = parse_query_spec("06016414 มันกี่หน่วยวะ")
+        self.assertEqual(exact_credit.course_codes, ("06016414",))
+        self.assertEqual(exact_credit.operations, ("sum_credits",))
+
+        english_placement = parse_query_spec("06016460 อยู่ year ไหน")
+        self.assertEqual(english_placement.operations, ("placement",))
+
+        nosql = parse_query_spec("nosql ต้องเรียนอะไรมาก่อนปะ")
+        self.assertEqual(nosql.course_name.casefold(), "nosql")
+        self.assertIn("prerequisite", nosql.operations)
+
+    def test_compound_and_colloquial_topic_collections_keep_full_topic(self):
+        cases = (
+            ("มีวิชาเกี่ยวกับ data center ปะ", "data center"),
+            ("มีวิชาเกี่ยวกับ network security ไหม", "network security"),
+            ("หา subject เกี่ยวกับ big data ให้หน่อย", "big data"),
+            ("วิชาแนว security มีอะไรมั่ง", "security"),
+            ("อยากหาเรียนแนว machine learning มีตัวไหน", "machine learning"),
+            ("พวก data sci มีอะไรเรียนบ้าง", "data sci"),
+            ("มีอะไรสายเกมมั่ง", "เกม"),
+            ("ถ้าอยากเรียน ux มีตัวไหนเกี่ยว", "ux"),
+        )
+        for question, topic in cases:
+            with self.subTest(question=question):
+                spec = parse_query_spec(
+                    question,
+                    has_validated_context_scope=True,
+                )
+                self.assertEqual(spec.topic, topic)
+                self.assertTrue(spec.operations)
+                self.assertTrue(
+                    set(spec.operations) & {"list", "describe", "existence"}
+                )
 
     def test_bare_course_name_extraction_is_bounded(self):
         project = parse_query_spec("PROJECT 1 เรียนปีไหน?")

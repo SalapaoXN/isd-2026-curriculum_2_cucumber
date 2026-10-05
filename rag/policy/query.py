@@ -17,12 +17,31 @@ class PolicyQuery:
 
 
 _PROGRAM_RE = re.compile(r"\b(?P<program>AIT|BIT|DSBA|IT)\b", re.IGNORECASE)
-_AMOUNT_RE = re.compile(r"(?:ลงทะเบียน|ลง|เรียน)\s*(?P<amount>\d+)\s*หน่วยกิต")
-_GPA_RE = re.compile(r"GPA\s*(?:เท่าไร|เท่าไหร่|กี่คะแนน)", re.IGNORECASE)
+_AMOUNT_RE = re.compile(
+    r"(?:ลงทะเบียน|ลง|เรียน)\s*(?P<amount>\d+)\s*หน่วย(?:กิต)?"
+)
+_GPA_RE = re.compile(
+    r"GPA[^?？\n]{0,40}(?:เท่าไร|เท่าไหร่|กี่คะแนน)",
+    re.IGNORECASE,
+)
+_POLICY_SHAPE_RE = re.compile(
+    r"(?:ลาออก|ลาพักการศึกษา|พักเรียน|โอนหน่วยกิต|โอนผลการเรียน|"
+    r"ทุจริต.{0,20}สอบ|โกง.{0,20}สอบ|วินัย|อุทธรณ์|ติดโปร|พ้นโปร|หลุดโปร|"
+    r"พ้นสภาพ|เกียรตินิยม|สำเร็จการศึกษา|english\s+exit|exit\s+english|"
+    r"หนี้สิน|ภาระผูกพัน|(?:จะจบ|จบต้อง|จบได้))",
+    re.IGNORECASE,
+)
 
 
 def _normalized(question: str) -> str:
     return re.sub(r"\s+", " ", question.strip().lower())
+
+
+def looks_like_policy_question(question: str) -> bool:
+    """Return True only for strong institution-policy surface markers."""
+    if not isinstance(question, str) or not question.strip():
+        return False
+    return bool(_POLICY_SHAPE_RE.search(_normalized(question)))
 
 
 def _program(question: str) -> str | None:
@@ -64,25 +83,41 @@ def _is_bare_regular_max(text: str, question: str) -> bool:
     )
 
 
-def parse_policy_question(question: str) -> PolicyQuery | None:
-    """Return a supported policy query, or ``None`` for unsupported/ambiguous text."""
+def parse_policy_question(
+    question: str,
+    *,
+    program_context: str | None = None,
+) -> PolicyQuery | None:
+    """Return a supported policy query, or ``None`` for unsupported/ambiguous text.
+
+    ``program_context`` is used only when the question itself does not name a
+    program. This lets bounded whole-program wording such as "หลักสูตรนี้ทั้งหมด
+    กี่หน่วย" reuse an already validated UI/conversation scope without treating
+    arbitrary context as factual authority.
+    """
 
     if not isinstance(question, str) or not question.strip():
         return None
     text = _normalized(question)
     program = _program(question)
+    if program is None and isinstance(program_context, str):
+        candidate = program_context.strip().upper()
+        if candidate in {"AIT", "BIT", "DSBA", "IT"}:
+            program = candidate
     if re.search(r"(?:IT|AIT|BIT|DSBA)\s+.*(?:IT|AIT|BIT|DSBA)", question, re.IGNORECASE):
         return None
 
     general_text_policy = re.search(
-        r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ทำอย่างไร|ทำยังไง|มีขั้นตอนอะไร|"
+        r"(?:ต้องทำอย่างไร(?:บ้าง)?|ต้องทำยังไง(?:บ้าง)?|ต้องทำไง(?:บ้าง)?|"
+        r"ทำอย่างไร(?:บ้าง)?|ทำยังไง(?:บ้าง)?|ทำไง(?:บ้าง)?|มีขั้นตอนอะไร|"
         r"มีเงื่อนไขอะไร|เงื่อนไขเป็นอย่างไร|มีหลักเกณฑ์อะไรบ้าง|"
         r"หลักเกณฑ์(?:เป็นอย่างไร|มีอะไรบ้าง|อะไรบ้าง)|"
-        r"ทำได้ไหม|ทำได้หรือไม่|ได้ไหม|ได้หรือไม่|คืออะไร|เป็นอย่างไร)\s*[?？]?$",
+        r"ทำได้ไหม|ทำได้มั้ย|ทำได้ปะ|ทำได้หรือไม่|ได้ไหม|ได้มั้ย|ได้ปะ|"
+        r"ได้หรือไม่|คืออะไร|เป็นอย่างไร)\s*[?？]?$",
         text,
     )
     if general_text_policy:
-        if "ลาพักการศึกษา" in text:
+        if "ลาพักการศึกษา" in text or "พักเรียน" in text:
             return PolicyQuery("leave_of_absence")
         if "ลาออก" in text:
             return PolicyQuery("resignation")
@@ -94,11 +129,21 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("credit_transfer")
 
     if (
-        "ทุจริต" in text
+        ("ทุจริต" in text or "โกง" in text)
         and "สอบ" in text
-        and re.search(r"(?:มีโทษ|โทษ|ลงโทษ|เป็นอย่างไร|เป็นยังไง|เกิดอะไร)", text)
+        and re.search(
+            r"(?:มีโทษ|โทษ|ลงโทษ|เป็นอย่างไร|เป็นยังไง|เกิดอะไร|โดนอะไร)",
+            text,
+        )
     ):
         return PolicyQuery("exam_dishonesty_penalty")
+
+    if (
+        "วินัย" in text
+        and ("ร้ายแรง" in text or "หนัก" in text)
+        and re.search(r"(?:มีอะไรบ้าง|อะไรบ้าง|มีอะไร|คืออะไร)", text)
+    ):
+        return PolicyQuery("serious_disciplinary_offenses")
 
     if (
         ("โทษทางวินัย" in text or ("วินัย" in text and "โทษ" in text))
@@ -110,25 +155,30 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
         if re.search(r"(?:ภายในกี่วัน|กี่วัน|ภายในเท่าไร|ภายในเท่าไหร่)", text):
             return PolicyQuery("sanction_appeal_deadline")
         if re.search(
-            r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ทำอย่างไร|ทำยังไง|"
+            r"(?:ต้องทำอย่างไร|ต้องทำยังไง|ต้องทำไง|ทำอย่างไร|ทำยังไง|ทำไง|"
             r"มีขั้นตอนอะไร|ขั้นตอนเป็นอย่างไร|ขั้นตอนเป็นยังไง)",
             text,
         ):
             return PolicyQuery("sanction_appeal_procedure")
 
     amount_match = _AMOUNT_RE.search(text)
-    if amount_match and re.search(r"(?:ได้ไหม|ได้หรือไม่|ได้หรือเปล่า)\s*[?？]?$", text):
-        if "หน่วยกิต" not in text or text.count("หน่วยกิต") != 1:
-            return None
+    if amount_match and re.search(
+        r"(?:ได้ไหม|ได้มั้ย|ได้ปะ|ได้ป่ะ|ได้หรือไม่|ได้หรือเปล่า)\s*[?？]?$",
+        text,
+    ):
         return PolicyQuery("registration_compare", amount=int(amount_match.group("amount")))
 
-    if "หน่วยกิต" in text:
+    if re.search(r"(?:ซัมเมอร์|ภาคฤดูร้อน|ภาคพิเศษ)", text) and re.search(
+        r"(?:กี่|สูงสุด|มากสุด|ได้สุด|เท่าไร|เท่าไหร่)", text
+    ):
+        return PolicyQuery("registration_special_max")
+
+    credit_wording = bool(
+        re.search(r"(?:หน่วยกิต|กี่\s*หน่วย(?:กิต)?|\d+\s*หน่วย(?:กิต)?)", text)
+    )
+    if credit_wording:
         if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):
             return PolicyQuery("registration_exception_max")
-        if re.search(r"(?:ซัมเมอร์|ภาคฤดูร้อน|ภาคพิเศษ)", text) and re.search(
-            r"(?:กี่|สูงสุด|เท่าไร|เท่าไหร่)", text
-        ):
-            return PolicyQuery("registration_special_max")
         if re.search(r"(?:ปกติ|ภาคปกติ)", text) and re.search(
             r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text
         ):
@@ -137,7 +187,13 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             return PolicyQuery("registration_regular_min")
         if _is_bare_regular_max(text, question):
             return PolicyQuery("registration_regular_max")
-        if program and re.search(r"(?:ต้องเรียน|เรียนทั้งหมด|รวมทั้งหมด)", text):
+        if program and re.search(
+            r"(?:ต้อง(?:เรียน|เก็บ)\s*(?:สูงสุด|มากสุด)?\s*กี่\s*หน่วย(?:กิต)?(?:\s*ทั้งหมด)?|"
+            r"เรียนทั้งหมด|รวมทั้งหมด|"
+            r"(?:หลักสูตรนี้\s*)?ทั้งหมด\s*กี่\s*หน่วย(?:กิต)?|"
+            r"รวม\s*กี่\s*หน่วย(?:กิต)?)",
+            text,
+        ):
             spec = parse_query_spec(question)
             if (
                 getattr(spec, "years", ())
@@ -157,13 +213,33 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
             )
         return None
 
+    if program and re.search(r"(?:รวมทั้งหมด|เรียนทั้งหมด)", text):
+        spec = parse_query_spec(question)
+        if (
+            not getattr(spec, "years", ())
+            and not getattr(spec, "semesters", ())
+            and not getattr(spec, "category", None)
+            and not getattr(spec, "course_codes", ())
+            and getattr(spec, "course_name", None) is None
+        ):
+            plans = tuple(getattr(spec, "plans", ()))
+            if len(plans) <= 1:
+                return PolicyQuery(
+                    "program_total_credits",
+                    program=program,
+                    plan=plans[0] if plans else None,
+                )
+
     if "กรณีพิเศษ" in text and re.search(r"(?:สูงสุด|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("registration_exception_max")
 
     if (
         "พ้นสภาพ" in text
-        and "นักศึกษา" in text
-        and re.search(r"(?:กรณีอะไรบ้าง|มีกรณีอะไร|สาเหตุอะไรบ้าง|มีสาเหตุอะไร|เพราะอะไรบ้าง)", text)
+        and re.search(
+            r"(?:กรณีอะไรบ้าง|กรณีไหนบ้าง|มีกรณีอะไร|มีกรณีไหน|"
+            r"สาเหตุอะไรบ้าง|มีสาเหตุอะไร|เพราะอะไรบ้าง)",
+            text,
+        )
     ):
         return PolicyQuery("student_status_termination_reasons")
 
@@ -189,6 +265,7 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     if (
         (
             "ระเบียบความประพฤติ" in text
+            or "กฎเรื่องความประพฤติ" in text
             or "ข้อปฏิบัติของนักศึกษา" in text
             or "นักศึกษาต้องปฏิบัติตัว" in text
             or "นักศึกษาต้องประพฤติตัว" in text
@@ -197,29 +274,49 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
     ):
         return PolicyQuery("student_conduct_rules")
 
-    graduation_wording = "สำเร็จการศึกษา" in text or "จบการศึกษา" in text
+    graduation_wording = bool(
+        "สำเร็จการศึกษา" in text
+        or "จบการศึกษา" in text
+        or re.search(r"(?:จะจบ|จบต้อง|จบได้)", text)
+    )
     if graduation_wording:
         if (
-            ("english exit exam" in text or "สอบภาษาอังกฤษ" in text)
-            and re.search(r"(?:ต้อง|จำเป็น|ผ่าน|สอบ|มีไหม|หรือไม่|ไหม)", text)
+            (
+                "english exit exam" in text
+                or "english exit" in text
+                or "exit english" in text
+                or "สอบภาษาอังกฤษ" in text
+            )
+            and re.search(
+                r"(?:ต้อง|จำเป็น|ผ่าน|สอบ|มีไหม|มีมั้ย|ปะ|หรือไม่|ไหม|มั้ย)",
+                text,
+            )
         ):
             return PolicyQuery("graduation_english_exit")
         if (
-            ("หนี้สิน" in text or "ภาระผูกพัน" in text)
-            and re.search(r"(?:ต้อง|มีได้ไหม|มีได้หรือไม่|ไม่มี|หรือไม่|ไหม)", text)
+            ("ติดหนี้" in text or re.search(r"หนี้\s*\d+", text))
+            and re.search(r"จบได้", text)
+        ):
+            return PolicyQuery("unsupported_policy_shape")
+        if (
+            ("หนี้สิน" in text or "ภาระผูกพัน" in text or "ติดหนี้" in text)
+            and re.search(
+                r"(?:ต้อง|มีได้ไหม|มีได้มั้ย|มีได้หรือไม่|ไม่มี|หรือไม่|ไหม|มั้ย)",
+                text,
+            )
         ):
             return PolicyQuery("graduation_no_debt")
         if re.search(r"(?:เกณฑ์|เงื่อนไข|ต้องมีอะไร|ต้องทำอะไร|มีอะไรบ้าง)", text):
             return PolicyQuery("graduation_requirements")
 
     if "GPA" in text.upper() and _GPA_RE.search(question):
-        if "พ้นสภาพ" in text and "นักศึกษา" in text:
+        if "พ้นสภาพ" in text:
             return PolicyQuery("student_status_termination_gpa")
-        if "สำเร็จการศึกษา" in text or "จบการศึกษา" in text:
+        if graduation_wording:
             return PolicyQuery("graduation_gpa")
         if "ติดโปร" in text or "ภาคทัณฑ์" in text:
             return PolicyQuery("probation_entry")
-        if "พ้นโปร" in text or "พ้นภาคทัณฑ์" in text:
+        if "พ้นโปร" in text or "หลุดโปร" in text or "พ้นภาคทัณฑ์" in text:
             return PolicyQuery("probation_cleared")
         if "เกียรตินิยม" in text:
             if "อันดับหนึ่ง" in text or "อันดับ 1" in text:
@@ -228,10 +325,16 @@ def parse_policy_question(question: str) -> PolicyQuery | None:
                 return PolicyQuery("honors_second")
         return None
 
+    if (
+        ("พ้นโปร" in text or "หลุดโปร" in text or "พ้นภาคทัณฑ์" in text)
+        and re.search(r"(?:เท่าไร|เท่าไหร่|กี่คะแนน)", text)
+    ):
+        return PolicyQuery("probation_cleared")
+
     if "กลับเข้าศึกษา" in text and re.search(r"(?:กี่ปี|ภายในกี่ปี|เท่าไร|เท่าไหร่)", text):
         return PolicyQuery("reentry_limit")
 
     return None
 
 
-__all__ = ["PolicyQuery", "parse_policy_question"]
+__all__ = ["PolicyQuery", "looks_like_policy_question", "parse_policy_question"]

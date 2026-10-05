@@ -910,6 +910,10 @@ def ask(request: AskRequest) -> dict:
             db_path, request.question, catalog_key=catalog_key
         )
         if policy_result is not None:
+            # The requirement total is catalog-global, but an explicit plan
+            # remains the user's conversational scope and overrides old scope.
+            if policy_query.plan is not None:
+                service_context = {**(service_context or {}), "plan": policy_query.plan}
             return {
                 "question": request.question,
                 "answer": policy_result.final_answer

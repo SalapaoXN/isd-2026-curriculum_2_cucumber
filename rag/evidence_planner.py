@@ -394,7 +394,13 @@ def plan_evidence(
     needs_collection = bool(collection_operations & set(query_spec.operations))
     needs_topic_collection = query_spec.topic is not None and (
         needs_collection
-        or (not exact_targets and "describe" in query_spec.operations)
+        or (
+            not exact_targets
+            and bool(
+                {"describe", "placement", "earliest"}
+                & set(query_spec.operations)
+            )
+        )
     )
     if needs_topic_collection:
         add(_request("course_set", "course_set", scope))
@@ -466,6 +472,7 @@ def plan_evidence(
                     f"placement_facts_{index}",
                     "placement_facts",
                     partition_scope,
+                    depends_on=(topic_target_id,) if topic_target_id else (),
                     course_targets=exact_targets,
                 )
             )

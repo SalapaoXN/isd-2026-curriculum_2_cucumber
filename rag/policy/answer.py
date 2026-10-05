@@ -778,6 +778,8 @@ def answer_policy_query(
 ) -> PolicyAnswer:
     """Answer one already-parsed policy query using only the canonical runtime DB."""
     try:
+        if query.kind == "unsupported_policy_shape":
+            return PolicyAnswer(status="unsupported", query_type=query.kind)
         if query.kind == "student_status_termination_reasons":
             return _student_status_termination_reasons_answer(db_path, query)
         if query.kind == "gpa_calculation_method":
@@ -810,10 +812,11 @@ def answer_policy_question(
     question: str,
     *,
     catalog_key: str | None = None,
+    program_context: str | None = None,
 ) -> PolicyAnswer:
     """Answer one supported policy question using only the canonical runtime DB."""
 
-    query = parse_policy_question(question)
+    query = parse_policy_question(question, program_context=program_context)
     if query is None:
         return PolicyAnswer(status="unsupported")
     return answer_policy_query(db_path, query, catalog_key=catalog_key)

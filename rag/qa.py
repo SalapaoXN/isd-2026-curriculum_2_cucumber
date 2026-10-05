@@ -65,7 +65,7 @@ from rag.judgement import (
     evaluate_workload,
 )
 from rag.policy.answer import answer_policy_query
-from rag.policy.query import PolicyQuery
+from rag.policy.query import PolicyQuery, parse_policy_question
 from rag.policy.routing import adapt_policy_answer, route_policy_question
 from rag.query_spec import detect_surface_operations, parse_query_spec
 from rag.retrieval.retrieve import (
@@ -3101,6 +3101,17 @@ def ask(
     elif matching_catalog_key is not None:
         catalog_key = matching_catalog_key
 
+    # A term/year selector without any requested operation is not yet a
+    # bounded curriculum question. Do not turn it into a program prompt that
+    # suggests clarification can make this credit maximum answerable.
+    if (
+        not spec.operations
+        and (spec.years or spec.semesters)
+        and not (spec.plans or spec.course_codes or spec.course_name or spec.category or spec.topic)
+        and program is None
+    ):
+        return _intent_failure_result(question)
+
     policy_result = route_policy_question(
         db_path,
         question,
@@ -3109,11 +3120,46 @@ def ask(
             if program and edition_catalog_keys_for_program(db_path, program)
             else None
         ),
+        program_context=program if isinstance(program, str) else None,
     )
     if policy_result is not None:
-        return {"route": None, "result": policy_result}
+        policy_query = parse_policy_question(question, program_context=program)
+        if policy_query is None or policy_query.kind != "program_total_credits":
+            return {"route": None, "result": policy_result}
+        policy_context = {"program": program} if program else {}
+        if catalog_key is not None:
+            policy_context["catalog_key"] = catalog_key
+        if len(spec.plans) == 1:
+            policy_context["plan"] = spec.plans[0]
+        return {
+            "route": None,
+            "result": policy_result,
+            "next_context": policy_context or None,
+        }
 
-    if _is_whole_program_total(spec, program):
+    operations = tuple(getattr(spec, "operations", ()))
+    has_structural_target = bool(
+        tuple(getattr(spec, "plans", ()))
+        or tuple(getattr(spec, "years", ()))
+        or tuple(getattr(spec, "semesters", ()))
+        or tuple(getattr(spec, "course_codes", ()))
+        or getattr(spec, "course_name", None)
+        or getattr(spec, "category", None)
+        or getattr(spec, "topic", None)
+    )
+    explicit_program_mentions = {
+        match.group(0).upper()
+        for match in re.finditer(
+            r"(?<![A-Za-z0-9_])(?:AIT|BIT|DSBA|IT)(?![A-Za-z0-9_])",
+            question,
+            re.IGNORECASE,
+        )
+    }
+    if (
+        len(explicit_program_mentions) <= 1
+        and (explicit_program_mentions or spec.plans)
+        and _is_whole_program_total(spec, program)
+    ):
         # Canonical program/catalog-level total evidence (program
         # requirements) is the only authority for a whole-program sum.
         # The plan qualifier, if any, is preserved as conversational scope
@@ -3139,7 +3185,37 @@ def ask(
             "next_context": total_context,
         }
 
-    if not has_answerable_target_or_scope(spec, active_context):
+    if (
+        operations == ("sum_credits",)
+        and not has_structural_target
+        and len(explicit_program_mentions) <= 1
+    ):
+        # A bare follow-up such as "กี่หน่วยอะ" with only program/catalog
+        # context does not identify a semester, course, plan, or program-total
+        # requirement. Never widen it to every term in the curriculum.
+        # Explicit multi-program wording is excluded: that is a real
+        # comparison shape handled by the existing structured path.
+        return _intent_failure_result(question)
+    if operations == ("existence",) and not has_structural_target:
+        # Existence without an entity/filter otherwise degenerates into
+        # "does this curriculum contain anything?" and can mask a missed
+        # policy/topic parse.
+        return _intent_failure_result(question)
+    if (
+        operations == ("placement",)
+        and not (
+            tuple(getattr(spec, "course_codes", ()))
+            or getattr(spec, "course_name", None)
+            or getattr(spec, "topic", None)
+        )
+        and re.search(r"(?:ตัวนี้|วิชานี้|อันนี้)", question, re.IGNORECASE)
+    ):
+        return _intent_failure_result(question)
+
+    if (
+        not has_answerable_target_or_scope(spec, active_context)
+        and not (operations == ("sum_credits",) and len(explicit_program_mentions) > 1)
+    ):
         # A targetless detail/reference request must fail closed here, before
         # resolution, retrieval, or any model call, instead of falling through
         # into broad program-wide retrieval with a confident dump.
