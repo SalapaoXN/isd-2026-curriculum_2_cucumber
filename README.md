@@ -35,6 +35,7 @@ CUCUMBER เป็นระบบแปลงข้อมูลหลักส�
 - ปี/เทอม/หน่วยกิต/prerequisite ต้องมาจากหลักฐานที่ตรวจสอบได้
 - LLM ใช้ช่วยตีความภาษาและงานที่ถูกจำกัดขอบเขต แต่ไม่ใช่ factual authority
 - ถ้าหลักฐานไม่พอ ระบบจะ clarify / fail closed แทนการเดา
+- backend เป็น stateless; การสนทนาหลายเทิร์นใช้ `next_context` ที่ฝั่ง client ส่งกลับมา โดยเก็บเฉพาะ scope/ตัวอ้างอิงที่มีขอบเขต ไม่ใช้ประวัติแชตทั้งหมดเป็น factual authority
 
 หน้าเว็บหลัก:
 
@@ -66,7 +67,7 @@ QA / API / Web UI
 
 - `data/output/final/*_corrected.json` — canonical curriculum corpus
 - `institution_policy.json` — ข้อกำหนด/นโยบายสถาบันที่ผ่านการจัดโครงสร้าง
-- `program_requirements.json` — ข้อกำหนดหน่วยกิตรวมแบบผูกกับ `catalog_key`
+- `program_requirements.json` — ข้อกำหนดหน่วยกิตรวมแบบผูกกับ `catalog_key`; คำถาม “หลักสูตรนี้รวมกี่หน่วยกิต” ใช้ authority นี้แทนการบวก placement รายเทอม
 - `cucumber_outputs/runtime/curriculum.db` — runtime DB ที่สร้างจากข้อมูลข้างต้น
 - `ground_truth/` — ใช้ evaluation/test เท่านั้น ไม่ใช่ production authority
 - `ground_truth/GT_FIXED.md` — audit log ว่า Ground Truth เคยแก้อะไร จากค่าใด เป็นค่าใด และเพราะอะไร
@@ -190,6 +191,7 @@ Request:
 - `question`: string, 2–500 ตัวอักษร
 - `conversation_context`: object หรือ `null`
 - เทิร์นถัดไปควรส่ง `next_context` จาก response กลับมาเป็น `conversation_context`
+- context เป็น state แบบ bounded และ client-held: เก็บ scope ที่ตรวจสอบแล้ว เช่น program/catalog/plan/year/semester รวมถึงตัวอ้างอิงรายวิชา/ผลลัพธ์/คำตอบก่อนหน้าที่จำเป็นต่อ follow-up เท่านั้น ไม่ใช่การเก็บ transcript ทั้งหมดหรือ cached factual answer
 
 Response หลัก:
 
@@ -298,8 +300,11 @@ Runtime benchmark ล่าสุดอยู่ที่ `reports/runtime_bench
 ## 8. ข้อจำกัดที่ตั้งใจ fail closed
 
 - ระบบไม่มีข้อมูลการเปิดสอนจริงของรายวิชาในภาคเรียนอนาคต จึงไม่ยืนยันว่า “ถอน/ตกแล้วจะเปิดให้ลงใหม่เทอมไหน”
+- หาก policy ระบุว่าต้องผ่าน English Exit แต่ canonical evidence ไม่มีคะแนนผ่าน ระบบจะไม่สร้างคะแนนขึ้นมาเอง
+- คำถามสิทธิ์ส่วนบุคคล เช่น “GPA เท่านี้ลงสหกิจได้ไหม” จะไม่ถูกฟันธงถ้าฐานข้อมูลยังไม่มีเกณฑ์เฉพาะของคณะ/หลักสูตรเพียงพอ
 - คำถามที่ต้องใช้หลักฐานนอก canonical curriculum / policy data จะไม่ถูกเดาคำตอบ
 - program ที่มีหลายฉบับต้องรักษา `catalog_key` ไม่รวมข้อมูลข้าม edition
+- ordinal/follow-up ที่อ้างอิงเป้าหมายไม่ได้อย่างปลอดภัยจะ fail closed แทนการย้อนกลับไปใช้ referent เก่า
 - semantic result ยังขึ้นกับคุณภาพ course description และหลักฐานที่มีจริง
 
 ---
