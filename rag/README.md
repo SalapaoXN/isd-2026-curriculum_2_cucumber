@@ -10,8 +10,13 @@ SQLite ทางการ พร้อม provenance สำหรับคำต
 รับข้อความคำถามหนึ่งข้อ กับ `QueryContext`
 (`rag/resolution.py`) ที่บรรจุได้เฉพาะโครงสร้างอ้างอิง
 (`catalog_key`/program/plan/ปี/เทอม/หมวด/วิชา/operation) เท่านั้น —
-ห้ามเก็บคำตอบ — พร้อม model callable ที่ส่งเข้ามาจากภายนอก
+ห้ามเก็บคำตอบหรือ transcript ทั้งก้อน — พร้อม model callable ที่ส่งเข้ามาจากภายนอก
 (ถ้ามี)
+
+ใน web/API มี conversation state เพิ่มที่ระดับ service แบบ bounded และ client-held เช่น
+semantic topic, focus course, result identities และ `last_answer` reference สำหรับ follow-up
+โดย `last_answer` เก็บเพียง route/scope/evidence reference ที่จำเป็นต่อการ re-ground เท่านั้น
+ไม่เก็บ assistant prose หรือ cached factual value เป็น authority
 
 ## กระบวนการทำงาน
 ```text
@@ -25,22 +30,26 @@ SQLite ทางการ พร้อม provenance สำหรับคำต
 2. **แยกวิเคราะห์แบบ deterministic** (`query_spec.py`) ได้เป็น
    `QuerySpec` แล้ว **resolve** (`resolution.py`) เพื่อตรึง
    ตัวตนของวิชาและขอบเขตให้ชัดเจน
-3. **ตีความแบบมีขอบเขต** (`intent_interpreter.py`,
+3. **previous-answer follow-up แบบ bounded** — คำอย่าง “มาจากไหน”,
+   “ขยายความ”, “เพราะอะไร” จะอ้างถึงคำตอบก่อนหน้าได้เฉพาะเมื่อเทิร์นนั้น
+   ไม่มี subject/target ใหม่ และจะ re-ground จากหลักฐานเดิมทุกครั้ง
+   ถ้ามีหัวข้อใหม่ เช่น “เกียรตินิยมมาจากกฎข้อไหน” จะไม่ยึด referent เก่า
+4. **ตีความแบบมีขอบเขต** (`intent_interpreter.py`,
    `intent_compiler.py`) — โมเดลถูกเรียกได้มากสุดหนึ่งครั้ง
    และเฉพาะรูปคำถามที่เข้าเกณฑ์ (เช่น อยากได้รายชื่อแต่ไม่ได้
    ระบุ intent, หรือคำถามเชิงความชอบ) ข้อเสนอของโมเดลทุกชิ้น
    ต้องผ่านการตรวจกับขอบเขตที่แน่นอนก่อน ไม่ผ่านคือทิ้ง
-4. **วางแผนและดึงหลักฐาน** (`evidence_planner.py`,
+5. **วางแผนและดึงหลักฐาน** (`evidence_planner.py`,
    `evidence_executor.py`, `structured/queries.py`,
    `retrieval/retrieve.py`) — สร้างกราฟคำขอนิรนามแล้วรันแบบ
    deterministic ทีละ plan ส่วน SQL fallback
    (`structured/fallback.py`) ให้โมเดลใช้เลือกได้แค่ id ของ
    candidate ข้อเท็จจริงทุก field ต้อง hydrate จากข้อมูล
    ทางการใหม่เสมอ
-5. **สรุปผลแบบมีหลักฐาน** (`aggregation.py`,
+6. **สรุปผลแบบมีหลักฐาน** (`aggregation.py`,
    `judgement.py`, `grounded_answer.py`) — รวมผลด้วยฟังก์ชัน
    deterministic ล้วน ได้เป็น claim ที่มีชนิดชัดเจน
-6. **แสดงผล** (`answer.py`) — เรียงข้อความเป็นภาษาไทย
+7. **แสดงผล** (`answer.py`) — เรียงข้อความเป็นภาษาไทย
    การขัดเกลาถ้อยคำเป็นเพียงเรื่องสำนวนโดยคงหลักฐานเดิม
    และจะถูกปิดหลังเทิร์นที่ใช้การตีความ (ยกเว้นคำแนะนำเชิง
    ความชอบที่รองรับไว้โดยเฉพาะ)
@@ -52,27 +61,29 @@ SQLite ทางการ พร้อม provenance สำหรับคำต
 ข้อความตอบสุดท้าย claim ที่มีชนิด และแหล่งอ้างอิงของข้อมูล
 (program + เลขหน้า) การสนทนาหลายเทิร์นใช้วิธีส่ง
 `next_context` จาก response กลับมาเป็น
-`conversation_context` ของครั้งถัดไป โดยคง `catalog_key` และขอบเขตอื่นที่
-ตรวจสอบแล้ว
+`conversation_context` ของครั้งถัดไป โดยคง `catalog_key`, plan,
+focus/result references และขอบเขตอื่นที่ตรวจสอบแล้ว
 
 ## กลุ่มคำถามที่รองรับ
 รายชื่อวิชา / จำนวนวิชา / มีวิชานี้ไหม / วิชานี้เรียนตอนไหน
 หน่วยกิตรายวิชา กรองรายชื่อด้วยเงื่อนไข `N หน่วยกิต`
-(เฉพาะ list) ผลรวมหน่วยกิตตาม scope และผลรวมรายหมวด
-เฉพาะปี+เทอมที่ระบุชัด วิชาบังคับก่อนทั้งแบบรายวิชาและ
-แบบติดตามผลข้ามเทิร์น รหัสวิชา/หลักสูตรของวิชา/คำอธิบาย
-รายวิชา ความคล้ายสองวิชา การเปรียบเทียบช่วงเรียนและ
-เปรียบเทียบแผน ความชอบที่ระบุชัด และคำถามนโยบายแบบ
-เทิร์นเดียวตามรายการที่รองรับ รูปที่รองรับแต่หลักฐานไม่พอ
-จะได้คำตอบแบบ fail-closed ที่ควบคุมไว้ ไม่ใช่การเดา
+(เฉพาะ list) ผลรวมหน่วยกิตตาม scope ผลรวมรายหมวดตาม scope
+และหน่วยกิตรวมทั้งหลักสูตรจาก canonical `program_requirements`
+วิชาบังคับก่อนทั้งแบบรายวิชาและแบบติดตามผลข้ามเทิร์น
+รหัสวิชา/หลักสูตรของวิชา/คำอธิบายรายวิชา semantic topic search
+ความคล้ายสองวิชา การเปรียบเทียบช่วงเรียนและเปรียบเทียบแผน
+ความชอบที่ระบุชัด คำถามนโยบายตามรายการที่รองรับ และ follow-up
+แบบ source/explain/rationale ต่อคำตอบที่ grounded แล้ว
+รูปที่รองรับแต่หลักฐานไม่พอจะได้คำตอบแบบ fail-closed ที่ควบคุมไว้
+ไม่ใช่การเดา
 
 ## องค์ประกอบหลัก
 `qa.py` (pipeline) · `query_spec.py` · `resolution.py` ·
 `policy/` (routing/answer/repository) · `evidence_planner.py` ·
 `evidence_executor.py` · `structured/` · `retrieval/` ·
 `aggregation.py` · `judgement.py` · `grounded_answer.py` ·
-`answer.py` · `intent_interpreter.py` · `intent_compiler.py` ·
-`intent_gate.py` (shadow สำหรับประเมินผลเท่านั้น) ·
+`answer.py` · `prev_answer.py` · `intent_interpreter.py` ·
+`intent_compiler.py` · `intent_gate.py` (shadow สำหรับประเมินผลเท่านั้น) ·
 `hybrid_demo.py` · `providers/gemini.py` · `build_index.py`
 
 ## วิธีใช้งาน
@@ -98,9 +109,14 @@ Robustness 50/50 PASS (ชุดเสริมด้านสำนวนภา
   เรียงลำดับ และ `plan` เป็น variant ภายในฉบับ
 - คำถามของ program ที่มีหลายฉบับต้องระบุฉบับ มิฉะนั้นระบบจะขอให้เลือกแทนการรวม
   หลักฐานข้ามฉบับ
-- ข้อกำหนดหน่วยกิตรวมของ DSBA 2560 ยังไม่มีใน runtime requirements จึงตอบแบบ
-  fail closed
+- หน่วยกิตรวมทั้งหลักสูตรตอบจาก `program_requirements` ที่ผูกกับ `catalog_key`
+  ไม่คำนวณจากการบวก placement รายเทอม
+- ไม่มี authority สำหรับการเปิดสอนจริงในอนาคต จึงไม่ยืนยัน future offering
+- ถ้า canonical policy ไม่มีคะแนนผ่าน English Exit ระบบจะไม่สร้าง threshold ขึ้นเอง
+- คำถามสิทธิ์ส่วนบุคคล เช่น “GPA เท่านี้ลงสหกิจได้ไหม” จะ fail closed เมื่อไม่มี
+  เกณฑ์เฉพาะของคณะ/หลักสูตรเพียงพอ
+- ordinal หรือ follow-up ที่ resolve referent ไม่ได้จะ fail closed และห้าม fallback ไปใช้
+  focus/referent เก่าแบบเงียบ ๆ
+- semantic topic และ result set เป็น retrieval/reference state เท่านั้น ไม่ใช่ factual authority
 - ห้ามแก้ runtime DB จากเส้นทาง QA
-- ตั้งใจไม่รองรับ: ผลรวมรายหมวดนอก scope ปี+เทอมชัด
-  นโยบายแบบหลายเทิร์น earliest-year สำนวน credit ภาษาอังกฤษ/
-  เขียนเป็นคำ SQL ตามใจ และ memory ข้าม session
+- ตั้งใจไม่รองรับ memory ข้าม session; backend ไม่เก็บ chat history ฝั่ง server
