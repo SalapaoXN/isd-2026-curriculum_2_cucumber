@@ -1110,6 +1110,68 @@ def _plan_display(plan: Any) -> str:
     return str(plan) if plan not in (None, "") else "ไม่ระบุแผน"
 
 
+def _fixed_year_semester(entry: Mapping[str, Any]) -> tuple[int, int] | None:
+    """Return the concrete fixed placement only from exact canonical fields."""
+    year = entry.get("year_number", entry.get("year"))
+    semester = entry.get("semester_number", entry.get("semester"))
+    if (
+        isinstance(year, int)
+        and not isinstance(year, bool)
+        and isinstance(semester, int)
+        and not isinstance(semester, bool)
+    ):
+        return (year, semester)
+    return None
+
+
+def _has_explicit_null_placement(entry: Mapping[str, Any]) -> bool:
+    """Whether canonical placement was queried for this entry and came back absent.
+
+    Real evidence rows always carry explicit placement fields; NULL values mean
+    the course has no fixed year/semester (e.g. a flexible elective slot).
+    Timing-only shapes without placement fields keep their established
+    rendering.
+    """
+    if _fixed_year_semester(entry) is not None:
+        return False
+    return (
+        "year_number" in entry
+        or "semester_number" in entry
+        or "year" in entry
+        or "semester" in entry
+    )
+
+
+def _placement_prefix_dimensions(
+    claim: Any, scope_dimensions: Sequence[str]
+) -> Sequence[str]:
+    """Drop year/semester scope labels when no entry has fixed placement.
+
+    Partition scopes derived from flexible arrangement options must not label
+    an answer whose entries explicitly state that no fixed placement exists.
+    Program/plan labels are factual row identity and are always kept.
+    """
+    entries = [
+        entry for entry in _placement_entries(claim.value) if isinstance(entry, Mapping)
+    ]
+    if entries and all(_has_explicit_null_placement(entry) for entry in entries):
+        return tuple(dimension for dimension in scope_dimensions if dimension == "plan")
+    return scope_dimensions
+
+
+def _placement_entry_asserts_fixed_timing(entry: Mapping[str, Any]) -> bool:
+    """Whether this entry may be rendered as a definitive fixed placement.
+
+    Entries with explicit NULL placement must never be asserted as fixed
+    year/semester, even when flexible arrangement options are attached.
+    Timing-only shapes without placement fields keep their established
+    rendering.
+    """
+    if _fixed_year_semester(entry) is not None:
+        return True
+    return not _has_explicit_null_placement(entry)
+
+
 def _placement_sentence(entry: Mapping[str, Any]) -> str | None:
     choices = _placement_choices(entry)
     if not choices:
@@ -1122,7 +1184,12 @@ def _placement_sentence(entry: Mapping[str, Any]) -> str | None:
         prefix += f"ในหลักสูตร {program}"
     if plan not in (None, ""):
         prefix += f" แผน{_plan_display(plan)}"
-    if len(choices) == 1:
+    fixed = _fixed_year_semester(entry)
+    if fixed is not None:
+        timing = f"เรียนในปี {fixed[0]} ภาคเรียนที่ {fixed[1]}"
+    elif _has_explicit_null_placement(entry):
+        timing = "ไม่มีข้อมูลปี/ภาคเรียนที่แน่นอนในหลักสูตร"
+    elif len(choices) == 1:
         timing = f"เรียนในปี {choices[0][0]} ภาคเรียนที่ {choices[0][1]}"
     else:
         options = " หรือ ".join(
@@ -1140,6 +1207,15 @@ def _placement_text(value: Any) -> str | None:
         return None
     if len(entries) == 2:
         left, right = entries
+        if not (
+            _placement_entry_asserts_fixed_timing(left)
+            and _placement_entry_asserts_fixed_timing(right)
+        ):
+            # A flexible-only entry must not be merged into a definitive shared
+            # timing claim; render each entry on its own factual footing.
+            sentences = [_placement_sentence(entry) for entry in entries]
+            rendered = [sentence for sentence in sentences if sentence]
+            return "\n".join(rendered) if rendered else None
         left_choices = _placement_choices(left)
         right_choices = _placement_choices(right)
         left_plan = left.get("plan_key", left.get("plan"))
@@ -1737,7 +1813,13 @@ def _deterministic_claim_text(
     if claim.operation in {"placement", "earliest", "compare"}:
         placement_text = _placement_text(claim.value)
         if placement_text is not None:
-            return _human_scope_prefix(claim, scope_dimensions) + placement_text
+            return (
+                _human_scope_prefix(
+                    claim,
+                    _placement_prefix_dimensions(claim, scope_dimensions),
+                )
+                + placement_text
+            )
 
     if claim.operation == "prerequisite":
         prerequisite_text = _prerequisite_text(

@@ -22,15 +22,26 @@ _PROGRAM_PATTERN = re.compile(
 )
 
 _PLAN_PATTERN = re.compile(
-    r"(?<![A-Za-z0-9_])(no_coop|coop|default|gened)(?![A-Za-z0-9_])"
-    r"|ไม่\s*coop|ไม่สหกิจ|แผนปกติ|สหกิจ",
+    # Negated forms first: an explicit negation must dominate the positive
+    # token it negates, before bare substring matching can claim coop. The
+    # Thai negation needs no ASCII boundary (consistent with ไม่สหกิจ below).
+    r"(?<![A-Za-z0-9_])(?:no[\s_-]+coop|non[\s_-]+coop)"
+    r"|ไม่\s*coop"
+    r"|ไม่\s*สหกิจ|แผนปกติ"
+    r"|(?<![A-Za-z0-9_])(?:no_coop|coop|default|gened)(?![A-Za-z0-9_])"
+    r"|สหกิจ",
     re.IGNORECASE,
 )
 _PLAN_ALIASES = (
     ("no_coop", "no_coop"),
+    ("nocoop", "no_coop"),
+    ("no-coop", "no_coop"),
+    ("noncoop", "no_coop"),
+    ("non-coop", "no_coop"),
     ("coop", "coop"),
     ("default", "default"),
     ("gened", "gened"),
+    ("ไม่coop", "no_coop"),
     ("ไม่สหกิจ", "no_coop"),
     ("แผนปกติ", "no_coop"),
     ("สหกิจ", "coop"),
@@ -202,6 +213,10 @@ _PREVIOUS_RESULT_SET_ANCHORS = (
     "จากรายการก่อนหน้า",
     "จากวิชาก่อนหน้า",
 )
+# Bounded ordinal result references only (ตัวแรก / ตัวที่ N). Intent wording
+# (credits, placement, ...) is parsed separately by the operation patterns.
+_RESULT_ORDINAL_FIRST_PATTERN = re.compile(r"(?:ตัว|อัน)แรก")
+_RESULT_ORDINAL_NTH_PATTERN = re.compile(r"(?:ตัว|อัน)ที่\s*(\d+|สอง)")
 _COURSE_DETAIL_PATTERN = re.compile(
     r"ลักษณะไหน|ด้าน(?:ไหน|ใด)(?:บ้าง)?|พูดถึง|อะไรบ้าง|อย่างไร|แบบไหน|"
     r"เนื้อหา.*?(?:ครอบคลุม|ช่วยจัดการ).*?เรื่องใด(?:บ้าง)?",
@@ -315,7 +330,9 @@ def _extract_program(question: str) -> str | None:
 def _extract_plans(question: str) -> tuple[str, ...]:
     matches = []
     for match in _PLAN_PATTERN.finditer(question):
-        value = match.group(0).casefold()
+        # Collapse internal whitespace so spaced negations ("ไม่ coop",
+        # "no coop") normalize to the same finite alias keys.
+        value = re.sub(r"\s+", "", match.group(0).casefold())
         if value == "gened" and re.search(
             r"วิชา\s*gened\b|gened\s+อะไร", question, re.IGNORECASE
         ):
@@ -660,6 +677,27 @@ def _extract_operations(
     )
 
 
+def _extract_result_ordinal(question: str) -> int | None:
+    """Extract a 1-based ordinal into the previous result set, if referenced.
+
+    Only the finite ordinal forms are recognized; magnitude is range-checked
+    later against the retained set (no clamping, no fallback).
+    """
+    if _RESULT_ORDINAL_FIRST_PATTERN.search(question):
+        return 1
+    match = _RESULT_ORDINAL_NTH_PATTERN.search(question)
+    if match is None:
+        return None
+    token = match.group(1)
+    if token == "สอง":
+        return 2
+    try:
+        number = int(token, 10)
+    except (TypeError, ValueError):
+        return None
+    return number if number >= 1 else None
+
+
 def _references_previous_result_set(question: str) -> bool:
     """Recognize only explicit, high-confidence anchors to a prior result set."""
     normalized = " ".join(question.casefold().split())
@@ -721,6 +759,7 @@ class QuerySpec:
     judgement: str
     credit_units: int | None = None
     references_previous_result_set: bool = False
+    result_ordinal: int | None = None
 
 
 def parse_query_spec(
@@ -813,6 +852,7 @@ def parse_query_spec(
         references_previous_result_set=_references_previous_result_set(
             normalized_question
         ),
+        result_ordinal=_extract_result_ordinal(normalized_question),
     )
 
 

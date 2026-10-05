@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Mapping
+from dataclasses import replace
 import json
 import math
 from contextlib import closing
@@ -18,10 +19,16 @@ from rag.structured.guard_sql import (
     guard_sql,
 )
 from rag.structured.nl_to_sql import question_to_sql, repair_sql
-from rag.query_spec import QuerySpec, parse_query_spec
+from rag.query_spec import QuerySpec, _COURSE_CODE_PATTERN, parse_query_spec
+from rag.resolution import (
+    QueryContext,
+    has_answerable_target_or_scope,
+    resolve_ordinal_course_reference,
+)
 from rag.structured.queries import (
     catalog_keys_for_program,
     edition_catalog_keys_for_program,
+    exact_course_candidates,
 )
 
 
@@ -486,6 +493,153 @@ def _result_courses_from_rows(
     return list(courses.values()), False
 
 
+def _canonical_identities_for_named_codes(
+    named: list[str],
+    selected_program: str | None,
+    selected_catalog_key: str | None,
+    db_path: str | Path,
+) -> tuple[list[dict[str, str | None]], set[str | None]]:
+    """Validate answer-named codes directly against canonical course identity.
+
+    Fallback only, used when model-generated SQL rows disagree with the
+    grounded answer. Each named code must resolve to exactly one canonical
+    candidate inside the active program/catalog scope; unknown, ambiguous,
+    or out-of-scope codes are dropped. Mention order is preserved. Identity
+    fields only; never facts.
+    """
+    items: list[dict[str, str | None]] = []
+    catalogs: set[str | None] = set()
+    try:
+        for code in named[:_MAX_CONTEXT_COURSES]:
+            candidates = exact_course_candidates(
+                db_path,
+                course_code=code,
+                program=selected_program,
+                catalog_key=selected_catalog_key,
+            )
+            if len(candidates) != 1:
+                continue
+            raw_program = candidates[0].get("program")
+            if not isinstance(raw_program, str) or not raw_program.strip():
+                continue
+            catalog_key: str | None = (
+                selected_catalog_key.strip()
+                if isinstance(selected_catalog_key, str)
+                and selected_catalog_key.strip()
+                else None
+            )
+            catalogs.add(
+                catalog_key.casefold() if catalog_key is not None else None
+            )
+            item: dict[str, str | None] = {
+                "program": raw_program.strip(),
+                "course_code": code,
+            }
+            if catalog_key is not None:
+                item["catalog_key"] = catalog_key
+            items.append(item)
+    except (FileNotFoundError, OSError, sqlite3.Error, TypeError, ValueError):
+        return [], set()
+    return items, catalogs
+
+
+def _retained_identities_from_answer(
+    answer: Any,
+    rows: list[dict[str, Any]],
+    selected_program: str | None,
+    selected_catalog_key: str | None,
+    semantic_topic: str | None = None,
+    db_path: str | Path | None = None,
+) -> dict[str, Any] | None:
+    """Retain only canonical identities the grounded answer actually named.
+
+    Ordinal references (ตัวแรก/ตัวที่ N) resolve against courses named in the
+    answer prose, in mention order, restricted to validated canonical row
+    identities. When model-generated SQL rows are narrower than (or disagree
+    with) the grounded answer, answer-named codes are additionally validated
+    directly against canonical relational course identity inside the active
+    scope; SQL-row agreement stays preferred and runs first. Single-course
+    answers stay owned by the focus machinery; answers naming nothing retain
+    nothing. Truncated to the context bound; out-of-range ordinals fail
+    closed downstream. Never retains facts.
+    """
+    if not isinstance(answer, str) or not answer.strip():
+        return None
+    named: list[str] = []
+    for match in _COURSE_CODE_PATTERN.finditer(answer):
+        code = match.group(1)
+        if code not in named:
+            named.append(code)
+    if len(named) < 2:
+        return None
+    by_code: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        raw_code = row.get("course_code")
+        if not isinstance(raw_code, (str, int)) or isinstance(raw_code, bool):
+            continue
+        key = str(raw_code).strip()
+        if key and key not in by_code:
+            by_code[key] = row
+    items: list[dict[str, str | None]] = []
+    catalogs: set[str | None] = set()
+    for code in named[:_MAX_CONTEXT_COURSES]:
+        row = by_code.get(code)
+        if row is None:
+            continue
+        raw_program = row.get("program", row.get("program_code"))
+        if not isinstance(raw_program, str) or not raw_program.strip():
+            continue
+        raw_catalog = row.get("catalog_key")
+        if isinstance(raw_catalog, str) and raw_catalog.strip():
+            catalog_key: str | None = raw_catalog.strip()
+        elif selected_catalog_key is not None:
+            # Rows come from execution already scoped to the selected catalog.
+            catalog_key = selected_catalog_key.strip()
+        else:
+            catalog_key = None
+        catalogs.add(catalog_key.casefold() if catalog_key is not None else None)
+        item: dict[str, str | None] = {
+            "program": raw_program.strip(),
+            "course_code": code,
+        }
+        if catalog_key is not None:
+            item["catalog_key"] = catalog_key
+        items.append(item)
+    if len(items) < 2 and db_path is not None:
+        # SQL-row agreement is preferred; only when it is insufficient,
+        # validate the answer-named codes directly against canonical
+        # relational identity (live SQL rows may be narrower than the
+        # grounded answer). Scope coherence is enforced by the exact
+        # candidate lookup and the result-context validation below.
+        items, catalogs = _canonical_identities_for_named_codes(
+            named, selected_program, selected_catalog_key, db_path
+        )
+    if len(items) < 2:
+        return None
+    if len({catalog for catalog in catalogs if catalog is not None}) > 1:
+        return None
+    try:
+        parsed = parse_result_courses_context(
+            items, selected_program, selected_program, False, selected_catalog_key
+        )
+    except (TypeError, ValueError):
+        return None
+    if parsed is None:
+        return None
+    retained: dict[str, Any] = {}
+    if selected_program is not None:
+        retained["program"] = selected_program
+    if selected_catalog_key is not None:
+        retained["catalog_key"] = selected_catalog_key
+    if semantic_topic is not None:
+        retained["semantic_topic"] = semantic_topic
+    retained["result_courses"] = parsed[0]
+    retained["result_scope_program"] = parsed[1]
+    return retained
+
+
 def _next_conversation_context(
     selected_program: str | None,
     prior_focus: dict[str, str | None] | None,
@@ -621,7 +775,7 @@ def _references_focus_course(question: str) -> bool:
     compact = "".join(question.casefold().split())
     return any(
         "".join(anchor.split()) in compact
-        for anchor in ("ตัวนี้", "วิชานี้", "อันนี้")
+        for anchor in ("ตัวนี้", "ตัวนั้น", "วิชานี้", "อันนี้")
     )
 
 
@@ -802,7 +956,7 @@ def ask_sql(
         - {
             "program", "catalog_key", "focus_catalog_key", "plan", "years", "semesters",
             "focus_course", "result_courses", "result_scope_program", "result_set_empty",
-            "operations",
+            "operations", "semantic_topic",
         }
     ):
         return _failure("invalid_context")
@@ -1026,6 +1180,108 @@ def ask_sql(
         return _failure("invalid_context")
     prior_result_courses = parsed_results[0] if parsed_results is not None else None
 
+    # Ordinal references (ตัวแรก/ตัวที่ N) resolve against the retained set
+    # only; explicit codes/names win, everything else fails closed downstream.
+    ordinal_target = resolve_ordinal_course_reference(
+        query_spec, prior_result_courses
+    )
+    ordinal_code = (
+        ordinal_target.get("course_code").strip()
+        if isinstance(ordinal_target, dict)
+        and isinstance(ordinal_target.get("course_code"), str)
+        and ordinal_target.get("course_code").strip()
+        else None
+    )
+
+    prior_focus_code = (
+        prior_focus.get("course_code")
+        if isinstance(prior_focus, dict)
+        else None
+    )
+    if not isinstance(prior_focus_code, str) or not prior_focus_code.strip():
+        prior_focus_code = None
+    else:
+        prior_focus_code = prior_focus_code.strip()
+    raw_service_topic = (
+        conversation_context.get("semantic_topic")
+        if isinstance(conversation_context, dict)
+        else None
+    )
+    if raw_service_topic is None:
+        service_topic = None
+    elif (
+        not isinstance(raw_service_topic, str)
+        or not raw_service_topic.strip()
+        or len(raw_service_topic.strip()) > 80
+    ):
+        return _failure("invalid_context")
+    else:
+        service_topic = raw_service_topic.strip()
+    has_validated_scope = bool(
+        grounding_callable is not None
+        and (
+            selected_program
+            or selected_catalog_key
+            or prior_scope
+            or prior_focus is not None
+            or prior_result_courses is not None
+            or service_topic is not None
+        )
+    )
+    if has_validated_scope:
+        # Parse with the same scope awareness as the grounded pipeline so the
+        # shared eligibility verdict matches it exactly; without any scope at
+        # all the service keeps its direct zero-scope contract.
+        eligibility_spec = parse_query_spec(
+            question.strip(), has_validated_context_scope=True
+        )
+        # Mirror the pipeline's missing-field merge so the eligibility verdict
+        # matches the grounded path: stored validated scope fills only gaps.
+        guard_updates: dict[str, Any] = {}
+        if not eligibility_spec.plans and prior_scope.get("plan") is not None:
+            guard_updates["plans"] = (prior_scope["plan"],)
+        if not eligibility_spec.years and prior_scope.get("years"):
+            guard_updates["years"] = tuple(prior_scope["years"])
+        if not eligibility_spec.semesters and prior_scope.get("semesters"):
+            guard_updates["semesters"] = tuple(prior_scope["semesters"])
+        if not eligibility_spec.course_codes and prior_focus_code is not None:
+            guard_updates["course_codes"] = (prior_focus_code,)
+        if not eligibility_spec.course_codes and ordinal_code is not None:
+            guard_updates["course_codes"] = (ordinal_code,)
+        if not eligibility_spec.topic and service_topic is not None:
+            guard_updates["topic"] = service_topic
+        guard_spec = (
+            replace(eligibility_spec, **guard_updates) if guard_updates else eligibility_spec
+        )
+        guard_context = QueryContext(
+            program=selected_program,
+            catalog_key=selected_catalog_key,
+            plan=prior_scope.get("plan"),
+            years=tuple(prior_scope.get("years", ())),
+            semesters=tuple(prior_scope.get("semesters", ())),
+            operations=tuple(prior_scope.get("operations", ())),
+            course_code=prior_focus_code,
+        )
+        eligible = has_answerable_target_or_scope(guard_spec, guard_context)
+    else:
+        eligible = True
+    if not eligible:
+        # Structurally unanswerable dump-capable requests fail closed here,
+        # before any SQL generation, so the outcome cannot vary with model
+        # behavior. Valid targets and scopes flow through unchanged, and the
+        # preserved next_context is left to the caller-owned fallback. This
+        # applies only on the grounded product path; bare SQL-service calls
+        # without grounding keep their direct mechanical contract.
+        return {
+            "status": "insufficient_evidence",
+            "answer": "ไม่พบหลักฐานที่มีแหล่งอ้างอิงเพียงพอสำหรับคำตอบนี้",
+            "provenance": [],
+            "sql": None,
+            "columns": [],
+            "rows": [],
+            "next_context": None,
+        }
+
     focus_scope = dict(prior_scope)
     if query_spec.plans:
         focus_scope["plan"] = query_spec.plans[0] if len(query_spec.plans) == 1 else None
@@ -1054,7 +1310,15 @@ def ask_sql(
     ):
         return _failure("invalid_context")
     course_scope = None
-    if use_result_set_scope and prior_result_courses is not None:
+    if ordinal_target is not None:
+        course_scope = (
+            (
+                ordinal_target.get("catalog_key"),
+                str(ordinal_target.get("program")),
+                str(ordinal_target.get("course_code")),
+            ),
+        )
+    elif use_result_set_scope and prior_result_courses is not None:
         course_scope = tuple(
             (
                 course.get("catalog_key"),
@@ -1267,7 +1531,10 @@ def ask_sql(
             )
         else:
             columns, raw_rows = execute_readonly(
-                db_path, safe_sql, course_scope=course_scope
+                db_path,
+                safe_sql,
+                course_scope=course_scope,
+                plan_key=execution_scope.get("plan_key"),
             )
     except sqlite3.OperationalError as exc:
         if repair_attempted:
@@ -1289,7 +1556,10 @@ def ask_sql(
                 )
             else:
                 columns, raw_rows = execute_readonly(
-                    db_path, safe_sql, course_scope=course_scope
+                    db_path,
+                    safe_sql,
+                    course_scope=course_scope,
+                    plan_key=execution_scope.get("plan_key"),
                 )
         except ValueError:
             return _failure("invalid_context", safe_sql)
@@ -1339,6 +1609,26 @@ def ask_sql(
                 and grounded_answer.strip()
                 and provenance
             ):
+                if not (
+                    isinstance(next_context, dict)
+                    and next_context.get("course_code")
+                ):
+                    # Answers naming several courses retain those canonical
+                    # identities (in mention order) for ordinal follow-ups.
+                    # Single-course targets stay owned by the focus machinery.
+                    answer_named = _retained_identities_from_answer(
+                        grounded_answer,
+                        rows,
+                        selected_program,
+                        selected_catalog_key,
+                        query_spec.topic or service_topic,
+                        db_path,
+                    )
+                    if answer_named is not None:
+                        if isinstance(next_context, dict):
+                            next_context = {**next_context, **answer_named}
+                        else:
+                            next_context = answer_named
                 return {
                     "status": "answer",
                     "answer": grounded_answer.strip(),

@@ -2709,5 +2709,128 @@ class LlmSqlQaTest(unittest.TestCase):
         rag_ask.assert_not_called()
 
 
+RUNTIME_CURRICULUM_DB = (
+    Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
+)
+
+_PLAN_BLIND_LIST_SQL = (
+    "SELECT course_code, program, plan, year, semester FROM v_plan_courses"
+)
+
+
+def _plan_blind_sql_model(_prompt):
+    return _PLAN_BLIND_LIST_SQL
+
+
+def _canned_answer(_prompt):
+    return "พบข้อมูลรายวิชาที่ตรงกับคำถาม"
+
+
+class PlanScopeEnforcementTests(unittest.TestCase):
+    """Validated plan scope must survive plan-blind model-generated SQL."""
+
+    def _plan_values(self, rows):
+        plans = {row["plan"] for row in rows if isinstance(row, dict)}
+        return plans
+
+    def test_coop_list_rows_stay_coop(self):
+        result = ask_sql(
+            RUNTIME_CURRICULUM_DB,
+            "แล้วมีวิชาอะไรบ้างล่ะ",
+            "IT",
+            _plan_blind_sql_model,
+            _canned_answer,
+            conversation_context={
+                "program": "IT",
+                "catalog_key": "it-2565",
+                "plan": "coop",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["rows"])
+        self.assertEqual(self._plan_values(result["rows"]), {"coop"})
+
+    def test_no_coop_list_rows_stay_no_coop(self):
+        result = ask_sql(
+            RUNTIME_CURRICULUM_DB,
+            "แล้วมีวิชาอะไรบ้าง",
+            "IT",
+            _plan_blind_sql_model,
+            _canned_answer,
+            conversation_context={
+                "program": "IT",
+                "catalog_key": "it-2565",
+                "plan": "no_coop",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["rows"])
+        self.assertEqual(self._plan_values(result["rows"]), {"no_coop"})
+
+    def test_ordinal_scope_rows_respect_active_plan(self):
+        result = ask_sql(
+            RUNTIME_CURRICULUM_DB,
+            "ตัวแรกกี่หน่วย",
+            "IT",
+            _plan_blind_sql_model,
+            _canned_answer,
+            conversation_context={
+                "program": "IT",
+                "catalog_key": "it-2565",
+                "plan": "coop",
+                "result_courses": [
+                    {"program": "IT", "course_code": "06016405",
+                     "catalog_key": "it-2565"},
+                    {"program": "IT", "course_code": "06016438",
+                     "catalog_key": "it-2565"},
+                ],
+                "result_scope_program": "IT",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["rows"])
+        self.assertEqual(self._plan_values(result["rows"]), {"coop"})
+
+    def test_unscoped_list_keeps_both_plans(self):
+        result = ask_sql(
+            RUNTIME_CURRICULUM_DB,
+            "มีวิชาอะไรบ้าง",
+            "IT",
+            lambda _prompt: "SELECT DISTINCT plan AS plan FROM v_plan_courses",
+            _canned_answer,
+            conversation_context={
+                "program": "IT",
+                "catalog_key": "it-2565",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["rows"])
+        self.assertEqual(self._plan_values(result["rows"]), {"coop", "no_coop"})
+
+    def test_cross_program_plan_rows_stay_scoped(self):
+        for program, catalog_key, plan in (
+            ("BIT", "bit-2565", "coop"),
+            ("BIT", "bit-2565", "no_coop"),
+            ("DSBA", "dsba-2565", "coop"),
+            ("DSBA", "dsba-2565", "no_coop"),
+        ):
+            with self.subTest(program=program, plan=plan):
+                result = ask_sql(
+                    RUNTIME_CURRICULUM_DB,
+                    "แล้วมีวิชาอะไรบ้าง",
+                    program,
+                    _plan_blind_sql_model,
+                    _canned_answer,
+                    conversation_context={
+                        "program": program,
+                        "catalog_key": catalog_key,
+                        "plan": plan,
+                    },
+                )
+                self.assertEqual(result["status"], "answer")
+                self.assertTrue(result["rows"])
+                self.assertEqual(self._plan_values(result["rows"]), {plan})
+
+
 if __name__ == "__main__":
     unittest.main()

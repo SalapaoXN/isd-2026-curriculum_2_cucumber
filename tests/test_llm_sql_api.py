@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from backend import main
 from backend.hard_qa import HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA, answer_hard_question
 from backend.llm_sql_qa import ask_sql as run_ask_sql
+from backend.llm_sql_qa import _retained_identities_from_answer
 from rag import qa as rag_qa
 from rag.query_spec import detect_surface_operations, parse_query_spec
 
@@ -391,16 +392,19 @@ class LlmSqlApiTests(unittest.TestCase):
                     self.assertIn(expected_code, payload["answer"])
                     self.assertNotIn(excluded_code, payload["answer"])
                     self.assertTrue(payload["provenance"])
-                    self.assertEqual(
-                        payload["next_context"],
-                        {
-                            "program": "DSBA",
-                            "catalog_key": catalog_key,
-                            "years": [1],
-                            "semesters": [1],
-                            "operations": ["list"],
-                        },
-                    )
+                    resumed = payload["next_context"] or {}
+                    self.assertEqual(resumed.get("program"), "DSBA")
+                    self.assertEqual(resumed.get("catalog_key"), catalog_key)
+                    self.assertEqual(resumed.get("years"), [1])
+                    self.assertEqual(resumed.get("semesters"), [1])
+                    self.assertEqual(resumed.get("operations"), ["list"])
+                    # Micro-task 8: the answered list additionally retains its
+                    # canonical identities for ordinal follow-ups.
+                    retained = resumed.get("result_courses") or []
+                    self.assertTrue(retained)
+                    for course in retained:
+                        self.assertEqual(course.get("program"), "DSBA")
+                        self.assertEqual(course.get("catalog_key"), catalog_key)
 
     def test_invalid_pending_edition_stays_in_clarification(self):
         first = self.client.post(
@@ -1467,6 +1471,1525 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(provider.call_args.kwargs["response_json_schema"], HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA)
         self.assertNotIn("response_schema", provider.call_args.kwargs)
         self.sql_service.assert_not_called()
+
+    # --- Micro-task 1: emitted-context round-trip contract ---
+    def _ask_with_stub_provider(self, question, context):
+        """Run POST /api/ask with the real ask_sql but a stub model (no network)."""
+
+        def stub_model(prompt, **options):
+            if prompt.startswith(
+                "ROLE: You interpret Thai university curriculum questions"
+            ):
+                return json.dumps(
+                    {
+                        "intent": "course_list_query",
+                        "proposed_program": None,
+                        "proposed_plans": [],
+                        "proposed_years": [],
+                        "proposed_semesters": [],
+                        "course_codes": [],
+                        "topic": None,
+                        "requested_facts": ["course_list"],
+                        "judgement_dimension": None,
+                        "unresolved": [],
+                    },
+                    ensure_ascii=False,
+                )
+            if "Matching database rows exist" in prompt:
+                return "พบข้อมูลรายวิชาที่ตรงกับคำถาม"
+            return (
+                "SELECT course_code, program, plan_key, year, semester "
+                "FROM v_plan_courses"
+            )
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": question, "conversation_context": context},
+            )
+        self.assertEqual(response.status_code, 200, response.json())
+        return response.json()
+
+    def test_grounded_course_next_context_round_trips_without_invalid_context(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        self.assertTrue(first["provenance"])
+        emitted = first["next_context"]
+        self.assertIsInstance(emitted, dict)
+
+        second = self._ask_with_stub_provider("มันกี่หน่วย", emitted)
+        self.assertNotEqual(second["status"], "error")
+        self.assertNotEqual(second.get("action"), "invalid_context")
+
+    def test_emitted_course_code_context_is_valid_next_request_input(self):
+        # Exact writer shape observed from the grounded exact-course path.
+        emitted = {
+            "program": "IT",
+            "catalog_key": "it-2565",
+            "course_code": "06016414",
+            "operations": ["identity"],
+        }
+        payload = self._ask_with_stub_provider("มันกี่หน่วย", emitted)
+        self.assertNotEqual(payload["status"], "error")
+        self.assertNotEqual(payload.get("action"), "invalid_context")
+
+    def test_explicit_new_course_overrides_stale_course_context(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider(
+            "06016438 กี่หน่วย", first["next_context"]
+        )
+        self.assertNotEqual(second["status"], "error")
+        self.assertNotEqual(second.get("action"), "invalid_context")
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016438", second["answer"])
+
+    def test_unknown_context_key_remains_rejected(self):
+        response = self.client.post(
+            "/api/ask",
+            json={
+                "question": "06016414 คือวิชาอะไร",
+                "conversation_context": {
+                    "program": "IT",
+                    "catalog_key": "it-2565",
+                    "injected_fact": "06016414",
+                },
+            },
+        )
+        self.assertEqual(response.status_code, 422)
+
+    # --- Micro-task 2: targetless detail/reference fail-closed invariant ---
+    def _assert_targetless_fail_closed(self, question):
+        payload = self._ask_with_stub_provider(
+            question, {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertNotEqual(payload["status"], "error")
+        self.assertNotEqual(payload.get("action"), "invalid_context")
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+        self.assertNotRegex(payload["answer"], r"0\d{7}")
+        return payload
+
+    def test_targetless_credits_fail_closed_without_dump(self):
+        self._assert_targetless_fail_closed("กี่หน่วยอะ")
+
+    def test_targetless_placement_this_fails_closed_without_dump(self):
+        self._assert_targetless_fail_closed("ตัวนี้เรียนตอนไหน")
+
+    def test_targetless_placement_that_fails_closed_without_dump(self):
+        self._assert_targetless_fail_closed("ตัวนั้นเรียนตอนไหน")
+
+    def test_resolved_course_followup_still_answers(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider("มันกี่หน่วย", first["next_context"])
+        self.assertNotEqual(second["status"], "error")
+        self.assertNotEqual(second.get("action"), "invalid_context")
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+
+    def test_scoped_semester_aggregate_stays_working(self):
+        payload = self._ask_with_stub_provider(
+            "IT ปี1เทอม1 รวมกี่หน่วย",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertEqual(payload["next_context"]["years"], [1])
+        self.assertEqual(payload["next_context"]["semesters"], [1])
+
+    def test_program_total_from_requirements_stays_working(self):
+        payload = self._ask_with_stub_provider(
+            "IT แผนสหกิจรวมทั้งหมดกี่หน่วยกิต",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("129", payload["answer"])
+
+    def test_scoped_semester_list_stays_working(self):
+        payload = self._ask_with_stub_provider(
+            "IT ปี1เทอม1 เรียนอะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertIn("06016401", payload["answer"])
+
+    # --- Micro-task 3: NULL placement must not become concrete timing ---
+    def _assert_null_placement_answer(self, payload):
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertIn(
+            "ไม่มีข้อมูลปี/ภาคเรียนที่แน่นอนในหลักสูตร", payload["answer"]
+        )
+        self.assertNotIn("เรียนในปี", payload["answer"])
+        self.assertNotIn("สามารถเลือกจัดเรียนได้ใน", payload["answer"])
+        return payload
+
+    def test_null_placement_course_states_absence_without_fabrication(self):
+        payload = self._ask_with_stub_provider(
+            "06016438 เรียนตอนไหน",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self._assert_null_placement_answer(payload)
+        self.assertIn("06016438", payload["answer"])
+
+    def test_explicit_plan_scope_does_not_manufacture_placement(self):
+        for question, plan_label in (
+            ("IT สหกิจ 06016438 เรียนตอนไหน", "สหกิจ"),
+            ("IT ไม่สหกิจ 06016438 เรียนตอนไหน", "ไม่สหกิจ"),
+        ):
+            with self.subTest(question=question):
+                payload = self._ask_with_stub_provider(
+                    question, {"program": "IT", "catalog_key": "it-2565"}
+                )
+                self._assert_null_placement_answer(payload)
+                self.assertIn(plan_label, payload["answer"])
+
+    def test_fixed_placement_course_still_returns_concrete_timing(self):
+        payload = self._ask_with_stub_provider(
+            "06016414 เรียนตอนไหน",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertIn("เรียนในปี 2 ภาคเรียนที่ 2", payload["answer"])
+
+    def test_targetless_placement_still_fail_closed(self):
+        payload = self._ask_with_stub_provider(
+            "ตัวนี้เรียนตอนไหน", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+
+    def test_placed_course_followup_still_returns_timing(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider(
+            "มันเรียนตอนไหน", first["next_context"]
+        )
+        self.assertNotEqual(second["status"], "error")
+        self.assertNotEqual(second.get("action"), "invalid_context")
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("เรียนในปี 2 ภาคเรียนที่ 2", second["answer"])
+
+    # --- Micro-task 4: safe failures preserve validated scope ---
+    def test_scope_survives_safe_failure_across_semester_followup(self):
+        first = self._ask_with_stub_provider(
+            "IT ปี1เทอม1 เรียนอะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        emitted = first["next_context"]
+        self.assertEqual(emitted["years"], [1])
+        self.assertEqual(emitted["semesters"], [1])
+
+        # Simulate the exact safe-failure envelope the real pipeline returns
+        # for an unanswerable follow-up (explicit next_context None).
+        self.sql_service.return_value = {
+            "status": "insufficient_evidence",
+            "answer": "ไม่พบหลักฐานที่มีแหล่งอ้างอิงเพียงพอสำหรับคำตอบนี้",
+            "provenance": [],
+            "next_context": None,
+        }
+        with patch.object(main, "answer_hard_question", return_value=None):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": "รวมกี่หน่วย", "conversation_context": emitted},
+            )
+        self.assertEqual(response.status_code, 200)
+        second = response.json()
+        self.assertEqual(second["status"], "insufficient_evidence")
+        preserved = second["next_context"]
+        self.assertEqual(preserved["program"], "IT")
+        self.assertEqual(preserved["catalog_key"], "it-2565")
+        self.assertEqual(preserved["years"], [1])
+        self.assertEqual(preserved["semesters"], [1])
+
+        third = self._ask_with_stub_provider("แล้วเทอม 2 ล่ะ", preserved)
+        self.assertNotEqual(third["status"], "error")
+        self.assertNotEqual(third.get("action"), "invalid_context")
+        self.assertEqual(third["next_context"]["years"], [1])
+        self.assertEqual(third["next_context"]["semesters"], [2])
+
+    def test_course_target_survives_unrelated_safe_failure(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider(
+            "เทอมหน้าวิชานี้เปิดมั้ย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+        focus = (second["next_context"] or {}).get("focus_course") or {}
+        self.assertEqual(focus.get("course_code"), "06016414")
+
+        third = self._ask_with_stub_provider("มันกี่หน่วย", second["next_context"])
+        self.assertEqual(third["status"], "answer")
+        self.assertIn("06016414", third["answer"])
+
+    def test_explicit_course_overrides_preserved_stale_target(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        second = self._ask_with_stub_provider(
+            "เทอมหน้าวิชานี้เปิดมั้ย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+
+        third = self._ask_with_stub_provider(
+            "06016438 กี่หน่วย", second["next_context"]
+        )
+        self.assertNotEqual(third["status"], "error")
+        self.assertNotEqual(third.get("action"), "invalid_context")
+        self.assertIn("06016438", third["answer"])
+        self.assertNotIn("06016414", json.dumps(third["next_context"] or {}))
+
+    def test_targetless_fresh_session_gains_no_state(self):
+        payload = self._ask_with_stub_provider(
+            "กี่หน่วยอะ", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        survived = payload["next_context"] or {}
+        for key in ("course_code", "focus_course", "years", "semesters",
+                    "result_courses", "operations"):
+            self.assertNotIn(key, survived)
+
+    def test_program_switch_still_clears_stale_course_state(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        with patch.object(main, "answer_hard_question", return_value=None):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "แล้ว DSBA สหกิจล่ะ",
+                    "conversation_context": first["next_context"],
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["action"], "catalog_required")
+        pending = payload["next_context"] or {}
+        self.assertEqual(pending.get("program"), "DSBA")
+        self.assertNotIn("course_code", pending)
+        self.assertNotIn("focus_course", pending)
+        self.assertNotIn("06016414", json.dumps(pending))
+
+    # --- Micro-task 7: explicit plan negation dominates positive tokens ---
+    def test_plan_override_coop_to_no_coop_wins(self):
+        first = self._ask_with_stub_provider(
+            "IT สหกิจนี่รวมกี่หน่วยนะ",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        self.assertEqual(first["next_context"].get("plan"), "coop")
+
+        second = self._ask_with_stub_provider(
+            "แล้วไม่สหกิจล่ะ", first["next_context"]
+        )
+        self.assertNotEqual(second["status"], "error")
+        self.assertEqual(second["next_context"].get("plan"), "no_coop")
+        self.assertIn("ไม่สหกิจ", second["answer"])
+
+    def test_plan_override_no_coop_to_coop_wins(self):
+        first = self._ask_with_stub_provider(
+            "IT ไม่สหกิจ ปี 3 เทอม 2 รวมกี่หน่วย",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        self.assertEqual(first["next_context"].get("plan"), "no_coop")
+
+        second = self._ask_with_stub_provider(
+            "แล้วสหกิจล่ะ", first["next_context"]
+        )
+        self.assertNotEqual(second["status"], "error")
+        self.assertEqual(second["next_context"].get("plan"), "coop")
+
+    def test_plan_sensitive_retrieval_uses_intended_canonical_partition(self):
+        coop = self._ask_with_stub_provider(
+            "IT สหกิจ ปี 3 เทอม 2 รวมกี่หน่วย",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        no_coop = self._ask_with_stub_provider(
+            "IT ไม่สหกิจ ปี 3 เทอม 2 รวมกี่หน่วย",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        for payload in (coop, no_coop):
+            self.assertEqual(payload["status"], "answer")
+            self.assertTrue(payload["provenance"])
+        self.assertIn("06016481", coop["answer"])
+        self.assertNotIn("06066100", coop["answer"])
+        self.assertIn("06066100", no_coop["answer"])
+        self.assertNotIn("06016481", no_coop["answer"])
+
+    def test_no_plan_signal_infers_no_plan(self):
+        payload = self._ask_with_stub_provider(
+            "IT ปี1เทอม1 เรียนไรบ้างอะ",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertNotIn("plan", payload["next_context"] or {})
+
+    def test_unknown_key_rejected_before_preservation(self):
+        response = self.client.post(
+            "/api/ask",
+            json={
+                "question": "กี่หน่วยอะ",
+                "conversation_context": {
+                    "program": "IT",
+                    "catalog_key": "it-2565",
+                    "injected_fact": "06016414",
+                },
+            },
+        )
+        self.assertEqual(response.status_code, 422)
+
+    # --- Micro-task 8: ordinal references over retained canonical results ---
+    def _cyber_search(self):
+        return self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+
+    def _assert_retained_identities_only(self, next_context):
+        self.assertIsInstance(next_context, dict)
+        courses = next_context.get("result_courses")
+        self.assertIsInstance(courses, list)
+        self.assertTrue(courses)
+        for course in courses:
+            self.assertIsInstance(course, dict)
+            self.assertLessEqual(
+                set(course),
+                {"program", "course_code", "catalog_key", "course_name"},
+            )
+            self.assertTrue(course.get("course_code"))
+            self.assertTrue(course.get("program"))
+        for key in (
+            "credits",
+            "credit_units",
+            "prerequisite",
+            "prerequisites",
+            "placement",
+            "description",
+            "answer",
+            "rows",
+            "sql",
+        ):
+            self.assertNotIn(key, next_context)
+            for course in courses:
+                self.assertNotIn(key, course)
+
+    def test_semantic_result_set_retained_as_canonical_identities(self):
+        payload = self._cyber_search()
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        retained = payload["next_context"] or {}
+        self.assertEqual(
+            [course["course_code"] for course in retained["result_courses"]],
+            ["06016405", "06016438"],
+        )
+        self.assertEqual(retained.get("result_scope_program"), "IT")
+        self._assert_retained_identities_only(retained)
+
+    def test_first_result_credit_followup_regrounded(self):
+        first = self._cyber_search()
+        second = self._ask_with_stub_provider(
+            "ตัวแรกกี่หน่วย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016405", second["answer"])
+        self.assertNotIn("06016438", second["answer"])
+        self.assertTrue(second["provenance"])
+
+    def test_second_result_placement_followup_without_fabrication(self):
+        first = self._cyber_search()
+        second = self._ask_with_stub_provider(
+            "ตัวที่สองเรียนตอนไหน", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016438", second["answer"])
+        self.assertIn(
+            "ไม่มีข้อมูลปี/ภาคเรียนที่แน่นอนในหลักสูตร", second["answer"]
+        )
+        self.assertNotIn("เรียนในปี", second["answer"])
+        self.assertTrue(second["provenance"])
+
+    def test_explicit_course_overrides_ordinal_result_context(self):
+        first = self._cyber_search()
+
+        def credit_intent(prompt, **options):
+            if prompt.startswith(
+                "ROLE: You interpret Thai university curriculum questions"
+            ):
+                return json.dumps(
+                    {
+                        "intent": "course_credit_query",
+                        "proposed_program": None,
+                        "proposed_plans": [],
+                        "proposed_years": [],
+                        "proposed_semesters": [],
+                        "course_codes": ["06016414"],
+                        "topic": None,
+                        "requested_facts": ["course_credit"],
+                        "judgement_dimension": None,
+                        "unresolved": [],
+                    },
+                    ensure_ascii=False,
+                )
+            if "Matching database rows exist" in prompt:
+                return "พบข้อมูลรายวิชาที่ตรงกับคำถาม"
+            return (
+                "SELECT course_code, program, plan_key, year, semester "
+                "FROM v_plan_courses"
+            )
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=credit_intent),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "06016414 กี่หน่วย",
+                    "conversation_context": first["next_context"],
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("06016414", payload["answer"])
+        self.assertNotIn("06016405", payload["answer"])
+        self.assertNotIn("06016438", payload["answer"])
+
+    def test_new_result_set_replaces_old_set(self):
+        first = self._cyber_search()
+        second = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ machine learning อะไรบ้าง", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        retained = second["next_context"] or {}
+        codes = [course["course_code"] for course in retained["result_courses"]]
+        self.assertIn("06016460", codes)
+        self.assertNotIn("06016405", codes)
+        self.assertNotIn("06016438", codes)
+
+        third = self._ask_with_stub_provider("ตัวแรกกี่หน่วย", second["next_context"])
+        self.assertEqual(third["status"], "answer")
+        self.assertIn("06016435", third["answer"])
+
+    def test_fresh_ordinal_fails_closed(self):
+        payload = self._ask_with_stub_provider(
+            "ตัวแรกกี่หน่วย", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+        self.assertNotIn("result_courses", payload["next_context"] or {})
+
+    def test_out_of_range_ordinal_fails_closed(self):
+        first = self._cyber_search()
+        second = self._ask_with_stub_provider(
+            "ตัวที่ 5 กี่หน่วย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+        self.assertEqual(second["provenance"], [])
+        # The valid set itself survives the failed reference.
+        kept = second["next_context"] or {}
+        self.assertEqual(
+            [course["course_code"] for course in kept.get("result_courses", [])],
+            ["06016405", "06016438"],
+        )
+
+    def test_empty_result_search_ordinal_fails_closed(self):
+        first = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ flurbnax quantum banana อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "insufficient_evidence")
+        self.assertNotIn("result_courses", first["next_context"] or {})
+
+        second = self._ask_with_stub_provider(
+            "ตัวแรกกี่หน่วย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+        self.assertEqual(second["provenance"], [])
+
+    def test_safe_failure_preserves_result_set_for_ordinal(self):
+        first = self._cyber_search()
+        second = self._ask_with_stub_provider(
+            "อธิบายหน่อยว่าวิชานี้เรียนเกี่ยวกับอะไร", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+        kept = second["next_context"] or {}
+        self.assertEqual(
+            [course["course_code"] for course in kept.get("result_courses", [])],
+            ["06016405", "06016438"],
+        )
+
+        third = self._ask_with_stub_provider(
+            "ตัวที่สองเรียนตอนไหน", second["next_context"]
+        )
+        self.assertEqual(third["status"], "answer")
+        self.assertIn("06016438", third["answer"])
+
+    def test_stale_cross_scope_results_cannot_resolve_ordinal(self):
+        first = self._cyber_search()
+        stale = dict(first["next_context"] or {})
+        stale["catalog_key"] = "it-2560"
+        second = self._ask_with_stub_provider("ตัวแรกกี่หน่วย", stale)
+        self.assertEqual(second["status"], "insufficient_evidence")
+        kept = second["next_context"] or {}
+        self.assertNotIn("result_courses", kept)
+        self.assertNotIn("06016405", json.dumps(kept))
+
+    def test_current_pronoun_resolves_from_focus_not_results(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider(
+            "ตัวนั้นกี่หน่วย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+
+        search = self._cyber_search()
+        third = self._ask_with_stub_provider(
+            "ตัวนั้นกี่หน่วย", search["next_context"]
+        )
+        self.assertEqual(third["status"], "insufficient_evidence")
+
+    # --- Micro-task 12: unresolved ordinal must never fall back to focus ---
+    def _focus_only_context(self, course_code="06016405"):
+        return {
+            "program": "IT",
+            "catalog_key": "it-2565",
+            "course_code": course_code,
+            "operations": ["sum_credits"],
+            "focus_course": {
+                "course_code": course_code,
+                "program": "IT",
+                "catalog_key": "it-2565",
+            },
+        }
+
+    def test_unresolved_ordinal_never_falls_back_to_focus(self):
+        search = self._cyber_search()
+        credit = self._ask_with_stub_provider(
+            "ตัวแรกกี่หน่วย", search["next_context"]
+        )
+        self.assertEqual(credit["status"], "answer")
+        self.assertIn("06016405", credit["answer"])
+        self.assertNotIn("result_courses", credit["next_context"] or {})
+        third = self._ask_with_stub_provider(
+            "ตัวที่สองเรียนตอนไหน", credit["next_context"]
+        )
+        self.assertEqual(third["status"], "insufficient_evidence")
+        self.assertEqual(third["provenance"], [])
+        self.assertNotIn("06016405", third["answer"])
+
+    def test_first_ordinal_with_only_focus_fails_closed(self):
+        payload = self._ask_with_stub_provider(
+            "ตัวแรกกี่หน่วย", self._focus_only_context()
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+        self.assertNotIn("06016405", payload["answer"])
+
+    def test_out_of_range_ordinal_with_focus_present_fails_closed(self):
+        context = self._focus_only_context("06016414")
+        context["result_courses"] = [
+            {"program": "IT", "course_code": "06016405",
+             "catalog_key": "it-2565"},
+            {"program": "IT", "course_code": "06016438",
+             "catalog_key": "it-2565"},
+        ]
+        context["result_scope_program"] = "IT"
+        payload = self._ask_with_stub_provider("ตัวที่ 5 กี่หน่วย", context)
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+        self.assertNotIn("06016414", payload["answer"])
+
+    def test_valid_second_ordinal_resolves_target_identity(self):
+        search = self._cyber_search()
+        payload = self._ask_with_stub_provider(
+            "ตัวที่สองเรียนตอนไหน", search["next_context"]
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("06016438", payload["answer"])
+        self.assertTrue(payload["provenance"])
+
+    def test_valid_first_ordinal_resolves_target_identity(self):
+        search = self._cyber_search()
+        payload = self._ask_with_stub_provider(
+            "ตัวแรกกี่หน่วย", search["next_context"]
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("06016405", payload["answer"])
+        self.assertNotIn("06016438", payload["answer"])
+        self.assertTrue(payload["provenance"])
+
+    def test_explicit_course_overrides_stale_focus_and_results(self):
+        context = self._focus_only_context("06016414")
+        context["result_courses"] = [
+            {"program": "IT", "course_code": "06016405",
+             "catalog_key": "it-2565"},
+        ]
+        context["result_scope_program"] = "IT"
+        payload = self._ask_with_stub_provider("06016438 กี่หน่วย", context)
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("06016438", payload["answer"])
+
+    def test_focus_pronoun_continuation_still_works(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_stub_provider(
+            "มันกี่หน่วย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+
+    def test_tua_nan_pronoun_keeps_focus_semantics(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_stub_provider(
+            "ตัวนั้นกี่หน่วย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+
+    def test_fresh_ordinal_still_fails_closed(self):
+        payload = self._ask_with_stub_provider(
+            "ตัวที่สองเรียนตอนไหน",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+
+    def test_unresolved_ordinal_preserves_focus_without_new_set(self):
+        payload = self._ask_with_stub_provider(
+            "ตัวที่สองเรียนตอนไหน", self._focus_only_context()
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        kept = payload["next_context"] or {}
+        focus = kept.get("focus_course") or {}
+        self.assertEqual(focus.get("course_code"), "06016405")
+        self.assertNotIn("result_courses", kept)
+
+    # --- Retention fallback: canonical validation when SQL rows disagree ---
+    def _retained(self, answer, rows, program="IT", catalog="it-2565"):
+        return _retained_identities_from_answer(
+            answer, rows, program, catalog, "cybersecurity", DB_PATH
+        )
+
+    def _narrow_rows(self):
+        return [{"program": "IT", "course_code": "06016405",
+                 "catalog_key": "it-2565"}]
+
+    def test_narrow_sql_rows_still_retain_both_answer_codes(self):
+        retained = self._retained(
+            "วิชา 06016405 และ 06016438 เกี่ยวกับ cybersecurity",
+            self._narrow_rows(),
+        )
+        self.assertIsNotNone(retained)
+        self.assertEqual(
+            [course["course_code"] for course in retained["result_courses"]],
+            ["06016405", "06016438"],
+        )
+        self._assert_retained_identities_only(retained)
+
+    def test_disagreeing_sql_code_does_not_enter_retained_set(self):
+        rows = self._narrow_rows() + [{"program": "IT",
+                                       "course_code": "06016464",
+                                       "catalog_key": "it-2565"}]
+        retained = self._retained(
+            "วิชา 06016405 และ 06016438 เกี่ยวกับ cybersecurity", rows
+        )
+        self.assertIsNotNone(retained)
+        self.assertEqual(
+            [course["course_code"] for course in retained["result_courses"]],
+            ["06016405", "06016438"],
+        )
+
+    def test_single_named_answer_code_retains_nothing(self):
+        retained = self._retained("วิชา 06016405 เกี่ยวกับ cybersecurity",
+                                  self._narrow_rows())
+        self.assertIsNone(retained)
+
+    def test_hallucinated_answer_code_never_retained(self):
+        retained = self._retained(
+            "วิชา 06016405 และ 99999999 เกี่ยวกับ cybersecurity",
+            self._narrow_rows(),
+        )
+        self.assertIsNone(retained)
+
+    def test_cross_scope_answer_code_not_retained(self):
+        retained = self._retained(
+            "วิชา 06016405 และ 06026100 เกี่ยวกับ cybersecurity",
+            self._narrow_rows(),
+        )
+        self.assertIsNone(retained)
+
+    def test_retained_order_matches_answer_mention_order(self):
+        retained = self._retained(
+            "วิชา 06016438 และ 06016405 เกี่ยวกับ cybersecurity",
+            self._narrow_rows(),
+        )
+        self.assertIsNotNone(retained)
+        self.assertEqual(
+            [course["course_code"] for course in retained["result_courses"]],
+            ["06016438", "06016405"],
+        )
+
+    # --- Micro-task 9: previous-answer explanation/source follow-ups ---
+    def _ask_with_explain_stub(self, question, context):
+        def stub_model(prompt, **options):
+            if prompt.startswith(
+                "ROLE: You interpret Thai university curriculum questions"
+            ):
+                return json.dumps(
+                    {
+                        "intent": "course_list_query",
+                        "proposed_program": None,
+                        "proposed_plans": [],
+                        "proposed_years": [],
+                        "proposed_semesters": [],
+                        "course_codes": [],
+                        "topic": None,
+                        "requested_facts": ["course_list"],
+                        "judgement_dimension": None,
+                        "unresolved": [],
+                    },
+                    ensure_ascii=False,
+                )
+            if "Matching database rows exist" in prompt:
+                return "พบข้อมูลรายวิชาที่ตรงกับคำถาม"
+            if prompt.startswith("EXPLAIN_GROUNDED_EVIDENCE"):
+                return "ไม่พบข้อมูลที่ตรงกัน"
+            return (
+                "SELECT course_code, program, plan_key, year, semester "
+                "FROM v_plan_courses"
+            )
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": question, "conversation_context": context},
+            )
+        self.assertEqual(response.status_code, 200, response.json())
+        return response.json()
+
+    def _probation_answer(self):
+        return self._ask_with_explain_stub("gpa เท่าไหร่ถึงติดโปร", None)
+
+    def _ask_with_credit_explain_stub(self, question, context):
+        def stub_model(prompt, **options):
+            if prompt.startswith(
+                "ROLE: You interpret Thai university curriculum questions"
+            ):
+                return json.dumps(
+                    {
+                        "intent": "course_credit_query",
+                        "proposed_program": None,
+                        "proposed_plans": [],
+                        "proposed_years": [],
+                        "proposed_semesters": [],
+                        "course_codes": ["06016414"],
+                        "topic": None,
+                        "requested_facts": ["course_credit"],
+                        "judgement_dimension": None,
+                        "unresolved": [],
+                    },
+                    ensure_ascii=False,
+                )
+            if "Matching database rows exist" in prompt:
+                return "พบข้อมูลรายวิชาที่ตรงกับคำถาม"
+            if prompt.startswith("EXPLAIN_GROUNDED_EVIDENCE"):
+                return "ไม่พบข้อมูลที่ตรงกัน"
+            return (
+                "SELECT course_code, program, plan_key, year, semester "
+                "FROM v_plan_courses"
+            )
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": question, "conversation_context": context},
+            )
+        self.assertEqual(response.status_code, 200, response.json())
+        return response.json()
+
+    def test_policy_answer_emits_bounded_reference(self):
+        first = self._probation_answer()
+        self.assertEqual(first["status"], "answer")
+        self.assertTrue(first["provenance"])
+        last = (first["next_context"] or {}).get("last_answer")
+        self.assertIsInstance(last, dict)
+        self.assertEqual(last.get("route"), "policy")
+        self.assertEqual(last.get("policy_kind"), "probation_entry")
+        self.assertLessEqual(len(last.get("evidence_ids", [])), 50)
+
+    def test_policy_explanation_reuses_canonical_basis(self):
+        first = self._probation_answer()
+        second = self._ask_with_explain_stub(
+            "ขยายความหน่อย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertTrue(second["provenance"])
+        self.assertEqual(second["provenance"], first["provenance"])
+        self.assertIn("2", second["answer"])
+        self.assertNotIn("06016414", second["answer"])
+        kept = (second["next_context"] or {}).get("last_answer") or {}
+        self.assertEqual(kept.get("policy_kind"), "probation_entry")
+
+    def test_policy_source_names_canonical_rule(self):
+        first = self._ask_with_explain_stub(
+            "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", None
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_explain_stub(
+            "อยู่ในข้อไหน", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("43", second["answer"])
+        self.assertTrue(second["provenance"])
+
+    def test_policy_rationale_fails_closed(self):
+        first = self._ask_with_explain_stub(
+            "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", None
+        )
+        second = self._ask_with_explain_stub(
+            "ทำไมถึงกำหนด 30 วัน", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+        self.assertEqual(second["provenance"], [])
+
+    def test_fresh_explanation_fails_closed(self):
+        payload = self._ask_with_explain_stub("ขยายความหน่อย", None)
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+
+    def test_fresh_source_fails_closed(self):
+        payload = self._ask_with_explain_stub("อยู่ในข้อไหน", None)
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+
+    def test_newest_answer_wins_over_older_reference(self):
+        policy = self._probation_answer()
+        course = self._ask_with_credit_explain_stub(
+            "06016414 กี่หน่วย", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(course["status"], "answer")
+        last = (course["next_context"] or {}).get("last_answer") or {}
+        self.assertEqual(last.get("route"), "course")
+        explained = self._ask_with_credit_explain_stub(
+            "ขยายความหน่อย", course["next_context"]
+        )
+        self.assertEqual(explained["status"], "answer")
+        self.assertIn("06016414", explained["answer"])
+        self.assertNotIn("ภาคทัณฑ์", explained["answer"])
+        kept = (explained["next_context"] or {}).get("last_answer") or {}
+        self.assertEqual(kept.get("route"), "course")
+        self.assertEqual(kept.get("course_code"), "06016414")
+
+    def test_course_credit_explanation_regrounded(self):
+        first = self._ask_with_credit_explain_stub(
+            "06016414 กี่หน่วย", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_credit_explain_stub(
+            "ขยายความหน่อย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertTrue(second["provenance"])
+        self.assertIn("06016414", second["answer"])
+
+    def test_ordinal_chain_explanation_uses_resolved_course(self):
+        search = self._ask_with_credit_explain_stub(
+            "มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        credit = self._ask_with_credit_explain_stub(
+            "ตัวแรกกี่หน่วย", search["next_context"]
+        )
+        self.assertEqual(credit["status"], "answer")
+        explained = self._ask_with_credit_explain_stub(
+            "ขยายความหน่อย", credit["next_context"]
+        )
+        self.assertEqual(explained["status"], "answer")
+        self.assertIn("06016405", explained["answer"])
+        self.assertNotIn("06016438", explained["answer"])
+
+    def test_safe_failure_preserves_reference(self):
+        first = self._probation_answer()
+        failed = self._ask_with_explain_stub(
+            "กี่หน่วยอะ", first["next_context"]
+        )
+        self.assertEqual(failed["status"], "insufficient_evidence")
+        kept = (failed["next_context"] or {}).get("last_answer") or {}
+        self.assertEqual(kept.get("policy_kind"), "probation_entry")
+        explained = self._ask_with_explain_stub(
+            "ขยายความหน่อย", failed["next_context"]
+        )
+        self.assertEqual(explained["status"], "answer")
+        self.assertTrue(explained["provenance"])
+
+    def test_cross_scope_reset_drops_reference(self):
+        first = self._ask_with_credit_explain_stub(
+            "06016414 กี่หน่วย", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        stale = dict(first["next_context"] or {})
+        stale["catalog_key"] = "it-2560"
+        second = self._ask_with_explain_stub("ขยายความหน่อย", stale)
+        self.assertEqual(second["status"], "insufficient_evidence")
+        self.assertNotIn(
+            "06016414", json.dumps(second["next_context"] or {})
+        )
+
+    def test_malformed_last_answer_rejected(self):
+        for bad in (
+            {"route": "policy", "policy_kind": "probation_entry",
+             "evidence_ids": ["rule:1"] * 51},
+            {"route": "policy", "policy_kind": "probation_entry",
+             "evidence_ids": "rule:22"},
+            {"route": "course", "course_code": "06016414",
+             "operations": ["sum_credits"], "injected": True},
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "ขยายความหน่อย",
+                    "conversation_context": {
+                        "program": "IT",
+                        "catalog_key": "it-2565",
+                        "last_answer": bad,
+                    },
+                },
+            )
+            self.assertEqual(response.status_code, 422, bad)
+
+    # --- Micro-task 11: audited follow-up alias families ---
+    def test_new_explain_alias_regrounds_policy(self):
+        first = self._probation_answer()
+        second = self._ask_with_explain_stub(
+            "ขยายอีกหน่อย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertTrue(second["provenance"])
+        self.assertEqual(second["provenance"], first["provenance"])
+        self.assertIn("2", second["answer"])
+        kept = (second["next_context"] or {}).get("last_answer") or {}
+        self.assertEqual(kept.get("policy_kind"), "probation_entry")
+
+    def test_new_source_alias_names_canonical_rule(self):
+        first = self._ask_with_explain_stub(
+            "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", None
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_explain_stub(
+            "มาจากไหน", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("43", second["answer"])
+        self.assertTrue(second["provenance"])
+
+    def test_new_policy_subject_does_not_inherit_appeal_reference(self):
+        first = self._ask_with_explain_stub(
+            "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", None
+        )
+        self.assertEqual(first["status"], "answer")
+        self.assertEqual(
+            (first["next_context"].get("last_answer") or {}).get("policy_kind"),
+            "sanction_appeal_deadline",
+        )
+        for question in (
+            "เกียรตินิยมมาจากกฎข้อไหน",
+            "ขยายความเกียรตินิยมหน่อย",
+            "เกียรตินิยมอยู่ข้อไหน",
+            "ภาคทัณฑ์มาจากไหน",
+            "การลาเรียนมาจากข้อไหน",
+            "พ้นสภาพมาจากไหน",
+        ):
+            with self.subTest(question=question):
+                with patch.object(
+                    main,
+                    "answer_previous_followup",
+                    wraps=main.answer_previous_followup,
+                ) as previous_answer:
+                    result = self._ask_with_explain_stub(
+                        question, first["next_context"]
+                    )
+                previous_answer.assert_not_called()
+                self.assertIn(
+                    result["status"], {"answer", "insufficient_evidence"}
+                )
+                if result["status"] == "insufficient_evidence":
+                    self.assertEqual(result["provenance"], [])
+
+    def test_explicit_course_target_does_not_inherit_previous_answer(self):
+        first = self._ask_with_credit_explain_stub(
+            "06016414 กี่หน่วย", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(first["status"], "answer")
+        for question in ("06016414 มาจากไหน", "ขยายความ 06016414 หน่อย"):
+            with self.subTest(question=question):
+                with patch.object(
+                    main,
+                    "answer_previous_followup",
+                    wraps=main.answer_previous_followup,
+                ) as previous_answer:
+                    result = self._ask_with_credit_explain_stub(
+                        question, first["next_context"]
+                    )
+                previous_answer.assert_not_called()
+                self.assertIn(
+                    result["status"], {"answer", "insufficient_evidence", "error"}
+                )
+
+    def test_new_rationale_alias_fails_closed(self):
+        first = self._ask_with_explain_stub(
+            "อุทธรณ์คำสั่งลงโทษต้องยื่นภายในกี่วัน", None
+        )
+        for followup in ("เพราะอะไร", "กำหนดแบบนี้เพราะอะไร"):
+            with self.subTest(followup=followup):
+                second = self._ask_with_explain_stub(
+                    followup, first["next_context"]
+                )
+                self.assertEqual(second["status"], "insufficient_evidence")
+                self.assertEqual(second["provenance"], [])
+
+    def test_new_course_explain_alias_regrounds_course(self):
+        first = self._ask_with_credit_explain_stub(
+            "06016414 กี่หน่วย", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_credit_explain_stub(
+            "อธิบายอีกที", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+        self.assertNotIn("ภาคทัณฑ์", second["answer"])
+
+    def test_new_ordinal_explain_alias_uses_resolved_course(self):
+        search = self._ask_with_credit_explain_stub(
+            "มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        credit = self._ask_with_credit_explain_stub(
+            "ตัวแรกกี่หน่วย", search["next_context"]
+        )
+        self.assertEqual(credit["status"], "answer")
+        explained = self._ask_with_credit_explain_stub(
+            "อธิบายอีกที", credit["next_context"]
+        )
+        self.assertEqual(explained["status"], "answer")
+        self.assertIn("06016405", explained["answer"])
+        self.assertNotIn("06016438", explained["answer"])
+
+    def test_new_detail_alias_preserves_null_placement(self):
+        first = self._ask_with_stub_provider(
+            "06016438 เรียนตอนไหน",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+        self.assertIn("06016438", first["answer"])
+        second = self._ask_with_explain_stub(
+            "ขอรายละเอียดเพิ่มหน่อย", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016438", second["answer"])
+        self.assertIn(
+            "ไม่มีข้อมูลปี/ภาคเรียนที่แน่นอนในหลักสูตร", second["answer"]
+        )
+        self.assertNotIn("เรียนในปี", second["answer"])
+
+    def test_new_substantive_controls_not_captured(self):
+        first = self._probation_answer()
+        for question in (
+            "ขอรายละเอียดวิชา 06016414",
+            "ข้อมูลนี้มาจากวิชาอะไร",
+            "หมายถึง 06016414 ใช่ไหม",
+            "เพราะอะไรวิชา 06016414 ถึงมี 3 หน่วยกิต",
+        ):
+            with self.subTest(question=question):
+                payload = self._ask_with_explain_stub(
+                    question, first["next_context"]
+                )
+                self.assertNotIn("ภาคทัณฑ์", payload["answer"])
+
+    def test_new_aliases_fresh_fail_closed(self):
+        for question in (
+            "ขยายอีกหน่อย",
+            "อธิบายอีกที",
+            "หมายถึงอะไร",
+            "ขอรายละเอียดเพิ่มหน่อย",
+            "มาจากไหน",
+            "ขอดูที่มา",
+            "เพราะอะไร",
+        ):
+            with self.subTest(question=question):
+                payload = self._ask_with_explain_stub(question, None)
+                self.assertEqual(payload["status"], "insufficient_evidence")
+                self.assertEqual(payload["provenance"], [])
+
+    # --- Plan scope + canonical program total (correctness micro-task) ---
+    def test_plan_qualified_total_uses_canonical_requirement(self):
+        payload = self._ask_with_stub_provider(
+            "IT สหกิจรวมกี่หน่วยกิต",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("129", payload["answer"])
+        self.assertTrue(payload["provenance"])
+
+    def test_other_plan_total_is_not_invented(self):
+        payload = self._ask_with_stub_provider(
+            "IT ไม่สหกิจรวมกี่หน่วยกิต",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("129", payload["answer"])
+        self.assertTrue(payload["provenance"])
+
+    def test_cross_program_plan_totals_use_requirements(self):
+        for question, context, expected in (
+            ("BIT สหกิจรวมกี่หน่วยกิต",
+             {"program": "BIT", "catalog_key": "bit-2565"}, "126"),
+            ("DSBA สหกิจรวมกี่หน่วยกิต",
+             {"program": "DSBA", "catalog_key": "dsba-2565"}, "132"),
+        ):
+            with self.subTest(question=question):
+                payload = self._ask_with_stub_provider(question, context)
+                self.assertEqual(payload["status"], "answer")
+                self.assertIn(expected, payload["answer"])
+                self.assertTrue(payload["provenance"])
+
+    def test_total_answer_carries_plan_scope_forward(self):
+        payload = self._ask_with_stub_provider(
+            "IT สหกิจรวมกี่หน่วยกิต",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        followed = self._ask_with_stub_provider(
+            "แล้วมีวิชาอะไรบ้าง", payload["next_context"]
+        )
+        kept = followed["next_context"] or {}
+        self.assertEqual(kept.get("program"), "IT")
+        self.assertEqual(kept.get("catalog_key"), "it-2565")
+        self.assertEqual(kept.get("plan"), "coop")
+
+    def test_fresh_bare_total_fails_closed(self):
+        payload = self._ask_with_stub_provider("รวมกี่หน่วย", None)
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+
+    # --- Micro-task 6: bounded conversational semantic topic ---
+    def _ml_search(self):
+        return self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ machine learning อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+
+    def _assert_topic_scoped_or_safe(self, payload, expected_codes):
+        # Refinements may answer from canonical evidence or fail closed, but
+        # must never drop the topic and answer a broader curriculum question.
+        self.assertIn(payload["status"], ("answer", "insufficient_evidence"))
+        self.assertNotEqual(payload.get("action"), "invalid_context")
+        self.assertEqual(
+            (payload["next_context"] or {}).get("semantic_topic"),
+            "machine learning",
+        )
+        if payload["status"] == "answer":
+            self.assertTrue(payload["provenance"])
+            self.assertTrue(
+                any(code in payload["answer"] for code in expected_codes)
+            )
+
+    def test_semantic_answer_emits_bounded_topic_state(self):
+        payload = self._ml_search()
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertEqual(
+            (payload["next_context"] or {}).get("semantic_topic"),
+            "machine learning",
+        )
+
+    def test_topic_survives_safe_refinement_failure(self):
+        first = self._ml_search()
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider(
+            "เอาเฉพาะแผนสหกิจ", first["next_context"]
+        )
+        self.assertEqual(second["status"], "insufficient_evidence")
+        kept = second["next_context"] or {}
+        self.assertEqual(kept.get("semantic_topic"), "machine learning")
+        self.assertEqual(kept.get("program"), "IT")
+
+    def test_year_refinement_cannot_degrade_into_year_only_dump(self):
+        first = self._ml_search()
+        second = self._ask_with_stub_provider(
+            "มีตัวไหนปี 3 บ้าง", first["next_context"]
+        )
+        self._assert_topic_scoped_or_safe(second, ("06016460", "06016435"))
+
+    def test_program_refinement_retains_topic(self):
+        first = self._ml_search()
+        second = self._ask_with_stub_provider("เอาเฉพาะ IT", first["next_context"])
+        self.assertEqual((second["next_context"] or {}).get("program"), "IT")
+        self._assert_topic_scoped_or_safe(second, ("06016460", "06016435"))
+
+    def test_explicit_new_topic_replaces_old_topic(self):
+        first = self._ml_search()
+        second = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cybersecurity อะไรบ้าง", first["next_context"]
+        )
+        kept = second["next_context"] or {}
+        self.assertEqual(kept.get("semantic_topic"), "cybersecurity")
+        self.assertNotIn("machine learning", json.dumps(kept))
+        if second["status"] == "answer":
+            self.assertIn("06016405", second["answer"])
+
+    def test_fresh_session_has_no_semantic_topic(self):
+        payload = self._ask_with_stub_provider(
+            "ปี 3 มีวิชาอะไรบ้าง", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertNotEqual(payload["status"], "error")
+        self.assertNotIn("semantic_topic", payload["next_context"] or {})
+
+    def test_malformed_semantic_topic_rejected(self):
+        base = {"program": "IT", "catalog_key": "it-2565"}
+        for bad_topic in ({"topic": "ml"}, "x" * 121, 123, ""):
+            with self.subTest(bad_topic=str(bad_topic)[:20]):
+                response = self.client.post(
+                    "/api/ask",
+                    json={
+                        "question": "มีตัวไหนปี 3 บ้าง",
+                        "conversation_context": {**base, "semantic_topic": bad_topic},
+                    },
+                )
+                self.assertEqual(response.status_code, 422)
+
+        overlong = run_ask_sql(
+            DB_PATH,
+            "มีตัวไหนปี 3 บ้าง",
+            "IT",
+            lambda _prompt: self.fail("no SQL for invalid topic"),
+            lambda _prompt: self.fail("no answer for invalid topic"),
+            conversation_context={**base, "semantic_topic": "x" * 121},
+        )
+        self.assertEqual(overlong["status"], "error")
+
+    def test_nonsense_topic_yields_no_fabricated_courses(self):
+        payload = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ flurbnax quantum banana อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+        self.assertNotRegex(payload["answer"], r"0\d{7}")
+
+    # --- Micro-task 5: pre-SQL structural eligibility (single shared rule) ---
+    def _ask_with_forbidden_provider(self, question, context):
+        """Run POST /api/ask with real ask_sql but a provider that explodes.
+
+        Any model call (SQL generation, answer synthesis, intent) raises out
+        of the request, so reaching an assertion proves zero model calls.
+        """
+
+        def forbidden(prompt, **options):
+            raise AssertionError(
+                "no model call allowed for structurally unanswerable queries"
+            )
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=forbidden),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={"question": question, "conversation_context": context},
+            )
+        self.assertEqual(response.status_code, 200, response.json())
+        return response.json()
+
+    def test_targetless_placement_rejected_before_sql_generation(self):
+        for _ in range(20):
+            payload = self._ask_with_forbidden_provider(
+                "ตัวนี้เรียนตอนไหน", {"program": "IT", "catalog_key": "it-2565"}
+            )
+            self.assertEqual(payload["status"], "insufficient_evidence")
+            self.assertNotEqual(payload.get("action"), "invalid_sql")
+            self.assertEqual(payload["provenance"], [])
+            self.assertEqual(
+                payload["next_context"],
+                {"program": "IT", "catalog_key": "it-2565"},
+            )
+
+    def test_targetless_credits_rejected_before_sql_generation(self):
+        payload = self._ask_with_forbidden_provider(
+            "กี่หน่วยอะ", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertNotEqual(payload.get("action"), "invalid_sql")
+        self.assertEqual(payload["provenance"], [])
+
+    def test_explicit_course_query_still_reaches_normal_path(self):
+        def credit_intent(prompt, **options):
+            if prompt.startswith(
+                "ROLE: You interpret Thai university curriculum questions"
+            ):
+                return json.dumps(
+                    {
+                        "intent": "course_credit_query",
+                        "proposed_program": None,
+                        "proposed_plans": [],
+                        "proposed_years": [],
+                        "proposed_semesters": [],
+                        "course_codes": ["06016414"],
+                        "topic": None,
+                        "requested_facts": ["course_credit"],
+                        "judgement_dimension": None,
+                        "unresolved": [],
+                    },
+                    ensure_ascii=False,
+                )
+            if "Matching database rows exist" in prompt:
+                return "พบข้อมูลรายวิชาที่ตรงกับคำถาม"
+            return (
+                "SELECT course_code, program, plan_key, year, semester "
+                "FROM v_plan_courses"
+            )
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=credit_intent),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "06016414 กี่หน่วย",
+                    "conversation_context": {
+                        "program": "IT",
+                        "catalog_key": "it-2565",
+                    },
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("06016414", payload["answer"])
+        self.assertIn("3", payload["answer"])
+        self.assertTrue(payload["provenance"])
+
+    def test_context_resolved_followup_still_reaches_normal_path(self):
+        first = self._ask_with_stub_provider(
+            "06016414 คือวิชาอะไร",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(first["status"], "answer")
+
+        second = self._ask_with_stub_provider("มันกี่หน่วย", first["next_context"])
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+
+    def test_semester_aggregate_not_rejected_as_targetless(self):
+        payload = self._ask_with_stub_provider(
+            "IT ปี1เทอม1 รวมกี่หน่วย",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        self.assertEqual(payload["next_context"]["years"], [1])
+        self.assertEqual(payload["next_context"]["semesters"], [1])
+
+    def test_program_total_not_rejected_as_targetless(self):
+        payload = self._ask_with_stub_provider(
+            "IT แผนสหกิจรวมทั้งหมดกี่หน่วยกิต",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertIn("129", payload["answer"])
+
+    def test_genuine_invalid_sql_for_valid_query_remains_an_error(self):
+        def garbage_sql(prompt, **options):
+            return "THIS IS NOT SQL"
+
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=garbage_sql),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "06016414 กี่หน่วย",
+                    "conversation_context": {
+                        "program": "IT",
+                        "catalog_key": "it-2565",
+                    },
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["action"], "invalid_sql")
 
 
 if __name__ == "__main__":

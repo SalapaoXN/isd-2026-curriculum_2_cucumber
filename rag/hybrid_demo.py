@@ -287,6 +287,7 @@ def answer_question_once(
     intent_model_callable: Callable[[str], str] | None = None,
     synthesize_answer: bool = False,
     conversation_context: QueryContext | dict[str, Any] | None = None,
+    semantic_topic: str | None = None,
 ) -> dict[str, Any]:
     """Run one QA request without printing or selecting a retrieval route."""
     if source_json_path is not None:
@@ -301,6 +302,8 @@ def answer_question_once(
     }
     if parsed_context is not None:
         ask_kwargs["conversation_context"] = parsed_context
+    if semantic_topic is not None:
+        ask_kwargs["semantic_topic"] = semantic_topic
     if synthesize_answer:
         ask_kwargs["synthesize_answer"] = True
     response = ask(db_path, question, **ask_kwargs)

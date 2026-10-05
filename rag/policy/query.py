@@ -188,7 +188,7 @@ def parse_policy_question(
         if _is_bare_regular_max(text, question):
             return PolicyQuery("registration_regular_max")
         if program and re.search(
-            r"(?:ต้อง(?:เรียน|เก็บ)\s*กี่\s*หน่วย(?:กิต)?(?:\s*ทั้งหมด)?|"
+            r"(?:ต้อง(?:เรียน|เก็บ)\s*(?:สูงสุด|มากสุด)?\s*กี่\s*หน่วย(?:กิต)?(?:\s*ทั้งหมด)?|"
             r"เรียนทั้งหมด|รวมทั้งหมด|"
             r"(?:หลักสูตรนี้\s*)?ทั้งหมด\s*กี่\s*หน่วย(?:กิต)?|"
             r"รวม\s*กี่\s*หน่วย(?:กิต)?)",

@@ -16,6 +16,55 @@ def ask_it(question: str):
 
 
 class StudentLanguageSmokeRegressionTest(unittest.TestCase):
+    def test_total_preserves_explicit_plan_override(self):
+        result = answer_question_once(
+            DB_PATH,
+            "ไม่สหกิจต้องเรียนรวมกี่หน่วย",
+            conversation_context={
+                "program": "IT", "catalog_key": "it-2565", "plan": "coop",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("129", result["final_answer"])
+        self.assertEqual(result["next_context"]["plan"], "no_coop")
+        self.assertTrue(result["provenance"])
+
+    def test_credit_followup_with_course_focus_keeps_course_target(self):
+        result = answer_question_once(
+            DB_PATH, "กี่หน่วยอะ",
+            conversation_context={
+                "program": "IT", "catalog_key": "it-2565", "course_code": "06016414",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(result["next_context"]["course_code"], "06016414")
+        self.assertTrue(result["provenance"])
+        for claim in result["result"].claims:
+            self.assertEqual(claim.value, 3)
+            self.assertEqual(claim.effective_scope.course_targets[0]["course_code"], "06016414")
+
+    def test_explicit_multi_program_credit_query_reaches_structured_path(self):
+        result = ask_it("IT กับ BIT รวมกี่หน่วยกิต")
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["result"].claims)
+        self.assertTrue(result["provenance"])
+        self.assertTrue(all(c.operation == "sum_credits" for c in result["result"].claims))
+
+    def test_term_credit_sum_keeps_term_scope(self):
+        result = answer_question_once(
+            DB_PATH, "IT ปี 1 เทอม 1 รวมกี่หน่วยกิต",
+            conversation_context={
+                "program": "IT", "catalog_key": "it-2565", "plan": "coop",
+            },
+        )
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["provenance"])
+        self.assertEqual(len(result["result"].claims), 1)
+        claim = result["result"].claims[0]
+        self.assertEqual(claim.value, 18)
+        self.assertEqual(claim.effective_scope.years, (1,))
+        self.assertEqual(claim.effective_scope.semesters, (1,))
+
     def test_targetless_followups_fail_closed_instead_of_widening(self):
         for question in ("กี่หน่วยอะ", "ตัวนี้เรียนตอนไหน"):
             with self.subTest(question=question):

@@ -16,6 +16,8 @@ def _install_course_scope(
     course_identities: Iterable[
         tuple[str, str] | tuple[str | None, str, str]
     ],
+    *,
+    plan_key: str | None = None,
 ) -> None:
     identities = list(course_identities)
     if len(identities) > 50:
@@ -49,6 +51,35 @@ def _install_course_scope(
             normalized.append(identity_key)
     if not normalized:
         raise ValueError("course scope must contain at least one identity")
+
+    scope_plan: str | None = None
+    if plan_key is not None:
+        if not isinstance(plan_key, str) or not plan_key.strip():
+            raise ValueError("course scope plan_key must be a non-empty string")
+        scope_plan = plan_key.strip().casefold()
+    if scope_plan is not None:
+        connection.execute(
+            "CREATE TEMP TABLE _qa_scope_plan (plan TEXT PRIMARY KEY)"
+        )
+        connection.execute(
+            "INSERT INTO _qa_scope_plan (plan) VALUES (?)", (scope_plan,)
+        )
+    plan_predicate = (
+        "AND EXISTS (SELECT 1 FROM _qa_scope_plan AS scoped_plan "
+        "WHERE lower(trim(v.plan)) = scoped_plan.plan)"
+        if scope_plan is not None
+        else ""
+    )
+    plan_placement_predicate = (
+        "AND EXISTS (SELECT 1 FROM main.curriculum_plans AS scoped_curriculum "
+        "JOIN _qa_scope_pairs AS pairing "
+        "ON pairing.catalog_id = scoped_curriculum.catalog_id "
+        "JOIN _qa_scope_plan AS scoped_plan "
+        "ON lower(trim(scoped_curriculum.plan_key)) = scoped_plan.plan "
+        "WHERE scoped_curriculum.plan_id = p.plan_id)"
+        if scope_plan is not None
+        else ""
+    )
 
     connection.execute(
         "CREATE TEMP TABLE _qa_requested_scope ("
@@ -132,7 +163,8 @@ def _install_course_scope(
             "JOIN main.catalogs AS catalog ON catalog.catalog_id = course.catalog_id "
             "JOIN _qa_scope_pairs AS requested ON requested.catalog_id = course.catalog_id "
             "AND lower(trim(v.program)) = requested.program "
-            "AND lower(trim(v.course_code)) = requested.course_code",
+            "AND lower(trim(v.course_code)) = requested.course_code "
+            f"{plan_predicate}",
         ),
         (
             "courses",
@@ -178,10 +210,11 @@ def _install_course_scope(
         (
             "plan_placements",
             "SELECT p.* FROM main.plan_placements AS p "
-            "WHERE p.course_id IN (SELECT course_id FROM _qa_scope_ids) "
+            "WHERE (p.course_id IN (SELECT course_id FROM _qa_scope_ids) "
             "OR p.alternative_group_id IN (SELECT m.alternative_group_id "
             "FROM main.alternative_course_group_members AS m "
-            "JOIN _qa_scope_ids AS allowed ON allowed.course_id = m.course_id)",
+            "JOIN _qa_scope_ids AS allowed ON allowed.course_id = m.course_id)) "
+            f"{plan_placement_predicate}",
         ),
         (
             "prerequisites",
@@ -392,7 +425,9 @@ def execute_readonly(
     read_only_uri = f"{database_path.resolve().as_uri()}?mode=ro"
     with closing(sqlite3.connect(read_only_uri, uri=True)) as connection:
         if course_scope is not None:
-            _install_course_scope(connection, course_scope)
+            # A validated single plan stays enforced even for course-scoped
+            # execution; model SQL can never widen it back to all plans.
+            _install_course_scope(connection, course_scope, plan_key=plan_key)
         elif catalog_key is not None:
             _install_catalog_scope(
                 connection,

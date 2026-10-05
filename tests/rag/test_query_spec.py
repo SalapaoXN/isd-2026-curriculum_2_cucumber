@@ -25,6 +25,8 @@ EXPECTED_FIELDS = (
     # H23-B: parser-owned integral per-course credit predicate.
     "credit_units",
     "references_previous_result_set",
+    # Micro-task 8: bounded 1-based ordinal into the previous result set.
+    "result_ordinal",
 )
 
 
@@ -60,6 +62,7 @@ class QuerySpecSkeletonTests(unittest.TestCase):
         self.assertEqual(spec.group_by, ())
         self.assertEqual(spec.judgement, "none")
         self.assertFalse(spec.references_previous_result_set)
+        self.assertIsNone(spec.result_ordinal)
         for name in (
             "plans",
             "years",
@@ -143,6 +146,50 @@ class QuerySpecEntityTests(unittest.TestCase):
             with self.subTest(question=question):
                 self.assertFalse(parse_query_spec(question).references_previous_result_set)
 
+    # --- Micro-task 8: bounded ordinal result references (no intent wording) ---
+    def test_ordinal_first_forms_resolve_to_one(self):
+        for question in (
+            "ตัวแรกกี่หน่วย",
+            "อันแรกคือวิชาอะไร",
+            "แล้วตัวแรกล่ะ",
+            "แล้วตัวแรกอะ",
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.result_ordinal, 1)
+                # Ordinal extraction never invents operations or targets.
+                self.assertEqual(spec.course_codes, ())
+                self.assertIsNone(spec.course_name)
+
+    def test_ordinal_second_and_numeric_forms_resolve(self):
+        for question, expected in (
+            ("ตัวที่สองเรียนตอนไหน", 2),
+            ("อันที่สองกี่หน่วย", 2),
+            ("ตัวที่ 1 กี่หน่วย", 1),
+            ("ตัวที่1 กี่หน่วย", 1),
+            ("ตัวที่ 2 เรียนตอนไหน", 2),
+            ("แล้วตัวที่สองล่ะ", 2),
+            ("ตัวที่ 10 กี่หน่วย", 10),
+        ):
+            with self.subTest(question=question):
+                spec = parse_query_spec(question)
+                self.assertEqual(spec.result_ordinal, expected)
+                self.assertEqual(spec.course_codes, ())
+                self.assertIsNone(spec.course_name)
+
+    def test_non_ordinal_wording_has_no_result_ordinal(self):
+        for question in (
+            "มีวิชาอะไรบ้าง",
+            "ตัวไหนมีวิชาบังคับก่อน",
+            "06016414 กี่หน่วย",
+            "มันกี่หน่วย",
+            "ตัวนั้นเรียนตอนไหน",
+            "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
+            "ตัวที่ 0 กี่หน่วย",
+        ):
+            with self.subTest(question=question):
+                self.assertIsNone(parse_query_spec(question).result_ordinal)
+
 
     def test_program_aliases_are_explicit_and_boundary_safe(self):
         for alias, expected in (
@@ -169,6 +216,48 @@ class QuerySpecEntityTests(unittest.TestCase):
             ("coop", "no_coop", "default", "gened"),
         )
         self.assertEqual(parse_query_spec("IT").plans, ())
+
+    # --- Micro-task 7: explicit negation dominates the positive plan token ---
+    def test_positive_coop_forms_resolve_coop(self):
+        for question in ("IT สหกิจ", "IT coop", "IT COOP", "IT สหกิจนี่รวมกี่หน่วยนะ"):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).plans, ("coop",))
+
+    def test_explicit_thai_negation_resolves_no_coop(self):
+        for question in ("IT ไม่สหกิจ", "แล้วไม่สหกิจล่ะ", "IT ไม่ สหกิจ"):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).plans, ("no_coop",))
+
+    def test_separated_mixed_language_negation_resolves_no_coop(self):
+        for question in ("IT ไม่ coop", "ไม่ coop ล่ะ", "IT ไม่ COOP"):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).plans, ("no_coop",))
+
+    def test_compact_negation_resolves_no_coop(self):
+        for question in ("IT ไม่coop", "dsba ไม่coop รวมกี่หน่วย"):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).plans, ("no_coop",))
+
+    def test_english_negation_variants_resolve_no_coop(self):
+        for question in (
+            "IT no_coop",
+            "IT no coop",
+            "IT no-coop",
+            "IT non-coop",
+            "IT non coop",
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).plans, ("no_coop",))
+
+    def test_plan_tokens_do_not_match_inside_other_words(self):
+        for question in ("scoop", "xnocoop", "coopX", "Xcoop", "IT"):
+            with self.subTest(question=question):
+                self.assertEqual(parse_query_spec(question).plans, ())
+
+    def test_both_plans_mentioned_preserves_ordered_unique_pair(self):
+        self.assertEqual(
+            parse_query_spec("IT สหกิจและไม่coop").plans, ("coop", "no_coop")
+        )
 
     def test_years_and_semesters_use_normalized_numeric_surface(self):
         self.assertEqual(

@@ -770,18 +770,13 @@ def _graduation_requirements_answer(
     )
 
 
-def answer_policy_question(
+def answer_policy_query(
     db_path: str | Path,
-    question: str,
+    query: PolicyQuery,
     *,
     catalog_key: str | None = None,
-    program_context: str | None = None,
 ) -> PolicyAnswer:
-    """Answer one supported policy question using only the canonical runtime DB."""
-
-    query = parse_policy_question(question, program_context=program_context)
-    if query is None:
-        return PolicyAnswer(status="unsupported")
+    """Answer one already-parsed policy query using only the canonical runtime DB."""
     try:
         if query.kind == "unsupported_policy_shape":
             return PolicyAnswer(status="unsupported", query_type=query.kind)
@@ -812,9 +807,25 @@ def answer_policy_question(
         return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
 
 
+def answer_policy_question(
+    db_path: str | Path,
+    question: str,
+    *,
+    catalog_key: str | None = None,
+    program_context: str | None = None,
+) -> PolicyAnswer:
+    """Answer one supported policy question using only the canonical runtime DB."""
+
+    query = parse_policy_question(question, program_context=program_context)
+    if query is None:
+        return PolicyAnswer(status="unsupported")
+    return answer_policy_query(db_path, query, catalog_key=catalog_key)
+
+
 __all__ = [
     "PolicyAnswer",
     "PolicyFact",
     "PolicyRuleEvidence",
+    "answer_policy_query",
     "answer_policy_question",
 ]

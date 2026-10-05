@@ -64,14 +64,21 @@ from rag.judgement import (
     evaluate_quantity,
     evaluate_workload,
 )
-from rag.policy.routing import route_policy_question
+from rag.policy.answer import answer_policy_query
+from rag.policy.query import PolicyQuery, parse_policy_question
+from rag.policy.routing import adapt_policy_answer, route_policy_question
 from rag.query_spec import detect_surface_operations, parse_query_spec
 from rag.retrieval.retrieve import (
     ConstrainedTopicRetrievalResult,
     SimilarityEvidence,
 )
 from rag.answer import render_grounded_answer
-from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
+from rag.resolution import (
+    QueryContext,
+    ResolutionOutcome,
+    has_answerable_target_or_scope,
+    resolve_query_spec,
+)
 from rag.structured.fallback import (
     GroundedCourseCreditResult,
     GroundedCourseListResult,
@@ -433,6 +440,40 @@ def _run_count_shadow(
         interpret_callable=interpret_question_intent,
         compile_callable=compile_intent_to_query_spec,
     )
+
+
+def _is_whole_program_total(spec: Any, program: Any) -> bool:
+    """Whether an unscoped program credit sum must use requirement evidence.
+
+    A bare program (optionally plan-qualified) credit total has exactly one
+    canonical authority: the program requirement record. Placement-row sums
+    inflate it (duplicate placements, electives, alternatives), so they must
+    never serve it. Any narrowing axis (course, term, category, topic,
+    predicate, previous-set reference) keeps the existing evidence path.
+    """
+    if not isinstance(program, str) or not program.strip():
+        return False
+    if tuple(getattr(spec, "operations", ())) != ("sum_credits",):
+        return False
+    if tuple(getattr(spec, "course_codes", ())) or (
+        getattr(spec, "course_name", None) is not None
+    ):
+        return False
+    if (
+        tuple(getattr(spec, "years", ()))
+        or tuple(getattr(spec, "semesters", ()))
+        or getattr(spec, "category", None) is not None
+        or getattr(spec, "credit_units", None) is not None
+        or getattr(spec, "topic", None) is not None
+        or tuple(getattr(spec, "group_by", ()))
+        or getattr(spec, "judgement", None) not in (None, "none")
+    ):
+        return False
+    if bool(getattr(spec, "references_previous_result_set", False)):
+        return False
+    if getattr(spec, "result_ordinal", None) is not None:
+        return False
+    return True
 
 
 def _is_course_credit_fallback_candidate(
@@ -2974,10 +3015,19 @@ def ask(
     intent_model_callable: Callable[[str], str] | None = None,
     shadow_intent: bool = False,
     synthesize_answer: bool = False,
+    semantic_topic: str | None = None,
 ) -> dict[str, Any]:
     """Run the typed evidence pipeline while retaining the legacy signature."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
+    if semantic_topic is not None and (
+        not isinstance(semantic_topic, str)
+        or not semantic_topic.strip()
+        or len(semantic_topic.strip()) > 80
+    ):
+        raise ValueError(
+            "semantic_topic must be a non-empty string of at most 80 characters"
+        )
 
     conversation_mode = conversation_context is not None
     parser_context = conversation_context if conversation_mode else context
@@ -2992,6 +3042,11 @@ def ask(
     )
     if conversation_mode:
         spec = _merge_conversation_context(spec, conversation_context)
+    if spec.topic is None and semantic_topic is not None:
+        # A retained conversational topic fills only a missing topic, exactly
+        # as if the current turn had named it; explicit text always wins.
+        # It is retrieval input only, never factual authority.
+        spec = replace(spec, topic=semantic_topic.strip())
     active_context = conversation_context if conversation_mode else context
     program = getattr(spec, "program", None) or getattr(active_context, "program", None)
     catalog_key = getattr(active_context, "catalog_key", None)
@@ -3046,6 +3101,17 @@ def ask(
     elif matching_catalog_key is not None:
         catalog_key = matching_catalog_key
 
+    # A term/year selector without any requested operation is not yet a
+    # bounded curriculum question. Do not turn it into a program prompt that
+    # suggests clarification can make this credit maximum answerable.
+    if (
+        not spec.operations
+        and (spec.years or spec.semesters)
+        and not (spec.plans or spec.course_codes or spec.course_name or spec.category or spec.topic)
+        and program is None
+    ):
+        return _intent_failure_result(question)
+
     policy_result = route_policy_question(
         db_path,
         question,
@@ -3057,7 +3123,19 @@ def ask(
         program_context=program if isinstance(program, str) else None,
     )
     if policy_result is not None:
-        return {"route": None, "result": policy_result}
+        policy_query = parse_policy_question(question, program_context=program)
+        if policy_query is None or policy_query.kind != "program_total_credits":
+            return {"route": None, "result": policy_result}
+        policy_context = {"program": program} if program else {}
+        if catalog_key is not None:
+            policy_context["catalog_key"] = catalog_key
+        if len(spec.plans) == 1:
+            policy_context["plan"] = spec.plans[0]
+        return {
+            "route": None,
+            "result": policy_result,
+            "next_context": policy_context or None,
+        }
 
     operations = tuple(getattr(spec, "operations", ()))
     has_structural_target = bool(
@@ -3077,6 +3155,36 @@ def ask(
             re.IGNORECASE,
         )
     }
+    if (
+        len(explicit_program_mentions) <= 1
+        and (explicit_program_mentions or spec.plans)
+        and _is_whole_program_total(spec, program)
+    ):
+        # Canonical program/catalog-level total evidence (program
+        # requirements) is the only authority for a whole-program sum.
+        # The plan qualifier, if any, is preserved as conversational scope
+        # but never invents a plan-specific total from placement rows.
+        total_plans = tuple(getattr(spec, "plans", ()))
+        total_answer = answer_policy_query(
+            db_path,
+            PolicyQuery(
+                "program_total_credits",
+                program=program,
+                plan=total_plans[0] if len(total_plans) == 1 else None,
+            ),
+            catalog_key=catalog_key,
+        )
+        total_context: dict[str, Any] = {"program": program}
+        if catalog_key is not None:
+            total_context["catalog_key"] = catalog_key
+        if len(total_plans) == 1:
+            total_context["plan"] = total_plans[0]
+        return {
+            "route": None,
+            "result": adapt_policy_answer(total_answer),
+            "next_context": total_context,
+        }
+
     if (
         operations == ("sum_credits",)
         and not has_structural_target
@@ -3102,6 +3210,15 @@ def ask(
         )
         and re.search(r"(?:ตัวนี้|วิชานี้|อันนี้)", question, re.IGNORECASE)
     ):
+        return _intent_failure_result(question)
+
+    if (
+        not has_answerable_target_or_scope(spec, active_context)
+        and not (operations == ("sum_credits",) and len(explicit_program_mentions) > 1)
+    ):
+        # A targetless detail/reference request must fail closed here, before
+        # resolution, retrieval, or any model call, instead of falling through
+        # into broad program-wide retrieval with a confident dump.
         return _intent_failure_result(question)
 
     resolution_context = (
