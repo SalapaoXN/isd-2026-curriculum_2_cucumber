@@ -324,3 +324,11 @@ Runtime benchmark ล่าสุดอยู่ที่ `reports/runtime_bench
 - `submission/submission.md` — frozen historical submission; เก็บเพื่ออ้างอิงเท่านั้น
 
 เอกสาร phase/baseline/history รุ่นเก่าถูกนำออกจาก active tree เพื่อไม่ให้ปนกับสถานะปัจจุบัน
+
+## Week 11 Deliverables
+
+- API Contract: README.md → Section 4
+- Chat Wireframe: docs/wireframes/chat-wireframe.svg
+- Curriculum Wireframe: docs/wireframes/curriculum-wireframe.svg
+- User Flow: docs/wireframes/user-flow.svg
+- Implemented UI: frontend/
