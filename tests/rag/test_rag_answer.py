@@ -2627,6 +2627,51 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("Question: C100 คืออะไร", output.getvalue())
         self.assertIn("Final Answer: คำตอบจากหลักฐาน", output.getvalue())
 
+    # --- Micro-task 3: NULL fixed placement must not become concrete timing ---
+    @staticmethod
+    def _null_fixed_placement_entry(plan_key, choices):
+        # Mirrors canonical evidence rows whose placement was queried and came
+        # back absent (explicit NULL year/semester with arrangement options).
+        return {
+            "program": "IT",
+            "plan_key": plan_key,
+            "course_code": "06016438",
+            "year_number": None,
+            "semester_number": None,
+            "year_semester_choices": choices,
+            "credits": "3(3-0-6)",
+        }
+
+    def test_null_fixed_single_choice_renders_absence_not_fact(self):
+        claim = GroundedClaim(
+            "placement_null_fixed_001",
+            "placement",
+            value=(self._null_fixed_placement_entry("coop", ((4, 1),)),),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("06016438", rendered)
+        self.assertIn("ไม่มีข้อมูลปี/ภาคเรียนที่แน่นอนในหลักสูตร", rendered)
+        self.assertNotIn("เรียนในปี", rendered)
+        self.assertNotIn("สามารถเลือกจัดเรียนได้ใน", rendered)
+
+    def test_null_fixed_identical_choices_do_not_merge_into_shared_timing(self):
+        claim = GroundedClaim(
+            "placement_null_fixed_002",
+            "placement",
+            value=(
+                self._null_fixed_placement_entry("coop", ((4, 1),)),
+                self._null_fixed_placement_entry("no_coop", ((4, 1),)),
+            ),
+        )
+
+        rendered = render_grounded_claim(claim)
+
+        self.assertIn("ไม่มีข้อมูลปี/ภาคเรียนที่แน่นอนในหลักสูตร", rendered)
+        self.assertNotIn("เรียนในปี", rendered)
+        self.assertNotIn("จึงไม่ต่างกันด้านช่วงเรียน", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

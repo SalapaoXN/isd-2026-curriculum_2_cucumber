@@ -119,6 +119,41 @@ def _explicit_reference_programs(question: str) -> dict[str, str]:
     return programs
 
 
+def resolve_ordinal_course_reference(
+    spec: QuerySpec,
+    result_courses: list[dict[str, Any]] | tuple[dict[str, Any], ...] | None,
+) -> dict[str, Any] | None:
+    """Resolve an ordinal reference (ตัวแรก/ตัวที่ N) to one retained identity.
+
+    Precedence: an explicit course code/name in the current turn always wins
+    (returns None so the caller uses the explicit entity). Out-of-range,
+    missing, empty, or malformed result sets also return None so the caller
+    fails closed. Returned identities are references only, never evidence.
+    """
+    ordinal = getattr(spec, "result_ordinal", None)
+    if (
+        not isinstance(ordinal, int)
+        or isinstance(ordinal, bool)
+        or ordinal < 1
+    ):
+        return None
+    if getattr(spec, "course_codes", ()) or (
+        getattr(spec, "course_name", None) is not None
+    ):
+        return None
+    if not isinstance(result_courses, (list, tuple)) or not result_courses:
+        return None
+    if ordinal > len(result_courses):
+        return None
+    candidate = result_courses[ordinal - 1]
+    if not isinstance(candidate, dict):
+        return None
+    course_code = candidate.get("course_code")
+    if not isinstance(course_code, str) or not course_code.strip():
+        return None
+    return candidate
+
+
 def _outcome(
     action: str,
     *,
@@ -286,9 +321,53 @@ def resolve_query_spec(
     )
 
 
+def has_answerable_target_or_scope(spec: Any, active_context: QueryContext | None) -> bool:
+    """Check whether the merged request carries any course target or query scope.
+
+    Structural fail-closed precondition shared by the pre-SQL routing guard
+    and the grounded pipeline guard: sum_credits/placement detail operations
+    need an authoritative course target or a narrower-than-program scope, and
+    a fully empty request needs any signal at all. Detected operations alone
+    (e.g. sum_credits/placement inferred from wording against a bare
+    program/edition scope, with no course and no narrower scope) never
+    authorize retrieval. Other parsed operations keep their established
+    machinery and fail-closed paths. Program selection alone is deliberately
+    not a signal.
+    """
+    if getattr(spec, "course_name", None) is not None:
+        return True
+    if tuple(getattr(spec, "course_codes", ()) or ()):
+        return True
+    context_code = getattr(active_context, "course_code", None)
+    if isinstance(context_code, str) and context_code.strip():
+        return True
+    operations = tuple(getattr(spec, "operations", ()) or ())
+    if operations and not set(operations) <= {"sum_credits", "placement"}:
+        return True
+    if tuple(getattr(spec, "plans", ()) or ()):
+        return True
+    if tuple(getattr(spec, "years", ()) or ()):
+        return True
+    if tuple(getattr(spec, "semesters", ()) or ()):
+        return True
+    if getattr(spec, "topic", None) is not None:
+        return True
+    if getattr(spec, "category", None) is not None:
+        return True
+    if getattr(spec, "credit_units", None) is not None:
+        return True
+    if tuple(getattr(spec, "group_by", ()) or ()):
+        return True
+    if bool(getattr(spec, "references_previous_result_set", False)):
+        return True
+    return False
+
+
 __all__ = [
     "CourseReferenceResolution",
     "QueryContext",
     "ResolutionOutcome",
+    "has_answerable_target_or_scope",
+    "resolve_ordinal_course_reference",
     "resolve_query_spec",
 ]

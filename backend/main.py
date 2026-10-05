@@ -15,9 +15,17 @@ from rag.hybrid_demo import (
     parse_conversation_context,
 )
 from rag.policy.query import parse_policy_question
+from rag.policy.answer import answer_policy_query
+from rag.prev_answer import classify_prev_followup, parse_last_answer
+from backend.prev_followup import (
+    answer_previous_followup,
+    build_course_reference,
+    build_policy_reference,
+)
 from rag.policy.routing import route_policy_question
 from rag.providers.gemini import make_gemini_callable
 from rag.query_spec import parse_query_spec
+from rag.resolution import resolve_ordinal_course_reference
 from rag.structured.queries import (
     catalog_keys_for_program,
     edition_catalog_keys_for_program,
@@ -225,6 +233,31 @@ def _pending_catalog_query(context: dict) -> str | None:
         parts.append(context["course_code"])
     parts.append("มีวิชาอะไรบ้าง")
     return " ".join(parts)
+
+
+def _focus_course_from_context_course_code(
+    parsed_context, program: str | None, catalog_key: str | None
+) -> dict | None:
+    """Translate a prior answer's structural course_code into service focus shape.
+
+    The grounded path persists its target as ``QueryContext.course_code``,
+    which is valid public conversation context but not valid ``ask_sql``
+    service context. Translate it through the single focus validator so
+    system-emitted context stays consumable on the next turn; stale
+    cross-program/edition targets fail closed to None.
+    """
+    if parsed_context is None or parsed_context.course_code is None:
+        return None
+    candidate: dict[str, str | None] = {
+        "course_code": parsed_context.course_code,
+        "program": parsed_context.program,
+    }
+    if parsed_context.catalog_key is not None:
+        candidate["catalog_key"] = parsed_context.catalog_key
+    try:
+        return parse_focus_course_context(candidate, program, catalog_key)
+    except (TypeError, ValueError):
+        return None
 
 
 def _validate_catalog_context(
@@ -531,11 +564,25 @@ def ask(request: AskRequest) -> dict:
         raw_result_courses = None
         raw_result_scope = None
         raw_result_set_empty = False
+        raw_last_answer = None
         has_result_set_empty = False
         has_result_scope = False
         focus_catalog_key = None
+        raw_semantic_topic = None
         if isinstance(raw_context, dict):
             legacy_context = dict(raw_context)
+            raw_semantic_topic = legacy_context.pop("semantic_topic", None)
+            if raw_semantic_topic is not None:
+                if (
+                    not isinstance(raw_semantic_topic, str)
+                    or not raw_semantic_topic.strip()
+                    or len(raw_semantic_topic.strip()) > 80
+                ):
+                    raise ValueError(
+                        "semantic_topic must be a non-empty string of at most "
+                        "80 characters"
+                    )
+                raw_semantic_topic = raw_semantic_topic.strip()
             if "pending_catalog_selection" in legacy_context:
                 pending_marker = legacy_context.pop("pending_catalog_selection")
                 if pending_marker is not True or legacy_context.get("catalog_key") is not None:
@@ -581,6 +628,7 @@ def ask(request: AskRequest) -> dict:
                 )
             raw_focus = legacy_context.pop("focus_course", None)
             focus_catalog_key = legacy_context.pop("focus_catalog_key", None)
+            raw_last_answer = legacy_context.pop("last_answer", None)
             raw_result_courses = legacy_context.pop("result_courses", None)
             has_result_set_empty = "result_set_empty" in legacy_context
             raw_result_set_empty = legacy_context.pop("result_set_empty", False)
@@ -624,9 +672,11 @@ def ask(request: AskRequest) -> dict:
                 raw_result_courses = None
                 raw_result_scope = None
                 raw_result_set_empty = False
+                raw_semantic_topic = None
+                raw_last_answer = None
                 has_result_scope = False
                 has_result_set_empty = False
-                for key in ("plan", "plans", "year", "years", "semester", "semesters", "operations"):
+                for key in ("plan", "plans", "year", "years", "semester", "semesters", "operations", "course_code", "category"):
                     legacy_context.pop(key, None)
                 focus_catalog_key = active_catalog_key.strip()
             if raw_result_courses is None and has_result_scope:
@@ -647,6 +697,8 @@ def ask(request: AskRequest) -> dict:
             raw_result_courses = None
             raw_result_scope = None
             raw_result_set_empty = False
+            raw_semantic_topic = None
+            raw_last_answer = None
             has_result_scope = False
             has_result_set_empty = False
             focus_catalog_key = None
@@ -670,6 +722,15 @@ def ask(request: AskRequest) -> dict:
                 status_code=422,
                 detail=f"invalid conversation_context: {exc}",
             ) from exc
+    try:
+        last_answer = parse_last_answer(
+            raw_last_answer, program=program, catalog_key=catalog_key
+        )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"invalid conversation_context: {exc}",
+        ) from exc
     scope_program = program or query_spec.program
     explicit_edition_comparison = (
         (
@@ -795,11 +856,19 @@ def ask(request: AskRequest) -> dict:
             "next_context": next_context or None,
             "comparison": None,
         }
+    # An explicit in-text topic replaces the retained one; the retained topic
+    # otherwise carries forward as retrieval input only, never as evidence.
+    # Like other scope, it is dropped for self-contained exact-course questions.
+    semantic_topic = query_spec.topic or raw_semantic_topic
+    if semantic_topic is not None and explicit_course_credit:
+        semantic_topic = None
     service_context: dict | None = {}
     if program is not None:
         service_context["program"] = program
     if catalog_key is not None:
         service_context["catalog_key"] = catalog_key
+    if semantic_topic is not None:
+        service_context["semantic_topic"] = semantic_topic
     if parsed_context is not None:
         if parsed_context.plan is not None and not explicit_course_credit:
             service_context["plan"] = parsed_context.plan
@@ -809,12 +878,17 @@ def ask(request: AskRequest) -> dict:
             service_context["semesters"] = list(parsed_context.semesters)
         if parsed_context.operations and not explicit_course_credit:
             service_context["operations"] = list(parsed_context.operations)
-        if parsed_context.category is not None and not explicit_course_credit:
-            service_context["category"] = parsed_context.category
-        if parsed_context.course_code is not None and not explicit_course_credit:
-            service_context["course_code"] = parsed_context.course_code
+        # NOTE: parsed_context.category / parsed_context.course_code are valid
+        # public context but are not valid ask_sql service keys; forwarding them
+        # raw used to poison every follow-up with invalid_context. The course
+        # target is translated into the validated focus_course shape instead;
+        # category has no service slot and is intentionally not forwarded.
         if focus_catalog_key is not None:
             service_context["focus_catalog_key"] = focus_catalog_key.strip()
+    if focus_course is None and not explicit_course_credit:
+        focus_course = _focus_course_from_context_course_code(
+            parsed_context, program, catalog_key
+        )
     if focus_course is not None and not explicit_course_credit:
         service_context["focus_course"] = focus_course
     if parsed_results is not None and not explicit_course_credit:
@@ -883,6 +957,38 @@ def ask(request: AskRequest) -> dict:
             response_json_schema=HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA,
         )
 
+    followup_kind = classify_prev_followup(request.question, query_spec)
+    if followup_kind is not None and policy_query is None:
+        # A substance-free explain/source/rationale turn refers to the
+        # immediately previous grounded answer only; it never searches anew.
+        followed = answer_previous_followup(
+            db_path=db_path,
+            question=request.question,
+            followup_kind=followup_kind,
+            last_answer=last_answer,
+            program=program,
+            catalog_key=catalog_key,
+            model_callable=model_provider,
+        )
+        followed_status = followed.get("status")
+        if not isinstance(followed_status, str):
+            followed_status = "error"
+        return {
+            "question": request.question,
+            "answer": followed.get("answer")
+            if isinstance(followed.get("answer"), str)
+            else "",
+            "status": followed_status,
+            "action": followed.get("action"),
+            "route": "llm_sql",
+            "hard_task_type": None,
+            "provenance": followed.get("provenance")
+            if isinstance(followed.get("provenance"), list)
+            else [],
+            "next_context": followed.get("next_context"),
+            "comparison": None,
+        }
+
     try:
         hard_context = {}
         if program is not None:
@@ -922,20 +1028,85 @@ def ask(request: AskRequest) -> dict:
                         "operations", "category", "course_code",
                     }
                 }
-                if service_context and service_context.get("result_courses"):
+                # Ordinal references (ตัวแรก/ตัวที่ N) resolve against the retained
+                # set first; explicit codes/names in the question always win
+                # (handled by the question parser downstream); a stored single
+                # course target applies only when no ordinal resolves.
+                ordinal_target = resolve_ordinal_course_reference(
+                    query_spec,
+                    parsed_results[0] if parsed_results is not None else None,
+                )
+                ordinal_code = (
+                    ordinal_target.get("course_code").strip()
+                    if isinstance(ordinal_target, dict)
+                    and isinstance(ordinal_target.get("course_code"), str)
+                    and ordinal_target.get("course_code").strip()
+                    else None
+                )
+                has_own_substance = bool(
+                    query_spec.course_codes
+                    or query_spec.course_name is not None
+                    or query_spec.topic is not None
+                    or query_spec.plans
+                    or query_spec.years
+                    or query_spec.semesters
+                    or query_spec.program is not None
+                    or query_spec.operations
+                    or query_spec.category is not None
+                    or query_spec.references_previous_result_set
+                    or ordinal_code is not None
+                )
+                if (
+                    service_context
+                    and service_context.get("result_courses")
+                    and not has_own_substance
+                ):
                     # The canonical QA context cannot represent an arbitrary
-                    # bounded multi-course result set; do not widen it.
+                    # bounded multi-course result set; do not widen it. Bare
+                    # follow-ups fail closed here, while ordinal references,
+                    # explicit entities, and fresh scoped searches take their
+                    # normal paths below instead.
                     return {"status": "insufficient_evidence", "provenance": []}
                 focus_course = (service_context or {}).get("focus_course")
-                if isinstance(focus_course, dict):
-                    course_code = focus_course.get("course_code")
-                    if isinstance(course_code, str) and course_code.strip():
-                        grounding_context["course_code"] = course_code.strip()
+                focus_code = (
+                    focus_course.get("course_code").strip()
+                    if isinstance(focus_course, dict)
+                    and isinstance(focus_course.get("course_code"), str)
+                    and focus_course.get("course_code").strip()
+                    else None
+                )
+                if (
+                    query_spec.result_ordinal is not None
+                    and not query_spec.course_codes
+                    and query_spec.course_name is None
+                    and ordinal_code is None
+                ):
+                    # An explicit ordinal that resolves to nothing is
+                    # terminal: it must never degrade into the focus course.
+                    return {"status": "insufficient_evidence", "provenance": []}
+                if ordinal_code is not None:
+                    grounding_context["course_code"] = ordinal_code
+                elif focus_code is not None:
+                    grounding_context["course_code"] = focus_code
+                # An exact course target (explicit, ordinal-resolved, or focus)
+                # takes precedence over a retained topic for this turn; the
+                # topic stays retained in context for later refinements.
+                has_grounding_course_target = (
+                    ordinal_code is not None
+                    or focus_code is not None
+                    or bool(query_spec.course_codes)
+                    or query_spec.course_name is not None
+                )
                 return answer_question_once(
                     db_path,
                     current_question,
                     intent_model_callable=model_provider,
                     conversation_context=grounding_context or None,
+                    semantic_topic=(
+                        None
+                        if has_grounding_course_target
+                        else (service_context or {}).get("semantic_topic")
+                    ),
                 )
 
             result = ask_sql(
@@ -984,18 +1155,85 @@ def ask(request: AskRequest) -> dict:
             fallback_context["operations"] = list(parsed_context.operations)
         if parsed_context.category is not None and not explicit_course_credit:
             fallback_context["category"] = parsed_context.category
-        if parsed_context.course_code is not None and not explicit_course_credit:
-            fallback_context["course_code"] = parsed_context.course_code
+        # NOTE: the prior course target is carried as focus_course below
+        # (translated through the focus validator); emitting raw course_code
+        # here would re-introduce the invalid_context round-trip poison.
         if focus_catalog_key is not None:
             fallback_context["focus_catalog_key"] = focus_catalog_key.strip()
     if focus_course is not None and not explicit_course_credit:
         fallback_context["focus_course"] = focus_course
+    if semantic_topic is not None:
+        fallback_context["semantic_topic"] = semantic_topic
+    if last_answer is not None:
+        # A safe failure preserves the most recent valid grounded-answer
+        # referent; the next answered factual turn replaces it.
+        fallback_context["last_answer"] = last_answer
     if parsed_results is not None and not explicit_course_credit:
         fallback_context["result_courses"] = parsed_results[0]
         fallback_context["result_scope_program"] = parsed_results[1]
         if not parsed_results[0]:
             fallback_context["result_set_empty"] = True
-    next_context = result.get("next_context", fallback_context or None)
+    reported_context = result.get("next_context", fallback_context or None)
+    # Safe failures report next_context=None; re-offer the validated fallback
+    # instead of wiping previously validated scope. Explicit payloads (answers,
+    # pending catalog selection, hard scope) pass through untouched, and an
+    # empty fallback still yields None. The fallback is built only from
+    # validated state, never from raw user-supplied context.
+    next_context = reported_context or (fallback_context or None)
+
+    if status == "answer":
+        # A freshly answered policy turn becomes the previous-answer
+        # referent only when the policy route actually produced the answer;
+        # curriculum answers to dual shapes never inherit a policy referent.
+        routed_policy = route_policy_question(
+            db_path, request.question, catalog_key=catalog_key
+        )
+        if (
+            routed_policy is not None
+            and routed_policy.status == "answer"
+            and routed_policy.provenance
+        ):
+            question_policy = parse_policy_question(request.question)
+            policy_reference = (
+                build_policy_reference(
+                    question_policy,
+                    answer_policy_query(
+                        db_path, question_policy, catalog_key=catalog_key
+                    ),
+                    catalog_key=catalog_key,
+                )
+                if question_policy is not None
+                else None
+            )
+            if policy_reference is not None:
+                next_context = {
+                    **(next_context if isinstance(next_context, dict) else {}),
+                    "last_answer": policy_reference,
+                }
+        else:
+            reported_course = result.get("next_context")
+            if isinstance(reported_course, dict) and isinstance(
+                reported_course.get("course_code"), str
+            ):
+                # A freshly answered single-course turn replaces any older
+                # referent; follow-up facts still re-ground from authority.
+                course_reference = build_course_reference(
+                    reported_course["course_code"],
+                    reported_course.get("operations"),
+                    program=program,
+                    catalog_key=catalog_key,
+                )
+                if course_reference is not None:
+                    next_context = {
+                        **(next_context if isinstance(next_context, dict) else {}),
+                        "last_answer": course_reference,
+                    }
+    if result.get("route") == "hard" and isinstance(next_context, dict):
+        # A hard comparison answer is a new factual turn outside the
+        # previous-answer reference contract.
+        next_context = {
+            key: value for key, value in next_context.items() if key != "last_answer"
+        } or None
 
     response = {
         "question": request.question,
