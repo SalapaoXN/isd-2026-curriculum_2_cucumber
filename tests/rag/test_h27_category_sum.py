@@ -169,12 +169,15 @@ class H27FilteredSumTests(unittest.TestCase):
     def test_all_category_sum_unchanged(self):
         result = _ask("IT ปี 4 เทอม 1 รวมทั้งหมดกี่หน่วยกิต")["result"]
         self.assertEqual(result.status, "answer")
-        # Regression pin: existing whole-term totals via the public seam
-        # (aggregation dedups identical logical courses within a partition,
-        # so coop reports 15 here while the raw term query sums 18).
-        self.assertEqual(_sum_claims_by_plan(result).get(("coop",)), 15)
+        # Regression pin: whole-term totals count each required placement.
+        # Distinct elective slots sharing a masked placeholder code each
+        # contribute their fixed credits (COUNT-1 required-load semantics),
+        # so coop reports 18 here while legacy identity-dedup reported 15.
+        # Concrete duplicate courses (e.g. IT Y3T1 06016418) still collapse.
+        self.assertEqual(_sum_claims_by_plan(result).get(("coop",)), 18)
         self.assertEqual(_sum_claims_by_plan(result).get(("no_coop",)), 15)
-        self.assertNotIn("วิชาเลือก", result.final_answer)
+        # Required-load totals keep an explicit unresolved-elective notice.
+        self.assertIn("ยังไม่ได้ระบุรายวิชา", result.final_answer)
 
     def test_provenance_contains_only_filtered_evidence(self):
         filtered = _ask(ELECTIVE_TERM_QUESTION)["result"]

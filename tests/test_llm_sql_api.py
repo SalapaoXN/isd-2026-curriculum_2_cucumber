@@ -1062,7 +1062,10 @@ class LlmSqlApiTests(unittest.TestCase):
                     elif label == "G":
                         self.assertIn("ปี 3", payload["answer"])
                     elif label == "H":
-                        self.assertIn("15 หน่วยกิต", payload["answer"])
+                        # COUNT-1 required-load semantics: the two distinct
+                        # 06026xxx elective slots each count (6 × 3 = 18).
+                        self.assertIn("18 หน่วยกิต", payload["answer"])
+                        self.assertIn("ยังไม่ได้ระบุรายวิชา", payload["answer"])
                     elif label == "I":
                         self.assertIn("DATA WAREHOUSING", payload["answer"])
 

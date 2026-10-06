@@ -536,6 +536,44 @@ def _term_phrase(term: Any) -> str | None:
     return f"ปี {year} เทอม {semester}"
 
 
+def _fixed_choice_credit(slot: Any) -> int | None:
+    """Fixed credit contribution of one unresolved choice slot, if provable.
+
+    Only when every candidate carries the same non-negative integer credit
+    value and at least ``minimum_choices`` candidates exist can the slot's
+    required contribution be stated exactly without selecting a course.
+    """
+    if not isinstance(slot, dict):
+        return None
+    minimum = slot.get("minimum_choices")
+    if (
+        not isinstance(minimum, int)
+        or isinstance(minimum, bool)
+        or minimum < 1
+    ):
+        return None
+    candidates = [
+        candidate
+        for candidate in slot.get("candidates", ())
+        if isinstance(candidate, dict)
+    ]
+    if len(candidates) < minimum:
+        return None
+    values = [candidate.get("credit_units") for candidate in candidates]
+    if (
+        not values
+        or any(
+            not isinstance(value, int)
+            or isinstance(value, bool)
+            or value < 0
+            for value in values
+        )
+        or len(set(values)) != 1
+    ):
+        return None
+    return minimum * values[0]
+
+
 def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
     feasible = result.get("sequence_feasible")
     status = result.get("status", "incomplete_evidence")
@@ -589,11 +627,40 @@ def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
             and course.get("credit_units") >= 0
         ]
         known_total = sum(known_credits)
-        if known_credits:
+        choice_slots = [
+            slot for slot in term.get("choice_slots", ()) if isinstance(slot, dict)
+        ]
+        required_slots_present = bool(
+            [
+                slot
+                for slot in term.get("required_selection_slots", ())
+                if isinstance(slot, dict)
+            ]
+        )
+        fixed_slot_credits = [
+            fixed
+            for fixed in (_fixed_choice_credit(slot) for slot in choice_slots)
+            if fixed is not None
+        ]
+        if required_slots_present:
+            # Planner slot records carry no credit data, so a term with
+            # required selection slots can only report confirmed credits.
+            if known_credits:
+                lines.append(f"รวมหน่วยกิตที่ยืนยันได้ {known_total} หน่วยกิต")
+        elif choice_slots and len(fixed_slot_credits) == len(choice_slots):
+            total = known_total + sum(fixed_slot_credits)
+            unresolved = sum(fixed_slot_credits)
+            line = f"รวม {total} หน่วยกิต"
+            if unresolved > 0:
+                line += (
+                    f" โดยมี {unresolved} หน่วยกิตเป็นส่วนของวิชาเลือก"
+                    "ที่ยังไม่ได้ระบุรายวิชา"
+                )
+            lines.append(line)
+        elif known_credits:
             fully_known = (
                 len(known_credits) == len(fixed_courses)
-                and not term.get("choice_slots")
-                and not term.get("required_selection_slots")
+                and not choice_slots
             )
             total_label = "รวม" if fully_known else "รวมหน่วยกิตที่ยืนยันได้"
             lines.append(f"{total_label} {known_total} หน่วยกิต")
@@ -761,6 +828,31 @@ def answer_seven_term_followup(
     if include_credits:
         if full_total:
             lines.append(f"{label} รวม {known_total} หน่วยกิต")
+        elif not required_slots and choices:
+            fixed_slot_credits = [
+                _fixed_choice_credit(slot) for slot in choices
+            ]
+            if all(fixed is not None for fixed in fixed_slot_credits):
+                slot_total = sum(
+                    fixed for fixed in fixed_slot_credits if isinstance(fixed, int)
+                )
+                total = known_total + slot_total
+                line = f"{label} รวม {total} หน่วยกิต"
+                if slot_total > 0:
+                    line += (
+                        f" โดยมี {slot_total} หน่วยกิตเป็นส่วนของวิชาเลือก"
+                        "ที่ยังไม่ได้ระบุรายวิชา"
+                    )
+                lines.append(line)
+            elif valid_credits:
+                lines.append(f"{label} ยืนยันได้อย่างน้อย {known_total} หน่วยกิต")
+                unresolved_count = len(choices) + len(required_slots)
+                lines.append(
+                    "ยังสรุปหน่วยกิตรวมทั้งหมดไม่ได้ เนื่องจากยังมีวิชาเลือกที่ยังไม่ได้ระบุรายวิชาจริง"
+                    + (f" {unresolved_count} ช่อง" if unresolved_count else "")
+                )
+            else:
+                lines.append(f"{label} ยังยืนยันหน่วยกิตรวมไม่ได้จากข้อมูลหลักสูตรที่มี")
         elif valid_credits:
             lines.append(f"{label} ยืนยันได้อย่างน้อย {known_total} หน่วยกิต")
             if choices or required_slots:
