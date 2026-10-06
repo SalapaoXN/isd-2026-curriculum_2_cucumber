@@ -1307,6 +1307,7 @@ def ask(request: AskRequest) -> dict:
                 model_provider,
                 conversation_context=service_context,
                 grounding_callable=ground_sql_answer,
+                allow_grounded_row_rescue=True,
             )
     except ProviderUnavailable as exc:
         raise HTTPException(
