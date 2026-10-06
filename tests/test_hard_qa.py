@@ -7,8 +7,11 @@ from backend.hard_qa import (
     HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA,
     _format_h4,
     answer_hard_question,
+    answer_seven_term_followup,
 )
 from backend.hard_sequence_planner import plan_curriculum_sequence
+from rag.qa import ask
+from rag.resolution import QueryContext
 
 
 DB_PATH = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curriculum.db"
@@ -247,26 +250,22 @@ class HardQaTests(unittest.TestCase):
         self.assertTrue(result["provenance"])
 
     def test_target_prerequisite_answer_contains_no_unrelated_course_chain(self):
-        result, _ = self.run_hard(
+        response = ask(
+            DB_PATH,
             "วิชา 06026201 ต้องเรียนอะไรมาก่อน",
-            _intent("prerequisite_sequence", program="DSBA", plan="coop", target_course_code="06026201"),
-            context={"program": "DSBA", "plan": "coop", "catalog_key": "dsba-2565"},
+            conversation_context=QueryContext(program="DSBA", plan="coop", catalog_key="dsba-2565"),
         )
-
-        self.assertEqual(result["hard_task_type"], "prerequisite_sequence")
-        self.assertIn("06026201", result["answer"])
-        self.assertIn("06026200", result["answer"])
-        self.assertNotIn(": satisfied", result["answer"])
-        self.assertIn("ต้องเรียน", result["answer"])
-        self.assertIn("มาก่อน", result["answer"])
-        self.assertIn("ตามแผน DSBA coop", result["answer"])
-        self.assertIn("เป็นไปตามลำดับ", result["answer"])
-        self.assertNotIn("06026212", result["answer"])
-        self.assertTrue(result["provenance"])
+        result = response["result"]
+        self.assertEqual(result.status, "answer")
+        self.assertIn("06026201", result.final_answer)
+        self.assertIn("06026200", result.final_answer)
+        self.assertNotIn("06026212", result.final_answer)
+        self.assertTrue(result.provenance)
+        self.assertNotEqual(response.get("route"), "hard")
 
     def test_plan_wide_prerequisite_question_uses_h3_scope(self):
         result, _ = self.run_hard(
-            "ในแผนนี้ prerequisite เรียงถูกไหม",
+            "ตรวจสอบลำดับวิชาบังคับก่อนของแผนนี้",
             _intent("prerequisite_sequence", program="DSBA", plan="coop"),
             context={"program": "DSBA", "plan": "coop", "catalog_key": "dsba-2565"},
         )
@@ -276,15 +275,18 @@ class HardQaTests(unittest.TestCase):
         self.assertIn("เรียงตามลำดับ", result["answer"])
 
     def test_explicit_current_course_overrides_trusted_course_context(self):
-        result, _ = self.run_hard(
+        response = ask(
+            DB_PATH,
             "วิชา 06026201 ต้องเรียนอะไรมาก่อน",
-            _intent("prerequisite_sequence", program="DSBA", plan="coop", target_course_code="06026212"),
-            context={"program": "DSBA", "plan": "coop", "course_code": "06026212", "catalog_key": "dsba-2565"},
+            conversation_context=QueryContext(program="DSBA", plan="coop", course_code="06026212", catalog_key="dsba-2565"),
         )
-
-        self.assertEqual(result["scope"]["target_course_code"], "06026201")
-        self.assertIn("06026201", result["answer"])
-        self.assertNotIn("06026212", result["answer"])
+        result = response["result"]
+        self.assertEqual(result.status, "answer")
+        self.assertIn("06026201", result.final_answer)
+        self.assertIn("06026200", result.final_answer)
+        self.assertNotIn("06026212", result.final_answer)
+        self.assertTrue(result.provenance)
+        self.assertEqual(response["next_context"].course_code, "06026201")
 
     def test_interpreter_cannot_inject_status_count_or_answer(self):
         injected = json.loads(_intent(
@@ -322,6 +324,57 @@ class HardQaTests(unittest.TestCase):
         self.assertNotIn("9064xxxx", result["answer"])
         self.assertNotIn("xxxxxxxx", result["answer"])
         self.assertTrue(result["provenance"])
+
+    def test_h4_rows_show_canonical_course_credits_and_only_proven_subtotals(self):
+        terms = [{
+            "term_index": index,
+            "year": (index + 1) // 2,
+            "semester": 1 if index % 2 else 2,
+            "courses": [],
+            "choice_slots": [],
+            "required_selection_slots": [],
+            "total_known_credits": 0,
+        } for index in range(1, 8)]
+        terms[0]["courses"] = [
+            {"course_code": "06026200", "name_th": "แคลคูลัส 1", "credit_units": 3},
+            {"course_code": "06026201", "name_th": "แคลคูลัส 2", "credit_units": 3},
+        ]
+        terms[0]["total_known_credits"] = 6
+        terms[1]["courses"] = [
+            {"course_code": "06026202", "name_th": "พีชคณิตเชิงเส้น", "credit_units": 3},
+        ]
+        terms[1]["total_known_credits"] = 3
+        terms[1]["required_selection_slots"] = [{"label_th": "วิชาเลือก", "placement_id": 9}]
+        terms[2]["courses"] = [
+            {"course_code": "06026203", "name_th": "วิชาที่ไม่ทราบหน่วยกิต", "credit_units": None},
+        ]
+
+        _, answer, _ = _format_h4({"status": "incomplete_evidence", "terms": terms,
+                                   "required_selection_slots": [{"label_th": "วิชาเลือก", "placement_id": 9}],
+                                   "limitations": []})
+        self.assertIn("06026200 — แคลคูลัส 1 — 3 หน่วยกิต", answer)
+        self.assertIn("06026201 — แคลคูลัส 2 — 3 หน่วยกิต", answer)
+        self.assertLess(answer.index("06026200"), answer.index("06026201"))
+        self.assertIn("รวม 6 หน่วยกิต", answer)
+        self.assertIn("รวมหน่วยกิตที่ยืนยันได้ 3 หน่วยกิต", answer)
+        self.assertNotIn("06026203 — วิชาที่ไม่ทราบหน่วยกิต —", answer)
+        self.assertIn("โครงร่าง 7 เทอมนี้ไม่ใช่ข้อพิสูจน์ว่าครบเงื่อนไขจบ", answer)
+
+    def test_h4_does_not_render_semester_subtotal_with_unknown_course_credit(self):
+        terms = [{"term_index": index, "year": (index + 1) // 2,
+                  "semester": 1 if index % 2 else 2, "courses": [],
+                  "choice_slots": [], "required_selection_slots": [],
+                  "total_known_credits": 0} for index in range(1, 8)]
+        terms[0]["courses"] = [
+            {"course_code": "06026200", "name_th": "แคลคูลัส 1", "credit_units": 3},
+            {"course_code": "06026201", "name_th": "วิชาหน่วยกิตไม่ทราบ", "credit_units": None},
+        ]
+        terms[0]["total_known_credits"] = 3
+        _, answer, _ = _format_h4({"status": "incomplete_evidence", "terms": terms,
+                                   "required_selection_slots": [], "limitations": []})
+        self.assertIn("06026200 — แคลคูลัส 1 — 3 หน่วยกิต", answer)
+        self.assertIn("รวมหน่วยกิตที่ยืนยันได้ 3 หน่วยกิต", answer)
+        self.assertNotIn("รวม 3 หน่วยกิต", answer)
 
     def test_h4_does_not_invent_missing_choice_minimum(self):
         terms = [
@@ -387,33 +440,10 @@ class HardQaTests(unittest.TestCase):
         self.assertEqual(len(result["provenance"]), 6)
         self.assertEqual(len({item["provenance_id"] for item in result["provenance"]}), 6)
 
-    def test_unselected_seven_term_plan_evaluates_each_applicable_plan_separately(self):
-        planner_calls = []
-
-        def deterministic_planner(
-            _db_path, program, plan, *, horizon_terms, catalog_key
-        ):
-            planner_calls.append((program, plan, horizon_terms, catalog_key))
-            provenance_id = len(planner_calls)
-            return {
-                "status": "complete" if plan == "coop" else "incomplete_evidence",
-                "sequence_feasible": True if plan == "coop" else None,
-                "terms": [],
-                "limitations": [],
-                "evidence": [{
-                    "provenance_id": provenance_id,
-                    "program": program,
-                    "source_filename": f"dsba_{plan}_page_033.png",
-                    "source_page": 33,
-                    "document_page": 28,
-                    "document_category": "plan",
-                }],
-                "actual_course_offering_unverified": True,
-            }
-
+    def test_unselected_seven_term_plan_requires_plan_selection(self):
         with patch(
             "backend.hard_qa.plan_curriculum_sequence",
-            side_effect=deterministic_planner,
+            side_effect=AssertionError("planner must not run without a plan"),
         ):
             result, prompts = self.run_hard(
                 "ถ้าอยากเรียนจบใน 3.5 ปีต้องทำยังไง",
@@ -421,30 +451,16 @@ class HardQaTests(unittest.TestCase):
                 context={"program": "DSBA", "catalog_key": "dsba-2565"},
             )
 
-        self.assertEqual(
-            planner_calls,
-            [
-                ("DSBA", "coop", 7, "dsba-2565"),
-                ("DSBA", "no_coop", 7, "dsba-2565"),
-            ],
-        )
         self.assertEqual(result["hard_task_type"], "seven_term_plan")
-        self.assertEqual(result["status"], "incomplete_evidence")
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "plan_required")
         self.assertEqual(result["scope"]["plan"], None)
-        self.assertEqual(
-            [(item["plan"], item["status"]) for item in result["plan_results"]],
-            [("coop", "complete"), ("no_coop", "incomplete_evidence")],
-        )
-        self.assertTrue(all(item["provenance"] for item in result["plan_results"]))
-        self.assertEqual(
-            [item["provenance"][0]["source_filename"] for item in result["plan_results"]],
-            ["dsba_coop_page_033.png", "dsba_no_coop_page_033.png"],
-        )
-        self.assertIn("แผน coop", result["answer"])
-        self.assertIn("แผน no_coop", result["answer"])
+        self.assertNotIn("plan_results", result)
+        self.assertIn("เลือกแผนหลักสูตร", result["answer"])
+        self.assertEqual(result["provenance"], [])
         self.assertEqual(len(prompts), 1)
 
-    def test_dsba2565_no_plan_seven_term_answer_shows_both_slot_aware_skeletons(self):
+    def test_dsba2565_no_plan_seven_term_answer_asks_for_plan_once(self):
         result, prompts = self.run_hard(
             "ถ้าอยากเรียนจบใน 3.5 ปีต้องทำยังไง",
             _intent("seven_term_plan", program="DSBA", horizon_terms=7),
@@ -453,25 +469,13 @@ class HardQaTests(unittest.TestCase):
 
         self.assertEqual(result["hard_task_type"], "seven_term_plan")
         self.assertEqual(result["scope"]["plan"], None)
-        self.assertEqual(result["status"], "incomplete_evidence")
-        self.assertEqual(
-            [item["plan"] for item in result["plan_results"]],
-            ["coop", "no_coop"],
-        )
-        for plan_result in result["plan_results"]:
-            with self.subTest(plan=plan_result["plan"]):
-                self.assertEqual(plan_result["status"], "incomplete_evidence")
-                self.assertTrue(plan_result["provenance"])
-                self.assertIn("ปี 1 เทอม 1:", plan_result["answer"])
-                self.assertIn("ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง", plan_result["answer"])
-                self.assertIn("โครงร่าง 7 เทอมนี้ไม่ใช่ข้อพิสูจน์ว่าครบเงื่อนไขจบ", plan_result["answer"])
-                self.assertNotIn("H2 could not establish a complete mandatory course set", plan_result["answer"])
-                for placeholder in ("06026xxx", "90644xxx", "9064xxxx", "xxxxxxxx"):
-                    self.assertNotIn(placeholder, plan_result["answer"])
-        self.assertIn(
-            "ปี 4 เทอม 2 อยู่นอกโครงร่าง 7 เทอม",
-            result["plan_results"][1]["answer"],
-        )
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["action"], "plan_required")
+        self.assertNotIn("plan_results", result)
+        self.assertIn("เลือกแผนหลักสูตร", result["answer"])
+        self.assertNotIn("ผลแผน coop", result["answer"])
+        self.assertNotIn("ผลแผน no_coop", result["answer"])
+        self.assertEqual(result["provenance"], [])
         self.assertEqual(len(prompts), 1)
 
     def test_explicit_seven_term_plan_runs_only_selected_plan(self):
@@ -512,7 +516,53 @@ class HardQaTests(unittest.TestCase):
 
         self.assertEqual(result["scope"], {"catalog_key": "dsba-2565", "program": "DSBA", "plan": "coop"})
         self.assertEqual(result["status"], "incomplete_evidence")
-        self.assertEqual(result["next_context"], {"catalog_key": "dsba-2565", "program": "DSBA", "plan": "coop"})
+        self.assertEqual(result["next_context"], {
+            "catalog_key": "dsba-2565", "program": "DSBA", "plan": "coop",
+            "study_plan_context": {
+                "kind": "seven_term_plan", "program": "DSBA",
+                "catalog_key": "dsba-2565", "plan": "coop",
+            },
+        })
+
+    def test_seven_term_followup_provenance_is_scoped_to_requested_term(self):
+        full = plan_curriculum_sequence(
+            DB_PATH, "DSBA", "coop", horizon_terms=7, catalog_key="dsba-2565"
+        )
+        full_ids = {
+            reference["provenance_id"]
+            for reference in full.get("evidence", [])
+            if isinstance(reference, dict)
+        }
+        term = next(
+            item for item in full["terms"]
+            if item.get("year") == 3 and item.get("semester") == 1
+        )
+        term_ids = {
+            evidence_id
+            for course in term["courses"]
+            for evidence_id in course.get("evidence_ids", [])
+        }
+        for slot in term["required_selection_slots"]:
+            for reference in slot.get("provenance", []) or ():
+                if isinstance(reference, dict):
+                    term_ids.add(reference.get("provenance_id"))
+
+        for include_courses in (False, True):
+            with self.subTest(include_courses=include_courses):
+                result = answer_seven_term_followup(
+                    DB_PATH, program="DSBA", catalog_key="dsba-2565",
+                    plan="coop", year=3, semester=1,
+                    include_courses=include_courses, include_credits=True,
+                )
+                self.assertEqual(result["status"], "answer")
+                returned_ids = {
+                    reference["provenance_id"]
+                    for reference in result["provenance"]
+                }
+                self.assertTrue(returned_ids)
+                self.assertTrue(returned_ids <= full_ids)
+                self.assertTrue(returned_ids <= term_ids)
+                self.assertTrue(len(returned_ids) < len(full_ids))
 
     def test_hallucinated_plan_is_rejected_and_program_change_invalidates_context_plan(self):
         result, _ = self.run_hard(

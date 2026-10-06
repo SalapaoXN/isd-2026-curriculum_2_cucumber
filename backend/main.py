@@ -24,13 +24,17 @@ from backend.prev_followup import (
 )
 from rag.policy.routing import route_policy_question
 from rag.providers.gemini import make_gemini_callable
-from rag.query_spec import parse_query_spec
+from rag.query_spec import is_prerequisite_collection, parse_query_spec
 from rag.resolution import resolve_ordinal_course_reference
 from rag.structured.queries import (
     catalog_keys_for_program,
     edition_catalog_keys_for_program,
 )
-from .hard_qa import HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA, answer_hard_question
+from .hard_qa import (
+    HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA,
+    answer_hard_question,
+    answer_seven_term_followup,
+)
 from .llm_sql_qa import (
     ask_sql,
     parse_focus_course_context,
@@ -569,9 +573,22 @@ def ask(request: AskRequest) -> dict:
         has_result_scope = False
         focus_catalog_key = None
         raw_semantic_topic = None
+        raw_study_plan_context = None
         if isinstance(raw_context, dict):
             legacy_context = dict(raw_context)
             raw_semantic_topic = legacy_context.pop("semantic_topic", None)
+            raw_study_plan_context = legacy_context.pop("study_plan_context", None)
+            if raw_study_plan_context is not None and (
+                not isinstance(raw_study_plan_context, dict)
+                or set(raw_study_plan_context) != {"kind", "program", "catalog_key", "plan"}
+                or raw_study_plan_context.get("kind") != "seven_term_plan"
+                or any(
+                    not isinstance(raw_study_plan_context.get(key), str)
+                    or not raw_study_plan_context[key].strip()
+                    for key in ("program", "catalog_key", "plan")
+                )
+            ):
+                raw_study_plan_context = None
             if raw_semantic_topic is not None:
                 if (
                     not isinstance(raw_semantic_topic, str)
@@ -673,6 +690,7 @@ def ask(request: AskRequest) -> dict:
                 raw_result_scope = None
                 raw_result_set_empty = False
                 raw_semantic_topic = None
+                raw_study_plan_context = None
                 raw_last_answer = None
                 has_result_scope = False
                 has_result_set_empty = False
@@ -698,12 +716,39 @@ def ask(request: AskRequest) -> dict:
             raw_result_scope = None
             raw_result_set_empty = False
             raw_semantic_topic = None
+            raw_study_plan_context = None
             raw_last_answer = None
             has_result_scope = False
             has_result_set_empty = False
             focus_catalog_key = None
     except (TypeError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=f"invalid conversation_context: {exc}") from exc
+
+    if is_prerequisite_collection(query_spec):
+        # A fresh relationship collection replaces narrow answer targets;
+        # only stable curriculum identity/plan survives from previous turns.
+        if parsed_context is not None:
+            stable_context = {
+                "program": parsed_context.program,
+                "catalog_key": parsed_context.catalog_key,
+                "plan": query_spec.plans[0] if len(query_spec.plans) == 1 else parsed_context.plan,
+                # This operation is derived from the current collection intent,
+                # never copied from the previous answer's operation.
+                "operations": ["list"],
+            }
+            parsed_context = parse_conversation_context(
+                {key: value for key, value in stable_context.items() if value is not None}
+            )
+        raw_focus = None
+        raw_result_courses = None
+        raw_result_scope = None
+        raw_result_set_empty = False
+        raw_semantic_topic = None
+        raw_study_plan_context = None
+        raw_last_answer = None
+        has_result_scope = False
+        has_result_set_empty = False
+        focus_catalog_key = None
 
     program = (
         query_spec.program
@@ -722,6 +767,87 @@ def ask(request: AskRequest) -> dict:
                 status_code=422,
                 detail=f"invalid conversation_context: {exc}",
             ) from exc
+    selected_plan = (
+        query_spec.plans[0]
+        if len(query_spec.plans) == 1
+        else parsed_context.plan if parsed_context is not None else None
+    )
+    study_plan = raw_study_plan_context
+    if study_plan is not None and not (
+        study_plan["program"].casefold() == str(program or "").casefold()
+        and study_plan["catalog_key"].casefold() == str(catalog_key or "").casefold()
+        and study_plan["plan"].casefold() == str(selected_plan or "").casefold()
+    ):
+        study_plan = None
+    followup_operations = set(query_spec.operations)
+    credit_cue = bool(
+        "sum_credits" in followup_operations
+        or re.search(r"หน่วย(?:กิต)?|เครดิต|\bcredits?\b", request.question, re.IGNORECASE)
+    )
+    explicit_h4_term = bool(
+        re.search(r"ปี\s*(?:ที่\s*)?\d+", query_spec.normalized_question)
+        and re.search(r"(?:เทอม|ภาคเรียน)\s*\d+", query_spec.normalized_question)
+    )
+    if study_plan is not None and explicit_h4_term and (
+        query_spec.judgement == "unsupported"
+        or len(query_spec.years) != 1
+        or len(query_spec.semesters) != 1
+    ):
+        return {
+            "question": request.question,
+            "answer": "ไม่พบข้อมูลที่ยืนยันได้สำหรับภาคเรียนนี้",
+            "status": "insufficient_evidence",
+            "action": None,
+            "route": "hard",
+            "hard_task_type": "seven_term_plan",
+            "provenance": [],
+            "next_context": {
+                "program": program,
+                "catalog_key": catalog_key,
+                "plan": selected_plan,
+                "study_plan_context": study_plan,
+            },
+            "comparison": None,
+        }
+    h4_term_followup = bool(
+        study_plan is not None
+        and query_spec.judgement != "unsupported"
+        and len(query_spec.years) == 1
+        and len(query_spec.semesters) == 1
+        and not query_spec.course_codes
+        and query_spec.topic is None
+        and query_spec.category is None
+        and followup_operations <= {"list", "sum_credits"}
+    )
+    if h4_term_followup:
+        include_courses = "list" in followup_operations
+        summary = answer_seven_term_followup(
+            db_path,
+            program=program or study_plan["program"],
+            catalog_key=catalog_key or study_plan["catalog_key"],
+            plan=selected_plan or study_plan["plan"],
+            year=query_spec.years[0],
+            semester=query_spec.semesters[0],
+            include_courses=include_courses,
+            include_credits=credit_cue or not include_courses,
+        )
+        next_context = {
+            "program": program,
+            "catalog_key": catalog_key,
+            "plan": selected_plan,
+            "study_plan_context": study_plan,
+        }
+        return {
+            "question": request.question,
+            "answer": summary["answer"],
+            "status": summary["status"],
+            "action": None,
+            "route": "hard",
+            "hard_task_type": "seven_term_plan",
+            "provenance": summary["provenance"],
+            "next_context": next_context,
+            "comparison": None,
+        }
     try:
         last_answer = parse_last_answer(
             raw_last_answer, program=program, catalog_key=catalog_key
@@ -862,6 +988,19 @@ def ask(request: AskRequest) -> dict:
     semantic_topic = query_spec.topic or raw_semantic_topic
     if semantic_topic is not None and explicit_course_credit:
         semantic_topic = None
+    fresh_semantic_collection = bool(
+        query_spec.topic is not None
+        and not query_spec.course_codes
+        and query_spec.course_name is None
+        and query_spec.result_ordinal is None
+        and not query_spec.references_previous_result_set
+    )
+    if fresh_semantic_collection:
+        # A self-contained semantic collection starts a new query target while
+        # retaining stable curriculum identity and any scope in this turn.
+        focus_course = None
+        parsed_results = None
+        last_answer = None
     service_context: dict | None = {}
     if program is not None:
         service_context["program"] = program
@@ -870,14 +1009,26 @@ def ask(request: AskRequest) -> dict:
     if semantic_topic is not None:
         service_context["semantic_topic"] = semantic_topic
     if parsed_context is not None:
-        if parsed_context.plan is not None and not explicit_course_credit:
-            service_context["plan"] = parsed_context.plan
-        if parsed_context.years and not explicit_course_credit:
-            service_context["years"] = list(parsed_context.years)
-        if parsed_context.semesters and not explicit_course_credit:
-            service_context["semesters"] = list(parsed_context.semesters)
-        if parsed_context.operations and not explicit_course_credit:
-            service_context["operations"] = list(parsed_context.operations)
+        retained_plan = (
+            query_spec.plans[0]
+            if fresh_semantic_collection and len(query_spec.plans) == 1
+            else parsed_context.plan
+        )
+        retained_years = query_spec.years if fresh_semantic_collection else parsed_context.years
+        retained_semesters = (
+            query_spec.semesters if fresh_semantic_collection else parsed_context.semesters
+        )
+        retained_operations = (
+            query_spec.operations if fresh_semantic_collection else parsed_context.operations
+        )
+        if retained_plan is not None and not explicit_course_credit:
+            service_context["plan"] = retained_plan
+        if retained_years and not explicit_course_credit:
+            service_context["years"] = list(retained_years)
+        if retained_semesters and not explicit_course_credit:
+            service_context["semesters"] = list(retained_semesters)
+        if retained_operations and not explicit_course_credit:
+            service_context["operations"] = list(retained_operations)
         # NOTE: parsed_context.category / parsed_context.course_code are valid
         # public context but are not valid ask_sql service keys; forwarding them
         # raw used to poison every follow-up with invalid_context. The course
@@ -885,7 +1036,7 @@ def ask(request: AskRequest) -> dict:
         # category has no service slot and is intentionally not forwarded.
         if focus_catalog_key is not None:
             service_context["focus_catalog_key"] = focus_catalog_key.strip()
-    if focus_course is None and not explicit_course_credit:
+    if focus_course is None and not explicit_course_credit and not fresh_semantic_collection:
         focus_course = _focus_course_from_context_course_code(
             parsed_context, program, catalog_key
         )
@@ -898,6 +1049,39 @@ def ask(request: AskRequest) -> dict:
             service_context["result_set_empty"] = True
     if not service_context:
         service_context = None
+
+    if (
+        policy_query is not None
+        and (
+            (policy_query.kind == "probation_entry" and policy_query.observed_gpa is not None)
+            or policy_query.kind == "probation_value_invalid"
+        )
+    ):
+        policy_result = route_policy_question(
+            db_path,
+            request.question,
+            catalog_key=catalog_key,
+            program_context=program,
+        )
+        if policy_result is not None:
+            # Only carry stable scope forward; the deterministic policy
+            # comparison does not depend on prior course/result targets.
+            stable_context = {
+                key: value
+                for key, value in (service_context or {}).items()
+                if key in {"program", "catalog_key", "plan"}
+            }
+            return {
+                "question": request.question,
+                "answer": policy_result.final_answer,
+                "status": policy_result.status,
+                "action": None,
+                "route": "llm_sql",
+                "hard_task_type": None,
+                "provenance": list(policy_result.provenance),
+                "next_context": stable_context or None,
+                "comparison": None,
+            }
 
     if (
         policy_query is not None
@@ -1010,17 +1194,19 @@ def ask(request: AskRequest) -> dict:
             parsed_context is not None
             and parsed_context.course_code is not None
             and not explicit_course_credit
+            and not fresh_semantic_collection
         ):
             hard_context["course_code"] = parsed_context.course_code
         result = None
-        # Hard QA does not accept bounded result-course context; SQL QA does.
-        if parsed_results is None:
-            result = answer_hard_question(
-                db_path,
-                request.question,
-                hard_context or None,
-                hard_interpreter_provider,
-            )
+        # Hard QA receives only this turn's question and validated stable
+        # scope. Prior bounded result sets belong to SQL ordinal follow-ups
+        # and must not suppress an independently recognized current Hard task.
+        result = answer_hard_question(
+            db_path,
+            request.question,
+            hard_context or None,
+            hard_interpreter_provider,
+        )
         if result is None:
             def ground_sql_answer(current_question: str) -> dict:
                 grounding_context = {
@@ -1149,26 +1335,41 @@ def ask(request: AskRequest) -> dict:
     if catalog_key is not None:
         fallback_context["catalog_key"] = catalog_key
     if parsed_context is not None:
-        if parsed_context.plan is not None and not explicit_course_credit:
-            fallback_context["plan"] = parsed_context.plan
-        if parsed_context.years and not explicit_course_credit:
-            fallback_context["years"] = list(parsed_context.years)
-        if parsed_context.semesters and not explicit_course_credit:
-            fallback_context["semesters"] = list(parsed_context.semesters)
-        if parsed_context.operations and not explicit_course_credit:
-            fallback_context["operations"] = list(parsed_context.operations)
-        if parsed_context.category is not None and not explicit_course_credit:
-            fallback_context["category"] = parsed_context.category
+        retained_plan = (
+            query_spec.plans[0]
+            if fresh_semantic_collection and len(query_spec.plans) == 1
+            else parsed_context.plan
+        )
+        retained_years = query_spec.years if fresh_semantic_collection else parsed_context.years
+        retained_semesters = (
+            query_spec.semesters if fresh_semantic_collection else parsed_context.semesters
+        )
+        retained_operations = (
+            query_spec.operations if fresh_semantic_collection else parsed_context.operations
+        )
+        retained_category = (
+            query_spec.category if fresh_semantic_collection else parsed_context.category
+        )
+        if retained_plan is not None and not explicit_course_credit:
+            fallback_context["plan"] = retained_plan
+        if retained_years and not explicit_course_credit:
+            fallback_context["years"] = list(retained_years)
+        if retained_semesters and not explicit_course_credit:
+            fallback_context["semesters"] = list(retained_semesters)
+        if retained_operations and not explicit_course_credit:
+            fallback_context["operations"] = list(retained_operations)
+        if retained_category is not None and not explicit_course_credit:
+            fallback_context["category"] = retained_category
         # NOTE: the prior course target is carried as focus_course below
         # (translated through the focus validator); emitting raw course_code
         # here would re-introduce the invalid_context round-trip poison.
-        if focus_catalog_key is not None:
+        if focus_catalog_key is not None and not fresh_semantic_collection:
             fallback_context["focus_catalog_key"] = focus_catalog_key.strip()
-    if focus_course is not None and not explicit_course_credit:
+    if focus_course is not None and not explicit_course_credit and not fresh_semantic_collection:
         fallback_context["focus_course"] = focus_course
     if semantic_topic is not None:
         fallback_context["semantic_topic"] = semantic_topic
-    if last_answer is not None:
+    if last_answer is not None and not fresh_semantic_collection:
         # A safe failure preserves the most recent valid grounded-answer
         # referent; the next answered factual turn replaces it.
         fallback_context["last_answer"] = last_answer
@@ -1184,6 +1385,12 @@ def ask(request: AskRequest) -> dict:
     # empty fallback still yields None. The fallback is built only from
     # validated state, never from raw user-supplied context.
     next_context = reported_context or (fallback_context or None)
+    if fresh_semantic_collection and isinstance(next_context, dict):
+        # The SQL row-derived next context owns the new result set; add back
+        # only the sanitized current/stable scope assembled above.
+        for key in ("plan", "years", "semesters", "operations", "category"):
+            if key in fallback_context:
+                next_context[key] = fallback_context[key]
 
     if status == "answer":
         # A freshly answered policy turn becomes the previous-answer

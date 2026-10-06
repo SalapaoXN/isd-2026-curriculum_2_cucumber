@@ -1629,6 +1629,17 @@ def ask_sql(
                             next_context = {**next_context, **answer_named}
                         else:
                             next_context = answer_named
+                if ordinal_target is not None and parsed_results is not None:
+                    # The selected course is a child of this validated result
+                    # set, not an independent replacement target. Keep the
+                    # parent identities for subsequent sibling ordinals.
+                    next_context = {
+                        **(next_context if isinstance(next_context, dict) else {}),
+                        "result_courses": parsed_results[0],
+                        "result_scope_program": parsed_results[1],
+                    }
+                    if service_topic is not None:
+                        next_context["semantic_topic"] = service_topic
                 return {
                     "status": "answer",
                     "answer": grounded_answer.strip(),

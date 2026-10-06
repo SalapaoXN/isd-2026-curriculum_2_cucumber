@@ -18,6 +18,7 @@ from rag.evidence_executor import (
     DirectPrerequisiteRequirement,
 )
 from rag.grounded_answer import GroundedAnswerResult, GroundedClaim
+from rag.query_spec import parse_query_spec
 from rag.retrieval.retrieve import SimilarityEvidence
 
 
@@ -1563,6 +1564,19 @@ def _course_list_course_text(entry: Mapping[str, Any]) -> str | None:
     )
     if credits is not None:
         line = f"{line} — {credits} หน่วยกิต".strip()
+    prerequisites = entry.get("prerequisites")
+    if isinstance(prerequisites, (list, tuple)):
+        relationships = []
+        for record in prerequisites:
+            if not isinstance(record, Mapping):
+                continue
+            text = _prerequisite_course_text(record)
+            if text is None:
+                text = record.get("prerequisite_text") or record.get("raw_text")
+            if isinstance(text, str) and text.strip() and text not in relationships:
+                relationships.append(text)
+        if relationships:
+            line += "\n  วิชาบังคับก่อน: " + "; ".join(relationships)
     return line or None
 
 
@@ -1778,6 +1792,7 @@ def _deterministic_claim_text(
     claim: GroundedClaim,
     *,
     scope_dimensions: Sequence[str] = (),
+    question: str | None = None,
 ) -> str:
     def finish(text: str) -> str:
         return _scope_prefix(claim, scope_dimensions) + text
@@ -1850,6 +1865,15 @@ def _deterministic_claim_text(
         if credits_text is not None:
             return credits_text
         return finish("หลักฐานไม่เพียงพอ")
+
+    if claim.operation == "existence" and isinstance(claim.value, bool):
+        topic = parse_query_spec(question).topic if isinstance(question, str) else None
+        scope_prefix = _human_scope_prefix(claim, scope_dimensions)
+        if claim.value:
+            subject = f"รายวิชาที่เกี่ยวข้องกับ {topic}" if topic else "รายวิชาที่ตรงตามเงื่อนไข"
+            return scope_prefix + f"มีครับ พบ{subject}"
+        subject = f"รายวิชาที่เกี่ยวข้องกับ {topic}" if topic else "รายวิชาที่ตรงตามเงื่อนไข"
+        return scope_prefix + f"ไม่พบ{subject}จากข้อมูลหลักสูตรที่มี"
 
     if claim.operation == "list":
         list_text = _course_list_text(claim)
@@ -2189,11 +2213,14 @@ def render_grounded_claim(
     claim: GroundedClaim,
     *,
     scope_dimensions: Sequence[str] = (),
+    question: str | None = None,
 ) -> str:
     """Render one typed claim without calling a model or recomputing facts."""
     if not isinstance(claim, GroundedClaim):
         return ""
-    return _deterministic_claim_text(claim, scope_dimensions=scope_dimensions)
+    return _deterministic_claim_text(
+        claim, scope_dimensions=scope_dimensions, question=question
+    )
 
 
 def synthesize_grounded_claim(
@@ -2498,11 +2525,45 @@ def render_grounded_answer(
     scope_dimensions = _scope_diff_dimensions(result.claims)
     claimed_segments: list[tuple[GroundedClaim, str]] = []
     for claim in result.claims:
-        segment = render_grounded_claim(claim, scope_dimensions=scope_dimensions)
+        segment = render_grounded_claim(
+            claim, scope_dimensions=scope_dimensions, question=question
+        )
         if segment:
             claimed_segments.append((claim, segment))
     claimed_segments = _suppress_covered_placement_segments(claimed_segments)
-    claimed_segments = _collapse_identical_list_segments(claimed_segments)
+    semantic_collection = False
+    if question is not None:
+        from rag.query_spec import parse_query_spec
+
+        current_spec = parse_query_spec(question)
+        prerequisite_collection = (
+            "prerequisite" in current_spec.operations
+            and not current_spec.course_codes
+            and current_spec.course_name is None
+            and current_spec.result_ordinal is None
+        )
+        if (current_spec.topic is not None or prerequisite_collection) and not current_spec.course_codes and current_spec.course_name is None:
+            semantic_collection = True
+            semantic_segments = []
+            for claim, segment in claimed_segments:
+                if claim.operation == "list" and "\n" in segment:
+                    scope = {
+                        "program": _scope_program_text(claim.effective_scope),
+                        "plans": _scope_dimension_values(claim.effective_scope, "plans"),
+                    }
+                    if prerequisite_collection:
+                        scope["plans"] = tuple(p for p in scope["plans"] if p != "default")
+                    prefix = "รายวิชาที่มีวิชาบังคับก่อนใน" if prerequisite_collection else "พบรายวิชาที่เกี่ยวข้องใน"
+                    header = prefix + _credit_scope_text(scope, prefix="")
+                    if current_spec.years or current_spec.semesters:
+                        filter_scope = {"years": current_spec.years, "semesters": current_spec.semesters}
+                        header += " (ขอบเขตการค้นหา: " + _credit_scope_text(filter_scope, prefix="") + ")"
+                    body = segment if segment.startswith("- ") else segment.split("\n", 1)[1]
+                    segment = header + ":\n" + body
+                semantic_segments.append((claim, segment))
+            claimed_segments = semantic_segments
+    if not semantic_collection:
+        claimed_segments = _collapse_identical_list_segments(claimed_segments)
     segments = [segment for _, segment in claimed_segments]
     final_answer = "\n".join(segments) if segments else result.final_answer
     if preference_advisory:

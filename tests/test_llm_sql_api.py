@@ -17,6 +17,209 @@ DB_PATH = Path(__file__).parents[1] / "cucumber_outputs" / "runtime" / "curricul
 
 
 class LlmSqlApiTests(unittest.TestCase):
+    def test_missing_plan_has_structured_action_and_selection_reaches_plan_scope(self):
+        proposal = {"task_type": "prerequisite_sequence", "program": "IT", "plan": None,
+                    "left_plan": None, "right_plan": None, "target_course_code": None, "horizon_terms": None}
+        with patch.object(main, "_lazy_provider", return_value=json.dumps(proposal)):
+            missing = self.client.post("/api/ask", json={
+                "question": "ตรวจสอบลำดับวิชาบังคับก่อนของแผนนี้",
+                "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+            })
+            self.assertEqual(missing.status_code, 200)
+            self.assertEqual(missing.json()["status"], "clarification_required")
+            self.assertEqual(missing.json()["action"], "plan_required")
+            for plan in ("coop", "no_coop"):
+                selected = self.client.post("/api/ask", json={
+                    "question": "ตรวจสอบลำดับวิชาบังคับก่อนของแผนนี้",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565", "plan": plan},
+                })
+                self.assertEqual(selected.status_code, 200)
+                self.assertNotEqual(selected.json().get("action"), "plan_required")
+                self.assertEqual(selected.json()["next_context"]["plan"], plan)
+
+    def test_fresh_gpa_probation_value_comparison_is_deterministic_policy_answer(self):
+        self.sql_service.side_effect = lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+
+        def ask_without_model(question):
+            with (
+                patch.object(main, "answer_hard_question", return_value=None),
+                patch.object(main, "_lazy_provider", side_effect=AssertionError("policy comparison must be deterministic")),
+            ):
+                response = self.client.post("/api/ask", json={"question": question})
+            self.assertEqual(response.status_code, 200, response.json())
+            return response.json()
+
+        for question, included in (
+            ("GPA 1.9 จะติดโปรไหม", "เข้าข่ายภาคทัณฑ์"),
+            ("ถ้าเกรดเฉลี่ยสะสม 1.9 จะเข้าข่ายภาคทัณฑ์ไหม", "เข้าข่ายภาคทัณฑ์"),
+            ("GPA 1.9 เข้าข่ายโปรหรือเปล่า", "เข้าข่ายภาคทัณฑ์"),
+        ):
+            with self.subTest(question=question):
+                payload = ask_without_model(question)
+                self.assertEqual(payload["status"], "answer")
+                self.assertIn(included, payload["answer"])
+                self.assertIn("1.9", payload["answer"])
+                self.assertTrue(payload["provenance"])
+
+        repeated = ask_without_model("GPA 1.9 จะติดโปรไหม")
+        self.assertEqual(repeated["status"], "answer")
+        self.assertIn("1.9", repeated["answer"])
+
+        for question in ("GPA จะติดโปรไหม", "GPA 1..9 จะติดโปรไหม"):
+            with self.subTest(question=question):
+                malformed = ask_without_model(question)
+                self.assertEqual(malformed["status"], "unsupported")
+                self.assertEqual(malformed["provenance"], [])
+
+    def test_prior_relationship_result_set_does_not_block_current_hard_sequence(self):
+        context = {"program": "AIT", "catalog_key": "ait-2566", "plan": "default"}
+        hard_intent = {
+            "task_type": "prerequisite_sequence",
+            "program": "AIT",
+            "plan": "default",
+            "left_plan": None,
+            "right_plan": None,
+            "target_course_code": None,
+            "horizon_terms": None,
+        }
+        sequence_question = "ตรวจสอบลำดับวิชาบังคับก่อนของหลักสูตรนี้"
+        with patch.object(main, "_lazy_provider", return_value=json.dumps(hard_intent)):
+            fresh = self.client.post(
+                "/api/ask",
+                json={"question": sequence_question, "conversation_context": context},
+            )
+        self.assertEqual(fresh.status_code, 200, fresh.json())
+        self.assertEqual(fresh.json()["route"], "hard")
+        self.assertEqual(fresh.json()["hard_task_type"], "prerequisite_sequence")
+        self.assertEqual(fresh.json()["status"], "violation")
+
+        relationship = self._ask_with_stub_provider(
+            "วิชาใดบ้างที่มีวิชาบังคับก่อน บอกชื่อและรหัสวิชามา", context
+        )
+        self.assertEqual(relationship["status"], "answer")
+        self.assertEqual(relationship["route"], "llm_sql")
+        self.assertTrue(relationship["provenance"])
+        self.assertTrue(relationship["next_context"]["result_courses"])
+
+        with patch.object(main, "_lazy_provider", return_value=json.dumps(hard_intent)):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": sequence_question,
+                    "conversation_context": relationship["next_context"],
+                },
+            )
+        self.assertEqual(response.status_code, 200, response.json())
+        payload = response.json()
+        self.assertEqual(payload["route"], "hard")
+        self.assertEqual(payload["hard_task_type"], "prerequisite_sequence")
+        self.assertEqual(payload["status"], "violation")
+        self.assertTrue(payload["provenance"])
+        self.assertEqual(payload["next_context"]["program"], "AIT")
+        self.assertEqual(payload["next_context"]["catalog_key"], "ait-2566")
+        self.assertEqual(payload["next_context"]["plan"], "default")
+
+    def test_semantic_existence_answers_are_presented_in_natural_language(self):
+        scope = {"program": "IT", "catalog_key": "it-2565"}
+        for question in (
+            "มีวิชาเกี่ยวกับ cloud มั้ย",
+            "มีวิชาที่เกี่ยวกับ cloud ไหม",
+        ):
+            with self.subTest(question=question):
+                payload = self._ask_with_stub_provider(question, scope)
+                self.assertEqual(payload["status"], "answer")
+                self.assertNotIn("existence:", payload["answer"])
+                self.assertIn("มีครับ", payload["answer"])
+                self.assertTrue(payload["provenance"])
+
+    def test_semantic_collection_wording_still_renders_course_list(self):
+        payload = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cloud อะไรบ้าง", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertNotIn("existence:", payload["answer"])
+        self.assertIn("06016404", payload["answer"])
+
+    def test_h4_term_credit_followups_use_retained_canonical_structure(self):
+        h4_intent = {
+            "task_type": "seven_term_plan", "program": "DSBA", "plan": "coop",
+            "left_plan": None, "right_plan": None, "target_course_code": None,
+            "horizon_terms": 7,
+        }
+        with patch.object(main, "_lazy_provider", return_value=json.dumps(h4_intent)):
+            first_response = self.client.post("/api/ask", json={
+                "question": "อยากจบใน 3.5 ปีต้องทำยังไง",
+                "conversation_context": {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop"},
+            })
+        self.assertEqual(first_response.status_code, 200, first_response.json())
+        first = first_response.json()
+        self.assertEqual(first["hard_task_type"], "seven_term_plan")
+        self.assertTrue(first["provenance"])
+        context = first["next_context"]
+        self.assertEqual(context.get("study_plan_context", {}).get("plan"), "coop")
+
+        full = self.client.post("/api/ask", json={
+            "question": "ปี 1 เทอม 1 หน่วยกิตเท่าไหร่", "conversation_context": context,
+        }).json()
+        self.assertEqual(full["status"], "answer")
+        self.assertIn("ปี 1 เทอม 1 รวม 18 หน่วยกิต", full["answer"])
+        self.assertNotIn("06026200", full["answer"])
+        self.assertTrue(full["provenance"])
+
+        partial = self.client.post("/api/ask", json={
+            "question": "ปี 3 เทอม 1 รวมกี่หน่วยกิต", "conversation_context": context,
+        }).json()
+        self.assertEqual(partial["status"], "answer")
+        self.assertIn("ยืนยันได้อย่างน้อย 9 หน่วยกิต", partial["answer"])
+        self.assertIn("ยังสรุปหน่วยกิตรวมทั้งหมดไม่ได้", partial["answer"])
+        self.assertIn("3 ช่อง", partial["answer"])
+        self.assertNotIn("รวม 9 หน่วยกิต", partial["answer"])
+        self.assertTrue(partial["provenance"])
+
+        course_list = self.client.post("/api/ask", json={
+            "question": "ปี 1 เทอม 1 มีวิชาอะไรบ้าง", "conversation_context": context,
+        }).json()
+        self.assertEqual(course_list["status"], "answer")
+        self.assertIn("06026200", course_list["answer"])
+        full_count = len(first["provenance"])
+        for label, payload in (
+            ("term credit", full),
+            ("partial term credit", partial),
+            ("term course list", course_list),
+        ):
+            with self.subTest(label=label):
+                self.assertTrue(payload["provenance"])
+                self.assertLess(len(payload["provenance"]), full_count)
+
+        invalid = self.client.post("/api/ask", json={
+            "question": "ปี 9 เทอม 4 หน่วยกิตเท่าไหร่", "conversation_context": context,
+        }).json()
+        self.assertEqual(invalid["status"], "insufficient_evidence")
+        self.assertEqual(invalid["provenance"], [])
+
+        fresh_context = {key: value for key, value in context.items() if key != "study_plan_context"}
+        fresh = self.client.post("/api/ask", json={
+            "question": "ปี 1 เทอม 1 หน่วยกิตเท่าไหร่", "conversation_context": fresh_context,
+        }).json()
+        self.assertNotEqual(fresh.get("hard_task_type"), "seven_term_plan")
+        self.assertNotIn("study_plan_context", fresh.get("next_context") or {})
+
+    def test_h4_term_followup_fails_closed_without_matching_prior_plan_scope(self):
+        question = "ปี 1 เทอม 1 หน่วยกิตเท่าไหร่"
+        for context in (
+            {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop"},
+            {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop",
+             "study_plan_context": {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "no_coop"}},
+            {"program": "IT", "catalog_key": "it-2565", "plan": "coop",
+             "study_plan_context": {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop"}},
+        ):
+            with self.subTest(context=context):
+                response = self.client.post("/api/ask", json={"question": question, "conversation_context": context})
+                self.assertEqual(response.status_code, 200, response.json())
+                payload = response.json()
+                self.assertNotEqual(payload.get("hard_task_type"), "seven_term_plan")
+                self.assertNotIn("study_plan_context", payload.get("next_context") or {})
+
     def setUp(self):
         self.client = TestClient(main.app)
         main._provider = None
@@ -1327,7 +1530,7 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertEqual(provider.call_args.kwargs["response_json_schema"], HARD_INTERPRETATION_RESPONSE_JSON_SCHEMA)
         self.assertNotIn("response_schema", provider.call_args.kwargs)
 
-    def test_hard_seven_term_without_plan_returns_each_canonical_plan(self):
+    def test_hard_seven_term_without_plan_returns_plan_clarification(self):
         intent = {
             "task_type": "seven_term_plan",
             "program": "DSBA",
@@ -1353,33 +1556,88 @@ class LlmSqlApiTests(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["route"], "hard")
         self.assertEqual(payload["hard_task_type"], "seven_term_plan")
-        self.assertEqual(
-            payload["next_context"],
-            {"catalog_key": "dsba-2565", "program": "DSBA"},
-        )
-        self.assertEqual(
-            [item["plan"] for item in payload["plan_results"]],
-            ["coop", "no_coop"],
-        )
-        self.assertEqual(
-            [item["status"] for item in payload["plan_results"]],
-            ["incomplete_evidence", "incomplete_evidence"],
-        )
-        for item in payload["plan_results"]:
-            with self.subTest(plan=item["plan"]):
-                self.assertTrue(item["provenance"])
-                self.assertIn("ปี 1 เทอม 1:", item["answer"])
-                self.assertIn("ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง", item["answer"])
-                self.assertIn("โครงร่าง 7 เทอมนี้ไม่ใช่ข้อพิสูจน์ว่าครบเงื่อนไขจบ", item["answer"])
-                self.assertNotIn("H2 could not establish a complete mandatory course set", item["answer"])
-                for placeholder in ("06026xxx", "90644xxx", "9064xxxx", "xxxxxxxx"):
-                    self.assertNotIn(placeholder, item["answer"])
-        self.assertEqual(payload["status"], "incomplete_evidence")
-        self.assertIn("แผน coop", payload["answer"])
-        self.assertIn("แผน no_coop", payload["answer"])
-        self.assertNotIn("เลือกแผนหลักสูตรที่ต้องการตรวจสอบ", payload["answer"])
+        self.assertEqual(payload["status"], "clarification_required")
+        self.assertEqual(payload["action"], "plan_required")
+        self.assertEqual(payload["provenance"], [])
+        self.assertNotIn("plan_results", payload)
+        self.assertIn("เลือกแผนหลักสูตร", payload["answer"])
+        self.assertNotIn("ผลแผน coop", payload["answer"])
+        self.assertNotIn("ผลแผน no_coop", payload["answer"])
         self.assertEqual(self.sql_service.call_count, 0)
         provider.assert_called_once()
+
+    def test_h4_plan_selection_then_term_continuation_stays_plan_scoped(self):
+        plan_intent = {
+            "task_type": "seven_term_plan",
+            "program": "DSBA",
+            "plan": None,
+            "left_plan": None,
+            "right_plan": None,
+            "target_course_code": None,
+            "horizon_terms": 7,
+        }
+        with patch.object(main, "_lazy_provider", return_value=json.dumps(plan_intent)):
+            pending = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "อยากจบใน 3.5 ปีต้องทำยังไง",
+                    "conversation_context": {
+                        "program": "DSBA",
+                        "catalog_key": "dsba-2565",
+                    },
+                },
+            ).json()
+        self.assertEqual(pending["status"], "clarification_required")
+        self.assertEqual(pending["action"], "plan_required")
+
+        for plan, other_plan in (("coop", "no_coop"), ("no_coop", "coop")):
+            with self.subTest(plan=plan):
+                coop_intent = dict(plan_intent, plan=plan)
+                with patch.object(main, "_lazy_provider", return_value=json.dumps(coop_intent)):
+                    scoped = self.client.post(
+                        "/api/ask",
+                        json={
+                            "question": "อยากจบใน 3.5 ปีต้องทำยังไง",
+                            "conversation_context": {
+                                "program": "DSBA",
+                                "catalog_key": "dsba-2565",
+                                "plan": plan,
+                            },
+                        },
+                    ).json()
+                self.assertEqual(scoped["hard_task_type"], "seven_term_plan")
+                self.assertNotEqual(scoped["status"], "clarification_required")
+                self.assertTrue(scoped["provenance"])
+                self.assertNotIn("plan_results", scoped)
+                self.assertNotIn(f"ผลแผน {other_plan}", scoped["answer"])
+                self.assertEqual(scoped["next_context"]["study_plan_context"]["plan"], plan)
+                context = scoped["next_context"]
+
+                credit = self.client.post(
+                    "/api/ask",
+                    json={"question": "ปี 1 เทอม 1 หน่วยกิตเท่าไหร่", "conversation_context": context},
+                ).json()
+                self.assertEqual(credit["status"], "answer")
+                self.assertEqual(credit["hard_task_type"], "seven_term_plan")
+                self.assertTrue(credit["provenance"])
+                self.assertLess(len(credit["provenance"]), len(scoped["provenance"]))
+
+                partial = self.client.post(
+                    "/api/ask",
+                    json={"question": "ปี 3 เทอม 1 ล่ะ", "conversation_context": context},
+                ).json()
+                self.assertEqual(partial["status"], "answer")
+                self.assertIn("ยืนยันได้อย่างน้อย", partial["answer"])
+                self.assertTrue(partial["provenance"])
+                self.assertLess(len(partial["provenance"]), len(scoped["provenance"]))
+
+                course_list = self.client.post(
+                    "/api/ask",
+                    json={"question": "วิชาในปี 3 เทอม 1 มีอะไรบ้าง", "conversation_context": context},
+                ).json()
+                self.assertEqual(course_list["status"], "answer")
+                self.assertTrue(course_list["provenance"])
+                self.assertLess(len(course_list["provenance"]), len(scoped["provenance"]))
 
     def test_old_new_comparison_api_returns_structured_categories_without_model(self):
         with patch.object(
@@ -1556,6 +1814,108 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertNotEqual(second.get("action"), "invalid_context")
         self.assertEqual(second["status"], "answer")
         self.assertIn("06016438", second["answer"])
+
+    def test_fresh_semantic_collection_replaces_exact_placement_context(self):
+        scope = {"program": "IT", "catalog_key": "it-2565"}
+        fresh = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cyber security อะไรบ้างครับ", scope
+        )
+        self.assertEqual(fresh["status"], "answer")
+        self.assertIn("06016438", fresh["answer"])
+        self.assertIn("06016464", fresh["answer"])
+
+        first = self._ask_with_stub_provider("06016414 เรียนตอนไหน", scope)
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cyber security อะไรบ้างครับ",
+            first["next_context"],
+        )
+
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016438", second["answer"])
+        self.assertIn("06016464", second["answer"])
+
+    def test_fresh_semantic_collection_replaces_exact_credit_context(self):
+        first = self._ask_with_stub_provider(
+            "06016414 กี่หน่วยกิต", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        self.assertEqual(first["status"], "answer")
+        second = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cyber security อะไรบ้าง", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016438", second["answer"])
+        self.assertIn("06016464", second["answer"])
+
+    def test_semantic_topic_does_not_disable_true_course_pronoun_followup(self):
+        first = self._ask_with_stub_provider(
+            "06016414 เรียนตอนไหน", {"program": "IT", "catalog_key": "it-2565"}
+        )
+        second = self._ask_with_stub_provider("แล้วตัวนี้กี่หน่วย", first["next_context"])
+        self.assertEqual(second["status"], "answer")
+        self.assertIn("06016414", second["answer"])
+
+    def test_fresh_semantic_query_preserves_current_year_not_stale_course_scope(self):
+        prior = {
+            "program": "IT",
+            "catalog_key": "it-2565",
+            "course_code": "06016414",
+            "operations": ["placement"],
+            "years": [2],
+            "semesters": [2],
+        }
+        payload = self._ask_with_stub_provider(
+            "ปี 3 มีวิชาเกี่ยวกับ cyber security อะไรบ้าง", prior
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertEqual(payload["next_context"].get("years"), [3])
+        self.assertNotIn("06016414", json.dumps(payload["next_context"]))
+
+        semester_payload = self._ask_with_stub_provider(
+            "เทอม 2 มีวิชาเกี่ยวกับ cyber security อะไรบ้าง", prior
+        )
+        self.assertEqual(semester_payload["status"], "answer")
+        self.assertEqual(semester_payload["next_context"].get("semesters"), [2])
+        self.assertNotIn("06016414", json.dumps(semester_payload["next_context"]))
+
+    def test_fresh_semantic_query_preserves_validated_plan(self):
+        prior = {
+            "program": "IT",
+            "catalog_key": "it-2565",
+            "plan": "coop",
+            "course_code": "06016414",
+            "operations": ["placement"],
+        }
+        payload = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cyber security อะไรบ้าง", prior
+        )
+        self.assertEqual(payload["status"], "answer")
+        self.assertEqual(payload["next_context"].get("plan"), "coop")
+        self.assertNotIn("06016414", json.dumps(payload["next_context"]))
+
+    def test_new_semantic_result_set_replaces_prior_set_for_ordinal(self):
+        scope = {"program": "IT", "catalog_key": "it-2565"}
+        first = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ database อะไรบ้าง", scope
+        )
+        self.assertEqual(first["status"], "answer")
+        topic_a_codes = [
+            item["course_code"] for item in first["next_context"].get("result_courses", [])
+        ]
+
+        second = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cyber security อะไรบ้าง", first["next_context"]
+        )
+        self.assertEqual(second["status"], "answer")
+        topic_b_codes = [
+            item["course_code"] for item in second["next_context"].get("result_courses", [])
+        ]
+        self.assertTrue(topic_b_codes)
+        self.assertNotEqual(topic_a_codes, topic_b_codes)
+
+        third = self._ask_with_stub_provider("ตัวแรกกี่หน่วย", second["next_context"])
+        self.assertEqual(third["status"], "answer")
+        self.assertIn(topic_b_codes[0], third["answer"])
 
     def test_unknown_context_key_remains_rejected(self):
         response = self.client.post(
@@ -1912,7 +2272,7 @@ class LlmSqlApiTests(unittest.TestCase):
         retained = payload["next_context"] or {}
         self.assertEqual(
             [course["course_code"] for course in retained["result_courses"]],
-            ["06016405", "06016438"],
+            ["06016405", "06016438", "06016464"],
         )
         self.assertEqual(retained.get("result_scope_program"), "IT")
         self._assert_retained_identities_only(retained)
@@ -1926,6 +2286,69 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertIn("06016405", second["answer"])
         self.assertNotIn("06016438", second["answer"])
         self.assertTrue(second["provenance"])
+
+    def test_three_semantic_ordinals_reground_and_fourth_fails_closed(self):
+        first = self._cyber_search()
+        for ordinal, code in ((1, "06016405"), (2, "06016438"), (3, "06016464")):
+            with self.subTest(ordinal=ordinal):
+                answer = self._ask_with_stub_provider(
+                    f"ตัวที่ {ordinal}กี่หน่วย", first["next_context"]
+                )
+                self.assertEqual(answer["status"], "answer")
+                self.assertIn(code, answer["answer"])
+                self.assertTrue(answer["provenance"])
+        invalid = self._ask_with_stub_provider("ตัวที่ 4กี่หน่วย", first["next_context"])
+        self.assertEqual(invalid["status"], "insufficient_evidence")
+        self.assertEqual(invalid["provenance"], [])
+
+    def test_sequential_semantic_ordinals_keep_parent_set_and_explicit_override_clears_it(self):
+        current = self._ask_with_stub_provider(
+            "มีวิชาเกี่ยวกับ cyber security อะไรบ้างครับ",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        original_context = current["next_context"]
+        codes = ["06016405", "06016438", "06016464"]
+        for question, code in (
+            ("ตัวแรกกี่หน่วยกิต", codes[0]),
+            ("ตัวที่สองกี่หน่วยกิต", codes[1]),
+            ("ตัวที่สามกี่หน่วยกิต", codes[2]),
+        ):
+            current = self._ask_with_stub_provider(question, current["next_context"])
+            self.assertEqual(current["status"], "answer", question)
+            self.assertIn(code, current["answer"])
+            self.assertTrue(current["provenance"])
+            context = current["next_context"]
+            self.assertEqual([item["course_code"] for item in context["result_courses"]], codes)
+            self.assertEqual(context["result_scope_program"], "IT")
+            self.assertEqual(context["semantic_topic"], "cyber security")
+            self.assertEqual(context["last_answer"]["course_code"], code)
+
+        placement = self._ask_with_stub_provider("แล้วตัวที่สามเรียนช่วงไหน", current["next_context"])
+        self.assertIn(placement["status"], ("answer", "insufficient_evidence"))
+        self.assertNotIn("เรียนในปี", placement["answer"])
+        invalid = self._ask_with_stub_provider("ตัวที่สี่กี่หน่วย", placement["next_context"])
+        self.assertEqual(invalid["status"], "insufficient_evidence")
+        self.assertEqual(invalid["provenance"], [])
+
+        explicit = self._ask_with_stub_provider("06016414 กี่หน่วยกิต", original_context)
+        self.assertEqual(explicit["status"], "answer")
+        self.assertIn("06016414", explicit["answer"])
+        self.assertNotIn("result_courses", explicit["next_context"])
+        stale = self._ask_with_stub_provider("ตัวที่สองกี่หน่วย", explicit["next_context"])
+        self.assertEqual(stale["status"], "insufficient_evidence")
+        self.assertEqual(stale["provenance"], [])
+
+    def test_semantic_heading_separates_search_scope_from_placement(self):
+        answer = self._cyber_search()
+        self.assertNotIn("ปี 1/2/3/4", answer["answer"])
+        self.assertIn("พบรายวิชาที่เกี่ยวข้อง", answer["answer"])
+        scoped = self._ask_with_stub_provider(
+            "ปี 3 มีวิชาเกี่ยวกับ cloud อะไรบ้าง",
+            {"program": "IT", "catalog_key": "it-2565"},
+        )
+        self.assertEqual(scoped["status"], "answer")
+        self.assertIn("ขอบเขตการค้นหา", scoped["answer"])
+        self.assertIn("ปี 3", scoped["answer"])
 
     def test_second_result_placement_followup_without_fabrication(self):
         first = self._cyber_search()
@@ -2025,7 +2448,7 @@ class LlmSqlApiTests(unittest.TestCase):
         kept = second["next_context"] or {}
         self.assertEqual(
             [course["course_code"] for course in kept.get("result_courses", [])],
-            ["06016405", "06016438"],
+            ["06016405", "06016438", "06016464"],
         )
 
     def test_empty_result_search_ordinal_fails_closed(self):
@@ -2051,7 +2474,7 @@ class LlmSqlApiTests(unittest.TestCase):
         kept = second["next_context"] or {}
         self.assertEqual(
             [course["course_code"] for course in kept.get("result_courses", [])],
-            ["06016405", "06016438"],
+            ["06016405", "06016438", "06016464"],
         )
 
         third = self._ask_with_stub_provider(
@@ -2110,9 +2533,12 @@ class LlmSqlApiTests(unittest.TestCase):
         )
         self.assertEqual(credit["status"], "answer")
         self.assertIn("06016405", credit["answer"])
-        self.assertNotIn("result_courses", credit["next_context"] or {})
+        self.assertEqual(
+            credit["next_context"]["result_courses"],
+            search["next_context"]["result_courses"],
+        )
         third = self._ask_with_stub_provider(
-            "ตัวที่สองเรียนตอนไหน", credit["next_context"]
+            "ตัวที่ 4เรียนตอนไหน", credit["next_context"]
         )
         self.assertEqual(third["status"], "insufficient_evidence")
         self.assertEqual(third["provenance"], [])

@@ -129,6 +129,10 @@ def route_policy_question(
         return adapt_policy_answer(
             PolicyAnswer(status="unsupported", query_type=query.kind)
         )
+    if query.kind == "probation_value_invalid":
+        return adapt_policy_answer(
+            PolicyAnswer(status="unsupported", query_type=query.kind)
+        )
     if query.kind in POLICY_ROUTE_ALLOWLIST:
         return adapt_policy_answer(answer_policy_question(db_path, question, program_context=program_context))
     if query.kind == "program_total_credits":

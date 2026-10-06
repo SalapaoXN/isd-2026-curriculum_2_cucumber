@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { askQuestion, fetchPrograms } from "../api";
+import PlanSelector from "../components/PlanSelector";
 import {
   buildConversationContext,
   defaultCatalogKey,
   resetContextForEdition,
+  availablePlans,
+  displayablePlans,
+  selectPlan,
+  planLabel,
+  formatElapsedTime,
+  provenanceLabel,
+  classifyAnswerLine,
 } from "../chatScope";
 
 const STORAGE_KEY = "cucumber-chat-sessions-v1";
@@ -39,16 +47,35 @@ function loadStored() {
   }
 }
 
-function newSession(program, catalogKey = "") {
+function newSession(program, catalogKey = "", programs = []) {
+  const plans = availablePlans({program, catalogKey}, programs);
+  const plan = plans.length === 1 ? plans[0].plan_key : null;
   return {
     id: `s-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
     program: program || "",
     catalogKey,
+    plan,
+    pendingClarification: null,
     title: "New chat",
     messages: [],
     context: null,
     createdAt: Date.now(),
   };
+}
+
+function AnswerText({ text }) {
+  return (
+    <div className="chat-answer-text">
+      {String(text || "").split(/\r?\n/).map((line, index) => {
+        const kind = classifyAnswerLine(line);
+        return (
+          <div className={`chat-answer-line answer-line-${kind}`} key={index}>
+            {line || "\u00a0"}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -74,6 +101,8 @@ export default function ChatPage() {
     () => sessions.find((s) => s.id === activeId) || sessions[0],
     [sessions, activeId]
   );
+  const activeSessionRef = useRef(null);
+  activeSessionRef.current = active?.id;
 
   useEffect(() => {
     fetchPrograms()
@@ -96,13 +125,20 @@ export default function ChatPage() {
         const catalogKey = isAvailable
           ? existing
           : defaultCatalogKey(session.program, programs);
-        if (catalogKey === session.catalogKey) return session;
+        const scoped = {...session, catalogKey};
+        const plans = availablePlans(scoped, programs);
+        const priorPlan = session.plan || session.context?.plan;
+        const plan = plans.some(p => p.plan_key === priorPlan)
+          ? priorPlan : plans.length === 1 ? plans[0].plan_key : null;
+        if (catalogKey === session.catalogKey && plan === session.plan) return session;
         const changedEdition = Boolean(existing && existing !== catalogKey);
         return {
           ...session,
           catalogKey,
-          context: changedEdition
-            ? resetContextForEdition(session.program, catalogKey)
+          plan,
+          pendingClarification: changedEdition || priorPlan !== plan ? null : session.pendingClarification,
+          context: changedEdition || priorPlan !== plan
+            ? resetContextForEdition(session.program, catalogKey, plan)
             : session.context,
         };
       })
@@ -135,7 +171,7 @@ export default function ChatPage() {
 
   function handleNewChat() {
     const program = active?.program || "IT";
-    const session = newSession(program, defaultCatalogKey(program, programs));
+    const session = newSession(program, defaultCatalogKey(program, programs), programs);
     setSessions((prev) => [session, ...prev]);
     setActiveId(session.id);
     setQuestion("");
@@ -147,7 +183,7 @@ export default function ChatPage() {
       const next = prev.filter((s) => s.id !== id);
       if (next.length === 0) {
         const program = active?.program || "IT";
-        const fresh = newSession(program, defaultCatalogKey(program, programs));
+        const fresh = newSession(program, defaultCatalogKey(program, programs), programs);
         setActiveId(fresh.id);
         return [fresh];
       }
@@ -160,26 +196,46 @@ export default function ChatPage() {
     // Keep the current session and its history; only the scope changes.
     // Context is cleared so the next question is seeded with the new
     // program instead of chaining the previous program's scope.
+    const catalogKey = defaultCatalogKey(program, programs);
+    const plans = availablePlans({program, catalogKey}, programs);
+    const plan = plans.length === 1 ? plans[0].plan_key : null;
     updateActive({
       program,
-      catalogKey: defaultCatalogKey(program, programs),
-      context: null,
+      catalogKey,
+      plan,
+      pendingClarification: null,
+      context: resetContextForEdition(program, catalogKey, plan),
     });
     setQuestion("");
     setError("");
   }
 
   function handleCatalogChange(catalogKey) {
+    const plans = availablePlans({...active, catalogKey}, programs);
+    const plan = plans.some(p => p.plan_key === active.plan)
+      ? active.plan : plans.length === 1 ? plans[0].plan_key : null;
     updateActive({
       catalogKey,
-      context: resetContextForEdition(active.program, catalogKey),
+      plan,
+      pendingClarification: null,
+      context: resetContextForEdition(active.program, catalogKey, plan),
     });
     setQuestion("");
     setError("");
   }
 
-  async function handleAsk() {
-    const q = question.trim();
+  function handlePlanChange(plan) {
+    if (loading) return;
+    const selected = selectPlan(active, plan, programs);
+    const pending = active.pendingClarification;
+    updateActive(selected);
+    if (pending) handleAsk(pending.question, selected, pending.messageId);
+  }
+
+  async function handleAsk(retryQuestion, selectedSession, retryId) {
+    if (loading) return;
+    const session = selectedSession || active;
+    const q = typeof retryQuestion === "string" ? retryQuestion : question.trim();
     setError("");
     if (!active) return;
     if (q.length < 2) {
@@ -196,29 +252,39 @@ export default function ChatPage() {
     setLoading(true);
     try {
       // The selected catalog is authoritative over any stale follow-up context.
-      const seed = buildConversationContext(active);
+      const seed = buildConversationContext(session);
+      const requestStarted = performance.now();
       const data = await askQuestion(q, seed);
+      const elapsedMs = performance.now() - requestStarted;
       const entry = {
-        id: Date.now(),
+        id: retryId || Date.now(),
         question: q,
         answer: data.answer || "ไม่พบคำตอบ",
         status: data.status,
         route: data.route,
+        elapsedMs,
         provenance: data.provenance || [],
+        planClarification: data.status === "clarification_required" && data.action === "plan_required",
       };
-      updateActive({
-        messages: [...active.messages, entry],
-        context: buildConversationContext({ ...active, context: data.next_context }),
+      const returnedPlan = data.next_context?.plan;
+      const plan = availablePlans(session, programs).some(p => p.plan_key === returnedPlan)
+        ? returnedPlan : session.plan;
+      setSessions(previous => previous.map(s => s.id !== session.id ? s : ({
+        ...s,
+        plan,
+        messages: retryId ? s.messages.map(m => m.id === retryId ? entry : m) : [...s.messages, entry],
+        pendingClarification: entry.planClarification ? {question: q, messageId: entry.id} : null,
+        context: buildConversationContext({ ...session, plan, context: data.next_context }),
         title:
           active.messages.length === 0
             ? q.length > 42
               ? `${q.slice(0, 42)}…`
               : q
             : active.title,
-      });
-      setQuestion("");
+      })));
+      if (activeSessionRef.current === session.id) setQuestion("");
     } catch (err) {
-      setError(err.message || "เกิดข้อผิดพลาด");
+      if (activeSessionRef.current === session.id) setError(err.message || "เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
@@ -233,6 +299,9 @@ export default function ChatPage() {
   const selectedEdition = editions.find(
     (edition) => edition.catalog_key === active.catalogKey
   );
+  const plans = availablePlans(active, programs);
+  const visiblePlans = displayablePlans(plans);
+  const planSegment = planLabel(active.plan);
   const scopeLabel = active.program
     ? `${active.program}${
         selectedEdition
@@ -242,7 +311,7 @@ export default function ChatPage() {
             : editions.length > 1
               ? " · เลือกฉบับหลักสูตร"
               : ""
-      }`
+      }${planSegment ? ` · ${planSegment}` : ""}`
     : "ทุกหลักสูตร";
 
   return (
@@ -296,6 +365,13 @@ export default function ChatPage() {
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {visiblePlans.length > 0 && (
+            <div className="field chat-scope-field">
+              <label>แผนการเรียน</label>
+              <PlanSelector plans={visiblePlans} value={active.plan} onChange={handlePlanChange} disabled={loading} />
             </div>
           )}
 
@@ -373,8 +449,16 @@ export default function ChatPage() {
                   </div>
                   <div className="chat-assistant-row">
                     <div className="chat-answer-card">
-                      <div className="chat-answer-label">CUCUMBER</div>
-                      <div className="chat-answer-text">{m.answer}</div>
+                       <div className="chat-answer-label">
+                         CUCUMBER
+                         {formatElapsedTime(m.elapsedMs) && (
+                           <span className="chat-answer-timing"> · {formatElapsedTime(m.elapsedMs)}</span>
+                         )}
+                       </div>
+                       <AnswerText text={m.planClarification ? "คำถามนี้ต้องระบุแผนการเรียนก่อน" : m.answer} />
+                       {m.planClarification && active.pendingClarification?.messageId === m.id && (
+                          <PlanSelector plans={visiblePlans} value={active.plan} onChange={handlePlanChange} disabled={loading} />
+                       )}
                     </div>
                   </div>
                   <div className="chat-message-meta">
@@ -390,9 +474,7 @@ export default function ChatPage() {
                       <ul>
                         {m.provenance.map((source, index) => (
                           <li key={`${source.source_filename || source.source_page || source.program || "source"}-${index}`}>
-                            {source.program && <span>หลักสูตร {source.program}</span>}
-                            {source.source_filename && <span>{source.source_filename}</span>}
-                            {source.source_page != null && <span>หน้า {source.source_page}</span>}
+                             <span>{provenanceLabel(source)}</span>
                           </li>
                         ))}
                       </ul>

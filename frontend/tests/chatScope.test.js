@@ -1,11 +1,115 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 
 import {
   buildConversationContext,
   defaultCatalogKey,
   resetContextForEdition,
+  availablePlans,
+  displayablePlans,
+  selectPlan,
+  planLabel,
+  formatElapsedTime,
+  provenanceLabel,
+  classifyAnswerLine,
 } from "../src/chatScope.js";
+
+test("provenance display hides internal filenames without changing metadata", () => {
+  const source = {program: "IT", source_page: 328, source_filename: "it_page_328.png"};
+  assert.equal(provenanceLabel(source), "หลักสูตร IT · หน้า 328");
+  assert.equal(source.source_filename, "it_page_328.png");
+  assert.equal(provenanceLabel({source_page: 359}), "หน้า 359");
+  assert.equal(provenanceLabel({program: "DSBA"}), "หลักสูตร DSBA");
+  assert.equal(provenanceLabel({source_filename: "internal.json"}), "");
+});
+
+test("elapsed time formatting is bounded and absent for old messages", () => {
+  assert.equal(formatElapsedTime(820), "0.82 วินาที");
+  assert.equal(formatElapsedTime(2400), "2.4 วินาที");
+  assert.equal(formatElapsedTime(37900), "37.9 วินาที");
+  assert.equal(formatElapsedTime(1000), "1.0 วินาที");
+  assert.equal(formatElapsedTime(0), "0.00 วินาที");
+  for (const value of [undefined, null, NaN, -1]) assert.equal(formatElapsedTime(value), null);
+});
+
+test("answer line presentation classifies only visible shapes without rewriting text", () => {
+  assert.equal(classifyAnswerLine("ปี 1 เทอม 1:"), "section-heading");
+  assert.equal(classifyAnswerLine("รายวิชาที่มีวิชาบังคับก่อนในหลักสูตร AIT:"), "section-heading");
+  assert.equal(classifyAnswerLine("- 06026201 CALCULUS 2"), "list-item");
+  assert.equal(classifyAnswerLine("• รายวิชา"), "list-item");
+  assert.equal(classifyAnswerLine("  วิชาบังคับก่อน: 06026200"), "prerequisite");
+  assert.equal(classifyAnswerLine("หมายเหตุ: แสดงข้อมูลที่ยืนยันได้"), "note");
+  assert.equal(classifyAnswerLine("ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง"), "elective-slot");
+  assert.equal(classifyAnswerLine("ช่องวิชาเลือก: เลือก 1 วิชา"), "elective-slot");
+  assert.equal(classifyAnswerLine("อ้างอิง: หน้า 22"), "reference-note");
+  assert.equal(classifyAnswerLine("06026201 ชื่อภาษาไทย: แคลคูลัส 2; CALCULUS 2"), "paragraph");
+  assert.equal(classifyAnswerLine(""), "blank");
+});
+
+test("each request including plan retry records its own timing and keeps expandable provenance", () => {
+  const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
+  assert.match(page, /performance\.now\(\);\s*const data = await askQuestion\(q, seed\);\s*const elapsedMs = performance\.now\(\) - requestStarted/);
+  assert.match(page, /elapsedMs,/);
+  assert.match(page, /CUCUMBER\s*\{formatElapsedTime\(m\.elapsedMs\)/);
+  assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId\)/);
+  assert.match(page, /<details className="chat-provenance">/);
+  assert.match(page, /แหล่งอ้างอิง \{m\.provenance\.length\} รายการ/);
+  assert.match(page, /provenanceLabel\(source\)/);
+  assert.match(page, /<AnswerText text=\{/);
+  assert.doesNotMatch(page, /\{source\.source_filename\}/);
+});
+
+test("plan selection uses edition options and resets targets without deleting history", () => {
+  const metadata = [{program_code: "IT", editions: [{catalog_key: "it-2565", plans: [{plan_key: "coop"}, {plan_key: "no_coop"}]}]}];
+  const session = {program: "IT", catalogKey: "it-2565", messages: [{question: "old"}], context: {course_code: "06016414", result_courses: [{}]}, pendingClarification: {question: "pending"}};
+  assert.deepEqual(availablePlans(session, metadata).map(p => p.plan_key), ["coop", "no_coop"]);
+  for (const plan of ["coop", "no_coop"]) {
+    const selected = selectPlan(session, plan, metadata);
+    assert.equal(selected.plan, plan);
+    assert.deepEqual(buildConversationContext(selected), {program: "IT", catalog_key: "it-2565", plan});
+    assert.deepEqual(selected.messages, session.messages);
+    assert.equal(selected.pendingClarification, null);
+  }
+  assert.equal(planLabel("coop"), "สหกิจ");
+  assert.equal(planLabel("no_coop"), "ไม่สหกิจ");
+  assert.equal(planLabel("default"), null);
+  assert.equal(planLabel("mystery"), null);
+  assert.deepEqual(
+    displayablePlans([{plan_key: "coop"}, {plan_key: "no_coop"}]).map((p) => p.plan_key),
+    ["coop", "no_coop"]
+  );
+  assert.deepEqual(displayablePlans([{plan_key: "default"}]), []);
+  assert.throws(() => selectPlan({...session, catalogKey: "other"}, "coop", metadata));
+});
+
+test("internal default plan is hidden from plan control and scope label", () => {
+  const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
+  assert.match(page, /visiblePlans = displayablePlans\(plans\)/);
+  assert.match(page, /<PlanSelector plans=\{visiblePlans\}/);
+  assert.match(page, /visiblePlans\.length > 0/);
+  assert.match(page, /planSegment \? ` · \$\{planSegment\}` : ""/);
+});
+
+test("plan choices use accessible shared markup and structured pending-question retry", () => {
+  const component = readFileSync(new URL("../src/components/PlanSelector.jsx", import.meta.url), "utf8");
+  const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
+  assert.match(component, /<button/);
+  assert.match(component, /aria-pressed=/);
+  assert.match(component, /role="group"/);
+  assert.equal((page.match(/<PlanSelector /g) || []).length, 2);
+  assert.match(page, /data\.action === "plan_required"/);
+  assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId\)/);
+  assert.match(page, /pendingClarification: entry\.planClarification \? .* : null/);
+  assert.doesNotMatch(page, /\b(?:alert|prompt|confirm)\s*\(/);
+});
+
+test("selected plan survives edition reset and no plan is forced for multi-plan scope", () => {
+  assert.deepEqual(buildConversationContext({program: "IT", catalogKey: "it-2565", plan: "no_coop", context: {catalog_key: "it-2560", course_code: "old"}}),
+    {program: "IT", catalog_key: "it-2565", plan: "no_coop"});
+  assert.deepEqual(buildConversationContext({program: "IT", catalogKey: "it-2565", plan: null, context: null}),
+    {program: "IT", catalog_key: "it-2565"});
+});
 
 const programs = [
   {

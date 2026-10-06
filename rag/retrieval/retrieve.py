@@ -821,7 +821,25 @@ def _ascii_phrase_match(topic: str, text: str) -> bool:
     pattern = r"(?<!\w)" + r"\s+".join(
         re.escape(token) for token in topic_tokens
     ) + r"(?!\w)"
-    return re.search(pattern, text) is not None
+    if re.search(pattern, text) is not None:
+        return True
+    # Compare exact compact forms of bounded contiguous ASCII lexical units.
+    # Never search within a token, and never bridge a non-ASCII lexical unit.
+    if not all(token.isascii() and token.isalnum() for token in topic_tokens):
+        return False
+    compact_topic = "".join(topic_tokens)
+    text_tokens = text.split()
+    for start in range(len(text_tokens)):
+        compact_candidate = ""
+        for token in text_tokens[start:start + len(compact_topic)]:
+            if not token.isascii() or not token.isalnum():
+                break
+            compact_candidate += token
+            if compact_candidate == compact_topic:
+                return True
+            if len(compact_candidate) >= len(compact_topic):
+                break
+    return False
 
 
 def lexical_topic_match(
@@ -831,8 +849,9 @@ def lexical_topic_match(
     """Return whether a candidate has conservative lexical topic evidence.
 
     Course names and description text are checked without semantic expansion.
-    ASCII topics use whole-token phrase matching; non-ASCII topics use the
-    complete normalized phrase.  The sole alias pair is AI/artificial
+    ASCII topics use whole-token phrase matching plus exact compact-form
+    equivalence of contiguous ASCII alphanumeric units; non-ASCII topics use
+    the complete normalized phrase. The sole alias pair is AI/artificial
     intelligence.
     """
     normalized_topic = _normalize_lexical_text(topic)

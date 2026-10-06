@@ -160,6 +160,29 @@ GET /src/main.jsx 404 Not Found
 
 `GET /favicon.ico 404 Not Found` ไม่กระทบการทำงานของเว็บ
 
+### 3.4b Semantic warm-up (แนะนำก่อนเดโม)
+
+Backend โหลด embedding model แบบ lazy ในการเรียก semantic/topic query ครั้งแรก
+จึงอาจใช้เวลาประมาณ 30–40 วินาทีบนเครื่องที่ทดสอบ (ไม่ใช่ SLA รับประกัน)
+
+คำสั่ง warm-up ตัวอย่าง (ถามครั้งเดียวหลัง start backend โดยเลือก
+ขอบเขต IT / ฉบับ 2565 ก่อน เนื่องจากมี grounded semantic matches
+ที่ยืนยันแล้วในคลัง IT):
+
+```text
+มีวิชาเกี่ยวกับ cyber security อะไรบ้าง
+```
+
+query แบบ semantic ครั้งถัด ๆ ไปที่ model อยู่ใน memory แล้ว
+ถูกสังเกตว่าตอบราว 1–2 วินาที
+
+ข้อควรทราบ:
+
+- `python -m rag.build_index` จำเป็นเฉพาะตอน setup หรือเมื่อข้อมูลหลักสูตร
+  canonical เปลี่ยนเท่านั้น ไม่ต้องรันใหม่ทุกครั้งที่ restart backend
+- ไม่ต้อง rebuild embeddings/index ทุกครั้งที่ restart backend
+- แนะนำให้ยิง semantic warm-up หนึ่งครั้งก่อนเริ่มเดโมสด
+
 ### 3.5 Frontend development mode
 
 ถ้าต้องการใช้ Vite dev server แทน built frontend:

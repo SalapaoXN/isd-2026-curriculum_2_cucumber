@@ -135,8 +135,7 @@ def _old_new_question(question: str) -> bool:
 
 def _hard_candidate(question: str) -> bool:
     folded = question.casefold()
-    if "prerequisite" in parse_query_spec(question).operations:
-        return True
+    spec = parse_query_spec(question)
     if _old_new_question(question):
         return True
     if any(marker in folded for marker in ("ต่างกัน", "เปรียบเทียบ", "difference")) and any(
@@ -145,8 +144,16 @@ def _hard_candidate(question: str) -> bool:
         return True
     if any(marker in folded for marker in ("โครงสร้างครบ", "ครบตามหลักสูตร", "ตรวจสอบโครงสร้าง")):
         return True
-    if "prerequisite" in folded or "วิชาบังคับก่อน" in folded or "ต้องเรียนอะไรมาก่อน" in folded:
-        return True
+    if "prerequisite" in spec.operations or "prerequisite" in folded or "วิชาบังคับก่อน" in folded:
+        # A relationship request is ordinary QA. Hard QA owns checks of
+        # ordering, not the prerequisite operation by itself.
+        ordering = any(marker in folded for marker in ("ลำดับ", "เรียง", "วางไว้ก่อน")) or bool(
+            re.search(r"\b(?:sequence|ordering|order)\b", folded)
+        )
+        validation = any(marker in folded for marker in ("ตรวจสอบ", "ถูก", "ผิด", "หรือเปล่า")) or bool(
+            re.search(r"\b(?:validate|validation|check|correct|violations?)\b", folded)
+        )
+        return ordering and validation
     return any(marker in folded for marker in ("3.5", "สามปีครึ่ง", "3 ปีครึ่ง"))
 
 
@@ -431,6 +438,17 @@ def _target_relations(result: dict[str, Any], target: str) -> list[dict[str, Any
 
 
 def _format_h3(result: dict[str, Any], target: str | None) -> tuple[str, str, list[dict[str, Any]]]:
+    status, answer, provenance = _format_h3_evidence(result, target)
+    program = result.get("program")
+    plan = result.get("plan")
+    scope = f"หลักสูตร {program}"
+    if plan in {"coop", "no_coop"}:
+        scope += " แผน" + ("สหกิจ" if plan == "coop" else "ไม่สหกิจ")
+    answer = answer.replace(f"แผน {program} {plan}", scope)
+    return status, answer.replace("prerequisite", "วิชาบังคับก่อน"), provenance
+
+
+def _format_h3_evidence(result: dict[str, Any], target: str | None) -> tuple[str, str, list[dict[str, Any]]]:
     if target is None:
         status = result.get("status", "incomplete_evidence")
         summary = result.get("summary", {})
@@ -562,6 +580,23 @@ def _format_h4(result: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
                         f"ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง: {slot_label.strip()}"
                     )
         lines.append(f"{label}:")
+        fixed_courses = [course for course in term.get("courses", []) if isinstance(course, dict)]
+        known_credits = [
+            course.get("credit_units")
+            for course in fixed_courses
+            if isinstance(course.get("credit_units"), int)
+            and not isinstance(course.get("credit_units"), bool)
+            and course.get("credit_units") >= 0
+        ]
+        known_total = sum(known_credits)
+        if known_credits:
+            fully_known = (
+                len(known_credits) == len(fixed_courses)
+                and not term.get("choice_slots")
+                and not term.get("required_selection_slots")
+            )
+            total_label = "รวม" if fully_known else "รวมหน่วยกิตที่ยืนยันได้"
+            lines.append(f"{total_label} {known_total} หน่วยกิต")
         for course in courses + slots + required_slots:
             lines.append(f"- {course}")
         if not courses and not slots and not required_slots:
@@ -626,6 +661,14 @@ def _h4_course_lines(courses: Any) -> list[str]:
             labels = [part.strip() for part in re.split(r"\s+(?=วิชาเลือกกลุ่ม)", name) if part.strip()]
             result.extend(label.replace("วิชาเลือกกลุ่ม ", "วิชาเลือกกลุ่ม", 1) for label in labels)
         else:
+            credit_units = course.get("credit_units")
+            if (
+                rendered
+                and isinstance(credit_units, int)
+                and not isinstance(credit_units, bool)
+                and credit_units >= 0
+            ):
+                rendered = [f"{line} — {credit_units} หน่วยกิต" for line in rendered]
             result.extend(rendered)
     return result
 
@@ -660,6 +703,110 @@ def _response(
     if comparison is not None:
         response["comparison"] = comparison
     return response
+
+
+def answer_seven_term_followup(
+    db_path: str | Path,
+    *,
+    program: str,
+    catalog_key: str,
+    plan: str,
+    year: int,
+    semester: int,
+    include_courses: bool,
+    include_credits: bool,
+) -> dict[str, Any]:
+    """Re-ground one bounded H4 term follow-up from canonical planner facts."""
+    result = plan_curriculum_sequence(
+        db_path, program, plan, horizon_terms=_HORIZON_TERMS, catalog_key=catalog_key
+    )
+    terms = result.get("terms") if isinstance(result, dict) else None
+    term = next((item for item in terms or () if isinstance(item, dict)
+                 and item.get("year") == year and item.get("semester") == semester), None)
+    if term is None:
+        return {"status": "insufficient_evidence", "answer": "ไม่พบข้อมูลที่ยืนยันได้สำหรับภาคเรียนนี้", "provenance": []}
+
+    courses = [course for course in term.get("courses", ()) if isinstance(course, dict)]
+    choices = [slot for slot in term.get("choice_slots", ()) if isinstance(slot, dict)]
+    required_slots = [slot for slot in term.get("required_selection_slots", ()) if isinstance(slot, dict)]
+    valid_credits = [
+        course["credit_units"] for course in courses
+        if isinstance(course.get("credit_units"), int)
+        and not isinstance(course.get("credit_units"), bool)
+        and course["credit_units"] >= 0
+    ]
+    known_total = sum(valid_credits)
+    all_course_credits_known = len(valid_credits) == len(courses)
+    full_total = bool(courses) and all_course_credits_known and not choices and not required_slots
+
+    lines: list[str] = []
+    label = f"ปี {year} เทอม {semester}"
+    if include_courses:
+        rows = _h4_course_lines(courses)
+        for slot in choices:
+            candidate_lines = _course_lines(slot.get("candidates", []))
+            if candidate_lines:
+                minimum = slot.get("minimum_choices")
+                prefix = f"ทางเลือก: เลือก {minimum} วิชาจาก " if isinstance(minimum, int) and minimum > 0 else "ทางเลือก: "
+                rows.append(prefix + " หรือ ".join(candidate_lines))
+        for slot in required_slots:
+            slot_label = slot.get("label_th") or slot.get("label_en") or slot.get("raw_text")
+            if isinstance(slot_label, str) and slot_label.strip():
+                rows.append(f"ช่องวิชาเลือกที่ยังไม่ระบุวิชาจริง: {slot_label.strip()}")
+        if not rows:
+            return {"status": "insufficient_evidence", "answer": "ไม่พบรายวิชาที่แทนได้สำหรับภาคเรียนนี้", "provenance": []}
+        lines.append(f"{label}:")
+        lines.extend(f"- {row}" for row in rows)
+
+    if include_credits:
+        if full_total:
+            lines.append(f"{label} รวม {known_total} หน่วยกิต")
+        elif valid_credits:
+            lines.append(f"{label} ยืนยันได้อย่างน้อย {known_total} หน่วยกิต")
+            if choices or required_slots:
+                unresolved_count = len(choices) + len(required_slots)
+                lines.append(
+                    "ยังสรุปหน่วยกิตรวมทั้งหมดไม่ได้ เนื่องจากยังมีวิชาเลือกที่ยังไม่ได้ระบุรายวิชาจริง"
+                    + (f" {unresolved_count} ช่อง" if unresolved_count else "")
+                )
+            else:
+                lines.append("ยังสรุปหน่วยกิตรวมทั้งหมดไม่ได้ เนื่องจากมีรายวิชาที่ไม่ทราบหน่วยกิต")
+        else:
+            lines.append(f"{label} ยังยืนยันหน่วยกิตรวมไม่ได้จากข้อมูลหลักสูตรที่มี")
+
+    evidence = result.get("evidence") if isinstance(result, dict) else None
+    needed_ids: set[int] = set()
+    for course in courses:
+        for evidence_id in course.get("evidence_ids", ()):
+            if isinstance(evidence_id, int) and not isinstance(evidence_id, bool):
+                needed_ids.add(evidence_id)
+    for slot in (*choices, *required_slots):
+        if not isinstance(slot, dict):
+            continue
+        for evidence_id in slot.get("evidence_ids", ()):
+            if isinstance(evidence_id, int) and not isinstance(evidence_id, bool):
+                needed_ids.add(evidence_id)
+        for key in ("provenance", "placement_provenance"):
+            references = slot.get(key)
+            if not isinstance(references, (list, tuple)):
+                continue
+            for reference in references:
+                if not isinstance(reference, dict):
+                    continue
+                provenance_id = reference.get("provenance_id")
+                if isinstance(provenance_id, int) and not isinstance(provenance_id, bool):
+                    needed_ids.add(provenance_id)
+    scoped_evidence = [
+        reference for reference in (evidence or [])
+        if isinstance(reference, dict)
+        and isinstance(reference.get("provenance_id"), int)
+        and not isinstance(reference.get("provenance_id"), bool)
+        and reference["provenance_id"] in needed_ids
+    ]
+    provenance = _normal_provenance([scoped_evidence])
+    if not provenance:
+        return {"status": "insufficient_evidence", "answer": "ไม่พบหลักฐานที่มีแหล่งอ้างอิงเพียงพอสำหรับคำตอบนี้", "provenance": []}
+    return {"status": "answer", "answer": "\n".join(lines), "provenance": provenance}
 
 
 def _course_label(course: dict[str, Any]) -> str:
@@ -1049,19 +1196,13 @@ def answer_hard_question(
             if context_plan is not None and _same(proposed_plan, context_plan):
                 plan = context_plan
             else:
-                return _response("clarification_required", "ไม่สามารถใช้แผนที่ไม่ได้ระบุในคำถามหรือบริบทที่เลือกไว้ได้ โปรดระบุแผน", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
+                return _response("clarification_required", "โปรดเลือกแผนหลักสูตรที่ต้องการตรวจสอบ", task_type, {"catalog_key": catalog_key, "program": program, "plan": None}, action="plan_required")
         else:
             plan = context_plan
-        evaluate_all_seven_term_plans = (
-            task_type == "seven_term_plan"
-            and plan is None
-            and context.get("plan") is None
-            and intent.get("plan") is None
-            and not explicit_plans
-            and len(plans_for_program) > 1
-        )
-        if plan is None and not evaluate_all_seven_term_plans:
-            return _response("clarification_required", "โปรดเลือกแผนหลักสูตรที่ต้องการตรวจสอบ เช่น coop หรือ no_coop", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
+        if plan is None:
+            response = _response("clarification_required", "โปรดเลือกแผนหลักสูตรที่ต้องการตรวจสอบ", task_type, {"catalog_key": catalog_key, "program": program, "plan": None})
+            response["action"] = "plan_required"
+            return response
         if task_type == "prerequisite_sequence":
             current_codes = list(dict.fromkeys(
                 str(code).strip().upper() for code in parse_query_spec(question).course_codes
@@ -1106,52 +1247,6 @@ def answer_hard_question(
         elif task_type == "seven_term_plan":
             if intent.get("horizon_terms") != _HORIZON_TERMS:
                 return _response("unsupported", "รองรับเฉพาะการจัดลำดับ 7 ภาคเรียนปกติสำหรับกรณี 3.5 ปี", task_type, {"program": program, "plan": plan})
-            if plan is None:
-                plan_results = []
-                combined_provenance = []
-                for applicable_plan in plans_for_program:
-                    plan_result = plan_curriculum_sequence(
-                        db_path,
-                        program,
-                        applicable_plan,
-                        horizon_terms=_HORIZON_TERMS,
-                        catalog_key=catalog_key,
-                    )
-                    plan_status, plan_answer, plan_provenance = _format_h4(
-                        plan_result
-                    )
-                    plan_results.append({
-                        "plan": applicable_plan,
-                        "scope": {
-                            "catalog_key": catalog_key,
-                            "program": program,
-                            "plan": applicable_plan,
-                        },
-                        "status": plan_status,
-                        "answer": _append_citation_summary(
-                            plan_answer, plan_provenance
-                        ),
-                        "provenance": plan_provenance,
-                    })
-                    combined_provenance.extend(plan_provenance)
-                aggregate_status = (
-                    "complete"
-                    if all(item["status"] == "complete" for item in plan_results)
-                    else "incomplete_evidence"
-                )
-                combined_answer = "\n\n".join(
-                    f"ผลแผน {item['plan']} (สถานะ: {item['status']}):\n{item['answer']}"
-                    for item in plan_results
-                )
-                response = _response(
-                    aggregate_status,
-                    combined_answer,
-                    task_type,
-                    {"catalog_key": catalog_key, "program": program, "plan": None},
-                    combined_provenance,
-                )
-                response["plan_results"] = plan_results
-                return response
             hard_result = plan_curriculum_sequence(
                 db_path, program, plan, horizon_terms=_HORIZON_TERMS,
                 catalog_key=catalog_key,
@@ -1160,7 +1255,21 @@ def answer_hard_question(
             scope = {"catalog_key": catalog_key, "program": program, "plan": plan}
         else:
             return _response("unsupported", "ไม่รองรับงาน Hard ประเภทนี้", task_type, {"program": program, "plan": plan})
-    return _response(status, _append_citation_summary(answer, provenance), task_type, scope, provenance)
+    rendered_answer = answer if task_type == "prerequisite_sequence" else _append_citation_summary(answer, provenance)
+    response = _response(status, rendered_answer, task_type, scope, provenance)
+    if (
+        task_type == "seven_term_plan"
+        and plan is not None
+        and isinstance(hard_result, dict)
+        and isinstance(hard_result.get("terms"), list)
+    ):
+        response["next_context"]["study_plan_context"] = {
+            "kind": "seven_term_plan",
+            "program": program,
+            "catalog_key": catalog_key,
+            "plan": plan,
+        }
+    return response
 
 
-__all__ = ["answer_hard_question"]
+__all__ = ["answer_hard_question", "answer_seven_term_followup"]

@@ -6,6 +6,7 @@ from contextlib import closing
 from pathlib import Path
 
 from rag.policy import answer_policy_question
+from rag.policy.query import parse_policy_question
 from rag.policy.routing import route_policy_question
 from rag.qa import ask
 from rag.resolution import QueryContext
@@ -173,6 +174,32 @@ class RagPolicyTest(unittest.TestCase):
         self.assertEqual(cleared.operator, ">=")
         self.assertEqual(cleared.condition, "at_least")
         self.assertNotEqual(entry.condition, cleared.condition)
+
+    def test_probation_observed_gpa_compares_deterministically_to_canonical_entry_rule(self):
+        below = answer_policy_question(DB_PATH, "GPA 1.9 จะติดโปรไหม")
+        thai = answer_policy_question(DB_PATH, "ถ้าเกรดเฉลี่ยสะสม 1.9 จะเข้าข่ายภาคทัณฑ์ไหม")
+        boundary = answer_policy_question(DB_PATH, "GPA = 2.00 จะติดโปรไหม")
+        above = answer_policy_question(DB_PATH, "GPA อยู่ที่ 2.1 เข้าข่ายโปรหรือเปล่า")
+        for answer in (below, thai, boundary, above):
+            self.assertEqual(answer.status, "complete")
+            self.assertTrue(answer.provenance)
+            self.assertEqual(answer.query_type, "probation_entry")
+        self.assertIn("1.9", below.rendered_answer)
+        self.assertIn("เข้าข่ายภาคทัณฑ์", below.rendered_answer)
+        self.assertIn("2.00", boundary.rendered_answer)
+        self.assertIn("ไม่เข้าข่ายภาคทัณฑ์", boundary.rendered_answer)
+        self.assertIn("ไม่เข้าข่ายภาคทัณฑ์", above.rendered_answer)
+
+    def test_gpa_value_parser_does_not_capture_unrelated_numbers_or_malformed_values(self):
+        for question in (
+            "ปี 1 เทอม 9 GPA เท่าไหร่ถึงติดโปร",
+            "วิชา 06016414 กี่หน่วยกิต",
+            "คะแนน 1.9 จะติดโปรไหม",
+            "GPA 1..9 จะติดโปรไหม",
+        ):
+            with self.subTest(question=question):
+                query = parse_policy_question(question)
+                self.assertIsNone(getattr(query, "observed_gpa", None))
 
     def test_program_totals_come_from_catalog_scoped_program_requirements(self):
         expected = {

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -410,6 +411,47 @@ def _comparison_answer(db_path: str | Path, query: PolicyQuery) -> PolicyAnswer:
     )
 
 
+def _probation_gpa_comparison_answer(
+    db_path: str | Path, query: PolicyQuery
+) -> PolicyAnswer:
+    fact = _single_fact(db_path, PolicyQuery("probation_entry"))
+    if fact is None or fact.operator != "<" or fact.condition != "below":
+        return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
+    try:
+        threshold = Decimal(str(fact.value))
+        observed = query.observed_gpa
+        if observed is None or not observed.is_finite():
+            return PolicyAnswer(status="invalid_query", query_type=query.kind)
+    except (InvalidOperation, TypeError, ValueError):
+        return PolicyAnswer(status="insufficient_evidence", query_type=query.kind)
+    threshold_text = f"{threshold:.2f}"
+    observed_text = format(observed, "f")
+    if observed < threshold:
+        answer = (
+            f"GPA สะสม {observed_text} ต่ำกว่าเกณฑ์ {threshold_text} "
+            "จึงเข้าข่ายภาคทัณฑ์ตามเกณฑ์ GPA ที่ระบุ"
+        )
+    else:
+        answer = (
+            f"GPA สะสม {observed_text} ไม่ต่ำกว่าเกณฑ์ {threshold_text} "
+            "จึงไม่เข้าข่ายภาคทัณฑ์ตามเกณฑ์ GPA นี้"
+        )
+    return PolicyAnswer(
+        status="complete",
+        query_type="probation_entry",
+        facts=(fact,),
+        value=observed,
+        unit="GPA",
+        operator="comparison",
+        condition="below" if observed < threshold else "not_below",
+        context="cumulative_gpa",
+        source_rule_id=fact.source_rule_id,
+        provenance=fact.provenance,
+        verification_status=fact.verification_status,
+        rendered_answer=answer,
+    )
+
+
 def _program_answer(
     db_path: str | Path,
     query: PolicyQuery,
@@ -800,6 +842,8 @@ def answer_policy_query(
             return _program_answer(db_path, query, catalog_key=catalog_key)
         if query.kind == "registration_compare":
             return _comparison_answer(db_path, query)
+        if query.kind == "probation_entry" and query.observed_gpa is not None:
+            return _probation_gpa_comparison_answer(db_path, query)
         if query.kind in {"honors_first", "honors_second"}:
             return _honors_answer(db_path, query)
         return _answer_from_fact(query, _single_fact(db_path, query))

@@ -119,7 +119,8 @@ class StudentLanguageSmokeRegressionTest(unittest.TestCase):
                 result = ask_it(question)
                 self.assertEqual(result["status"], "answer", result)
                 self.assertTrue(result["provenance"])
-                self.assertIn("existence: true", result["final_answer"])
+                self.assertIn("มีครับ", result["final_answer"])
+                self.assertNotIn("existence:", result["final_answer"])
                 self.assertLess(len(result["final_answer"].splitlines()), 10)
 
         list_cases = (

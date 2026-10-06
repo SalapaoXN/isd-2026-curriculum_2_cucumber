@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from decimal import Decimal
 
 from rag.query_spec import parse_query_spec
 
@@ -14,6 +15,7 @@ class PolicyQuery:
     program: str | None = None
     amount: int | None = None
     plan: str | None = None
+    observed_gpa: Decimal | None = None
 
 
 _PROGRAM_RE = re.compile(r"\b(?P<program>AIT|BIT|DSBA|IT)\b", re.IGNORECASE)
@@ -21,12 +23,18 @@ _AMOUNT_RE = re.compile(
     r"(?:ลงทะเบียน|ลง|เรียน)\s*(?P<amount>\d+)\s*หน่วย(?:กิต)?"
 )
 _GPA_RE = re.compile(
-    r"GPA[^?？\n]{0,40}(?:เท่าไร|เท่าไหร่|กี่คะแนน)",
+    r"(?:\bGPA\b|เกรดเฉลี่ยสะสม)[^?？\n]{0,60}(?:เท่าไร|เท่าไหร่|กี่คะแนน)",
+    re.IGNORECASE,
+)
+_GPA_MARKER_RE = re.compile(r"\bGPA\b|เกรดเฉลี่ยสะสม", re.IGNORECASE)
+_OBSERVED_GPA_RE = re.compile(
+    r"(?:\bGPA\b|เกรดเฉลี่ยสะสม)\s*(?:(?:อยู่ที่|เท่ากับ)\s*|=\s*)?"
+    r"(?P<value>\d{1,2}(?:\.\d{1,4})?)(?![\d.])",
     re.IGNORECASE,
 )
 _POLICY_SHAPE_RE = re.compile(
     r"(?:ลาออก|ลาพักการศึกษา|พักเรียน|โอนหน่วยกิต|โอนผลการเรียน|"
-    r"ทุจริต.{0,20}สอบ|โกง.{0,20}สอบ|วินัย|อุทธรณ์|ติดโปร|พ้นโปร|หลุดโปร|"
+    r"ทุจริต.{0,20}สอบ|โกง.{0,20}สอบ|วินัย|อุทธรณ์|ติดโปร|ภาคทัณฑ์|ทัณฑ์บน|พ้นโปร|หลุดโปร|"
     r"พ้นสภาพ|เกียรตินิยม|สำเร็จการศึกษา|english\s+exit|exit\s+english|"
     r"หนี้สิน|ภาระผูกพัน|(?:จะจบ|จบต้อง|จบได้))",
     re.IGNORECASE,
@@ -309,13 +317,26 @@ def parse_policy_question(
         if re.search(r"(?:เกณฑ์|เงื่อนไข|ต้องมีอะไร|ต้องทำอะไร|มีอะไรบ้าง)", text):
             return PolicyQuery("graduation_requirements")
 
-    if "GPA" in text.upper() and _GPA_RE.search(question):
+    gpa_marker = bool(_GPA_MARKER_RE.search(question))
+    probation_entry_marker = bool(
+        re.search(r"ติดโปร|เข้าข่ายโปร|ภาคทัณฑ์|ทัณฑ์บน", text)
+    )
+    if gpa_marker and probation_entry_marker:
+        observed = _OBSERVED_GPA_RE.search(question)
+        if observed is not None:
+            observed_gpa = Decimal(observed.group("value"))
+            return PolicyQuery("probation_entry", observed_gpa=observed_gpa)
+        if _GPA_RE.search(question):
+            return PolicyQuery("probation_entry")
+        # An incomplete/malformed value comparison must not fall through into
+        # curriculum interpretation or be guessed by a model.
+        return PolicyQuery("probation_value_invalid")
+
+    if gpa_marker and _GPA_RE.search(question):
         if "พ้นสภาพ" in text:
             return PolicyQuery("student_status_termination_gpa")
         if graduation_wording:
             return PolicyQuery("graduation_gpa")
-        if "ติดโปร" in text or "ภาคทัณฑ์" in text:
-            return PolicyQuery("probation_entry")
         if "พ้นโปร" in text or "หลุดโปร" in text or "พ้นภาคทัณฑ์" in text:
             return PolicyQuery("probation_cleared")
         if "เกียรตินิยม" in text:

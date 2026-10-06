@@ -216,7 +216,7 @@ _PREVIOUS_RESULT_SET_ANCHORS = (
 # Bounded ordinal result references only (ตัวแรก / ตัวที่ N). Intent wording
 # (credits, placement, ...) is parsed separately by the operation patterns.
 _RESULT_ORDINAL_FIRST_PATTERN = re.compile(r"(?:ตัว|อัน)แรก")
-_RESULT_ORDINAL_NTH_PATTERN = re.compile(r"(?:ตัว|อัน)ที่\s*(\d+|สอง)")
+_RESULT_ORDINAL_NTH_PATTERN = re.compile(r"(?:ตัว|อัน)ที่\s*(\d+|สอง|สาม|สี่)")
 _COURSE_DETAIL_PATTERN = re.compile(
     r"ลักษณะไหน|ด้าน(?:ไหน|ใด)(?:บ้าง)?|พูดถึง|อะไรบ้าง|อย่างไร|แบบไหน|"
     r"เนื้อหา.*?(?:ครอบคลุม|ช่วยจัดการ).*?เรื่องใด(?:บ้าง)?",
@@ -689,8 +689,9 @@ def _extract_result_ordinal(question: str) -> int | None:
     if match is None:
         return None
     token = match.group(1)
-    if token == "สอง":
-        return 2
+    word_ordinals = {"สอง": 2, "สาม": 3, "สี่": 4}
+    if token in word_ordinals:
+        return word_ordinals[token]
     try:
         number = int(token, 10)
     except (TypeError, ValueError):
@@ -760,6 +761,20 @@ class QuerySpec:
     credit_units: int | None = None
     references_previous_result_set: bool = False
     result_ordinal: int | None = None
+
+
+def is_prerequisite_collection(spec: QuerySpec) -> bool:
+    """Recognize a self-contained collection using the existing bounded grammar."""
+    return bool(
+        "prerequisite" in spec.operations
+        and not spec.course_codes
+        and spec.course_name is None
+        and spec.result_ordinal is None
+        and not spec.references_previous_result_set
+        and not any(reference in spec.normalized_question for reference in
+                    ("วิชานี้", "วิชานั้น", "ตัวนี้", "ตัวนั้น", "อันนี้", "อันนั้น"))
+        and _PREREQUISITE_COLLECTION_PATTERN.search(spec.normalized_question)
+    )
 
 
 def parse_query_spec(
