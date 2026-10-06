@@ -264,6 +264,17 @@ _THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
     r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
     re.IGNORECASE,
 )
+# Script-symmetric counterpart of the Thai credit-title grammar above: a
+# Latin alphanumeric title run immediately preceding a credit interrogative
+# denotes the exact course regardless of script. A leading program qualifier
+# is scope, never part of the title (no canonical course title starts with
+# a program label, and a bare program word is still rejected below).
+_LATIN_COURSE_CREDIT_NAME_PATTERN = re.compile(
+    r"^\s*(?:วิชา\s*)?(?:(?:ait|bit|dsba|gened|it)[ \t]+)?(?:วิชา\s*)?"
+    r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
+    re.IGNORECASE,
+)
 _PREREQUISITE_COLLECTION_PATTERN = re.compile(
     r"(?:วิชา|รายวิชา)\s*(?:ใด|ไหน)|"
     r"มี\s*(?:วิชา|รายวิชา)\s*อะไร|"
@@ -398,6 +409,10 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
             thai_name_letters = re.sub(r"[\s\d]", "", thai_name)
             if len(thai_name_letters) >= 4 and thai_name not in {"มี", "กี่"}:
                 return thai_name
+    if match is None:
+        latin_credit_match = _LATIN_COURSE_CREDIT_NAME_PATTERN.match(question)
+        if latin_credit_match is not None:
+            match = latin_credit_match
     if not match:
         return None
     name = match.group("name").strip()

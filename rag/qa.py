@@ -42,7 +42,7 @@ from rag.grounded_answer import (
     GroundedClaim,
     compose_grounded_answer,
 )
-from rag.intent_compiler import compile_intent_to_query_spec
+from rag.intent_compiler import IntentCompilerError, compile_intent_to_query_spec
 from rag.intent_interpreter import (
     IntentValidationError,
     interpret_question_intent,
@@ -554,6 +554,139 @@ def _should_use_intent_interpreter(
     )
 
 
+_PROGRAM_LABEL_WORDS = frozenset({"ait", "bit", "dsba", "gened", "it"})
+
+_EXPLICIT_PROGRAM_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?:AIT|BIT|DSBA|IT)(?![A-Za-z0-9_])",
+    re.IGNORECASE,
+)
+
+_DEICTIC_REFERENCE_RE = re.compile(r"(?:ตัวนี้|วิชานี้|อันนี้)")
+
+# NL-2/NL-2B: operation shapes eligible for exact-course title recovery.
+# sum_credits/placement/existence fail closed deterministically when no
+# exact course target is present (bare sum/existence guards, target guard),
+# so admitting them cannot change any already-answerable deterministic path:
+# post-guard the candidate is unreachable by construction for those shapes.
+# describe is admitted because a targetless, topicless describe carries no
+# executable relational meaning (description evidence requires an exact
+# target) and fails closed today; it may only gain a validated literal
+# title, never lose an answer. Shapes that can already answer without a
+# title (prerequisite/list collections) stay strictly authoritative.
+_TITLE_RECOVERY_OPERATION_SHAPES = frozenset(
+    {
+        ("sum_credits",),
+        ("placement",),
+        ("existence",),
+        ("describe",),
+    }
+)
+
+# NL-2B: only a heuristic describe operation may yield to a validated
+# linguistic interpretation. Precise relational operations (sum_credits,
+# placement, existence, prerequisite, identity, ...) remain authoritative
+# even without a parsed target, per the NL-2 conflict contract.
+_LINGUISTIC_OVERRIDE_BASES = frozenset({("describe",)})
+
+# NL-2B: proposal operations the linguistic override may install. Bounded
+# exact-course relations only; collections, comparisons, judgements, and
+# discovery can never ride the override.
+_LINGUISTIC_OVERRIDE_OPERATIONS = frozenset(
+    {
+        "describe",
+        "prerequisite",
+        "placement",
+        "sum_credits",
+        "existence",
+        "identity",
+    }
+)
+
+
+def _compile_exact_course_language_recovery(
+    base_spec: Any,
+    structure: Any,
+    context: QueryContext | None,
+) -> Any:
+    """Compile a query-structure proposal with linguistic-operation authority.
+
+    The existing strict compiler stays the only compilation path: this
+    helper first tries it unchanged. Only when strict compilation rejects
+    with IntentCompilerError AND every narrow precondition holds does it
+    retry against an operation-cleared base, treating the heuristic
+    deterministic operation as linguistic signal rather than factual
+    authority. Preconditions: base carries exactly ("describe",) with NO
+    exact course target, no scope/filter/judgement fields, an authoritative
+    program is present, the proposal carries exactly one allowed
+    exact-course operation with a null predicate and a literal title span.
+    Anything else re-raises the strict error. The cleared retry still runs
+    the full strict validation (span, scope, facts) inside the compiler.
+    """
+    try:
+        return compile_intent_to_query_spec(base_spec, structure)
+    except IntentCompilerError:
+        pass
+    proposed_operations = tuple(getattr(structure, "operations", ()))
+    if (
+        tuple(getattr(base_spec, "operations", ()))
+        not in _LINGUISTIC_OVERRIDE_BASES
+        or len(proposed_operations) != 1
+        or proposed_operations[0] not in _LINGUISTIC_OVERRIDE_OPERATIONS
+        or getattr(structure, "predicate", None) is not None
+        or getattr(structure, "course_name_span", None) is None
+        or tuple(getattr(base_spec, "course_codes", ()))
+        or getattr(base_spec, "course_name", None) is not None
+        or getattr(base_spec, "topic", None) is not None
+        or getattr(base_spec, "category", None) is not None
+        or getattr(base_spec, "credit_units", None) is not None
+        or getattr(base_spec, "judgement", None) not in (None, "none")
+        or tuple(getattr(base_spec, "plans", ()))
+        or tuple(getattr(base_spec, "years", ()))
+        or tuple(getattr(base_spec, "semesters", ()))
+        or tuple(getattr(base_spec, "group_by", ()))
+        or bool(getattr(base_spec, "references_previous_result_set", False))
+        or getattr(base_spec, "result_ordinal", None) is not None
+        or (
+            isinstance(getattr(context, "course_code", None), str)
+            and getattr(context, "course_code").strip()
+        )
+        or not (getattr(base_spec, "program", None) or getattr(context, "program", None))
+    ):
+        raise
+    return compile_intent_to_query_spec(
+        replace(base_spec, operations=()),
+        structure,
+    )
+
+
+def _explicit_program_mentions(question: str) -> set[str]:
+    """Return the distinct program labels named literally in the question."""
+    if not isinstance(question, str):
+        return set()
+    return {
+        match.group(0).upper()
+        for match in _EXPLICIT_PROGRAM_RE.finditer(question)
+    }
+
+
+def _has_non_program_ascii_word(question: str) -> bool:
+    """Return True when the question carries a non-program ASCII token.
+
+    Generic structural signal reused by the exact-course gates: a literal
+    course title such as "Calculus 2" leaves an ASCII alphabetic token that
+    is not a program label. Pure-Thai questions (nicknames included) never
+    qualify, so no alias inference can enter through this seam.
+    """
+    if not isinstance(question, str):
+        return False
+    return any(
+        token.strip(".,?!:;()[]{}").isascii()
+        and token.strip(".,?!:;()[]{}").isalpha()
+        and token.strip(".,?!:;()[]{}").casefold() not in _PROGRAM_LABEL_WORDS
+        for token in question.split()
+    )
+
+
 def _should_use_query_structure_interpreter(
     spec: Any,
     resolution: ResolutionOutcome,
@@ -601,13 +734,7 @@ def _should_use_query_structure_interpreter(
         or tuple(getattr(spec, "course_codes", ()))
         or getattr(spec, "course_name", None) is not None
     )
-    program_labels = {"ait", "bit", "dsba", "gened", "it"}
-    has_non_program_ascii_word = any(
-        token.strip(".,?!:;()[]{}").isascii()
-        and token.strip(".,?!:;()[]{}").isalpha()
-        and token.strip(".,?!:;()[]{}").casefold() not in program_labels
-        for token in question.split()
-    )
+    has_non_program_ascii_word = _has_non_program_ascii_word(question)
     scoped_prerequisite_candidate = bool(
         getattr(resolution, "action", None) == "answer"
         and completeness.classification
@@ -642,10 +769,35 @@ def _should_use_query_structure_interpreter(
         and not tuple(getattr(spec, "operations", ()))
         and has_non_program_ascii_word
     )
+    context_course_code = getattr(context, "course_code", None)
+    operation_bearing_exact_course_candidate = bool(
+        getattr(resolution, "action", None) == "answer"
+        and completeness.classification
+        in {"not_eligible", "unrecognized_structured", "complete"}
+        and tuple(getattr(spec, "operations", ()))
+        in _TITLE_RECOVERY_OPERATION_SHAPES
+        and not tuple(getattr(spec, "course_codes", ()))
+        and getattr(spec, "course_name", None) is None
+        and getattr(spec, "category", None) is None
+        and not tuple(getattr(spec, "plans", ()))
+        and not tuple(getattr(spec, "years", ()))
+        and not tuple(getattr(spec, "semesters", ()))
+        and not tuple(getattr(spec, "group_by", ()))
+        and not bool(getattr(spec, "references_previous_result_set", False))
+        and getattr(spec, "result_ordinal", None) is None
+        and not (
+            isinstance(context_course_code, str) and context_course_code.strip()
+        )
+        and (getattr(spec, "program", None) or getattr(context, "program", None))
+        and len(_explicit_program_mentions(question)) <= 1
+        and _has_non_program_ascii_word(question)
+        and _DEICTIC_REFERENCE_RE.search(question) is None
+    )
     return (
         scoped_prerequisite_candidate
         or unscoped_exact_course_candidate
         or flexible_exact_course_candidate
+        or operation_bearing_exact_course_candidate
     )
 
 
@@ -3003,6 +3155,104 @@ def _identity_result(
     }
 
 
+def _has_unambiguous_recovery_program(
+    program: Any,
+    edition_keys: tuple[Any, ...],
+    catalog_key: Any,
+) -> bool:
+    """Check that a recovery attempt would run under an authoritative program.
+
+    NL-2 pre-guard rescue may run only when the program scope is already
+    unambiguous: either the program resolves to a single edition, or an
+    edition catalog is already selected. An ambiguous multi-edition program
+    without a catalog stays on the deterministic clarify path with zero
+    model calls. This predicate never invents scope; it only authorizes the
+    interpreter to propose a literal title inside already-fixed scope.
+    """
+    if not isinstance(program, str) or not program.strip():
+        return False
+    if len(tuple(edition_keys)) == 1:
+        return True
+    return isinstance(catalog_key, str) and bool(catalog_key.strip())
+
+
+def _attempt_structural_recovery(
+    db_path: str | Path,
+    base_spec: Any,
+    base_resolution: ResolutionOutcome,
+    base_completeness: StructuredParseCompleteness,
+    question: str,
+    context: QueryContext | None,
+    resolution_context: QueryContext | None,
+    intent_model_callable: Callable[[str], str],
+) -> tuple[str, Any, ResolutionOutcome, StructuredParseCompleteness] | None:
+    """Run one bounded query-structure recovery attempt.
+
+    Pure routing/compilation logic shared by the existing post-guard path
+    and the NL-2 pre-guard rescue seam. Returns None when the gate declines
+    (caller keeps the existing deterministic flow), ("blocked", ...) when
+    the compiled request hits a deterministic blocking outcome, ("failed",)
+    for any other fail-closed outcome, and ("recovered", ...) with the
+    compiled request otherwise. The interpreter proposes language only;
+    facts still come from deterministic resolution afterward.
+    """
+    if not _should_use_query_structure_interpreter(
+        base_spec,
+        base_resolution,
+        question,
+        base_completeness,
+        context,
+    ):
+        return None
+    try:
+        structure = interpret_question_intent(
+            question,
+            intent_model_callable,
+            proposal_kind="query_structure",
+        )
+        if (
+            structure.predicate is None
+            and not getattr(base_spec, "course_codes", ())
+            and getattr(base_spec, "course_name", None) is None
+            and not tuple(getattr(base_spec, "plans", ()))
+            and not tuple(getattr(base_spec, "years", ()))
+            and not tuple(getattr(base_spec, "semesters", ()))
+            and structure.course_name_span is None
+        ):
+            return ("failed", base_spec, base_resolution, base_completeness)
+        compiled_spec = _compile_exact_course_language_recovery(
+            base_spec,
+            structure,
+            context,
+        )
+        compiled_resolution = resolve_query_spec(
+            compiled_spec,
+            db_path,
+            context=resolution_context,
+        )
+    except Exception:
+        return ("failed", base_spec, base_resolution, base_completeness)
+    if compiled_resolution.action in {
+        "clarify_program",
+        "context_conflict",
+        "no_data",
+        "unsupported",
+    }:
+        return ("blocked", base_spec, compiled_resolution, base_completeness)
+    if compiled_resolution.action != "answer":
+        return ("failed", base_spec, base_resolution, base_completeness)
+    if tuple(compiled_spec.operations) != ("identity",):
+        compiled_completeness = _classify_structured_parse_completeness(
+            compiled_spec,
+            compiled_resolution,
+            context,
+        )
+        if compiled_completeness.classification != "complete":
+            return ("failed", base_spec, base_resolution, base_completeness)
+        return ("recovered", compiled_spec, compiled_resolution, compiled_completeness)
+    return ("recovered", compiled_spec, compiled_resolution, base_completeness)
+
+
 def ask(
     db_path: str | Path,
     question: str,
@@ -3147,14 +3397,7 @@ def ask(
         or getattr(spec, "category", None)
         or getattr(spec, "topic", None)
     )
-    explicit_program_mentions = {
-        match.group(0).upper()
-        for match in re.finditer(
-            r"(?<![A-Za-z0-9_])(?:AIT|BIT|DSBA|IT)(?![A-Za-z0-9_])",
-            question,
-            re.IGNORECASE,
-        )
-    }
+    explicit_program_mentions = _explicit_program_mentions(question)
     if (
         len(explicit_program_mentions) <= 1
         and (explicit_program_mentions or spec.plans)
@@ -3184,6 +3427,75 @@ def ask(
             "result": adapt_policy_answer(total_answer),
             "next_context": total_context,
         }
+
+    resolution_context = (
+        QueryContext(catalog_key=catalog_key)
+        if conversation_mode and catalog_key is not None
+        else None if conversation_mode else context
+    )
+    structural_interpreted = False
+    if (
+        not shadow_intent
+        and callable(intent_model_callable)
+        and _has_unambiguous_recovery_program(program, edition_keys, catalog_key)
+        and (
+            (
+                operations == ("sum_credits",)
+                and not has_structural_target
+                and len(explicit_program_mentions) <= 1
+            )
+            or (operations == ("existence",) and not has_structural_target)
+            or (
+                not has_answerable_target_or_scope(spec, active_context)
+                and not (
+                    operations == ("sum_credits",)
+                    and len(explicit_program_mentions) > 1
+                )
+            )
+        )
+        and _DEICTIC_REFERENCE_RE.search(question) is None
+    ):
+        # NL-2 pre-guard rescue: a targetless exact-course-shaped request
+        # would otherwise fail closed before the bounded query-structure
+        # interpreter can recover the literal title. Attempt recovery with
+        # the same helper as the existing post-guard path; any outcome
+        # other than a compiled answerable request falls through to the
+        # unchanged deterministic fail-closed guards below.
+        base_resolution = resolve_query_spec(
+            spec,
+            db_path,
+            context=resolution_context,
+        )
+        base_completeness = _classify_structured_parse_completeness(
+            spec,
+            base_resolution,
+            context,
+        )
+        pre_guard_recovery = _attempt_structural_recovery(
+            db_path,
+            spec,
+            base_resolution,
+            base_completeness,
+            question,
+            context,
+            resolution_context,
+            intent_model_callable,
+        )
+        if pre_guard_recovery is not None and pre_guard_recovery[0] == "recovered":
+            spec = pre_guard_recovery[1]
+            resolution = pre_guard_recovery[2]
+            completeness = pre_guard_recovery[3]
+            structural_interpreted = True
+            operations = tuple(getattr(spec, "operations", ()))
+            has_structural_target = bool(
+                tuple(getattr(spec, "plans", ()))
+                or tuple(getattr(spec, "years", ()))
+                or tuple(getattr(spec, "semesters", ()))
+                or tuple(getattr(spec, "course_codes", ()))
+                or getattr(spec, "course_name", None)
+                or getattr(spec, "category", None)
+                or getattr(spec, "topic", None)
+            )
 
     if (
         operations == ("sum_credits",)
@@ -3221,11 +3533,6 @@ def ask(
         # into broad program-wide retrieval with a confident dump.
         return _intent_failure_result(question)
 
-    resolution_context = (
-        QueryContext(catalog_key=catalog_key)
-        if conversation_mode and catalog_key is not None
-        else None if conversation_mode else context
-    )
     resolution = resolve_query_spec(
         spec,
         db_path,
@@ -3236,63 +3543,24 @@ def ask(
         resolution,
         context,
     )
-    structural_interpreted = False
-    if (
-        not shadow_intent
-        and callable(intent_model_callable)
-        and _should_use_query_structure_interpreter(
+    if not shadow_intent and callable(intent_model_callable):
+        post_guard_recovery = _attempt_structural_recovery(
+            db_path,
             spec,
             resolution,
-            question,
             completeness,
+            question,
             context,
+            resolution_context,
+            intent_model_callable,
         )
-    ):
-        try:
-            structure = interpret_question_intent(
-                question,
-                intent_model_callable,
-                proposal_kind="query_structure",
-            )
-            if (
-                structure.predicate is None
-                and not getattr(spec, "course_codes", ())
-                and getattr(spec, "course_name", None) is None
-                and not tuple(getattr(spec, "plans", ()))
-                and not tuple(getattr(spec, "years", ()))
-                and not tuple(getattr(spec, "semesters", ()))
-                and structure.course_name_span is None
-            ):
+        if post_guard_recovery is not None:
+            outcome, spec, resolution, completeness = post_guard_recovery
+            if outcome == "blocked":
+                return {"route": None, "result": _blocked_result(resolution)}
+            if outcome != "recovered":
                 return _intent_failure_result(question)
-            compiled_spec = compile_intent_to_query_spec(spec, structure)
-            compiled_resolution = resolve_query_spec(
-                compiled_spec,
-                db_path,
-                context=resolution_context,
-            )
-        except Exception:
-            return _intent_failure_result(question)
-        if compiled_resolution.action in {
-            "clarify_program",
-            "context_conflict",
-            "no_data",
-            "unsupported",
-        }:
-            return {"route": None, "result": _blocked_result(compiled_resolution)}
-        if compiled_resolution.action != "answer":
-            return _intent_failure_result(question)
-        if tuple(compiled_spec.operations) != ("identity",):
-            compiled_completeness = _classify_structured_parse_completeness(
-                compiled_spec,
-                compiled_resolution,
-                context,
-            )
-            if compiled_completeness.classification != "complete":
-                return _intent_failure_result(question)
-            completeness = compiled_completeness
-        spec = compiled_spec
-        resolution = compiled_resolution
-        structural_interpreted = True
+            structural_interpreted = True
     if resolution.action != "answer":
         if resolution.action == "clarify_program":
             consensus = _consensus_prerequisite_grounded_answer(
