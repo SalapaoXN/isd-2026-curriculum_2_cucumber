@@ -1,0 +1,862 @@
+{
+  "version": "semantic-targeted-fix/v1",
+  "source_dataset": "eval/semantic_vnext_50.json",
+  "notes": "Affected failure groups + nearby controls only; selected before live rerun; no benchmark edits during the run.",
+  "cases": [
+    {
+      "id": "E01",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "AIT Calculus 2 กี่หน่วยกิต",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {
+            "kind": "literal",
+            "raw_text": "Calculus 2",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "AIT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "resolved": {
+          "program": "AIT",
+          "target_kind": "literal",
+          "has_course_code": true
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06046401",
+          "3"
+        ]
+      }
+    },
+    {
+      "id": "E05",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "06046401 คือวิชาอะไร",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "identity",
+          "target": {
+            "kind": "literal",
+            "raw_text": "06046401",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": null,
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "resolved": {
+          "program": "AIT",
+          "target_kind": "literal",
+          "has_course_code": true
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06046401",
+          "CALCULUS"
+        ]
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566"
+      }
+    },
+    {
+      "id": "E07",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "DSBA Calculus 1 กี่หน่วยกิต",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {
+            "kind": "literal",
+            "raw_text": "Calculus 1",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "DSBA",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "resolved": {
+          "program": "DSBA",
+          "catalog_key": "dsba-2565",
+          "target_kind": "literal",
+          "has_course_code": true
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06026200",
+          "3"
+        ]
+      },
+      "conversation_context": {
+        "program": "DSBA",
+        "catalog_key": "dsba-2565"
+      }
+    },
+    {
+      "id": "E08",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "วิชา 06026212 อยู่เทอมไหน",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "placement",
+          "target": {
+            "kind": "literal",
+            "raw_text": "06026212",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": null,
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "resolved": {
+          "program": "DSBA",
+          "target_kind": "literal",
+          "has_course_code": true
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "ปี 3",
+          "เทอม 1"
+        ]
+      },
+      "conversation_context": {
+        "program": "DSBA",
+        "catalog_key": "dsba-2565"
+      }
+    },
+    {
+      "id": "M07",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "แล้ววิชานี้เรียนปีไหน",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "placement",
+          "target": {
+            "kind": "current_course",
+            "raw_text": "วิชานี้",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": null,
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "facts_contain": [
+          "ปี 1",
+          "เทอม 2"
+        ]
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566",
+        "focus_course": {
+          "course_code": "06046401",
+          "program": "AIT",
+          "catalog_key": "ait-2566"
+        }
+      }
+    },
+    {
+      "id": "T-E2i",
+      "difficulty": "easy",
+      "source": "teacher_slide_instantiated",
+      "question": "รหัสวิชา 06036119 ชื่ออะไร?",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "identity",
+          "target": {
+            "kind": "literal",
+            "raw_text": "06036119",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": null,
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "resolved": {
+          "program": "BIT",
+          "target_kind": "literal",
+          "has_course_code": true
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06036119",
+          "PROGRAMMING"
+        ]
+      },
+      "teacher_question_verbatim": "รหัสวิชา 01006xxx ชื่ออะไร?",
+      "conversation_context": {
+        "program": "BIT",
+        "catalog_key": "bit-2565"
+      }
+    },
+    {
+      "id": "E14",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "list",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "IT",
+            "catalog": null,
+            "plan": null,
+            "year": 3,
+            "semester": 1
+          }
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06016404"
+        ]
+      },
+      "conversation_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
+    },
+    {
+      "id": "E15",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "AIT มีวิชาเลือกอะไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "list",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "AIT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06046407"
+        ]
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566"
+      }
+    },
+    {
+      "id": "E22",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "BIT ปี 1 เทอม 1 มีวิชาอะไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "list",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "BIT",
+            "catalog": null,
+            "plan": null,
+            "year": 1,
+            "semester": 1
+          }
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06036100"
+        ]
+      },
+      "conversation_context": {
+        "program": "BIT",
+        "catalog_key": "bit-2565"
+      }
+    },
+    {
+      "id": "E23",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "GENED มีวิชาอะไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "list",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "GENED",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "90641001"
+        ]
+      },
+      "conversation_context": {
+        "program": "GENED",
+        "catalog_key": "gened-2564"
+      }
+    },
+    {
+      "id": "M03",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "วิชาเกี่ยวกับ network ที่มีวิชาบังคับก่อนมีอะไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "list",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "IT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        }
+      },
+      "conversation_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      },
+      "gold_corrected": true,
+      "gold_correction_note": "old: task search; corrected: list (topic+has_prerequisite filtered listing answered from canonical evidence)"
+    },
+    {
+      "id": "M14a",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "มีวิชาเกี่ยวกับ cyber security อะไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "search",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "IT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "facts_contain": [
+          "06016405"
+        ]
+      },
+      "conversation_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      },
+      "scenario": "S-cyber-ordinal"
+    },
+    {
+      "id": "M14b",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "แล้วตัวที่ 2 กี่หน่วย",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {
+            "kind": "result_ordinal",
+            "raw_text": "ตัวที่ 2",
+            "normalized_hint": null,
+            "ordinal": 2
+          },
+          "scope": {
+            "program": null,
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        }
+      },
+      "scenario": "S-cyber-ordinal"
+    },
+    {
+      "id": "E11",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "AIT มีกี่หน่วยกิต",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "program",
+          "relation": "credits",
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "AIT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "facts_contain": [
+          "120"
+        ]
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566"
+      }
+    },
+    {
+      "id": "E12",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "หลักสูตร IT ต้องเรียนทั้งหมดกี่หน่วยกิต",
+      "expected": {
+        "safe_failure": true
+      },
+      "notes": "STRUCTURAL_GAP: semantic pipeline lacks the edition-clarify guard for multi-edition program totals without catalog; legacy returns clarify_catalog"
+    },
+    {
+      "id": "M05",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "DSBA ปี 3 เทอม 1 รวมกี่หน่วยกิต",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "aggregate",
+          "subject": "semester",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "DSBA",
+            "catalog": null,
+            "plan": null,
+            "year": 3,
+            "semester": 1
+          }
+        },
+        "facts_contain": [
+          "18"
+        ]
+      },
+      "conversation_context": {
+        "program": "DSBA",
+        "catalog_key": "dsba-2565"
+      }
+    },
+    {
+      "id": "H10",
+      "difficulty": "hard",
+      "source": "custom",
+      "question": "AIT ปี 1 รวมทั้งหมดกี่หน่วยกิต",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "aggregate",
+          "subject": "semester",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "AIT",
+            "catalog": null,
+            "plan": null,
+            "year": 1,
+            "semester": null
+          }
+        },
+        "facts_contain": [
+          "52"
+        ]
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566"
+      }
+    },
+    {
+      "id": "H04",
+      "difficulty": "hard",
+      "source": "custom",
+      "question": "IT แผนสหกิจกับแผนปกติ ปี 3 เทอม 1 อันไหนหน่วยกิตเยอะกว่า",
+      "expected": {
+        "intent": {
+          "task": "compare",
+          "subject": "semester",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "IT",
+            "catalog": null,
+            "plan": null,
+            "year": 3,
+            "semester": 1
+          }
+        }
+      },
+      "conversation_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      }
+    },
+    {
+      "id": "H05",
+      "difficulty": "hard",
+      "source": "custom",
+      "question": "DSBA หลักสูตรเก่ากับหลักสูตรใหม่ต่างกันอย่างไร",
+      "expected": {
+        "intent": {
+          "task": "compare",
+          "subject": "program",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "DSBA",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "safe_failure": true
+      }
+    },
+    {
+      "id": "H06",
+      "difficulty": "hard",
+      "source": "custom",
+      "question": "วิชาไหนมีใน DSBA 2560 แต่ไม่มีใน 2565",
+      "expected": {
+        "intent": {
+          "task": "compare",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "DSBA",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "safe_failure": true
+      },
+      "notes": "STRUCTURAL_GAP: comparison schema has no set-difference/overlap operator and no course operands"
+    },
+    {
+      "id": "H07",
+      "difficulty": "hard",
+      "source": "custom",
+      "question": "Calculus 1 กับ Calculus 2 ของ AIT วิชาไหนหน่วยกิตเยอะกว่า",
+      "expected": {
+        "intent": {
+          "task": "compare",
+          "subject": "course",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "AIT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        }
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566"
+      },
+      "notes": "STRUCTURAL_GAP: comparison schema has no course operands or ordering operator"
+    },
+    {
+      "id": "M04",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "IT ปี 2 เทอม 1 แผนสหกิจมีวิชาอะไรบ้าง",
+      "expected": {
+        "safe_failure": true
+      },
+      "conversation_context": {
+        "program": "IT",
+        "catalog_key": "it-2565"
+      },
+      "notes": "STRUCTURAL_GAP: resolver has no plan-alias mapping (สหกิจ->coop); explicit plan cannot validate"
+    },
+    {
+      "id": "E19",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "Calculus 2 ของ DSBA รหัสอะไร",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "identity",
+          "target": {
+            "kind": "literal",
+            "raw_text": "Calculus 2",
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "DSBA",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "resolved": {
+          "program": "DSBA",
+          "target_kind": "literal",
+          "has_course_code": true
+        },
+        "plan": {
+          "execution": "deterministic"
+        },
+        "facts_contain": [
+          "06026201"
+        ]
+      },
+      "conversation_context": {
+        "program": "DSBA",
+        "catalog_key": "dsba-2565"
+      },
+      "gold_corrected": true,
+      "gold_correction_note": "old: scope.program None; corrected: DSBA (explicit in question; clean Round 1 proved model extracts it)"
+    },
+    {
+      "id": "M08",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "ตัวที่ 2 กี่หน่วย",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {
+            "kind": "result_ordinal",
+            "ordinal": 2
+          },
+          "scope": {
+            "program": null,
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          }
+        },
+        "facts_contain": [
+          "3"
+        ]
+      },
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566",
+        "result_courses": [
+          {
+            "course_code": "06046400"
+          },
+          {
+            "course_code": "06046401"
+          }
+        ]
+      },
+      "gold_corrected": true,
+      "gold_correction_note": "old: required raw_text span; corrected: kind+ordinal only (reference fully specified; answer 3 verified)"
+    },
+    {
+      "id": "E25",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "จบ AIT ต้องทำอย่างไรบ้าง",
+      "expected": {
+        "status": "answer",
+        "intent": {
+          "task": "policy",
+          "subject": "policy",
+          "relation": null,
+          "target": {
+            "kind": "none",
+            "raw_text": null,
+            "normalized_hint": null,
+            "ordinal": null
+          },
+          "scope": {
+            "program": "AIT",
+            "catalog": null,
+            "plan": null,
+            "year": null,
+            "semester": null
+          },
+          "policy_topic": "graduation"
+        }
+      },
+      "gold_corrected": true,
+      "gold_correction_note": "old: task/subject requirement + scope.program None; corrected: policy/policy + scope.program AIT (explicit in question; graduation policy answered canonically)"
+    }
+  ]
+}

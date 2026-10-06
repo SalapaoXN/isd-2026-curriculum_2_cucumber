@@ -1,0 +1,51 @@
+{
+  "round": 1,
+  "status": "INCOMPLETE_BLOCKED",
+  "blocker": "provider quota exhausted (free-tier generate_content limit 15) after 9 genuine rows; remaining 41 rows carry provider-failure signatures, not system failures",
+  "dataset": "eval/semantic_vnext_50.json",
+  "dataset_composition": {
+    "total": 50, "easy": 25, "medium": 15, "hard": 10,
+    "teacher_slide": 3, "custom": 47, "gold_candidate": 0,
+    "duplicate_questions_intentional": ["E12/E13 edition contrast", "M01/M14a static vs scenario head"]
+  },
+  "teacher_easy_medium_source": "unavailable locally (README demos unlabeled; gold_questions.json 30 rows unlabeled); all Easy/Medium rows source=custom",
+  "evaluated": {
+    "count": 9,
+    "ids": ["E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09"],
+    "overall_correct": 4,
+    "overall": ["E02", "E03", "E04", "E06"],
+    "by_category": {"NONE": 4, "ANSWER_ERROR": 3, "INTERPRETATION_ERROR": 2},
+    "wrong_factual_answers": 0,
+    "false_failures": ["E01", "E09"],
+    "correct_safe_failures": 0,
+    "answer_error_rows": ["E05", "E07", "E08"],
+    "latency_ms": {"min": 1500, "median": 2375, "p95": 2563, "max": 2578},
+    "llm_calls": {"total": 16, "mean": 1.78, "max": 2},
+    "execution_paths": {"deterministic": 7, "none": 2, "sql": 0}
+  },
+  "pending_quota": {
+    "count": 41,
+    "signature": "interpreter provider failed: ClientError (HTTP 429 quota exceeded)",
+    "verdict": "unevaluated, excluded from all scores"
+  },
+  "teacher_slide_rows": {
+    "evaluated": 0,
+    "pending": ["H01", "H02", "H03"]
+  },
+  "pre_round_stubbed_findings_not_from_live_data": [
+    "E12-shape (multi-edition program total without catalog) answers cross-edition placement sums instead of failing closed: missing edition-clarify guard",
+    "E11/E13-shape (program total lookup) answers per-term placement fragments instead of program-requirement evidence: planner lacks program-total policy route"
+  ],
+  "comparison_schema_gap": "ComparisonSpec carries left/right/measure only; greater/less/equal/difference/set-difference/overlap and course operands are not representable: STRUCTURAL_GAP confirmed by inspection, no redesign performed",
+  "harness_fixes_applied": [
+    "pipeline _intent_summary now emits nested target/scope (+requested_fields/clarification/observed_value/filters) matching dataset gold shape",
+    "pipeline records truncated raw interpreter payload in trace.interpreter_raw for model-vs-validator attribution",
+    "eval safe_failure grading: exact status required only when additionally specified"
+  ],
+  "artifacts": [
+    "eval/semantic_vnext_50.json",
+    "eval/results/semantic_vnext_round1.jsonl",
+    "eval/results/semantic_vnext_round1_summary.json",
+    "eval/results/semantic_vnext_round1_report.md"
+  ]
+}

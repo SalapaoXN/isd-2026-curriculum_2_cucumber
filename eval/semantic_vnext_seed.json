@@ -1,0 +1,210 @@
+{
+  "version": "semantic-eval/v1",
+  "notes": "Build-phase seed only. Cases use custom-composed phrasings (source=custom). The 50-question benchmark (25 easy / 15 medium / 10 hard) with verbatim teacher-slide rows is assembled in the evaluation phase; ground_truth/rag/gold_questions.json is the identified candidate source and rows imported from it must keep source=gold_candidate_pending until a human confirms teacher_slide mapping. Never copy these rows into interpreter few-shot prompts.",
+  "teacher_slide_status": "pending_source_input",
+  "cases": [
+    {
+      "id": "seed-credit-lookup",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "AIT Calculus 2 กี่หน่วยกิต",
+      "expected": {
+        "status": "answer",
+        "intent": {"task": "lookup", "subject": "course", "relation": "credits"},
+        "facts_contain": ["3"]
+      },
+      "stubs": {
+        "interpretation": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {"kind": "literal", "raw_text": "Calculus 2", "normalized_hint": null, "ordinal": null},
+          "scope": {"program": "AIT", "catalog": null, "plan": null, "year": null, "semester": null},
+          "filters": [],
+          "aggregation": null,
+          "ranking": null,
+          "comparison": null,
+          "requested_fields": ["credits"],
+          "clarification": null,
+          "policy_topic": null,
+          "observed_value": null
+        },
+        "answer": "วิชา 06046401 หลักสูตร AIT 3 หน่วยกิต"
+      }
+    },
+    {
+      "id": "seed-prereq-lookup",
+      "difficulty": "easy",
+      "source": "custom",
+      "question": "ก่อนจะลง Calculus 2 ต้องผ่านตัวไหนมาก่อน",
+      "conversation_context": {"program": "AIT", "catalog_key": "ait-2566"},
+      "expected": {
+        "status": "answer",
+        "intent": {"task": "lookup", "subject": "course", "relation": "prerequisite"}
+      },
+      "stubs": {
+        "interpretation": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "prerequisite",
+          "target": {"kind": "literal", "raw_text": "Calculus 2", "normalized_hint": null, "ordinal": null},
+          "scope": {"program": null, "catalog": null, "plan": null, "year": null, "semester": null},
+          "filters": [],
+          "aggregation": null,
+          "ranking": null,
+          "comparison": null,
+          "requested_fields": ["prerequisites"],
+          "clarification": null,
+          "policy_topic": null,
+          "observed_value": null
+        },
+        "answer": "stubbed prerequisite answer"
+      }
+    },
+    {
+      "id": "seed-topic-search",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "มีวิชาไหนเกี่ยวกับ database บ้าง",
+      "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+      "expected": {
+        "status": "answer",
+        "intent": {"task": "search", "subject": "course", "relation": null}
+      },
+      "stubs": {
+        "interpretation": {
+          "task": "search",
+          "subject": "course",
+          "relation": null,
+          "target": {"kind": "none", "raw_text": null, "normalized_hint": null, "ordinal": null},
+          "scope": {"program": null, "catalog": null, "plan": null, "year": null, "semester": null},
+          "filters": [{"field": "topic", "operator": "related_to", "value": "database"}],
+          "aggregation": null,
+          "ranking": null,
+          "comparison": null,
+          "requested_fields": ["code", "name"],
+          "clarification": null,
+          "policy_topic": null,
+          "observed_value": null
+        },
+        "answer": "stubbed search answer"
+      }
+    },
+    {
+      "id": "seed-ordinal-followup",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "แล้วตัวที่ 2 ล่ะกี่หน่วยกิต",
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566",
+        "result_courses": [
+          {"course_code": "06046400"},
+          {"course_code": "06046401"}
+        ]
+      },
+      "expected": {
+        "status": "answer",
+        "intent": {"task": "lookup", "subject": "course", "relation": "credits"}
+      },
+      "stubs": {
+        "interpretation": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {"kind": "result_ordinal", "raw_text": "ตัวที่ 2", "normalized_hint": null, "ordinal": 2},
+          "scope": {"program": null, "catalog": null, "plan": null, "year": null, "semester": null},
+          "filters": [],
+          "aggregation": null,
+          "ranking": null,
+          "comparison": null,
+          "requested_fields": ["credits"],
+          "clarification": null,
+          "policy_topic": null,
+          "observed_value": null
+        },
+        "answer": "stubbed ordinal answer"
+      }
+    },
+    {
+      "id": "seed-unresolved-nickname",
+      "difficulty": "medium",
+      "source": "custom",
+      "question": "แคลสองกี่หน่วย",
+      "expected": {"status": "insufficient_evidence", "safe_failure": true},
+      "stubs": {
+        "interpretation": {
+          "task": "lookup",
+          "subject": "course",
+          "relation": "credits",
+          "target": {"kind": "literal", "raw_text": "แคลสอง", "normalized_hint": "Calculus 2", "ordinal": null},
+          "scope": {"program": null, "catalog": null, "plan": null, "year": null, "semester": null},
+          "filters": [],
+          "aggregation": null,
+          "ranking": null,
+          "comparison": null,
+          "requested_fields": ["credits"],
+          "clarification": null,
+          "policy_topic": null,
+          "observed_value": null
+        }
+      }
+    },
+    {
+      "id": "seed-subjective-safe",
+      "difficulty": "hard",
+      "source": "custom",
+      "question": "วิชานี้ดีไหม",
+      "conversation_context": {
+        "program": "AIT",
+        "catalog_key": "ait-2566",
+        "focus_course": {"course_code": "06046401"}
+      },
+      "expected": {"safe_failure": true},
+      "stubs": {
+        "interpretation": {
+          "task": "unknown",
+          "subject": "course",
+          "relation": null,
+          "target": {"kind": "current_course", "raw_text": "วิชานี้", "normalized_hint": null, "ordinal": null},
+          "scope": {"program": null, "catalog": null, "plan": null, "year": null, "semester": null},
+          "filters": [],
+          "aggregation": null,
+          "ranking": null,
+          "comparison": null,
+          "requested_fields": [],
+          "clarification": "subjective judgement without an objective curriculum reading",
+          "policy_topic": null,
+          "observed_value": null
+        }
+      }
+    },
+    {
+      "id": "teacher-hard-graduation-plan",
+      "difficulty": "hard",
+      "source": "teacher_slide",
+      "question": "ถ้าจะจบใน 3.5 ปี แต่ละเทอมต้องลงวิชาอะไร?",
+      "conversation_context": null,
+      "expected": {},
+      "notes": "pending: expected setup/result require program/plan context not yet specified; do not invent"
+    },
+    {
+      "id": "teacher-hard-plan-check",
+      "difficulty": "hard",
+      "source": "teacher_slide",
+      "question": "ตรวจว่าแผนเรียนนี้ครบเงื่อนไขจบหรือไม่",
+      "conversation_context": null,
+      "expected": {},
+      "notes": "pending: expected setup/result require the study plan under review; do not invent"
+    },
+    {
+      "id": "teacher-hard-edition-diff",
+      "difficulty": "hard",
+      "source": "teacher_slide",
+      "question": "วิชาที่มีในหลักสูตรเก่า ไม่มีในหลักสูตรใหม่",
+      "conversation_context": null,
+      "expected": {},
+      "notes": "pending: expected setup/result require old/new edition scope; do not invent"
+    }
+  ]
+}
