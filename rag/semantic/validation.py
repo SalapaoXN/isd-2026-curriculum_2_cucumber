@@ -18,6 +18,7 @@ from rag.semantic.schema import (
     VALID_TASK_SUBJECTS,
     SemanticIntent,
 )
+from rag.query_spec import _extract_category, _extract_topic
 
 _SUPPORTED_FILTER_SHAPES = frozenset(
     {
@@ -71,6 +72,50 @@ def _filter_contract_problem(intent: SemanticIntent) -> str | None:
         return None
 
     return "semantic filters are unsupported for this task/subject shape"
+
+
+def _filter_grounding_problem(
+    intent: SemanticIntent, question: str
+) -> str | None:
+    """Reject text filters invented beyond the current user message.
+
+    Grounding is semantic normalization, not raw substring equality: a
+    topic/category filter is grounded when the CURRENT question contains a
+    cue which existing deterministic normalization maps to the SAME
+    canonical value. Raw verbatim mention remains a fast path. Broad
+    requests stay broad: an ungrounded filter fails the interpretation
+    instead of executing narrowed or silently broadened.
+    """
+    for item in intent.filters:
+        if item.field == "topic" and item.operator == "related_to":
+            value = item.value
+            if not isinstance(value, str) or not value.strip():
+                return "semantic topic filter is not grounded in the current question"
+            text = value.strip()
+            if _contains(question, text):
+                continue
+            if intent.target.kind == "none":
+                normalized = _extract_topic(question, None, ())
+                if (
+                    isinstance(normalized, str)
+                    and normalized.casefold() == text.casefold()
+                ):
+                    continue
+            return "semantic topic filter is not grounded in the current question"
+        elif item.field == "category" and item.operator == "eq":
+            value = item.value
+            if not isinstance(value, str) or not value.strip():
+                return "semantic category filter is not grounded in the current question"
+            text = value.strip()
+            if _contains(question, text):
+                continue
+            # The cue (e.g. GENED) is only a cue: its meaning comes from the
+            # existing deterministic category normalization, which must yield
+            # the SAME canonical value. No universal alias is introduced.
+            if _extract_category(question) == text:
+                continue
+            return "semantic category filter is not grounded in the current question"
+    return None
 
 
 def _relation_compatible(task: str, subject: str, relation: str | None) -> bool:
@@ -219,6 +264,9 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
     if task == "lookup" and intent.subject == "course" and intent.relation is None:
         return "course lookup requires a relation"
     problem = _filter_contract_problem(intent)
+    if problem is not None:
+        return problem
+    problem = _filter_grounding_problem(intent, question)
     if problem is not None:
         return problem
     return None

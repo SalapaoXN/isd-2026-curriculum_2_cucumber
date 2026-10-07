@@ -3439,6 +3439,27 @@ def ask(
         or spec.course_name
         or spec.topic
     )
+    if getattr(spec, "judgement", None) == "unsupported":
+        # Resolver-confirmed unsupported intent takes precedence over
+        # catalog/program clarification: no edition can make a subjective
+        # request answerable from canonical data, and it must never enter
+        # planner/evidence execution. Factual requests (judgement !=
+        # unsupported) and unconfirmed shapes fall through unchanged.
+        early_resolution_context = (
+            QueryContext(catalog_key=catalog_key)
+            if conversation_mode and catalog_key is not None
+            else None if conversation_mode else context
+        )
+        early_unsupported_resolution = resolve_query_spec(
+            spec,
+            db_path,
+            context=early_resolution_context,
+        )
+        if early_unsupported_resolution.action == "unsupported":
+            return {
+                "route": None,
+                "result": _blocked_result(early_unsupported_resolution),
+            }
     matching_catalog_key = next(
         (
             key for key in catalog_keys

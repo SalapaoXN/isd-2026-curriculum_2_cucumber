@@ -97,7 +97,7 @@ _PROGRAM_DISCOVERY_PATTERN = re.compile(
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร\s*(?:อะไร|ไหน)(?:บ้าง)?",
     re.IGNORECASE,
 )
-_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|(?<![A-Za-z0-9_])(?:electives?|gened)(?![A-Za-z0-9_])|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s+ed(?![A-Za-z0-9_])", re.IGNORECASE)
+_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|(?<![A-Za-z0-9_])(?:electives?|gened)(?![A-Za-z0-9_])|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s+ed(?![A-Za-z0-9_])|เสรี", re.IGNORECASE)
 _TOPIC_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])(programming|database|network|data|web|AI)"
     r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
@@ -272,7 +272,9 @@ _PREREQUISITE_OBJECT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
-    r"^\s*(?:วิชา\s*)?(?P<name>[\u0E00-\u0E7F][\u0E00-\u0E7F0-9 \t]*?)"
+    r"^\s*(?:วิชา\s*)?(?P<lead>(?:ait|bit|dsba|gened|it)[ \t]+)?(?:วิชา\s*)?"
+    r"(?P<name>[\u0E00-\u0E7F][\u0E00-\u0E7F0-9 \t]*?)"
+    r"(?:\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it))?"
     r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
     re.IGNORECASE,
 )
@@ -433,7 +435,19 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
             # The bounded credit-question grammar can otherwise mistake a
             # bare quantifier such as "กี่หน่วยกิต" for a course title.
             thai_name_letters = re.sub(r"[\s\d]", "", thai_name)
-            if len(thai_name_letters) >= 4 and thai_name not in {"มี", "กี่"}:
+            has_digit = bool(re.search(r"\d", thai_name))
+            # A leading program qualifier is scope, never part of the title.
+            # Require a digit-bearing Thai title there so a genuine
+            # program-total ("DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต") never becomes
+            # a course target; trailing-qualified and bare Thai titles keep
+            # the existing length guard.
+            leading_program = thai_credit_match.group("lead")
+            if leading_program is not None and not has_digit:
+                pass
+            elif thai_name not in {"มี", "กี่"} and (
+                len(thai_name_letters) >= 4
+                or (len(thai_name_letters) >= 3 and has_digit)
+            ):
                 return thai_name
     if match is None:
         latin_credit_match = _LATIN_COURSE_CREDIT_NAME_PATTERN.match(question)
@@ -464,6 +478,8 @@ def _extract_category(question: str) -> str | None:
     matched = match.group(0).casefold()
     if matched == "วิชาเลือก" or matched in {"elective", "electives"}:
         return "วิชาเลือก"
+    if "เสรี" in matched:
+        return "หมวดวิชาเสรี"
     return "หมวดวิชาศึกษาทั่วไป"
 
 
