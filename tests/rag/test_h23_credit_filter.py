@@ -120,7 +120,10 @@ class H23DeterministicFilterTests(unittest.TestCase):
             calls.append(prompt)
             return _course_list_payload()
 
-        result = ask(DB_PATH, question, intent_model_callable=fake_model)["result"]
+        result = ask(
+            DB_PATH, question, intent_model_callable=fake_model,
+            conversation_context=QueryContext(program="IT", catalog_key="it-2565"),
+        )["result"]
         self.assertEqual(calls, [])
         self.assertEqual(result.status, "answer")
         self.assertTrue(result.claims)
@@ -156,7 +159,10 @@ class H23DeterministicFilterTests(unittest.TestCase):
             calls.append(prompt)
             return _course_list_payload()
 
-        result = ask(DB_PATH, question, intent_model_callable=fake_model)["result"]
+        result = ask(
+            DB_PATH, question, intent_model_callable=fake_model,
+            conversation_context=QueryContext(program="IT", catalog_key="it-2565"),
+        )["result"]
         self.assertEqual(calls, [])
         self.assertEqual(result.status, "insufficient_evidence")
         kinds = {claim.status for claim in result.claims}
@@ -296,7 +302,10 @@ class H32StructuredSeamCreditGuardTests(unittest.TestCase):
 
     def test_count_credit_combo_closed_without_any_callable(self):
         question = "IT ปี 3 เทอม 1 3 หน่วยกิตกี่วิชา"
-        response = ask(DB_PATH, question)["result"]
+        response = ask(
+            DB_PATH, question,
+            conversation_context=QueryContext(program="IT", catalog_key="it-2565"),
+        )["result"]
         self.assertEqual(response.status, "insufficient_evidence")
 
     def test_supported_list_credit_filter_still_complete(self):
@@ -316,6 +325,7 @@ class H32StructuredSeamCreditGuardTests(unittest.TestCase):
             structured_model_callable=no_structured,
             answer_model_callable=None,
             intent_model_callable=no_intent,
+            conversation_context=QueryContext(program="IT", catalog_key="it-2565"),
         )["result"]
         self.assertEqual(result.status, "answer")
         complete = [c for c in result.claims if c.status == "complete"]

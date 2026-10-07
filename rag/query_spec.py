@@ -69,24 +69,35 @@ _COURSE_NAME_PATTERN = re.compile(
     r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
     r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
     r"เรียนเรื่อง|เรียนเกี่ยวกับ|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
-    r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร))",
+    r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร|"
+    r"ต้อง(?:เคย)?ผ่าน(?:วิชา)?อะไร(?:บ้าง)?))",
     re.IGNORECASE,
 )
 _BARE_COURSE_NAME_PATTERN = re.compile(
-    r"^\s*(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"^\s*(?:วิชา\s*)?(?:(?:ait|bit|dsba|gened|it)[ \t]+)?"
+    r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"(?:\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it))?"
     r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
     r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
     r"เรียนเรื่อง|เรียนเกี่ยวกับ|เรียนไร|เรียนประมาณไหน|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
     r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร|"
-    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|ต้อง(?:เรียน|ผ่าน).{0,30}มาก่อน|ต้องเรียนอะไรต่อ(?:ไหม|มั้ย|ปะ)?|"
+    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|"
+    r"ต้อง(?:เคย)?ผ่าน(?:วิชา)?อะไร(?:บ้าง)?|ต้อง(?:เรียน|ผ่าน).{0,30}มาก่อน|"
+    r"ต้องเรียนอะไรต่อ(?:ไหม|มั้ย|ปะ)?|"
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร(?:อะไร|ไหน)(?:บ้าง)?))",
+    re.IGNORECASE,
+)
+_LATIN_COURSE_NAME_BEFORE_PROGRAM_PATTERN = re.compile(
+    r"(?:เรียน|ลงเรียน|วิชา)\s+"
+    r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it)\s*[?？]?\s*$",
     re.IGNORECASE,
 )
 _PROGRAM_DISCOVERY_PATTERN = re.compile(
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร\s*(?:อะไร|ไหน)(?:บ้าง)?",
     re.IGNORECASE,
 )
-_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|(?<![A-Za-z0-9_])(?:electives?|gened)(?![A-Za-z0-9_])|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s+ed(?![A-Za-z0-9_])", re.IGNORECASE)
+_CATEGORY_PATTERN = re.compile(r"วิชาเลือก|(?<![A-Za-z0-9_])(?:electives?|gened)(?![A-Za-z0-9_])|ศึกษาทั่วไป|(?<![A-Za-z0-9_])gen\s+ed(?![A-Za-z0-9_])|เสรี", re.IGNORECASE)
 _TOPIC_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])(programming|database|network|data|web|AI)"
     r"(?![A-Za-z0-9_])|เขียนโปรแกรม|คอมพิวเตอร์|คอม|เว็บ|ฐานข้อมูล",
@@ -185,7 +196,7 @@ _OPERATION_PATTERNS = (
     (
         "placement",
         re.compile(
-            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)\s*year\s*ไหน|"
+            r"ปีไหน\s*เรียน|ปีใด\s*เรียน|เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)\s*year\s*ไหน|"
             r"ปีใด|ภาคเรียนใด|เทอมอะไร|จัดไว้ปีไหน|ลงทะเบียนช่วงไหน|"
             r"(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เรียนช่วงเดียวกัน|เปิดให้ลง|ลงช่วง|"
             r"(?:ลง|เรียน|อยู่).{0,20}ตอนไหน|(?:ลง|เรียน|อยู่).{0,20}เมื่อไหร่|"
@@ -256,11 +267,26 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
 )
 _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
-    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
+    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|"
+    r"ต้อง(?:เคย)?ผ่าน(?:วิชา)?อะไร(?:บ้าง)?|ต้องเรียนอะไรต่อ(?:ไหม)?",
     re.IGNORECASE,
 )
 _THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
-    r"^\s*(?:วิชา\s*)?(?P<name>[\u0E00-\u0E7F][\u0E00-\u0E7F0-9 \t]*?)"
+    r"^\s*(?:วิชา\s*)?(?P<lead>(?:ait|bit|dsba|gened|it)[ \t]+)?(?:วิชา\s*)?"
+    r"(?P<name>[\u0E00-\u0E7F][\u0E00-\u0E7F0-9 \t]*?)"
+    r"(?:\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it))?"
+    r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
+    re.IGNORECASE,
+)
+# Script-symmetric counterpart of the Thai credit-title grammar above: a
+# Latin alphanumeric title run immediately preceding a credit interrogative
+# denotes the exact course regardless of script. A leading program qualifier
+# is scope, never part of the title (no canonical course title starts with
+# a program label, and a bare program word is still rejected below).
+_LATIN_COURSE_CREDIT_NAME_PATTERN = re.compile(
+    r"^\s*(?:วิชา\s*)?(?:(?:ait|bit|dsba|gened|it)[ \t]+)?(?:วิชา\s*)?"
+    r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"(?:\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it))?"
     r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
     re.IGNORECASE,
 )
@@ -273,6 +299,17 @@ _PREREQUISITE_COLLECTION_PATTERN = re.compile(
 _PREREQUISITE_BURDEN_PREFERENCE_PATTERN = re.compile(
     r"(?:วิชาบังคับก่อน|prerequisite)[^?\n]{0,40}"
     r"(?:ไม่\s*(?:เยอะ|มาก)|น้อย|ไม่กี่)",
+    re.IGNORECASE,
+)
+_REVERSE_PREREQUISITE_COLLECTION_PATTERN = re.compile(
+    r"(?:\b(?:what|which)\s+(?:courses?|subjects?)|"
+    r"(?:มี\s*)?(?:วิชา|รายวิชา)\s*(?:อะไร|ไหน|ใด))"
+    r"[^?\n]{0,60}?"
+    r"(?:ต้อง(?:เคย)?ผ่าน|ต้องเรียน|ต้องใช้|ใช้|"
+    r"(?:must\s+)?(?:pass|use|require(?:s)?))"
+    r"\s+[^?\n]{1,80}?\s+"
+    r"(?:ก่อน|before|เป็น\s*(?:a\s+)?(?:prerequisite|วิชาบังคับก่อน)|"
+    r"as\s+(?:a\s+)?prerequisite)",
     re.IGNORECASE,
 )
 
@@ -390,14 +427,46 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
     if match is None:
         match = _prefix_name_to_code_title_match(question)
     if match is None:
+        match = _LATIN_COURSE_NAME_BEFORE_PROGRAM_PATTERN.search(question)
+    if match is None:
         thai_credit_match = _THAI_COURSE_CREDIT_NAME_PATTERN.match(question)
         if thai_credit_match is not None:
             thai_name = thai_credit_match.group("name").strip()
+            # This permissive title span can also consume query structure.
+            # Reuse the scope/operation grammar on the captured span, rather
+            # than treating a year, semester or credit-filter operand as a
+            # digit-bearing title. Include the optional course prefix when
+            # checking categories (it may have consumed "วิชา" in วิชาเลือก).
+            structural_title = bool(
+                _YEAR_PATTERN.search(thai_name)
+                or _INVALID_YEAR_PATTERN.search(thai_name)
+                or _SEMESTER_PATTERN.search(thai_name)
+                or _CATEGORY_PATTERN.search(thai_credit_match.group(0))
+                or _PLAN_PATTERN.search(thai_name)
+                or _surface_operation_matches(thai_name)
+                or re.match(r"^(?:มี\s*)?(?:ราย)?วิชา\s*\d", thai_name)
+            )
             # The bounded credit-question grammar can otherwise mistake a
             # bare quantifier such as "กี่หน่วยกิต" for a course title.
             thai_name_letters = re.sub(r"[\s\d]", "", thai_name)
-            if len(thai_name_letters) >= 4 and thai_name not in {"มี", "กี่"}:
+            has_digit = bool(re.search(r"\d", thai_name))
+            # A leading program qualifier is scope, never part of the title.
+            # Require a digit-bearing Thai title there so a genuine
+            # program-total ("DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต") never becomes
+            # a course target; trailing-qualified and bare Thai titles keep
+            # the existing length guard.
+            leading_program = thai_credit_match.group("lead")
+            if structural_title or (leading_program is not None and not has_digit):
+                pass
+            elif thai_name not in {"มี", "กี่"} and (
+                len(thai_name_letters) >= 4
+                or (len(thai_name_letters) >= 3 and has_digit)
+            ):
                 return thai_name
+    if match is None:
+        latin_credit_match = _LATIN_COURSE_CREDIT_NAME_PATTERN.match(question)
+        if latin_credit_match is not None:
+            match = latin_credit_match
     if not match:
         return None
     name = match.group("name").strip()
@@ -423,6 +492,8 @@ def _extract_category(question: str) -> str | None:
     matched = match.group(0).casefold()
     if matched == "วิชาเลือก" or matched in {"elective", "electives"}:
         return "วิชาเลือก"
+    if "เสรี" in matched:
+        return "หมวดวิชาเสรี"
     return "หมวดวิชาศึกษาทั่วไป"
 
 
@@ -798,6 +869,11 @@ def parse_query_spec(
     category = _extract_category(normalized_question)
     topic = _extract_topic(normalized_question, course_name, course_codes)
     judgement = _extract_judgement(normalized_question)
+    if _REVERSE_PREREQUISITE_COLLECTION_PATTERN.search(normalized_question):
+        # Reverse prerequisite impact is not represented by the legacy
+        # prerequisite operation. Never reinterpret a course collection
+        # requiring X as a lookup for prerequisites of X.
+        judgement = "unsupported"
     credit_units = _extract_credit_units(normalized_question)
     if _INVALID_YEAR_PATTERN.search(normalized_question):
         judgement = "unsupported"

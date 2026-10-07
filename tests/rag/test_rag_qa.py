@@ -138,6 +138,7 @@ class RagQaTest(unittest.TestCase):
     def test_blocked_resolution_returns_without_route_or_evidence_work(self):
         blocked_questions = {
             "วิชาไหนยากที่สุด": "unsupported",
+            "IT วิชาที่ยากที่สุดคือวิชาไหน": "unsupported",
             "06019999 เรียนอะไร": "no_data",
             "วิชา NOSQL เรียนเรื่องอะไรบ้าง": "clarify_program",
             "มีวิชาเกี่ยวกับ database อะไรบ้าง": "clarify_program",
@@ -159,8 +160,16 @@ class RagQaTest(unittest.TestCase):
                     result = ask(DB_PATH, question, forbidden)
 
                 self.assertIsNone(result["route"])
-                self.assertEqual(result["result"]["status"], action)
-                self.assertEqual(result["result"]["action"], action)
+                answer = result["result"]
+                if isinstance(answer, dict):
+                    status = answer.get("status")
+                    returned_action = answer.get("action", status)
+                else:
+                    self.assertIsInstance(answer, GroundedAnswerResult)
+                    status = answer.status
+                    returned_action = answer.status
+                self.assertEqual(status, action)
+                self.assertEqual(returned_action, action)
                 planner.assert_not_called()
                 executor.assert_not_called()
 
@@ -878,17 +887,12 @@ class RagQaTest(unittest.TestCase):
             [("IT", "06016420")],
         )
 
-    def test_program_free_calculus_prerequisite_answers_by_consensus(self):
+    def test_program_free_calculus_prerequisite_clarifies_program(self):
         result = ask(DB_PATH, "Calculus 2 มีวิชาบังคับก่อนคืออะไร")
 
-        self.assertIsInstance(result["result"], GroundedAnswerResult)
-        self.assertEqual(result["result"].status, "answer")
-        self.assertIn("CALCULUS 1", result["result"].final_answer)
-        self.assertTrue(result["result"].provenance)
-        self.assertEqual(
-            [claim.operation for claim in result["result"].claims],
-            ["prerequisite"],
-        )
+        self.assertEqual(result["result"]["status"], "clarify_program")
+        self.assertEqual(result["result"]["action"], "clarify_program")
+        self.assertEqual(result["result"]["blocking_ambiguity"], ("program",))
 
     def test_structured_parse_completeness_preserves_deterministic_fast_paths(self):
         for question in (
@@ -2973,22 +2977,9 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(result["result"]["status"], "clarify_program")
         self.assertEqual(result["result"]["action"], "clarify_program")
 
-    def test_contextual_program_prerequisite_collection_is_positive_and_catalog_scoped(self):
+    def test_contextual_program_prerequisite_collection_fails_closed_per_catalog(self):
         question = "วิชาใดมีวิชาบังคับก่อนบ้าง บอกชื่อและรหัสวิชามา"
-        expected_by_catalog = {
-            "dsba-2560": {
-                "06026107", "06026108", "06026111", "06026113", "06026114",
-                "06026115", "06026116", "06026120", "06026121", "06026126",
-                "06026128", "06026132", "06026133", "06026142", "06026145",
-                "06026146", "06026147", "06026153", "06026156", "06026157",
-            },
-            "dsba-2565": {
-                "06026201", "06026212", "06026213", "06026215", "06066102",
-            },
-        }
-
-        actual_by_catalog = {}
-        for catalog_key, expected_codes in expected_by_catalog.items():
+        for catalog_key in ("dsba-2560", "dsba-2565"):
             with self.subTest(catalog_key=catalog_key):
                 result = ask(
                     DB_PATH,
@@ -2999,58 +2990,40 @@ class RagQaTest(unittest.TestCase):
                         operations=("list",),
                     ),
                 )["result"]
-                self.assertEqual(result.status, "answer")
-                self.assertTrue(result.provenance)
-                self.assertIn(
-                    "สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้",
-                    result.final_answer,
-                )
-                self.assertTrue(result.claims)
+                self.assertEqual(result.status, "insufficient_evidence")
+                self.assertFalse(result.provenance)
                 self.assertTrue(
-                    all(
+                    not result.claims
+                    or all(
                         claim.operation == "list"
-                        and claim.status == "complete"
+                        and claim.status == "insufficient_evidence"
+                        and claim.value is None
                         and claim.effective_scope.program == "DSBA"
                         and claim.effective_scope.catalog_key == catalog_key
                         for claim in result.claims
                     )
                 )
-                self.assertEqual(
-                    {claim.effective_scope.plans[0] for claim in result.claims},
-                    {"coop", "no_coop"},
-                )
-                courses = [
-                    course
-                    for claim in result.claims
-                    for course in claim.value
-                ]
-                actual_codes = {course["course_code"] for course in courses}
-                self.assertEqual(actual_codes, expected_codes)
-                self.assertTrue(
-                    all(
-                        course.get("prerequisite_state") == "required"
-                        and course.get("prerequisites")
-                        and course.get("provenance")
-                        and all(record.get("provenance") for record in course["prerequisites"])
-                        for course in courses
-                    )
-                )
-                actual_by_catalog[catalog_key] = actual_codes
-
-        self.assertTrue(actual_by_catalog["dsba-2560"].isdisjoint(actual_by_catalog["dsba-2565"]))
+                for course_code in (
+                    "06026107", "06026108", "06026111", "06026113", "06026114",
+                    "06026115", "06026116", "06026120", "06026121", "06026126",
+                    "06026128", "06026132", "06026133", "06026142", "06026145",
+                    "06026146", "06026147", "06026153", "06026156", "06026157",
+                    "06026201", "06026212", "06026213", "06026215", "06066102",
+                ):
+                    self.assertNotIn(course_code, result.final_answer)
 
     def test_explicit_unknown_prerequisite_is_insufficient_evidence(self):
         result = ask(DB_PATH, "GENED 90641001 มีวิชาบังคับก่อนคืออะไร")
 
         self.assertEqual(result["result"].status, "insufficient_evidence")
 
-    def test_program_free_unanimous_explicit_none_prerequisite_is_valid_empty(self):
+    def test_program_free_exact_course_with_unanimous_explicit_none_clarifies_program(self):
         result = ask(DB_PATH, "Discrete Mathematics มีวิชาบังคับก่อนคืออะไร")
         typed = result["result"]
 
-        self.assertEqual(typed.status, "valid_empty")
-        self.assertIn("ไม่มีวิชาบังคับก่อน", typed.final_answer)
-        self.assertTrue(typed.provenance)
+        self.assertEqual(typed["status"], "clarify_program")
+        self.assertEqual(typed["action"], "clarify_program")
+        self.assertEqual(typed["blocking_ambiguity"], ("program",))
 
     def test_explicit_program_prerequisite_does_not_use_consensus_exception(self):
         result = ask(DB_PATH, "AIT 06046401 มีวิชาบังคับก่อนคืออะไร")

@@ -26,6 +26,13 @@ from rag.policy.routing import route_policy_question
 from rag.providers.gemini import make_gemini_callable
 from rag.query_spec import is_prerequisite_collection, parse_query_spec
 from rag.resolution import resolve_ordinal_course_reference
+from rag.semantic.modes import (
+    QA_MODE_SEMANTIC,
+    QA_MODE_SHADOW,
+    active_qa_mode,
+    run_shadow_comparison,
+    semantic_ask_response,
+)
 from rag.structured.queries import (
     catalog_keys_for_program,
     edition_catalog_keys_for_program,
@@ -313,6 +320,7 @@ def health() -> dict:
         "status": "ok" if db_path.is_file() else "degraded",
         "database": str(db_path),
         "database_ready": db_path.is_file(),
+        "qa_mode": active_qa_mode(),
     }
 
 
@@ -555,8 +563,119 @@ def course_detail(
     }
 
 
+def _semantic_providers() -> dict:
+    """Build semantic-mode provider callables; missing key fails closed."""
+    try:
+        generate = make_gemini_callable()
+    except Exception:
+        return {}
+    return {
+        "interpret_callable": generate,
+        "answer_callable": generate,
+        "sql_callable": generate,
+    }
+
+
+def _semantic_route_response(request: AskRequest) -> dict:
+    """Serve POST /api/ask from the semantic pipeline (mode=semantic)."""
+    db_path = _curriculum_db()
+    providers = _semantic_providers()
+    if not providers:
+        return {
+            "question": request.question,
+            "answer": "",
+            "status": "insufficient_evidence",
+            "action": "insufficient_evidence",
+            "route": "semantic",
+            "provenance": [],
+            "next_context": None,
+            "comparison": None,
+        }
+    context = (
+        dict(request.conversation_context)
+        if isinstance(request.conversation_context, dict)
+        else None
+    )
+    try:
+        return semantic_ask_response(
+            db_path,
+            request.question,
+            context,
+            home_program=request.home_program,
+            **({"clarification_resolution": request.clarification_resolution.model_dump()}
+               if request.clarification_resolution is not None else {}),
+            **({"clarification_resolutions": [item.model_dump() for item in request.clarification_resolutions]}
+               if request.clarification_resolutions is not None else {}),
+            interpret_callable=providers["interpret_callable"],
+            answer_callable=providers["answer_callable"],
+            sql_callable=providers["sql_callable"],
+        )
+    except Exception:
+        return {
+            "question": request.question,
+            "answer": "",
+            "status": "insufficient_evidence",
+            "action": "insufficient_evidence",
+            "route": "semantic",
+            "provenance": [],
+            "next_context": None,
+            "comparison": None,
+        }
+
+
+def _capture_shadow_semantic(request: AskRequest) -> None:
+    """Best-effort shadow run: legacy output is never touched or read."""
+    try:
+        db_path = _curriculum_db()
+        providers = _semantic_providers()
+        if not providers:
+            return
+        context = (
+            dict(request.conversation_context)
+            if isinstance(request.conversation_context, dict)
+            else None
+        )
+        run_shadow_comparison(
+            db_path,
+            request.question,
+            context,
+            None,
+            interpret_callable=providers["interpret_callable"],
+            answer_callable=providers["answer_callable"],
+            sql_callable=providers["sql_callable"],
+        )
+    except Exception:
+        return
+
+
 @app.post("/api/ask", response_model=AskResponse, response_model_exclude_unset=True)
 def ask(request: AskRequest) -> dict:
+    qa_mode = active_qa_mode()
+    if qa_mode == QA_MODE_SEMANTIC:
+        return _semantic_route_response(request)
+    if request.clarification_resolution is not None or request.clarification_resolutions is not None:
+        return {
+            "question": request.question, "answer": "การระบุขอบเขตของฝั่งเปรียบเทียบรองรับเฉพาะโหมด semantic",
+            "status": "unsupported", "action": "unsupported", "route": qa_mode,
+            "provenance": [], "next_context": request.conversation_context,
+            "comparison": None,
+        }
+    if request.home_program is not None:
+        # Legacy and shadow modes cannot enforce pinned chat scope. Do not
+        # silently discard the explicit request policy or claim it is active.
+        return {
+            "question": request.question,
+            "answer": "การกำหนดหลักสูตรประจำแชตรองรับเฉพาะโหมด semantic",
+            "status": "unsupported",
+            "action": "unsupported",
+            "route": qa_mode,
+            "provenance": [],
+            "next_context": None,
+            "comparison": None,
+        }
+    if qa_mode == QA_MODE_SHADOW:
+        # Shadow runs beside legacy output through internal logging only.
+        _capture_shadow_semantic(request)
     db_path = _curriculum_db()
     query_spec = parse_query_spec(request.question)
     effective_question = request.question
@@ -1307,6 +1426,7 @@ def ask(request: AskRequest) -> dict:
                 model_provider,
                 conversation_context=service_context,
                 grounding_callable=ground_sql_answer,
+                allow_grounded_row_rescue=True,
             )
     except ProviderUnavailable as exc:
         raise HTTPException(

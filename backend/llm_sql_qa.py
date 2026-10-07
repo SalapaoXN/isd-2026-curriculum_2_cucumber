@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Mapping
-from dataclasses import replace
+from dataclasses import dataclass, replace
 import json
 import math
 from contextlib import closing
@@ -18,6 +18,8 @@ from rag.structured.guard_sql import (
     extract_column_predicate_literals,
     guard_sql,
 )
+from rag.structured.provenance import hydrate_sql_row_provenance
+from rag.structured.aggregate_provenance import verify_aggregate_evidence
 from rag.structured.nl_to_sql import question_to_sql, repair_sql
 from rag.query_spec import QuerySpec, _COURSE_CODE_PATTERN, parse_query_spec
 from rag.resolution import (
@@ -159,6 +161,35 @@ _EVIDENCE_PROJECTION_GUIDANCE = (
     "questions should project source and prerequisite identities.\n"
     "- Do not require every WHERE column in the SELECT list. Scope-only fields such as "
     "program may remain unprojected unless needed to disambiguate the requested answer."
+)
+_RESCUE_EVIDENCE_ID_GUIDANCE = (
+    "Rescue evidence-ID projection (applies only to this opt-in request):\n"
+    "Canonical provenance is derived after SQL execution by Python code, never by "
+    "this SQL. When selecting row-level factual entities, also project the "
+    "corresponding canonical evidence ID alongside the answer-relevant fields:\n"
+    "- row-level course facts: project course_id.\n"
+    "- row-level plan-placement facts: project placement_id (and course_id where "
+    "the row also carries course identity).\n"
+    "- row-level prerequisite relationship facts: prerequisite_id is the primary "
+    "provenance identity for the relationship row; any extra course IDs must use "
+    "unique aliases and are not provenance identities.\n"
+    "- row-level program requirement facts: project requirement_id.\n"
+    "- row-level policy facts: project fact_id.\n"
+    "- row-level alternative-group facts where directly queried: project "
+    "alternative_group_id.\n"
+    "- Project only the IDs of the factual entities the row actually reports; do "
+    "not add unrelated IDs merely to satisfy provenance.\n"
+    "- Do not query provenance or *_provenance tables for answer citation purposes, "
+    "and do not SELECT source filenames, source pages, or provenance fields. "
+    "Python hydration remains the citation authority.\n"
+    "- Do not fabricate IDs. Never invent an entity ID value.\n"
+    "- Output columns must remain uniquely named.\n"
+    "- Do not change the result grain merely to expose IDs: do not add IDs to a "
+    "SELECT DISTINCT list when that would alter logical deduplication, do not "
+    "change GROUP BY grouping, and do not alter ordering meaning.\n"
+    "- Aggregate rows without one row-level canonical entity (for example "
+    "total_credits from v_semester_credits) may omit evidence IDs; such rows "
+    "intentionally remain non-rescuable and must not receive fake entity IDs."
 )
 _COMPARISON_COMPLETENESS_GUIDANCE = (
     "Service-specific explicit-comparison completeness rules:\n"
@@ -931,6 +962,232 @@ def _grounded_rows_fallback(
     return heading + "\n" + "\n".join(lines)
 
 
+@dataclass(frozen=True, slots=True)
+class RescueAdmission:
+    """Outcome of the deterministic rescue admission gate (HSQL-5A)."""
+
+    allowed: bool
+    reason: str
+
+
+_CURRICULUM_ID_COLUMNS = (
+    "course_id",
+    "placement_id",
+    "prerequisite_id",
+    "requirement_id",
+    "alternative_group_id",
+)
+_POLICY_ID_COLUMNS = ("fact_id",)
+
+
+def _is_canonical_id(value: Any) -> bool:
+    """Mirror the HSQL-1 identity shape without resolving anything."""
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 1
+
+
+def _rescue_admission(
+    *,
+    query_spec: QuerySpec,
+    question: str,
+    selected_program: str | None,
+    selected_catalog_key: str | None,
+    focus_scope: dict[str, Any],
+    prior_focus: dict[str, str | None] | None,
+    prior_result_courses: list[dict[str, str | None]] | None,
+    rows: list[dict[str, Any]],
+) -> RescueAdmission:
+    """Decide whether SQL rows may even be considered for rescue.
+
+    Groundable rows are necessary but not sufficient: the current turn must
+    also carry a legitimate bounded request scope. Curriculum-backed rows
+    need a validated curriculum anchor plus request substance; rows backed
+    only by global policy facts use a narrow bounded exception. Runs before
+    provenance hydration so inadmissible requests never touch canonical
+    provenance tables.
+    """
+    has_curriculum_identity = False
+    all_fact_backed = True
+    for row in rows:
+        if not isinstance(row, Mapping):
+            all_fact_backed = False
+            continue
+        if any(
+            _is_canonical_id(row.get(column)) for column in _CURRICULUM_ID_COLUMNS
+        ):
+            has_curriculum_identity = True
+        elif not any(
+            _is_canonical_id(row.get(column)) for column in _POLICY_ID_COLUMNS
+        ):
+            all_fact_backed = False
+    if not has_curriculum_identity and not all_fact_backed:
+        if (
+            len(rows) == 1
+            and isinstance(rows[0], Mapping)
+            and "total_credits" in rows[0]
+        ):
+            families_aggregate_candidate = True
+        else:
+            return RescueAdmission(False, "no-supported-row-identity")
+    else:
+        families_aggregate_candidate = False
+
+    if query_spec.judgement not in (None, "none"):
+        return RescueAdmission(False, "unsupported-judgement-shape")
+
+    if not has_curriculum_identity and all_fact_backed:
+        if len(rows) > _MAX_PROMPT_ROWS:
+            return RescueAdmission(False, "policy-row-bound-exceeded")
+        return RescueAdmission(True, "global-policy-facts")
+
+    if families_aggregate_candidate:
+        # An ID-less single total row is only a candidate: the aggregate
+        # verifier still revalidates scope, intent, value equality, and
+        # provenance. Admission here requires just the curriculum anchor.
+        plan = focus_scope.get("plan") if isinstance(focus_scope, dict) else None
+        has_anchor = bool(
+            (isinstance(selected_program, str) and selected_program.strip())
+            or (isinstance(selected_catalog_key, str) and selected_catalog_key.strip())
+            or (isinstance(plan, str) and plan.strip())
+            or prior_focus is not None
+            or prior_result_courses is not None
+            or bool(query_spec.program)
+            or bool(query_spec.course_codes)
+            or query_spec.course_name is not None
+        )
+        if not has_anchor:
+            return RescueAdmission(False, "no-curriculum-anchor")
+        return RescueAdmission(True, "aggregate-candidate")
+
+    plan = focus_scope.get("plan") if isinstance(focus_scope, dict) else None
+    has_anchor = bool(
+        (isinstance(selected_program, str) and selected_program.strip())
+        or (isinstance(selected_catalog_key, str) and selected_catalog_key.strip())
+        or (isinstance(plan, str) and plan.strip())
+        or prior_focus is not None
+        or prior_result_courses is not None
+        or bool(query_spec.program)
+        or bool(query_spec.course_codes)
+        or query_spec.course_name is not None
+    )
+    if not has_anchor:
+        return RescueAdmission(False, "no-curriculum-anchor")
+
+    has_substance = bool(
+        query_spec.operations
+        or query_spec.course_codes
+        or query_spec.course_name is not None
+        or query_spec.plans
+        or query_spec.years
+        or query_spec.semesters
+        or query_spec.category is not None
+        or query_spec.references_previous_result_set
+        or query_spec.result_ordinal is not None
+        or query_spec.credit_units is not None
+        or query_spec.group_by
+        or (has_anchor and _references_focus_course(question))
+    )
+    if not has_substance:
+        return RescueAdmission(False, "no-bounded-request")
+    return RescueAdmission(True, "scoped-curriculum-request")
+
+
+def _grounded_row_rescue(
+    db_path: str | Path,
+    question: str,
+    selected_program: str | None,
+    columns: list[str],
+    rows: list[dict[str, Any]],
+    safe_sql: str,
+    answer_model_callable: Callable[[str], str],
+    prior_focus: dict[str, str | None] | None,
+    prior_result_courses: list[dict[str, str | None]] | None,
+    selected_catalog_key: str | None,
+    query_spec: QuerySpec,
+    focus_scope: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Attempt the opt-in SQL-row rescue after deterministic grounding failed.
+
+    Returns a row-grounded answer only when every executed row resolves to
+    non-empty canonical provenance; otherwise returns None so the caller
+    keeps its existing fail-closed result. Partial hydrated provenance is
+    never surfaced. When normal row hydration cannot cover ID-less aggregate
+    rows, a supported aggregate verifier is tried secondarily under the same
+    admission gate.
+    """
+    admission = _rescue_admission(
+        query_spec=query_spec,
+        question=question,
+        selected_program=selected_program,
+        selected_catalog_key=selected_catalog_key,
+        focus_scope=focus_scope,
+        prior_focus=prior_focus,
+        prior_result_courses=prior_result_courses,
+        rows=rows,
+    )
+    if not admission.allowed:
+        return None
+    provenance: list[dict[str, Any]] = []
+    try:
+        hydration = hydrate_sql_row_provenance(db_path, rows)
+    except (OSError, sqlite3.Error, ValueError, TypeError):
+        return None
+    if (
+        hydration.status == "complete"
+        and hydration.covered_rows == hydration.total_rows
+        and hydration.covered_rows == len(rows)
+        and hydration.provenance
+    ):
+        provenance = [dict(reference) for reference in hydration.provenance]
+    else:
+        try:
+            plan = focus_scope.get("plan") if isinstance(focus_scope, dict) else None
+            aggregate = verify_aggregate_evidence(
+                db_path,
+                rows=rows,
+                columns=columns,
+                program=selected_program,
+                catalog_key=selected_catalog_key,
+                plan=plan if isinstance(plan, str) else None,
+                years=tuple(query_spec.years),
+                semesters=tuple(query_spec.semesters),
+                query_spec=query_spec,
+            )
+        except (OSError, sqlite3.Error, ValueError, TypeError):
+            return None
+        if aggregate.status != "complete" or not aggregate.provenance:
+            return None
+        provenance = [dict(reference) for reference in aggregate.provenance]
+    try:
+        answer = answer_model_callable(
+            _answer_prompt(question, selected_program, columns, rows)
+        )
+        if not isinstance(answer, str) or not answer.strip():
+            raise TypeError("answer model must return non-empty text")
+    except Exception:
+        return None
+    return {
+        "status": "answer",
+        "answer": (
+            _grounded_rows_fallback(columns, rows)
+            if _is_no_data_answer(answer.strip())
+            else answer.strip()
+        ),
+        "provenance": provenance,
+        "sql": safe_sql,
+        "columns": columns,
+        "rows": rows,
+        "next_context": _next_conversation_context(
+            selected_program,
+            prior_focus,
+            prior_result_courses,
+            rows,
+            selected_catalog_key=selected_catalog_key,
+            current_spec=query_spec,
+            prior_scope=focus_scope,
+        ),
+    }
+
+
 def ask_sql(
     db_path: str | Path,
     question: str,
@@ -940,6 +1197,7 @@ def ask_sql(
     conversation_context: dict[str, Any] | None = None,
     *,
     grounding_callable: Callable[[str], dict[str, Any]] | None = None,
+    allow_grounded_row_rescue: bool = False,
 ) -> dict[str, Any]:
     """Generate, guard, and execute one curriculum query, then summarize its rows."""
     if not isinstance(question, str) or not question.strip():
@@ -947,6 +1205,8 @@ def ask_sql(
     if program is not None and (not isinstance(program, str) or not program.strip()):
         return _failure("invalid_request")
     if not callable(sql_model_callable) or not callable(answer_model_callable):
+        return _failure("invalid_request")
+    if not isinstance(allow_grounded_row_rescue, bool):
         return _failure("invalid_request")
 
     selected_program = program.strip() if program is not None else None
@@ -1394,6 +1654,14 @@ def ask_sql(
             "validated conversation context."
         )
 
+    # Rescue evidence-ID guidance is prompt-level only and applies solely to
+    # the opt-in rescue request; the default prompt stays unchanged.
+    rescue_evidence_guidance = (
+        f"{_RESCUE_EVIDENCE_ID_GUIDANCE}\n\n"
+        if allow_grounded_row_rescue is True
+        else ""
+    )
+
     def call_sql_model(prompt: str) -> str:
         try:
             generated = sql_model_callable(
@@ -1401,6 +1669,7 @@ def ask_sql(
                 f"{_UNIQUE_COLUMN_GUIDANCE}\n\n"
                 f"{_CATALOG_CONTEXT_GUIDANCE}\n\n"
                 f"{_EVIDENCE_PROJECTION_GUIDANCE}\n\n"
+                f"{rescue_evidence_guidance}"
                 f"{_COMPARISON_COMPLETENESS_GUIDANCE}\n\n"
                 f"{_LOGICAL_COURSE_COUNTING_GUIDANCE}\n\n"
                 f"{_conversation_focus_guidance(prior_focus)}"
@@ -1657,6 +1926,26 @@ def ask_sql(
                     "provenance": [],
                     "next_context": None,
                 }
+        if allow_grounded_row_rescue is True and rows:
+            # Opt-in rescue seam: deterministic grounding already failed to
+            # produce a usable answer, so already-executed rows may ground one
+            # only when every row carries complete canonical provenance.
+            rescued = _grounded_row_rescue(
+                db_path,
+                question.strip(),
+                selected_program,
+                columns,
+                rows,
+                safe_sql,
+                answer_model_callable,
+                prior_focus,
+                prior_result_courses,
+                selected_catalog_key,
+                query_spec,
+                focus_scope,
+            )
+            if rescued is not None:
+                return rescued
         return {
             "status": "insufficient_evidence",
             "answer": "ไม่พบหลักฐานที่มีแหล่งอ้างอิงเพียงพอสำหรับคำตอบนี้",

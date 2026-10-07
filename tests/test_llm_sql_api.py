@@ -71,7 +71,7 @@ class LlmSqlApiTests(unittest.TestCase):
                 self.assertEqual(malformed["status"], "unsupported")
                 self.assertEqual(malformed["provenance"], [])
 
-    def test_prior_relationship_result_set_does_not_block_current_hard_sequence(self):
+    def test_incomplete_relationship_collection_does_not_publish_result_set_to_hard_sequence(self):
         context = {"program": "AIT", "catalog_key": "ait-2566", "plan": "default"}
         hard_intent = {
             "task_type": "prerequisite_sequence",
@@ -96,10 +96,10 @@ class LlmSqlApiTests(unittest.TestCase):
         relationship = self._ask_with_stub_provider(
             "วิชาใดบ้างที่มีวิชาบังคับก่อน บอกชื่อและรหัสวิชามา", context
         )
-        self.assertEqual(relationship["status"], "answer")
+        self.assertEqual(relationship["status"], "insufficient_evidence")
         self.assertEqual(relationship["route"], "llm_sql")
-        self.assertTrue(relationship["provenance"])
-        self.assertTrue(relationship["next_context"]["result_courses"])
+        self.assertEqual(relationship["provenance"], [])
+        self.assertNotIn("result_courses", relationship["next_context"])
 
         with patch.object(main, "_lazy_provider", return_value=json.dumps(hard_intent)):
             response = self.client.post(
@@ -350,7 +350,7 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertTrue(callable(self.sql_service.call_args.args[4]))
         old_rag.assert_not_called()
 
-    def test_contextual_positive_prerequisite_collection_returns_grounded_api_answer(self):
+    def test_contextual_positive_prerequisite_collection_fails_closed_at_api(self):
         def deterministic_grounding(
             _db_path,
             question,
@@ -360,6 +360,7 @@ class LlmSqlApiTests(unittest.TestCase):
             *,
             conversation_context,
             grounding_callable,
+            **kwargs,
         ):
             grounded = grounding_callable(question)
             return {
@@ -385,16 +386,15 @@ class LlmSqlApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["status"], "answer")
+        self.assertEqual(payload["status"], "insufficient_evidence")
         self.assertEqual(payload["route"], "llm_sql")
         self.assertEqual(
             payload["next_context"],
             {"program": "DSBA", "catalog_key": "dsba-2565", "operations": ["list"]},
         )
-        self.assertTrue(payload["provenance"])
+        self.assertEqual(payload["provenance"], [])
         for course_code in ("06026201", "06026212", "06026213", "06026215", "06066102"):
-            self.assertIn(course_code, payload["answer"])
-        self.assertIn("สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", payload["answer"])
+            self.assertNotIn(course_code, payload["answer"])
 
     def test_catalog_key_survives_api_result_context_round_trip(self):
         edition_context = {
@@ -1019,19 +1019,10 @@ class LlmSqlApiTests(unittest.TestCase):
                     diag["api_status"] = response.status_code
                     payload = response.json()
                     self.assertEqual(response.status_code, 200, payload)
-                    self.assertEqual(payload["status"], "answer", payload)
                     self.assertEqual(payload["route"], "llm_sql")
-                    self.assertTrue(payload["provenance"])
                     self.assertEqual(payload["next_context"]["catalog_key"], "dsba-2565")
-                    self.assertTrue(
-                        all(
-                            reference.get("program") == "DSBA"
-                            for reference in payload["provenance"]
-                        )
-                    )
                     self.assertTrue(diag["sql_rows"] > 0, diag)
                     self.assertEqual(diag["sql_model_calls"], 1, diag)
-                    self.assertEqual(diag["grounding_status"], "answer", diag)
                     self.assertTrue(
                         any(
                             ops == list(expected_operations)
@@ -1044,15 +1035,28 @@ class LlmSqlApiTests(unittest.TestCase):
                         diag,
                     )
                     self.assertNotIn("clarify_catalog", payload["status"])
-                    self.assertNotIn("insufficient_evidence", payload["status"])
-                    if label == "D":
-                        self.assertEqual(diag["pre_context_operations"], [], diag)
                     if label == "C":
+                        self.assertEqual(payload["status"], "insufficient_evidence", diag)
+                        self.assertEqual(diag["grounding_status"], "insufficient_evidence", diag)
+                        self.assertEqual(payload["provenance"], [])
                         for course_code in (
                             "06026201", "06026212", "06026213", "06026215", "06066102"
                         ):
-                            self.assertIn(course_code, payload["answer"])
-                    elif label == "D-variant":
+                            self.assertNotIn(course_code, payload["answer"])
+                        continue
+
+                    self.assertEqual(payload["status"], "answer", payload)
+                    self.assertTrue(payload["provenance"])
+                    self.assertTrue(
+                        all(
+                            reference.get("program") == "DSBA"
+                            for reference in payload["provenance"]
+                        )
+                    )
+                    self.assertEqual(diag["grounding_status"], "answer", diag)
+                    if label == "D":
+                        self.assertEqual(diag["pre_context_operations"], [], diag)
+                    if label == "D-variant":
                         self.assertEqual(diag["intent_calls"], 1, diag)
                     elif label == "E":
                         self.assertIn("06066300", payload["answer"])
@@ -1061,7 +1065,10 @@ class LlmSqlApiTests(unittest.TestCase):
                     elif label == "G":
                         self.assertIn("ปี 3", payload["answer"])
                     elif label == "H":
-                        self.assertIn("15 หน่วยกิต", payload["answer"])
+                        # COUNT-1 required-load semantics: the two distinct
+                        # 06026xxx elective slots each count (6 × 3 = 18).
+                        self.assertIn("18 หน่วยกิต", payload["answer"])
+                        self.assertIn("ยังไม่ได้ระบุรายวิชา", payload["answer"])
                     elif label == "I":
                         self.assertIn("DATA WAREHOUSING", payload["answer"])
 
@@ -3416,6 +3423,261 @@ class LlmSqlApiTests(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["status"], "error")
         self.assertEqual(payload["action"], "invalid_sql")
+
+
+class LlmSqlApiRescueTests(unittest.TestCase):
+    """HSQL-4: production /api/ask opts into the existing SQL rescue."""
+
+    def setUp(self):
+        self.client = TestClient(main.app)
+        main._provider = None
+        self.db_patch = patch.object(main, "DEFAULT_CURRICULUM_DB_PATH", DB_PATH)
+        self.db_patch.start()
+
+    def tearDown(self):
+        self.db_patch.stop()
+        main._provider = None
+
+    def _stub_models(self, sql_text, answer_text="row grounded summary"):
+        def stub_model(prompt, **options):
+            if prompt.startswith(
+                "ROLE: You interpret Thai university curriculum questions"
+            ):
+                return json.dumps(
+                    {
+                        "intent": "course_list_query",
+                        "proposed_program": None,
+                        "proposed_plans": [],
+                        "proposed_years": [],
+                        "proposed_semesters": [],
+                        "course_codes": [],
+                        "topic": None,
+                        "requested_facts": ["course_list"],
+                        "judgement_dimension": None,
+                        "unresolved": [],
+                    },
+                    ensure_ascii=False,
+                )
+            if "Matching database rows exist" in prompt:
+                return answer_text
+            return sql_text
+
+        return stub_model
+
+    def test_production_ask_sql_call_opts_into_rescue(self):
+        with patch.object(main, "ask_sql") as sql_service:
+            sql_service.return_value = {
+                "status": "answer",
+                "answer": "พบ 4 วิชา",
+                "sql": "SELECT ...",
+                "columns": ["course_code"],
+                "rows": [{"course_code": "C101"}],
+            }
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            sql_service.call_args.kwargs["allow_grounded_row_rescue"] is True
+        )
+
+    def test_hard_qa_answer_still_wins_over_sql_path(self):
+        hard_result = {
+            "status": "satisfied",
+            "answer": "ตรวจสอบแล้วเป็นไปตามลำดับ",
+            "action": None,
+            "route": "hard",
+            "hard_task_type": "prerequisite_sequence",
+            "provenance": [
+                {"source_filename": "canon.png", "source_page": 1}
+            ],
+            "next_context": {"program": "DSBA", "catalog_key": "dsba-2565"},
+            "comparison": None,
+        }
+        with (
+            patch.object(main, "answer_hard_question", return_value=hard_result),
+            patch.object(main, "ask_sql") as sql_service,
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "DSBA แผน coop กับ no_coop ต่างกันที่วิชาไหนบ้าง",
+                    "conversation_context": {"program": "DSBA", "catalog_key": "dsba-2565"},
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["route"], "hard")
+        self.assertEqual(payload["answer"], "ตรวจสอบแล้วเป็นไปตามลำดับ")
+        sql_service.assert_not_called()
+
+    def test_deterministic_grounder_still_wins_over_rescue(self):
+        stub_model = self._stub_models(
+            "SELECT course_code, program, plan_key, year, semester "
+            "FROM v_plan_courses"
+        )
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch.object(
+                main, "ask_sql", side_effect=lambda *args, **kwargs: run_ask_sql(*args, **kwargs)
+            ),
+            patch(
+                "backend.llm_sql_qa.hydrate_sql_row_provenance",
+                side_effect=AssertionError("rescue must not hydrate after grounded answer"),
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "06016414 คือวิชาอะไร",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+
+    def test_rescue_success_reaches_api_with_canonical_provenance(self):
+        stub_model = self._stub_models(
+            "SELECT course_id, course_code FROM courses WHERE course_id = 858"
+        )
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch(
+                "backend.main.answer_question_once",
+                return_value={
+                    "status": "insufficient_evidence",
+                    "final_answer": "",
+                    "provenance": [],
+                    "next_context": None,
+                },
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "IT มีวิชาอะไรบ้าง",
+                    "conversation_context": {
+                        "program": "IT",
+                        "catalog_key": "it-2565",
+                        "plan": "coop",
+                    },
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "answer")
+        self.assertTrue(payload["provenance"])
+        for reference in payload["provenance"]:
+            self.assertTrue(reference.get("source_filename"))
+        next_context = payload["next_context"] or {}
+        self.assertEqual(next_context.get("program"), "IT")
+        self.assertEqual(next_context.get("catalog_key"), "it-2565")
+        self.assertEqual(next_context.get("plan"), "coop")
+        self.assertLessEqual(
+            set(next_context),
+            {
+                "program", "catalog_key", "plan", "years", "semesters",
+                "operations", "category", "focus_course", "result_courses",
+                "result_scope_program", "result_set_empty", "focus_catalog_key",
+            },
+        )
+        self.assertNotIn(payload["answer"], json.dumps(next_context))
+
+    def test_rescue_without_canonical_id_fails_closed(self):
+        stub_model = self._stub_models(
+            "SELECT course_code, program, plan_key, year, semester "
+            "FROM v_plan_courses"
+        )
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch(
+                "backend.main.answer_question_once",
+                return_value={
+                    "status": "insufficient_evidence",
+                    "final_answer": "",
+                    "provenance": [],
+                    "next_context": None,
+                },
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "IT มีวิชาอะไรบ้าง",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "insufficient_evidence")
+        self.assertEqual(payload["provenance"], [])
+
+    def test_id_less_aggregate_still_not_rescued(self):
+        stub_model = self._stub_models(
+            "SELECT SUM(credit_units) AS total_credits FROM courses"
+        )
+        with (
+            patch.object(main, "answer_hard_question", return_value=None),
+            patch.object(main, "_lazy_provider", side_effect=stub_model),
+            patch(
+                "backend.main.answer_question_once",
+                return_value={
+                    "status": "insufficient_evidence",
+                    "final_answer": "",
+                    "provenance": [],
+                    "next_context": None,
+                },
+            ),
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "IT ปี 1 เทอม 1 รวมกี่หน่วยกิต",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "insufficient_evidence")
+
+    def test_provider_failure_semantics_unchanged(self):
+        with patch.object(
+            main, "_lazy_provider", side_effect=main.ProviderUnavailable("down")
+        ):
+            response = self.client.post(
+                "/api/ask",
+                json={
+                    "question": "ปี 3 เทอม 1 มีวิชาอะไรบ้าง",
+                    "conversation_context": {"program": "IT", "catalog_key": "it-2565"},
+                },
+            )
+        self.assertEqual(response.status_code, 503)
+
+    def test_no_sentence_specific_patches_in_production_wiring(self):
+        import inspect
+
+        from backend import llm_sql_qa
+
+        self.assertEqual(
+            llm_sql_qa.ask_sql.__kwdefaults__,
+            {"grounding_callable": None, "allow_grounded_row_rescue": False},
+        )
+        parameters = inspect.signature(llm_sql_qa.ask_sql).parameters
+        self.assertIn("allow_grounded_row_rescue", parameters)
+        self.assertIs(parameters["allow_grounded_row_rescue"].default, False)
+        source = Path(main.__file__).read_text(encoding="utf-8")
+        self.assertEqual(source.count("allow_grounded_row_rescue=True"), 1)
+        for marker in ("เกียรตินิยม", "GPA", "05000000"):
+            self.assertNotIn(marker, source)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import sqlite3
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -443,15 +444,8 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
                 if claim.status == "complete"
             )
         )
-        describe_codes = [
-            row["course_code"]
-            for claim in _claims(result, "describe")
-            if claim.status == "complete" and claim.provenance
-            for row in claim.evidence
-        ]
-        self.assertEqual(
-            set(describe_codes), {"06016413", "06016420", "06016421"}
-        )
+        # The prerequisite-only request does not ask for course descriptions.
+        self.assertEqual(_claims(result, "describe"), [])
         self.assertEqual(calls, [])
 
     def test_three_course_sequence_sorts_ties_and_leaves_missing_timing_unknown(self):
@@ -1140,7 +1134,34 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
             "06016420",
         )
 
-        references = result["plans"][0]["prerequisites"][0]["provenance"]
+        connection = sqlite3.connect(
+            f"file:{DB_PATH.as_posix()}?mode=ro",
+            uri=True,
+        )
+        try:
+            catalog_rows = connection.execute(
+                """SELECT DISTINCT c.catalog_id
+                   FROM catalogs AS c
+                   JOIN programs AS p ON p.catalog_id = c.catalog_id
+                   WHERE c.catalog_key = ? AND p.program_code = ?""",
+                ("it-2565", "IT"),
+            ).fetchall()
+        finally:
+            connection.close()
+        self.assertEqual(len(catalog_rows), 1)
+        canonical_catalog_id = catalog_rows[0][0]
+        matching_plans = [
+            plan
+            for plan in result["plans"]
+            if plan.get("program") == "IT"
+            and plan.get("catalog_id") == canonical_catalog_id
+            and plan.get("plan_key") == "no_coop"
+            and plan.get("course_code") == "06016420"
+            and plan.get("course_ids")
+            and plan.get("prerequisites")
+        ]
+        self.assertEqual(len(matching_plans), 1)
+        references = matching_plans[0]["prerequisites"][0]["provenance"]
         filenames = {reference["source_filename"] for reference in references}
         # The requested no_coop plan pages and the shared description pages
         # that back the prerequisite fact must be retained.

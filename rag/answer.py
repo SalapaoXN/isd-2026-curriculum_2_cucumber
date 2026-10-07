@@ -12,6 +12,7 @@ from rag.aggregation import (
     ComparisonAggregation,
     EarliestAggregation,
     PlanComparisonAggregation,
+    is_masked_course_code,
 )
 from rag.evidence_executor import (
     DirectPrerequisiteBurden,
@@ -1511,6 +1512,7 @@ def _sum_credits_text(claim: GroundedClaim) -> str | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     total: Any = int(value) if float(value).is_integer() else value
+    unresolved_suffix = _unresolved_slot_credit_suffix(claim)
     scope = claim.effective_scope
     targets = _credit_claim_targets(scope)
     if targets:
@@ -1528,11 +1530,44 @@ def _sum_credits_text(claim: GroundedClaim) -> str | None:
         context = _sum_scope_category_suffix(
             scope, _credit_scope_text(scope, prefix=f"วิชา {code}")
         )
-        return f"{context}: {total} หน่วยกิต" if context else f"{total} หน่วยกิต"
+        rendered = f"{context}: {total} หน่วยกิต" if context else f"{total} หน่วยกิต"
+        return f"{rendered}{unresolved_suffix}"
     context = _sum_scope_category_suffix(scope, _credit_scope_text(scope, prefix=""))
     if context:
-        return f"{context} ลงทะเบียนรวม {total} หน่วยกิต"
-    return f"ลงทะเบียนรวม {total} หน่วยกิต"
+        return f"{context} ลงทะเบียนรวม {total} หน่วยกิต{unresolved_suffix}"
+    return f"ลงทะเบียนรวม {total} หน่วยกิต{unresolved_suffix}"
+
+
+def _is_unresolved_slot_identity(component: Any) -> bool:
+    """Detect a counted component whose exact course is not yet selected."""
+    if not isinstance(component, Mapping):
+        return False
+    if component.get("alternative_group_id") is not None:
+        return True
+    return is_masked_course_code(component.get("course_code"))
+
+
+def _unresolved_slot_credit_suffix(claim: GroundedClaim) -> str:
+    """Notice when part of a credit total belongs to unselected electives."""
+    evidence = getattr(claim, "evidence", None)
+    components = getattr(evidence, "components", ()) or ()
+    subtotal = 0
+    for component in components:
+        if not isinstance(component, Mapping):
+            continue
+        if not _is_unresolved_slot_identity(component):
+            continue
+        credits = component.get("counted_credit_units")
+        if isinstance(credits, bool) or not isinstance(credits, (int, float)):
+            continue
+        subtotal += credits
+    if subtotal <= 0:
+        return ""
+    suffix_total: Any = int(subtotal) if float(subtotal).is_integer() else subtotal
+    return (
+        f" โดยมี {suffix_total} หน่วยกิต"
+        "เป็นส่วนของวิชาเลือกที่ยังไม่ได้ระบุรายวิชา"
+    )
 
 
 def _course_list_course_text(entry: Mapping[str, Any]) -> str | None:

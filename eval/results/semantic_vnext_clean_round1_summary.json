@@ -1,0 +1,47 @@
+{
+  "round": "clean-1",
+  "status": "COMPLETE",
+  "dataset": "eval/semantic_vnext_50.json",
+  "dataset_composition": {
+    "total": 50, "easy": 25, "medium": 15, "hard": 10,
+    "teacher_slide": 3, "teacher_slide_instantiated": 8, "custom": 39,
+    "teacher_items_represented": 8
+  },
+  "evaluated": 50,
+  "infra_excluded": 0,
+  "overall_correct_computed": 29,
+  "overall_correct_analytical": 33,
+  "analytical_note": "computed overall uses dataset gold verbatim; analytical adds 4 rows where gold was provably over-precise or wrong (E19/M03/M08 scope-or-taxonomy gold errors vs correct behavior; E25 policy/requirement taxonomy + scope gold error) and reclassifies M05/H10 aggregate-listing as QUERY_ERROR and E01 to ANSWER_ERROR (Fix A verified live: scope extracted, identifier dropped)",
+  "scores_computed": {"overall": "29/50", "easy": "13/25", "medium": "9/15", "hard": "7/10"},
+  "scores_analytical": {"overall": "33/50 (66%)", "easy": "15/25", "medium": "11/15", "hard": "7/10"},
+  "teacher_score": "10/11 (only T-E2i missed: English name dropped from identity answer)",
+  "wrong_factual_answers": 0,
+  "false_failures": 17,
+  "correct_safe_failures": 15,
+  "presentation_only_errors": ["E01", "E05", "E07", "E08", "M07", "T-E2i"],
+  "structural_gaps_observed": ["M04 plan aliases", "H05/H06 comparison operator + set-difference + course operands + catalog-year mentions", "M09 catalog-year mention", "M14b ordinal+previous_result_set schema tension", "E14-cluster relation-on-nonlookup tolerance"],
+  "failure_categories_computed": {"NONE": 29, "INTERPRETATION_ERROR": 13, "GROUNDING_ERROR": 8},
+  "latency_ms": {
+    "system": {"min": 0, "median": 0, "p95": 9766, "max": 24343, "note": "fail-closed paths record total_ms 0 (trace gap, fix next)"},
+    "wall": {"min": 1062, "median": 1680, "p95": 9766, "max": 24343},
+    "hard_system": {"min": 0, "median": 0, "p95": 9766, "max": 9766}
+  },
+  "requests": {
+    "total_semantic_calls": 75, "mean_per_question": 1.5, "max_per_question": 3,
+    "infra_retries": 0, "rate_limit_wait_ms_total": 77217,
+    "provider": "gemini:gemini-3.5-flash-lite",
+    "paths": {"deterministic": 14, "policy": 6, "sql": 7, "unsupported": 1, "none": 22}
+  },
+  "evaluation_wall_time_note": "runner log spans paced sequential execution (~50 x 3s pacing + window waits)",
+  "fixes_verified_live": [
+    "Fix A: leading program scope extracted (E01 intent now correct; was missed in Round 1)",
+    "Fix C: multi-edition program total without catalog fails closed (E12 safe, missing_scope)",
+    "Fix D: program total via requirement evidence (E13 answers 129)"
+  ],
+  "artifacts": [
+    "eval/semantic_vnext_50.json",
+    "eval/results/semantic_vnext_clean_round1.jsonl",
+    "eval/results/semantic_vnext_clean_round1_summary.json",
+    "eval/results/semantic_vnext_clean_round1_report.md"
+  ]
+}

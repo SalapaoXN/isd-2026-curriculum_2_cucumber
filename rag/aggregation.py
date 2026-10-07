@@ -592,10 +592,30 @@ def _component_kind(component: Mapping[str, Any]) -> str:
     return "alternative_group" if component.get("alternative_group_id") is not None else "course"
 
 
+def is_masked_course_code(code: Any) -> bool:
+    """Whether a course code is a masked elective-slot marker, not a course.
+
+    Canonical course codes are plain digits; any embedded letter mask
+    (``06026xxx``, ``9064xxxx``, ``xxxxxxxx``, ``060164xx``) marks an
+    unresolved elective slot rather than a logical course identity.
+    """
+    return isinstance(code, str) and "x" in code.casefold()
+
+
 def _dedup_scalar_components(
     components: Iterable[Mapping[str, Any]],
+    *,
+    by_placement: bool = False,
 ) -> tuple[tuple[Mapping[str, Any], ...], bool]:
-    """Deduplicate normal courses/groups only within each exact partition."""
+    """Deduplicate normal courses/groups only within each exact partition.
+
+    With ``by_placement`` (credit sums only), distinct placements keep their
+    own entries even when they share a masked placeholder course code:
+    separate elective slots are separate required load, since a masked code
+    is a slot marker rather than a logical course identity. Concrete course
+    codes keep logical-identity collapse, rows without a placement identity
+    keep the legacy behavior, and exact duplicate rows still collapse.
+    """
     grouped: dict[tuple[str, str, Any], list[Mapping[str, Any]]] = {}
     for component in components:
         if not isinstance(component, Mapping):
@@ -603,7 +623,14 @@ def _dedup_scalar_components(
         partition = _partition_key(component)
         if _component_kind(component) == "course":
             program, code = _identity(component)
-            key = (partition, "course", (program, code))
+            if (
+                by_placement
+                and component.get("placement_id") is not None
+                and is_masked_course_code(code)
+            ):
+                key = (partition, "course", (program, code, component.get("placement_id")))
+            else:
+                key = (partition, "course", (program, code))
         else:
             program, group_id = _alternative_group_id(component)
             key = (partition, "alternative_group", (program, group_id))
@@ -645,6 +672,20 @@ def _dedup_scalar_components(
         if provenance:
             first["provenance"] = provenance
         selected.append(first)
+    if by_placement:
+        # Distinct placements sharing one logical course identity still must
+        # agree on credits: conflicting facts across slots fail closed
+        # instead of summing an ambiguous total.
+        identity_values: dict[tuple[str, str, str], set[Any]] = {}
+        for component in selected:
+            if _component_kind(component) != "course":
+                continue
+            program, code = _identity(component)
+            identity_values.setdefault(
+                (_partition_key(component), program, code), set()
+            ).add(_stable_key(component.get("counted_credit_units")))
+        if any(len(values) > 1 for values in identity_values.values()):
+            consistent = False
     return tuple(selected), consistent
 
 
@@ -696,14 +737,24 @@ def aggregate_components(
     operation: str,
     *,
     evidence_complete: bool = True,
+    by_placement: bool = False,
 ) -> ComponentAggregation:
-    """Aggregate already-scoped components for one supported scalar operation."""
+    """Aggregate already-scoped components for one supported scalar operation.
+
+    ``by_placement`` only affects the sum path: distinct placements keep
+    separate entries so unresolved elective slots sharing a masked course
+    code each count toward required load.
+    """
     if operation not in AGGREGATION_OPERATIONS:
         raise ValueError(f"unsupported aggregation operation: {operation!r}")
     if not isinstance(evidence_complete, bool):
         raise ValueError("evidence_complete must be a boolean")
+    if not isinstance(by_placement, bool):
+        raise ValueError("by_placement must be boolean")
 
-    deduped, consistent = _dedup_scalar_components(components)
+    deduped, consistent = _dedup_scalar_components(
+        components, by_placement=by_placement
+    )
     if not evidence_complete or not consistent:
         return ComponentAggregation(
             operation, "insufficient_evidence", components=deduped
@@ -786,7 +837,10 @@ def aggregate_sum_credits(
     evidence_complete: bool = True,
 ) -> ComponentAggregation:
     return aggregate_components(
-        components, "sum_credits", evidence_complete=evidence_complete
+        components,
+        "sum_credits",
+        evidence_complete=evidence_complete,
+        by_placement=True,
     )
 
 
@@ -975,4 +1029,5 @@ __all__ = [
     "aggregate_required_load",
     "aggregate_sum_credits",
     "compare_aggregates",
+    "is_masked_course_code",
 ]

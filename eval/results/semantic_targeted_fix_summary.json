@@ -1,0 +1,60 @@
+{
+  "round": "semantic-targeted-fix",
+  "target_dataset": "eval/semantic_targeted_fix.json",
+  "targeted_dataset_size": 25,
+  "evaluated_count": 25,
+  "infrastructure_excluded_count": 0,
+  "gemini_semantic_request_count": 42,
+  "retry_count": 0,
+  "strict_gold_correct_count": 11,
+  "analytical_correct_count": 16,
+  "analytical_correct_percent": 64,
+  "wrong_factual_answer_count": 1,
+  "wrong_factual_answer_ids": ["H10"],
+  "false_failure_count": 6,
+  "false_failure_ids": ["M03", "M14a", "M14b", "H04", "H05", "H07"],
+  "presentation_only_error_count": 2,
+  "presentation_only_error_ids": ["E01", "E07"],
+  "correct_safe_failure_count": 2,
+  "correct_safe_failure_ids": ["E12", "H06"],
+  "structural_gap_failure_count": 3,
+  "structural_gap_ids": ["H04", "H05", "H07"],
+  "gold_or_lexical_false_negatives_reclassified": [
+    {"id": "E08", "reason": "Canonical identity, year, semester and both applicable plans preserved; gold substring was too literal."},
+    {"id": "M07", "reason": "Canonical course and placement term preserved; gold substring was too literal."},
+    {"id": "E23", "reason": "GENED was resolved through its canonical gened plan; gold over-required program scope in the intent."},
+    {"id": "M05", "reason": "Verified 18-credit aggregate; compatible relation=credits is accepted by K1 although gold expected null."},
+    {"id": "M04", "reason": "Canonical coop plan alias validated and scoped listing returned; previous gold expected safe failure."}
+  ],
+  "per_cluster": {
+    "K1": {"resolved": ["E14", "E15", "E22"], "remaining": ["M03", "M14a", "M14b"]},
+    "K2": {"resolved": ["E05", "E08", "M07", "T-E2i"], "remaining": ["E01", "E07"]},
+    "K3": {"resolved": ["E11"], "remaining": []},
+    "K4": {"resolved": ["M05"], "remaining": ["H10"]},
+    "K5": {"resolved": [], "remaining": ["H04", "H05", "H07"], "safe_data_limit": ["H06"]},
+    "K6_plan_alias": {"resolved": ["M04"], "no_coop_tested": false},
+    "K7_trace": {"focused_smoke_positive_for_success_safe_failure_validation_failure": true, "runner_rounds_sub_tick_trace_latency_to_zero": true}
+  },
+  "corrected_gold_ids": {
+    "E19": "pass",
+    "M03": "fail: target duplicates topic filter and does not resolve canonically",
+    "M08": "pass",
+    "E25": "pass"
+  },
+  "latency_ms": {
+    "system_median": 2250,
+    "system_p95": 2968,
+    "system_max": 21407
+  },
+  "execution_paths": {
+    "deterministic": 15,
+    "policy": 3,
+    "no_plan_or_early_failure": 7,
+    "sql": 0
+  },
+  "artifacts": [
+    "eval/results/semantic_targeted_fix.jsonl",
+    "eval/results/semantic_targeted_fix_summary.json",
+    "eval/results/semantic_targeted_fix_report.md"
+  ]
+}

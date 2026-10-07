@@ -231,6 +231,7 @@ class H21LiveGateTests(unittest.TestCase):
             DB_PATH,
             "IT ปี 3 มีวิชาไหน 3 หน่วยกิตบ้าง",
             intent_model_callable=_scripted_model(_payload(), calls=intent_calls),
+            conversation_context=QueryContext(program="IT", catalog_key="it-2565"),
         )
         self.assertEqual(intent_calls, [])
         self.assertEqual(response["result"].status, "insufficient_evidence")

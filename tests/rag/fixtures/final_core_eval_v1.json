@@ -386,14 +386,19 @@
           "question": "IT 06016414 ต้องผ่านวิชาอะไรก่อน"
         }
       ],
-      "expected_status": "valid_empty",
+      "expected_status": "answer",
       "claim_checks": [
+        {
+          "operation": "existence",
+          "status": "complete",
+          "value": true
+        },
         {
           "operation": "prerequisite",
           "status": "valid_empty"
         }
       ],
-      "final_contains": [],
+      "final_contains": ["ไม่มีวิชาบังคับก่อน"],
       "provenance_required": true,
       "budget": {
         "intent": 0,
@@ -617,7 +622,7 @@
           "status": "valid_empty"
         }
       ],
-      "final_contains": [],
+      "final_contains": ["ไม่มีวิชาบังคับก่อน"],
       "provenance_required": true,
       "budget": {
         "intent": 0,

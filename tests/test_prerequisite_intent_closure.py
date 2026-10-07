@@ -27,15 +27,15 @@ class PrerequisiteIntentClosureTests(unittest.TestCase):
             "วิชาใดบ้างที่มีวิชาบังคับก่อน",
         ):
             answer = harness._ask_with_stub_provider(question, context)
-            self.assertEqual(answer["status"], "answer")
+            self.assertEqual(answer["status"], "insufficient_evidence")
             self.assertEqual(answer["route"], "llm_sql")
-            self.assertIn("06046405", answer["answer"])
-            self.assertIn("06046406", answer["answer"])
-            self.assertIn("วิชาบังคับก่อน:", answer["answer"])
-            self.assertTrue(answer["provenance"])
+            self.assertEqual(answer["provenance"], [])
+            self.assertNotIn("06046405", answer["answer"])
+            self.assertNotIn("06046406", answer["answer"])
             context = answer["next_context"]
             self.assertNotIn("semantic_topic", context)
             self.assertNotIn("course_code", context)
+            self.assertNotIn("result_courses", context)
 
     def test_relationship_requests_do_not_call_hard_interpreter(self):
         for question in (
@@ -69,31 +69,39 @@ class PrerequisiteIntentClosureTests(unittest.TestCase):
                 self.assertIsNotNone(result)
                 provider.assert_called_once()
 
-    def test_canonical_relationship_list_has_prerequisites_and_neutral_scope(self):
+    def test_canonical_relationship_collection_fails_closed_on_unknown_candidates(self):
         context = QueryContext(program="AIT", catalog_key="ait-2566", plan="default")
         response = ask(DB, "วิชาใดบ้างที่มีวิชาบังคับก่อน บอกชื่อและรหัสวิชามา", conversation_context=context)
         result = response["result"]
-        self.assertEqual(result.status, "answer")
-        self.assertTrue(result.provenance)
-        self.assertIn("06046401", result.final_answer)
-        self.assertIn("06046400", result.final_answer)
-        self.assertIn("วิชาบังคับก่อน:", result.final_answer)
-        for text in ("default", "ปี 1/2/3/4", "อ้างอิง:"):
-            self.assertNotIn(text, result.final_answer)
+        self.assertEqual(result.status, "insufficient_evidence")
+        self.assertFalse(result.provenance)
+        self.assertTrue(
+            not result.claims
+            or all(
+                claim.operation == "list"
+                and claim.status == "insufficient_evidence"
+                and claim.value is None
+                for claim in result.claims
+            )
+        )
+        self.assertNotIn("06046401", result.final_answer)
+        self.assertNotIn("06046400", result.final_answer)
 
-    def test_plan_change_requeries_same_collection_in_new_scope(self):
+    def test_plan_change_collection_fails_closed_independently_in_each_scope(self):
         harness = api_tests.LlmSqlApiTests()
         harness.setUp()
         self.addCleanup(harness.tearDown)
         question = "วิชาใดบ้างที่มีวิชาบังคับก่อน"
         first = harness._ask_with_stub_provider(question, {"program": "IT", "catalog_key": "it-2565", "plan": "coop"})
-        self.assertEqual(first["status"], "answer")
+        self.assertEqual(first["status"], "insufficient_evidence")
+        self.assertEqual(first["provenance"], [])
+        self.assertNotIn("result_courses", first.get("next_context", {}))
         second = harness._ask_with_stub_provider(question, {"program": "IT", "catalog_key": "it-2565", "plan": "no_coop"})
-        self.assertEqual(second["status"], "answer")
-        self.assertTrue(second["provenance"])
+        self.assertEqual(second["status"], "insufficient_evidence")
+        self.assertEqual(second["provenance"], [])
         self.assertEqual(second["next_context"]["plan"], "no_coop")
-        self.assertIn("แผนไม่สหกิจ", second["answer"])
         self.assertNotIn("แผนสหกิจ", second["answer"])
+        self.assertNotIn("result_courses", second["next_context"])
 
     def test_sequence_presentation_preserves_status_and_separate_provenance(self):
         proposal = {"task_type": "prerequisite_sequence", "program": "AIT", "plan": "default", "left_plan": None,
