@@ -28,6 +28,36 @@ class SemanticPlan:
     needs_sql: bool = False
 
 
+@dataclass(frozen=True, slots=True)
+class MissingScopeRequirement:
+    dimension: str
+    program: str | None
+    operand: str
+
+
+def missing_comparison_plan(resolved: ResolvedIntent) -> MissingScopeRequirement | None:
+    """Preflight only the single-plan shape already required by _side_credits."""
+    comparison = resolved.intent.comparison
+    if (
+        resolved.needs_clarification
+        or resolved.intent.task != "compare"
+        or comparison is None
+        or comparison.measure != "credits"
+        or comparison.operation not in {"greater", "less", "equal", "difference"}
+        or len(resolved.comparison_sides) != 2
+        or any(side.unresolved for side in resolved.comparison_sides)
+    ):
+        return None
+    for label, side in zip(("left", "right"), resolved.comparison_sides):
+        if (
+            side.target.course_code is None
+            and (side.scope.years or side.scope.semesters)
+            and side.scope.plan is None
+        ):
+            return MissingScopeRequirement("plan", side.scope.program, label)
+    return None
+
+
 def _filters_are_simple(resolved: ResolvedIntent) -> bool:
     for item in resolved.intent.filters:
         if item.field not in _SIMPLE_FILTER_FIELDS:
@@ -121,6 +151,8 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
 
 
 __all__ = [
+    "MissingScopeRequirement",
+    "missing_comparison_plan",
     "EXECUTION_DETERMINISTIC",
     "EXECUTION_POLICY",
     "EXECUTION_SQL",

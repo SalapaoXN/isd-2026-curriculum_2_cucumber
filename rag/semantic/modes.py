@@ -47,6 +47,7 @@ def semantic_ask_response(
     question: str,
     conversation_context: dict[str, Any] | None,
     *,
+    home_program: str | None = None,
     interpret_callable: Callable[..., str] | None,
     answer_callable: Callable[..., str] | None = None,
     sql_callable: Callable[..., str] | None = None,
@@ -58,6 +59,7 @@ def semantic_ask_response(
         db_path,
         question,
         conversation_context if isinstance(conversation_context, dict) else None,
+        home_program=home_program,
         interpret_callable=interpret_callable,
         answer_callable=answer_callable,
         sql_callable=sql_callable,
@@ -72,6 +74,10 @@ def semantic_ask_response(
     action: str | None = None
     if status != "answer":
         action = "insufficient_evidence" if status == "insufficient_evidence" else status
+    summary = getattr(getattr(outcome, "trace", None), "verified_summary", {})
+    if status == "clarify_program" and summary.get("scope_dimension") in {"program", "catalog", "plan"}:
+        status = "clarification_required"
+        action = summary["scope_dimension"] + "_required"
     return {
         "question": question,
         "answer": result.final_answer,

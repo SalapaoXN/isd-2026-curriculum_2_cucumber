@@ -125,10 +125,27 @@ def merge_semantic_context(
 
     prior_program = prior.get("program")
     if (
-        program is not None
+        scope.program is not None
+        and program is not None
         and prior_program is not None
         and program.casefold() != prior_program.casefold()
     ):
+        # Only current-turn scope may cross a program boundary. Preserve
+        # explicit replacements, never dependent defaults from the old program.
+        for key, explicit in (
+            ("catalog_key", scope.catalog),
+            ("plan", scope.plan),
+            ("years", scope.year),
+            ("semesters", scope.semester),
+        ):
+            if explicit is None and key in prior:
+                invalidated.append(key)
+        catalog_key = scope.catalog.strip() if scope.catalog else None
+        plan = scope.plan.strip() if scope.plan else None
+        years = (scope.year,) if scope.year is not None else ()
+        semesters = (scope.semester,) if scope.semester is not None else ()
+        if result_scope_program is not None:
+            invalidated.append("result_scope_program")
         invalidated.extend(["focus_course", "result_courses", "result_set_empty"])
         focus_course = None
         result_courses = ()

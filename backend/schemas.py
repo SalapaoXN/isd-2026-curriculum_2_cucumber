@@ -2,12 +2,13 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictStr
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)
     conversation_context: dict[str, Any] | None = Field(default=None)
+    home_program: StrictStr | None = Field(default=None)
 
 
 class AskResponse(BaseModel):

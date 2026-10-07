@@ -11,6 +11,7 @@ from __future__ import annotations
 import sqlite3
 import re
 import time
+from copy import deepcopy
 from collections.abc import Callable
 from dataclasses import dataclass, replace as _replace_resolved
 from pathlib import Path
@@ -33,9 +34,12 @@ from rag.semantic.planner import (
     EXECUTION_DETERMINISTIC,
     EXECUTION_POLICY,
     EXECUTION_SQL,
+    missing_comparison_plan,
     plan_semantic_query,
 )
-from rag.semantic.resolver import resolve_semantic_intent
+from rag.semantic.resolver import (
+    canonical_catalog_key, canonical_program, resolve_semantic_intent, valid_plan,
+)
 from rag.semantic.schema import (
     LEGACY_STATUS_FOR_INTERNAL,
     ResolvedIntent,
@@ -332,11 +336,93 @@ def _next_context_for(
     return context or None
 
 
+def _scope_conflict(
+    question: str, reason: str, context: dict[str, Any] | None,
+) -> SemanticPipelineResult:
+    trace = SemanticTrace(question=question)
+    trace.failure_category = "EXPECTED_SAFE_FAILURE"
+    trace.failure_reason = reason
+    return SemanticPipelineResult(
+        result=GroundedAnswerResult(
+            status="context_conflict", answer_mode="deterministic", final_answer=reason,
+        ),
+        next_context=deepcopy(context), trace=trace,
+    )
+
+
+def _scope_clarification(
+    trace: SemanticTrace, dimension: str, program: str | None = None,
+    operand: str | None = None, *, started: float,
+) -> SemanticPipelineResult:
+    """Adapt a known scope failure using the existing clarification carrier."""
+    label = {"program": "หลักสูตร", "catalog": "ปีหลักสูตร/ฉบับหลักสูตร", "plan": "แผนการเรียน"}[dimension]
+    text = f"กรุณาระบุ{label}"
+    if program is not None:
+        text += f"ของ {program} ที่ต้องการ"
+    if operand is not None:
+        text += "ใช้ในการเปรียบเทียบฝั่ง" + ("ซ้าย" if operand == "left" else "ขวา")
+    outcome = _fail_closed(
+        trace, "EXPECTED_SAFE_FAILURE", text, "missing_scope", started=started,
+    )
+    trace.verified_summary.update({
+        "scope_dimension": dimension, "program": program, "operand": operand,
+    })
+    outcome.result = GroundedAnswerResult(
+        status="clarify_program", answer_mode="deterministic", final_answer=text,
+    )
+    return outcome
+
+
 def semantic_answer(
     db_path: str | Path,
     question: str,
     conversation_context: dict[str, Any] | None = None,
     *,
+    home_program: str | None = None,
+    interpret_callable: Callable[..., str] | None = None,
+    answer_callable: Callable[..., str] | None = None,
+    sql_callable: Callable[..., str] | None = None,
+    allow_hint_candidates: bool = False,
+) -> SemanticPipelineResult:
+    """Apply request scope policy without mixing comparisons into normal state."""
+    prior = deepcopy(conversation_context) if isinstance(conversation_context, dict) else None
+    home = None
+    normal = deepcopy(prior)
+    if home_program is not None:
+        home = canonical_program(db_path, home_program)
+        if home is None:
+            return _scope_conflict(question, "หลักสูตรประจำแชทไม่ตรงกับข้อมูลหลักสูตร", prior)
+        normal = normal or {}
+        raw_program = normal.get("program")
+        catalog = normal.get("catalog_key")
+        plan = normal.get("plan")
+        if (
+            (raw_program is not None and canonical_program(db_path, raw_program) != home)
+            or (catalog is not None and canonical_catalog_key(db_path, catalog, home) is None)
+            or (plan is not None and valid_plan(db_path, plan, home, catalog) is None)
+        ):
+            return _scope_conflict(question, "ขอบเขตการสนทนาไม่ตรงกับหลักสูตรประจำแชท", prior)
+        normal["program"] = home
+    outcome = _run_semantic_answer(
+        db_path, question, normal, home_program=home,
+        interpret_callable=interpret_callable, answer_callable=answer_callable,
+        sql_callable=sql_callable, allow_hint_candidates=allow_hint_candidates,
+    )
+    # Comparison operands/results are temporary, including on safe failure.
+    # Ordinary scoped failures must also leave the previous normal state intact.
+    if outcome.trace.semantic_intent.get("task") == "compare" or (
+        home is not None and outcome.result.status != "answer"
+    ):
+        outcome.next_context = deepcopy(normal)
+    return outcome
+
+
+def _run_semantic_answer(
+    db_path: str | Path,
+    question: str,
+    conversation_context: dict[str, Any] | None = None,
+    *,
+    home_program: str | None = None,
     interpret_callable: Callable[..., str] | None = None,
     answer_callable: Callable[..., str] | None = None,
     sql_callable: Callable[..., str] | None = None,
@@ -435,6 +521,25 @@ def semantic_answer(
             started=started,
         )
 
+    if home_program is not None and intent.task != "compare" and intent.scope.program is not None:
+        if canonical_program(db_path, intent.scope.program) != home_program:
+            outcome = _scope_conflict(
+                question,
+                f"แชทนี้กำหนดไว้สำหรับหลักสูตร {home_program} หากต้องการถาม "
+                f"{intent.scope.program} โดยตรง ให้ใช้แชทหลักสูตรนั้นหรือแชทที่ไม่ได้กำหนดหลักสูตร",
+                conversation_context,
+            )
+            outcome.trace = trace
+            trace.failure_category = "EXPECTED_SAFE_FAILURE"
+            trace.failure_reason = outcome.result.final_answer
+            return outcome
+
+    if intent.task == "unknown":
+        return _fail_closed(
+            trace, "EXPECTED_SAFE_FAILURE", "unsupported judgement or intent",
+            "unsupported", started=started,
+        )
+
     stage_started = time.monotonic()
     merged = merge_semantic_context(
         intent, conversation_context if isinstance(conversation_context, dict) else None
@@ -485,6 +590,12 @@ def semantic_answer(
     if resolved.needs_clarification:
         trace.timing = timing
         trace.llm_request_count = counts["llm"]
+        reason = resolved.clarification_reason
+        if reason in {"unknown program scope", "unknown catalog scope"}:
+            return _scope_clarification(
+                trace, "program" if reason == "unknown program scope" else "catalog",
+                canonical_program(db_path, merged.program), started=started,
+            )
         return _fail_closed(
             trace,
             "EXPECTED_SAFE_FAILURE",
@@ -494,6 +605,19 @@ def semantic_answer(
             else "missing_scope",
             started=started,
         )
+    if resolved.intent.comparison is not None:
+        for label, side, raw_side in zip(
+            ("left", "right"), resolved.comparison_sides,
+            (resolved.intent.comparison.left, resolved.intent.comparison.right),
+        ):
+            if side.unresolved and side.reason in {
+                "ambiguous operand catalog", "unknown operand catalog", "unknown operand program",
+            }:
+                dimension = "program" if side.reason == "unknown operand program" else "catalog"
+                program = canonical_program(
+                    db_path, dict(raw_side).get("program", resolved.scope.program),
+                )
+                return _scope_clarification(trace, dimension, program, label, started=started)
     if _is_ambiguous_edition_scope(db_path, resolved):
         # A multi-edition program without an authoritative catalog must not
         # aggregate across editions or silently pick one: fail closed exactly
@@ -501,11 +625,18 @@ def semantic_answer(
         # as missing scope since there is no interactive edition picker).
         trace.timing = timing
         trace.llm_request_count = counts["llm"]
-        return _fail_closed(
-            trace,
-            "EXPECTED_SAFE_FAILURE",
-            "program scope matches multiple editions without an authoritative catalog",
-            "missing_scope",
+        if resolved.intent.comparison is not None:
+            for label, side in zip(("left", "right"), resolved.comparison_sides):
+                if side.scope.catalog_key is None:
+                    return _scope_clarification(
+                        trace, "catalog", side.scope.program, label, started=started,
+                    )
+        return _scope_clarification(trace, "catalog", resolved.scope.program, started=started)
+
+    requirement = missing_comparison_plan(resolved)
+    if requirement is not None:
+        return _scope_clarification(
+            trace, requirement.dimension, requirement.program, requirement.operand,
             started=started,
         )
 
@@ -571,6 +702,8 @@ def semantic_answer(
         category = verified.failure_category
         if category == "NONE":
             category = "EXPECTED_SAFE_FAILURE"
+        if verified.status == "missing_scope" and "resolution: clarify_program" in verified.missing_information:
+            return _scope_clarification(trace, "program", started=started)
         return _fail_closed(
             trace,
             category,

@@ -601,6 +601,7 @@ def _semantic_route_response(request: AskRequest) -> dict:
             db_path,
             request.question,
             context,
+            home_program=request.home_program,
             interpret_callable=providers["interpret_callable"],
             answer_callable=providers["answer_callable"],
             sql_callable=providers["sql_callable"],
@@ -648,6 +649,19 @@ def ask(request: AskRequest) -> dict:
     qa_mode = active_qa_mode()
     if qa_mode == QA_MODE_SEMANTIC:
         return _semantic_route_response(request)
+    if request.home_program is not None:
+        # Legacy and shadow modes cannot enforce pinned chat scope. Do not
+        # silently discard the explicit request policy or claim it is active.
+        return {
+            "question": request.question,
+            "answer": "การกำหนดหลักสูตรประจำแชตรองรับเฉพาะโหมด semantic",
+            "status": "unsupported",
+            "action": "unsupported",
+            "route": qa_mode,
+            "provenance": [],
+            "next_context": None,
+            "comparison": None,
+        }
     if qa_mode == QA_MODE_SHADOW:
         # Shadow runs beside legacy output through internal logging only.
         _capture_shadow_semantic(request)

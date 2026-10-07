@@ -80,6 +80,18 @@ def canonical_catalog_key(
                 "SELECT catalog_key FROM catalogs WHERE lower(trim(catalog_key)) = ?",
                 (raw.strip().casefold(),),
             ).fetchall()
+            if rows and program is not None:
+                rows = connection.execute(
+                    """SELECT DISTINCT c.catalog_key FROM catalogs c
+                       JOIN programs p ON p.catalog_id = c.catalog_id
+                       WHERE lower(trim(c.catalog_key)) = ?
+                         AND lower(trim(p.program_code)) = ?""",
+                    (raw.strip().casefold(), program.strip().casefold()),
+                ).fetchall()
+                # An exact key with incompatible ownership must not fall
+                # back to academic-year interpretation.
+                if not rows:
+                    return None
             if not rows and raw.strip().isdigit() and program is not None:
                 rows = connection.execute(
                     """SELECT DISTINCT c.catalog_key FROM catalogs c
@@ -112,10 +124,14 @@ def valid_plan(
             if catalog_key is not None:
                 rows = connection.execute(
                     """SELECT cp.plan_key FROM curriculum_plans cp
-                       JOIN catalogs c ON c.catalog_id = cp.catalog_id
-                       WHERE lower(trim(c.catalog_key)) = ?
-                         AND lower(trim(cp.plan_key)) = ?""",
-                    (catalog_key.strip().casefold(), plan.strip().casefold()),
+                    JOIN catalogs c ON c.catalog_id = cp.catalog_id
+                    JOIN programs p ON p.program_id = cp.program_id
+                                   AND p.catalog_id = cp.catalog_id
+                    WHERE lower(trim(c.catalog_key)) = ?
+                          AND lower(trim(cp.plan_key)) = ?
+                          AND (? IS NULL OR lower(trim(p.program_code)) = ?)""",
+                    (catalog_key.strip().casefold(), plan.strip().casefold(),
+                     program, program.strip().casefold() if program is not None else None),
                 ).fetchall()
             elif program is not None:
                 rows = connection.execute(
@@ -218,17 +234,39 @@ def resolve_comparison_operand(
     program = canonical_program(db_path, fields.get("program", default_program))
     if fields.get("program", default_program) is not None and program is None:
         return ResolvedOperand(unresolved=True, reason="unknown operand program")
+    catalog_raw = fields.get("catalog")
+    if "catalog" not in fields and default_catalog_key is not None:
+        # Common catalog is a default only when this side owns it. An
+        # explicit incompatible catalog remains an error below.
+        catalog_raw = canonical_catalog_key(db_path, default_catalog_key, program)
     catalog_key = (
             canonical_catalog_key(
                 db_path,
-                fields.get("catalog", default_catalog_key),
+                catalog_raw,
                 program,
             )
-        if (fields.get("catalog", default_catalog_key) is not None)
+        if catalog_raw is not None
         else None
     )
-    if fields.get("catalog", default_catalog_key) is not None and catalog_key is None:
+    if catalog_raw is not None and catalog_key is None:
         return ResolvedOperand(unresolved=True, reason="unknown operand catalog")
+    common_program = canonical_program(db_path, default_program)
+    if program is not None and program != common_program and catalog_key is None:
+        try:
+            connection = _connect_ro(db_path)
+            try:
+                catalogs = connection.execute(
+                    """SELECT DISTINCT c.catalog_key FROM catalogs c
+                       JOIN programs p ON p.catalog_id = c.catalog_id
+                       WHERE lower(trim(p.program_code)) = ?""",
+                    (program.casefold(),),
+                ).fetchall()
+            finally:
+                connection.close()
+        except sqlite3.Error:
+            return ResolvedOperand(unresolved=True, reason="operand catalog lookup failed")
+        if len(catalogs) > 1:
+            return ResolvedOperand(unresolved=True, reason="ambiguous operand catalog")
     raw_plan = fields.get("plan")
     plan_hint = fields.get("plan_hint")
     if plan_hint is not None and raw_plan is None:
