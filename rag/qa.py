@@ -2118,6 +2118,28 @@ def _claim_for_prerequisite_operation(
     records = _payload_records(result)
     if records is None:
         return _claim(operation, result, status="insufficient_evidence")
+    if (
+        result.status == "valid_empty"
+        and result.primitive_state == "explicit_none"
+        and not result.planned_request.positive_prerequisite_collection
+    ):
+        provenance = _provenance_from_records(records)
+        if (
+            not records
+            or not provenance
+            or any(
+                record.get("prerequisite_state") != "explicit_none"
+                for record in records
+            )
+        ):
+            return _claim(operation, result, status="insufficient_evidence")
+        return _claim(
+            operation,
+            result,
+            value=records,
+            evidence=records,
+            provenance=provenance,
+        )
     return _claim(
         operation,
         result,
@@ -2211,6 +2233,12 @@ def _consensus_prerequisite_grounded_answer(
 ) -> Any | None:
     """Answer only unanimous, program-free exact prerequisite references."""
     if spec.operations != ("prerequisite",):
+        return None
+    # A literal course title is an exact entity reference, not permission to
+    # answer from whichever program happens to share that title. Keep the
+    # program clarification produced by canonical resolution when scope is
+    # absent; consensus across curricula would silently choose factual scope.
+    if getattr(spec, "course_name", None) is not None:
         return None
     if getattr(spec, "program", None) is not None:
         return None
@@ -2867,6 +2895,74 @@ def _resolved_logical_targets(outcome: ResolutionOutcome) -> set[tuple[str, str]
     return targets
 
 
+def _exact_no_prerequisite_existence_claim(
+    query_spec: Any,
+    resolution: ResolutionOutcome,
+    bundle: EvidenceBundle,
+) -> GroundedClaim | None:
+    """Pair exact-course identity with a verified explicit-none prerequisite fact.
+
+    ``valid_empty`` remains the correct status for the prerequisite fact itself.
+    For an exact course lookup, a canonical identity claim also establishes that
+    the current question has a complete answer; this must never run for a
+    prerequisite collection or an unknown prerequisite state.
+    """
+    if (
+        tuple(getattr(query_spec, "operations", ())) != ("prerequisite",)
+        or not (
+            tuple(getattr(query_spec, "course_codes", ()))
+            or getattr(query_spec, "course_name", None) is not None
+        )
+        or resolution.action != "answer"
+    ):
+        return None
+    prerequisite_results = _execution_results(bundle, "prerequisite_facts")
+    if not prerequisite_results or any(
+        result.planned_request.positive_prerequisite_collection
+        or result.status != "valid_empty"
+        or result.primitive_state != "explicit_none"
+        for result in prerequisite_results
+    ):
+        return None
+    for result in prerequisite_results:
+        records = _payload_records(result)
+        if not records or any(
+            record.get("prerequisite_state") != "explicit_none"
+            or not _provenance_from_records((record,))
+            for record in records
+        ):
+            return None
+
+    resolved_targets = _resolved_logical_targets(resolution)
+    if len(resolved_targets) != 1:
+        return None
+    identity_result = _identity_result(resolution)
+    identity_answer = compose_grounded_answer(identity_result=identity_result)
+    if identity_answer.status != "answer" or len(identity_answer.claims) != 1:
+        return None
+    identity_claim = identity_answer.claims[0]
+    identity_targets = {
+        key
+        for key in (
+            _logical_target_key(identity)
+            for identity in identity_claim.value
+            if isinstance(identity, Mapping)
+        )
+        if key is not None
+    }
+    if identity_targets != resolved_targets or not identity_claim.provenance:
+        return None
+    return GroundedClaim(
+        claim_id="pending",
+        operation="existence",
+        status="complete",
+        kind="deterministic_fact",
+        value=True,
+        evidence=identity_claim.evidence,
+        provenance=identity_claim.provenance,
+    )
+
+
 def _select_similarity_request_ids(
     plan: Any,
     outcome: ResolutionOutcome,
@@ -2913,6 +3009,7 @@ def _compose_evidence_claims(
     query_spec: Any,
     bundle: EvidenceBundle,
     *,
+    resolution: ResolutionOutcome | None = None,
     similarity_evidence: SimilarityEvidence | None = None,
     similarity_request_ids: tuple[str, str] | None = None,
     selected_plan: str | None = None,
@@ -3108,6 +3205,15 @@ def _compose_evidence_claims(
                     selected_plan=selected_plan,
                 )
             )
+
+    if resolution is not None:
+        existence_claim = _exact_no_prerequisite_existence_claim(
+            query_spec,
+            resolution,
+            bundle,
+        )
+        if existence_claim is not None:
+            claims.insert(0, existence_claim)
 
     numbered: list[GroundedClaim] = []
     for index, claim in enumerate(claims, start=1):
@@ -3448,6 +3554,18 @@ def ask(
         if conversation_mode and catalog_key is not None
         else None if conversation_mode else context
     )
+    if getattr(spec, "judgement", None) == "unsupported":
+        unsupported_resolution = resolve_query_spec(
+            spec,
+            db_path,
+            context=resolution_context,
+        )
+        if unsupported_resolution.action == "unsupported":
+            return {
+                "route": None,
+                "result": _blocked_result(unsupported_resolution),
+            }
+
     structural_interpreted = False
     if (
         not shadow_intent
@@ -3548,11 +3666,7 @@ def ask(
         # into broad program-wide retrieval with a confident dump.
         return _intent_failure_result(question)
 
-    resolution = resolve_query_spec(
-        spec,
-        db_path,
-        context=resolution_context,
-    )
+    resolution = resolve_query_spec(spec, db_path, context=resolution_context)
     completeness = _classify_structured_parse_completeness(
         spec,
         resolution,
@@ -4251,6 +4365,7 @@ def ask(
     claims = _compose_evidence_claims(
         spec,
         bundle,
+        resolution=resolution,
         similarity_evidence=similarity_evidence,
         similarity_request_ids=similarity_request_ids,
         selected_plan=selected_plan,

@@ -359,6 +359,9 @@ def interpret_semantic_intent(
     model_callable: Callable[..., str],
     *,
     prompt_version: str = SEMANTIC_INTERPRETER_PROMPT_VERSION,
+    canonical_program_codes: tuple[str, ...] = (),
+    canonical_category_labels: tuple[str, ...] = (),
+    canonical_plan_keys: tuple[str, ...] = (),
 ) -> tuple[SemanticIntent, str]:
     """Run one interpretation call; return (intent, prompt_version used)."""
     if not isinstance(question, str) or not question.strip():
@@ -366,7 +369,12 @@ def interpret_semantic_intent(
     if not callable(model_callable):
         raise TypeError("model_callable must be callable")
     _ = prompt_version
-    prompt = build_semantic_interpreter_prompt(question)
+    prompt = build_semantic_interpreter_prompt(
+        question,
+        canonical_program_codes=canonical_program_codes,
+        canonical_category_labels=canonical_category_labels,
+        canonical_plan_keys=canonical_plan_keys,
+    )
     output = model_callable(prompt)
     if not isinstance(output, str):
         raise TypeError("model output must be a string")

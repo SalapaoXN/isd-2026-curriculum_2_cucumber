@@ -475,18 +475,21 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
         )
         self.assertNotIn("PA101", repr(claims[0].value))
 
-    def test_positive_collection_uses_only_confirmed_required_courses(self):
-        required = {
-            **self._normal_course(101, "06016420", 10),
-            "prerequisite_state": "required",
-            "prerequisite_collection_incomplete": False,
-            "prerequisites": ({"course_code": "P101"},),
-        }
+    def test_positive_collection_all_known_required_courses_answers_complete(self):
         courses = (
             self._normal_course(101, "06016420", 10),
             self._normal_course(102, "06016421", 11),
         )
-        bundle = self._positive_collection_bundle(courses, (required,))
+        required_courses = tuple(
+            {
+                **course,
+                "prerequisite_state": "required",
+                "prerequisite_collection_incomplete": False,
+                "prerequisites": ({"course_code": f"P{course['course_id']}"},),
+            }
+            for course in courses
+        )
+        bundle = self._positive_collection_bundle(courses, required_courses)
         claims = _compose_evidence_claims(
             self._spec(operations=("list", "prerequisite")), bundle
         )
@@ -494,19 +497,24 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
         self.assertEqual(len(claims), 1)
         self.assertEqual(claims[0].status, "complete")
         self.assertEqual(
-            [course["course_code"] for course in claims[0].value], ["06016420"]
+            [course["course_code"] for course in claims[0].value],
+            ["06016420", "06016421"],
         )
-        self.assertNotIn("06016421", repr(claims[0].value))
         self.assertTrue(claims[0].provenance)
 
         retained, _ = _retained_from_claims(claims, "IT", "it-2565")
         self.assertEqual(
-            tuple(item["course_code"] for item in retained), ("06016420",)
+            tuple(item["course_code"] for item in retained),
+            ("06016420", "06016421"),
         )
         self.assertEqual(
-            _resolve_ordinal(1, retained), {"course_code": "06016420"}
+            _resolve_ordinal(1, retained),
+            {"course_code": "06016420"},
         )
-        self.assertIsNone(_resolve_ordinal(2, retained))
+        self.assertEqual(
+            _resolve_ordinal(2, retained),
+            {"course_code": "06016421"},
+        )
 
     def test_positive_collection_all_known_none_is_valid_empty(self):
         courses = (

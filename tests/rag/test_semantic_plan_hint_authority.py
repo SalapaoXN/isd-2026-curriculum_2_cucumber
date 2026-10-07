@@ -10,6 +10,8 @@ from rag.semantic.context import merge_semantic_context
 from rag.semantic.executor import execute_comparison
 from rag.semantic.interpreter import parse_semantic_intent_payload
 from rag.semantic.pipeline import semantic_answer
+from rag.semantic.pipeline import _canonical_plan_key_candidates
+from rag.semantic.prompts import build_semantic_interpreter_prompt
 from rag.semantic.resolver import resolve_comparison_operand, resolve_semantic_intent
 from rag.semantic.validation import validate_semantic_intent
 
@@ -200,6 +202,22 @@ class PlanHintAuthorityTests(unittest.TestCase):
         )
         self.assertNotIn("ทั้งสองวิชา", response.result.final_answer)
 
+    def test_plan_key_candidates_are_read_from_the_current_program_edition(self):
+        question = "IT แผนสหกิจกับแผนปกติ ปี 3 เทอม 1 อันไหนหน่วยกิตเยอะกว่า"
+        candidates = _canonical_plan_key_candidates(
+            DB_PATH,
+            question,
+            {"program": "IT", "catalog_key": "it-2565"},
+            ("IT",),
+        )
+        self.assertEqual(set(candidates), {"coop", "no_coop"})
+        prompt = build_semantic_interpreter_prompt(
+            question, canonical_plan_keys=candidates
+        )
+        self.assertIn("CANONICAL PLAN-KEY CANDIDATES", prompt)
+        self.assertIn("coop, no_coop", prompt)
+        self.assertIn("plan_hint", prompt)
+
     def test_comparison_side_scope_precedence_and_identity_isolation(self):
         left = resolve_comparison_operand(
             DB_PATH,
@@ -287,6 +305,16 @@ class PlanHintAuthorityTests(unittest.TestCase):
             DB_PATH, intent.comparison.left, "DSBA", "dsba-2565"
         )
         self.assertFalse(unresolved.unresolved)
+
+    def test_comparison_hint_not_valid_in_canonical_scope_fails_closed(self):
+        unresolved = resolve_comparison_operand(
+            DB_PATH,
+            (("plan", "grounded everyday plan phrase"), ("plan_hint", "not-a-plan")),
+            "IT",
+            "it-2565",
+        )
+        self.assertTrue(unresolved.unresolved)
+        self.assertEqual(unresolved.reason, "unknown operand plan")
 
     def test_already_canonical_raw_plan_remains_supported(self):
         question = "DSBA dsba-2565 coop"

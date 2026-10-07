@@ -8,6 +8,8 @@ wrong answer is never preferable to a safe failure.
 
 from __future__ import annotations
 
+import sqlite3
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, replace as _replace_resolved
@@ -49,6 +51,141 @@ class SemanticPipelineResult:
     result: GroundedAnswerResult
     next_context: dict[str, Any] | None
     trace: SemanticTrace
+
+
+def _canonical_program_code_candidates(db_path: str | Path) -> tuple[str, ...]:
+    """Read current canonical program codes for interpreter role disambiguation.
+
+    These are bounded scope candidates only. The resolver still validates any
+    candidate selected from the current user question.
+    """
+    try:
+        uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
+        connection = sqlite3.connect(uri, uri=True)
+        try:
+            rows = connection.execute(
+                """SELECT DISTINCT trim(program_code) AS program_code
+                   FROM programs
+                   WHERE program_code IS NOT NULL AND trim(program_code) != ''
+                   ORDER BY lower(trim(program_code)), trim(program_code)"""
+            ).fetchall()
+        finally:
+            connection.close()
+    except (OSError, sqlite3.Error, TypeError, ValueError):
+        return ()
+    return tuple(
+        row[0]
+        for row in rows
+        if isinstance(row[0], str) and row[0].strip()
+    )
+
+
+def _canonical_placement_category_candidates(db_path: str | Path) -> tuple[str, ...]:
+    """Read canonical placement category labels as bounded filter vocabulary."""
+    try:
+        uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
+        connection = sqlite3.connect(uri, uri=True)
+        try:
+            rows = connection.execute(
+                """SELECT DISTINCT trim(category) AS category
+                   FROM plan_placements
+                   WHERE category IS NOT NULL AND trim(category) != ''
+                   ORDER BY lower(trim(category)), trim(category)"""
+            ).fetchall()
+        finally:
+            connection.close()
+    except (OSError, sqlite3.Error, TypeError, ValueError):
+        return ()
+    return tuple(
+        row[0] for row in rows if isinstance(row[0], str) and row[0].strip()
+    )
+
+
+def _canonical_plan_key_candidates(
+    db_path: str | Path,
+    question: str,
+    conversation_context: dict[str, Any] | None,
+    program_codes: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Read plan keys for current-turn program mentions/validated context only."""
+    selected_programs = [
+        code
+        for code in program_codes
+        if re.search(
+            r"(?<![A-Za-z0-9_])" + re.escape(code) + r"(?![A-Za-z0-9_])",
+            question,
+            re.IGNORECASE,
+        )
+    ]
+    context_program = (
+        conversation_context.get("program")
+        if isinstance(conversation_context, dict)
+        else None
+    )
+    context_catalog = (
+        conversation_context.get("catalog_key")
+        if isinstance(conversation_context, dict)
+        else None
+    )
+    if isinstance(context_program, str) and context_program.strip():
+        if not any(
+            code.casefold() == context_program.strip().casefold()
+            for code in selected_programs
+        ):
+            selected_programs.append(context_program.strip())
+    if not selected_programs and not (
+        isinstance(context_catalog, str) and context_catalog.strip()
+    ):
+        return ()
+
+    plan_keys: list[str] = []
+    try:
+        uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
+        connection = sqlite3.connect(uri, uri=True)
+        try:
+            for program in selected_programs:
+                catalog_filter = ""
+                parameters: list[str] = [program]
+                if (
+                    isinstance(context_program, str)
+                    and context_program.strip().casefold() == program.strip().casefold()
+                    and isinstance(context_catalog, str)
+                    and context_catalog.strip()
+                ):
+                    catalog_filter = " AND lower(trim(c.catalog_key)) = ?"
+                    parameters.append(context_catalog.strip())
+                rows = connection.execute(
+                    """SELECT DISTINCT trim(cp.plan_key) AS plan_key
+                       FROM curriculum_plans cp
+                       JOIN programs p ON p.program_id = cp.program_id
+                       JOIN catalogs c ON c.catalog_id = cp.catalog_id
+                       WHERE lower(trim(p.program_code)) = lower(trim(?))"""
+                    + catalog_filter
+                    + " ORDER BY lower(trim(cp.plan_key)), trim(cp.plan_key)",
+                    tuple(parameters),
+                ).fetchall()
+                for row in rows:
+                    value = row[0]
+                    if isinstance(value, str) and value.strip() and value not in plan_keys:
+                        plan_keys.append(value.strip())
+            if not selected_programs and isinstance(context_catalog, str):
+                rows = connection.execute(
+                    """SELECT DISTINCT trim(cp.plan_key) AS plan_key
+                       FROM curriculum_plans cp
+                       JOIN catalogs c ON c.catalog_id = cp.catalog_id
+                       WHERE lower(trim(c.catalog_key)) = lower(trim(?))
+                       ORDER BY lower(trim(cp.plan_key)), trim(cp.plan_key)""",
+                    (context_catalog.strip(),),
+                ).fetchall()
+                for row in rows:
+                    value = row[0]
+                    if isinstance(value, str) and value.strip() and value not in plan_keys:
+                        plan_keys.append(value.strip())
+        finally:
+            connection.close()
+    except (OSError, sqlite3.Error, TypeError, ValueError):
+        return ()
+    return tuple(plan_keys)
 
 
 def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
@@ -247,7 +384,19 @@ def semantic_answer(
 
     stage_started = time.monotonic()
     try:
-        intent, _ = interpret_semantic_intent(question, interpret)
+        program_codes = _canonical_program_code_candidates(db_path)
+        intent, _ = interpret_semantic_intent(
+            question,
+            interpret,
+            canonical_program_codes=program_codes,
+            canonical_category_labels=_canonical_placement_category_candidates(db_path),
+            canonical_plan_keys=_canonical_plan_key_candidates(
+                db_path,
+                question,
+                conversation_context if isinstance(conversation_context, dict) else None,
+                program_codes,
+            ),
+        )
     except SemanticSchemaError as error:
         timing.interpreter_ms = (time.monotonic() - stage_started) * 1000.0
         trace.timing = timing

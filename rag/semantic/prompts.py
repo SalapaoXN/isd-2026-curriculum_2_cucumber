@@ -11,7 +11,7 @@ from __future__ import annotations
 from rag.semantic.schema import VerifiedNumericComparison
 
 
-SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v2"
+SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v7"
 ANSWERER_PROMPT_VERSION = "semantic-answerer/v1"
 
 
@@ -51,6 +51,8 @@ _INTERPRETER_SCHEMA = """Schema (all keys required; use null where absent):
 }
 Rules: scope/target raw_text must be exact substrings of the CURRENT question; never invent program, catalog, plan, year, semester, course code, credits, or policy thresholds. A nickname spelling proposal goes in normalized_hint only, never as canonical identity. Subjective judgement ("is this course good") is task unknown with clarification set.
 Explicit scope may appear at the beginning, middle, or end of the question, including compact student phrasing. A leading program token (a program code written before the course title or the rest of the question) is scope exactly the same way as a program mention elsewhere in the sentence: extract it as a scope mention whenever it is explicitly present in the CURRENT TURN. Do NOT infer a program when none was written.
+Disambiguate a program identifier from a course-group/category label by syntactic role, with this precedence: (1) an identifier immediately following "หลักสูตร" is scope.program; (2) a leading standalone curriculum/program identifier before a general course-list request is scope.program, even if that identifier can also name a course group; do not reinterpret it as topic/category without an explicit group marker; (3) when a different program is named and a separate course-group label qualifies the requested courses (for example, a group mentioned after "วิชา" or "หมวด"), keep the named program in scope.program and represent the group as category + eq. For the canonical general-education group, use the placement category label "หมวดวิชาศึกษาทั่วไป". In an elliptical follow-up that names only a course group, leave scope.program absent so validated prior program context remains in force; do not switch scope to the group label. A topic filter requires an explicit relation such as "เกี่ยวกับ"/"related to"; a bare program or group label before a course-list request is not a topic.
+Role tie-breaker: a leading uppercase acronym/code immediately followed by a general course-list request is a scope.program candidate and must not be used as category/topic merely because it can name a course group. The canonical resolver validates the candidate; if its role is uncertain, fail closed instead of turning it into a filter. A group label after a separate program scope or in a course-group modifier position remains category.
 Course-topic discovery: when the student asks for a collection of courses related to a topic or concept (for example, a request structurally equivalent to “courses related to X”), use task "list", subject "course", target.kind "none", and one filter {field:"topic", operator:"related_to", value: the exact topic phrase X}. Topic text is a discovery constraint, not an exact course identity: do not put it in target.literal, and do not use topic + contains for this supported discovery shape. Preserve any explicitly stated program/catalog/plan/year/semester only in scope.
 Exact-course distinction: when the student identifies a course and asks for a property such as credits, placement, or prerequisites, use the appropriate lookup relation and the grounded exact course target; do not convert that entity lookup into a topic search merely because the title contains topical words.
 The current filter contract does not support combining topic discovery with a has_prerequisite filter. If the student requires both constraints, do not drop either one or answer a broader query: return task "unknown" with a concise clarification that this combined filter request is unsupported.
@@ -82,14 +84,76 @@ Q: "BIT มีกี่หน่วยกิต"
 A: {"task":"lookup","subject":"program","relation":"credits","target":{"kind":"none","raw_text":null,"normalized_hint":null,"ordinal":null},"scope":{"program":"BIT","catalog":null,"plan":null,"year":null,"semester":null},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["credits"],"clarification":null,"policy_topic":null,"observed_value":null}"""
 
 
-def build_semantic_interpreter_prompt(question: str) -> str:
+def build_semantic_interpreter_prompt(
+    question: str,
+    *,
+    canonical_program_codes: tuple[str, ...] = (),
+    canonical_category_labels: tuple[str, ...] = (),
+    canonical_plan_keys: tuple[str, ...] = (),
+) -> str:
     """Build the versioned interpreter prompt for one user question."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
+    program_codes = tuple(
+        dict.fromkeys(
+            code.strip()
+            for code in canonical_program_codes
+            if isinstance(code, str) and code.strip()
+        )
+    )
+    program_code_block = (
+        "CANONICAL PROGRAM-CODE CANDIDATES (scope hints only; the resolver "
+        "validates them): "
+        + ", ".join(program_codes)
+        + ". Copy a candidate into scope.program only when that exact code is "
+        "mentioned in the CURRENT question. A leading matching code in a "
+        "course-list request is program scope, not a topic/category filter."
+        if program_codes
+        else ""
+    )
+    category_labels = tuple(
+        dict.fromkeys(
+            label.strip()
+            for label in canonical_category_labels
+            if isinstance(label, str) and label.strip()
+        )
+    )
+    category_label_block = (
+        "CANONICAL PLACEMENT CATEGORY LABELS (filter values only; do not use "
+        "these as program identities): "
+        + ", ".join(category_labels)
+        + ". When a category filter is appropriate, copy its exact canonical "
+        "label from this list; never paraphrase or invent a category value."
+        if category_labels
+        else ""
+    )
+    plan_keys = tuple(
+        dict.fromkeys(
+            key.strip()
+            for key in canonical_plan_keys
+            if isinstance(key, str) and key.strip()
+        )
+    )
+    plan_key_block = (
+        "CANONICAL PLAN-KEY CANDIDATES FOR THE CURRENT PROGRAM/EDITION "
+        "(normalization suggestions only; the resolver validates them): "
+        + ", ".join(plan_keys)
+        + ". For each grounded plan mention, preserve the exact user wording "
+        "in plan and, when its meaning clearly matches one listed key, propose "
+        "that key in plan_hint on that same scope or comparison side. For "
+        "example, raw wording such as 'แผนสหกิจ' may propose coop, and 'แผนปกติ' "
+        "may propose no_coop, only when those keys are listed and the meaning "
+        "is clear. Never emit a plan_hint without a grounded raw plan."
+        if plan_keys
+        else ""
+    )
     return "\n".join(
         (
             _INTERPRETER_PREAMBLE,
             _INTERPRETER_SCHEMA,
+            program_code_block,
+            category_label_block,
+            plan_key_block,
             _SCOPED_CREDIT_PRECEDENCE,
             _INTERPRETER_EXAMPLES,
             "USER QUESTION:",

@@ -144,12 +144,13 @@ class NLFlexPublicPathTests(unittest.TestCase):
             ),
         )["result"]
 
-        self.assertEqual(response.status, "answer")
-        self.assertTrue(response.claims)
-        self.assertTrue(any(claim.provenance for claim in response.claims))
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(response["status"], "clarify_catalog")
+        self.assertEqual(response["action"], "clarify_catalog")
+        self.assertEqual(response["catalog_keys"], ["dsba-2560", "dsba-2565"])
+        self.assertEqual(calls, [])
 
     def test_invalid_proposal_and_provider_failure_fail_closed(self):
+        context = QueryContext(program="AIT", catalog_key="ait-2566")
         for model, expected_calls in (
             (lambda _prompt: '{"operations":["list"]}', 1),
             (lambda _prompt: (_ for _ in ()).throw(RuntimeError("provider")), 1),
@@ -162,8 +163,8 @@ class NLFlexPublicPathTests(unittest.TestCase):
 
             result = ask(
                 DB_PATH,
-                "ปีไหนเรียน Calculus 2 ใน DSBA",
-                context=QueryContext(program="DSBA", catalog_key="dsba-2565"),
+                "Calculus 2 หนักกี่เครดิต",
+                context=context,
                 intent_model_callable=counted,
             )["result"]
             status = result.get("status") if isinstance(result, dict) else result.status
@@ -173,10 +174,10 @@ class NLFlexPublicPathTests(unittest.TestCase):
     def test_student_exact_course_phrasing_matrix_uses_canonical_answers(self):
         cases = (
             ("ใน DSBA Calculus 2 รหัสอะไร", "identity", "answer", 1),
-            ("Calculus 2 ของ DSBA รหัสวิชาอะไร", "identity", "answer", 1),
-            ("ปีไหนเรียน Calculus 2 ใน DSBA", "placement", "answer", 1),
+            ("Calculus 2 ของ DSBA รหัสวิชาอะไร", "identity", "answer", 0),
+            ("ปีไหนเรียน Calculus 2 ใน DSBA", "placement", "answer", 0),
             ("Calculus 2 ใน DSBA กี่หน่วยกิต", "sum_credits", "answer", 0),
-            ("Calculus 2 ต้องผ่านอะไรบ้าง", "prerequisite", "clarify_program", 1),
+            ("Calculus 2 ต้องผ่านอะไรบ้าง", "prerequisite", "clarify_program", 0),
         )
         for question, operation, expected_status, expected_calls in cases:
             with self.subTest(question=question):
@@ -349,9 +350,9 @@ class NL2PreGuardRecoveryTests(unittest.TestCase):
             (["placement"], None, "Calculus 2"),
         )
         status = self._status(result)
-        self.assertEqual(status, "insufficient_evidence")
+        self.assertEqual(status, "clarify_catalog")
         self.assertEqual(calls, [])
-        self.assertEqual(tuple(result.provenance), ())
+        self.assertEqual(result["catalog_keys"], ["dsba-2560", "dsba-2565"])
 
     def test_e_operation_conflict_fails_closed_without_execution(self):
         """Deterministic sum_credits must not become a placement answer."""
@@ -471,10 +472,9 @@ class NL2PreGuardRecoveryTests(unittest.TestCase):
             (["placement"], None, "Calculus 2"),
         )
         status = self._status(result)
-        self.assertEqual(status, "insufficient_evidence")
+        self.assertEqual(status, "clarify_catalog")
         self.assertEqual(calls, [])
-        self.assertEqual(tuple(result.claims), ())
-        self.assertEqual(tuple(result.provenance), ())
+        self.assertEqual(result["action"], "clarify_catalog")
 
     def test_n_model_cannot_widen_factual_scope(self):
         """The query-structure schema admits no program/scope fields."""

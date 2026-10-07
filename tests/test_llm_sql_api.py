@@ -71,7 +71,7 @@ class LlmSqlApiTests(unittest.TestCase):
                 self.assertEqual(malformed["status"], "unsupported")
                 self.assertEqual(malformed["provenance"], [])
 
-    def test_prior_relationship_result_set_does_not_block_current_hard_sequence(self):
+    def test_incomplete_relationship_collection_does_not_publish_result_set_to_hard_sequence(self):
         context = {"program": "AIT", "catalog_key": "ait-2566", "plan": "default"}
         hard_intent = {
             "task_type": "prerequisite_sequence",
@@ -96,10 +96,10 @@ class LlmSqlApiTests(unittest.TestCase):
         relationship = self._ask_with_stub_provider(
             "วิชาใดบ้างที่มีวิชาบังคับก่อน บอกชื่อและรหัสวิชามา", context
         )
-        self.assertEqual(relationship["status"], "answer")
+        self.assertEqual(relationship["status"], "insufficient_evidence")
         self.assertEqual(relationship["route"], "llm_sql")
-        self.assertTrue(relationship["provenance"])
-        self.assertTrue(relationship["next_context"]["result_courses"])
+        self.assertEqual(relationship["provenance"], [])
+        self.assertNotIn("result_courses", relationship["next_context"])
 
         with patch.object(main, "_lazy_provider", return_value=json.dumps(hard_intent)):
             response = self.client.post(
@@ -350,7 +350,7 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertTrue(callable(self.sql_service.call_args.args[4]))
         old_rag.assert_not_called()
 
-    def test_contextual_positive_prerequisite_collection_returns_grounded_api_answer(self):
+    def test_contextual_positive_prerequisite_collection_fails_closed_at_api(self):
         def deterministic_grounding(
             _db_path,
             question,
@@ -386,16 +386,15 @@ class LlmSqlApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["status"], "answer")
+        self.assertEqual(payload["status"], "insufficient_evidence")
         self.assertEqual(payload["route"], "llm_sql")
         self.assertEqual(
             payload["next_context"],
             {"program": "DSBA", "catalog_key": "dsba-2565", "operations": ["list"]},
         )
-        self.assertTrue(payload["provenance"])
+        self.assertEqual(payload["provenance"], [])
         for course_code in ("06026201", "06026212", "06026213", "06026215", "06066102"):
-            self.assertIn(course_code, payload["answer"])
-        self.assertIn("สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", payload["answer"])
+            self.assertNotIn(course_code, payload["answer"])
 
     def test_catalog_key_survives_api_result_context_round_trip(self):
         edition_context = {
@@ -1020,19 +1019,10 @@ class LlmSqlApiTests(unittest.TestCase):
                     diag["api_status"] = response.status_code
                     payload = response.json()
                     self.assertEqual(response.status_code, 200, payload)
-                    self.assertEqual(payload["status"], "answer", payload)
                     self.assertEqual(payload["route"], "llm_sql")
-                    self.assertTrue(payload["provenance"])
                     self.assertEqual(payload["next_context"]["catalog_key"], "dsba-2565")
-                    self.assertTrue(
-                        all(
-                            reference.get("program") == "DSBA"
-                            for reference in payload["provenance"]
-                        )
-                    )
                     self.assertTrue(diag["sql_rows"] > 0, diag)
                     self.assertEqual(diag["sql_model_calls"], 1, diag)
-                    self.assertEqual(diag["grounding_status"], "answer", diag)
                     self.assertTrue(
                         any(
                             ops == list(expected_operations)
@@ -1045,15 +1035,28 @@ class LlmSqlApiTests(unittest.TestCase):
                         diag,
                     )
                     self.assertNotIn("clarify_catalog", payload["status"])
-                    self.assertNotIn("insufficient_evidence", payload["status"])
-                    if label == "D":
-                        self.assertEqual(diag["pre_context_operations"], [], diag)
                     if label == "C":
+                        self.assertEqual(payload["status"], "insufficient_evidence", diag)
+                        self.assertEqual(diag["grounding_status"], "insufficient_evidence", diag)
+                        self.assertEqual(payload["provenance"], [])
                         for course_code in (
                             "06026201", "06026212", "06026213", "06026215", "06066102"
                         ):
-                            self.assertIn(course_code, payload["answer"])
-                    elif label == "D-variant":
+                            self.assertNotIn(course_code, payload["answer"])
+                        continue
+
+                    self.assertEqual(payload["status"], "answer", payload)
+                    self.assertTrue(payload["provenance"])
+                    self.assertTrue(
+                        all(
+                            reference.get("program") == "DSBA"
+                            for reference in payload["provenance"]
+                        )
+                    )
+                    self.assertEqual(diag["grounding_status"], "answer", diag)
+                    if label == "D":
+                        self.assertEqual(diag["pre_context_operations"], [], diag)
+                    if label == "D-variant":
                         self.assertEqual(diag["intent_calls"], 1, diag)
                     elif label == "E":
                         self.assertIn("06066300", payload["answer"])

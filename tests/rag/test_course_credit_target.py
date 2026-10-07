@@ -59,6 +59,21 @@ class CourseCreditTitleParseTests(unittest.TestCase):
                 self.assertIsNone(spec.course_name)
                 self.assertEqual(tuple(spec.course_codes), ())
 
+    def test_exact_course_titles_survive_relation_and_scope_orderings(self):
+        cases = (
+            ("AIT Calculus 2 ต้องผ่านอะไรบ้าง", "AIT", "Calculus 2", ("prerequisite",)),
+            ("DSBA Calculus 2 กี่หน่วยกิต", "DSBA", "Calculus 2", ("sum_credits",)),
+            ("Calculus 2 ใน DSBA กี่หน่วยกิต", "DSBA", "Calculus 2", ("sum_credits",)),
+            ("Calculus 2 ต้องผ่านอะไรบ้าง", None, "Calculus 2", ("prerequisite",)),
+            ("ปีไหนเรียน Calculus 2 ใน DSBA", "DSBA", "Calculus 2", ("placement",)),
+        )
+        for question, program, course_name, operations in cases:
+            with self.subTest(question=question):
+                spec = _parse(question)
+                self.assertEqual(spec.program, program)
+                self.assertEqual(spec.course_name, course_name)
+                self.assertEqual(spec.operations, operations)
+
 
 class CourseCreditPrecedenceTests(unittest.TestCase):
     @staticmethod
@@ -104,6 +119,26 @@ class CourseCreditPrecedenceTests(unittest.TestCase):
         self.assertIn("3 หน่วยกิต", result.final_answer)
         self.assertTrue(result.provenance)
 
+    def test_dsba_exact_course_credit_uses_course_target_not_program_total(self):
+        result, calls = self._ask(
+            "DSBA Calculus 2 กี่หน่วยกิต",
+            context=QueryContext(program="DSBA", catalog_key="dsba-2565"),
+        )
+        self.assertEqual(self._status(result), "answer")
+        self.assertEqual(calls, [])
+        self.assertIn("3 หน่วยกิต", result.final_answer)
+        self.assertTrue(
+            any(claim.operation == "sum_credits" for claim in result.claims)
+        )
+        self.assertTrue(
+            any(
+                target.get("course_code") == "06026201"
+                for claim in result.claims
+                for target in getattr(claim.effective_scope, "course_targets", ())
+            )
+        )
+        self.assertTrue(result.provenance)
+
     def test_course_code_control_answers_course_credits(self):
         result, calls = self._ask("AIT 06046401 กี่หน่วยกิต")
         self.assertEqual(self._status(result), "answer")
@@ -127,6 +162,13 @@ class CourseCreditPrecedenceTests(unittest.TestCase):
         result, calls = self._ask("AIT Calculus 2 ต้องผ่านอะไรบ้าง")
         self.assertEqual(self._status(result), "answer")
         self.assertIn("06046400", result.final_answer)
+        self.assertTrue(
+            any(
+                target.get("course_code") == "06046401"
+                for claim in result.claims
+                for target in getattr(claim.effective_scope, "course_targets", ())
+            )
+        )
 
     def test_bare_title_without_scope_stays_closed(self):
         result, calls = self._ask("Calculus 2 กี่หน่วยกิต")

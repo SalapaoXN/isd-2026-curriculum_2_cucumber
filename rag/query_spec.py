@@ -69,17 +69,28 @@ _COURSE_NAME_PATTERN = re.compile(
     r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
     r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
     r"เรียนเรื่อง|เรียนเกี่ยวกับ|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
-    r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร))",
+    r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร|"
+    r"ต้อง(?:เคย)?ผ่าน(?:วิชา)?อะไร(?:บ้าง)?))",
     re.IGNORECASE,
 )
 _BARE_COURSE_NAME_PATTERN = re.compile(
-    r"^\s*(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"^\s*(?:วิชา\s*)?(?:(?:ait|bit|dsba|gened|it)[ \t]+)?"
+    r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"(?:\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it))?"
     r"\s+(?=(?:เรียนปีไหน|เรียนเทอมไหน|เรียนตอนไหน|เรียนเมื่อไหร่|เรียนเมื่อไร|"
     r"มีชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|ชื่อ(?:ภาษา)?(?:ไทย|อังกฤษ)|"
     r"เรียนเรื่อง|เรียนเกี่ยวกับ|เรียนไร|เรียนประมาณไหน|สอนเรื่อง|สอนเกี่ยวกับ|เนื้อหา|"
     r"คืออะไร|เกี่ยวกับอะไร|มีอะไร|(?:มี\s*)?รหัส(?:วิชา)?\s*อะไร|"
-    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|ต้อง(?:เรียน|ผ่าน).{0,30}มาก่อน|ต้องเรียนอะไรต่อ(?:ไหม|มั้ย|ปะ)?|"
+    r"มีวิชาบังคับก่อน(?:คือ)?อะไร(?:บ้าง)?|"
+    r"ต้อง(?:เคย)?ผ่าน(?:วิชา)?อะไร(?:บ้าง)?|ต้อง(?:เรียน|ผ่าน).{0,30}มาก่อน|"
+    r"ต้องเรียนอะไรต่อ(?:ไหม|มั้ย|ปะ)?|"
     r"(?:อยู่|มีอยู่)\s*ในหลักสูตร(?:อะไร|ไหน)(?:บ้าง)?))",
+    re.IGNORECASE,
+)
+_LATIN_COURSE_NAME_BEFORE_PROGRAM_PATTERN = re.compile(
+    r"(?:เรียน|ลงเรียน|วิชา)\s+"
+    r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it)\s*[?？]?\s*$",
     re.IGNORECASE,
 )
 _PROGRAM_DISCOVERY_PATTERN = re.compile(
@@ -185,7 +196,7 @@ _OPERATION_PATTERNS = (
     (
         "placement",
         re.compile(
-            r"เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)\s*year\s*ไหน|"
+            r"ปีไหน\s*เรียน|ปีใด\s*เรียน|เรียนปีไหน|เรียนเทอมไหน|อยู่ปีไหน|อยู่เทอมไหน|(?:เรียน|อยู่)\s*year\s*ไหน|"
             r"ปีใด|ภาคเรียนใด|เทอมอะไร|จัดไว้ปีไหน|ลงทะเบียนช่วงไหน|"
             r"(?:เรียน|อยู่)ช่วงไหนของหลักสูตร|เรียนช่วงเดียวกัน|เปิดให้ลง|ลงช่วง|"
             r"(?:ลง|เรียน|อยู่).{0,20}ตอนไหน|(?:ลง|เรียน|อยู่).{0,20}เมื่อไหร่|"
@@ -256,7 +267,8 @@ _COURSE_CONTENT_COMPARISON_PATTERN = re.compile(
 )
 _PREREQUISITE_OBJECT_PATTERN = re.compile(
     r"ก่อนลง\s*\d{8}\s*ต้อง(?:เคย)?ผ่านวิชาอะไร(?:บ้าง)?|"
-    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|ต้องเรียนอะไรต่อ(?:ไหม)?",
+    r"วิชาบังคับก่อน(?:ของ\s*\d{8})?|"
+    r"ต้อง(?:เคย)?ผ่าน(?:วิชา)?อะไร(?:บ้าง)?|ต้องเรียนอะไรต่อ(?:ไหม)?",
     re.IGNORECASE,
 )
 _THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
@@ -272,6 +284,7 @@ _THAI_COURSE_CREDIT_NAME_PATTERN = re.compile(
 _LATIN_COURSE_CREDIT_NAME_PATTERN = re.compile(
     r"^\s*(?:วิชา\s*)?(?:(?:ait|bit|dsba|gened|it)[ \t]+)?(?:วิชา\s*)?"
     r"(?P<name>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)?(?:[ \t]+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)*)"
+    r"(?:\s+(?:ใน|ของ|in|of)\s+(?:ait|bit|dsba|gened|it))?"
     r"\s+(?=(?:มี\s*)?(?:กี่\s*)?(?:หน่วยกิต|เครดิต))",
     re.IGNORECASE,
 )
@@ -411,6 +424,8 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
         match = _BARE_COURSE_NAME_PATTERN.search(question)
     if match is None:
         match = _prefix_name_to_code_title_match(question)
+    if match is None:
+        match = _LATIN_COURSE_NAME_BEFORE_PROGRAM_PATTERN.search(question)
     if match is None:
         thai_credit_match = _THAI_COURSE_CREDIT_NAME_PATTERN.match(question)
         if thai_credit_match is not None:

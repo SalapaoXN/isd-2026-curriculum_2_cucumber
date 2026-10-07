@@ -102,6 +102,47 @@ class ConversationContextEvaluationTests(unittest.TestCase):
                 )
                 self.assertTrue(result["result"].provenance)
 
+    def test_explicit_none_prerequisite_followup_composes_identity_and_retains_course(self):
+        first = self._answer("IT 06016414 เรียนตอนไหน")
+        second = ask(
+            DB_PATH,
+            "แล้ววิชาบังคับก่อนล่ะ",
+            conversation_context=first["next_context"],
+        )
+        result = second["result"]
+
+        self.assertIsInstance(result, GroundedAnswerResult)
+        self.assertEqual(result.status, "answer")
+        self.assertIn("ไม่มีวิชาบังคับก่อน", result.final_answer)
+        existence = next(
+            claim for claim in result.claims if claim.operation == "existence"
+        )
+        self.assertEqual(existence.status, "complete")
+        self.assertIs(existence.value, True)
+        self.assertTrue(existence.provenance)
+        identities = existence.evidence["identities"]
+        self.assertEqual(
+            {identity["course_code"] for identity in identities},
+            {"06016414"},
+        )
+        prerequisite_claims = [
+            claim for claim in result.claims if claim.operation == "prerequisite"
+        ]
+        self.assertTrue(prerequisite_claims)
+        self.assertTrue(
+            all(
+                claim.status == "valid_empty"
+                and claim.provenance
+                and all(
+                    record.get("prerequisite_state") == "explicit_none"
+                    for record in claim.evidence
+                )
+                for claim in prerequisite_claims
+            )
+        )
+        self.assertTrue(result.provenance)
+        self.assertEqual(second["next_context"].course_code, "06016414")
+
     def test_explicit_new_course_replaces_previous_course(self):
         first = self._answer("IT 06016454 คือวิชาอะไร")
         second = self._answer(
