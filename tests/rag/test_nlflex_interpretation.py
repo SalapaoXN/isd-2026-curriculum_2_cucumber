@@ -88,7 +88,7 @@ class NLFlexPublicPathTests(unittest.TestCase):
         self.assertEqual(status, "clarify_program")
         self.assertEqual(calls, [])
 
-    def test_scoped_prerequisite_collection_answers_confirmed_positives_with_caveat(self):
+    def test_scoped_prerequisite_collection_fails_closed_with_unknown_candidates(self):
         calls = []
         response = ask(
             DB_PATH,
@@ -102,24 +102,15 @@ class NLFlexPublicPathTests(unittest.TestCase):
             ),
         )["result"]
 
-        self.assertEqual(response.status, "answer")
-        self.assertTrue(response.claims)
-        placements = [placement for claim in response.claims for placement in claim.value]
-        self.assertTrue(placements)
+        self.assertEqual(response.status, "insufficient_evidence")
+        self.assertFalse(response.provenance)
         self.assertTrue(
-            any(
-                placement.get("prerequisite_state") == "required"
-                and placement.get("prerequisites")
-                for placement in placements
-            )
+            all(claim.status == "insufficient_evidence" and claim.value is None
+                for claim in response.claims)
         )
-        self.assertTrue(all(placement.get("prerequisite_state") != "explicit_none" for placement in placements))
-        self.assertTrue(any(placement.get("prerequisite_collection_incomplete") for placement in placements))
-        self.assertTrue(response.provenance)
-        self.assertIn("จึงสรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", response.final_answer)
         self.assertEqual(calls, [])
 
-    def test_surface_complete_scoped_prerequisite_list_stays_deterministic(self):
+    def test_surface_complete_prerequisite_list_fails_closed_with_unknown_candidates(self):
         calls = []
         response = ask(
             DB_PATH,
@@ -128,20 +119,12 @@ class NLFlexPublicPathTests(unittest.TestCase):
             context=QueryContext(program="IT", catalog_key="it-2565"),
         )["result"]
 
-        self.assertEqual(response.status, "answer")
-        placements = [placement for claim in response.claims for placement in claim.value]
-        self.assertTrue(placements)
+        self.assertEqual(response.status, "insufficient_evidence")
+        self.assertFalse(response.provenance)
         self.assertTrue(
-            any(
-                placement.get("prerequisite_state") == "required"
-                and placement.get("prerequisites")
-                for placement in placements
-            )
+            all(claim.status == "insufficient_evidence" and claim.value is None
+                for claim in response.claims)
         )
-        self.assertTrue(all(placement.get("prerequisite_state") != "explicit_none" for placement in placements))
-        self.assertTrue(any(placement.get("prerequisite_collection_incomplete") for placement in placements))
-        self.assertTrue(response.provenance)
-        self.assertIn("จึงสรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", response.final_answer)
         self.assertEqual(calls, [])
 
     def test_flexible_exact_course_placement_uses_literal_title_then_canonical_evidence(self):
@@ -575,7 +558,7 @@ class NL2BExactCourseRecoveryTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         control = ask(
             DB_PATH,
-            "Calculus 2 ต้องผ่านอะไรบ้าง",
+            "06046401 ต้องผ่านอะไรบ้าง",
             context=context,
         )["result"]
         self.assertEqual(self._status(control), "answer")

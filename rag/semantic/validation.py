@@ -19,6 +19,59 @@ from rag.semantic.schema import (
     SemanticIntent,
 )
 
+_SUPPORTED_FILTER_SHAPES = frozenset(
+    {
+        ("topic", "related_to"),
+        ("category", "eq"),
+    }
+)
+
+
+def _filter_contract_problem(intent: SemanticIntent) -> str | None:
+    """Reject filters without a proven compiler and execution consumer."""
+    if not intent.filters:
+        return None
+
+    if len(intent.filters) == 1:
+        item = intent.filters[0]
+        if (
+            item.field == "has_prerequisite"
+            and item.operator == "eq"
+            and item.value is True
+        ):
+            if intent.task == "list" and intent.subject == "course":
+                return None
+            return "positive prerequisite collection filter requires course list"
+
+    seen_fields: set[str] = set()
+    for item in intent.filters:
+        shape = (item.field, item.operator)
+        if shape not in _SUPPORTED_FILTER_SHAPES:
+            return f"unsupported semantic filter: {item.field!r} + {item.operator!r}"
+        if item.field in seen_fields:
+            return f"duplicate semantic filter field: {item.field!r}"
+        seen_fields.add(item.field)
+
+    if intent.task in {"list", "search"} and intent.subject == "course":
+        return None
+
+    aggregation = intent.aggregation
+    if (
+        intent.task == "aggregate"
+        and aggregation is not None
+        and not aggregation.group_by
+        and (
+            (aggregation.function == "sum" and aggregation.measure == "credits")
+            or (
+                aggregation.function == "count"
+                and aggregation.measure == "course_count"
+            )
+        )
+    ):
+        return None
+
+    return "semantic filters are unsupported for this task/subject shape"
+
 
 def _relation_compatible(task: str, subject: str, relation: str | None) -> bool:
     """Judge whether a relation fits its task shape.
@@ -165,6 +218,9 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         return "policy/requirement requires a policy topic"
     if task == "lookup" and intent.subject == "course" and intent.relation is None:
         return "course lookup requires a relation"
+    problem = _filter_contract_problem(intent)
+    if problem is not None:
+        return problem
     return None
 
 

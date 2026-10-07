@@ -1612,6 +1612,11 @@ def _claim_for_scope_prerequisite(
         provenance = _provenance_from_records(records or ())
         if records is None or not records or not provenance:
             return _claim("list", prerequisite_result, status="insufficient_evidence")
+        if any(
+            record.get("prerequisite_collection_incomplete") is not False
+            for record in records
+        ):
+            return _claim("list", prerequisite_result, status="insufficient_evidence")
         return _claim(
             "list",
             prerequisite_result,
@@ -2973,8 +2978,18 @@ def _compose_evidence_claims(
         and "prerequisite" in operations
         and getattr(query_spec, "topic", None) is not None
     )
+    positive_prerequisite_collection = any(
+        result.kind == "prerequisite_facts"
+        and result.planned_request.positive_prerequisite_collection
+        for result in prerequisite_results
+    )
     for operation in operations:
         if operation in {"list", "count", "existence"}:
+            if operation == "list" and positive_prerequisite_collection:
+                # The prerequisite-dependent claim below is the answer set.
+                # The unfiltered course_set remains internal dependency
+                # evidence and must not be exposed or retained as a list.
+                continue
             for result in relation_results:
                 claim = _claim_for_relation_operation(operation, result, course_cache)
                 if claim is not None:

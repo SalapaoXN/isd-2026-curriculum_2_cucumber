@@ -11,7 +11,7 @@ from __future__ import annotations
 from rag.semantic.schema import VerifiedNumericComparison
 
 
-SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v1"
+SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v2"
 ANSWERER_PROMPT_VERSION = "semantic-answerer/v1"
 
 
@@ -51,6 +51,9 @@ _INTERPRETER_SCHEMA = """Schema (all keys required; use null where absent):
 }
 Rules: scope/target raw_text must be exact substrings of the CURRENT question; never invent program, catalog, plan, year, semester, course code, credits, or policy thresholds. A nickname spelling proposal goes in normalized_hint only, never as canonical identity. Subjective judgement ("is this course good") is task unknown with clarification set.
 Explicit scope may appear at the beginning, middle, or end of the question, including compact student phrasing. A leading program token (a program code written before the course title or the rest of the question) is scope exactly the same way as a program mention elsewhere in the sentence: extract it as a scope mention whenever it is explicitly present in the CURRENT TURN. Do NOT infer a program when none was written.
+Course-topic discovery: when the student asks for a collection of courses related to a topic or concept (for example, a request structurally equivalent to “courses related to X”), use task "list", subject "course", target.kind "none", and one filter {field:"topic", operator:"related_to", value: the exact topic phrase X}. Topic text is a discovery constraint, not an exact course identity: do not put it in target.literal, and do not use topic + contains for this supported discovery shape. Preserve any explicitly stated program/catalog/plan/year/semester only in scope.
+Exact-course distinction: when the student identifies a course and asks for a property such as credits, placement, or prerequisites, use the appropriate lookup relation and the grounded exact course target; do not convert that entity lookup into a topic search merely because the title contains topical words.
+The current filter contract does not support combining topic discovery with a has_prerequisite filter. If the student requires both constraints, do not drop either one or answer a broader query: return task "unknown" with a concise clarification that this combined filter request is unsupported.
 Comparison operands take the same scope keys as scope (program, catalog, plan, plan_hint, year, semester) plus an optional "course" key holding the exact user-written course text; each side stands alone. Choose the comparison operation by meaning: greater/less/equal for which-is-more questions, difference for how-much-more, set_difference for in-one-but-not-the-other, overlap for shared membership.
 If the student names a study plan in everyday words, copy the exact user-written plan phrase into plan. Only when its meaning is unmistakable, propose a canonical plan key in plan_hint; a hint is allowed only alongside that grounded raw plan mention. The deterministic resolver verifies the proposal against canonical data and never trusts the hint alone. Apply this independently to each comparison side. When in doubt, leave plan_hint null.
 The relation field names the property asked about and is required for lookup (identity/description/credits/prerequisite/placement/existence). For list/search/aggregate/compare/rank it is optional and usually null; when the question restates the same property (for example an aggregate of credits), a compatible relation is acceptable and never widens scope. Policy/requirement/unknown questions carry no relation.

@@ -21,6 +21,8 @@ from rag.qa import _compose_evidence_claims, ask as _ask
 from rag.query_spec import QuerySpec, detect_surface_operations, parse_query_spec
 from rag.resolution import QueryContext, ResolutionOutcome
 from rag.grounded_answer import compose_grounded_answer
+from rag.semantic.executor import _retained_from_claims
+from rag.semantic.resolver import _resolve_ordinal
 
 
 DB_PATH = (
@@ -176,7 +178,9 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
             ],
         )
 
-    def _execute_scope_prerequisite(self, course_set_result, *, state_by_id=None):
+    def _execute_scope_prerequisite(
+        self, course_set_result, *, state_by_id=None, positive=False
+    ):
         scope = self._scope()
         course_set = EvidenceRequest("course_set", "course_set", scope)
         prerequisites = EvidenceRequest(
@@ -184,6 +188,7 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
             "prerequisite_facts",
             scope,
             depends_on=("course_set",),
+            positive_prerequisite_collection=positive,
         )
         plan = EvidencePlan(scope=scope, requests=(course_set, prerequisites))
         state_by_id = state_by_id or {}
@@ -195,6 +200,44 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
             side_effect=lambda _db_path, course_id: state_by_id[course_id],
         ):
             return execute_evidence_plan(DB_PATH, plan).results[-1]
+
+    def _positive_collection_bundle(
+        self, courses, filtered_courses, *, prerequisite_status="complete"
+    ):
+        scope = self._scope()
+        course_request = EvidenceRequest("course_set", "course_set", scope)
+        prerequisite_request = EvidenceRequest(
+            "prerequisites",
+            "prerequisite_facts",
+            scope,
+            depends_on=("course_set",),
+            positive_prerequisite_collection=True,
+        )
+        course_provenance = tuple(
+            reference
+            for course in courses
+            for reference in course.get("provenance", ())
+        )
+        course_result = EvidenceExecutionResult(
+            "course_set",
+            "course_set",
+            course_request,
+            scope,
+            "complete",
+            {"status": "ok", "courses": tuple(courses), "provenance": course_provenance},
+        )
+        prerequisite_result = EvidenceExecutionResult(
+            "prerequisites",
+            "prerequisite_facts",
+            prerequisite_request,
+            scope,
+            prerequisite_status,
+            tuple(filtered_courses),
+        )
+        return EvidenceBundle(
+            EvidencePlan(scope, (course_request, prerequisite_request)),
+            (course_result, prerequisite_result),
+        )
 
     def test_executor_expands_normal_and_alternative_members(self):
         provenance = ({"source_page": 1},)
@@ -432,6 +475,219 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
         )
         self.assertNotIn("PA101", repr(claims[0].value))
 
+    def test_positive_collection_uses_only_confirmed_required_courses(self):
+        required = {
+            **self._normal_course(101, "06016420", 10),
+            "prerequisite_state": "required",
+            "prerequisite_collection_incomplete": False,
+            "prerequisites": ({"course_code": "P101"},),
+        }
+        courses = (
+            self._normal_course(101, "06016420", 10),
+            self._normal_course(102, "06016421", 11),
+        )
+        bundle = self._positive_collection_bundle(courses, (required,))
+        claims = _compose_evidence_claims(
+            self._spec(operations=("list", "prerequisite")), bundle
+        )
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "complete")
+        self.assertEqual(
+            [course["course_code"] for course in claims[0].value], ["06016420"]
+        )
+        self.assertNotIn("06016421", repr(claims[0].value))
+        self.assertTrue(claims[0].provenance)
+
+        retained, _ = _retained_from_claims(claims, "IT", "it-2565")
+        self.assertEqual(
+            tuple(item["course_code"] for item in retained), ("06016420",)
+        )
+        self.assertEqual(
+            _resolve_ordinal(1, retained), {"course_code": "06016420"}
+        )
+        self.assertIsNone(_resolve_ordinal(2, retained))
+
+    def test_positive_collection_all_known_none_is_valid_empty(self):
+        courses = (
+            self._normal_course(101, "A101", 10),
+            self._normal_course(102, "A102", 11),
+        )
+        bundle = self._positive_collection_bundle(
+            courses, (), prerequisite_status="valid_empty"
+        )
+        claims = _compose_evidence_claims(
+            self._spec(operations=("list", "prerequisite")), bundle
+        )
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "valid_empty")
+        self.assertEqual(claims[0].value, ())
+
+    def test_positive_collection_mixed_required_unknown_fails_closed(self):
+        required_but_incomplete = {
+            **self._normal_course(101, "A101", 10),
+            "prerequisite_state": "required",
+            "prerequisite_collection_incomplete": True,
+            "prerequisites": ({"course_code": "P101"},),
+        }
+        courses = (
+            self._normal_course(101, "A101", 10),
+            self._normal_course(102, "A102", 11),
+        )
+        bundle = self._positive_collection_bundle(
+            courses, (required_but_incomplete,)
+        )
+        claims = _compose_evidence_claims(
+            self._spec(operations=("list", "prerequisite")), bundle
+        )
+        answer = compose_grounded_answer(composed_claims=claims)
+        retained, _ = _retained_from_claims(claims, "IT", "it-2565")
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0].status, "insufficient_evidence")
+        self.assertIsNone(claims[0].value)
+        self.assertEqual(answer.status, "insufficient_evidence")
+        self.assertEqual(retained, ())
+
+    def test_positive_collection_unknown_only_is_insufficient(self):
+        course_set = {
+            "status": "ok",
+            "courses": ({
+                "program": "IT",
+                "course_id": 101,
+                "course_code": "A101",
+                "is_alternative": False,
+                "provenance": ({"source_page": 1},),
+            },),
+            "provenance": ({"source_page": 1},),
+        }
+        result = self._execute_scope_prerequisite(
+            course_set,
+            positive=True,
+            state_by_id={
+                101: {"state": "unknown", "provenance": ({"source_page": 2},)}
+            },
+        )
+        self.assertEqual(result.status, "insufficient_evidence")
+
+    def test_positive_collection_filters_explicit_none_and_reports_incompleteness(self):
+        course_set = {
+            "status": "ok",
+            "courses": (
+                {
+                    "program": "IT",
+                    "course_id": 101,
+                    "course_code": "A101",
+                    "is_alternative": False,
+                    "provenance": ({"source_filename": "courses.png", "source_page": 1},),
+                },
+                {
+                    "program": "IT",
+                    "course_id": 102,
+                    "course_code": "A102",
+                    "is_alternative": False,
+                    "provenance": ({"source_filename": "courses.png", "source_page": 2},),
+                },
+            ),
+            "provenance": ({"source_filename": "courses.png", "source_page": 1},),
+        }
+        result = self._execute_scope_prerequisite(
+            course_set,
+            positive=True,
+            state_by_id={
+                101: {
+                    "state": "required",
+                    "provenance": ({"source_filename": "prerequisites.png", "source_page": 3},),
+                    "records": ({"provenance": ({"source_filename": "prerequisites.png", "source_page": 3},)},),
+                },
+                102: {
+                    "state": "explicit_none",
+                    "provenance": ({"source_filename": "prerequisites.png", "source_page": 4},),
+                },
+            },
+        )
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(
+            tuple(row["course_code"] for row in result.payload), ("A101",)
+        )
+        self.assertFalse(result.payload[0]["prerequisite_collection_incomplete"])
+
+    def test_positive_collection_marks_required_subset_incomplete_if_any_unknown(self):
+        course_set = {
+            "status": "ok",
+            "courses": (
+                {
+                    "program": "IT",
+                    "course_id": 101,
+                    "course_code": "A101",
+                    "is_alternative": False,
+                    "provenance": ({"source_filename": "courses.png", "source_page": 1},),
+                },
+                {
+                    "program": "IT",
+                    "course_id": 102,
+                    "course_code": "A102",
+                    "is_alternative": False,
+                    "provenance": ({"source_filename": "courses.png", "source_page": 2},),
+                },
+            ),
+            "provenance": ({"source_filename": "courses.png", "source_page": 1},),
+        }
+        result = self._execute_scope_prerequisite(
+            course_set,
+            positive=True,
+            state_by_id={
+                101: {
+                    "state": "required",
+                    "provenance": ({"source_filename": "prerequisites.png", "source_page": 3},),
+                    "records": ({"provenance": ({"source_filename": "prerequisites.png", "source_page": 3},)},),
+                },
+                102: {"state": "unknown", "provenance": ()},
+            },
+        )
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(len(result.payload), 1)
+        self.assertTrue(result.payload[0]["prerequisite_collection_incomplete"])
+
+    def test_positive_collection_all_explicit_none_is_valid_empty(self):
+        course_set = {
+            "status": "ok",
+            "courses": ({
+                "program": "IT",
+                "course_id": 101,
+                "course_code": "A101",
+                "is_alternative": False,
+                "provenance": ({"source_filename": "courses.png", "source_page": 1},),
+            },),
+            "provenance": ({"source_filename": "courses.png", "source_page": 1},),
+        }
+        result = self._execute_scope_prerequisite(
+            course_set,
+            positive=True,
+            state_by_id={
+                101: {
+                    "state": "explicit_none",
+                    "provenance": ({"source_filename": "prerequisites.png", "source_page": 3},),
+                }
+            },
+        )
+        self.assertEqual(result.status, "valid_empty")
+        self.assertEqual(result.payload, ())
+
+    def test_plain_list_keeps_unfiltered_course_set(self):
+        courses = (
+            self._normal_course(101, "A101", 10),
+            self._normal_course(102, "A102", 11),
+        )
+        bundle = self._composition_bundle(courses, ())
+        claims = _compose_evidence_claims(self._spec(operations=("list",)), bundle)
+
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(
+            [course["course_code"] for course in claims[0].value], ["A101", "A102"]
+        )
+
     def test_all_explicit_none_candidates_are_valid_empty(self):
         courses = (
             self._normal_course(101, "A101", 10),
@@ -563,30 +819,18 @@ class H20ScopePrerequisiteTests(unittest.TestCase):
 
         self.assertEqual(answer.status, "insufficient_evidence")
 
-    def test_flagship_it_y3s1_prerequisite_query_returns_confirmed_positives_with_caveat(self):
+    def test_flagship_it_y3s1_prerequisite_query_fails_closed_on_unknown_candidates(self):
         first = ask(DB_PATH, "IT ปี 3 เทอม 1 มีวิชาอะไรบ้าง")
         result = ask(DB_PATH, "ตัวไหนมี prerequisite", conversation_context=first["next_context"])
 
         answer = result["result"]
-        self.assertEqual(answer.status, "answer")
-        self.assertTrue(answer.provenance)
-        self.assertIn("สรุปว่าไม่มีวิชาบังคับก่อนไม่ได้", answer.final_answer)
-
-        positive_claims = [claim for claim in answer.claims if claim.operation == "list"]
-        self.assertTrue(positive_claims)
-        self.assertTrue(all(claim.status == "complete" for claim in positive_claims))
-        courses = [course for claim in positive_claims for course in claim.value]
-        self.assertTrue(courses)
+        self.assertEqual(answer.status, "insufficient_evidence")
+        self.assertFalse(answer.provenance)
         self.assertTrue(
             all(
-                course.get("prerequisite_state") == "required"
-                and course.get("prerequisites")
-                and course.get("provenance")
-                for course in courses
+                claim.status == "insufficient_evidence" and claim.value is None
+                for claim in answer.claims
             )
-        )
-        self.assertFalse(
-            any(course.get("prerequisite_state") == "explicit_none" for course in courses)
         )
 
     def test_exact_course_prerequisite_claim_remains_unchanged(self):

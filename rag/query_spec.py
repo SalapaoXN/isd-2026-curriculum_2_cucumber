@@ -286,6 +286,17 @@ _PREREQUISITE_BURDEN_PREFERENCE_PATTERN = re.compile(
     r"(?:ไม่\s*(?:เยอะ|มาก)|น้อย|ไม่กี่)",
     re.IGNORECASE,
 )
+_REVERSE_PREREQUISITE_COLLECTION_PATTERN = re.compile(
+    r"(?:\b(?:what|which)\s+(?:courses?|subjects?)|"
+    r"(?:มี\s*)?(?:วิชา|รายวิชา)\s*(?:อะไร|ไหน|ใด))"
+    r"[^?\n]{0,60}?"
+    r"(?:ต้อง(?:เคย)?ผ่าน|ต้องเรียน|ต้องใช้|ใช้|"
+    r"(?:must\s+)?(?:pass|use|require(?:s)?))"
+    r"\s+[^?\n]{1,80}?\s+"
+    r"(?:ก่อน|before|เป็น\s*(?:a\s+)?(?:prerequisite|วิชาบังคับก่อน)|"
+    r"as\s+(?:a\s+)?prerequisite)",
+    re.IGNORECASE,
+)
 
 _OPERATION_ORDER = MappingProxyType(
     {
@@ -813,6 +824,11 @@ def parse_query_spec(
     category = _extract_category(normalized_question)
     topic = _extract_topic(normalized_question, course_name, course_codes)
     judgement = _extract_judgement(normalized_question)
+    if _REVERSE_PREREQUISITE_COLLECTION_PATTERN.search(normalized_question):
+        # Reverse prerequisite impact is not represented by the legacy
+        # prerequisite operation. Never reinterpret a course collection
+        # requiring X as a lookup for prerequisites of X.
+        judgement = "unsupported"
     credit_units = _extract_credit_units(normalized_question)
     if _INVALID_YEAR_PATTERN.search(normalized_question):
         judgement = "unsupported"
