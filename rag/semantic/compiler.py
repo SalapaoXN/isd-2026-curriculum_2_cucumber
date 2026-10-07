@@ -17,7 +17,7 @@ from typing import Any
 _RELATION_OPERATIONS = {
     "identity": ("identity",),
     "description": ("describe",),
-    "credits": ("sum_credits",),
+    "credits": ("identity", "sum_credits"),
     "prerequisite": ("prerequisite",),
     "placement": ("placement",),
     "existence": ("existence",),

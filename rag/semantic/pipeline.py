@@ -322,6 +322,8 @@ def semantic_answer(
                 side,
                 resolved.scope.program,
                 resolved.scope.catalog_key,
+                default_years=resolved.scope.years,
+                default_semesters=resolved.scope.semesters,
             )
             for side in (
                 resolved.intent.comparison.left,

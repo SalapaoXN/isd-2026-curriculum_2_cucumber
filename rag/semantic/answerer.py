@@ -145,6 +145,15 @@ def _format_comparison_value(value: int | float) -> str:
     return str(value)
 
 
+def _both_sides_have_course_identity(
+    comparison: VerifiedNumericComparison,
+) -> bool:
+    return all(
+        bool(side.course_code or side.course_name)
+        for side in (comparison.left, comparison.right)
+    )
+
+
 def _verified_relation_sentence(
     comparison: VerifiedNumericComparison,
 ) -> str:
@@ -152,7 +161,9 @@ def _verified_relation_sentence(
     right = comparison.right.course_name or comparison.right.label
     if comparison.actual_relation == "equal":
         if comparison.measure == "credits":
-            return "ทั้งสองวิชามีจำนวนหน่วยกิตเท่ากัน"
+            if _both_sides_have_course_identity(comparison):
+                return "ทั้งสองวิชามีจำนวนหน่วยกิตเท่ากัน"
+            return "ทั้งสองฝั่งมีจำนวนหน่วยกิตเท่ากัน"
         return "ทั้งสองฝั่งมีค่าเท่ากัน"
     if comparison.actual_relation == "left_greater":
         if comparison.measure == "credits":
@@ -226,7 +237,8 @@ def _comparison_answer_valid(
             return False
     summary = answer.split("สรุป:", 1)[1].strip()
     if comparison.actual_relation == "equal":
-        if comparison.measure == "credits" and "ทั้งสองวิชามีจำนวนหน่วยกิตเท่ากัน" not in summary:
+        expected_relation = _verified_relation_sentence(comparison)
+        if expected_relation not in summary:
             return False
         if "มากกว่า" in summary or "น้อยกว่า" in summary:
             return False

@@ -118,6 +118,7 @@ COMPARISON_OPERAND_KEYS = frozenset(
     {
         "course",
         "plan",
+        "plan_hint",
         "semester",
         "year",
         "catalog",

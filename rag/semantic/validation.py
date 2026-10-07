@@ -70,6 +70,11 @@ def _contains(question: str, text: str) -> bool:
 
 def _grounded_scope(intent: SemanticIntent, question: str) -> str | None:
     scope = intent.scope
+    if scope.plan_hint is not None:
+        if not isinstance(scope.plan_hint, str) or not scope.plan_hint.strip() or len(scope.plan_hint) > 32:
+            return "scope.plan_hint is invalid"
+        if scope.plan is None:
+            return "scope.plan_hint requires a grounded raw plan mention"
     for label, value in (
         ("program", scope.program),
         ("catalog", scope.catalog),
@@ -134,6 +139,17 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         ):
             if not side:
                 return f"comparison.{side_label} must be non-empty"
+            side_fields = dict(side)
+            if "plan_hint" in side_fields:
+                hint = side_fields["plan_hint"]
+                if (
+                    not isinstance(hint, str)
+                    or not hint.strip()
+                    or len(hint) > 32
+                ):
+                    return f"comparison.{side_label}.plan_hint is invalid"
+                if "plan" not in side_fields:
+                    return f"comparison.{side_label}.plan_hint requires a grounded raw plan mention"
             for key, value in side:
                 if key == "course" and (
                     not isinstance(value, str) or not _contains(question, value)

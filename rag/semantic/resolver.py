@@ -203,14 +203,16 @@ def resolve_comparison_operand(
     side: tuple[tuple[str, Any], ...],
     default_program: str | None,
     default_catalog_key: str | None,
+    default_years: tuple[int, ...] = (),
+    default_semesters: tuple[int, ...] = (),
 ) -> ResolvedOperand:
     """Resolve ONE comparison side independently (never merged across sides).
 
     Each side validates its own program/catalog/plan against canonical
     tables and its own course mention against canonical identities scoped
-    to that side. Shared program/catalog/year values may coincide across
-    sides, but plan scope and course identity are never shared: no
-    cross-plan evidence leakage is possible at resolution time.
+    to that side. Program/catalog/year/semester may inherit bounded common
+    defaults; explicit side values take precedence. Plan and course identity
+    are never inherited, preventing cross-plan evidence leakage.
     """
     fields = dict(side)
     program = canonical_program(db_path, fields.get("program", default_program))
@@ -227,8 +229,16 @@ def resolve_comparison_operand(
     )
     if fields.get("catalog", default_catalog_key) is not None and catalog_key is None:
         return ResolvedOperand(unresolved=True, reason="unknown operand catalog")
-    plan = valid_plan(db_path, fields.get("plan"), program, catalog_key)
-    if fields.get("plan") is not None and plan is None:
+    raw_plan = fields.get("plan")
+    plan_hint = fields.get("plan_hint")
+    if plan_hint is not None and raw_plan is None:
+        return ResolvedOperand(
+            unresolved=True, reason="operand plan hint requires raw plan mention"
+        )
+    plan = valid_plan(db_path, raw_plan, program, catalog_key)
+    if plan is None and raw_plan is not None and plan_hint is not None:
+        plan = valid_plan(db_path, plan_hint, program, catalog_key)
+    if raw_plan is not None and plan is None:
         return ResolvedOperand(unresolved=True, reason="unknown operand plan")
     years: tuple[int, ...] = ()
     semesters: tuple[int, ...] = ()
@@ -242,8 +252,12 @@ def resolve_comparison_operand(
         return ResolvedOperand(unresolved=True, reason="bad operand semester")
     if year is not None:
         years = (year,)
+    else:
+        years = tuple(default_years)
     if semester is not None:
         semesters = (semester,)
+    else:
+        semesters = tuple(default_semesters)
     scope = ResolvedScope(
         program=program, catalog_key=catalog_key, plan=plan,
         years=years, semesters=semesters,
@@ -305,8 +319,14 @@ def resolve_semantic_intent(
             needs_clarification=True,
             clarification_reason="unknown catalog scope",
         )
+    if merged.plan_hint is not None and intent.scope.plan is None:
+        return ResolvedIntent(
+            intent=intent,
+            needs_clarification=True,
+            clarification_reason="plan hint requires a current-turn raw plan mention",
+        )
     plan = valid_plan(db_path, merged.plan, program, catalog_key)
-    if plan is None and merged.plan_hint is not None:
+    if plan is None and intent.scope.plan is not None and merged.plan_hint is not None:
         # Normalized plan-hint path: the interpreter's canonical-key
         # proposal is accepted only on exact deterministic match against
         # canonical plan data (0 → fail, 1 → accept, ambiguous → fail).

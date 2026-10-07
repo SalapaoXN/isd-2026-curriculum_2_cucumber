@@ -248,6 +248,10 @@ def _parse_scope_side(data: Any, field: str) -> tuple[tuple[str, Any], ...]:
         if key in {"year", "semester"}:
             if isinstance(value, bool) or not isinstance(value, int):
                 raise SemanticSchemaError(f"{field}.{key} must be an integer")
+        elif key == "plan_hint":
+            if not isinstance(value, str) or not value.strip() or len(value) > 32:
+                raise SemanticSchemaError(f"{field}.plan_hint must be bounded text")
+            value = value.strip()
         elif not isinstance(value, str) or not value.strip() or len(value) > MAX_TEXT_LEN:
             raise SemanticSchemaError(f"{field}.{key} must be bounded text")
         items.append((key, value))
