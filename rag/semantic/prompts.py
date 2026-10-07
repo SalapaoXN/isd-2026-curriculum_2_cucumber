@@ -8,6 +8,8 @@ trace so evaluation can attribute behavior to prompt revisions.
 
 from __future__ import annotations
 
+from rag.semantic.schema import VerifiedNumericComparison
+
 
 SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v1"
 ANSWERER_PROMPT_VERSION = "semantic-answerer/v1"
@@ -107,12 +109,35 @@ def build_semantic_answerer_prompt(
     question: str,
     summary_facts: tuple[str, ...],
     missing_information: tuple[str, ...],
+    *,
+    numeric_comparison: VerifiedNumericComparison | None = None,
 ) -> str:
     """Build the versioned answerer prompt from verified facts only."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")
     facts_block = "\n".join(f"- {fact}" for fact in summary_facts) or "- (none)"
     missing_block = "\n".join(f"- {item}" for item in missing_information) or "- (none)"
+    comparison_block: tuple[str, ...] = ()
+    if numeric_comparison is not None:
+        comparison = numeric_comparison
+        comparison_block = (
+            "VERIFIED NUMERIC COMPARISON (authoritative facts; do not recompute):",
+            f"measure: {comparison.measure}",
+            "left:",
+            f"  label: {comparison.left.label}",
+            f"  course_code: {comparison.left.course_code or '(none; do not invent)'}",
+            f"  course_name: {comparison.left.course_name or '(none; do not invent)'}",
+            f"  value: {comparison.left.value}",
+            "right:",
+            f"  label: {comparison.right.label}",
+            f"  course_code: {comparison.right.course_code or '(none; do not invent)'}",
+            f"  course_name: {comparison.right.course_name or '(none; do not invent)'}",
+            f"  value: {comparison.right.value}",
+            f"requested_operation: {comparison.requested_operation}",
+            f"actual_relation: {comparison.actual_relation}",
+            f"absolute_difference: {comparison.absolute_difference}",
+            "Comparison presentation rules: actual_relation is authoritative; never recompute it from the question or values, never select a different winner, never change values or identifiers. Preserve both sides and values. Avoid repeating course codes. Use this readable structure: heading; one bullet per side; blank line; 'สรุป: ...'. For actual_relation=equal, state positively that both have the same value (for credits: 'ทั้งสองวิชามีจำนวนหน่วยกิตเท่ากัน'); do not say 'not greater' or name a winner. For left_greater/right_greater, identify only the side named by actual_relation. For requested_operation=difference, state the verified absolute_difference.",
+        )
     return "\n".join(
         (
             _ANSWERER_PREAMBLE,
@@ -120,6 +145,7 @@ def build_semantic_answerer_prompt(
             question.strip(),
             "VERIFIED FACTS (use only these):",
             facts_block,
+            *comparison_block,
             "MISSING INFORMATION (state if non-empty):",
             missing_block,
             "ANSWER IN THAI:",

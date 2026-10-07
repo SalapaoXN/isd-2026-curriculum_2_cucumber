@@ -431,7 +431,10 @@ def semantic_answer(
 
     stage_started = time.monotonic()
     answer_text, answer_mode = render_semantic_answer(
-        question, verified, answer_provider
+        question,
+        verified,
+        answer_provider,
+        numeric_comparison=verified.numeric_comparison,
     )
     timing.answerer_ms = (time.monotonic() - stage_started) * 1000.0
     timing.total_ms = (time.monotonic() - started) * 1000.0

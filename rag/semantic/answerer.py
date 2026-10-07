@@ -18,7 +18,12 @@ from rag.semantic.prompts import (
     ANSWERER_PROMPT_VERSION,
     build_semantic_answerer_prompt,
 )
-from rag.semantic.schema import VerifiedResult
+from rag.semantic.schema import (
+    ResolvedIntent,
+    VerifiedNumericComparison,
+    VerifiedNumericComparisonSide,
+    VerifiedResult,
+)
 
 MAX_ANSWER_LEN = 2000
 
@@ -124,6 +129,118 @@ def validate_answer_text(answer: str, verified: VerifiedResult) -> bool:
     return True
 
 
+def _comparison_side_label(side: VerifiedNumericComparisonSide) -> str:
+    if side.course_name and side.course_code:
+        return f"{side.course_name} ({side.course_code})"
+    if side.course_name:
+        return side.course_name
+    if side.course_code:
+        return side.course_code
+    return side.label
+
+
+def _format_comparison_value(value: int | float) -> str:
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def _verified_relation_sentence(
+    comparison: VerifiedNumericComparison,
+) -> str:
+    left = comparison.left.course_name or comparison.left.label
+    right = comparison.right.course_name or comparison.right.label
+    if comparison.actual_relation == "equal":
+        if comparison.measure == "credits":
+            return "ทั้งสองวิชามีจำนวนหน่วยกิตเท่ากัน"
+        return "ทั้งสองฝั่งมีค่าเท่ากัน"
+    if comparison.actual_relation == "left_greater":
+        if comparison.measure == "credits":
+            return f"{left} มีหน่วยกิตมากกว่า {right}"
+        return f"{left} มีค่ามากกว่า {right}"
+    if comparison.actual_relation == "right_greater":
+        if comparison.measure == "credits":
+            return f"{right} มีหน่วยกิตมากกว่า {left}"
+        return f"{right} มีค่ามากกว่า {left}"
+    # This schema version uses the actual relation enum above; fail closed
+    # for any unknown value rather than inventing comparison language.
+    return "ไม่สามารถสรุปความสัมพันธ์จากข้อมูลที่ตรวจสอบได้"
+
+
+def _comparison_heading(comparison: VerifiedNumericComparison) -> str:
+    if comparison.measure == "credits":
+        return "เปรียบเทียบหน่วยกิต"
+    if comparison.measure == "course_count":
+        return "เปรียบเทียบจำนวนรายวิชา"
+    if comparison.measure == "prerequisite_count":
+        return "เปรียบเทียบจำนวนวิชาบังคับก่อน"
+    return "ผลการเปรียบเทียบ"
+
+
+def render_verified_comparison(
+    verified: VerifiedResult,
+    comparison: VerifiedNumericComparison | None = None,
+) -> str:
+    """Deterministic comparison fallback built only from typed verified facts."""
+    comparison = comparison or verified.numeric_comparison
+    if verified.status != "answer" or comparison is None:
+        return render_verified_fallback("", verified)
+    left_label = _comparison_side_label(comparison.left)
+    right_label = _comparison_side_label(comparison.right)
+    left_value = _format_comparison_value(comparison.left.value)
+    right_value = _format_comparison_value(comparison.right.value)
+    lines = [
+        _comparison_heading(comparison),
+        f"- {left_label}: {left_value} หน่วยกิต" if comparison.measure == "credits" else f"- {left_label}: {left_value}",
+        f"- {right_label}: {right_value} หน่วยกิต" if comparison.measure == "credits" else f"- {right_label}: {right_value}",
+    ]
+    if comparison.requested_operation == "difference":
+        difference = _format_comparison_value(comparison.absolute_difference)
+        summary = f"มีผลต่าง {difference} หน่วยกิต" if comparison.measure == "credits" else f"มีผลต่าง {difference}"
+    else:
+        summary = _verified_relation_sentence(comparison)
+    lines.extend(("", f"สรุป: {summary}"))
+    return "\n".join(lines)[:MAX_ANSWER_LEN]
+
+
+def _comparison_answer_valid(
+    answer: str, comparison: VerifiedNumericComparison
+) -> bool:
+    """Conservatively validate identifiers, values, and the explicit verdict."""
+    if "สรุป:" not in answer:
+        return False
+    sides = (comparison.left, comparison.right)
+    for side in sides:
+        for identifier in (side.course_code, side.course_name):
+            if identifier and identifier.casefold() not in answer.casefold():
+                return False
+        formatted = _format_comparison_value(side.value)
+        required_value = (
+            f"{formatted} หน่วยกิต"
+            if comparison.measure == "credits"
+            else formatted
+        )
+        if required_value not in answer:
+            return False
+        if side.course_code and answer.count(side.course_code) != 1:
+            return False
+    summary = answer.split("สรุป:", 1)[1].strip()
+    if comparison.actual_relation == "equal":
+        if comparison.measure == "credits" and "ทั้งสองวิชามีจำนวนหน่วยกิตเท่ากัน" not in summary:
+            return False
+        if "มากกว่า" in summary or "น้อยกว่า" in summary:
+            return False
+    elif comparison.requested_operation == "difference":
+        difference = _format_comparison_value(comparison.absolute_difference)
+        if difference not in summary:
+            return False
+    else:
+        expected_relation = _verified_relation_sentence(comparison)
+        if expected_relation not in summary:
+            return False
+    return True
+
+
 def render_verified_fallback(
     question: str, verified: VerifiedResult
 ) -> str:
@@ -139,6 +256,36 @@ def render_verified_fallback(
     return f"{body}{missing}"[:MAX_ANSWER_LEN]
 
 
+def _comparison_operand_label(side: object) -> str | None:
+    """Format only canonical resolved identity/scope for one comparison side."""
+    target = getattr(side, "target", None)
+    scope = getattr(side, "scope", None)
+    if target is not None:
+        name = getattr(target, "course_name", None)
+        code = getattr(target, "course_code", None)
+        if isinstance(name, str) and name.strip():
+            if isinstance(code, str) and code.strip():
+                return f"{name.strip()} ({code.strip()})"
+            return name.strip()
+        if isinstance(code, str) and code.strip():
+            return code.strip()
+    if scope is None:
+        return None
+    parts: list[str] = []
+    for field, label in (("program", None), ("plan", "แผน")):
+        value = getattr(scope, field, None)
+        if isinstance(value, str) and value.strip():
+            parts.append(f"{label} {value.strip()}" if label else value.strip())
+    for year in tuple(getattr(scope, "years", ()) or ()):
+        parts.append(f"ชั้นปีที่ {year}")
+    for semester in tuple(getattr(scope, "semesters", ()) or ()):
+        parts.append(f"ภาคการศึกษาที่ {semester}")
+    catalog_key = getattr(scope, "catalog_key", None)
+    if isinstance(catalog_key, str) and catalog_key.strip():
+        parts.append(catalog_key.strip())
+    return " ".join(parts) or None
+
+
 def _looks_unsafe(text: str) -> bool:
     lowered = text.casefold()
     return "select " in lowered and "from " in lowered
@@ -148,6 +295,8 @@ def render_semantic_answer(
     question: str,
     verified: VerifiedResult,
     answer_callable: Callable[..., str] | None,
+    *,
+    numeric_comparison: VerifiedNumericComparison | None = None,
 ) -> tuple[str, str]:
     """Return (answer_text, answer_mode) for verified evidence.
 
@@ -156,14 +305,22 @@ def render_semantic_answer(
     """
     if verified.status != "answer" or not verified.summary_facts:
         return "", "deterministic"
+    comparison = numeric_comparison or verified.numeric_comparison
     if answer_callable is None:
+        if comparison is not None:
+            return render_verified_comparison(verified, comparison), "deterministic"
         return render_verified_fallback(question, verified), "deterministic"
     try:
         prompt = build_semantic_answerer_prompt(
-            question, verified.summary_facts, verified.missing_information
+            question,
+            verified.summary_facts,
+            verified.missing_information,
+            numeric_comparison=comparison,
         )
         text = answer_callable(prompt)
     except Exception:
+        if comparison is not None:
+            return render_verified_comparison(verified, comparison), "deterministic"
         return render_verified_fallback(question, verified), "deterministic"
     if (
         not isinstance(text, str)
@@ -171,7 +328,10 @@ def render_semantic_answer(
         or len(text) > MAX_ANSWER_LEN
         or _looks_unsafe(text)
         or not validate_answer_text(text, verified)
+        or (comparison is not None and not _comparison_answer_valid(text, comparison))
     ):
+        if comparison is not None:
+            return render_verified_comparison(verified, comparison), "deterministic"
         return render_verified_fallback(question, verified), "deterministic"
     return text.strip(), "grounded_synthesis"
 
@@ -180,6 +340,7 @@ __all__ = [
     "ANSWERER_PROMPT_VERSION",
     "MAX_ANSWER_LEN",
     "render_semantic_answer",
+    "render_verified_comparison",
     "render_verified_fallback",
     "validate_answer_text",
 ]

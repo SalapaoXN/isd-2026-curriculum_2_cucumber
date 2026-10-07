@@ -9,6 +9,7 @@ propagate unchanged so the pipeline can fail closed with a typed reason.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
 from dataclasses import replace
 from typing import Any
@@ -242,6 +243,8 @@ def _parse_scope_side(data: Any, field: str) -> tuple[tuple[str, Any], ...]:
     for key, value in data.items():
         if key not in COMPARISON_OPERAND_KEYS:
             raise SemanticSchemaError(f"unknown comparison scope key: {key!r}")
+        if value is None:
+            continue
         if key in {"year", "semester"}:
             if isinstance(value, bool) or not isinstance(value, int):
                 raise SemanticSchemaError(f"{field}.{key} must be an integer")
@@ -272,12 +275,38 @@ def _parse_comparison(data: Any) -> ComparisonSpec | None:
     )
 
 
+_WHOLE_JSON_FENCE_RE = re.compile(
+    r"\A```(?:(?i:json))?[ \t]*\r?\n(?P<body>[\s\S]*?)\r?\n```\Z"
+)
+
+
+def _normalize_json_transport(payload: str) -> str:
+    """Unwrap exactly one whole-payload Markdown JSON fence, if present.
+
+    This is transport-only normalization. Raw JSON passes unchanged after
+    outer whitespace trimming. Fences are accepted only when they enclose
+    the entire payload; prose, multiple blocks, and nested/extra fences are
+    rejected rather than searched or extracted.
+    """
+    text = payload.strip()
+    if not text.startswith("```"):
+        return text
+    match = _WHOLE_JSON_FENCE_RE.fullmatch(text)
+    if match is None:
+        raise SemanticSchemaError("malformed whole-payload JSON fence")
+    body = match.group("body").strip()
+    if not body or "```" in body:
+        raise SemanticSchemaError("invalid or multiple fenced payload blocks")
+    return body
+
+
 def parse_semantic_intent_payload(payload: str) -> SemanticIntent:
     """Validate one raw interpreter payload into a SemanticIntent."""
     if not isinstance(payload, str) or not payload.strip() or len(payload) > MAX_PAYLOAD_LEN:
         raise SemanticSchemaError("intent payload must be bounded text")
+    normalized_payload = _normalize_json_transport(payload)
     try:
-        data = json.loads(payload)
+        data = json.loads(normalized_payload)
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
         raise SemanticSchemaError(f"malformed intent JSON: {error}") from None
     if not isinstance(data, dict) or set(data) != _INTENT_FIELDS:

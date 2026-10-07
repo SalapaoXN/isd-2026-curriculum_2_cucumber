@@ -41,6 +41,8 @@ from rag.semantic.compiler import (
 from rag.semantic.planner import SemanticPlan
 from rag.semantic.schema import (
     ResolvedIntent,
+    VerifiedNumericComparison,
+    VerifiedNumericComparisonSide,
     VerifiedResult,
 )
 
@@ -943,6 +945,33 @@ def execute_comparison(db_path: str | Path, resolved: ResolvedIntent) -> Verifie
             verdict = f"{left_label} กับ {right_label} ต่างกัน {abs(left_value - right_value)} หน่วยกิต ({left_value} ต่อ {right_value})"
             correct = True
         _ = correct
+        left_target = getattr(left, "target", None)
+        right_target = getattr(right, "target", None)
+        actual_relation = (
+            "left_greater"
+            if left_value > right_value
+            else "right_greater"
+            if left_value < right_value
+            else "equal"
+        )
+        numeric_comparison = VerifiedNumericComparison(
+            measure=comparison.measure,
+            requested_operation=comparison.operation,
+            actual_relation=actual_relation,
+            left=VerifiedNumericComparisonSide(
+                label=left_label,
+                course_code=getattr(left_target, "course_code", None),
+                course_name=getattr(left_target, "course_name", None),
+                value=left_value,
+            ),
+            right=VerifiedNumericComparisonSide(
+                label=right_label,
+                course_code=getattr(right_target, "course_code", None),
+                course_name=getattr(right_target, "course_name", None),
+                value=right_value,
+            ),
+            absolute_difference=abs(left_value - right_value),
+        )
         return VerifiedResult(
             status="answer",
             summary_facts=(
@@ -952,6 +981,7 @@ def execute_comparison(db_path: str | Path, resolved: ResolvedIntent) -> Verifie
             ),
             provenance=tuple(left_prov) + tuple(right_prov),
             failure_category="NONE",
+            numeric_comparison=numeric_comparison,
         )
     left_codes, left_error = _side_course_set(db_path, left)
     right_codes, right_error = _side_course_set(db_path, right)

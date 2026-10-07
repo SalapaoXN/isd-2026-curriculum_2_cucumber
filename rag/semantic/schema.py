@@ -373,6 +373,29 @@ class VerifiedResult:
     failure_category: str = "NONE"
     result_courses: tuple[dict[str, Any], ...] = ()
     result_scope_program: str | None = None
+    numeric_comparison: VerifiedNumericComparison | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedNumericComparisonSide:
+    """One canonically resolved side and its deterministically verified value."""
+
+    label: str
+    course_code: str | None
+    course_name: str | None
+    value: int | float
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedNumericComparison:
+    """Verified numeric comparison facts; no presentation or model inference."""
+
+    measure: str
+    requested_operation: str
+    actual_relation: str
+    left: VerifiedNumericComparisonSide
+    right: VerifiedNumericComparisonSide
+    absolute_difference: int | float
 
 
 __all__ = [
@@ -411,4 +434,6 @@ __all__ = [
     "SemanticSchemaError",
     "SemanticTarget",
     "VerifiedResult",
+    "VerifiedNumericComparison",
+    "VerifiedNumericComparisonSide",
 ]
