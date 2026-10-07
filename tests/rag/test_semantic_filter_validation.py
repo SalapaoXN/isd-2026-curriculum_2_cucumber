@@ -21,13 +21,19 @@ def _intent(
 class SemanticFilterValidationTests(unittest.TestCase):
     def test_proven_collection_filters_remain_valid(self):
         cases = (
-            SemanticFilter(field="topic", operator="related_to", value="networks"),
-            SemanticFilter(field="category", operator="eq", value="required"),
+            (
+                SemanticFilter(field="topic", operator="related_to", value="networks"),
+                "list courses related to networks",
+            ),
+            (
+                SemanticFilter(field="category", operator="eq", value="required"),
+                "list courses in required category",
+            ),
         )
-        for filter_item in cases:
+        for filter_item, question in cases:
             with self.subTest(field=filter_item.field):
                 result = validate_semantic_intent(
-                    _intent((filter_item,)), "list courses"
+                    _intent((filter_item,)), question
                 )
                 self.assertTrue(result.valid, result.reason)
 

@@ -4,7 +4,10 @@ export async function fetchHealth() {
   return res.json();
 }
 
-export async function askQuestion(question, conversationContext = null, homeProgram = null) {
+export async function askQuestion(question, conversationContext = null, homeProgram = null, clarificationResolution = null, clarificationResolutions = null) {
+  if (clarificationResolution != null && clarificationResolutions != null) {
+    throw new Error("ใช้การระบุขอบเขตแบบเดี่ยวหรือแบบรายการอย่างใดอย่างหนึ่ง");
+  }
   const res = await fetch("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -12,6 +15,8 @@ export async function askQuestion(question, conversationContext = null, homeProg
       question,
       conversation_context: conversationContext,
       home_program: homeProgram,
+      ...(clarificationResolution ? {clarification_resolution: clarificationResolution} : {}),
+      ...(clarificationResolutions != null ? {clarification_resolutions: clarificationResolutions} : {}),
     }),
   });
   const data = await res.json().catch(() => ({}));

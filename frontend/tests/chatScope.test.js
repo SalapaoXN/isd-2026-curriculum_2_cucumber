@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 import {
   buildConversationContext,
+  applyChatResponse,
   defaultCatalogKey,
   resetContextForEdition,
   availablePlans,
@@ -49,10 +50,10 @@ test("answer line presentation classifies only visible shapes without rewriting 
 
 test("each request including plan retry records its own timing and keeps expandable provenance", () => {
   const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /performance\.now\(\);\s*const data = await askQuestion\(q, seed, session\.program \|\| null\);\s*const elapsedMs = performance\.now\(\) - requestStarted/);
+  assert.match(page, /performance\.now\(\);\s*const data = await askQuestion\(q, seed, session\.program \|\| null, clarificationResolution, clarificationResolutions\);\s*const elapsedMs = performance\.now\(\) - requestStarted/);
   assert.match(page, /elapsedMs,/);
   assert.match(page, /CUCUMBER\s*\{formatElapsedTime\(m\.elapsedMs\)/);
-  assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId\)/);
+  assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId, clarificationResolution, clarificationResolutions\)/);
   assert.match(page, /<details className="chat-provenance">/);
   assert.match(page, /แหล่งอ้างอิง \{m\.provenance\.length\} รายการ/);
   assert.match(page, /provenanceLabel\(source\)/);
@@ -99,8 +100,26 @@ test("plan choices use accessible shared markup and structured pending-question 
   assert.match(component, /role="group"/);
   assert.equal((page.match(/<PlanSelector /g) || []).length, 2);
   assert.match(page, /data\.action === "plan_required"/);
-  assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId\)/);
-  assert.match(page, /pendingClarification: entry\.planClarification \? .* : null/);
+  assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId, clarificationResolution, clarificationResolutions\)/);
+  const session = {id: "chat-it", program: "IT", catalogKey: "it-2565", plan: null,
+    title: "New chat", messages: [], context: null};
+  const entry = {id: 42, question: "ปี 2 มีอะไรบ้าง", planClarification: true,
+    status: "clarification_required", answer: "กรุณาระบุแผนการเรียน"};
+  const [pending] = applyChatResponse([session], session.id, entry,
+    {status: "clarification_required", action: "plan_required", next_context: null});
+  assert.deepEqual(pending.pendingClarification, {question: entry.question, messageId: entry.id});
+  assert.deepEqual(pending.messages, [entry]);
+  const metadata = [{program_code: "IT", editions: [{catalog_key: "it-2565", plans: [{plan_key: "coop"}, {plan_key: "no_coop"}]}]}];
+  const selected = selectPlan(pending, "coop", metadata);
+  assert.equal(selected.pendingClarification, null);
+  assert.deepEqual(selected.context, {program: "IT", catalog_key: "it-2565", plan: "coop"});
+  const retry = {...entry, planClarification: false, status: "answer", answer: "verified"};
+  const [answered] = applyChatResponse([selected], session.id, retry,
+    {status: "answer", next_context: selected.context}, entry.id);
+  assert.deepEqual(answered.messages, [retry]);
+  assert.equal(answered.pendingClarification, null);
+  assert.equal(answered.program, "IT");
+  assert.equal(answered.plan, "coop");
   assert.doesNotMatch(page, /\b(?:alert|prompt|confirm)\s*\(/);
 });
 

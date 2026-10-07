@@ -30,6 +30,54 @@ def _parse(question):
 
 
 class CourseCreditTitleParseTests(unittest.TestCase):
+    def test_thai_exact_credit_titles_preserve_program_qualifiers(self):
+        for question in (
+            "DSBA แคลคูลัส 2 กี่หน่วยกิต",
+            "แคลคูลัส 2 ของ DSBA กี่หน่วยกิต",
+            "แคลคูลัส 2 ใน DSBA กี่เครดิต",
+            "วิชา แคลคูลัส 2 กี่หน่วยกิต",
+            "DSBA วิชา แคลคูลัส 2 กี่หน่วยกิต",
+        ):
+            with self.subTest(question=question):
+                spec = _parse(question)
+                self.assertEqual(spec.course_name, "แคลคูลัส 2")
+                self.assertEqual(spec.operations, ("sum_credits",))
+                self.assertIsNone(spec.credit_units)
+
+    def test_credit_filter_collections_have_no_exact_title(self):
+        cases = (
+            ("IT ปี 3 เทอม 1 มีวิชาไหน 3 หน่วยกิตบ้าง", ("list",)),
+            ("ปี 3 เทอม 1 มีวิชา 3 หน่วยกิตกี่วิชา", ("count",)),
+            ("IT มีวิชา 3 หน่วยกิตไหม", ("existence",)),
+            ("IT ปี 3 เทอม 1 3 หน่วยกิตเรียนตอนไหน", ("placement",)),
+            ("IT ปี 3 เทอม 1 3 หน่วยกิตรวมกี่หน่วยกิต", ("sum_credits",)),
+            ("IT วิชา 3 หน่วยกิตมีอะไรบ้าง", ("list",)),
+            ("IT วิชาเลือก 3 หน่วยกิตมีอะไรบ้าง", ("list",)),
+        )
+        for question, operations in cases:
+            with self.subTest(question=question):
+                spec = _parse(question)
+                self.assertIsNone(spec.course_name)
+                self.assertEqual(spec.course_codes, ())
+                self.assertEqual(spec.credit_units, 3)
+                self.assertEqual(spec.operations, operations)
+        scoped = _parse(cases[0][0])
+        self.assertEqual(scoped.program, "IT")
+        self.assertEqual(scoped.years, (3,))
+        self.assertEqual(scoped.semesters, (1,))
+
+    def test_scoped_credit_totals_have_no_exact_title(self):
+        for question in (
+            "BIT ปี 1 เทอม 1 หน่วยกิตรวมเท่าไหร่",
+            "IT ปี 3 รวมกี่หน่วยกิต",
+            "DSBA ปี 2 เทอม 1 กี่หน่วยกิต",
+        ):
+            with self.subTest(question=question):
+                spec = _parse(question)
+                self.assertIsNone(spec.course_name)
+                self.assertEqual(spec.operations, ("sum_credits",))
+                self.assertTrue(spec.years)
+
     def test_credit_title_shapes_extract_course_name_generically(self):
         cases = (
             ("AIT Calculus 2 กี่หน่วยกิต", "AIT", "Calculus 2"),

@@ -34,6 +34,7 @@ from rag.semantic.planner import (
     EXECUTION_DETERMINISTIC,
     EXECUTION_POLICY,
     EXECUTION_SQL,
+    MissingScopeRequirement,
     missing_comparison_plan,
     plan_semantic_query,
 )
@@ -366,7 +367,10 @@ def _scope_clarification(
     operand: str | None = None, *, started: float,
 ) -> SemanticPipelineResult:
     """Adapt a known scope failure using the existing clarification carrier."""
-    label = {"program": "หลักสูตร", "catalog": "ปีหลักสูตร/ฉบับหลักสูตร", "plan": "แผนการเรียน"}[dimension]
+    label = {
+        "program": "หลักสูตร", "catalog": "ปีหลักสูตร/ฉบับหลักสูตร",
+        "plan": "แผนการเรียน", "comparison_operation": "ลักษณะการเปรียบเทียบที่ต้องการ เช่น ส่วนต่าง หรือความเท่ากัน",
+    }[dimension]
     text = f"กรุณาระบุ{label}"
     if program is not None:
         text += f"ของ {program} ที่ต้องการ"
@@ -384,12 +388,145 @@ def _scope_clarification(
     return outcome
 
 
+def _matches_operand_resolution(
+    db_path: str | Path, requirement: MissingScopeRequirement | None, resolution: Any,
+) -> bool:
+    fields = {"dimension", "program", "operand", "value"}
+    if (
+        not isinstance(resolution, dict) or set(resolution) != fields
+        or any(
+            not isinstance(resolution[key], str) or not resolution[key]
+            or len(resolution[key]) > 80 for key in fields
+        )
+        or requirement is None or resolution["dimension"] != requirement.dimension
+        or resolution["operand"] not in {"left", "right"}
+        or resolution["operand"] != requirement.operand
+        or resolution["program"] != requirement.program
+        or canonical_program(db_path, resolution["program"]) != requirement.program
+    ):
+        return False
+    return True
+
+
+def _apply_operand_plan_resolution(
+    db_path: str | Path, resolved: ResolvedIntent,
+    requirement: MissingScopeRequirement | None, resolution: Any,
+) -> ResolvedIntent | None:
+    """Bind a one-shot user selection only to the current missing operand."""
+    if not _matches_operand_resolution(db_path, requirement, resolution):
+        return None
+    index = 0 if resolution["operand"] == "left" else 1
+    side = resolved.comparison_sides[index]
+    comparison = resolved.intent.comparison
+    raw_side = dict(comparison.left if index == 0 else comparison.right)
+    if side.unresolved or side.scope.plan is not None or raw_side.get("plan") is not None:
+        return None
+    plan = valid_plan(db_path, resolution["value"], side.scope.program, side.scope.catalog_key)
+    if plan is None:
+        return None
+    sides = list(resolved.comparison_sides)
+    sides[index] = _replace_resolved(side, scope=_replace_resolved(side.scope, plan=plan))
+    return _replace_resolved(resolved, comparison_sides=tuple(sides))
+
+
+def _missing_operand_catalog(db_path: str | Path, resolved: ResolvedIntent) -> MissingScopeRequirement | None:
+    comparison = resolved.intent.comparison
+    if comparison is None or len(resolved.comparison_sides) != 2:
+        return None
+    raw_sides = (comparison.left, comparison.right)
+    for label, side, raw in zip(("left", "right"), resolved.comparison_sides, raw_sides):
+        if side.unresolved and side.reason in {
+            "ambiguous operand catalog", "unknown operand catalog", "unknown operand program",
+        }:
+            if side.reason != "ambiguous operand catalog" or dict(raw).get("catalog") is not None:
+                return None
+            program = canonical_program(db_path, dict(raw).get("program", resolved.scope.program))
+            return MissingScopeRequirement("catalog", program, label)
+    if _is_ambiguous_edition_scope(db_path, resolved):
+        for label, side, raw in zip(("left", "right"), resolved.comparison_sides, raw_sides):
+            if side.scope.catalog_key is None and dict(raw).get("catalog") is None:
+                return MissingScopeRequirement("catalog", side.scope.program, label)
+    return None
+
+
+def _apply_operand_catalog_resolution(db_path: str | Path, resolved: ResolvedIntent, resolution: Any) -> ResolvedIntent | None:
+    requirement = _missing_operand_catalog(db_path, resolved)
+    if not _matches_operand_resolution(db_path, requirement, resolution):
+        return None
+    index = 0 if resolution["operand"] == "left" else 1
+    comparison = resolved.intent.comparison
+    raw = dict(comparison.left if index == 0 else comparison.right)
+    if raw.get("catalog") is not None:
+        return None
+    catalog = canonical_catalog_key(db_path, resolution["value"], requirement.program)
+    if catalog is None:
+        return None
+    raw["catalog"] = catalog
+    from rag.semantic.resolver import resolve_comparison_operand
+    side = resolve_comparison_operand(
+        db_path, tuple(raw.items()), resolved.scope.program, resolved.scope.catalog_key,
+        default_years=resolved.scope.years, default_semesters=resolved.scope.semesters,
+    )
+    if side.unresolved:
+        return None
+    sides = list(resolved.comparison_sides)
+    sides[index] = side
+    return _replace_resolved(resolved, comparison_sides=tuple(sides))
+
+
+def _normalize_operand_resolutions(singular: Any, plural: Any) -> list[dict[str, str]]:
+    if singular is not None and plural is not None:
+        raise ValueError("ambiguous clarification resolution transport")
+    items = plural if plural is not None else [singular] if singular is not None else []
+    if not isinstance(items, list) or len(items) > 4:
+        raise ValueError("clarification resolutions must be a bounded list")
+    unique: dict[tuple[str, str], dict[str, str]] = {}
+    for item in items:
+        if (
+            not isinstance(item, dict) or set(item) != {"dimension", "program", "operand", "value"}
+            or any(not isinstance(value, str) or not value or len(value) > 80 for value in item.values())
+            or item["dimension"] not in {"catalog", "plan"}
+            or item["operand"] not in {"left", "right"}
+        ):
+            raise ValueError("invalid clarification resolution")
+        key = (item["operand"], item["dimension"])
+        if key in unique and unique[key] != item:
+            raise ValueError("conflicting clarification resolutions")
+        unique[key] = dict(item)
+    return list(unique.values())
+
+
+def _apply_operand_resolution_chain(
+    db_path: str | Path, resolved: ResolvedIntent, resolutions: list[dict[str, str]],
+) -> ResolvedIntent | None:
+    remaining = list(resolutions)
+    while remaining:
+        requirement = _missing_operand_catalog(db_path, resolved) or missing_comparison_plan(resolved)
+        if requirement is None:
+            return None
+        selected = next((item for item in remaining if _matches_operand_resolution(db_path, requirement, item)), None)
+        if selected is None:
+            return None
+        retry = (
+            _apply_operand_catalog_resolution(db_path, resolved, selected)
+            if requirement.dimension == "catalog"
+            else _apply_operand_plan_resolution(db_path, resolved, requirement, selected)
+        )
+        if retry is None:
+            return None
+        resolved = retry
+        remaining.remove(selected)
+    return resolved
+
+
 def semantic_answer(
     db_path: str | Path,
     question: str,
     conversation_context: dict[str, Any] | None = None,
     *,
     home_program: str | None = None,
+    clarification_resolution: dict[str, Any] | None = None,
+    clarification_resolutions: list[dict[str, Any]] | None = None,
     interpret_callable: Callable[..., str] | None = None,
     answer_callable: Callable[..., str] | None = None,
     sql_callable: Callable[..., str] | None = None,
@@ -416,6 +553,8 @@ def semantic_answer(
         normal["program"] = home
     outcome = _run_semantic_answer(
         db_path, question, normal, home_program=home,
+        clarification_resolution=clarification_resolution,
+        clarification_resolutions=clarification_resolutions,
         interpret_callable=interpret_callable, answer_callable=answer_callable,
         sql_callable=sql_callable, allow_hint_candidates=allow_hint_candidates,
     )
@@ -437,6 +576,8 @@ def _run_semantic_answer(
     conversation_context: dict[str, Any] | None = None,
     *,
     home_program: str | None = None,
+    clarification_resolution: dict[str, Any] | None = None,
+    clarification_resolutions: list[dict[str, Any]] | None = None,
     interpret_callable: Callable[..., str] | None = None,
     answer_callable: Callable[..., str] | None = None,
     sql_callable: Callable[..., str] | None = None,
@@ -532,9 +673,27 @@ def _run_semantic_answer(
     if not validation.valid:
         trace.timing = timing
         trace.llm_request_count = counts["llm"]
+        if (
+            intent.task == "compare" and intent.comparison is not None
+            and intent.comparison.operation is None
+            and validation.reason == "compare requires an explicit comparison operation"
+        ):
+            return _scope_clarification(trace, "comparison_operation", started=started)
         return _fail_closed(
             trace, "VALIDATION_ERROR", validation.reason or "invalid", "invalid_interpretation",
             started=started,
+        )
+
+    try:
+        resolutions = _normalize_operand_resolutions(clarification_resolution, clarification_resolutions)
+    except ValueError as error:
+        return _fail_closed(
+            trace, "VALIDATION_ERROR", str(error), "invalid_interpretation", started=started,
+        )
+    if resolutions and intent.task != "compare":
+        return _fail_closed(
+            trace, "VALIDATION_ERROR", "operand resolution requires a comparison",
+            "invalid_interpretation", started=started,
         )
 
     if home_program is not None and intent.task != "compare" and intent.scope.program is not None:
@@ -640,6 +799,15 @@ def _run_semantic_answer(
             else "missing_scope",
             started=started,
         )
+    if resolutions:
+        retry = _apply_operand_resolution_chain(db_path, resolved, resolutions)
+        if retry is None:
+            return _fail_closed(
+                trace, "VALIDATION_ERROR", "invalid or mismatched operand resolution chain",
+                "invalid_interpretation", started=started,
+            )
+        resolved = retry
+        trace.resolved_intent = _resolved_summary(resolved)
     if resolved.intent.comparison is not None:
         for label, side, raw_side in zip(
             ("left", "right"), resolved.comparison_sides,

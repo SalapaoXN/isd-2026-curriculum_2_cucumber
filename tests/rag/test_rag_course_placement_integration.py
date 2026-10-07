@@ -444,15 +444,8 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
                 if claim.status == "complete"
             )
         )
-        describe_codes = [
-            row["course_code"]
-            for claim in _claims(result, "describe")
-            if claim.status == "complete" and claim.provenance
-            for row in claim.evidence
-        ]
-        self.assertEqual(
-            set(describe_codes), {"06016413", "06016420", "06016421"}
-        )
+        # The prerequisite-only request does not ask for course descriptions.
+        self.assertEqual(_claims(result, "describe"), [])
         self.assertEqual(calls, [])
 
     def test_three_course_sequence_sorts_ties_and_leaves_missing_timing_unknown(self):

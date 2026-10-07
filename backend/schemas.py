@@ -1,14 +1,40 @@
 """HTTP request and response schemas for the CUCUMBER FastAPI app."""
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, model_validator
+
+
+class ClarificationTarget(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    dimension: Literal["plan", "catalog"]
+    program: StrictStr = Field(min_length=1, max_length=80)
+    operand: Literal["left", "right"] | None
+
+    @model_validator(mode="after")
+    def normal_target_is_catalog_only(self) -> "ClarificationTarget":
+        if self.operand is None and self.dimension != "catalog":
+            raise ValueError("normal clarification target is supported only for catalog")
+        return self
+
+
+class ClarificationResolution(ClarificationTarget):
+    operand: Literal["left", "right"]
+    value: StrictStr = Field(min_length=1, max_length=80)
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)
     conversation_context: dict[str, Any] | None = Field(default=None)
     home_program: StrictStr | None = Field(default=None)
+    clarification_resolution: ClarificationResolution | None = None
+    clarification_resolutions: list[ClarificationResolution] | None = Field(default=None, max_length=4)
+
+    @model_validator(mode="after")
+    def unambiguous_clarification_transport(self) -> "AskRequest":
+        if self.clarification_resolution is not None and self.clarification_resolutions is not None:
+            raise ValueError("use singular or plural clarification resolutions, not both")
+        return self
 
 
 class AskResponse(BaseModel):
@@ -22,6 +48,7 @@ class AskResponse(BaseModel):
     next_context: dict[str, Any] | None = None
     comparison: dict[str, Any] | None = None
     plan_results: list[dict[str, Any]] | None = None
+    clarification_target: ClarificationTarget | None = None
 
 
 class PlanInfo(BaseModel):

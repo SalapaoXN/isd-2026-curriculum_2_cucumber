@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Mapping
 
+from rag.answer import _plan_display
 from rag.semantic.prompts import (
     ANSWERER_PROMPT_VERSION,
     build_semantic_answerer_prompt,
@@ -45,6 +46,7 @@ _FORBIDDEN_JARGON = (
 )
 
 _COURSE_CODE_RE = re.compile(r"\d{8}")
+_INTERNAL_PLAN_RE = re.compile(r"(?<![A-Za-z0-9_])(?:no_coop|coop)(?![A-Za-z0-9_])", re.IGNORECASE)
 
 _TITLE_KEYS = ("name_en", "name_th", "title", "course_name")
 
@@ -99,16 +101,32 @@ def _titles_from(value: object) -> list[str]:
     return found[:4]
 
 
+def _displayed_list_pairs(verified: VerifiedResult) -> tuple[tuple[str, str | None], ...]:
+    from rag.semantic.executor import _collection_course_identities
+
+    pairs: list[tuple[str, str | None]] = []
+    for claim in verified.claims:
+        if (
+            getattr(claim, "operation", None) in {"list", "topic_matches", "course_set"}
+            and getattr(claim, "status", None) == "complete"
+        ):
+            pairs.extend(_collection_course_identities(getattr(claim, "value", None))[:10])
+    return tuple(pairs)
+
+
 def _required_identifiers(verified: VerifiedResult) -> tuple[str, ...]:
     """Canonical identifiers an answer must preserve verbatim.
 
     Every distinct course code in verified evidence is required: a grounded
     course-level answer must name its entities. Canonical titles are
     additionally required for single-course answers, where omitting the
-    title leaves the answer ambiguous. Multi-course listings keep codes
-    only, so legitimate summaries are not forced to repeat every title.
+    title leaves the answer ambiguous. Displayed collection identities require
+    their selected grounded title, without requiring both language variants.
     """
     codes = _collect_codes(verified)
+    pairs = _displayed_list_pairs(verified)
+    if pairs:
+        return codes + tuple(dict.fromkeys(title for _, title in pairs if title))
     if len(codes) != 1:
         return codes
     titles = _collect_titles(verified)
@@ -120,11 +138,27 @@ def validate_answer_text(answer: str, verified: VerifiedResult) -> bool:
     if not isinstance(answer, str) or not answer.strip():
         return False
     lowered = answer.casefold()
+    plan_labels = tuple(
+        f"แผน{_plan_display(plan)}" for plan in ("coop", "no_coop")
+        if any(f"แผน{_plan_display(plan)}" in fact for fact in _scan_texts(verified))
+    )
+    if plan_labels and (
+        _INTERNAL_PLAN_RE.search(answer) or any(label not in answer for label in plan_labels)
+    ):
+        return False
     for token in _FORBIDDEN_JARGON:
         if token in lowered:
             return False
     for identifier in _required_identifiers(verified):
         if identifier not in answer:
+            return False
+    for code, title in _displayed_list_pairs(verified):
+        if title and not any(
+            code in line and title in line
+            and set(_COURSE_CODE_RE.findall(line)) == {code}
+            for line in answer.splitlines()
+        ):
+            # Do not accept names detached from or paired with other codes.
             return False
     return True
 
@@ -258,7 +292,10 @@ def render_verified_fallback(
 ) -> str:
     """Render verified facts deterministically without any provider call."""
     lines = [fact for fact in verified.summary_facts if fact][:10]
-    body = "\n".join(f"- {line}" for line in lines) if lines else "- ไม่พบข้อเท็จจริงที่ยืนยันได้"
+    if _displayed_list_pairs(verified):
+        body = "\n".join(lines)
+    else:
+        body = "\n".join(f"- {line}" for line in lines) if lines else "- ไม่พบข้อเท็จจริงที่ยืนยันได้"
     missing = (
         "\nข้อมูลที่ยังขาด: " + "; ".join(verified.missing_information)
         if verified.missing_information
@@ -287,7 +324,7 @@ def _comparison_operand_label(side: object) -> str | None:
     for field, label in (("program", None), ("plan", "แผน")):
         value = getattr(scope, field, None)
         if isinstance(value, str) and value.strip():
-            parts.append(f"{label} {value.strip()}" if label else value.strip())
+            parts.append(f"{label}{_plan_display(value.strip())}" if label else value.strip())
     for year in tuple(getattr(scope, "years", ()) or ()):
         parts.append(f"ชั้นปีที่ {year}")
     for semester in tuple(getattr(scope, "semesters", ()) or ()):

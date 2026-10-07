@@ -20,6 +20,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
+from rag.answer import _plan_display
 from rag.evidence_executor import execute_evidence_plan
 from rag.evidence_planner import plan_evidence
 from rag.grounded_answer import compose_grounded_answer
@@ -112,6 +113,78 @@ def _codes(value: Any) -> list[str]:
     return found[:8]
 
 
+def _collection_course_codes(value: Any) -> list[str]:
+    """Collect distinct concrete collection identities in source order.
+
+    Structured rows supply course_code; other row metadata is not identity.
+    Raw code sequences and nested collection containers are also supported.
+    Display and retention bounds belong to callers, not recursive traversal.
+    """
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def collect(item: Any) -> None:
+        if isinstance(item, str):
+            code = item.strip()
+            if len(code) == 8 and code.isascii() and code.isdigit() and code not in seen:
+                seen.add(code)
+                found.append(code)
+        elif isinstance(item, Mapping):
+            if "course_code" in item:
+                collect(item["course_code"])
+            else:
+                for nested in item.values():
+                    if isinstance(nested, (Mapping, list, tuple)):
+                        collect(nested)
+        elif isinstance(item, (list, tuple)):
+            for nested in item:
+                collect(nested)
+
+    collect(value)
+    return found
+
+
+def _collection_course_identities(value: Any) -> list[tuple[str, str | None]]:
+    """Pair each concrete code with a title from the same grounded row."""
+    found: list[tuple[str, str | None]] = []
+    positions: dict[str, int] = {}
+    priorities: dict[str, int] = {}
+
+    def collect(item: Any) -> None:
+        if isinstance(item, Mapping) and "course_code" in item:
+            code = item["course_code"]
+            thai = _text(item.get("name_th"))
+            english = _text(item.get("name_en"))
+            title, priority = (thai, 2) if thai else (english, 1 if english else 0)
+        elif isinstance(item, str):
+            code, title, priority = item, None, 0
+        else:
+            if isinstance(item, Mapping):
+                nested = (child for child in item.values() if isinstance(child, (Mapping, list, tuple)))
+            else:
+                nested = item if isinstance(item, (list, tuple)) else ()
+            for child in nested:
+                if isinstance(child, (Mapping, list, tuple, str)):
+                    collect(child)
+            return
+        if not isinstance(code, str):
+            return
+        code = code.strip()
+        if len(code) != 8 or not code.isascii() or not code.isdigit():
+            return
+        if code not in positions:
+            positions[code] = len(found)
+            priorities[code] = priority
+            found.append((code, title))
+        elif priority > priorities[code]:
+            # Better grounded title for the same identity; retain source order.
+            found[positions[code]] = (code, title)
+            priorities[code] = priority
+
+    collect(value)
+    return found
+
+
 def _titles(value: Any) -> list[str]:
     found: list[str] = []
     if isinstance(value, Mapping):
@@ -165,6 +238,18 @@ def _course_label(value: Any) -> str:
 
 
 def _claim_line(operation: str, value: Any) -> str | None:
+    if operation in {"list", "topic_matches", "course_set"}:
+        identities = _collection_course_identities(value)
+        if identities:
+            line = "รายวิชาที่พบ:\n" + "\n".join(
+                f"- {code} — {title}" if title else f"- {code}"
+                for code, title in identities[:10]
+            )
+            if len(identities) > 10:
+                line += f"\n(แสดง 10 จาก {len(identities)} รายวิชา)"
+            return line
+        titles = _titles(value)
+        return "รายวิชาที่พบ: " + ", ".join(titles[:10]) if titles else None
     codes = _codes(value)
     titles = _titles(value)
     numbers = _numbers(value)
@@ -189,16 +274,13 @@ def _claim_line(operation: str, value: Any) -> str | None:
             if semester is not None:
                 parts.append(f"ภาคการศึกษาที่ {semester}")
             if plan is not None:
-                parts.append(f"แผน {plan}")
+                parts.append(f"แผน{_plan_display(plan)}")
             lines.append(
                 "%s: %s" % (label, " ".join(parts)) if label else " ".join(parts)
             )
         return " | ".join(line for line in lines if line) or None
     if operation == "identity":
         return _course_label(value) or None
-    if operation in {"list", "topic_matches", "course_set"}:
-        names = codes + titles
-        return "รายวิชาที่พบ: " + ", ".join(names[:10]) if names else None
     if operation in {"describe", "description_evidence"}:
         return _course_label(value) or None
     if operation == "existence":
@@ -670,7 +752,7 @@ def _side_label(side: Any) -> str:
         if getattr(scope, "program", None):
             parts.append(str(scope.program))
         if getattr(scope, "plan", None):
-            parts.append(f"แผน {scope.plan}")
+            parts.append(f"แผน{_plan_display(scope.plan)}")
         for year in tuple(getattr(scope, "years", ()) or ()):
             parts.append(f"ปี {year}")
         for semester in tuple(getattr(scope, "semesters", ()) or ()):
@@ -1039,7 +1121,13 @@ def _retained_from_claims(
     seen: list[str] = []
     for claim in claims:
         try:
-            codes = _codes(getattr(claim, "value", None))
+            if (
+                getattr(claim, "operation", None) in {"list", "topic_matches", "course_set"}
+                and getattr(claim, "status", None) == "complete"
+            ):
+                codes = _collection_course_codes(getattr(claim, "value", None))
+            else:
+                codes = _codes(getattr(claim, "value", None))
         except Exception:
             continue
         for code in codes:

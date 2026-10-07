@@ -63,13 +63,15 @@ class HomeScopePolicyTests(unittest.TestCase):
 
     def comparison_intent(self):
         return SemanticIntent(task="compare", subject="program", comparison=ComparisonSpec(
-            left=(("program", "IT"), ("catalog", "it-2565")),
-            right=(("program", "DSBA"), ("catalog", "dsba-2565")),
+            left=(("program", "IT"), ("catalog", "it-2565"), ("plan", "coop"),
+                  ("year", 1), ("semester", 1)),
+            right=(("program", "DSBA"), ("catalog", "dsba-2565"), ("plan", "coop"),
+                   ("year", 1), ("semester", 1)),
             measure="credits", operation="difference"))
 
     def test_cross_program_comparison_allowed(self):
         result, planner, normal, comparison = self.run_intent(
-            self.comparison_intent(), "เปรียบเทียบ IT it-2565 กับ DSBA dsba-2565")
+            self.comparison_intent(), "เปรียบเทียบ IT it-2565 coop ปี 1 เทอม 1 กับ DSBA dsba-2565 coop ปี 1 เทอม 1")
         self.assertEqual(result.result.status, "answer")
         planner.assert_called_once()
         normal.assert_not_called()
@@ -81,7 +83,7 @@ class HomeScopePolicyTests(unittest.TestCase):
 
     def test_failed_comparison_preserves_normal_state(self):
         result, _, _, comparison = self.run_intent(
-            self.comparison_intent(), "เปรียบเทียบ IT it-2565 กับ DSBA dsba-2565",
+            self.comparison_intent(), "เปรียบเทียบ IT it-2565 coop ปี 1 เทอม 1 กับ DSBA dsba-2565 coop ปี 1 เทอม 1",
             comparison_status="missing_data")
         comparison.assert_called_once()
         self.assertNotEqual(result.result.status, "answer")

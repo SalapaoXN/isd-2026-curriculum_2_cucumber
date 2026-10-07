@@ -96,6 +96,15 @@ def _require_text(value: Any, field: str, *, allow_none: bool) -> str | None:
     return text
 
 
+def _parse_clarification(value: Any) -> str | None:
+    # Auxiliary explanation is not semantic authority. Keep its stored text
+    # bounded without rejecting an otherwise valid intent; semantic fields
+    # retain _require_text's hard length/type checks.
+    if isinstance(value, str):
+        value = value.strip()[:MAX_TEXT_LEN]
+    return _require_text(value, "clarification", allow_none=True)
+
+
 def _require_int(value: Any, field: str, *, allow_none: bool) -> int | None:
     if value is None:
         if allow_none:
@@ -330,7 +339,7 @@ def parse_semantic_intent_payload(payload: str) -> SemanticIntent:
     requested = data["requested_fields"]
     if not isinstance(requested, list) or any(item not in REQUESTED_FIELDS for item in requested):
         raise SemanticSchemaError("unknown requested field")
-    clarification = _require_text(data["clarification"], "clarification", allow_none=True)
+    clarification = _parse_clarification(data["clarification"])
     policy_topic = data["policy_topic"]
     if policy_topic is not None and policy_topic not in POLICY_TOPICS:
         raise SemanticSchemaError(f"unknown policy topic: {policy_topic!r}")

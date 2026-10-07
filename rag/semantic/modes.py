@@ -48,6 +48,8 @@ def semantic_ask_response(
     conversation_context: dict[str, Any] | None,
     *,
     home_program: str | None = None,
+    clarification_resolution: dict[str, Any] | None = None,
+    clarification_resolutions: list[dict[str, Any]] | None = None,
     interpret_callable: Callable[..., str] | None,
     answer_callable: Callable[..., str] | None = None,
     sql_callable: Callable[..., str] | None = None,
@@ -60,6 +62,10 @@ def semantic_ask_response(
         question,
         conversation_context if isinstance(conversation_context, dict) else None,
         home_program=home_program,
+        **({"clarification_resolution": clarification_resolution}
+           if clarification_resolution is not None else {}),
+        **({"clarification_resolutions": clarification_resolutions}
+           if clarification_resolutions is not None else {}),
         interpret_callable=interpret_callable,
         answer_callable=answer_callable,
         sql_callable=sql_callable,
@@ -75,10 +81,10 @@ def semantic_ask_response(
     if status != "answer":
         action = "insufficient_evidence" if status == "insufficient_evidence" else status
     summary = getattr(getattr(outcome, "trace", None), "verified_summary", {})
-    if status == "clarify_program" and summary.get("scope_dimension") in {"program", "catalog", "plan"}:
+    if status == "clarify_program" and summary.get("scope_dimension") in {"program", "catalog", "plan", "comparison_operation"}:
         status = "clarification_required"
         action = summary["scope_dimension"] + "_required"
-    return {
+    response = {
         "question": question,
         "answer": result.final_answer,
         "status": status,
@@ -88,6 +94,17 @@ def semantic_ask_response(
         "next_context": outcome.next_context,
         "comparison": None,
     }
+    if (
+        action in {"plan_required", "catalog_required"}
+        and (summary.get("operand") in {"left", "right"}
+             or (action == "catalog_required" and summary.get("operand") is None))
+        and isinstance(summary.get("program"), str)
+    ):
+        response["clarification_target"] = {
+            "dimension": summary["scope_dimension"], "program": summary["program"],
+            "operand": summary.get("operand"),
+        }
+    return response
 
 
 def run_shadow_comparison(

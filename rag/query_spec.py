@@ -432,6 +432,20 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
         thai_credit_match = _THAI_COURSE_CREDIT_NAME_PATTERN.match(question)
         if thai_credit_match is not None:
             thai_name = thai_credit_match.group("name").strip()
+            # This permissive title span can also consume query structure.
+            # Reuse the scope/operation grammar on the captured span, rather
+            # than treating a year, semester or credit-filter operand as a
+            # digit-bearing title. Include the optional course prefix when
+            # checking categories (it may have consumed "วิชา" in วิชาเลือก).
+            structural_title = bool(
+                _YEAR_PATTERN.search(thai_name)
+                or _INVALID_YEAR_PATTERN.search(thai_name)
+                or _SEMESTER_PATTERN.search(thai_name)
+                or _CATEGORY_PATTERN.search(thai_credit_match.group(0))
+                or _PLAN_PATTERN.search(thai_name)
+                or _surface_operation_matches(thai_name)
+                or re.match(r"^(?:มี\s*)?(?:ราย)?วิชา\s*\d", thai_name)
+            )
             # The bounded credit-question grammar can otherwise mistake a
             # bare quantifier such as "กี่หน่วยกิต" for a course title.
             thai_name_letters = re.sub(r"[\s\d]", "", thai_name)
@@ -442,7 +456,7 @@ def _extract_course_name(question: str, course_codes: tuple[str, ...]) -> str | 
             # a course target; trailing-qualified and bare Thai titles keep
             # the existing length guard.
             leading_program = thai_credit_match.group("lead")
-            if leading_program is not None and not has_digit:
+            if structural_title or (leading_program is not None and not has_digit):
                 pass
             elif thai_name not in {"มี", "กี่"} and (
                 len(thai_name_letters) >= 4

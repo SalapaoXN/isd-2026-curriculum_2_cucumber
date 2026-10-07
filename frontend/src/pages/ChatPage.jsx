@@ -12,6 +12,13 @@ import {
   availablePlans,
   displayablePlans,
   selectPlan,
+  selectPlanForRetry,
+  clarificationPlans,
+  clarificationCatalogs,
+  catalogOptionLabel,
+  selectCatalog,
+  selectCatalogForRetry,
+  normalCatalogTarget,
   planLabel,
   formatElapsedTime,
   provenanceLabel,
@@ -190,29 +197,48 @@ export default function ChatPage() {
     setError("");
   }
 
-  function handleCatalogChange(catalogKey) {
-    const plans = availablePlans({...active, catalogKey}, programs);
-    const plan = plans.some(p => p.plan_key === active.plan)
-      ? active.plan : plans.length === 1 ? plans[0].plan_key : null;
-    updateActive({
-      catalogKey,
-      plan,
-      pendingClarification: null,
-      context: resetContextForEdition(active.program, catalogKey, plan),
-    });
+  function handleCatalogChange(catalogKey, clarificationRetry = false) {
+    if (loading) return;
+    const pending = active.pendingClarification;
+    let retry;
+    try {
+      retry = clarificationRetry ? selectCatalogForRetry(active, catalogKey, programs)
+        : {session: selectCatalog(active, catalogKey, programs), clarificationResolution: null};
+    } catch (err) {
+      setError(err.message);
+      return;
+    }
+    updateActive(retry.session);
     setQuestion("");
     setError("");
+    if (pending && (clarificationRetry || !pending.clarification_target || normalCatalogTarget(pending.clarification_target))) {
+      handleAsk(pending.question, retry.session, pending.messageId,
+        retry.clarificationResolutions ? null : retry.clarificationResolution, retry.clarificationResolutions);
+    }
   }
 
-  function handlePlanChange(plan) {
+  function handlePlanChange(plan, clarificationRetry = false) {
     if (loading) return;
-    const selected = selectPlan(active, plan, programs);
     const pending = active.pendingClarification;
+    let selected, clarificationResolution, clarificationResolutions;
+    try {
+      const retry = clarificationRetry
+        ? selectPlanForRetry(active, plan, programs)
+        : {session: selectPlan(active, plan, programs), clarificationResolution: null};
+      selected = retry.session;
+      clarificationResolutions = retry.clarificationResolutions || null;
+      clarificationResolution = clarificationResolutions ? null : retry.clarificationResolution;
+    } catch (err) {
+      setError(err.message);
+      return;
+    }
     updateActive(selected);
-    if (pending) handleAsk(pending.question, selected, pending.messageId);
+    if (pending && (clarificationRetry || !pending.clarification_target)) {
+      handleAsk(pending.question, selected, pending.messageId, clarificationResolution, clarificationResolutions);
+    }
   }
 
-  async function handleAsk(retryQuestion, selectedSession, retryId) {
+  async function handleAsk(retryQuestion, selectedSession, retryId, clarificationResolution = null, clarificationResolutions = null) {
     if (loading) return;
     const session = selectedSession || active;
     const q = typeof retryQuestion === "string" ? retryQuestion : question.trim();
@@ -234,7 +260,7 @@ export default function ChatPage() {
       // The selected catalog is authoritative over any stale follow-up context.
       const seed = buildConversationContext(session);
       const requestStarted = performance.now();
-      const data = await askQuestion(q, seed, session.program || null);
+      const data = await askQuestion(q, seed, session.program || null, clarificationResolution, clarificationResolutions);
       const elapsedMs = performance.now() - requestStarted;
       const entry = {
         id: retryId || Date.now(),
@@ -245,8 +271,10 @@ export default function ChatPage() {
         elapsedMs,
         provenance: data.provenance || [],
         planClarification: data.status === "clarification_required" && data.action === "plan_required",
+        catalogClarification: data.status === "clarification_required" && data.action === "catalog_required",
       };
-      setSessions(previous => applyChatResponse(previous, session.id, entry, data, retryId));
+      setSessions(previous => applyChatResponse(previous, session.id, entry, data, retryId,
+        clarificationResolutions || (clarificationResolution ? [clarificationResolution] : null)));
       if (activeSessionRef.current === session.id) setQuestion("");
     } catch (err) {
       if (activeSessionRef.current === session.id) setError(err.message || "เกิดข้อผิดพลาด");
@@ -266,6 +294,8 @@ export default function ChatPage() {
   );
   const plans = availablePlans(active, programs);
   const visiblePlans = displayablePlans(plans);
+  const pendingPlans = displayablePlans(clarificationPlans(active, programs));
+  const pendingCatalogs = clarificationCatalogs(active, programs);
   const planSegment = planLabel(active.plan);
   const scopeLabel = active.program
     ? `${active.program}${
@@ -420,10 +450,24 @@ export default function ChatPage() {
                            <span className="chat-answer-timing"> · {formatElapsedTime(m.elapsedMs)}</span>
                          )}
                        </div>
-                       <AnswerText text={m.planClarification ? "คำถามนี้ต้องระบุแผนการเรียนก่อน" : m.answer} />
-                       {m.planClarification && active.pendingClarification?.messageId === m.id && (
-                          <PlanSelector plans={visiblePlans} value={active.plan} onChange={handlePlanChange} disabled={loading} />
-                       )}
+                       <AnswerText text={
+                         typeof m.answer === "string" && m.answer.trim() && m.answer !== "ไม่พบคำตอบ"
+                           ? m.answer
+                           : m.planClarification ? "คำถามนี้ต้องระบุแผนการเรียนก่อน" : "ไม่พบคำตอบ"
+                       } />
+                        {m.planClarification && active.pendingClarification?.messageId === m.id && (
+                           <PlanSelector plans={pendingPlans} value={active.pendingClarification?.clarification_target ? null : active.plan} onChange={plan => handlePlanChange(plan, true)} disabled={loading} />
+                        )}
+                        {m.catalogClarification && active.pendingClarification?.messageId === m.id && pendingCatalogs.length > 0 && (
+                          <div className="plan-selector" role="group" aria-label="ฉบับหลักสูตรสำหรับคำถามนี้">
+                            {pendingCatalogs.map(edition => (
+                              <button key={edition.catalog_key} type="button" disabled={loading}
+                                onClick={() => handleCatalogChange(edition.catalog_key, true)}>
+                                {catalogOptionLabel(edition, pendingCatalogs)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                     </div>
                   </div>
                   <div className="chat-message-meta">

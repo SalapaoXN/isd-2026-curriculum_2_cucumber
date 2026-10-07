@@ -27,8 +27,18 @@ class ReversePrerequisiteDirectionGuardTests(unittest.TestCase):
         self.assertEqual(spec.course_codes, ("06016454",))
         self.assertEqual(spec.operations, ("prerequisite",))
         result = ask(DB_PATH, question, context=IT_CONTEXT)["result"]
-        self.assertEqual(result.status, "valid_empty")
-        self.assertIn("prerequisite", [claim.operation for claim in result.claims])
+        self.assertEqual(result.status, "answer")
+        prerequisite_claims = [
+            claim for claim in result.claims if claim.operation == "prerequisite"
+        ]
+        self.assertTrue(prerequisite_claims)
+        for claim in prerequisite_claims:
+            self.assertEqual(claim.status, "valid_empty")
+            self.assertTrue(claim.provenance)
+            self.assertTrue(claim.evidence)
+            for row in claim.evidence:
+                self.assertEqual(row["prerequisite_state"], "explicit_none")
+                self.assertEqual(row["prerequisite_text"], "ไม่มี")
 
     def test_explicit_course_code_upstream_lookup_remains_supported(self):
         question = "IT 06016454 มี prerequisite ไหม"
