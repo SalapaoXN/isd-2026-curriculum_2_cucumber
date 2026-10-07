@@ -362,6 +362,7 @@ def interpret_semantic_intent(
     canonical_program_codes: tuple[str, ...] = (),
     canonical_category_labels: tuple[str, ...] = (),
     canonical_plan_keys: tuple[str, ...] = (),
+    last_normal_operation: dict[str, Any] | None = None,
 ) -> tuple[SemanticIntent, str]:
     """Run one interpretation call; return (intent, prompt_version used)."""
     if not isinstance(question, str) or not question.strip():
@@ -374,6 +375,7 @@ def interpret_semantic_intent(
         canonical_program_codes=canonical_program_codes,
         canonical_category_labels=canonical_category_labels,
         canonical_plan_keys=canonical_plan_keys,
+        last_normal_operation=last_normal_operation,
     )
     output = model_callable(prompt)
     if not isinstance(output, str):

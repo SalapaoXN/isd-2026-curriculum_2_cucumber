@@ -77,6 +77,9 @@ export function resetContextForEdition(program, catalogKey, plan = null) {
 export function buildConversationContext(session) {
   if (!session) return null;
   const context = { ...(session.context || {}) };
+  if (session.program && context.program && session.program !== context.program) {
+    return resetContextForEdition(session.program, session.catalogKey, session.plan);
+  }
   if (session.plan && context.plan && session.plan !== context.plan) {
     return resetContextForEdition(session.program, session.catalogKey, session.plan);
   }
@@ -100,4 +103,56 @@ export function buildConversationContext(session) {
   if (session.plan) context.plan = session.plan;
 
   return Object.keys(context).length > 0 ? context : null;
+}
+
+export function newSession(program = "", catalogKey = "", programs = []) {
+  const plans = availablePlans({program, catalogKey}, programs);
+  return {
+    id: `s-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+    program,
+    catalogKey: program ? catalogKey : "",
+    plan: program && plans.length === 1 ? plans[0].plan_key : null,
+    pendingClarification: null,
+    title: "New chat",
+    messages: [],
+    context: null,
+    createdAt: Date.now(),
+  };
+}
+
+export function normalizeStoredSession(session) {
+  if (!session || typeof session !== "object" || typeof session.id !== "string" || !session.id) return null;
+  const validProgram = typeof session.program === "string";
+  const program = validProgram ? session.program : "";
+  return {
+    ...session,
+    program,
+    catalogKey: program && typeof session.catalogKey === "string" ? session.catalogKey : "",
+    plan: program && typeof session.plan === "string" ? session.plan : null,
+    messages: Array.isArray(session.messages) ? session.messages : [],
+    title: typeof session.title === "string" ? session.title : "New chat",
+    context: validProgram && session.context && typeof session.context === "object" && !Array.isArray(session.context)
+      ? session.context : null,
+    pendingClarification: validProgram ? session.pendingClarification || null : null,
+  };
+}
+
+export function selectProgram(session, program, programs) {
+  const catalogKey = defaultCatalogKey(program, programs);
+  const plans = availablePlans({program, catalogKey}, programs);
+  const plan = plans.length === 1 ? plans[0].plan_key : null;
+  return {...session, program, catalogKey, plan, pendingClarification: null,
+    context: resetContextForEdition(program, catalogKey, plan)};
+}
+
+export function applyChatResponse(sessions, originId, entry, data, retryId) {
+  return sessions.map(session => session.id !== originId ? session : ({
+    ...session,
+    messages: retryId ? session.messages.map(m => m.id === retryId ? entry : m) : [...session.messages, entry],
+    pendingClarification: entry.planClarification ? {question: entry.question, messageId: entry.id} : null,
+    context: buildConversationContext({...session, context: data.next_context}),
+    title: session.messages.length === 0
+      ? entry.question.length > 42 ? `${entry.question.slice(0, 42)}…` : entry.question
+      : session.title,
+  }));
 }

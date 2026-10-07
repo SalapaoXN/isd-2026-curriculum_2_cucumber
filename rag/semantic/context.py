@@ -93,6 +93,24 @@ def _validated_prior_context(
         prior["result_scope_program"] = scope_program
     if conversation_context.get("result_set_empty") is True:
         prior["result_set_empty"] = True
+    operation = conversation_context.get("last_normal_operation")
+    keys = {"kind", "program", "catalog_key", "plan", "years", "semesters"}
+    if (
+        isinstance(operation, dict)
+        and set(operation) == keys
+        and operation.get("kind") == "list_courses"
+        and isinstance(operation.get("program"), str)
+        and operation["program"] == prior.get("program")
+        and operation.get("catalog_key") == prior.get("catalog_key")
+        and operation.get("plan") == prior.get("plan")
+        and isinstance(operation.get("years"), (list, tuple))
+        and isinstance(operation.get("semesters"), (list, tuple))
+        and all(type(value) is int for value in (*operation["years"], *operation["semesters"]))
+        and tuple(operation["years"]) == prior.get("years", ())
+        and tuple(operation["semesters"]) == prior.get("semesters", ())
+        and (operation["years"] or operation["semesters"])
+    ):
+        prior["last_normal_operation"] = dict(operation)
     return prior
 
 

@@ -3,6 +3,10 @@ import { askQuestion, fetchPrograms } from "../api";
 import PlanSelector from "../components/PlanSelector";
 import {
   buildConversationContext,
+  newSession,
+  normalizeStoredSession,
+  selectProgram,
+  applyChatResponse,
   defaultCatalogKey,
   resetContextForEdition,
   availablePlans,
@@ -41,26 +45,10 @@ function loadStored() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed.sessions)) return null;
-    return parsed;
+    return {...parsed, sessions: parsed.sessions.map(normalizeStoredSession).filter(Boolean)};
   } catch {
     return null;
   }
-}
-
-function newSession(program, catalogKey = "", programs = []) {
-  const plans = availablePlans({program, catalogKey}, programs);
-  const plan = plans.length === 1 ? plans[0].plan_key : null;
-  return {
-    id: `s-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
-    program: program || "",
-    catalogKey,
-    plan,
-    pendingClarification: null,
-    title: "New chat",
-    messages: [],
-    context: null,
-    createdAt: Date.now(),
-  };
 }
 
 function AnswerText({ text }) {
@@ -114,11 +102,12 @@ export default function ChatPage() {
     if (programs.length === 0) return;
     setSessions((previous) =>
       previous.map((session) => {
+        if (!session.program) return session;
         const program = programs.find(
           (item) => item.program_code === session.program
         );
         const editions = program?.editions || [];
-        const existing = session.catalogKey || session.context?.catalog_key || "";
+        const existing = session.catalogKey || "";
         const isAvailable = editions.some(
           (edition) => edition.catalog_key === existing
         );
@@ -127,7 +116,7 @@ export default function ChatPage() {
           : defaultCatalogKey(session.program, programs);
         const scoped = {...session, catalogKey};
         const plans = availablePlans(scoped, programs);
-        const priorPlan = session.plan || session.context?.plan;
+        const priorPlan = session.plan;
         const plan = plans.some(p => p.plan_key === priorPlan)
           ? priorPlan : plans.length === 1 ? plans[0].plan_key : null;
         if (catalogKey === session.catalogKey && plan === session.plan) return session;
@@ -170,7 +159,7 @@ export default function ChatPage() {
   }
 
   function handleNewChat() {
-    const program = active?.program || "IT";
+    const program = active?.program ?? "IT";
     const session = newSession(program, defaultCatalogKey(program, programs), programs);
     setSessions((prev) => [session, ...prev]);
     setActiveId(session.id);
@@ -182,7 +171,7 @@ export default function ChatPage() {
     setSessions((prev) => {
       const next = prev.filter((s) => s.id !== id);
       if (next.length === 0) {
-        const program = active?.program || "IT";
+        const program = active?.program ?? "IT";
         const fresh = newSession(program, defaultCatalogKey(program, programs), programs);
         setActiveId(fresh.id);
         return [fresh];
@@ -196,16 +185,7 @@ export default function ChatPage() {
     // Keep the current session and its history; only the scope changes.
     // Context is cleared so the next question is seeded with the new
     // program instead of chaining the previous program's scope.
-    const catalogKey = defaultCatalogKey(program, programs);
-    const plans = availablePlans({program, catalogKey}, programs);
-    const plan = plans.length === 1 ? plans[0].plan_key : null;
-    updateActive({
-      program,
-      catalogKey,
-      plan,
-      pendingClarification: null,
-      context: resetContextForEdition(program, catalogKey, plan),
-    });
+    updateActive(selectProgram(active, program, programs));
     setQuestion("");
     setError("");
   }
@@ -243,9 +223,9 @@ export default function ChatPage() {
       return;
     }
     const selectedProgram = programs.find(
-      (item) => item.program_code === active.program
+      (item) => item.program_code === session.program
     );
-    if ((selectedProgram?.editions?.length || 0) > 1 && !active.catalogKey) {
+    if ((selectedProgram?.editions?.length || 0) > 1 && !session.catalogKey) {
       setError("กรุณาเลือกปีหลักสูตรก่อนส่งคำถาม");
       return;
     }
@@ -254,7 +234,7 @@ export default function ChatPage() {
       // The selected catalog is authoritative over any stale follow-up context.
       const seed = buildConversationContext(session);
       const requestStarted = performance.now();
-      const data = await askQuestion(q, seed);
+      const data = await askQuestion(q, seed, session.program || null);
       const elapsedMs = performance.now() - requestStarted;
       const entry = {
         id: retryId || Date.now(),
@@ -266,22 +246,7 @@ export default function ChatPage() {
         provenance: data.provenance || [],
         planClarification: data.status === "clarification_required" && data.action === "plan_required",
       };
-      const returnedPlan = data.next_context?.plan;
-      const plan = availablePlans(session, programs).some(p => p.plan_key === returnedPlan)
-        ? returnedPlan : session.plan;
-      setSessions(previous => previous.map(s => s.id !== session.id ? s : ({
-        ...s,
-        plan,
-        messages: retryId ? s.messages.map(m => m.id === retryId ? entry : m) : [...s.messages, entry],
-        pendingClarification: entry.planClarification ? {question: q, messageId: entry.id} : null,
-        context: buildConversationContext({ ...session, plan, context: data.next_context }),
-        title:
-          active.messages.length === 0
-            ? q.length > 42
-              ? `${q.slice(0, 42)}…`
-              : q
-            : active.title,
-      })));
+      setSessions(previous => applyChatResponse(previous, session.id, entry, data, retryId));
       if (activeSessionRef.current === session.id) setQuestion("");
     } catch (err) {
       if (activeSessionRef.current === session.id) setError(err.message || "เกิดข้อผิดพลาด");

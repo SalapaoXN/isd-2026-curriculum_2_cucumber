@@ -18,11 +18,11 @@ from pathlib import Path
 from typing import Any
 
 from rag.grounded_answer import GroundedAnswerResult
-from rag.query_spec import QuerySpec
+from rag.query_spec import QuerySpec, detect_surface_operations
 from rag.resolution import QueryContext
 from rag.semantic.answerer import render_semantic_answer
 from rag.semantic.compiler import compile_resolved_intent_to_query_spec
-from rag.semantic.context import merge_semantic_context
+from rag.semantic.context import merge_semantic_context, _validated_prior_context
 from rag.semantic.executor import (
     execute_comparison,
     execute_deterministic,
@@ -333,6 +333,17 @@ def _next_context_for(
         ]
     if verified.result_scope_program is not None:
         context["result_scope_program"] = verified.result_scope_program
+    if (
+        resolved.intent.task == "list" and resolved.intent.subject == "course"
+        and resolved.intent.target.kind == "none" and not resolved.intent.filters
+        and resolved.intent.relation is None and resolved.scope.program is not None
+        and (resolved.scope.years or resolved.scope.semesters)
+    ):
+        context["last_normal_operation"] = {
+            "kind": "list_courses", "program": resolved.scope.program,
+            "catalog_key": resolved.scope.catalog_key, "plan": resolved.scope.plan,
+            "years": list(resolved.scope.years), "semesters": list(resolved.scope.semesters),
+        }
     return context or None
 
 
@@ -414,6 +425,9 @@ def semantic_answer(
         home is not None and outcome.result.status != "answer"
     ):
         outcome.next_context = deepcopy(normal)
+        if isinstance(outcome.next_context, dict):
+            # The immediately prior turn is no longer a successful ordinary list.
+            outcome.next_context.pop("last_normal_operation", None)
     return outcome
 
 
@@ -471,11 +485,13 @@ def _run_semantic_answer(
     stage_started = time.monotonic()
     try:
         program_codes = _canonical_program_code_candidates(db_path)
+        previous_operation = _validated_prior_context(conversation_context).get("last_normal_operation")
         intent, _ = interpret_semantic_intent(
             question,
             interpret,
             canonical_program_codes=program_codes,
             canonical_category_labels=_canonical_placement_category_candidates(db_path),
+            last_normal_operation=previous_operation,
             canonical_plan_keys=_canonical_plan_key_candidates(
                 db_path,
                 question,
@@ -539,6 +555,25 @@ def _run_semantic_answer(
             trace, "EXPECTED_SAFE_FAILURE", "unsupported judgement or intent",
             "unsupported", started=started,
         )
+
+    if (
+        intent.task == "list" and intent.subject == "course"
+        and intent.target.kind == "none" and not intent.filters
+        and intent.relation is None and (intent.scope.year is not None or intent.scope.semester is not None)
+        and not detect_surface_operations(question)
+    ):
+        prior = _validated_prior_context(conversation_context)
+        operation = prior.get("last_normal_operation")
+        compatible = operation is not None and all(
+            explicit is None or explicit.casefold() == str(prior.get(key, "")).casefold()
+            for key, explicit in (("program", intent.scope.program),
+                                  ("catalog_key", intent.scope.catalog), ("plan", intent.scope.plan))
+        )
+        if not compatible:
+            return _fail_closed(
+                trace, "EXPECTED_SAFE_FAILURE", "no compatible preceding normal list operation",
+                "invalid_interpretation", started=started,
+            )
 
     stage_started = time.monotonic()
     merged = merge_semantic_context(

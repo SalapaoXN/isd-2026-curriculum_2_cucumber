@@ -4,13 +4,14 @@ export async function fetchHealth() {
   return res.json();
 }
 
-export async function askQuestion(question, conversationContext = null) {
+export async function askQuestion(question, conversationContext = null, homeProgram = null) {
   const res = await fetch("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       question,
       conversation_context: conversationContext,
+      home_program: homeProgram,
     }),
   });
   const data = await res.json().catch(() => ({}));

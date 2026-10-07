@@ -90,6 +90,7 @@ def build_semantic_interpreter_prompt(
     canonical_program_codes: tuple[str, ...] = (),
     canonical_category_labels: tuple[str, ...] = (),
     canonical_plan_keys: tuple[str, ...] = (),
+    last_normal_operation: dict | None = None,
 ) -> str:
     """Build the versioned interpreter prompt for one user question."""
     if not isinstance(question, str) or not question.strip():
@@ -147,6 +148,18 @@ def build_semantic_interpreter_prompt(
         if plan_keys
         else ""
     )
+    followup_block = ""
+    if last_normal_operation is not None:
+        import json
+        followup_block = (
+            "BOUNDED PREVIOUS NORMAL OPERATION: "
+            + json.dumps(last_normal_operation, ensure_ascii=False)
+            + ". Only for an unambiguous elliptical temporal continuation, propose "
+            'task list, subject course, target none, filters empty. Emit only CURRENT '
+            "explicit scope dimensions; never copy prior dimensions into scope. "
+            "Do not reuse for a new program, plan, catalog, another operation, or comparison. "
+            "If unclear, use unknown. Backend independently authorizes reuse."
+        )
     return "\n".join(
         (
             _INTERPRETER_PREAMBLE,
@@ -154,6 +167,7 @@ def build_semantic_interpreter_prompt(
             program_code_block,
             category_label_block,
             plan_key_block,
+            followup_block,
             _SCOPED_CREDIT_PRECEDENCE,
             _INTERPRETER_EXAMPLES,
             "USER QUESTION:",

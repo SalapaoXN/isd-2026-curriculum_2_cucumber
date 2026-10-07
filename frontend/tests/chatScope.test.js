@@ -49,7 +49,7 @@ test("answer line presentation classifies only visible shapes without rewriting 
 
 test("each request including plan retry records its own timing and keeps expandable provenance", () => {
   const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /performance\.now\(\);\s*const data = await askQuestion\(q, seed\);\s*const elapsedMs = performance\.now\(\) - requestStarted/);
+  assert.match(page, /performance\.now\(\);\s*const data = await askQuestion\(q, seed, session\.program \|\| null\);\s*const elapsedMs = performance\.now\(\) - requestStarted/);
   assert.match(page, /elapsedMs,/);
   assert.match(page, /CUCUMBER\s*\{formatElapsedTime\(m\.elapsedMs\)/);
   assert.match(page, /handleAsk\(pending\.question, selected, pending\.messageId\)/);
