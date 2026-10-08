@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-SEMANTIC_INTENT_VERSION = "semantic-intent/v1"
+SEMANTIC_INTENT_VERSION = "semantic-intent/v2"
 
 TASKS = frozenset(
     {
@@ -53,12 +53,14 @@ RELATIONS = frozenset(
         "prerequisite",
         "placement",
         "existence",
+        "alternative_selection",
     }
 )
 
 TARGET_KINDS = frozenset(
     {
         "literal",
+        "literal_set",
         "current_course",
         "result_ordinal",
         "previous_result_set",
@@ -134,6 +136,8 @@ REQUESTED_FIELDS = frozenset(
         "placement",
         "prerequisites",
         "description",
+        "alternative_selection",
+        "placement_sequence",
     }
 )
 
@@ -233,6 +237,7 @@ LEGACY_STATUS_FOR_INTERNAL = {
 MAX_TEXT_LEN = 80
 MAX_HINT_LEN = 80
 MAX_ORDINAL = 50
+MAX_COURSE_SET_MEMBERS = 20
 
 
 class SemanticSchemaError(ValueError):
@@ -258,6 +263,14 @@ class ScopeMention:
 
 
 @dataclass(frozen=True, slots=True)
+class LiteralCourseReference:
+    """One current-turn course mention, not a canonical identity."""
+
+    raw_text: str
+    normalized_hint: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class SemanticTarget:
     """What the user referred to — never a canonical database identity."""
 
@@ -265,6 +278,7 @@ class SemanticTarget:
     raw_text: str | None = None
     normalized_hint: str | None = None
     ordinal: int | None = None
+    members: tuple[LiteralCourseReference, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -337,6 +351,7 @@ class ResolvedTarget:
     program: str | None = None
     catalog_key: str | None = None
     via_hint: bool = False
+    members: tuple[ResolvedTarget, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -375,6 +390,22 @@ class VerifiedResult:
     result_courses: tuple[dict[str, Any], ...] = ()
     result_scope_program: str | None = None
     numeric_comparison: VerifiedNumericComparison | None = None
+    alternative_selections: tuple[VerifiedAlternativeSelection, ...] = ()
+    explicit_course_set: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedAlternativeSelection:
+    """Complete canonical group membership and selection bounds with sources."""
+
+    program: str
+    catalog_key: str
+    plan: str
+    alternative_group_id: int
+    member_course_codes: tuple[str, ...]
+    minimum_choices: int
+    maximum_choices: int
+    provenance: tuple[Any, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -410,6 +441,7 @@ __all__ = [
     "INTERNAL_STATUSES",
     "LEGACY_STATUS_FOR_INTERNAL",
     "MAX_HINT_LEN",
+    "MAX_COURSE_SET_MEMBERS",
     "MAX_ORDINAL",
     "MAX_TEXT_LEN",
     "MEASURES",
@@ -434,6 +466,8 @@ __all__ = [
     "SemanticIntent",
     "SemanticSchemaError",
     "SemanticTarget",
+    "LiteralCourseReference",
+    "VerifiedAlternativeSelection",
     "VerifiedResult",
     "VerifiedNumericComparison",
     "VerifiedNumericComparisonSide",

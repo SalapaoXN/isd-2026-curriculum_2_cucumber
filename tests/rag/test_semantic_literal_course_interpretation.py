@@ -110,7 +110,7 @@ class SemanticLiteralCourseInterpretationTests(unittest.TestCase):
     def test_prompt_states_generic_course_attribute_discovery_boundary(self):
         prompt = build_semantic_interpreter_prompt("generic curriculum question")
 
-        self.assertEqual(SEMANTIC_INTERPRETER_PROMPT_VERSION, "semantic-interpreter/v9")
+        self.assertEqual(SEMANTIC_INTERPRETER_PROMPT_VERSION, "semantic-interpreter/v10")
         self.assertIn("LITERAL COURSE ATTRIBUTE LOOKUP vs TOPIC/COURSE DISCOVERY", prompt)
         self.assertIn("information about one apparent course X", prompt)
         self.assertIn("description of course X", prompt)

@@ -29,6 +29,7 @@ from rag.semantic.executor import (
     _missing_answer_provider,
     execute_comparison,
     execute_deterministic,
+    execute_explicit_course_set,
     execute_policy,
     execute_sql_bridge,
 )
@@ -213,6 +214,8 @@ def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
             "raw_text": intent.target.raw_text,
             "normalized_hint": intent.target.normalized_hint,
             "ordinal": intent.target.ordinal,
+            **({"members": [{"raw_text": member.raw_text, "normalized_hint": member.normalized_hint}
+                             for member in intent.target.members]} if intent.target.kind == "literal_set" else {}),
         },
         "scope": {
             "program": intent.scope.program,
@@ -242,6 +245,9 @@ def _resolved_summary(resolved: ResolvedIntent) -> dict[str, Any]:
         "plan": resolved.scope.plan,
         "target_kind": resolved.target.kind,
         "has_course_code": resolved.target.course_code is not None,
+        **({"members": [{"course_code": member.course_code, "program": member.program,
+                         "catalog_key": member.catalog_key} for member in resolved.target.members]}
+           if resolved.target.kind == "literal_set" else {}),
         "needs_clarification": resolved.needs_clarification,
         "clarification_reason": resolved.clarification_reason,
         "comparison_sides": [
@@ -853,6 +859,8 @@ def _run_semantic_answer(
         verified = execute_policy(db_path, resolved)
     elif plan.execution == EXECUTION_DETERMINISTIC and resolved.intent.task == "compare":
         verified = execute_comparison(db_path, resolved)
+    elif plan.execution == EXECUTION_DETERMINISTIC and resolved.target.kind == "literal_set":
+        verified = execute_explicit_course_set(db_path, resolved, question)
     elif plan.execution == EXECUTION_SQL:
         if sql_provider is None:
             verified = VerifiedResult(
@@ -900,6 +908,8 @@ def _run_semantic_answer(
         "claim_count": len(verified.claims),
         "provenance_count": len(verified.provenance),
         "missing": list(verified.missing_information),
+        **({"alternative_selection_count": len(verified.alternative_selections)}
+           if verified.explicit_course_set else {}),
     }
     if verified.status != "answer":
         trace.timing = timing

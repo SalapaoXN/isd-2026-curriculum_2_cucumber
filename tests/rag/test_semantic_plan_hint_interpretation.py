@@ -192,11 +192,11 @@ class SemanticPlanHintInterpretationTests(unittest.TestCase):
         self.assertEqual(left.scope.plan, "coop")
         self.assertIsNone(right.scope.plan)
 
-    def test_prompt_v9_quotes_raw_phrase_and_teaches_both_plan_directions(self):
+    def test_prompt_v10_quotes_raw_phrase_and_teaches_both_plan_directions(self):
         prompt = build_semantic_interpreter_prompt(
             "synthetic plan prompt check", canonical_plan_keys=("coop", "no_coop")
         )
-        self.assertEqual(SEMANTIC_INTERPRETER_PROMPT_VERSION, "semantic-interpreter/v9")
+        self.assertEqual(SEMANTIC_INTERPRETER_PROMPT_VERSION, "semantic-interpreter/v10")
         self.assertIn("RAW PLAN IS A QUOTE-LIKE GROUNDING FIELD", prompt)
         self.assertIn('"plan":"แผนสหกิจ"', prompt)
         self.assertIn('"plan_hint":"coop"', prompt)

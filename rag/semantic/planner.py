@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rag.semantic.schema import ResolvedIntent
+from rag.semantic.schema import ResolvedIntent, REQUESTED_FIELDS
 
 EXECUTION_DETERMINISTIC = "deterministic"
 EXECUTION_SQL = "sql"
@@ -109,6 +109,22 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
             EXECUTION_UNSUPPORTED,
             resolved.clarification_reason or "clarification required",
         )
+    if "placement_sequence" in intent.requested_fields:
+        return SemanticPlan(EXECUTION_UNSUPPORTED, "placement_sequence execution is unsupported until G5-C")
+    if any(item not in REQUESTED_FIELDS for item in intent.requested_fields):
+        return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported requested field")
+    if resolved.target.kind == "literal_set":
+        if (
+            intent.task != "lookup" or intent.subject != "course" or intent.filters
+            or intent.aggregation is not None or intent.ranking is not None or intent.comparison is not None
+            or not resolved.target.members
+        ):
+            return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported explicit course-set shape")
+        if (
+            intent.relation == "alternative_selection" or "alternative_selection" in intent.requested_fields
+        ) and resolved.scope.plan is None:
+            return SemanticPlan(EXECUTION_UNSUPPORTED, "alternative_selection requires one canonical plan")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "complete explicit course-set lookup")
     if intent.task == "unknown":
         return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported judgement or intent")
     if intent.task in {"policy", "requirement"}:

@@ -16,6 +16,8 @@ Bridges return VerifiedResult payloads; they never render user answers.
 from __future__ import annotations
 
 import re
+from dataclasses import replace
+from types import MappingProxyType
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
@@ -43,10 +45,14 @@ from rag.semantic.errors import SemanticOperationalError, is_provider_error
 from rag.semantic.planner import SemanticPlan
 from rag.semantic.schema import (
     ResolvedIntent,
+    ResolvedTarget,
+    VerifiedAlternativeSelection,
     VerifiedNumericComparison,
     VerifiedNumericComparisonSide,
     VerifiedResult,
 )
+from rag.semantic.resolver import _connect_ro
+from rag.structured.queries import scoped_course_set, _provenance_for
 
 MAX_DISPLAYED_COURSES = 20
 
@@ -457,6 +463,182 @@ def execute_deterministic(
         result_courses=retained[0],
         result_scope_program=retained[1],
     )
+
+
+def _complete_source_references(value: Any) -> bool:
+    return isinstance(value, (tuple, list)) and bool(value) and all(
+        isinstance(ref, Mapping)
+        and isinstance(ref.get("source_filename"), str) and bool(ref["source_filename"].strip())
+        and type(ref.get("source_page")) is int and ref["source_page"] > 0
+        and isinstance(ref.get("document_category"), str) and bool(ref["document_category"].strip())
+        for ref in value
+    )
+
+
+def _verify_alternative_selection(
+    db_path: str | Path, resolved: ResolvedIntent,
+) -> VerifiedAlternativeSelection:
+    """Verify the complete group, never infer bounds from named alternatives."""
+    scope = resolved.scope
+    wanted = tuple(member.course_code for member in resolved.target.members)
+    if not scope.program or not scope.catalog_key or not scope.plan or len(wanted) < 2:
+        raise ValueError("alternative_selection needs complete canonical set and plan scope")
+    payload = scoped_course_set(
+        db_path, scope.program, (scope.plan,), catalog_key=scope.catalog_key,
+        years=scope.years, semesters=scope.semesters,
+        course_targets=tuple({"course_code": code} for code in wanted),
+    )
+    rows = payload.get("courses", ())
+    if payload.get("status") != "ok" or not rows:
+        raise ValueError("alternative group evidence missing")
+    connection = _connect_ro(db_path)
+    references = []
+    signature = None
+    try:
+        catalog = connection.execute("SELECT catalog_id FROM catalogs WHERE catalog_key = ?", (scope.catalog_key,)).fetchone()
+        if catalog is None:
+            raise ValueError("alternative group catalog missing")
+        for row in rows:
+            group_id = row.get("alternative_group_id")
+            members = row.get("alternative_courses", ())
+            minimum, maximum = row.get("minimum_choices"), row.get("maximum_choices")
+            if (
+                type(group_id) is not int or group_id <= 0 or not row.get("is_alternative")
+                or row.get("catalog_id") != catalog["catalog_id"]
+                or row.get("program") != scope.program or row.get("plan_key") != scope.plan
+                or not isinstance(members, (list, tuple)) or not members
+                or type(minimum) is not int or type(maximum) is not int
+                or not _complete_source_references(row.get("provenance"))
+            ):
+                raise ValueError("incomplete or out-of-scope alternative group evidence")
+            codes = tuple(member.get("course_code") for member in members)
+            if (
+                len(codes) != len(set(codes)) or set(codes) != set(wanted)
+                or not 0 <= minimum <= maximum <= len(codes)
+                or any(member.get("catalog_id") != catalog["catalog_id"]
+                       or not _complete_source_references(member.get("provenance")) for member in members)
+            ):
+                raise ValueError("alternative membership or choice bounds do not prove the exact set")
+            current = (group_id, frozenset(codes), minimum, maximum)
+            if signature is not None and signature != current:
+                raise ValueError("conflicting alternative group evidence")
+            signature = current
+            # The merged row cannot prove that each provenance boundary exists.
+            # Check placement, group and membership source links independently.
+            links = [("plan_placement_provenance", "placement_id", row.get("placement_id")),
+                     ("alternative_group_provenance", "alternative_group_id", group_id)]
+            links.extend(("alternative_group_member_provenance", "alternative_group_member_id",
+                          member.get("alternative_group_member_id")) for member in members)
+            for table, column, identity in links:
+                if type(identity) is not int:
+                    raise ValueError("alternative evidence identity missing")
+                source_refs = _provenance_for(connection, table, column, identity)
+                if not _complete_source_references(source_refs):
+                    raise ValueError("alternative evidence source link missing")
+                for ref in source_refs:
+                    if ref not in references:
+                        references.append(ref)
+            for ref in row["provenance"]:
+                if ref not in references:
+                    references.append(dict(ref))
+    finally:
+        connection.close()
+    return VerifiedAlternativeSelection(
+        program=scope.program, catalog_key=scope.catalog_key, plan=scope.plan,
+        alternative_group_id=signature[0], member_course_codes=wanted,
+        minimum_choices=signature[2], maximum_choices=signature[3],
+        provenance=tuple(MappingProxyType(dict(ref)) for ref in references),
+    )
+
+
+def _member_fact(member: ResolvedTarget, claim: Any) -> str | None:
+    """Project member-local evidence without choosing a nested first code."""
+    label = " ".join(value for value in (member.course_code, member.course_name) if value)
+    operation, value = claim.operation, claim.value
+    if operation == "placement":
+        terms = _placement_terms(value)
+        if not terms:
+            return None
+        return label + ": " + " | ".join(
+            f"ชั้นปีที่ {year} ภาคการศึกษาที่ {semester} แผน{_plan_display(plan)}"
+            for year, semester, plan in terms
+        )
+    if operation == "prerequisite":
+        records = value if isinstance(value, (list, tuple)) else ()
+        if records and all(row.get("prerequisite_state") == "explicit_none" for row in records):
+            return label + ": ไม่มีวิชาบังคับก่อน"
+        codes = []
+        for row in records:
+            code = row.get("prerequisite_code")
+            if row.get("alternative_group_id") is not None or not isinstance(code, str):
+                return None  # Never flatten an alternative prerequisite into mandatory courses.
+            if code not in codes:
+                codes.append(code)
+        return label + " มีวิชาบังคับก่อน: " + ", ".join(codes) if codes else None
+    line = _claim_line_with_evidence(claim)
+    return label + ": " + line if line else None
+
+
+def execute_explicit_course_set(
+    db_path: str | Path, resolved: ResolvedIntent, question: str,
+) -> VerifiedResult:
+    """Atomic bounded member-local execution over canonical resolved targets."""
+    from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+    plan = plan_semantic_query(resolved)
+    if plan.execution != EXECUTION_DETERMINISTIC or resolved.target.kind != "literal_set":
+        return VerifiedResult(status="unsupported", missing_information=(plan.reason,),
+                              failure_category="EXPECTED_SAFE_FAILURE")
+    facts, claims, references, courses = [], [], [], []
+    scope = resolved.scope
+    try:
+        spec = compile_resolved_intent_to_query_spec(resolved, question)
+        if not spec.operations:
+            raise ValueError("no executable member operations")
+        context = QueryContext(program=scope.program, catalog_key=scope.catalog_key,
+                               plan=scope.plan, years=scope.years, semesters=scope.semesters)
+        for index, member in enumerate(resolved.target.members, 1):
+            if (member.program, member.catalog_key) != (scope.program, scope.catalog_key):
+                raise ValueError(f"member {index} has incompatible canonical scope")
+            member_spec = replace(spec, course_codes=(member.course_code,))
+            result = execute_deterministic(db_path, member_spec, context, question)
+            operations = {claim.operation for claim in result.claims if claim.status in {"complete", "valid_empty"}}
+            if (
+                result.status != "answer" or not set(spec.operations).issubset(operations)
+                or not result.provenance
+                or any(claim.status not in {"complete", "valid_empty"} for claim in result.claims)
+            ):
+                raise ValueError(f"member {index} ({member.course_code}): incomplete requested evidence")
+            for claim in result.claims:
+                line = _member_fact(member, claim)
+                if not line:
+                    raise ValueError(f"member {index} ({member.course_code}): unsupported evidence projection")
+                facts.append(line)
+            claims.extend(result.claims)
+            for ref in result.provenance:
+                if ref not in references:
+                    references.append(ref)
+            courses.append({"course_code": member.course_code, "program": member.program,
+                            "catalog_key": member.catalog_key})
+        selections = ()
+        if resolved.intent.relation == "alternative_selection" or "alternative_selection" in resolved.intent.requested_fields:
+            selections = (_verify_alternative_selection(db_path, resolved),)
+            for ref in selections[0].provenance:
+                if ref not in references:
+                    references.append(ref)
+        verified = VerifiedResult(
+            status="answer", summary_facts=tuple(facts), claims=tuple(claims),
+            provenance=tuple(references), result_courses=tuple(courses), result_scope_program=scope.program,
+            alternative_selections=selections, explicit_course_set=True,
+        )
+        # Do not accept more facts than the bounded renderer can retain.
+        from rag.semantic.answerer import render_verified_course_set, MAX_ANSWER_LEN
+        if len(render_verified_course_set(verified)) > MAX_ANSWER_LEN:
+            return VerifiedResult(status="unsupported", missing_information=("explicit course-set answer exceeds presentation bound",),
+                                  failure_category="EXPECTED_SAFE_FAILURE")
+        return verified
+    except Exception as error:
+        return VerifiedResult(status="missing_data", missing_information=("course-set evidence: " + str(error),),
+                              failure_category="EXPECTED_SAFE_FAILURE")
 
 
 def _policy_kinds_for(topic: str | None) -> tuple[str, ...]:

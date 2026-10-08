@@ -17,6 +17,9 @@ from rag.semantic.schema import (
     RELATIONS,
     VALID_TASK_SUBJECTS,
     SemanticIntent,
+    LiteralCourseReference,
+    MAX_COURSE_SET_MEMBERS,
+    REQUESTED_FIELDS,
 )
 from rag.query_spec import (
     _extract_category,
@@ -158,7 +161,7 @@ def _contains(question: str, text: str) -> bool:
     spans use substring matching because Thai has no word boundaries; the
     lookarounds are boundary-neutral for non-ASCII-adjacent text.
     """
-    if len(text) <= 4:
+    if len(text) <= 4 or re.fullmatch(r"[0-9]{8}", text):
         return (
             re.search(
                 r"(?<![A-Za-z0-9_])" + re.escape(text) + r"(?![A-Za-z0-9_])",
@@ -212,6 +215,28 @@ def _target_consistency(intent: SemanticIntent, question: str) -> str | None:
     task = intent.task
     if task == "unknown":
         return None
+    if target.kind == "literal_set":
+        if (
+            not 2 <= len(target.members) <= MAX_COURSE_SET_MEMBERS
+            or any(value is not None for value in (target.raw_text, target.normalized_hint, target.ordinal))
+        ):
+            return "invalid literal_set target"
+        positions = []
+        for index, member in enumerate(target.members, 1):
+            if (
+                not isinstance(member, LiteralCourseReference)
+                or not isinstance(member.raw_text, str) or not member.raw_text.strip()
+                or len(member.raw_text) > 80 or not _contains(question, member.raw_text)
+            ):
+                return f"member {index} is not grounded in the current question"
+            if len(re.findall(r"(?<![0-9])[0-9]{7,}(?![0-9])", member.raw_text)) > 1:
+                return f"member {index} contains multiple course references"
+            positions.append(question.casefold().find(member.raw_text.casefold()))
+        if positions != sorted(positions):
+            return "literal_set members must preserve first-mention order"
+        return None
+    if target.members:
+        return "members require literal_set"
     if target.kind == "none":
         if task in {"lookup"} and intent.subject == "course":
             return "course lookup requires a target reference"
@@ -235,6 +260,19 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
     task = intent.task
     if (task, intent.subject) not in VALID_TASK_SUBJECTS:
         return "unsupported task/subject combination"
+    if any(value not in REQUESTED_FIELDS for value in intent.requested_fields):
+        return "unsupported requested field"
+    if intent.target.kind == "literal_set" and (
+        task != "lookup" or intent.subject != "course" or intent.filters
+        or intent.comparison is not None or intent.aggregation is not None or intent.ranking is not None
+    ):
+        return "literal_set requires an unfiltered course lookup"
+    if (
+        intent.relation == "alternative_selection" or "alternative_selection" in intent.requested_fields
+    ) and intent.target.kind != "literal_set":
+        return "alternative_selection requires an explicit course set"
+    if "placement_sequence" in intent.requested_fields and intent.target.kind != "literal_set":
+        return "placement_sequence requires an explicit course set"
     if not _relation_compatible(task, intent.subject, intent.relation):
         return "incompatible relation for task shape"
     if task == "aggregate" and intent.aggregation is None:
@@ -290,6 +328,26 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
     return None
 
 
+def _explicit_code_coverage_problem(intent: SemanticIntent, question: str) -> str | None:
+    """Inventory identifiers only; never manufacture missing language targets."""
+    if intent.task == "unknown":
+        return None
+    code_pattern = r"(?<![A-Za-z0-9_])[0-9]{8}(?![A-Za-z0-9_])"
+    mentioned = tuple(dict.fromkeys(re.findall(code_pattern, question)))
+    texts = []
+    if intent.target.kind == "literal":
+        texts.append(intent.target.raw_text or "")
+    elif intent.target.kind == "literal_set":
+        texts.extend(member.raw_text for member in intent.target.members)
+    if intent.task == "compare" and intent.comparison is not None:
+        texts.extend(str(dict(side).get("course", "")) for side in (
+            intent.comparison.left, intent.comparison.right,
+        ))
+    represented = {code for text in texts for code in re.findall(code_pattern, text)}
+    missing = [code for code in mentioned if code not in represented]
+    return "explicit course references omitted: " + ", ".join(missing) if missing else None
+
+
 def validate_semantic_intent(
     intent: SemanticIntent, question: str
 ) -> ValidationResult:
@@ -305,6 +363,9 @@ def validate_semantic_intent(
     if problem is not None:
         return ValidationResult(False, problem)
     problem = _target_consistency(intent, question)
+    if problem is not None:
+        return ValidationResult(False, problem)
+    problem = _explicit_code_coverage_problem(intent, question)
     if problem is not None:
         return ValidationResult(False, problem)
     return ValidationResult(True, None)

@@ -11,7 +11,7 @@ from __future__ import annotations
 from rag.semantic.schema import VerifiedNumericComparison
 
 
-SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v9"
+SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v10"
 ANSWERER_PROMPT_VERSION = "semantic-answerer/v1"
 
 
@@ -25,11 +25,12 @@ _INTERPRETER_SCHEMA = """Schema (all keys required; use null where absent):
 {
   "task": one of ["lookup","list","search","aggregate","compare","rank","policy","requirement","unknown"],
   "subject": one of ["course","program","semester","curriculum","requirement","policy"],
-  "relation": one of ["identity","description","credits","prerequisite","placement","existence"] or null,
-  "target": {"kind": one of ["literal","current_course","result_ordinal","previous_result_set","none"],
+  "relation": one of ["identity","description","credits","prerequisite","placement","existence","alternative_selection"] or null,
+  "target": {"kind": one of ["literal","literal_set","current_course","result_ordinal","previous_result_set","none"],
              "raw_text": exact substring from the question or null,
              "normalized_hint": optional spelling-normalized proposal or null,
-             "ordinal": integer or null},
+              "ordinal": integer or null,
+              "members": optional array of {"raw_text": exact course-reference substring, "normalized_hint": string or null}},
   "scope": {"program": exact substring or null, "catalog": exact substring or null,
             "plan": exact substring or null, "plan_hint": canonical plan key proposal or null,
             "year": integer or null, "semester": integer or null},
@@ -44,12 +45,13 @@ _INTERPRETER_SCHEMA = """Schema (all keys required; use null where absent):
   "comparison": {"left": scope-like operand object, "right": scope-like operand object,
                  "measure": one of ["course_count","credits","prerequisite_count"],
                  "operation": one of ["greater","less","equal","difference","set_difference","overlap"] or null} or null,
-  "requested_fields": subset of ["code","name","credits","placement","prerequisites","description"],
+  "requested_fields": subset of ["code","name","credits","placement","prerequisites","description","alternative_selection","placement_sequence"],
   "clarification": short note when the request is ambiguous, otherwise null,
   "policy_topic": one of ["honors","probation","graduation","graduation_gpa","english_exit","registration","leave","resignation","transfer","conduct","appeals","reentry","assessment","grading"] or null,
   "observed_value": exact user-stated value substring (e.g. a GPA number) or null
 }
 Rules: scope/target raw_text must be exact substrings of the CURRENT question; never invent program, catalog, plan, year, semester, course code, credits, or policy thresholds. A nickname spelling proposal goes in normalized_hint only, never as canonical identity. Subjective judgement ("is this course good") is task unknown with clarification set.
+EXPLICIT COURSE SET: One named course keeps the existing literal shape. Attribute requests over multiple explicitly named courses use lookup/course and target.kind literal_set with 2–20 independently quoted members in first-mention order. Outer raw_text, normalized_hint and ordinal must be null. Never concatenate multiple courses into one raw_text. Topic-like words describing named courses cannot replace their exact set with topic discovery. Preserve every requested field. A question about how many alternatives to choose requests alternative_selection (relation alternative_selection if selection is the main property); never supply group IDs or choice bounds. A chronological ordering request also requests placement_sequence, which is preserved but unsupported until sequence execution exists. For other target kinds omit members or use []. Never encode unsupported cross-plan placement comparisons as weaker set lookups; fail closed instead.
 RAW PLAN IS A QUOTE-LIKE GROUNDING FIELD. Copy the exact plan phrase from the CURRENT question into scope.plan; put a canonical proposal only in scope.plan_hint. Never replace Thai raw wording with coop/no_coop in plan unless the student literally wrote that key. Preserve negation exactly. A hint must agree with the deterministic meaning of its raw phrase; if meaning is unclear, leave plan_hint null. Apply these rules independently to comparison operands.
 Explicit scope may appear at the beginning, middle, or end of the question, including compact student phrasing. A leading program token (a program code written before the course title or the rest of the question) is scope exactly the same way as a program mention elsewhere in the sentence: extract it as a scope mention whenever it is explicitly present in the CURRENT TURN. Do NOT infer a program when none was written.
 Disambiguate a program identifier from a course-group/category label by syntactic role, with this precedence: (1) an identifier immediately following "หลักสูตร" is scope.program; (2) a leading standalone curriculum/program identifier before a general course-list request is scope.program, even if that identifier can also name a course group; do not reinterpret it as topic/category without an explicit group marker; (3) when a different program is named and a separate course-group label qualifies the requested courses (for example, a group mentioned after "วิชา" or "หมวด"), keep the named program in scope.program and represent the group as category + eq. For the canonical general-education group, use the placement category label "หมวดวิชาศึกษาทั่วไป". In an elliptical follow-up that names only a course group, leave scope.program absent so validated prior program context remains in force; do not switch scope to the group label. A topic filter requires an explicit relation such as "เกี่ยวกับ"/"related to"; a bare program or group label before a course-list request is not a topic.
@@ -69,6 +71,8 @@ _SCOPED_CREDIT_PRECEDENCE = """Credit-total scope precedence: first preserve any
 # Custom paraphrase examples (NOT evaluation questions): they teach semantic
 # categories through invented wordings only.
 _INTERPRETER_EXAMPLES = """Examples (invented paraphrases, categories only):
+Q: "ระหว่างวิชา Lunar Storage กับ Orbital Systems ต้องเลือกกี่วิชา และเปิดเทอมใด"
+A: {"task":"lookup","subject":"course","relation":"placement","target":{"kind":"literal_set","raw_text":null,"normalized_hint":null,"ordinal":null,"members":[{"raw_text":"Lunar Storage","normalized_hint":null},{"raw_text":"Orbital Systems","normalized_hint":null}]},"scope":{"program":null,"catalog":null,"plan":null,"year":null,"semester":null},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["placement","alternative_selection"],"clarification":null,"policy_topic":null,"observed_value":null}
 Q: "อยากทราบหน่วยกิตของ Data Warehousing หน่อย"
 A: {"task":"lookup","subject":"course","relation":"credits","target":{"kind":"literal","raw_text":"Data Warehousing","normalized_hint":null,"ordinal":null},"scope":{"program":null,"catalog":null,"plan":null,"year":null,"semester":null},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["credits"],"clarification":null,"policy_topic":null,"observed_value":null}
 Q: "ก่อนจะลง Probability and Statistics ต้องผ่านตัวไหนมาก่อน"

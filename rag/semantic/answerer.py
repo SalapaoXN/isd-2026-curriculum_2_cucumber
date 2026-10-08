@@ -982,6 +982,22 @@ def _comparison_answer_valid(
     return accepted
 
 
+def render_verified_course_set(verified: VerifiedResult) -> str:
+    """Complete member-local facts and typed group cardinality, without a model."""
+    lines = list(verified.summary_facts)
+    for selection in verified.alternative_selections:
+        count = len(selection.member_course_codes)
+        if selection.minimum_choices == selection.maximum_choices:
+            choice = f"เลือก {selection.minimum_choices} วิชาจาก {count} วิชา"
+        else:
+            choice = f"เลือก {selection.minimum_choices}–{selection.maximum_choices} วิชาจาก {count} วิชา"
+        lines.append(
+            ", ".join(selection.member_course_codes) + ": " + choice
+            + f" แผน{_plan_display(selection.plan)} ({selection.program}, {selection.catalog_key})"
+        )
+    return "\n".join("- " + line for line in lines)
+
+
 def render_verified_fallback(
     question: str, verified: VerifiedResult
 ) -> str:
@@ -1049,6 +1065,8 @@ def render_semantic_answer(
     """
     if verified.status != "answer" or not verified.summary_facts:
         return "", "deterministic"
+    if verified.explicit_course_set:
+        return render_verified_course_set(verified), "deterministic"
     comparison = numeric_comparison or verified.numeric_comparison
     if answer_callable is None:
         if comparison is not None:

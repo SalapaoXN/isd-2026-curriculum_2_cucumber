@@ -21,6 +21,7 @@ _RELATION_OPERATIONS = {
     "prerequisite": ("prerequisite",),
     "placement": ("placement",),
     "existence": ("existence",),
+    "alternative_selection": ("placement",),
 }
 
 _REQUESTED_FIELD_OPERATIONS = {
@@ -30,6 +31,7 @@ _REQUESTED_FIELD_OPERATIONS = {
     "placement": "placement",
     "prerequisites": "prerequisite",
     "description": "describe",
+    "alternative_selection": "placement",
 }
 
 
@@ -88,6 +90,8 @@ def compile_resolved_intent_to_query_spec(
     intent = resolved.intent
     scope = resolved.scope
     target = resolved.target
+    if "placement_sequence" in intent.requested_fields:
+        raise ValueError("placement_sequence execution is unsupported until G5-C")
     category = next(
         (
             item.value
@@ -106,7 +110,16 @@ def compile_resolved_intent_to_query_spec(
     )
     codes: tuple[str, ...] = ()
     name: str | None = None
-    if target.kind in {"literal", "current_course", "result_ordinal"}:
+    if target.kind == "literal_set":
+        if (
+            resolved.needs_clarification or not target.members
+            or any(member.course_code is None for member in target.members)
+        ):
+            raise ValueError("cannot compile an unresolved course set")
+        codes = tuple(member.course_code for member in target.members)
+        if intent.filters:
+            raise ValueError("literal_set cannot compile discovery filters")
+    elif target.kind in {"literal", "current_course", "result_ordinal"}:
         if target.course_code is not None:
             codes = (target.course_code,)
         elif target.course_name is not None:

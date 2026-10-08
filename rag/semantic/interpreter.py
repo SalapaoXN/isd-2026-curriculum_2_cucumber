@@ -27,6 +27,7 @@ from rag.semantic.schema import (
     FILTER_OPERATORS,
     GROUP_DIMENSIONS,
     MAX_HINT_LEN,
+    MAX_COURSE_SET_MEMBERS,
     MAX_ORDINAL,
     MAX_TEXT_LEN,
     MEASURES,
@@ -45,6 +46,7 @@ from rag.semantic.schema import (
     SemanticIntent,
     SemanticSchemaError,
     SemanticTarget,
+    LiteralCourseReference,
 )
 
 MAX_PAYLOAD_LEN = 8192
@@ -183,6 +185,13 @@ def semantic_intent_json_schema() -> dict[str, Any]:
                 "ordinal": _nullable(
                     {"type": "integer", "minimum": 1, "maximum": MAX_ORDINAL}
                 ),
+                "members": {
+                    "type": "array", "maxItems": MAX_COURSE_SET_MEMBERS,
+                    "items": _object_schema({
+                        "raw_text": {**string_value, "minLength": 1},
+                        "normalized_hint": _nullable({"type": "string", "maxLength": MAX_HINT_LEN}),
+                    }, ("raw_text", "normalized_hint")),
+                },
             },
             tuple(sorted(_TARGET_FIELDS)),
         ),
@@ -238,6 +247,24 @@ def semantic_intent_json_schema() -> dict[str, Any]:
         "policy_topic": _nullable(enum_schema(POLICY_TOPICS)),
         "observed_value": _nullable({"type": "string", "maxLength": 32}),
     }
+    properties["target"]["anyOf"] = [
+        {
+            "properties": {
+                "kind": {"enum": ["literal_set"]},
+                "raw_text": {"type": "null"},
+                "normalized_hint": {"type": "null"},
+                "ordinal": {"type": "null"},
+                "members": {"minItems": 2},
+            },
+            "required": ["members"],
+        },
+        {
+            "properties": {
+                "kind": {"enum": sorted(TARGET_KINDS - {"literal_set"})},
+                "members": {"maxItems": 0},
+            },
+        },
+    ]
     return _object_schema(properties, tuple(sorted(_INTENT_FIELDS)))
 
 
@@ -306,7 +333,10 @@ def _require_int(value: Any, field: str, *, allow_none: bool) -> int | None:
 
 
 def _parse_target(data: Any) -> SemanticTarget:
-    if not isinstance(data, dict) or set(data) != _TARGET_FIELDS:
+    if (
+        not isinstance(data, dict) or set(data) - (_TARGET_FIELDS | {"members"})
+        or not _TARGET_FIELDS.issubset(data)
+    ):
         raise SemanticSchemaError("target has an invalid schema")
     kind = data["kind"]
     if kind not in TARGET_KINDS:
@@ -328,8 +358,25 @@ def _parse_target(data: Any) -> SemanticTarget:
         raise SemanticSchemaError("literal target requires raw_text")
     if kind in {"current_course", "previous_result_set"} and raw_text is None:
         raise SemanticSchemaError(f"{kind} target requires raw_text")
+    member_data = data.get("members", [])
+    if not isinstance(member_data, list) or len(member_data) > MAX_COURSE_SET_MEMBERS:
+        raise SemanticSchemaError("target.members must be a bounded list")
+    members = []
+    for member in member_data:
+        if not isinstance(member, dict) or set(member) != {"raw_text", "normalized_hint"}:
+            raise SemanticSchemaError("target member has an invalid schema")
+        members.append(LiteralCourseReference(
+            raw_text=_require_text(member["raw_text"], "member.raw_text", allow_none=False),
+            normalized_hint=_require_text(member["normalized_hint"], "member.normalized_hint", allow_none=True),
+        ))
+    if kind == "literal_set":
+        if len(members) < 2 or any(data[key] is not None for key in ("raw_text", "normalized_hint", "ordinal")):
+            raise SemanticSchemaError("literal_set requires 2–20 members and null singleton fields")
+    elif members:
+        raise SemanticSchemaError("members require literal_set")
     return SemanticTarget(
-        kind=kind, raw_text=raw_text, normalized_hint=hint, ordinal=ordinal
+        kind=kind, raw_text=raw_text, normalized_hint=hint, ordinal=ordinal,
+        members=tuple(members),
     )
 
 

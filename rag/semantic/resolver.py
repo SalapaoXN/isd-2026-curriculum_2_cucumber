@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import re
 import sqlite3
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,7 @@ from rag.semantic.schema import (
     ResolvedScope,
     ResolvedTarget,
     SemanticIntent,
+    SemanticTarget,
 )
 from rag.structured.queries import exact_course_candidates
 
@@ -544,6 +546,38 @@ def resolve_semantic_intent(
     )
 
     target = intent.target
+    if target.kind == "literal_set":
+        if program is None or catalog_key is None:
+            return ResolvedIntent(
+                intent=intent, scope=scope, needs_clarification=True,
+                clarification_reason="unknown program scope" if program is None else "unknown catalog scope",
+            )
+        members = []
+        seen = set()
+        for index, reference in enumerate(target.members, 1):
+            member = resolve_semantic_intent(
+                db_path,
+                replace(intent, target=SemanticTarget(
+                    kind="literal", raw_text=reference.raw_text,
+                    normalized_hint=reference.normalized_hint,
+                )),
+                merged, allow_hint_candidates=allow_hint_candidates,
+            )
+            if member.needs_clarification or member.target.course_code is None:
+                return ResolvedIntent(
+                    intent=intent, scope=scope, needs_clarification=True,
+                    clarification_reason=f"member {index} ({reference.raw_text}): "
+                    + (member.clarification_reason or "canonical course code missing"),
+                )
+            key = (member.target.program, member.target.catalog_key, member.target.course_code)
+            if key not in seen:
+                seen.add(key)
+                members.append(member.target)
+        if not members:
+            return ResolvedIntent(intent=intent, scope=scope, needs_clarification=True,
+                                  clarification_reason="empty canonical course set")
+        return ResolvedIntent(intent=intent, scope=scope,
+                              target=ResolvedTarget(kind="literal_set", members=tuple(members)))
     if (
         intent.subject == "program"
         and target.kind == "literal"
