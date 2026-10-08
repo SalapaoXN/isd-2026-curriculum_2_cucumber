@@ -982,6 +982,11 @@ def _comparison_answer_valid(
     return accepted
 
 
+def render_verified_mixed_scope(verified: VerifiedResult) -> str:
+    """Present scope-bound evidence without relabeling term totals as course credit."""
+    return "\n".join("- " + fact for part in verified.scoped_results for fact in part.summary_facts)
+
+
 def render_verified_course_set(verified: VerifiedResult) -> str:
     """Complete member-local facts and typed group cardinality, without a model."""
     lines = list(verified.summary_facts)
@@ -1065,6 +1070,8 @@ def render_semantic_answer(
     """
     if verified.status != "answer" or not verified.summary_facts:
         return "", "deterministic"
+    if verified.scoped_results:
+        return render_verified_mixed_scope(verified), "deterministic"
     if verified.explicit_course_set:
         return render_verified_course_set(verified), "deterministic"
     comparison = numeric_comparison or verified.numeric_comparison

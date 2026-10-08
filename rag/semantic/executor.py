@@ -16,6 +16,7 @@ Bridges return VerifiedResult payloads; they never render user answers.
 from __future__ import annotations
 
 import re
+import math
 from dataclasses import replace
 from types import MappingProxyType
 from collections.abc import Callable, Mapping
@@ -39,6 +40,8 @@ from rag.query_spec import QuerySpec
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
 from rag.semantic.compiler import (
     compile_resolved_intent_to_query_spec,
+    compile_mixed_scope_requests,
+    CompiledScopedRequest,
     synthesize_canonical_utterance,
 )
 from rag.semantic.errors import SemanticOperationalError, is_provider_error
@@ -50,8 +53,9 @@ from rag.semantic.schema import (
     VerifiedNumericComparison,
     VerifiedNumericComparisonSide,
     VerifiedResult,
+    VerifiedScopedResult,
 )
-from rag.semantic.resolver import _connect_ro
+from rag.semantic.resolver import _connect_ro, _course_reference_candidates
 from rag.structured.queries import scoped_course_set, _provenance_for
 
 MAX_DISPLAYED_COURSES = 20
@@ -638,6 +642,124 @@ def execute_explicit_course_set(
         return verified
     except Exception as error:
         return VerifiedResult(status="missing_data", missing_information=("course-set evidence: " + str(error),),
+                              failure_category="EXPECTED_SAFE_FAILURE")
+
+
+def _execute_scoped_request(
+    db_path: str | Path, request: CompiledScopedRequest, question: str,
+    target: ResolvedTarget | None = None, parent_course_code: str | None = None,
+) -> VerifiedScopedResult:
+    scope = request.scope
+    context = QueryContext(program=scope.program, catalog_key=scope.catalog_key,
+                           plan=scope.plan, years=scope.years, semesters=scope.semesters)
+    result = execute_deterministic(db_path, request.spec, context, question)
+    operations = {claim.operation for claim in result.claims}
+    if (
+        result.status != "answer" or not result.provenance
+        or not set(request.spec.operations).issubset(operations)
+        or any(claim.status not in {"complete", "valid_empty"} for claim in result.claims)
+    ):
+        raise ValueError(f"{request.scope_kind}: incomplete requested evidence")
+    total = None
+    if request.scope_kind == "term":
+        credits = [claim for claim in result.claims if claim.operation == "sum_credits"]
+        if (
+            len(credits) != 1 or type(credits[0].value) not in {int, float}
+            or not math.isfinite(credits[0].value) or credits[0].value < 0
+        ):
+            raise ValueError("term: one verified scalar credit total required")
+        claim = credits[0]
+        effective = claim.effective_scope
+        if (
+            effective is None or effective.program != scope.program
+            or effective.catalog_key != scope.catalog_key or effective.plans != (scope.plan,)
+            or effective.years != scope.years or effective.semesters != scope.semesters
+            or effective.course_targets
+        ):
+            raise ValueError("term aggregate evidence has incompatible scope")
+        total = claim.value  # Already computed by canonical credit evidence, not presentation.
+        facts = (f"{scope.program} แผน{_plan_display(scope.plan)} ({scope.catalog_key}) "
+                 f"ชั้นปีที่ {scope.years[0]} ภาคการศึกษาที่ {scope.semesters[0]} "
+                 f"หน่วยกิตรวมทั้งเทอม: {total}",)
+    else:
+        if target is None or target.course_code != request.course_code:
+            raise ValueError("course evidence needs its canonical target binding")
+        facts = tuple(_member_fact(target, claim) for claim in result.claims)
+        if not facts or any(not fact for fact in facts):
+            raise ValueError("course: incomplete member-local evidence projection")
+    return VerifiedScopedResult(
+        scope_kind=request.scope_kind, scope=scope, course_code=request.course_code,
+        parent_course_code=parent_course_code, total_credits=total,
+        summary_facts=facts, claims=result.claims, provenance=result.provenance,
+    )
+
+
+def _direct_prerequisite_placements(
+    db_path: str | Path, resolved: ResolvedIntent, course: VerifiedScopedResult, question: str,
+) -> tuple[VerifiedScopedResult, ...]:
+    """Placement of verified direct prerequisites only; no recursive traversal."""
+    codes = []
+    for claim in course.claims:
+        if claim.operation != "prerequisite":
+            continue
+        for record in claim.value:
+            if record.get("prerequisite_state") == "explicit_none":
+                continue
+            code = record.get("prerequisite_code")
+            if record.get("alternative_group_id") is not None or not isinstance(code, str):
+                raise ValueError("direct prerequisite placement has unsupported requirement shape")
+            if code not in codes:
+                codes.append(code)
+    parts = []
+    for code in codes:
+        candidates = _course_reference_candidates(db_path, code, course.scope.program, course.scope.catalog_key)
+        if len(candidates) != 1:
+            raise ValueError("direct prerequisite identity does not resolve uniquely")
+        candidate = candidates[0]
+        target = ResolvedTarget(kind="literal", course_code=code,
+                                course_name=candidate.get("name_en") or candidate.get("name_th"),
+                                program=course.scope.program, catalog_key=course.scope.catalog_key)
+        dependency = replace(resolved, scope=course.scope, target=target, intent=replace(
+            resolved.intent, task="lookup", relation="placement", requested_fields=("placement",), aggregation=None,
+        ))
+        request = CompiledScopedRequest("prerequisite_course", course.scope,
+                                       compile_resolved_intent_to_query_spec(dependency, question), code)
+        parts.append(_execute_scoped_request(db_path, request, question, target, resolved.target.course_code))
+    return tuple(parts)
+
+
+def execute_mixed_scope(
+    db_path: str | Path, resolved: ResolvedIntent, question: str,
+) -> VerifiedResult:
+    """Atomically compose complete course work and a separate canonical term total."""
+    try:
+        course_request, term_request = compile_mixed_scope_requests(resolved, question)
+        course = _execute_scoped_request(db_path, course_request, question, resolved.target)
+        prerequisites = ()
+        if "prerequisite_placement" in resolved.intent.requested_fields:
+            prerequisites = _direct_prerequisite_placements(db_path, resolved, course, question)
+        term = _execute_scoped_request(db_path, term_request, question)
+        parts = (course, *prerequisites, term)
+        provenance = []
+        for part in parts:
+            for ref in part.provenance:
+                if ref not in provenance:
+                    provenance.append(ref)
+        verified = VerifiedResult(
+            status="answer", summary_facts=tuple(fact for part in parts for fact in part.summary_facts),
+            claims=tuple(claim for part in parts for claim in part.claims), provenance=tuple(provenance),
+            scoped_results=parts,
+            result_courses=({"course_code": resolved.target.course_code, "program": resolved.scope.program,
+                             "catalog_key": resolved.scope.catalog_key},),
+            result_scope_program=resolved.scope.program,
+        )
+        from rag.semantic.answerer import render_verified_mixed_scope, MAX_ANSWER_LEN
+        if len(render_verified_mixed_scope(verified)) > MAX_ANSWER_LEN:
+            return VerifiedResult(status="unsupported", missing_information=("mixed-scope answer exceeds presentation bound",),
+                                  failure_category="EXPECTED_SAFE_FAILURE")
+        return verified
+    except Exception as error:
+        return VerifiedResult(status="missing_data", missing_information=("mixed-scope evidence: " + str(error),),
                               failure_category="EXPECTED_SAFE_FAILURE")
 
 

@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from rag.semantic.schema import ResolvedIntent, REQUESTED_FIELDS
+from rag.semantic.validation import mixed_scope_contract_problem
 
 EXECUTION_DETERMINISTIC = "deterministic"
 EXECUTION_SQL = "sql"
@@ -113,6 +114,12 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
         return SemanticPlan(EXECUTION_UNSUPPORTED, "placement_sequence execution is unsupported until G5-C")
     if any(item not in REQUESTED_FIELDS for item in intent.requested_fields):
         return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported requested field")
+    if intent.task == "compose":
+        problem = mixed_scope_contract_problem(intent)
+        missing = missing_mixed_scope(resolved)
+        if problem or missing or resolved.target.course_code is None:
+            return SemanticPlan(EXECUTION_UNSUPPORTED, problem or f"mixed-scope missing {missing or 'course identity'}")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "atomic course and enclosing term evidence")
     if resolved.target.kind == "literal_set":
         if (
             intent.task != "lookup" or intent.subject != "course" or intent.filters
@@ -166,6 +173,21 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
     return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported task shape")
 
 
+def missing_mixed_scope(resolved: ResolvedIntent) -> str | None:
+    """Never infer term dimensions from the target course's placement."""
+    if resolved.intent.task != "compose":
+        return None
+    scope = resolved.scope
+    for name, value in (("program", scope.program), ("catalog", scope.catalog_key), ("plan", scope.plan)):
+        if value is None:
+            return name
+    if len(scope.years) != 1:
+        return "year"
+    if len(scope.semesters) != 1:
+        return "semester"
+    return None
+
+
 __all__ = [
     "MissingScopeRequirement",
     "missing_comparison_plan",
@@ -176,4 +198,5 @@ __all__ = [
     "SemanticPlan",
     "effective_aggregation_group_by",
     "plan_semantic_query",
+    "missing_mixed_scope",
 ]

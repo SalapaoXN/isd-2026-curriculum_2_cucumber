@@ -134,7 +134,7 @@ def _relation_compatible(task: str, subject: str, relation: str | None) -> bool:
     Policy/requirement/unknown require none: a relation there contradicts
     the task (e.g. policy + prerequisite) and stays rejected.
     """
-    if task == "lookup":
+    if task in {"lookup", "compose"}:
         if subject == "course":
             return relation in RELATIONS
         if subject == "program":
@@ -262,6 +262,14 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         return "unsupported task/subject combination"
     if any(value not in REQUESTED_FIELDS for value in intent.requested_fields):
         return "unsupported requested field"
+    if task == "compose":
+        problem = mixed_scope_contract_problem(intent)
+        if problem is not None:
+            return problem
+    elif task == "lookup" and intent.subject == "course" and intent.aggregation is not None:
+        return "course lookup plus aggregate requires explicit mixed-scope composition"
+    elif "prerequisite_placement" in intent.requested_fields:
+        return "prerequisite_placement requires mixed-scope composition"
     if intent.target.kind == "literal_set" and (
         task != "lookup" or intent.subject != "course" or intent.filters
         or intent.comparison is not None or intent.aggregation is not None or intent.ranking is not None
@@ -325,6 +333,30 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
     problem = _filter_grounding_problem(intent, question)
     if problem is not None:
         return problem
+    return None
+
+
+def mixed_scope_contract_problem(intent: SemanticIntent) -> str | None:
+    """Closed G5-A variant: named-course attributes AND enclosing term total."""
+    if (
+        intent.task != "compose" or intent.subject != "course"
+        or intent.target.kind != "literal" or intent.filters
+        or intent.comparison is not None or intent.ranking is not None
+        or intent.policy_topic is not None or intent.observed_value is not None
+    ):
+        return "mixed-scope composition requires one unfiltered explicit course target"
+    fields = {"code", "name", "credits", "placement", "prerequisites", "description", "prerequisite_placement"}
+    if (
+        intent.relation not in {"identity", "description", "credits", "prerequisite", "placement", "existence"}
+        or not intent.requested_fields or any(field not in fields for field in intent.requested_fields)
+    ):
+        return "mixed-scope course request missing or unsupported"
+    aggregation = intent.aggregation
+    if (
+        aggregation is None or aggregation.function != "sum"
+        or aggregation.measure != "credits" or aggregation.group_by
+    ):
+        return "mixed-scope term request requires an ungrouped sum of credits"
     return None
 
 

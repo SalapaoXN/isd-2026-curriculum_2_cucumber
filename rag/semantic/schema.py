@@ -18,11 +18,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-SEMANTIC_INTENT_VERSION = "semantic-intent/v2"
+SEMANTIC_INTENT_VERSION = "semantic-intent/v3"
 
 TASKS = frozenset(
     {
         "lookup",
+        "compose",
         "list",
         "search",
         "aggregate",
@@ -135,6 +136,7 @@ REQUESTED_FIELDS = frozenset(
         "credits",
         "placement",
         "prerequisites",
+        "prerequisite_placement",
         "description",
         "alternative_selection",
         "placement_sequence",
@@ -167,6 +169,7 @@ POLICY_TOPICS = frozenset(
 VALID_TASK_SUBJECTS = frozenset(
     {
         ("lookup", "course"),
+        ("compose", "course"),
         ("lookup", "program"),
         ("list", "course"),
         ("list", "semester"),
@@ -392,6 +395,21 @@ class VerifiedResult:
     numeric_comparison: VerifiedNumericComparison | None = None
     alternative_selections: tuple[VerifiedAlternativeSelection, ...] = ()
     explicit_course_set: bool = False
+    scoped_results: tuple[VerifiedScopedResult, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedScopedResult:
+    """One complete evidence result with its explicit factual ownership."""
+
+    scope_kind: str
+    scope: ResolvedScope
+    course_code: str | None = None
+    parent_course_code: str | None = None
+    total_credits: int | float | None = None
+    summary_facts: tuple[str, ...] = ()
+    claims: tuple[Any, ...] = ()
+    provenance: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -469,6 +487,7 @@ __all__ = [
     "LiteralCourseReference",
     "VerifiedAlternativeSelection",
     "VerifiedResult",
+    "VerifiedScopedResult",
     "VerifiedNumericComparison",
     "VerifiedNumericComparisonSide",
 ]

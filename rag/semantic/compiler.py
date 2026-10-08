@@ -10,7 +10,8 @@ surface-pattern reads cannot misfire on semantic-mode input.
 from __future__ import annotations
 
 from rag.query_spec import QuerySpec
-from rag.semantic.schema import ResolvedIntent
+from dataclasses import dataclass, replace
+from rag.semantic.schema import ResolvedIntent, ResolvedScope, SemanticTarget, ResolvedTarget
 from rag.semantic.planner import effective_aggregation_group_by
 from typing import Any
 
@@ -30,6 +31,7 @@ _REQUESTED_FIELD_OPERATIONS = {
     "credits": "sum_credits",
     "placement": "placement",
     "prerequisites": "prerequisite",
+    "prerequisite_placement": "prerequisite",
     "description": "describe",
     "alternative_selection": "placement",
 }
@@ -90,6 +92,8 @@ def compile_resolved_intent_to_query_spec(
     intent = resolved.intent
     scope = resolved.scope
     target = resolved.target
+    if intent.task == "compose" or (intent.task == "lookup" and intent.subject == "course" and intent.aggregation is not None):
+        raise ValueError("mixed-scope composition requires separate scoped execution requests")
     if "placement_sequence" in intent.requested_fields:
         raise ValueError("placement_sequence execution is unsupported until G5-C")
     category = next(
@@ -143,6 +147,34 @@ def compile_resolved_intent_to_query_spec(
             intent.target.kind == "previous_result_set"
         ),
         result_ordinal=None,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class CompiledScopedRequest:
+    scope_kind: str
+    scope: ResolvedScope
+    spec: QuerySpec
+    course_code: str | None = None
+
+
+def compile_mixed_scope_requests(
+    resolved: ResolvedIntent, question: str,
+) -> tuple[CompiledScopedRequest, CompiledScopedRequest]:
+    """Keep exact-course operations separate from target-free term aggregation."""
+    from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+    if resolved.intent.task != "compose" or plan_semantic_query(resolved).execution != EXECUTION_DETERMINISTIC:
+        raise ValueError("unsupported or unresolved mixed-scope composition")
+    course_scope = replace(resolved.scope, years=(), semesters=())
+    course = replace(resolved, scope=course_scope,
+                     intent=replace(resolved.intent, task="lookup", aggregation=None))
+    term = replace(resolved, target=ResolvedTarget(), intent=replace(
+        resolved.intent, task="aggregate", subject="semester", relation=None,
+        target=SemanticTarget(), requested_fields=(),
+    ))
+    return (
+        CompiledScopedRequest("course", course_scope, compile_resolved_intent_to_query_spec(course, question), resolved.target.course_code),
+        CompiledScopedRequest("term", resolved.scope, compile_resolved_intent_to_query_spec(term, question)),
     )
 
 
@@ -203,5 +235,7 @@ def synthesize_canonical_utterance(resolved: ResolvedIntent) -> str | None:
 
 __all__ = [
     "compile_resolved_intent_to_query_spec",
+    "compile_mixed_scope_requests",
+    "CompiledScopedRequest",
     "synthesize_canonical_utterance",
 ]

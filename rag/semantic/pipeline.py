@@ -30,6 +30,7 @@ from rag.semantic.executor import (
     execute_comparison,
     execute_deterministic,
     execute_explicit_course_set,
+    execute_mixed_scope,
     execute_policy,
     execute_sql_bridge,
 )
@@ -40,6 +41,7 @@ from rag.semantic.planner import (
     EXECUTION_SQL,
     MissingScopeRequirement,
     missing_comparison_plan,
+    missing_mixed_scope,
     plan_semantic_query,
 )
 from rag.semantic.resolver import (
@@ -229,6 +231,9 @@ def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
             {"field": item.field, "operator": item.operator} for item in intent.filters
         ],
         "has_aggregation": intent.aggregation is not None,
+        **({"aggregation": {"function": intent.aggregation.function, "measure": intent.aggregation.measure,
+                             "group_by": list(intent.aggregation.group_by)}, "scope_kinds": ["course", "term"]}
+           if intent.task == "compose" and intent.aggregation is not None else {}),
         "has_ranking": intent.ranking is not None,
         "has_comparison": intent.comparison is not None,
         "requested_fields": list(intent.requested_fields),
@@ -379,6 +384,7 @@ def _scope_clarification(
     label = {
         "program": "หลักสูตร", "catalog": "ปีหลักสูตร/ฉบับหลักสูตร",
         "plan": "แผนการเรียน", "comparison_operation": "ลักษณะการเปรียบเทียบที่ต้องการ เช่น ส่วนต่าง หรือความเท่ากัน",
+        "year": "ชั้นปี", "semester": "ภาคการศึกษา",
     }[dimension]
     text = f"กรุณาระบุ{label}"
     if program is not None:
@@ -851,6 +857,10 @@ def _run_semantic_answer(
             started=started,
         )
 
+    mixed_dimension = missing_mixed_scope(resolved)
+    if mixed_dimension is not None:
+        return _scope_clarification(trace, mixed_dimension, resolved.scope.program, started=started)
+
     plan = plan_semantic_query(resolved)
     trace.query_plan = {"execution": plan.execution, "reason": plan.reason}
 
@@ -861,6 +871,8 @@ def _run_semantic_answer(
         verified = execute_comparison(db_path, resolved)
     elif plan.execution == EXECUTION_DETERMINISTIC and resolved.target.kind == "literal_set":
         verified = execute_explicit_course_set(db_path, resolved, question)
+    elif plan.execution == EXECUTION_DETERMINISTIC and resolved.intent.task == "compose":
+        verified = execute_mixed_scope(db_path, resolved, question)
     elif plan.execution == EXECUTION_SQL:
         if sql_provider is None:
             verified = VerifiedResult(
@@ -910,6 +922,8 @@ def _run_semantic_answer(
         "missing": list(verified.missing_information),
         **({"alternative_selection_count": len(verified.alternative_selections)}
            if verified.explicit_course_set else {}),
+        **({"scope_kinds": [part.scope_kind for part in verified.scoped_results]}
+           if verified.scoped_results else {}),
     }
     if verified.status != "answer":
         trace.timing = timing

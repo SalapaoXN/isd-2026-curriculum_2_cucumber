@@ -71,7 +71,7 @@ class SemanticInterpreterStructuredTransportTests(unittest.TestCase):
             "clarification", "policy_topic", "observed_value",
         })
         self.assertEqual(set(schema["properties"]["task"]["enum"]), {
-            "lookup", "list", "search", "aggregate", "compare", "rank",
+            "lookup", "compose", "list", "search", "aggregate", "compare", "rank",
             "policy", "requirement", "unknown",
         })
 
