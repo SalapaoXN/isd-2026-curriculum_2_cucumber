@@ -160,6 +160,74 @@ def _candidate_identity(candidate: dict[str, Any]) -> tuple[str | None, str | No
     return code, name
 
 
+def _logical_candidates(
+    candidates: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Collapse candidate rows by the identity contract used by this resolver."""
+    by_identity: dict[tuple[str | None, str | None], dict[str, Any]] = {}
+    for candidate in candidates:
+        identity = _candidate_identity(candidate)
+        if identity != (None, None):
+            by_identity.setdefault(identity, candidate)
+    return list(by_identity.values())
+
+
+def _strong_enough_for_partial_title(raw_text: str) -> bool:
+    """Reject weak references before lexical partial-title matching."""
+    text = raw_text.strip()
+    if not text or text.isdigit():
+        return False
+    # Require at least a short alphabetic/Thai phrase; punctuation and digits
+    # do not contribute to reference strength.
+    return sum(character.isalpha() for character in text) >= 2
+
+
+def _course_reference_candidates(
+    db_path: str | Path,
+    raw_text: str,
+    program: str | None,
+    catalog_key: str | None,
+) -> list[dict[str, Any]]:
+    """Resolve a code or exact-first/partial-second canonical course reference.
+
+    Both lookup stages use the already validated program/catalog scope. An
+    ambiguous exact result is returned as-is and therefore cannot be narrowed
+    by a later partial lookup.
+    """
+    reference = raw_text.strip()
+    if _COURSE_CODE_RE.fullmatch(reference):
+        return _logical_candidates(
+            exact_course_candidates(
+                db_path,
+                course_code=reference,
+                program=program,
+                catalog_key=catalog_key,
+            )
+        )
+
+    exact = _logical_candidates(
+        exact_course_candidates(
+            db_path,
+            course_name=reference,
+            program=program,
+            catalog_key=catalog_key,
+            exact_title=True,
+        )
+    )
+    if exact or not _strong_enough_for_partial_title(reference):
+        return exact
+
+    return _logical_candidates(
+        exact_course_candidates(
+            db_path,
+            course_name=reference,
+            program=program,
+            catalog_key=catalog_key,
+            exact_title=False,
+        )
+    )
+
+
 def _lookup_literal(
     db_path: str | Path,
     raw_text: str,
@@ -172,21 +240,9 @@ def _lookup_literal(
     """Return (accepted_candidates, hint_candidates_for_trace)."""
     hint_candidates: tuple[str, ...] = ()
     try:
-        if _COURSE_CODE_RE.fullmatch(raw_text.strip()):
-            direct = exact_course_candidates(
-                db_path,
-                course_code=raw_text.strip(),
-                program=program,
-                catalog_key=catalog_key,
-            )
-        else:
-            direct = exact_course_candidates(
-                db_path,
-                course_name=raw_text.strip(),
-                program=program,
-                catalog_key=catalog_key,
-                exact_title=True,
-            )
+        direct = _course_reference_candidates(
+            db_path, raw_text, program, catalog_key
+        )
     except Exception:
         return [], ()
     if hint and allow_hint_candidates:
@@ -306,14 +362,9 @@ def resolve_comparison_operand(
     if not isinstance(course_raw, str) or not course_raw.strip():
         return ResolvedOperand(scope=scope, unresolved=True, reason="empty operand course")
     try:
-        if _COURSE_CODE_RE.fullmatch(course_raw.strip()):
-            candidates = exact_course_candidates(
-                db_path, course_code=course_raw.strip(),
-                program=program, catalog_key=catalog_key)
-        else:
-            candidates = exact_course_candidates(
-                db_path, course_name=course_raw.strip(),
-                program=program, catalog_key=catalog_key, exact_title=True)
+        candidates = _course_reference_candidates(
+            db_path, course_raw, program, catalog_key
+        )
     except Exception:
         return ResolvedOperand(scope=scope, unresolved=True, reason="operand lookup failed")
     identities = {_candidate_identity(c) for c in candidates}
