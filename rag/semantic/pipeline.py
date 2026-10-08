@@ -14,6 +14,7 @@ import time
 from copy import deepcopy
 from collections.abc import Callable
 from dataclasses import dataclass, replace as _replace_resolved
+from functools import wraps
 from pathlib import Path
 from typing import Any
 
@@ -596,6 +597,9 @@ def _run_semantic_answer(
         if not callable(callable_object):
             return None
 
+        # Preserve provider signature so transport capability inspection sees
+        # the original callable rather than this generic counting wrapper.
+        @wraps(callable_object)
         def wrapped(*args: Any, **kwargs: Any) -> str:
             counts["llm"] += 1
             output = callable_object(*args, **kwargs)

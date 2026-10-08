@@ -9,6 +9,7 @@ propagate unchanged so the pipeline can fail closed with a typed reason.
 from __future__ import annotations
 
 import json
+import inspect
 import re
 from collections.abc import Callable
 from dataclasses import replace
@@ -77,6 +78,195 @@ _AGGREGATION_FIELDS = frozenset({"function", "measure", "group_by"})
 _RANKING_FIELDS = frozenset({"metric", "direction", "limit"})
 
 _COMPARISON_FIELDS = frozenset({"left", "right", "measure", "operation"})
+
+
+def _nullable(schema: dict[str, Any]) -> dict[str, Any]:
+    return {"anyOf": [schema, {"type": "null"}]}
+
+
+def _object_schema(
+    properties: dict[str, Any], required: tuple[str, ...] = ()
+) -> dict[str, Any]:
+    schema: dict[str, Any] = {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": False,
+    }
+    if required:
+        schema["required"] = list(required)
+    return schema
+
+
+def semantic_intent_json_schema() -> dict[str, Any]:
+    """Build transport JSON Schema from the same closed enums/field sets as parsing.
+
+    This constrains generated JSON shape and vocabulary at the provider boundary.
+    ``parse_semantic_intent_payload`` remains authoritative and enforces the
+    additional cross-field and conditional rules that JSON Schema cannot
+    represent in this contract.
+    """
+    from rag.semantic.schema import (
+        AGGREGATION_FUNCTIONS,
+        COMPARISON_OPERATIONS,
+        FILTER_FIELDS,
+        FILTER_OPERATORS,
+        GROUP_DIMENSIONS,
+        MEASURES,
+        POLICY_TOPICS,
+        RANK_DIRECTIONS,
+        RELATIONS,
+        REQUESTED_FIELDS,
+        SUBJECTS,
+        TARGET_KINDS,
+        TASKS,
+    )
+
+    def enum_schema(values: frozenset[str]) -> dict[str, Any]:
+        return {"type": "string", "enum": sorted(values)}
+
+    string_value = {"type": "string", "maxLength": MAX_TEXT_LEN}
+    year_value = {"type": "integer", "minimum": 1, "maximum": 5}
+    semester_value = {"type": "integer", "minimum": 1, "maximum": 2}
+    scope_properties = {
+        "program": _nullable(string_value),
+        "catalog": _nullable(string_value),
+        "plan": _nullable(string_value),
+        "plan_hint": _nullable({"type": "string", "maxLength": 32}),
+        "year": _nullable(year_value),
+        "semester": _nullable(semester_value),
+    }
+    operand_properties = {
+        "course": _nullable(string_value),
+        "program": _nullable(string_value),
+        "catalog": _nullable(string_value),
+        "plan": _nullable(string_value),
+        "plan_hint": _nullable({"type": "string", "maxLength": 32}),
+        "year": _nullable(year_value),
+        "semester": _nullable(semester_value),
+    }
+    comparison_properties = {
+        "left": {
+            **_object_schema(operand_properties),
+            "minProperties": 1,
+        },
+        "right": {
+            **_object_schema(operand_properties),
+            "minProperties": 1,
+        },
+        "measure": enum_schema(MEASURES),
+        "operation": _nullable(enum_schema(COMPARISON_OPERATIONS)),
+    }
+    filter_value = {
+        "anyOf": [
+            string_value,
+            {"type": "number"},
+            {"type": "boolean"},
+            {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {"type": "number"},
+            },
+        ]
+    }
+    properties = {
+        "task": enum_schema(TASKS),
+        "subject": enum_schema(SUBJECTS),
+        "relation": _nullable(enum_schema(RELATIONS)),
+        "target": _object_schema(
+            {
+                "kind": enum_schema(TARGET_KINDS),
+                "raw_text": _nullable(string_value),
+                "normalized_hint": _nullable(
+                    {"type": "string", "maxLength": MAX_HINT_LEN}
+                ),
+                "ordinal": _nullable(
+                    {"type": "integer", "minimum": 1, "maximum": MAX_ORDINAL}
+                ),
+            },
+            tuple(sorted(_TARGET_FIELDS)),
+        ),
+        "scope": _object_schema(
+            scope_properties,
+            tuple(sorted(_SCOPE_FIELDS - {"plan_hint"})),
+        ),
+        "filters": {
+            "type": "array",
+            "items": _object_schema(
+                {
+                    "field": enum_schema(FILTER_FIELDS),
+                    "operator": enum_schema(FILTER_OPERATORS),
+                    "value": filter_value,
+                },
+                tuple(sorted(_FILTER_FIELDS)),
+            ),
+        },
+        "aggregation": _nullable(
+            _object_schema(
+                {
+                    "function": enum_schema(AGGREGATION_FUNCTIONS),
+                    "measure": enum_schema(MEASURES),
+                    "group_by": {
+                        "type": "array",
+                        "items": enum_schema(GROUP_DIMENSIONS),
+                    },
+                },
+                tuple(sorted(_AGGREGATION_FIELDS)),
+            )
+        ),
+        "ranking": _nullable(
+            _object_schema(
+                {
+                    "metric": enum_schema(MEASURES),
+                    "direction": enum_schema(RANK_DIRECTIONS),
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 20},
+                },
+                tuple(sorted(_RANKING_FIELDS)),
+            )
+        ),
+        "comparison": _nullable(
+            _object_schema(
+                comparison_properties,
+                tuple(sorted(_COMPARISON_FIELDS)),
+            )
+        ),
+        "requested_fields": {
+            "type": "array",
+            "items": enum_schema(REQUESTED_FIELDS),
+        },
+        "clarification": _nullable(string_value),
+        "policy_topic": _nullable(enum_schema(POLICY_TOPICS)),
+        "observed_value": _nullable({"type": "string", "maxLength": 32}),
+    }
+    return _object_schema(properties, tuple(sorted(_INTENT_FIELDS)))
+
+
+def _supports_keyword(callable_object: Callable[..., Any], keyword: str) -> bool:
+    """Inspect callable capability without probing it with a model request."""
+    try:
+        parameters = inspect.signature(callable_object).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return any(
+        parameter.kind == inspect.Parameter.VAR_KEYWORD
+        or (
+            parameter.name == keyword
+            and parameter.kind != inspect.Parameter.POSITIONAL_ONLY
+        )
+        for parameter in parameters
+    )
+
+
+def _structured_output_kwargs(
+    callable_object: Callable[..., Any],
+) -> dict[str, Any]:
+    """Return supported JSON transport options, or empty for simple callables."""
+    if not _supports_keyword(callable_object, "response_mime_type"):
+        return {}
+    options: dict[str, Any] = {"response_mime_type": "application/json"}
+    if _supports_keyword(callable_object, "response_json_schema"):
+        options["response_json_schema"] = semantic_intent_json_schema()
+    return options
 
 
 def _require_text(value: Any, field: str, *, allow_none: bool) -> str | None:
@@ -386,7 +576,8 @@ def interpret_semantic_intent(
         canonical_plan_keys=canonical_plan_keys,
         last_normal_operation=last_normal_operation,
     )
-    output = model_callable(prompt)
+    structured_options = _structured_output_kwargs(model_callable)
+    output = model_callable(prompt, **structured_options)
     if not isinstance(output, str):
         raise TypeError("model output must be a string")
     return parse_semantic_intent_payload(output), SEMANTIC_INTERPRETER_PROMPT_VERSION
