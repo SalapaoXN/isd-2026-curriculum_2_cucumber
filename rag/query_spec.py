@@ -46,6 +46,8 @@ _PLAN_ALIASES = (
     ("แผนปกติ", "no_coop"),
     ("สหกิจ", "coop"),
 )
+_PLAN_PHRASE_GAP_PATTERN = re.compile(r"[\s,;/|&+(){}\[\].:—–-]*")
+_PLAN_PHRASE_EDGE_SEPARATORS = " \t\r\n,;/|&+(){}[].:—–-"
 
 _YEAR_PATTERN = re.compile(
     r"ปี\s*(?:ที่\s*)?([1-5])(?!\d)|\byear\s*([1-5])\b|\bY\s*([1-4])\b",
@@ -364,22 +366,73 @@ def _extract_program(question: str) -> str | None:
     return next(canonical for alias, canonical in _PROGRAM_ALIASES if alias == matches[0][1])
 
 
+def _canonical_plan_match(raw_match: str) -> str | None:
+    """Normalize one match from the shared bounded plan surface grammar."""
+    value = re.sub(r"\s+", "", raw_match.casefold())
+    if re.fullmatch(r"ไม่\s*coop", value, re.IGNORECASE):
+        return "no_coop"
+    return next(
+        (canonical for alias, canonical in _PLAN_ALIASES if alias == value),
+        None,
+    )
+
+
+def canonical_plan_meanings(raw_phrase: str | None) -> tuple[str, ...]:
+    """Return the one trusted meaning for a complete supported plan phrase.
+
+    This API is deliberately phrase-scoped: every non-plan character must be
+    a bounded presentation wrapper or separator. It shares the legacy plan
+    token grammar and alias table, but never parses a surrounding question.
+    Multiple distinct meanings and unexplained surrounding prose are
+    untrusted and return an empty tuple.
+    """
+    if not isinstance(raw_phrase, str) or not raw_phrase.strip():
+        return ()
+    matches = tuple(_PLAN_PATTERN.finditer(raw_phrase))
+    if not matches:
+        return ()
+
+    meanings: list[str] = []
+    for match in matches:
+        meaning = _canonical_plan_match(match.group(0))
+        if meaning is None:
+            return ()
+        meanings.append(meaning)
+
+    def presentation_gap(gap: str) -> bool:
+        remainder = gap
+        while True:
+            remainder = remainder.strip(_PLAN_PHRASE_EDGE_SEPARATORS)
+            wrapper = next(
+                (word for word in ("แบบ", "แผน") if remainder.startswith(word)),
+                None,
+            )
+            if wrapper is None:
+                return remainder == ""
+            remainder = remainder[len(wrapper):]
+
+    if not presentation_gap(raw_phrase[:matches[0].start()]):
+        return ()
+    for previous, current in zip(matches, matches[1:]):
+        if not presentation_gap(raw_phrase[previous.end():current.start()]):
+            return ()
+    if _PLAN_PHRASE_GAP_PATTERN.fullmatch(raw_phrase[matches[-1].end():]) is None:
+        return ()
+    distinct = tuple(dict.fromkeys(meanings))
+    return distinct if len(distinct) == 1 else ()
+
+
 def _extract_plans(question: str) -> tuple[str, ...]:
     matches = []
     for match in _PLAN_PATTERN.finditer(question):
-        # Collapse internal whitespace so spaced negations ("ไม่ coop",
-        # "no coop") normalize to the same finite alias keys.
         value = re.sub(r"\s+", "", match.group(0).casefold())
         if value == "gened" and re.search(
             r"วิชา\s*gened\b|gened\s+อะไร", question, re.IGNORECASE
         ):
             continue
-        if re.fullmatch(r"ไม่\s*coop", value, re.IGNORECASE):
-            canonical = "no_coop"
-        else:
-            canonical = next(
-                canonical for alias, canonical in _PLAN_ALIASES if alias == value
-            )
+        canonical = _canonical_plan_match(match.group(0))
+        if canonical is None:
+            continue
         matches.append((match.start(), canonical))
     return _ordered_unique(value for _, value in sorted(matches))
 
@@ -947,4 +1000,9 @@ def parse_query_spec(
     )
 
 
-__all__ = ["QuerySpec", "detect_surface_operations", "parse_query_spec"]
+__all__ = [
+    "QuerySpec",
+    "canonical_plan_meanings",
+    "detect_surface_operations",
+    "parse_query_spec",
+]

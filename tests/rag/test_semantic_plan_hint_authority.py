@@ -74,10 +74,10 @@ class PlanHintAuthorityTests(unittest.TestCase):
         return intent, validate_semantic_intent(intent, question)
 
     def test_grounded_top_level_plan_hint_resolves_against_catalog(self):
-        question = "DSBA dsba-2565 cooperative learning route"
+        question = "DSBA dsba-2565 แผนสหกิจ"
         intent, validation = self._parse_validate(
             question,
-            _scope(plan="cooperative learning route", plan_hint="coop"),
+            _scope(plan="แผนสหกิจ", plan_hint="coop"),
         )
         self.assertTrue(validation.valid, validation.reason)
         merged = merge_semantic_context(intent, None)
@@ -102,23 +102,23 @@ class PlanHintAuthorityTests(unittest.TestCase):
         self.assertFalse(ungrounded_validation.valid)
 
     def test_invalid_and_wrong_scope_hints_do_not_establish_scope(self):
-        question = "DSBA dsba-2565 cooperative learning route"
+        question = "DSBA dsba-2565 แผนสหกิจ"
         invalid, validation = self._parse_validate(
             question,
-            _scope(plan="cooperative learning route", plan_hint="not-a-plan"),
+            _scope(plan="แผนสหกิจ", plan_hint="not-a-plan"),
         )
-        self.assertTrue(validation.valid, validation.reason)
+        self.assertFalse(validation.valid)
         invalid_resolved = resolve_semantic_intent(
             DB_PATH, invalid, merge_semantic_context(invalid, None)
         )
         self.assertTrue(invalid_resolved.needs_clarification)
 
         wrong_scope, validation = self._parse_validate(
-            "AIT ait-2566 cooperative learning route",
+            "AIT ait-2566 แผนสหกิจ",
             _scope(
                 program="AIT",
                 catalog="ait-2566",
-                plan="cooperative learning route",
+                plan="แผนสหกิจ",
                 plan_hint="coop",
             ),
         )
@@ -222,7 +222,7 @@ class PlanHintAuthorityTests(unittest.TestCase):
         left = resolve_comparison_operand(
             DB_PATH,
             (
-                ("plan", "cooperative route"),
+                ("plan", "แผนสหกิจ"),
                 ("plan_hint", "coop"),
                 ("year", 2),
                 ("semester", 2),
@@ -234,7 +234,7 @@ class PlanHintAuthorityTests(unittest.TestCase):
         )
         right = resolve_comparison_operand(
             DB_PATH,
-            (("plan", "standard route"), ("plan_hint", "no_coop")),
+            (("plan", "แผนปกติ"), ("plan_hint", "no_coop")),
             "IT",
             "it-2565",
             default_years=(3,),
@@ -249,7 +249,7 @@ class PlanHintAuthorityTests(unittest.TestCase):
         course_left = resolve_comparison_operand(
             DB_PATH,
             (
-                ("plan", "cooperative route"),
+                ("plan", "แผนสหกิจ"),
                 ("plan_hint", "coop"),
                 ("course", "06026200"),
             ),
@@ -258,7 +258,7 @@ class PlanHintAuthorityTests(unittest.TestCase):
         )
         course_right = resolve_comparison_operand(
             DB_PATH,
-            (("plan", "standard route"), ("plan_hint", "no_coop")),
+            (("plan", "แผนปกติ"), ("plan_hint", "no_coop")),
             "DSBA",
             "dsba-2565",
         )
@@ -290,7 +290,7 @@ class PlanHintAuthorityTests(unittest.TestCase):
         ungrounded = {
             "left": {
                 "program": "DSBA",
-                "plan": "cooperative route",
+                "plan": "แผนสหกิจ",
                 "plan_hint": "coop",
             },
             "right": {"program": "DSBA", "plan": "no_coop"},
@@ -304,17 +304,23 @@ class PlanHintAuthorityTests(unittest.TestCase):
         unresolved = resolve_comparison_operand(
             DB_PATH, intent.comparison.left, "DSBA", "dsba-2565"
         )
+        # The resolver has no question argument; current-turn grounding is
+        # enforced by validation, while the supported raw phrase determines
+        # its meaning when the resolver is called directly.
         self.assertFalse(unresolved.unresolved)
 
     def test_comparison_hint_not_valid_in_canonical_scope_fails_closed(self):
         unresolved = resolve_comparison_operand(
             DB_PATH,
-            (("plan", "grounded everyday plan phrase"), ("plan_hint", "not-a-plan")),
+            (("plan", "แผนสหกิจ"), ("plan_hint", "not-a-plan")),
             "IT",
             "it-2565",
         )
         self.assertTrue(unresolved.unresolved)
-        self.assertEqual(unresolved.reason, "unknown operand plan")
+        self.assertEqual(
+            unresolved.reason,
+            "plan hint contradicts deterministic raw plan meaning",
+        )
 
     def test_already_canonical_raw_plan_remains_supported(self):
         question = "DSBA dsba-2565 coop"

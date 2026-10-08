@@ -20,6 +20,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from rag.query_spec import canonical_plan_meanings
 from rag.semantic.context import MergedContext
 from rag.semantic.schema import (
     ResolvedIntent,
@@ -152,6 +153,51 @@ def valid_plan(
     if len(rows) != 1 or not rows[0]["plan_key"]:
         return None
     return str(rows[0]["plan_key"]).strip()
+
+
+def _resolve_raw_plan(
+    db_path: str | Path,
+    raw_plan: str | None,
+    plan_hint: str | None,
+    program: str | None,
+    catalog_key: str | None,
+) -> tuple[str | None, str | None]:
+    """Resolve an explicit raw plan without allowing its hint to define meaning."""
+    if raw_plan is None:
+        if plan_hint is not None:
+            return None, "plan hint requires a current-turn raw plan mention"
+        return None, None
+    if not isinstance(raw_plan, str) or not raw_plan.strip():
+        return None, "empty raw plan mention"
+
+    direct = valid_plan(db_path, raw_plan, program, catalog_key)
+    if direct is not None:
+        if (
+            plan_hint is not None
+            and (
+                not isinstance(plan_hint, str)
+                or plan_hint.strip().casefold() != direct.casefold()
+            )
+        ):
+            return None, "plan hint contradicts canonical raw plan"
+        return direct, None
+
+    meanings = canonical_plan_meanings(raw_plan)
+    if len(meanings) != 1:
+        return None, "raw plan has no unique supported deterministic meaning"
+    meaning = meanings[0]
+    if (
+        plan_hint is not None
+        and (
+            not isinstance(plan_hint, str)
+            or plan_hint.strip().casefold() != meaning.casefold()
+        )
+    ):
+        return None, "plan hint contradicts deterministic raw plan meaning"
+    canonical = valid_plan(db_path, meaning, program, catalog_key)
+    if canonical is None:
+        return None, "deterministic raw plan meaning is unavailable in canonical scope"
+    return canonical, None
 
 
 def _candidate_identity(candidate: dict[str, Any]) -> tuple[str | None, str | None]:
@@ -380,15 +426,11 @@ def resolve_comparison_operand(
             return ResolvedOperand(unresolved=True, reason="ambiguous operand catalog")
     raw_plan = fields.get("plan")
     plan_hint = fields.get("plan_hint")
-    if plan_hint is not None and raw_plan is None:
-        return ResolvedOperand(
-            unresolved=True, reason="operand plan hint requires raw plan mention"
-        )
-    plan = valid_plan(db_path, raw_plan, program, catalog_key)
-    if plan is None and raw_plan is not None and plan_hint is not None:
-        plan = valid_plan(db_path, plan_hint, program, catalog_key)
-    if raw_plan is not None and plan is None:
-        return ResolvedOperand(unresolved=True, reason="unknown operand plan")
+    plan, plan_error = _resolve_raw_plan(
+        db_path, raw_plan, plan_hint, program, catalog_key
+    )
+    if plan_error is not None:
+        return ResolvedOperand(unresolved=True, reason=plan_error)
     years: tuple[int, ...] = ()
     semesters: tuple[int, ...] = ()
     year = _side_int(fields.get("year"))
@@ -469,13 +511,24 @@ def resolve_semantic_intent(
             needs_clarification=True,
             clarification_reason="plan hint requires a current-turn raw plan mention",
         )
-    plan = valid_plan(db_path, merged.plan, program, catalog_key)
-    if plan is None and intent.scope.plan is not None and merged.plan_hint is not None:
-        # Normalized plan-hint path: the interpreter's canonical-key
-        # proposal is accepted only on exact deterministic match against
-        # canonical plan data (0 → fail, 1 → accept, ambiguous → fail).
-        # No Thai alias table exists anywhere in this path.
-        plan = valid_plan(db_path, merged.plan_hint, program, catalog_key)
+    if intent.scope.plan is not None:
+        plan, plan_error = _resolve_raw_plan(
+            db_path,
+            intent.scope.plan,
+            intent.scope.plan_hint,
+            program,
+            catalog_key,
+        )
+        if plan_error is not None:
+            return ResolvedIntent(
+                intent=intent,
+                needs_clarification=True,
+                clarification_reason=plan_error,
+            )
+    else:
+        # Inherited plans are already canonical context, not current-turn
+        # linguistic phrases. Preserve direct database validation only.
+        plan = valid_plan(db_path, merged.plan, program, catalog_key)
     if merged.plan is not None and plan is None:
         return ResolvedIntent(
             intent=intent,

@@ -11,7 +11,7 @@ from __future__ import annotations
 from rag.semantic.schema import VerifiedNumericComparison
 
 
-SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v8"
+SEMANTIC_INTERPRETER_PROMPT_VERSION = "semantic-interpreter/v9"
 ANSWERER_PROMPT_VERSION = "semantic-answerer/v1"
 
 
@@ -50,6 +50,7 @@ _INTERPRETER_SCHEMA = """Schema (all keys required; use null where absent):
   "observed_value": exact user-stated value substring (e.g. a GPA number) or null
 }
 Rules: scope/target raw_text must be exact substrings of the CURRENT question; never invent program, catalog, plan, year, semester, course code, credits, or policy thresholds. A nickname spelling proposal goes in normalized_hint only, never as canonical identity. Subjective judgement ("is this course good") is task unknown with clarification set.
+RAW PLAN IS A QUOTE-LIKE GROUNDING FIELD. Copy the exact plan phrase from the CURRENT question into scope.plan; put a canonical proposal only in scope.plan_hint. Never replace Thai raw wording with coop/no_coop in plan unless the student literally wrote that key. Preserve negation exactly. A hint must agree with the deterministic meaning of its raw phrase; if meaning is unclear, leave plan_hint null. Apply these rules independently to comparison operands.
 Explicit scope may appear at the beginning, middle, or end of the question, including compact student phrasing. A leading program token (a program code written before the course title or the rest of the question) is scope exactly the same way as a program mention elsewhere in the sentence: extract it as a scope mention whenever it is explicitly present in the CURRENT TURN. Do NOT infer a program when none was written.
 Disambiguate a program identifier from a course-group/category label by syntactic role, with this precedence: (1) an identifier immediately following "หลักสูตร" is scope.program; (2) a leading standalone curriculum/program identifier before a general course-list request is scope.program, even if that identifier can also name a course group; do not reinterpret it as topic/category without an explicit group marker; (3) when a different program is named and a separate course-group label qualifies the requested courses (for example, a group mentioned after "วิชา" or "หมวด"), keep the named program in scope.program and represent the group as category + eq. For the canonical general-education group, use the placement category label "หมวดวิชาศึกษาทั่วไป". In an elliptical follow-up that names only a course group, leave scope.program absent so validated prior program context remains in force; do not switch scope to the group label. A topic filter requires an explicit relation such as "เกี่ยวกับ"/"related to"; a bare program or group label before a course-list request is not a topic.
 Role tie-breaker: a leading uppercase acronym/code immediately followed by a general course-list request is a scope.program candidate and must not be used as category/topic merely because it can name a course group. The canonical resolver validates the candidate; if its role is uncertain, fail closed instead of turning it into a filter. A group label after a separate program scope or in a course-group modifier position remains category.
@@ -59,7 +60,7 @@ Use topic/course discovery only when the requested answer is a set or list of co
 The current filter contract does not support combining topic discovery with a has_prerequisite filter. If the student requires both constraints, do not drop either one or answer a broader query: return task "unknown" with a concise clarification that this combined filter request is unsupported.
 Comparison operands take the same scope keys as scope (program, catalog, plan, plan_hint, year, semester) plus an optional "course" key holding the exact user-written course text; each side stands alone. Choose the comparison operation by meaning: greater/less/equal for which-is-more questions, difference for how-much-more, set_difference for in-one-but-not-the-other, overlap for shared membership.
 Executable numeric comparison: when the current question explicitly asks to compare credit amounts for two operands, without a directional or equality predicate, use measure credits and operation difference to report their values and absolute difference. Do not omit operation for this explicit quantitative comparison. Preserve an explicitly requested greater/less/equal predicate instead. Two operands alone, or a broad request to compare curricula without a quantitative measure or a clear supported relation, do not justify difference: leave operation null and ask which comparison the student wants. Never invent missing scope or facts to make a comparison executable.
-If the student names a study plan in everyday words, copy the exact user-written plan phrase into plan. Only when its meaning is unmistakable, propose a canonical plan key in plan_hint; a hint is allowed only alongside that grounded raw plan mention. The deterministic resolver verifies the proposal against canonical data and never trusts the hint alone. Apply this independently to each comparison side. When in doubt, leave plan_hint null.
+If the student names a study plan in everyday words, copy the exact user-written phrase into plan, preserving any negation. The canonical key belongs only in plan_hint, and may be proposed only when the raw phrase has one unmistakable deterministic meaning. Never put coop/no_coop in plan unless that exact canonical key was literally written in the CURRENT question. A hint is allowed only alongside the grounded raw plan phrase and must agree with its meaning. The deterministic validator and resolver check both grounding and meaning. Apply independently to each comparison side; when in doubt, leave plan_hint null.
 The relation field names the property asked about and is required for lookup (identity/description/credits/prerequisite/placement/existence). For list/search/aggregate/compare/rank it is optional and usually null; when the question restates the same property (for example an aggregate of credits), a compatible relation is acceptable and never widens scope. Policy/requirement/unknown questions carry no relation.
 When the program itself is what the student asks about ("BIT มีกี่หน่วยกิต": the program's own total), use subject program with relation credits and put the explicit program mention in scope; the program text is scope, and there is no course target. When a course is asked about within a program ("BIT 06036104 เรียนเกี่ยวกับอะไร"), use subject course with the course target and the program as scope."""
 
@@ -80,6 +81,10 @@ Q: "BIT 06036104 เรียนเกี่ยวกับอะไร"
 A: {"task":"lookup","subject":"course","relation":"description","target":{"kind":"literal","raw_text":"06036104","normalized_hint":null,"ordinal":null},"scope":{"program":"BIT","catalog":null,"plan":null,"year":null,"semester":null},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["description"],"clarification":null,"policy_topic":null,"observed_value":null}
 Q: "DSBA 06026211 อยู่เทอมไหน"
 A: {"task":"lookup","subject":"course","relation":"placement","target":{"kind":"literal","raw_text":"06026211","normalized_hint":null,"ordinal":null},"scope":{"program":"DSBA","catalog":null,"plan":null,"year":null,"semester":null},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["placement"],"clarification":null,"policy_topic":null,"observed_value":null}
+Q: "ช่วยแสดงรายวิชาของ DSBA แผนสหกิจ ปี 3 เทอม 1"
+A: {"task":"list","subject":"course","relation":null,"target":{"kind":"none","raw_text":null,"normalized_hint":null,"ordinal":null},"scope":{"program":"DSBA","catalog":null,"plan":"แผนสหกิจ","plan_hint":"coop","year":3,"semester":1},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["code","name"],"clarification":null,"policy_topic":null,"observed_value":null}
+Q: "IT แบบไม่สหกิจ ปี 1 เทอม 2 รวมหน่วยกิตเท่าไร"
+A: {"task":"aggregate","subject":"semester","relation":null,"target":{"kind":"none","raw_text":null,"normalized_hint":null,"ordinal":null},"scope":{"program":"IT","catalog":null,"plan":"แบบไม่สหกิจ","plan_hint":"no_coop","year":1,"semester":2},"filters":[],"aggregation":{"function":"sum","measure":"credits","group_by":[]},"ranking":null,"comparison":null,"requested_fields":[],"clarification":null,"policy_topic":null,"observed_value":null}
 Q: "BIT ปี 2 เทอม 1 มีวิชาอะไรบ้าง"
 A: {"task":"list","subject":"course","relation":null,"target":{"kind":"none","raw_text":null,"normalized_hint":null,"ordinal":null},"scope":{"program":"BIT","catalog":null,"plan":null,"year":2,"semester":1},"filters":[],"aggregation":null,"ranking":null,"comparison":null,"requested_fields":["code","name"],"clarification":null,"policy_topic":null,"observed_value":null}
 Q: "BIT มีกี่หน่วยกิต"
@@ -141,12 +146,14 @@ def build_semantic_interpreter_prompt(
         "CANONICAL PLAN-KEY CANDIDATES FOR THE CURRENT PROGRAM/EDITION "
         "(normalization suggestions only; the resolver validates them): "
         + ", ".join(plan_keys)
-        + ". For each grounded plan mention, preserve the exact user wording "
-        "in plan and, when its meaning clearly matches one listed key, propose "
-        "that key in plan_hint on that same scope or comparison side. For "
-        "example, raw wording such as 'แผนสหกิจ' may propose coop, and 'แผนปกติ' "
-        "may propose no_coop, only when those keys are listed and the meaning "
-        "is clear. Never emit a plan_hint without a grounded raw plan."
+        + ". For each grounded plan mention, preserve the exact CURRENT-user "
+        "phrase in plan and, only when its meaning clearly matches one listed "
+        "key, propose that key in plan_hint on that same scope or comparison "
+        "side. Phrases such as 'แบบสหกิจ' or 'แผนสหกิจ' may propose coop; "
+        "'ไม่สหกิจ', 'แบบไม่สหกิจ', 'แผนไม่สหกิจ', or 'แผนปกติ' may propose "
+        "no_coop only when the raw phrase has that unambiguous meaning and the "
+        "key is listed. Copy the raw phrase verbatim; never substitute the "
+        "canonical key in plan. Never emit a hint without a grounded raw plan."
         if plan_keys
         else ""
     )

@@ -18,7 +18,11 @@ from rag.semantic.schema import (
     VALID_TASK_SUBJECTS,
     SemanticIntent,
 )
-from rag.query_spec import _extract_category, _extract_topic
+from rag.query_spec import (
+    _extract_category,
+    _extract_topic,
+    canonical_plan_meanings,
+)
 
 _SUPPORTED_FILTER_SHAPES = frozenset(
     {
@@ -166,13 +170,28 @@ def _contains(question: str, text: str) -> bool:
     return text.casefold() in question.casefold()
 
 
+def _plan_hint_consistency_problem(
+    raw_plan: str | None,
+    plan_hint: str | None,
+    field: str,
+) -> str | None:
+    """Require a canonical hint to agree with deterministic raw-phrase meaning."""
+    if plan_hint is None:
+        return None
+    if not isinstance(plan_hint, str) or not plan_hint.strip() or len(plan_hint) > 32:
+        return f"{field} is invalid"
+    if raw_plan is None:
+        return f"{field} requires a grounded raw plan mention"
+    meanings = canonical_plan_meanings(raw_plan)
+    if len(meanings) != 1:
+        return f"{field} requires a supported deterministic raw plan meaning"
+    if plan_hint.strip().casefold() != meanings[0].casefold():
+        return f"{field} contradicts deterministic raw plan meaning"
+    return None
+
+
 def _grounded_scope(intent: SemanticIntent, question: str) -> str | None:
     scope = intent.scope
-    if scope.plan_hint is not None:
-        if not isinstance(scope.plan_hint, str) or not scope.plan_hint.strip() or len(scope.plan_hint) > 32:
-            return "scope.plan_hint is invalid"
-        if scope.plan is None:
-            return "scope.plan_hint requires a grounded raw plan mention"
     for label, value in (
         ("program", scope.program),
         ("catalog", scope.catalog),
@@ -183,7 +202,9 @@ def _grounded_scope(intent: SemanticIntent, question: str) -> str | None:
     for label, value in (("year", scope.year), ("semester", scope.semester)):
         if value is not None and str(value) not in question:
             return f"scope.{label} is not grounded in the current question"
-    return None
+    return _plan_hint_consistency_problem(
+        scope.plan, scope.plan_hint, "scope.plan_hint"
+    )
 
 
 def _target_consistency(intent: SemanticIntent, question: str) -> str | None:
@@ -238,16 +259,6 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
             if not side:
                 return f"comparison.{side_label} must be non-empty"
             side_fields = dict(side)
-            if "plan_hint" in side_fields:
-                hint = side_fields["plan_hint"]
-                if (
-                    not isinstance(hint, str)
-                    or not hint.strip()
-                    or len(hint) > 32
-                ):
-                    return f"comparison.{side_label}.plan_hint is invalid"
-                if "plan" not in side_fields:
-                    return f"comparison.{side_label}.plan_hint requires a grounded raw plan mention"
             for key, value in side:
                 if key == "course" and (
                     not isinstance(value, str) or not _contains(question, value)
@@ -259,6 +270,13 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
                     return f"comparison.{side_label}.{key} is not grounded in the current question"
                 if key in {"year", "semester"} and str(value) not in question:
                     return f"comparison.{side_label}.{key} is not grounded in the current question"
+            hint_problem = _plan_hint_consistency_problem(
+                side_fields.get("plan"),
+                side_fields.get("plan_hint"),
+                f"comparison.{side_label}.plan_hint",
+            )
+            if hint_problem is not None:
+                return hint_problem
     if task in {"policy", "requirement"} and intent.policy_topic is None:
         return "policy/requirement requires a policy topic"
     if task == "lookup" and intent.subject == "course" and intent.relation is None:
