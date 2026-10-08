@@ -39,6 +39,7 @@ from rag.semantic.compiler import (
     compile_resolved_intent_to_query_spec,
     synthesize_canonical_utterance,
 )
+from rag.semantic.errors import SemanticOperationalError, is_provider_error
 from rag.semantic.planner import SemanticPlan
 from rag.semantic.schema import (
     ResolvedIntent,
@@ -520,6 +521,11 @@ def _retained_courses_from_context(
     return tuple(entries), scope_program
 
 
+def _missing_answer_provider(*args: Any, **kwargs: Any) -> str:
+    """Stand-in when no answer provider is injected (never a real provider)."""
+    return ""
+
+
 def execute_sql_bridge(
     db_path: str | Path,
     resolved: ResolvedIntent,
@@ -571,13 +577,24 @@ def execute_sql_bridge(
             conversation_context=service_context or None,
             grounding_callable=grounding_callable,
         )
-    except Exception:
+    except Exception as exc:
+        if is_provider_error(exc):
+            raise SemanticOperationalError("provider_unavailable") from None
         return VerifiedResult(
             status="missing_data",
             missing_information=("ไม่สามารถประมวลผลคำถามเชิงประกอบได้",),
             failure_category="QUERY_ERROR",
         )
     if not isinstance(result, dict) or result.get("status") != "answer":
+        error = result.get("error") if isinstance(result, dict) else None
+        code = error.get("code") if isinstance(error, dict) else None
+        if code == "sql_model_failure" or (
+            code == "answer_model_failure"
+            and answer_callable is not _missing_answer_provider
+        ):
+            # The SQL/answer provider itself failed; this is operational,
+            # never evidence insufficiency.
+            raise SemanticOperationalError("provider_unavailable") from None
         return VerifiedResult(
             status="missing_data",
             missing_information=("ไม่มีผลลัพธ์ที่ยืนยันได้จากฐานข้อมูล",),

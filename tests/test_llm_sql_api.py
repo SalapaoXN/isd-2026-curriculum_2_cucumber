@@ -209,9 +209,9 @@ class LlmSqlApiTests(unittest.TestCase):
         for context in (
             {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop"},
             {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop",
-             "study_plan_context": {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "no_coop"}},
+              "study_plan_context": {"kind": "seven_term_plan", "program": "DSBA", "catalog_key": "dsba-2565", "plan": "no_coop"}},
             {"program": "IT", "catalog_key": "it-2565", "plan": "coop",
-             "study_plan_context": {"program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop"}},
+              "study_plan_context": {"kind": "seven_term_plan", "program": "DSBA", "catalog_key": "dsba-2565", "plan": "coop"}},
         ):
             with self.subTest(context=context):
                 response = self.client.post("/api/ask", json={"question": question, "conversation_context": context})

@@ -23,7 +23,9 @@ from rag.resolution import QueryContext
 from rag.semantic.answerer import render_semantic_answer
 from rag.semantic.compiler import compile_resolved_intent_to_query_spec
 from rag.semantic.context import merge_semantic_context, _validated_prior_context
+from rag.semantic.errors import SemanticOperationalError, is_provider_error as _is_provider_error
 from rag.semantic.executor import (
+    _missing_answer_provider,
     execute_comparison,
     execute_deterministic,
     execute_policy,
@@ -654,13 +656,9 @@ def _run_semantic_answer(
         timing.interpreter_ms = (time.monotonic() - stage_started) * 1000.0
         trace.timing = timing
         trace.llm_request_count = counts["llm"]
-        return _fail_closed(
-            trace,
-            "INTERPRETATION_ERROR",
-            f"interpreter provider failed: {type(error).__name__}",
-            "invalid_interpretation",
-            started=started,
-        )
+        if _is_provider_error(error):
+            raise SemanticOperationalError("provider_unavailable") from None
+        raise SemanticOperationalError("error") from None
     timing.interpreter_ms = (time.monotonic() - stage_started) * 1000.0
     trace.timing = timing
     trace.llm_request_count = counts["llm"]
@@ -872,7 +870,7 @@ def _run_semantic_answer(
                 sql_provider,
                 answer_provider
                 if answer_provider is not None
-                else (lambda *args, **kwargs: ""),
+                else _missing_answer_provider,
                 service_context,
             )
     elif plan.execution == EXECUTION_DETERMINISTIC:
@@ -942,4 +940,4 @@ def _run_semantic_answer(
     )
 
 
-__all__ = ["SemanticPipelineResult", "semantic_answer"]
+__all__ = ["SemanticOperationalError", "SemanticPipelineResult", "semantic_answer"]

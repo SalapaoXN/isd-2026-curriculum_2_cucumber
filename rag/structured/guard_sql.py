@@ -40,6 +40,14 @@ _STATEMENT_WORDS: Final = {
     "VACUUM",
 }
 
+# Allocation-amplifier functions with no legitimate curriculum use: a
+# single row can materialize gigabytes regardless of the result LIMIT.
+_EXPENSIVE_FUNCTIONS: Final = frozenset({"RANDOMBLOB", "ZEROBLOB", "REPEAT"})
+
+# Model-generated SQL is short by construction (bounded IN lists and
+# fixed guidance text); anything larger is transport abuse, not a query.
+DEFAULT_MAX_SQL_LENGTH: Final = 20000
+
 
 @dataclass(frozen=True)
 class _Token:
@@ -96,10 +104,15 @@ def _tokenize(sql: str) -> list[_Token]:
             if character == "'":
                 value = sql[index + 1 : end - 1].replace("''", "'")
                 tokens.append(_Token(value, "string", index, end, depth))
+            elif sql[index + 1 : end - 1].upper() in _EXPENSIVE_FUNCTIONS:
+                tokens.append(_Token(sql[index + 1 : end - 1], "word", index, end, depth))
             index = end
             continue
         if character == "[":
-            index = _skip_bracket_identifier(sql, index)
+            end = _skip_bracket_identifier(sql, index)
+            if sql[index + 1 : end - 1].upper() in _EXPENSIVE_FUNCTIONS:
+                tokens.append(_Token(sql[index + 1 : end - 1], "word", index, end, depth))
+            index = end
             continue
 
         if character == "(":
@@ -209,9 +222,16 @@ def _validate_statement(tokens: list[_Token]) -> None:
         if tokens[semicolon_index].depth != 0 or semicolon_index != len(tokens) - 1:
             raise ValueError("multiple SQL statements are not allowed")
 
-    for token in tokens:
+    for index, token in enumerate(tokens):
         if token.kind == "word" and token.value.upper() in _FORBIDDEN:
             raise ValueError(f"SQL keyword is not allowed: {token.value}")
+        if (
+            token.kind == "word"
+            and token.value.upper() in _EXPENSIVE_FUNCTIONS
+            and index + 1 < len(tokens)
+            and tokens[index + 1].value == "("
+        ):
+            raise ValueError(f"SQL function is not allowed: {token.value}")
 
     first_word = next(
         (token.value.upper() for token in tokens if token.kind == "word"), None
@@ -505,12 +525,21 @@ def guard_sql(
     max_limit: int = 100,
     *,
     allowed_relations: Iterable[str] | None = None,
+    max_sql_length: int = DEFAULT_MAX_SQL_LENGTH,
 ) -> str:
     """Validate a read-only SQL query and apply a bounded result limit."""
     if not isinstance(sql, str) or not sql.strip():
         raise ValueError("SQL must be a non-empty string")
     if isinstance(max_limit, bool) or not isinstance(max_limit, int) or max_limit < 1:
         raise ValueError("max_limit must be a positive integer")
+    if (
+        isinstance(max_sql_length, bool)
+        or not isinstance(max_sql_length, int)
+        or max_sql_length < 1
+    ):
+        raise ValueError("max_sql_length must be a positive integer")
+    if len(sql) > max_sql_length:
+        raise ValueError("SQL exceeds the maximum length")
 
     tokens = _tokenize(sql)
     _validate_statement(tokens)
@@ -540,4 +569,4 @@ def guard_sql(
     return f"{prefix} LIMIT {max_limit}{suffix}"
 
 
-__all__ = ["extract_column_predicate_literals", "guard_sql"]
+__all__ = ["DEFAULT_MAX_SQL_LENGTH", "extract_column_predicate_literals", "guard_sql"]

@@ -86,7 +86,7 @@ class PlanPresentationTests(unittest.TestCase):
                 clarification_resolution={"dimension": "plan", "program": "DSBA",
                                           "operand": "right", "value": plan})
             self.assertEqual(request.clarification_resolution.value, plan)
-            self.assertEqual(request.conversation_context["plan"], "coop")
+            self.assertEqual(request.conversation_context.plan, "coop")
 
     def test_nonplan_and_exact_course_presentation_is_unchanged(self):
         self.assertEqual(_claim_line("identity", {"course_code": "06016454", "name_en": "UX TOOLS"}),

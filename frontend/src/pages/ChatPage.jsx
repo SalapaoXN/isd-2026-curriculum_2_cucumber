@@ -43,6 +43,7 @@ const CHAT_STATUS_LABELS = {
   insufficient_evidence: "หลักฐานยังไม่เพียงพอ",
   clarification_required: "ต้องระบุข้อมูลเพิ่มเติม",
   error: "เกิดข้อผิดพลาด",
+  provider_unavailable: "ระบบยังไม่พร้อมใช้งาน กรุณาลองใหม่",
   incomplete_evidence: "ข้อมูลยังไม่ครบถ้วน",
 };
 

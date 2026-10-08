@@ -134,13 +134,24 @@ frontend/
 
 FastAPI จะ serve React bundle จาก `frontend/dist/` หากยังไม่มี `dist` ระบบจะ fallback ไปที่ `frontend/index.html` ซึ่งเป็น Vite development entry และ browser จะร้องขอ `/src/main.jsx`; FastAPI production-style server ไม่ได้ serve path นี้ จึงจะเห็น `GET /src/main.jsx 404 Not Found`
 
-### 3.4 Start backend
+### 3.4 Start backend (semantic mode — submission path)
 
 หลังจาก build frontend แล้ว ให้กลับมาที่ root repo และรัน:
 
 ```powershell
+$env:CUCUMBER_QA_MODE = "semantic"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
+
+หรือใช้สคริปต์ช่วยเริ่ม (ทำเหมือนกัน: ตั้งค่าโหมด ตรวจ `frontend/dist`
+แล้ว start backend พร้อมรอ health check):
+
+```powershell
+.\scripts\run_semantic.ps1
+```
+
+> ถ้าไม่ตั้ง `CUCUMBER_QA_MODE=semantic` backend จะรันโหมด `legacy`
+> ซึ่งเป็นพฤติกรรมตั้งต้น ไม่ใช่สินค้า semantic ที่ส่งมอบ
 
 เปิด:
 
@@ -149,6 +160,17 @@ http://127.0.0.1:8000/chat
 http://127.0.0.1:8000/curriculum
 http://127.0.0.1:8000/api/health
 ```
+
+ตรวจ `GET /api/health` ก่อนเดโม ต้องได้ครบ:
+
+```text
+status = ok
+database_ready = true
+qa_mode = semantic
+```
+
+ถ้า `qa_mode` ไม่ใช่ `semantic` ให้หยุด server ตั้งค่า
+`$env:CUCUMBER_QA_MODE = "semantic"` แล้ว start ใหม่
 
 ถ้า log มี:
 

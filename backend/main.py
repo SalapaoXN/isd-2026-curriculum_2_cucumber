@@ -3,6 +3,7 @@
 import re
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
@@ -32,6 +33,13 @@ from rag.semantic.modes import (
     active_qa_mode,
     run_shadow_comparison,
     semantic_ask_response,
+)
+from rag.semantic.context import _validated_prior_context
+from rag.semantic.errors import SemanticOperationalError
+from rag.semantic.resolver import (
+    canonical_catalog_key,
+    canonical_program,
+    valid_plan,
 )
 from rag.structured.queries import (
     catalog_keys_for_program,
@@ -576,26 +584,28 @@ def _semantic_providers() -> dict:
     }
 
 
+def _request_context_dict(request: AskRequest) -> dict[str, Any] | None:
+    """Plain-dict view of the validated request context.
+
+    The request schema already rejected unknown/oversized/mistyped
+    fields; this preserves key presence for downstream branches that
+    distinguish absent from null.
+    """
+    context = request.conversation_context
+    if context is None:
+        return None
+    return context.model_dump(exclude_unset=True)
+
+
 def _semantic_route_response(request: AskRequest) -> dict:
     """Serve POST /api/ask from the semantic pipeline (mode=semantic)."""
     db_path = _curriculum_db()
     providers = _semantic_providers()
     if not providers:
-        return {
-            "question": request.question,
-            "answer": "",
-            "status": "insufficient_evidence",
-            "action": "insufficient_evidence",
-            "route": "semantic",
-            "provenance": [],
-            "next_context": None,
-            "comparison": None,
-        }
-    context = (
-        dict(request.conversation_context)
-        if isinstance(request.conversation_context, dict)
-        else None
-    )
+        return _semantic_operational_response(
+            request, db_path, "provider_unavailable"
+        )
+    context = _request_context_dict(request)
     try:
         return semantic_ask_response(
             db_path,
@@ -610,17 +620,111 @@ def _semantic_route_response(request: AskRequest) -> dict:
             answer_callable=providers["answer_callable"],
             sql_callable=providers["sql_callable"],
         )
+    except SemanticOperationalError as error:
+        return _semantic_operational_response(request, db_path, error.status)
     except Exception:
-        return {
-            "question": request.question,
-            "answer": "",
-            "status": "insufficient_evidence",
-            "action": "insufficient_evidence",
-            "route": "semantic",
-            "provenance": [],
-            "next_context": None,
-            "comparison": None,
-        }
+        return _semantic_operational_response(request, db_path, "error")
+
+
+def _semantic_operational_response(
+    request: AskRequest, db_path: Path, status: str
+) -> dict:
+    """Fail closed on operational failure without touching factual states.
+
+    Operational failure (provider unavailable / unexpected system error)
+    is never reported as evidence insufficiency, never fabricates an
+    answer, and never exposes exception internals. The last validated
+    safe context is preserved so the user can retry.
+    """
+    if status not in ("provider_unavailable", "error"):
+        status = "error"
+    answer = (
+        "ระบบประมวลผลภาษายังไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง"
+        if status == "provider_unavailable"
+        else "เกิดข้อผิดพลาดระหว่างประมวลผล กรุณาลองใหม่อีกครั้ง"
+    )
+    try:
+        next_context = _preserved_semantic_context(db_path, request)
+    except Exception:
+        next_context = None
+    return {
+        "question": request.question,
+        "answer": answer,
+        "status": status,
+        "action": status,
+        "route": "semantic",
+        "provenance": [],
+        "next_context": next_context,
+        "comparison": None,
+    }
+
+
+def _preserved_semantic_context(
+    db_path: Path, request: AskRequest
+) -> dict[str, Any] | None:
+    """Return retry-safe context: structurally sanitized + canonically scoped.
+
+    Only allowlisted carry-over fields survive (no forged keys, no
+    comparison-operand state, no invented scope). Program/catalog/plan
+    are re-grounded against canonical data using the same rules as the
+    semantic pipeline entrypoint; anything that fails canonical
+    validation is dropped with its dependents instead of echoed.
+    """
+    raw = _request_context_dict(request)
+    if raw is None:
+        return None
+    prior = _validated_prior_context(raw)
+    if not prior:
+        return None
+    home = None
+    if request.home_program is not None:
+        home = canonical_program(db_path, request.home_program)
+        if home is None:
+            return None
+    program = prior.get("program")
+    if home is not None:
+        if program is not None and canonical_program(db_path, program) != home:
+            return {"program": home}
+        prior["program"] = home
+    elif program is not None:
+        canonical = canonical_program(db_path, program)
+        if canonical is None:
+            prior.pop("program", None)
+            _drop_scope_dependents(prior)
+        else:
+            prior["program"] = canonical
+    if prior.get("catalog_key") is not None:
+        resolved_catalog = (
+            canonical_catalog_key(db_path, prior["catalog_key"], home)
+            if prior.get("program") is not None or home is not None
+            else None
+        )
+        if resolved_catalog is None:
+            _drop_scope_dependents(prior)
+        else:
+            prior["catalog_key"] = resolved_catalog
+    if prior.get("plan") is not None:
+        resolved_plan = valid_plan(
+            db_path, prior["plan"], home, prior.get("catalog_key")
+        )
+        if resolved_plan is None:
+            prior.pop("plan", None)
+            for key in (
+                "focus_course", "result_courses",
+                "result_scope_program", "last_normal_operation",
+            ):
+                prior.pop(key, None)
+        else:
+            prior["plan"] = resolved_plan
+    return prior or None
+
+
+def _drop_scope_dependents(prior: dict[str, Any]) -> None:
+    for key in (
+        "catalog_key", "plan", "focus_course", "result_courses",
+        "result_scope_program", "last_normal_operation",
+    ):
+        prior.pop(key, None)
 
 
 def _capture_shadow_semantic(request: AskRequest) -> None:
@@ -630,11 +734,7 @@ def _capture_shadow_semantic(request: AskRequest) -> None:
         providers = _semantic_providers()
         if not providers:
             return
-        context = (
-            dict(request.conversation_context)
-            if isinstance(request.conversation_context, dict)
-            else None
-        )
+        context = _request_context_dict(request)
         run_shadow_comparison(
             db_path,
             request.question,
@@ -657,7 +757,7 @@ def ask(request: AskRequest) -> dict:
         return {
             "question": request.question, "answer": "การระบุขอบเขตของฝั่งเปรียบเทียบรองรับเฉพาะโหมด semantic",
             "status": "unsupported", "action": "unsupported", "route": qa_mode,
-            "provenance": [], "next_context": request.conversation_context,
+            "provenance": [], "next_context": _request_context_dict(request),
             "comparison": None,
         }
     if request.home_program is not None:
@@ -681,7 +781,7 @@ def ask(request: AskRequest) -> dict:
     effective_question = request.question
 
     try:
-        raw_context = request.conversation_context
+        raw_context = _request_context_dict(request)
         legacy_context = raw_context
         raw_focus = None
         raw_result_courses = None

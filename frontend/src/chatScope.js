@@ -232,6 +232,114 @@ export function newSession(program = "", catalogKey = "", programs = []) {
   };
 }
 
+const STORED_CONTEXT_STRINGS = {
+  program: 80, catalog_key: 128, plan: 80, category: 80, course_code: 80,
+  result_scope_program: 80, focus_catalog_key: 128, semantic_topic: 80,
+};
+
+function cleanStoredString(value, maxLength) {
+  return typeof value === "string" && value.trim() && value.length <= maxLength
+    ? value : null;
+}
+
+function cleanStoredIntList(value, maxValue, maxLength) {
+  if (!Array.isArray(value)) return null;
+  const cleaned = value.filter(item => Number.isInteger(item) && item >= 1 && item <= maxValue).slice(0, maxLength);
+  return cleaned;
+}
+
+function cleanStoredCourseRef(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const code = cleanStoredString(item.course_code, 64);
+  if (!code) return null;
+  const ref = {course_code: code};
+  const program = cleanStoredString(item.program, 80);
+  if (program) ref.program = program;
+  const catalogKey = cleanStoredString(item.catalog_key, 128);
+  if (catalogKey) ref.catalog_key = catalogKey;
+  const name = cleanStoredString(item.course_name, 160);
+  if (name) ref.course_name = name;
+  return ref;
+}
+
+export function normalizeStoredContext(context) {
+  if (!context || typeof context !== "object" || Array.isArray(context)) return null;
+  const cleaned = {};
+  for (const [key, maxLength] of Object.entries(STORED_CONTEXT_STRINGS)) {
+    const value = cleanStoredString(context[key], maxLength);
+    if (value) cleaned[key] = value;
+  }
+  for (const key of ["years", "semesters"]) {
+    if (context[key] !== undefined) cleaned[key] = cleanStoredIntList(context[key], key === "years" ? 5 : 2, key === "years" ? 6 : 3) || [];
+  }
+  for (const key of ["year", "semester"]) {
+    if (Number.isInteger(context[key]) && context[key] >= 1 && context[key] <= (key === "year" ? 5 : 2)) cleaned[key] = context[key];
+  }
+  if (context.plans !== undefined) {
+    const plans = Array.isArray(context.plans) ? context.plans : [context.plans];
+    const cleanedPlans = plans.filter(item => cleanStoredString(item, 80));
+    if (cleanedPlans.length) cleaned.plans = cleanedPlans.slice(0, 1);
+  }
+  if (context.operations !== undefined && Array.isArray(context.operations)) {
+    const operations = context.operations.filter(item => cleanStoredString(item, 80));
+    if (operations.length) cleaned.operations = operations.slice(0, 8);
+  }
+  const focus = cleanStoredCourseRef(context.focus_course);
+  if (focus) cleaned.focus_course = focus;
+  if (Array.isArray(context.result_courses)) {
+    const courses = context.result_courses.slice(0, 50).map(cleanStoredCourseRef).filter(Boolean);
+    if (courses.length || context.result_set_empty === true) cleaned.result_courses = courses;
+  }
+  if (typeof context.result_set_empty === "boolean" && context.result_set_empty) {
+    cleaned.result_set_empty = true;
+  }
+  if (typeof context.pending_catalog_selection === "boolean") {
+    cleaned.pending_catalog_selection = context.pending_catalog_selection;
+  }
+  const operation = context.last_normal_operation;
+  if (operation && typeof operation === "object" && !Array.isArray(operation)
+      && operation.kind === "list_courses" && cleanStoredString(operation.program, 80)) {
+    const normalized = {kind: "list_courses", program: operation.program, catalog_key: null, plan: null};
+    const catalogKey = cleanStoredString(operation.catalog_key, 128);
+    if (catalogKey) normalized.catalog_key = catalogKey;
+    const plan = cleanStoredString(operation.plan, 80);
+    if (plan) normalized.plan = plan;
+    normalized.years = cleanStoredIntList(operation.years, 5, 6) || [];
+    normalized.semesters = cleanStoredIntList(operation.semesters, 2, 3) || [];
+    cleaned.last_normal_operation = normalized;
+  }
+  const studyPlan = context.study_plan_context;
+  const last = context.last_answer;
+  if (last && typeof last === "object" && !Array.isArray(last)) {
+    const ref = {};
+    for (const [key, bound] of Object.entries({program: 80, catalog_key: 128})) {
+      const value = cleanStoredString(last[key], bound);
+      if (value) ref[key] = value;
+    }
+    if (last.route === "course" && cleanStoredString(last.course_code, 80) && Array.isArray(last.operations)) {
+      const operations = last.operations.filter(op => ["sum_credits", "placement", "describe", "prerequisite", "existence"].includes(op)).slice(0, 8);
+      if (operations.length) cleaned.last_answer = {...ref, route: "course", course_code: last.course_code, operations};
+    } else if (last.route === "policy" && cleanStoredString(last.policy_kind, 80)) {
+      const policy = {...ref, route: "policy", policy_kind: last.policy_kind};
+      if (cleanStoredString(last.plan, 80)) policy.plan = last.plan;
+      if (Number.isSafeInteger(last.amount) && last.amount >= 0) policy.amount = last.amount;
+      if (Array.isArray(last.evidence_ids)) policy.evidence_ids = last.evidence_ids.filter(id => cleanStoredString(id, 80)).slice(0, 50);
+      cleaned.last_answer = policy;
+    }
+  }
+  if (studyPlan && typeof studyPlan === "object" && !Array.isArray(studyPlan)
+      && studyPlan.kind === "seven_term_plan"
+      && cleanStoredString(studyPlan.program, 80)
+      && cleanStoredString(studyPlan.catalog_key, 128)
+      && cleanStoredString(studyPlan.plan, 80)) {
+    cleaned.study_plan_context = {
+      kind: "seven_term_plan", program: studyPlan.program,
+      catalog_key: studyPlan.catalog_key, plan: studyPlan.plan,
+    };
+  }
+  return Object.keys(cleaned).length > 0 ? cleaned : null;
+}
+
 export function normalizeStoredSession(session) {
   if (!session || typeof session !== "object" || typeof session.id !== "string" || !session.id) return null;
   const validProgram = typeof session.program === "string";
@@ -244,7 +352,7 @@ export function normalizeStoredSession(session) {
     messages: Array.isArray(session.messages) ? session.messages : [],
     title: typeof session.title === "string" ? session.title : "New chat",
     context: validProgram && session.context && typeof session.context === "object" && !Array.isArray(session.context)
-      ? session.context : null,
+      ? normalizeStoredContext(session.context) : null,
     pendingClarification: validProgram ? session.pendingClarification || null : null,
   };
 }
