@@ -84,6 +84,11 @@ _NEGATION_RE = re.compile(r"ไม่ใช่|ไม่มี|ไม่|ยก�
 _PLACEMENT_CUE_RE = re.compile(
     r"ชั้นปีที่|ภาคการศึกษาที่|เทอม|semester|แผนสหกิจ|แผนไม่สหกิจ"
 )
+_PLACEMENT_ABSENCE_RE = re.compile(
+    r"ไม่มี(?:ข้อมูล)?|ไม่พบ(?:ข้อมูล)?|ไม่ได้ระบุ|ไม่ระบุ|"
+    r"not\s+(?:specified|stated|available)|no\s+(?:year|semester)\s+(?:information|data)",
+    re.IGNORECASE,
+)
 _PREREQ_CUE_RE = re.compile(r"วิชาบังคับก่อน|บังคับก่อน")
 _POLICY_CUE_RE = re.compile(
     r"ต้องสอบ|เกียรตินิยม|GPA|ภาษาอังกฤษ|ลงทะเบียน|ถอน|คุณสมบัติ"
@@ -302,6 +307,31 @@ def _answer_semesters(text: str) -> set[int]:
     return _marked_numbers(text, _SEMESTER_MARK_RE)
 
 
+def _answer_placement_pairs(text: str) -> set[tuple[int, int]]:
+    """Extract explicit year/semester pairs from answer clauses."""
+    found: set[tuple[int, int]] = set()
+    clauses = re.split(r"[\n.!?;…？！|]+", text or "")
+    for clause in clauses:
+        years = list(_YEAR_MARK_RE.finditer(clause))
+        semesters = list(_SEMESTER_MARK_RE.finditer(clause))
+        for index, year_match in enumerate(years):
+            year = next((int(group) for group in year_match.groups() if group), None)
+            if year is None or not 1 <= year <= 30:
+                continue
+            next_year_start = years[index + 1].start() if index + 1 < len(years) else len(clause)
+            for semester_match in semesters:
+                semester = next(
+                    (int(group) for group in semester_match.groups() if group), None
+                )
+                if (
+                    semester is not None
+                    and 1 <= semester <= 30
+                    and year_match.end() <= semester_match.start() < next_year_start
+                ):
+                    found.add((year, semester))
+    return found
+
+
 def _answer_plan_labels(text: str) -> set[str]:
     return {
         word for word in _KNOWN_PLAN_WORDS if f"แผน{word}" in (text or "")
@@ -382,6 +412,28 @@ def _expected_placement(
                 if plan:
                     plans.add(_plan_display(plan))
     return years, semesters, plans
+
+
+def _expected_placement_pairs(verified: VerifiedResult) -> set[tuple[int, int]]:
+    """Complete year/semester pairs established by verified placement claims."""
+    from rag.semantic.executor import _placement_terms
+
+    pairs: set[tuple[int, int]] = set()
+    for claim in verified.claims:
+        if (
+            getattr(claim, "operation", None) != "placement"
+            or getattr(claim, "status", None) != "complete"
+        ):
+            continue
+        for year, semester, _plan in _placement_terms(
+            getattr(claim, "value", None)
+        ):
+            if (
+                isinstance(year, int) and not isinstance(year, bool)
+                and isinstance(semester, int) and not isinstance(semester, bool)
+            ):
+                pairs.add((year, semester))
+    return pairs
 
 
 def _allowed_codes(verified: VerifiedResult) -> set[str] | None:
@@ -562,6 +614,15 @@ def validate_answer_details(
         for value in _decimal_mentions(answer):
             if value not in canonical_decimals:
                 return False, "answer_value_mismatch"
+    expected_placement_pairs = _expected_placement_pairs(verified)
+    if expected_placement_pairs:
+        if _PLACEMENT_ABSENCE_RE.search(answer):
+            return False, "answer_relation_mismatch"
+        answer_placement_pairs = _answer_placement_pairs(answer)
+        if not expected_placement_pairs.issubset(answer_placement_pairs):
+            return False, "placement_incomplete"
+        if not answer_placement_pairs.issubset(expected_placement_pairs):
+            return False, "answer_value_mismatch"
     expected_years, expected_semesters, _ = _expected_placement(verified)
     if expected_years and not set(_answer_years(answer)) <= expected_years:
         return False, "answer_value_mismatch"

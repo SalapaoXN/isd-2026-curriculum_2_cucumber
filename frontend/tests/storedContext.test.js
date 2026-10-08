@@ -72,3 +72,67 @@ test("bounded normalization preserves reference objects, empty ownership and nor
   assert.equal(cleaned.semesters.length, 3);
   assert.deepEqual(Object.keys(cleaned.last_normal_operation).sort(), ["catalog_key", "kind", "plan", "program", "semesters", "years"]);
 });
+
+test("stored message-local clarification survives normalization with bounded fields", () => {
+  const local = {
+    action: "catalog_required",
+    clarification_target: {dimension: "catalog", program: "DSBA", operand: null},
+    next_context: {program: "DSBA", catalog_key: "dsba-2565", pending_catalog_selection: true, injected: "discard"},
+    request_scope: {home_program: "DSBA", conversation_context: {program: "DSBA", catalog_key: "dsba-2565", plan: "coop", injected: true}, extra: "discard"},
+    clarification_resolutions: [{dimension: "catalog", program: "IT", operand: "right", value: "it-2565"}],
+    unbounded_extra: "discard",
+  };
+  const session = normalizeStoredSession({
+    id: "local-state",
+    program: "DSBA",
+    messages: [{id: 42, question: "Q1", clarification: local}],
+  });
+
+  assert.deepEqual(session.messages[0].clarification, {
+    action: "catalog_required",
+    clarification_target: {dimension: "catalog", program: "DSBA", operand: null},
+    next_context: {program: "DSBA", catalog_key: "dsba-2565", pending_catalog_selection: true},
+    request_scope: {home_program: "DSBA", conversation_context: {program: "DSBA", catalog_key: "dsba-2565", plan: "coop"}},
+    clarification_resolutions: [{dimension: "catalog", program: "IT", operand: "right", value: "it-2565"}],
+  });
+});
+
+test("legacy pending clarification migrates to its matching message only", () => {
+  const target = {dimension: "catalog", program: "DSBA", operand: null};
+  const migrated = normalizeStoredSession({
+    id: "legacy-matched",
+    program: "DSBA",
+    context: {program: "DSBA", catalog_key: "dsba-2565", plan: "coop"},
+    messages: [{id: 42, question: "Q1", catalogClarification: true}],
+    pendingClarification: {question: "Q1", messageId: 42, clarification_target: target},
+  });
+  assert.equal(migrated.messages[0].clarification.action, "catalog_required");
+  assert.deepEqual(migrated.messages[0].clarification.clarification_target, target);
+  assert.equal(migrated.messages[0].clarification.request_scope.home_program, "DSBA");
+  assert.equal(migrated.pendingClarification.messageId, 42);
+
+  const orphan = normalizeStoredSession({
+    id: "legacy-orphan",
+    program: "DSBA",
+    messages: [{id: 7, question: "Q2"}],
+    pendingClarification: {question: "Q1", messageId: 42, clarification_target: target},
+  });
+  assert.equal(orphan.messages[0].clarification, undefined);
+  assert.equal(orphan.pendingClarification, null);
+});
+
+test("normalized message-local clarification overrides stale legacy pointer", () => {
+  const localTarget = {dimension: "plan", program: "DSBA", operand: "right"};
+  const staleTarget = {dimension: "catalog", program: "IT", operand: "left"};
+  const session = normalizeStoredSession({
+    id: "local-priority",
+    program: "DSBA",
+    messages: [{id: 42, question: "compare", clarification: {
+      action: "plan_required", clarification_target: localTarget,
+      request_scope: {home_program: "DSBA", conversation_context: {program: "DSBA", catalog_key: "dsba-2565"}},
+    }}],
+    pendingClarification: {question: "compare", messageId: 42, clarification_target: staleTarget},
+  });
+  assert.deepEqual(session.messages[0].clarification.clarification_target, localTarget);
+  assert.deepEqual(session.pendingClarification.clarification_target, localTarget);
+});

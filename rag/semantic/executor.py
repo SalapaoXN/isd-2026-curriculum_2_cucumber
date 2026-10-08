@@ -208,23 +208,44 @@ def _titles(value: Any) -> list[str]:
 
 
 def _placement_terms(value: Any) -> list[tuple[int | None, int | None, str | None]]:
-    """Collect distinct (year, semester, plan) triples from placement values."""
+    """Collect distinct fixed and flexible (year, semester, plan) placements."""
     terms: list[tuple[int | None, int | None, str | None]] = []
     items = value if isinstance(value, (list, tuple)) else [value]
     for item in items:
         if not isinstance(item, Mapping):
             continue
+        plan = item.get("plan_key")
+        plan = plan.strip() if isinstance(plan, str) and plan.strip() else None
+
+        choices = item.get("year_semester_choices")
+        if isinstance(choices, (list, tuple)):
+            for choice in choices:
+                if not isinstance(choice, (list, tuple)) or len(choice) != 2:
+                    continue
+                year, semester = choice
+                if (
+                    isinstance(year, bool)
+                    or not isinstance(year, int)
+                    or isinstance(semester, bool)
+                    or not isinstance(semester, int)
+                ):
+                    continue
+                term = (year, semester, plan)
+                if term not in terms:
+                    terms.append(term)
+
         year = item.get("year_number")
         semester = item.get("semester_number")
-        plan = item.get("plan_key")
         year = year if isinstance(year, int) and not isinstance(year, bool) else None
         semester = (
             semester if isinstance(semester, int) and not isinstance(semester, bool) else None
         )
-        plan = plan.strip() if isinstance(plan, str) and plan.strip() else None
-        term = (year, semester, plan)
-        if term != (None, None, None) and term not in terms:
-            terms.append(term)
+        fixed_term = (year, semester, plan)
+        if (
+            (year is not None or semester is not None)
+            and fixed_term not in terms
+        ):
+            terms.append(fixed_term)
     return terms
 
 
@@ -236,6 +257,33 @@ def _course_label(value: Any) -> str:
         parts.append(codes[0])
     parts.extend(title for title in titles[:2] if title not in parts)
     return " ".join(parts)
+
+
+def _description_evidence_texts(value: Any) -> list[str]:
+    """Return bounded, distinct text from retrieved course-description rows."""
+    found: list[str] = []
+
+    def collect(item: Any) -> None:
+        if isinstance(item, Mapping):
+            text = item.get("text")
+            if (
+                item.get("chunk_type") == "description"
+                and item.get("entity_type") == "course"
+                and isinstance(text, str)
+                and text.strip()
+            ):
+                normalized = " ".join(text.split())[:600].rstrip()
+                if normalized and normalized not in found:
+                    found.append(normalized)
+                return
+            for nested in item.values():
+                collect(nested)
+        elif isinstance(item, (list, tuple)):
+            for nested in item:
+                collect(nested)
+
+    collect(value)
+    return found[:3]
 
 
 def _claim_line(operation: str, value: Any) -> str | None:
@@ -283,7 +331,14 @@ def _claim_line(operation: str, value: Any) -> str | None:
     if operation == "identity":
         return _course_label(value) or None
     if operation in {"describe", "description_evidence"}:
-        return _course_label(value) or None
+        label = _course_label(value)
+        descriptions = _description_evidence_texts(value)
+        if descriptions:
+            return "\n".join(
+                f"{label}: {text}" if label else text
+                for text in descriptions
+            )
+        return label or None
     if operation == "existence":
         return "พบข้อมูลตามเงื่อนไข" if value else None
     if operation == "count":

@@ -533,6 +533,24 @@ class LlmSqlApiTests(unittest.TestCase):
         self.assertIn("dsba-2565", response.json()["answer"])
         self.sql_service.assert_not_called()
 
+    def test_topic_catalog_clarification_exposes_structured_target(self):
+        question = "ใน DSBA วิชาไหนเรียนเกี่ยวกับเว็บบ้างครับ"
+        with patch.object(main, "answer_hard_question", return_value=None):
+            response = self.client.post("/api/ask", json={"question": question})
+
+        self.assertEqual(response.status_code, 200, response.json())
+        payload = response.json()
+        self.assertEqual(payload["status"], "clarification_required")
+        self.assertEqual(payload["action"], "catalog_required")
+        self.assertIn("dsba-2560", payload["answer"])
+        self.assertIn("dsba-2565", payload["answer"])
+        self.assertEqual(payload["next_context"]["program"], "DSBA")
+        self.assertEqual(
+            payload["clarification_target"],
+            {"dimension": "catalog", "program": "DSBA", "operand": None},
+        )
+        self.sql_service.assert_not_called()
+
     def test_catalog_clarification_followup_resumes_original_term_list(self):
         def real_sql_service(
             db_path,
@@ -615,6 +633,8 @@ class LlmSqlApiTests(unittest.TestCase):
             json={"question": "วิชาที่เรียนในปี 1 เทอม 1 ของหลักสูตร DSBA"},
         )
         pending = first.json()["next_context"]
+        target = {"dimension": "catalog", "program": "DSBA", "operand": None}
+        self.assertEqual(first.json()["clarification_target"], target)
 
         for reply in ("ของปี 2999", "IT ของปี 2565"):
             with self.subTest(reply=reply):
@@ -627,6 +647,7 @@ class LlmSqlApiTests(unittest.TestCase):
                 payload = response.json()
                 self.assertEqual(payload["status"], "clarification_required")
                 self.assertEqual(payload["action"], "catalog_required")
+                self.assertEqual(payload["clarification_target"], target)
                 self.assertEqual(payload["next_context"], pending)
                 self.assertEqual(payload["provenance"], [])
         self.sql_service.assert_not_called()

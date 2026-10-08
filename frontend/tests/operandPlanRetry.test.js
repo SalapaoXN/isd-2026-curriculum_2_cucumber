@@ -74,9 +74,10 @@ test("operand choices come from target program rather than normal session", () =
 
 test("malformed or unknown targets fail closed without scope mutation", () => {
   for (const value of [[], "right", {}, {...target, operand: "middle"}, {...target, dimension: "catalog"}, {...target, program: "UNKNOWN"}, {...target, extra: true}]) {
-    const state = pending(value);
+    const state = pending();
     const snapshot = structuredClone(state);
-    assert.throws(() => selectPlanForRetry(state, "no_coop", programs));
+    assert.throws(() => selectPlanForRetry(state, "no_coop", programs,
+      {action: "plan_required", clarification_target: value}));
     assert.deepEqual(state, snapshot);
   }
 });
@@ -97,8 +98,8 @@ test("success replaces original message, clears pending, and isolates origin ses
 
 test("page uses distinct sidebar and clarification selection paths", () => {
   const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /clarificationRetry\s*\? selectPlanForRetry/);
-  assert.match(page, /onChange=\{plan => handlePlanChange\(plan, true\)\}/);
-  assert.match(page, /askQuestion\(q, seed, session\.program \|\| null, clarificationResolution, clarificationResolutions\)/);
-  assert.match(page, /plans=\{pendingPlans\}/);
+  assert.match(page, /selectPlanForRetry\(selectionSession, plan, programs, clarification\)/);
+  assert.match(page, /onChange=\{plan => handlePlanChange\(plan, m\.id\)\}/);
+  assert.match(page, /askQuestion\(q, seed, homeProgram, clarificationResolution, clarificationResolutions\)/);
+  assert.match(page, /plans=\{messagePlans\}/);
 });

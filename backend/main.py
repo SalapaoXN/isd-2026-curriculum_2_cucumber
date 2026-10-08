@@ -855,6 +855,11 @@ def ask(request: AskRequest) -> dict:
                         "action": "catalog_required",
                         "route": "llm_sql",
                         "provenance": [],
+                        "clarification_target": {
+                            "dimension": "catalog",
+                            "program": pending_context.program,
+                            "operand": None,
+                        },
                         "next_context": pending_payload,
                         "comparison": None,
                     }
@@ -1154,6 +1159,11 @@ def ask(request: AskRequest) -> dict:
                 "action": "catalog_required",
                 "route": "llm_sql",
                 "provenance": [],
+                "clarification_target": {
+                    "dimension": "catalog",
+                    "program": scope_program,
+                    "operand": None,
+                },
                 "next_context": _pending_catalog_context(
                     query_spec, scope_program, parsed_context
                 ),

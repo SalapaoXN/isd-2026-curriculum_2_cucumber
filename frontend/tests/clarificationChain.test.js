@@ -105,7 +105,7 @@ test("failed same-question retry retains chain without leaking it to other chat"
 
 test("page transports accumulated resolutions and binds them to response message", () => {
   const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /retry\.clarificationResolutions \? null : retry\.clarificationResolution, retry\.clarificationResolutions/);
-  assert.match(page, /askQuestion\(q, seed, session\.program \|\| null, clarificationResolution, clarificationResolutions\)/);
+  assert.match(page, /retry\.clarificationResolution \?\? null,[\s\S]*retry\.clarificationResolutions \?\? resolutions/);
+  assert.match(page, /askQuestion\(q, seed, homeProgram, clarificationResolution, clarificationResolutions\)/);
   assert.match(page, /applyChatResponse\(previous, session\.id, entry, data, retryId,\s*clarificationResolutions/);
 });
