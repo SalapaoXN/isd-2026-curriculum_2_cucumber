@@ -46,6 +46,7 @@ _FORBIDDEN_JARGON = (
 )
 
 _COURSE_CODE_RE = re.compile(r"\d{8}")
+_DISPLAY_REFERENCE_RE = re.compile(r"\b\d{5}xxx\b")
 _INTERNAL_PLAN_RE = re.compile(r"(?<![A-Za-z0-9_])(?:no_coop|coop)(?![A-Za-z0-9_])", re.IGNORECASE)
 
 _TITLE_KEYS = ("name_en", "name_th", "title", "course_name")
@@ -65,6 +66,9 @@ _CREDIT_MENTION_RE = re.compile(
 )
 _CREDIT_NOTATION_RE = re.compile(
     r"(\d[\d,]*\.?\d*)\s*\(\s*\d+\s*-\s*\d+\s*-\s*\d+\s*\)"
+)
+_CREDIT_NOTATION_FULL_RE = re.compile(
+    r"\d[\d,]*\.?\d*\s*\(\s*\d+\s*-\s*\d+\s*-\s*\d+\s*\)"
 )
 _COUNT_MENTION_RE = re.compile(
     r"(\d[\d,]*)\s*(?:วิชา|รายวิชา|รายการ)"
@@ -164,7 +168,7 @@ def _titles_from(value: object) -> list[str]:
 
 
 def _displayed_list_pairs(verified: VerifiedResult) -> tuple[tuple[str, str | None], ...]:
-    from rag.semantic.executor import _collection_course_identities
+    from rag.semantic.executor import MAX_DISPLAYED_COURSES, _collection_course_identities
 
     pairs: list[tuple[str, str | None]] = []
     for claim in verified.claims:
@@ -172,7 +176,11 @@ def _displayed_list_pairs(verified: VerifiedResult) -> tuple[tuple[str, str | No
             getattr(claim, "operation", None) in {"list", "topic_matches", "course_set"}
             and getattr(claim, "status", None) == "complete"
         ):
-            pairs.extend(_collection_course_identities(getattr(claim, "value", None))[:10])
+            pairs.extend(
+                _collection_course_identities(getattr(claim, "value", None))[
+                    :MAX_DISPLAYED_COURSES
+                ]
+            )
     return tuple(pairs)
 
 
@@ -188,11 +196,26 @@ def _required_identifiers(verified: VerifiedResult) -> tuple[str, ...]:
     codes = _collect_codes(verified)
     pairs = _displayed_list_pairs(verified)
     if pairs:
-        return codes + tuple(dict.fromkeys(title for _, title in pairs if title))
+        display_codes = tuple(code for code, _ in pairs if code not in codes)
+        titles = tuple(dict.fromkeys(title for _, title in pairs if title))
+        return codes + display_codes + titles
     if len(codes) != 1:
         return codes
     titles = _collect_titles(verified)
     return codes + tuple(title for title in titles[:2] if title not in codes)
+
+
+def _verified_description_texts(verified: VerifiedResult) -> tuple[str, ...]:
+    from rag.semantic.executor import _description_evidence_texts
+
+    texts: list[str] = []
+    for claim in verified.claims:
+        if (
+            getattr(claim, "operation", None) == "describe"
+            and getattr(claim, "status", None) == "complete"
+        ):
+            texts.extend(_description_evidence_texts(getattr(claim, "evidence", None)))
+    return tuple(dict.fromkeys(texts))
 
 
 def _parse_number(token: str) -> float | None:
@@ -380,6 +403,25 @@ def _verified_single_credit(verified: VerifiedResult) -> float | None:
     if len(distinct) == 1:
         return distinct[0]
     return None
+
+
+def _verified_credit_raws(verified: VerifiedResult) -> tuple[str, ...]:
+    """Canonical raw credit notations directly carried by verified components."""
+    values: list[str] = []
+    for claim in verified.claims:
+        if getattr(claim, "operation", None) == "sum_credits":
+            components = getattr(getattr(claim, "evidence", None), "components", ())
+            if not isinstance(components, (list, tuple)) or len(components) != 1:
+                continue
+            component = components[0]
+            if not isinstance(component, Mapping):
+                continue
+            raw = component.get("credits_raw", component.get("credit_raw"))
+            if isinstance(raw, str) and _CREDIT_NOTATION_FULL_RE.fullmatch(raw.strip()):
+                notation = raw.strip()
+                if notation not in values:
+                    values.append(notation)
+    return tuple(values)
 
 
 def _expected_placement(
@@ -580,10 +622,15 @@ def validate_answer_details(
     for identifier in _required_identifiers(verified):
         if identifier not in answer:
             return False, "identifier_missing"
+    if any(text not in answer for text in _verified_description_texts(verified)):
+        return False, "description_incomplete"
     for code, title in _displayed_list_pairs(verified):
         if title and not any(
             code in line and title in line
-            and set(_COURSE_CODE_RE.findall(line)) == {code}
+            and (
+                set(_COURSE_CODE_RE.findall(line))
+                | set(_DISPLAY_REFERENCE_RE.findall(line))
+            ) == {code}
             for line in answer.splitlines()
         ):
             # Do not accept names detached from or paired with other codes.
@@ -594,6 +641,13 @@ def validate_answer_details(
             if code not in allowed:
                 return False, "unsupported_answer_fact"
     credit_value = _verified_single_credit(verified)
+    canonical_credit_raws = _verified_credit_raws(verified)
+    answer_credit_raws = tuple(_CREDIT_NOTATION_FULL_RE.findall(answer))
+    if canonical_credit_raws and (
+        any(raw not in answer for raw in canonical_credit_raws)
+        or any(raw not in canonical_credit_raws for raw in answer_credit_raws)
+    ):
+        return False, "credit_structure_incomplete"
     if credit_value is not None:
         for segment in _segments(answer):
             mentions = _credit_mentions(segment)

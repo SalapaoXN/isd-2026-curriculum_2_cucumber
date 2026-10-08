@@ -255,7 +255,7 @@ class ListValueBindingTests(unittest.TestCase):
         ]
         verified = _list_verified(rows)
         answer, _ = render_semantic_answer("list", verified, None)
-        self.assertIn("\u0e41\u0e2a\u0e14\u0e07 10 \u0e08\u0e32\u0e01 21 \u0e23\u0e32\u0e22\u0e27\u0e34\u0e0a\u0e32", answer)
+        self.assertIn("\u0e41\u0e2a\u0e14\u0e07 20 \u0e08\u0e32\u0e01 21 \u0e23\u0e32\u0e22\u0e27\u0e34\u0e0a\u0e32", answer)
 
 
 class NumericComparisonBindingTests(unittest.TestCase):

@@ -54,13 +54,13 @@ class ListTitleProjectionTests(unittest.TestCase):
             {"course_code": "90644xxx", "name_th": "ช่องเลือก"},
         ]
         self.assertEqual(_collection_course_identities(rows),
-                         [("10000002", "ชื่อสอง"), ("10000001", "ชื่อหนึ่ง")])
+                         [("10000002", "ชื่อสอง"), ("10000001", "ชื่อหนึ่ง"),
+                          ("90644xxx", "ช่องเลือก")])
         line = _claim_line("list", rows)
         self.assertIn("10000002 — ชื่อสอง", line)
         self.assertIn("10000001 — ชื่อหนึ่ง", line)
         self.assertNotIn("ชื่อซ้ำ", line)
-        self.assertNotIn("ช่องเลือก", line)
-        self.assertNotIn("90644xxx", line)
+        self.assertIn("90644xxx — ช่องเลือก", line)
         self.assertEqual(_collection_course_identities({"reference": "10000003", "courses": rows}),
                          _collection_course_identities(rows))
 
@@ -79,15 +79,16 @@ class ListTitleProjectionTests(unittest.TestCase):
         self.assertNotIn("10000003 —", answer)
         self.assertTrue(validate_answer_text(answer, verified(rows)))
 
-    def test_ten_display_twenty_retention_and_late_identities(self):
+    def test_twenty_display_and_retention_with_late_identities(self):
         rows = [{"course_code": f"{10000000+i:08d}", "name_th": f"ชื่อ {i}"} for i in range(21)]
         result = verified(rows)
         answer, _ = render_semantic_answer("list", result, None)
-        self.assertEqual(len(re.findall(r"(?m)^- \d{8}", answer)), 10)
+        self.assertEqual(len(re.findall(r"(?m)^- \d{8}", answer)), 20)
         self.assertIn("10000008 — ชื่อ 8", answer)
         self.assertIn("10000009 — ชื่อ 9", answer)
-        self.assertNotIn("10000010", answer)
-        self.assertIn("แสดง 10 จาก 21 รายวิชา", answer)
+        self.assertIn("10000010 — ชื่อ 10", answer)
+        self.assertNotIn("10000020", answer)
+        self.assertIn("แสดง 20 จาก 21 รายวิชา", answer)
         retained, _ = _retained_from_claims(result.claims, "IT", "it-2565")
         self.assertEqual([row["course_code"] for row in retained], [row["course_code"] for row in rows[:20]])
         self.assertTrue(all(set(row) == {"course_code", "program", "catalog_key"} for row in retained))

@@ -48,6 +48,8 @@ from rag.semantic.schema import (
     VerifiedResult,
 )
 
+MAX_DISPLAYED_COURSES = 20
+
 _SINGLE_KIND_POLICY_TOPICS = {
     "graduation": "graduation_requirements",
     "graduation_gpa": "graduation_gpa",
@@ -69,7 +71,7 @@ def _claim_texts(claims: tuple[Any, ...]) -> tuple[str, ...]:
         try:
             operation = getattr(claim, "operation", "")
             value = getattr(claim, "value", None)
-            line = _claim_line(str(operation), value)
+            line = _claim_line_with_evidence(claim)
         except Exception:
             continue
         if line:
@@ -171,7 +173,12 @@ def _collection_course_identities(value: Any) -> list[tuple[str, str | None]]:
         if not isinstance(code, str):
             return
         code = code.strip()
-        if len(code) != 8 or not code.isascii() or not code.isdigit():
+        display_reference = (
+            len(code) == 8 and code[:5].isascii() and code[:5].isdigit()
+            and code[5:] == "xxx"
+        )
+        numeric_identity = len(code) == 8 and code.isascii() and code.isdigit()
+        if not numeric_identity and not display_reference:
             return
         if code not in positions:
             positions[code] = len(found)
@@ -292,13 +299,20 @@ def _claim_line(operation: str, value: Any) -> str | None:
         if identities:
             line = "รายวิชาที่พบ:\n" + "\n".join(
                 f"- {code} — {title}" if title else f"- {code}"
-                for code, title in identities[:10]
+                for code, title in identities[:MAX_DISPLAYED_COURSES]
             )
-            if len(identities) > 10:
-                line += f"\n(แสดง 10 จาก {len(identities)} รายวิชา)"
+            if len(identities) > MAX_DISPLAYED_COURSES:
+                line += (
+                    f"\n(แสดง {MAX_DISPLAYED_COURSES} จาก "
+                    f"{len(identities)} รายวิชา)"
+                )
             return line
         titles = _titles(value)
-        return "รายวิชาที่พบ: " + ", ".join(titles[:10]) if titles else None
+        return (
+            "รายวิชาที่พบ: "
+            + ", ".join(titles[:MAX_DISPLAYED_COURSES])
+            if titles else None
+        )
     codes = _codes(value)
     titles = _titles(value)
     numbers = _numbers(value)
@@ -344,6 +358,33 @@ def _claim_line(operation: str, value: Any) -> str | None:
     if operation == "count":
         return f"จำนวน: {numbers[0]}" if numbers else None
     return None
+
+
+def _claim_line_with_evidence(claim: Any) -> str | None:
+    """Project a claim while retaining canonical raw credit notation, if present."""
+    operation = str(getattr(claim, "operation", ""))
+    value = getattr(claim, "value", None)
+    line = _claim_line(operation, value)
+    if operation != "sum_credits" or not line:
+        return line
+    evidence = getattr(claim, "evidence", None)
+    components = getattr(evidence, "components", ())
+    raw_values: list[str] = []
+    if isinstance(components, (list, tuple)):
+        for component in components:
+            if not isinstance(component, Mapping):
+                continue
+            raw = component.get("credits_raw")
+            if isinstance(raw, str) and raw.strip() and raw.strip() not in raw_values:
+                raw_values.append(raw.strip())
+    if len(raw_values) == 1:
+        number = _numbers(value)
+        if number:
+            return (
+                f"{_course_label(value)}: {raw_values[0]} "
+                f"({number[0]} หน่วยกิต)"
+            ).strip(": ")
+    return line
 
 
 def execute_deterministic(
