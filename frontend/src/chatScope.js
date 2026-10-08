@@ -423,10 +423,11 @@ function normalizeClarificationRequestScope(value) {
 function normalizeMessageClarification(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const action = value.action;
-  if (!["catalog_required", "plan_required"].includes(action)) return null;
+  if (!["catalog_required", "plan_required", "program_required"].includes(action)) return null;
   const target = value.clarification_target == null
     ? null : normalizeClarificationTarget(value.clarification_target);
   if (value.clarification_target != null && target == null) return null;
+  if (action === "program_required" && target != null) return null;
   if (target && target.dimension !== action.replace("_required", "")) return null;
   return {
     action,
@@ -448,7 +449,8 @@ function migrateLegacyClarification(message, pending, sessionScope) {
   const action = pending.action
     || (message.planClarification ? "plan_required"
       : message.catalogClarification ? "catalog_required"
-        : target?.dimension ? `${target.dimension}_required` : null);
+        : message.programClarification ? "program_required"
+          : target?.dimension ? `${target.dimension}_required` : null);
   if (!action) return null;
   return normalizeMessageClarification({
     action,
@@ -548,6 +550,30 @@ export function selectProgram(session, program, programs) {
     context: resetContextForEdition(program, catalogKey, plan)};
 }
 
+export function selectProgramForRetry(session, program, programs, clarification) {
+  const canonicalProgram = programs.find(item => item.program_code === program);
+  if (!canonicalProgram || clarification?.action !== "program_required") {
+    throw new Error("ไม่สามารถระบุหลักสูตรสำหรับคำถามนี้ได้");
+  }
+  const selected = selectProgram(session, canonicalProgram.program_code, programs);
+  const retryScope = {
+    home_program: canonicalProgram.program_code,
+    conversation_context: buildConversationContext(selected),
+  };
+  const updatedClarification = normalizeMessageClarification({
+    ...clarification,
+    action: "program_required",
+    clarification_target: null,
+    next_context: retryScope.conversation_context,
+    request_scope: retryScope,
+    clarification_resolutions: clarification.clarification_resolutions,
+  });
+  if (!updatedClarification) {
+    throw new Error("ข้อมูลการระบุหลักสูตรต่อเนื่องไม่ถูกต้อง");
+  }
+  return {session: selected, clarification: updatedClarification, retryScope};
+}
+
 export function applyChatResponse(sessions, originId, entry, data, retryId, clarificationResolutions = null) {
   return sessions.map(session => {
     if (session.id !== originId) return session;
@@ -572,7 +598,11 @@ export function applyChatResponse(sessions, originId, entry, data, retryId, clar
       ?? (entry.planClarification ? "plan_required"
         : entry.catalogClarification ? "catalog_required" : null);
     let messageClarification = null;
-    if (action === "plan_required" || action === "catalog_required") {
+    if (
+      action === "plan_required"
+      || action === "catalog_required"
+      || action === "program_required"
+    ) {
       messageClarification = normalizeMessageClarification({
         action,
         clarification_target: data?.clarification_target

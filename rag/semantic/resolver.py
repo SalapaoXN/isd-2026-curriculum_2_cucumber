@@ -31,6 +31,8 @@ from rag.semantic.schema import (
 from rag.structured.queries import exact_course_candidates
 
 _COURSE_CODE_RE = re.compile(r"^\d{8}$")
+_DIGIT_RUN_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
+_TITLE_WRAPPER_RE = re.compile(r"[()\[\]{}]")
 
 
 def _connect_ro(db_path: str | Path) -> sqlite3.Connection:
@@ -172,6 +174,16 @@ def _logical_candidates(
     return list(by_identity.values())
 
 
+def _candidate_course_key(candidate: dict[str, Any]) -> tuple[str, str] | None:
+    program = candidate.get("program")
+    code = candidate.get("course_code")
+    if not isinstance(program, str) or not program.strip():
+        return None
+    if not isinstance(code, str) or not code.strip():
+        return None
+    return program.strip().casefold(), code.strip()
+
+
 def _strong_enough_for_partial_title(raw_text: str) -> bool:
     """Reject weak references before lexical partial-title matching."""
     text = raw_text.strip()
@@ -204,6 +216,49 @@ def _course_reference_candidates(
                 catalog_key=catalog_key,
             )
         )
+
+    digit_runs = list(_DIGIT_RUN_RE.finditer(reference))
+    code_runs = [match for match in digit_runs if len(match.group()) >= 7]
+    if code_runs:
+        # Do not let malformed or multiple code-like numbers fall through to
+        # title/partial matching, where digits could otherwise be ignored.
+        if len(code_runs) != 1 or len(code_runs[0].group()) != 8:
+            return []
+        code_match = code_runs[0]
+        code_candidates = _logical_candidates(
+            exact_course_candidates(
+                db_path,
+                course_code=code_match.group(),
+                program=program,
+                catalog_key=catalog_key,
+            )
+        )
+        if not code_candidates:
+            return []
+
+        supplied_title = _TITLE_WRAPPER_RE.sub(
+            " ", reference[:code_match.start()] + " " + reference[code_match.end():],
+        ).strip(" \t\r\n,;:.-")
+        if not any(character.isalpha() for character in supplied_title):
+            return code_candidates
+
+        title_candidates = _logical_candidates(
+            exact_course_candidates(
+                db_path,
+                course_name=supplied_title,
+                program=program,
+                catalog_key=catalog_key,
+                exact_title=True,
+            )
+        )
+        matching_keys = {
+            key for candidate in title_candidates
+            if (key := _candidate_course_key(candidate)) is not None
+        }
+        return [
+            candidate for candidate in code_candidates
+            if _candidate_course_key(candidate) in matching_keys
+        ]
 
     exact = _logical_candidates(
         exact_course_candidates(

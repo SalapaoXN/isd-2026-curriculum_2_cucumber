@@ -7,6 +7,7 @@ import {
   newSession,
   normalizeStoredSession,
   selectProgram,
+  selectProgramForRetry,
   applyChatResponse,
   defaultCatalogKey,
   resetContextForEdition,
@@ -265,6 +266,38 @@ export default function ChatPage() {
     setError("");
   }
 
+  function handleProgramClarificationChange(program, clarificationMessageId) {
+    const message = active.messages.find(item => item.id === clarificationMessageId);
+    const clarification = message ? clarificationForMessage(active, message) : null;
+    if (!message || clarification?.action !== "program_required") return;
+    if (inFlightClarificationIdsRef.current.has(message.id)) return;
+
+    let retry;
+    try {
+      const selectionSession = sessionForMessageClarification(
+        active, message, clarification,
+      );
+      retry = selectProgramForRetry(
+        selectionSession, program, programs, clarification,
+      );
+    } catch (err) {
+      setError(err.message);
+      return;
+    }
+    setError("");
+    setSessions(previous => updateMessageClarification(
+      previous, active.id, message.id, retry.clarification,
+    ));
+    handleAsk(
+      message.question,
+      retry.session,
+      message.id,
+      null,
+      retry.clarification.clarification_resolutions,
+      retry.retryScope,
+    );
+  }
+
   function handleCatalogChange(catalogKey, clarificationMessageId = null) {
     const message = clarificationMessageId == null
       ? null : active.messages.find(item => item.id === clarificationMessageId);
@@ -443,6 +476,7 @@ export default function ChatPage() {
         provenance: data.provenance || [],
         planClarification: data.status === "clarification_required" && data.action === "plan_required",
         catalogClarification: data.status === "clarification_required" && data.action === "catalog_required",
+        programClarification: data.status === "clarification_required" && data.action === "program_required",
         request_scope: {
           home_program: homeProgram,
           conversation_context: seed,
@@ -627,6 +661,7 @@ export default function ChatPage() {
                 const retryInFlight = inFlightClarificationIds.has(m.id);
                 const showPlanClarification = clarification?.action === "plan_required";
                 const showCatalogClarification = clarification?.action === "catalog_required";
+                const showProgramClarification = clarification?.action === "program_required";
                 return (
                 <article className="chat-turn" key={m.id}>
                   <div className="chat-user-row">
@@ -648,7 +683,7 @@ export default function ChatPage() {
                             {showPlanClarification && (
                                <PlanSelector plans={messagePlans} value={clarification.clarification_target ? null : clarificationSession.plan} onChange={plan => handlePlanChange(plan, m.id)} disabled={retryInFlight} />
                             )}
-                            {showCatalogClarification && messageCatalogs.length > 0 && (
+                        {showCatalogClarification && messageCatalogs.length > 0 && (
                               <div className="plan-selector" role="group" aria-label="ฉบับหลักสูตรสำหรับคำถามนี้">
                                 {messageCatalogs.map(edition => (
                                   <button key={edition.catalog_key} type="button" disabled={retryInFlight}
@@ -656,7 +691,17 @@ export default function ChatPage() {
                                     {catalogOptionLabel(edition, messageCatalogs)}
                                   </button>
                                 ))}
-                              </div>
+                          </div>
+                        )}
+                        {showProgramClarification && programs.length > 0 && (
+                          <div className="plan-selector" role="group" aria-label="หลักสูตรสำหรับคำถามนี้">
+                            {programs.map(program => (
+                              <button key={program.program_code} type="button" disabled={retryInFlight}
+                                onClick={() => handleProgramClarificationChange(program.program_code, m.id)}>
+                                {program.program_code}
+                              </button>
+                            ))}
+                          </div>
                         )}
                     </div>
                   </div>
