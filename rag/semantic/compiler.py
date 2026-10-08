@@ -23,13 +23,27 @@ _RELATION_OPERATIONS = {
     "existence": ("existence",),
 }
 
+_REQUESTED_FIELD_OPERATIONS = {
+    "code": "identity",
+    "name": "identity",
+    "credits": "sum_credits",
+    "placement": "placement",
+    "prerequisites": "prerequisite",
+    "description": "describe",
+}
+
 
 def _operations_for(resolved: ResolvedIntent) -> tuple[str, ...]:
     intent = resolved.intent
     if intent.task == "lookup" and intent.subject == "course":
         operation = _RELATION_OPERATIONS.get(intent.relation or "")
         if operation is not None:
-            return operation
+            operations = list(operation)
+            for requested_field in intent.requested_fields:
+                requested_operation = _REQUESTED_FIELD_OPERATIONS.get(requested_field)
+                if requested_operation is not None and requested_operation not in operations:
+                    operations.append(requested_operation)
+            return tuple(operations)
     if intent.task == "lookup" and intent.subject == "program":
         return ("sum_credits",)
     if intent.task == "list":
