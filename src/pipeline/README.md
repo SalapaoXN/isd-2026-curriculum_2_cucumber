@@ -113,16 +113,18 @@ data/input/gened2564/
 data/input/gened2557/
 ```
 
-สำหรับ source ปัจจุบันที่ยังใช้ชื่อ folder เดิม (`it`, `bit`, `dsba`, `ait`, `gened`) ระบบยังรองรับเป็น fallback เพื่อไม่ให้ dataset เดิมพัง แต่ generated artifacts ใหม่จะใช้ชื่อแบบมีปี เช่น `it2565_page_032_ocr.json`
+ชื่อ folder และชื่อไฟล์ source ต้องใช้ **dataset key พร้อมปีเดียวกัน** ระบบไม่ fallback ไปหา folder แบบไม่มีปีสำหรับ curriculum dataset แล้ว
 
-ชื่อ source image ต้องลงท้ายด้วยเลขหน้า 3 หลัก เช่น:
+ชื่อ source image ต้องเป็น `<dataset>_page_<NNN>.<ext>` เช่น:
 
 ```text
-it_page_032.png
+it2565_page_032.png
 it2560_page_027.png
+bit2565_page_026.png
+dsba2565_page_317.png
 ```
 
-ชื่อ source จริงจะถูกเก็บใน provenance แม้ generated output จะใช้ dataset key แบบมีปี
+ชื่อ source จริงจะถูกเก็บใน provenance ดังนั้นการใส่ปีไว้ในชื่อไฟล์ทำให้ source identity แยกฉบับหลักสูตรได้ชัดเจน
 
 ## Outputs
 
@@ -160,37 +162,38 @@ data/output/extracted/<dataset>/
 ไฟล์ที่รวม Study Plan + Course Description แล้ว แต่ยังไม่ผ่าน Gemini:
 
 ```text
-data/output/consolidated/<dataset>/curriculum_<plan>.json
+data/output/consolidated/<dataset>_<plan>_consolidated.json
 ```
 
 เช่น:
 
 ```text
-data/output/consolidated/it2560/curriculum_no_coop.json
-data/output/consolidated/it2560/curriculum_coop.json
+data/output/consolidated/it2560_no_coop_consolidated.json
+data/output/consolidated/it2560_coop_consolidated.json
+data/output/consolidated/ait2566_consolidated.json
+```
+
+### Correction logs
+
+audit log จากขั้น correction แยกออกจาก final data โดยตรง:
+
+```text
+data/output/corrections/it2560_no_coop_corrections.json
+data/output/corrections/it2560_coop_corrections.json
 ```
 
 ### Final หลัง LLM correction
 
-ไฟล์ canonical ที่ใช้ต่อกับระบบ:
+`final/` เก็บเฉพาะ canonical curriculum data หลังตรวจแก้แล้ว:
 
 ```text
-data/output/final/<dataset>/curriculum_<plan>.json
-data/output/final/<dataset>/corrections_<plan>.json
-data/output/final/<dataset>/manifest.json
+data/output/final/it2560_no_coop_final.json
+data/output/final/it2560_coop_final.json
+data/output/final/ait2566_final.json
+data/output/final/gened2557_final.json
 ```
 
-เช่น:
-
-```text
-data/output/final/it2560/curriculum_no_coop.json
-data/output/final/it2560/corrections_no_coop.json
-data/output/final/it2560/curriculum_coop.json
-data/output/final/it2560/corrections_coop.json
-data/output/final/it2560/manifest.json
-```
-
-`curriculum_*.json` คือข้อมูลหลัง correction ส่วน `corrections_*.json` คือ audit log ว่าเปลี่ยนข้อความใดจากอะไรเป็นอะไร
+ไฟล์ `*_final.json` ใช้สร้าง runtime database ส่วน `*_corrections.json` เป็น audit log และไม่ถูกใช้เป็น curriculum source
 
 ## Gemini correction แก้อะไรบ้าง
 
@@ -228,7 +231,7 @@ desc_en
 ```powershell
 python -m src.pipeline.run --dataset it2560 --from extracted
 python -m src.pipeline.run --dataset it2560 --from consolidated
-python -m src.pipeline.run --dataset it2560 --from corrected
+python -m src.pipeline.run --dataset it2560 --from final
 ```
 
 เก็บ extracted intermediates สำหรับ debug:
@@ -257,7 +260,7 @@ runtime database:
 cucumber_outputs/runtime/curriculum.db
 ```
 
-เมื่อมีทั้ง final layout ใหม่และ flat `*_corrected.json` แบบเก่า ตัว build index จะเลือก structured artifact ใหม่ก่อน และยังอ่าน legacy artifacts ของ dataset ที่ยังไม่ได้ regenerate เพื่อให้ migration ทำได้ทีละ dataset
+build index จะเลือก `*_final.json` แบบใหม่ก่อน และยังมี read-only fallback สำหรับ layout เก่าในช่วง migration โดยไฟล์ใหม่จะแทนที่ไฟล์เก่าเฉพาะเมื่อ JSON identity (`catalog_key` / program / plan) ตรงกัน
 
 ## Rules pipeline
 
@@ -265,6 +268,15 @@ cucumber_outputs/runtime/curriculum.db
 
 ```powershell
 python -m src.pipeline.run_rules
+```
+
+ไฟล์ program requirement ที่อยู่ร่วมกับ rules ต้องใช้ชื่อปีปัจจุบันเช่นกัน:
+
+```text
+data/input/rule/ait2566_page_005.png
+data/input/rule/bit2565_page_006.png
+data/input/rule/dsba2565_page_006.png
+data/input/rule/it2565_page_006.png
 ```
 
 รายละเอียดดูที่ `docs/academic_rules.md`
