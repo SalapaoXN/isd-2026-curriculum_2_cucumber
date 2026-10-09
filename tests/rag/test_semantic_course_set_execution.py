@@ -168,15 +168,16 @@ class CourseSetExecutionTests(unittest.TestCase):
         self.assertEqual([c["course_code"] for c in result.next_context["result_courses"]], ["06016481", "06016482"])
         self.assertEqual(len(result.trace.semantic_intent["target"]["members"]), 2)
 
-    def test_sequence_request_never_executes_weaker_lookup(self):
+    def test_sequence_request_never_executes_weaker_unordered_lookup(self):
         data = payload(("06016413", "06016420", "06016421"),
                        ("placement", "prerequisites", "placement_sequence"))
         with patch("rag.semantic.pipeline.execute_deterministic") as evidence:
-            result = semantic_answer(DB, "Arrange 06016413 06016420 06016421",
+            result = semantic_answer(DB, "Arrange by year/semester 06016413 06016420 06016421",
                                      {"program": "IT", "catalog_key": "it-2565", "plan": "no_coop"},
                                      interpret_callable=lambda _prompt: json.dumps(data))
-        self.assertEqual(result.result.status, "unsupported")
-        self.assertIn("placement_sequence", result.trace.failure_reason)
+        self.assertEqual(result.result.status, "answer", result.trace.failure_reason)
+        self.assertLess(result.result.final_answer.index("06016413"), result.result.final_answer.index("06016420"))
+        self.assertLess(result.result.final_answer.index("06016420"), result.result.final_answer.index("06016421"))
         self.assertEqual(len(result.trace.semantic_intent["target"]["members"]), 3)
         evidence.assert_not_called()
 

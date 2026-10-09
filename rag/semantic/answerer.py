@@ -987,6 +987,14 @@ def render_verified_mixed_scope(verified: VerifiedResult) -> str:
     return "\n".join("- " + fact for part in verified.scoped_results for fact in part.summary_facts)
 
 
+def render_verified_placement_sequence(verified: VerifiedResult) -> str:
+    """Display the already verified order, retaining every member-local fact."""
+    return "\n".join(
+        f"{index}. " + "\n   ".join(part.summary_facts)
+        for index, part in enumerate(verified.scoped_results, 1)
+    )
+
+
 def render_verified_plan_placement(verified: VerifiedResult) -> str:
     """Render the entire typed matrix before each evidence-derived verdict."""
     lines = []
@@ -1092,6 +1100,8 @@ def render_semantic_answer(
     if verified.placement_comparison is not None:
         return render_verified_plan_placement(verified), "deterministic"
     if verified.scoped_results:
+        if all(part.scope_kind == "sequence_course" for part in verified.scoped_results):
+            return render_verified_placement_sequence(verified), "deterministic"
         return render_verified_mixed_scope(verified), "deterministic"
     if verified.explicit_course_set:
         return render_verified_course_set(verified), "deterministic"

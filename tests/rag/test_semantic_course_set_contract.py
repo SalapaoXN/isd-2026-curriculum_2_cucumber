@@ -44,7 +44,7 @@ class CourseSetContractTests(unittest.TestCase):
                                ("placement", "prerequisites", "placement_sequence")))
         self.assertEqual(len(intent.target.members), 3)
         self.assertIn("placement_sequence", intent.requested_fields)
-        self.assertTrue(validate_semantic_intent(intent, "Arrange 06016413, 06016420, 06016421").valid)
+        self.assertTrue(validate_semantic_intent(intent, "Arrange by year/semester 06016413, 06016420, 06016421").valid)
 
     def test_independent_compound_references(self):
         refs = ("PROJECT 1 (06016406)", "SERVER SIDE WEB DEVELOPMENT (06016418)")

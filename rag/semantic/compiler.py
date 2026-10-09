@@ -30,6 +30,7 @@ _REQUESTED_FIELD_OPERATIONS = {
     "name": "identity",
     "credits": "sum_credits",
     "placement": "placement",
+    "placement_sequence": "placement",
     "prerequisites": "prerequisite",
     "prerequisite_placement": "prerequisite",
     "description": "describe",
@@ -97,7 +98,9 @@ def compile_resolved_intent_to_query_spec(
     if intent.task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement":
         raise ValueError("plan-placement comparison requires separate matrix requests")
     if "placement_sequence" in intent.requested_fields:
-        raise ValueError("placement_sequence execution is unsupported until G5-C")
+        from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+        if plan_semantic_query(resolved).execution != EXECUTION_DETERMINISTIC:
+            raise ValueError("placement_sequence requires complete canonical set and scope")
     category = next(
         (
             item.value

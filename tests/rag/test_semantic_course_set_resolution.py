@@ -90,16 +90,16 @@ class CourseSetResolutionTests(unittest.TestCase):
         self.assertEqual(spec.operations, ("placement", "prerequisite", "sum_credits", "identity"))
         self.assertEqual(plan_semantic_query(resolved).execution, "deterministic")
 
-    def test_sequence_preserved_but_plan_explicitly_unsupported(self):
+    def test_sequence_preserved_and_plan_deterministically_executable(self):
         resolved = resolve(("06016413", "06016420", "06016421"),
                            ("placement", "prerequisites", "placement_sequence"), plan="no_coop")
         self.assertFalse(resolved.needs_clarification)
         self.assertIn("placement_sequence", resolved.intent.requested_fields)
         plan = plan_semantic_query(resolved)
-        self.assertEqual(plan.execution, "unsupported")
+        self.assertEqual(plan.execution, "deterministic")
         self.assertIn("placement_sequence", plan.reason)
-        with self.assertRaisesRegex(ValueError, "placement_sequence"):
-            compile_resolved_intent_to_query_spec(resolved, "question")
+        self.assertEqual(compile_resolved_intent_to_query_spec(resolved, "question").operations,
+                         ("placement", "prerequisite"))
 
     def test_selection_requires_plan(self):
         self.assertEqual(plan_semantic_query(resolve(fields=("alternative_selection",), plan=None)).execution, "unsupported")

@@ -297,8 +297,10 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         intent.relation == "alternative_selection" or "alternative_selection" in intent.requested_fields
     ) and intent.target.kind != "literal_set":
         return "alternative_selection requires an explicit course set"
-    if "placement_sequence" in intent.requested_fields and intent.target.kind != "literal_set":
-        return "placement_sequence requires an explicit course set"
+    if "placement_sequence" in intent.requested_fields:
+        problem = placement_sequence_contract_problem(intent, question)
+        if problem:
+            return problem
     if not _relation_compatible(task, intent.subject, intent.relation):
         return "incompatible relation for task shape"
     if task == "aggregate" and intent.aggregation is None:
@@ -355,6 +357,29 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
     problem = _filter_grounding_problem(intent, question)
     if problem is not None:
         return problem
+    return None
+
+
+def placement_sequence_contract_problem(intent: SemanticIntent, question: str | None = None) -> str | None:
+    """Sequence is a closed explicit-set placement request, not dependency traversal."""
+    if (
+        intent.task != "lookup" or intent.subject != "course"
+        or intent.target.kind != "literal_set" or len(intent.target.members) < 2
+        or intent.relation not in {"placement", "prerequisite"}
+        or intent.filters or intent.aggregation is not None or intent.ranking is not None
+        or intent.comparison is not None or intent.policy_topic is not None or intent.observed_value is not None
+        or intent.scope.year is not None or intent.scope.semester is not None
+        or any(field not in {"code", "name", "placement", "placement_sequence", "prerequisites"}
+               for field in intent.requested_fields)
+    ):
+        return "placement_sequence requires an unfiltered explicit course set and placement facts"
+    if question is not None:
+        text = question.casefold()
+        direct = any(cue in text for cue in ("chronological", "placement sequence", "เรียนอะไรก่อนหลัง", "ลำดับการเรียน"))
+        order = any(cue in text for cue in ("sequence", "arrange", "order", "เรียง", "ก่อนหลัง", "วางแผนเรียน"))
+        placement = any(cue in text for cue in ("placement", "year", "semester", "term", "ปี", "เทอม", "ภาค"))
+        if not (direct or (order and placement)):
+            return "placement_sequence is not grounded in chronological placement language"
     return None
 
 

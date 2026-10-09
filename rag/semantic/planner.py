@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from rag.semantic.schema import ResolvedIntent, REQUESTED_FIELDS
-from rag.semantic.validation import mixed_scope_contract_problem, plan_placement_contract_problem
+from rag.semantic.validation import mixed_scope_contract_problem, plan_placement_contract_problem, placement_sequence_contract_problem
 
 EXECUTION_DETERMINISTIC = "deterministic"
 EXECUTION_SQL = "sql"
@@ -111,7 +111,18 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
             resolved.clarification_reason or "clarification required",
         )
     if "placement_sequence" in intent.requested_fields:
-        return SemanticPlan(EXECUTION_UNSUPPORTED, "placement_sequence execution is unsupported until G5-C")
+        problem = placement_sequence_contract_problem(intent)
+        scope, members = resolved.scope, resolved.target.members
+        if (
+            problem or resolved.target.kind != "literal_set" or len(members) < 2
+            or not scope.program or not scope.catalog_key or not scope.plan
+            or scope.years or scope.semesters
+            or any(not member.course_code or (member.program, member.catalog_key) !=
+                   (scope.program, scope.catalog_key) for member in members)
+            or len({member.course_code for member in members}) != len(members)
+        ):
+            return SemanticPlan(EXECUTION_UNSUPPORTED, problem or "placement_sequence requires complete canonical members and one plan scope")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "complete canonical placement_sequence with member-local facts")
     if any(item not in REQUESTED_FIELDS for item in intent.requested_fields):
         return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported requested field")
     if intent.task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement":
