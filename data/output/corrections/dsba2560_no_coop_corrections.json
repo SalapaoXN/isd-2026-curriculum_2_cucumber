@@ -310,17 +310,5 @@
         "field": "name_en",
         "before": "SPECAL WORKSHOP IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
         "after": "SPECIAL WORKSHOP IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
-    },
-    {
-        "course_code": "06026130",
-        "field": "source_inconsistency_policy",
-        "before": "Plan table page 34 gives 6(0-35-0); course description page 190 gives 6(0-36-0).",
-        "after": "For DSBA2560 operational curriculum data, applied the plan-table value 6(0-35-0). The official-source inconsistency is retained; this does not claim the description is factually wrong."
-    },
-    {
-        "course_code": "06026131",
-        "field": "source_inconsistency_policy",
-        "before": "Plan table page 34 gives the English title COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS and 6(0-35-0); course description page 190 gives OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS and 6(0-36-0).",
-        "after": "For DSBA2560 operational curriculum data, applied the plan-table title and 6(0-35-0). The official-source inconsistency is retained; this does not claim the description is factually wrong."
     }
 ]

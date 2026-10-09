@@ -9,20 +9,29 @@ from src.pipeline import run_rules
 
 class RulesPipelineTests(unittest.TestCase):
     def test_dry_run_manifest_has_thirteen_rule_and_four_program_sources(self):
-        manifest = run_rules._source_manifest(
-            Path("data/input/rule")
-        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_dir = Path(temp_dir)
+            for page in range(1, 14):
+                (source_dir / f"rule2564_page_{page:03d}.png").write_bytes(b"image")
+            for filename in (
+                "ait2566_page_005.png",
+                "bit2565_page_006.png",
+                "dsba2565_page_006.png",
+                "it2565_page_006.png",
+            ):
+                (source_dir / filename).write_bytes(b"image")
+            manifest = run_rules._source_manifest(source_dir)
 
         self.assertEqual(len(manifest["rule_sources"]), 13)
-        self.assertEqual(manifest["rule_sources"][0], "rule_page_001.png")
-        self.assertEqual(manifest["rule_sources"][-1], "rule_page_013.png")
+        self.assertEqual(manifest["rule_sources"][0], "rule2564_page_001.png")
+        self.assertEqual(manifest["rule_sources"][-1], "rule2564_page_013.png")
         self.assertEqual(
             manifest["program_sources"],
             [
-                "ait_page_005.png",
-                "bit_page_006.png",
-                "dsba_page_006.png",
-                "it_page_006.png",
+                "ait2566_page_005.png",
+                "bit2565_page_006.png",
+                "dsba2565_page_006.png",
+                "it2565_page_006.png",
             ],
         )
 
@@ -46,19 +55,19 @@ class RulesPipelineTests(unittest.TestCase):
             output_dir = root / "output"
             source_dir.mkdir()
             for page in range(1, 14):
-                (source_dir / f"rule_page_{page:03d}.png").write_bytes(b"image")
+                (source_dir / f"rule2564_page_{page:03d}.png").write_bytes(b"image")
             for filename in (
-                "ait_page_005.png",
-                "bit_page_006.png",
-                "dsba_page_006.png",
-                "it_page_006.png",
+                "ait2566_page_005.png",
+                "bit2565_page_006.png",
+                "dsba2565_page_006.png",
+                "it2565_page_006.png",
             ):
                 (source_dir / filename).write_bytes(b"image")
 
-            ocr_dir = output_dir / "ocr" / "rule"
+            ocr_dir = output_dir / "ocr" / "rule2564"
             ocr_dir.mkdir(parents=True)
             for page in range(1, 14):
-                (ocr_dir / f"rule_page_{page:03d}_ocr.json").write_text(
+                (ocr_dir / f"rule2564_page_{page:03d}_ocr.json").write_text(
                     json.dumps({"text_lines": ["rule"]}), encoding="utf-8"
                 )
 
@@ -87,9 +96,11 @@ class RulesPipelineTests(unittest.TestCase):
                 )
 
             self.assertEqual(ocr.call_args.kwargs["pages"], list(range(1, 14)))
+            self.assertEqual(ocr.call_args.kwargs["dataset_key"], "rule2564")
+            self.assertEqual(ocr.call_args.kwargs["source_prefix"], "rule2564")
             self.assertEqual(
                 [path.name for path in extract_rules.call_args.args[0]],
-                [f"rule_page_{page:03d}_ocr.json" for page in range(1, 14)],
+                [f"rule2564_page_{page:03d}_ocr.json" for page in range(1, 14)],
             )
             self.assertEqual(extract_programs.call_args.args[0], source_dir)
             self.assertEqual(result["program_requirement_count"], 4)
@@ -103,12 +114,12 @@ class RulesPipelineTests(unittest.TestCase):
             output_dir = root / "output"
             source_dir.mkdir()
             for page in range(1, 14):
-                (source_dir / f"rule_page_{page:03d}.png").write_bytes(b"image")
+                (source_dir / f"rule2564_page_{page:03d}.png").write_bytes(b"image")
             for filename in (
-                "ait_page_005.png",
-                "bit_page_006.png",
-                "dsba_page_006.png",
-                "it_page_006.png",
+                "ait2566_page_005.png",
+                "bit2565_page_006.png",
+                "dsba2565_page_006.png",
+                "it2565_page_006.png",
             ):
                 (source_dir / filename).write_bytes(b"image")
             output_dir.mkdir()

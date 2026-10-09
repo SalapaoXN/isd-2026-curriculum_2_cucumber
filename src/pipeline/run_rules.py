@@ -16,11 +16,12 @@ from src.pipeline.tools.merge.policy import RulesPolicyMapper
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
+RULE_DATASET_KEY = "rule2564"
 RULE_PAGE_NUMBERS = tuple(range(1, 14))
 
 
 def _source_manifest(source_dir: Path) -> dict[str, Any]:
-    rule_sources = [f"rule_page_{page:03d}.png" for page in RULE_PAGE_NUMBERS]
+    rule_sources = [f"{RULE_DATASET_KEY}_page_{page:03d}.png" for page in RULE_PAGE_NUMBERS]
     program_sources = [filename for filename, _, _ in PROGRAM_REQUIREMENT_SOURCES.values()]
     missing = [name for name in (*rule_sources, *program_sources) if not (source_dir / name).is_file()]
     if missing:
@@ -52,9 +53,12 @@ def _write_json(path: Path, payload: Any) -> None:
 
 
 def _rule_ocr_files(output_dir: Path) -> list[Path]:
-    ocr_dir = output_dir / "ocr" / "rule"
+    ocr_dir = output_dir / "ocr" / RULE_DATASET_KEY
     files = discover_rule_ocr_files(ocr_dir)
-    expected = {f"rule_page_{page:03d}_ocr.json" for page in RULE_PAGE_NUMBERS}
+    expected = {
+        f"{RULE_DATASET_KEY}_page_{page:03d}_ocr.json"
+        for page in RULE_PAGE_NUMBERS
+    }
     selected = sorted(
         (path for path in files if path.name in expected),
         key=lambda path: path.name,
@@ -109,6 +113,8 @@ def run_rules(
             program="RULE",
             pages=list(RULE_PAGE_NUMBERS),
             no_gpu=no_gpu,
+            dataset_key=RULE_DATASET_KEY,
+            source_prefix=RULE_DATASET_KEY,
         )
         rule_files = _rule_ocr_files(resolved_output_dir)
         extracted_rules = RuleExtractor().extract_from_files(rule_files)

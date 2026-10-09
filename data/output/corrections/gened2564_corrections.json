@@ -147,7 +147,7 @@
         "course_code": "90642036",
         "field": "name_en",
         "before": "PRE ACTMITIES FOR ENGINEERS",
-        "after": "PRE ACTIVITIES FOR ENGINEERS"
+        "after": "PRE-ACTIVITIES FOR ENGINEERS"
     },
     {
         "course_code": "90642038",
@@ -298,6 +298,12 @@
         "field": "name_en",
         "before": "PHOTOCRAPHY APPRECATION",
         "after": "PHOTOGRAPHY APPRECIATION"
+    },
+    {
+        "course_code": "90642085",
+        "field": "name_th",
+        "before": "วัฒนธรรมรวมสมัย",
+        "after": "วัฒนธรรมร่วมสมัย"
     },
     {
         "course_code": "90642086",
@@ -505,12 +511,6 @@
     },
     {
         "course_code": "90642124",
-        "field": "name_th",
-        "before": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDCS",
-        "after": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGS"
-    },
-    {
-        "course_code": "90642124",
         "field": "name_en",
         "before": "SCIENCE TECHNOLOGV AND SCIENCE INNOVATION FOR SDGS",
         "after": "SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS"
@@ -702,12 +702,6 @@
         "after": "CONTEMPORARY MARKETING"
     },
     {
-        "course_code": "90643011",
-        "field": "name_th",
-        "before": "ศิลปะแห่งการบริหารการสือสาร",
-        "after": "ศิลปะแห่งการบริหารการสื่อสาร"
-    },
-    {
         "course_code": "90643013",
         "field": "name_en",
         "before": "INDUSTRLAL MANAGEMENT",
@@ -777,7 +771,7 @@
         "course_code": "90643027",
         "field": "name_en",
         "before": "MAN, MONEV AND MATH",
-        "after": "MAN, MONEY AND MATH"
+        "after": "MONEY, AND MATH"
     },
     {
         "course_code": "90643028",
@@ -844,6 +838,12 @@
         "field": "name_th",
         "before": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่",
         "after": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21"
+    },
+    {
+        "course_code": "90643038",
+        "field": "name_th",
+        "before": "ศัลยกรรมชิวิต",
+        "after": "ศัลยกรรมชีวิต"
     },
     {
         "course_code": "90643038",

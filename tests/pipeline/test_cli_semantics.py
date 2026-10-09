@@ -81,6 +81,20 @@ class CliSemanticsTests(unittest.TestCase):
             self.assertEqual(discover_pages(input_dir), [2, 10])
             self.assertEqual(discover_page_files(input_dir)[2].suffix, ".jpg")
 
+    def test_page_discovery_accepts_explicit_source_prefix(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            input_dir = Path(temp_dir) / "rule"
+            input_dir.mkdir()
+            (input_dir / "rule2564_page_001.png").write_bytes(b"")
+            (input_dir / "rule2564_page_013.png").write_bytes(b"")
+            (input_dir / "ait2566_page_005.png").write_bytes(b"")
+
+            self.assertEqual(discover_pages(input_dir, prefix="rule2564"), [1, 13])
+            self.assertEqual(
+                sorted(discover_page_files(input_dir, prefix="rule2564")),
+                [1, 13],
+            )
+
     def test_page_discovery_fails_without_valid_direct_children(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             input_dir = Path(temp_dir) / "ait"

@@ -43,7 +43,34 @@ python -m src.pipeline.run --dataset ait2566
 python -m src.pipeline.run --dataset it2560 --dry-run
 ```
 
-ถ้าเครื่องไม่มี GPU:
+### GPU / CUDA สำหรับ EasyOCR
+
+ถ้ามี NVIDIA GPU แนะนำให้ตรวจว่า **PyTorch ใน virtual environment รองรับ CUDA จริง** ก่อนรัน OCR หลาย dataset เพราะการติดตั้ง `easyocr` อย่างเดียวอาจทำให้ได้ PyTorch แบบ CPU-only ซึ่ง EasyOCR จะมองไม่เห็น GPU แม้ Windows จะเห็นการ์ดจอปกติ
+
+ตรวจว่า Windows/NVIDIA driver เห็น GPU:
+
+```powershell
+nvidia-smi
+```
+
+จากนั้นตรวจใน Python environment ที่กำลังใช้รันโปรเจกต์:
+
+```powershell
+python -c "import torch; print('torch=', torch.__version__); print('cuda available=', torch.cuda.is_available()); print('cuda version=', torch.version.cuda); print('device=', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU ONLY')"
+```
+
+ค่าที่ต้องการสำหรับการใช้ GPU คือ:
+
+```text
+cuda available= True
+device= <ชื่อ NVIDIA GPU>
+```
+
+ถ้า `nvidia-smi` ใช้งานได้ แต่ `torch.cuda.is_available()` เป็น `False` หรือ `torch.version.cuda` เป็น `None` แปลว่า PyTorch ใน environment นั้นไม่ใช่ CUDA-enabled build ให้ติดตั้ง PyTorch รุ่นที่รองรับ CUDA ตามคำแนะนำจากเว็บไซต์ PyTorch สำหรับเครื่องนั้นก่อนรัน OCR จริง แล้วตรวจคำสั่งด้านบนซ้ำอีกครั้ง
+
+> `requirements.txt` ของโปรเจกต์ไม่ได้บังคับ CUDA build ของ PyTorch เนื่องจากแต่ละเครื่องอาจใช้ driver/CUDA compatibility ต่างกัน จึงต้องตรวจ GPU environment แยกต่างหาก
+
+ถ้าต้องการบังคับรันด้วย CPU:
 
 ```powershell
 python -m src.pipeline.run --dataset it2560 --no-gpu
@@ -55,6 +82,205 @@ python -m src.pipeline.run --dataset it2560 --no-gpu
 python -m src.pipeline.run --dataset it2560 --with-index
 ```
 
+## Runbook ที่ใช้จริง: OCR ใหม่ทุกหลักสูตร → Final
+
+ส่วนนี้รวมคำสั่งที่ใช้จริงเมื่อต้องการสร้าง curriculum artifacts ใหม่ทั้งชุด โดย **ยังไม่รวม rules pipeline**
+
+### 0. เข้า virtual environment
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+ติดตั้ง dependency หลักของโปรเจกต์ถ้ายังไม่ได้ติดตั้ง:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+> สำหรับ NVIDIA GPU ต้องตรวจ CUDA-enabled PyTorch แยกตามหัวข้อ GPU / CUDA ด้านบน เพราะ `requirements.txt` ไม่ได้บังคับ CUDA build
+
+### 1. ตรวจ dataset configuration ก่อนรันจริง
+
+ตัวอย่าง dry-run:
+
+```powershell
+python -m src.pipeline.run --dataset it2565 --dry-run
+python -m src.pipeline.run --dataset it2560 --dry-run
+python -m src.pipeline.run --dataset dsba2560 --dry-run
+```
+
+### 2. OCR dataset เดียว
+
+ใช้ standalone OCR เมื่อยังไม่ต้องการให้ pipeline ไปถึง Gemini correction:
+
+```powershell
+python -m src.pipeline.tools.ocr.cli --dataset ait2566
+```
+
+เปลี่ยน `ait2566` เป็น dataset key อื่นได้ตามต้องการ
+
+ถ้าจะบังคับ CPU:
+
+```powershell
+python -m src.pipeline.tools.ocr.cli --dataset ait2566 --no-gpu
+```
+
+### 3. OCR curriculum ทุก dataset โดยยังไม่แตะ rules
+
+```powershell
+$datasets = @(
+    "ait2566",
+    "bit2565",
+    "bit2560",
+    "dsba2565",
+    "dsba2560",
+    "gened2564",
+    "gened2557",
+    "it2565",
+    "it2560"
+)
+
+foreach ($d in $datasets) {
+    Write-Host "`n===== OCR $d ====="
+    python -m src.pipeline.tools.ocr.cli --dataset $d
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "FAILED: $d"
+        break
+    }
+}
+```
+
+ขั้นนี้ทำเฉพาะ OCR และไม่เรียก Gemini
+
+### 4. Extract + Merge จาก OCR ที่มีอยู่
+
+```powershell
+python -m src.pipeline.tools.preparation.tool
+```
+
+คำสั่งนี้ค้นหา supported OCR datasets ภายใต้ `data/output/ocr/` แล้ว Extract + Merge แยก dataset/plan ตาม `src/pipeline/datasets.py` โดยไม่เอาหลักสูตรทั้งหมดไปรวมเป็นไฟล์เดียว และยังไม่เรียก Gemini
+
+ถ้ารัน preparation ซ้ำแล้วเจอ `edition artifact already exists` ให้เก็บ consolidated รอบเก่าเป็น backup ก่อน:
+
+```powershell
+$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+Rename-Item data\output\consolidated "consolidated_backup_$stamp"
+python -m src.pipeline.tools.preparation.tool
+```
+
+OCR เดิมไม่ต้องรันใหม่
+
+### 5. ทดลอง Gemini correction หนึ่ง dataset ก่อน
+
+ตัวอย่าง AIT 2566:
+
+```powershell
+python -m src.pipeline.run --dataset ait2566 --from consolidated --skip-eval
+```
+
+ตัวอย่าง BIT 2565:
+
+```powershell
+python -m src.pipeline.run --dataset bit2565 --from consolidated --skip-eval
+```
+
+`--from consolidated` หมายถึงไม่ OCR, ไม่ Extract และไม่ Merge ซ้ำ แต่เริ่มจาก consolidated ที่มีอยู่ → Gemini correction → publish `*_final.json` และ `*_corrections.json`
+
+### 6. Correction ทุก curriculum dataset
+
+เมื่อลอง dataset เดียวผ่านแล้ว สามารถรันต่อทุก dataset โดยเว้นช่วงระหว่าง dataset เพื่อลดความเสี่ยง API rate limit:
+
+```powershell
+$datasets = @(
+    "ait2566",
+    "bit2565",
+    "bit2560",
+    "dsba2565",
+    "dsba2560",
+    "gened2564",
+    "gened2557",
+    "it2565",
+    "it2560"
+)
+
+foreach ($d in $datasets) {
+    Write-Host "`n===== CORRECT $d ====="
+
+    python -m src.pipeline.run --dataset $d --from consolidated --skip-eval
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "FAILED: $d"
+        break
+    }
+
+    Write-Host "Waiting 30 seconds..."
+    Start-Sleep -Seconds 30
+}
+```
+
+ถ้าบาง dataset ทำเสร็จแล้ว ให้ลบชื่อ dataset เหล่านั้นออกจาก `$datasets` แล้วรันเฉพาะตัวที่เหลือ ไม่จำเป็นต้อง correction ซ้ำทั้งหมด
+
+Gemini corrector ปัจจุบันแบ่งข้อความเป็น batch ละ 50 unique units และ deduplicate ชื่อซ้ำระหว่าง plan files ของ dataset เดียวกันก่อนส่ง API ถ้าเจอ `429`, `RESOURCE_EXHAUSTED`, `quota` หรือ `Gemini batch ... failed` ให้หยุดชุดนั้นก่อน ไม่ควรยิง loop ซ้ำทันที
+
+### 7. ตรวจ Final artifacts
+
+หลัง correction สำเร็จ ไฟล์หลักอยู่ที่:
+
+```text
+data/output/final/
+data/output/corrections/
+```
+
+ตัวอย่าง:
+
+```text
+ait2566_final.json
+bit2565_coop_final.json
+bit2565_no_coop_final.json
+it2565_coop_final.json
+it2565_no_coop_final.json
+```
+
+### 8. Rules gate ก่อน Build Index
+
+ถ้า runtime ต้องใช้ข้อกำหนดสถาบันและ program requirements ด้วย ให้ทำ rules pipeline ให้พร้อมก่อน build index:
+
+```powershell
+python -m src.pipeline.run_rules
+```
+
+rules source ใช้ dataset identity `rule2564` สำหรับหน้ากฎ 1-13 แม้จะเก็บรวมอยู่ใน category folder `data/input/rule/` โดย output OCR จะอยู่ที่ `data/output/ocr/rule2564/` แยกจาก curriculum OCR ชัดเจน
+
+### 9. Build runtime index หลัง Final และ Rules พร้อม
+
+เมื่อ curriculum final ครบและ rules/program requirements พร้อมแล้ว:
+
+```powershell
+python -m rag.build_index
+```
+
+หรือสำหรับ pipeline dataset เดียวสามารถใช้:
+
+```powershell
+python -m src.pipeline.run --dataset it2565 --from final --with-index
+```
+
+### 10. Evaluation จาก Final จริง
+
+ถ้าต้องการประเมินจาก final ที่สร้างเสร็จแล้วโดยไม่ OCR/correct ซ้ำ ใช้ `--from final`:
+
+```powershell
+python -m src.pipeline.run --dataset ait2566 --from final
+python -m src.pipeline.run --dataset bit2565 --from final
+python -m src.pipeline.run --dataset dsba2565 --from final
+python -m src.pipeline.run --dataset gened2564 --from final
+python -m src.pipeline.run --dataset it2565 --from final
+```
+
+รุ่นเก่า `bit2560`, `dsba2560`, `gened2557`, `it2560` ไม่มี Ground Truth edition-specific ที่ยอมรับ ระบบจึง skip evaluation แทนการเอาไปเทียบกับคนละ edition
+
 ## Flow
 
 ```text
@@ -65,8 +291,9 @@ Source images
 → Merge study plan + course descriptions
 → Gemini proofreading เฉพาะชื่อวิชา
 → Final reviewed JSON
-→ Evaluation (ถ้ามี Ground Truth ที่ตรงกัน)
-→ Build Index (เมื่อใช้ --with-index)
+→ Rules / program requirements gate
+→ Build Index
+→ Evaluation / smoke test
 ```
 
 ## Dataset configuration
@@ -264,19 +491,56 @@ build index จะเลือก `*_final.json` แบบใหม่ก่อ�
 
 ## Rules pipeline
 
-ข้อกำหนดสถาบันยังใช้ entry point แยก:
+ข้อกำหนดสถาบันใช้ entry point แยกจาก curriculum pipeline:
 
 ```powershell
 python -m src.pipeline.run_rules
 ```
 
-ไฟล์ program requirement ที่อยู่ร่วมกับ rules ต้องใช้ชื่อปีปัจจุบันเช่นกัน:
+ตรวจ manifest โดยยังไม่ OCR จริง:
+
+```powershell
+python -m src.pipeline.run_rules --dry-run
+```
+
+ถ้าเครื่องไม่มี CUDA/GPU:
+
+```powershell
+python -m src.pipeline.run_rules --no-gpu
+```
+
+source images อยู่รวมกันที่ `data/input/rule/` แต่ใช้ชื่อ source แบบ edition-aware ดังนี้:
 
 ```text
+data/input/rule/rule2564_page_001.png
+...
+data/input/rule/rule2564_page_013.png
+
 data/input/rule/ait2566_page_005.png
 data/input/rule/bit2565_page_006.png
 data/input/rule/dsba2565_page_006.png
 data/input/rule/it2565_page_006.png
+```
+
+Rule OCR ถูก publish แยกที่:
+
+```text
+data/output/ocr/rule2564/rule2564_page_001_ocr.json
+...
+data/output/ocr/rule2564/rule2564_page_013_ocr.json
+```
+
+ผล canonical สำหรับ runtime คือ:
+
+```text
+data/output/final/institution_policy.json
+data/output/final/program_requirements.json
+```
+
+ถ้ามี canonical intermediate จาก rule OCR อยู่แล้วและต้องการ map policy ใหม่โดยไม่ OCR ซ้ำ:
+
+```powershell
+python -m src.pipeline.run_rules --skip-ocr
 ```
 
 รายละเอียดดูที่ `docs/academic_rules.md`

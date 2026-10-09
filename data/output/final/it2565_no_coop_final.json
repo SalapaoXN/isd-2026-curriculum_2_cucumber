@@ -7,7 +7,7 @@
     "courses": [
         {
             "code": "06016401",
-            "name_th": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+            "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
             "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -20,14 +20,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_category": "plan",
                     "document_page": 27
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_328.png",
+                    "source_filename": "it2565_page_328.png",
                     "source_page": 328,
                     "document_category": "description",
                     "document_page": 323
@@ -51,14 +51,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_category": "plan",
                     "document_page": 27
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_328.png",
+                    "source_filename": "it2565_page_328.png",
                     "source_page": 328,
                     "document_category": "description",
                     "document_page": 323
@@ -82,14 +82,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_category": "plan",
                     "document_page": 27
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_333.png",
+                    "source_filename": "it2565_page_333.png",
                     "source_page": 333,
                     "document_category": "description",
                     "document_page": 328
@@ -113,14 +113,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_category": "plan",
                     "document_page": 27
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_371.png",
+                    "source_filename": "it2565_page_371.png",
                     "source_page": 371,
                     "document_category": "description",
                     "document_page": 366
@@ -144,7 +144,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_page": 27,
                     "document_category": "plan"
@@ -166,7 +166,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_page": 27,
                     "document_category": "plan"
@@ -188,7 +188,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_032.png",
+                    "source_filename": "it2565_page_032.png",
                     "source_page": 32,
                     "document_page": 27,
                     "document_category": "plan"
@@ -210,14 +210,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_033.png",
+                    "source_filename": "it2565_page_033.png",
                     "source_page": 33,
                     "document_category": "plan",
                     "document_page": 28
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_331.png",
+                    "source_filename": "it2565_page_331.png",
                     "source_page": 331,
                     "document_category": "description",
                     "document_page": 326
@@ -241,14 +241,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_033.png",
+                    "source_filename": "it2565_page_033.png",
                     "source_page": 33,
                     "document_category": "plan",
                     "document_page": 28
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_368.png",
+                    "source_filename": "it2565_page_368.png",
                     "source_page": 368,
                     "document_category": "description",
                     "document_page": 363
@@ -272,21 +272,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_033.png",
+                    "source_filename": "it2565_page_033.png",
                     "source_page": 33,
                     "document_category": "plan",
                     "document_page": 28
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_368.png",
+                    "source_filename": "it2565_page_368.png",
                     "source_page": 368,
                     "document_category": "description",
                     "document_page": 363
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_369.png",
+                    "source_filename": "it2565_page_369.png",
                     "source_page": 369,
                     "document_category": "description",
                     "document_page": 364
@@ -310,14 +310,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_033.png",
+                    "source_filename": "it2565_page_033.png",
                     "source_page": 33,
                     "document_category": "plan",
                     "document_page": 28
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_370.png",
+                    "source_filename": "it2565_page_370.png",
                     "source_page": 370,
                     "document_category": "description",
                     "document_page": 365
@@ -341,7 +341,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_033.png",
+                    "source_filename": "it2565_page_033.png",
                     "source_page": 33,
                     "document_page": 28,
                     "document_category": "plan"
@@ -363,7 +363,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_033.png",
+                    "source_filename": "it2565_page_033.png",
                     "source_page": 33,
                     "document_page": 28,
                     "document_category": "plan"
@@ -385,14 +385,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_034.png",
+                    "source_filename": "it2565_page_034.png",
                     "source_page": 34,
                     "document_category": "plan",
                     "document_page": 29
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_329.png",
+                    "source_filename": "it2565_page_329.png",
                     "source_page": 329,
                     "document_category": "description",
                     "document_page": 324
@@ -403,7 +403,7 @@
         },
         {
             "code": "06016409",
-            "name_th": "การประมวลทางกายภาพ",
+            "name_th": "การประมวลผลทางกายภาพ",
             "name_en": "PHYSICAL COMPUTING",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -416,14 +416,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_034.png",
+                    "source_filename": "it2565_page_034.png",
                     "source_page": 34,
                     "document_category": "plan",
                     "document_page": 29
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_332.png",
+                    "source_filename": "it2565_page_332.png",
                     "source_page": 332,
                     "document_category": "description",
                     "document_page": 327
@@ -447,21 +447,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_034.png",
+                    "source_filename": "it2565_page_034.png",
                     "source_page": 34,
                     "document_category": "plan",
                     "document_page": 29
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_333.png",
+                    "source_filename": "it2565_page_333.png",
                     "source_page": 333,
                     "document_category": "description",
                     "document_page": 328
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_334.png",
+                    "source_filename": "it2565_page_334.png",
                     "source_page": 334,
                     "document_category": "description",
                     "document_page": 329
@@ -485,14 +485,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_034.png",
+                    "source_filename": "it2565_page_034.png",
                     "source_page": 34,
                     "document_category": "plan",
                     "document_page": 29
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_367.png",
+                    "source_filename": "it2565_page_367.png",
                     "source_page": 367,
                     "document_category": "description",
                     "document_page": 362
@@ -516,21 +516,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_034.png",
+                    "source_filename": "it2565_page_034.png",
                     "source_page": 34,
                     "document_category": "plan",
                     "document_page": 29
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_369.png",
+                    "source_filename": "it2565_page_369.png",
                     "source_page": 369,
                     "document_category": "description",
                     "document_page": 364
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_370.png",
+                    "source_filename": "it2565_page_370.png",
                     "source_page": 370,
                     "document_category": "description",
                     "document_page": 365
@@ -554,14 +554,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_034.png",
+                    "source_filename": "it2565_page_034.png",
                     "source_page": 34,
                     "document_category": "plan",
                     "document_page": 29
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_371.png",
+                    "source_filename": "it2565_page_371.png",
                     "source_page": 371,
                     "document_category": "description",
                     "document_page": 366
@@ -585,14 +585,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_330.png",
+                    "source_filename": "it2565_page_330.png",
                     "source_page": 330,
                     "document_category": "description",
                     "document_page": 325
@@ -616,14 +616,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_332.png",
+                    "source_filename": "it2565_page_332.png",
                     "source_page": 332,
                     "document_category": "description",
                     "document_page": 327
@@ -647,14 +647,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_333.png",
+                    "source_filename": "it2565_page_333.png",
                     "source_page": 333,
                     "document_category": "description",
                     "document_page": 328
@@ -678,21 +678,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_370.png",
+                    "source_filename": "it2565_page_370.png",
                     "source_page": 370,
                     "document_category": "description",
                     "document_page": 365
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_371.png",
+                    "source_filename": "it2565_page_371.png",
                     "source_page": 371,
                     "document_category": "description",
                     "document_page": 366
@@ -704,7 +704,7 @@
         {
             "code": "06016414",
             "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-            "name_en": "NOSQL DATABASE SYSTEMS",
+            "name_en": "NoSQL DATABASE SYSTEMS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -716,14 +716,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_334.png",
+                    "source_filename": "it2565_page_334.png",
                     "source_page": 334,
                     "document_category": "description",
                     "document_page": 329
@@ -747,14 +747,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_335.png",
+                    "source_filename": "it2565_page_335.png",
                     "source_page": 335,
                     "document_category": "description",
                     "document_page": 330
@@ -778,21 +778,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_337.png",
+                    "source_filename": "it2565_page_337.png",
                     "source_page": 337,
                     "document_category": "description",
                     "document_page": 332
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_338.png",
+                    "source_filename": "it2565_page_338.png",
                     "source_page": 338,
                     "document_category": "description",
                     "document_page": 333
@@ -816,14 +816,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_338.png",
+                    "source_filename": "it2565_page_338.png",
                     "source_page": 338,
                     "document_category": "description",
                     "document_page": 333
@@ -847,14 +847,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_340.png",
+                    "source_filename": "it2565_page_340.png",
                     "source_page": 340,
                     "document_category": "description",
                     "document_page": 335
@@ -878,14 +878,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_035.png",
+                    "source_filename": "it2565_page_035.png",
                     "source_page": 35,
                     "document_category": "plan",
                     "document_page": 30
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_341.png",
+                    "source_filename": "it2565_page_341.png",
                     "source_page": 341,
                     "document_category": "description",
                     "document_page": 336
@@ -909,14 +909,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_329.png",
+                    "source_filename": "it2565_page_329.png",
                     "source_page": 329,
                     "document_category": "description",
                     "document_page": 324
@@ -940,14 +940,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_369.png",
+                    "source_filename": "it2565_page_369.png",
                     "source_page": 369,
                     "document_category": "description",
                     "document_page": 364
@@ -971,7 +971,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_page": 31,
                     "document_category": "plan"
@@ -981,7 +981,7 @@
         {
             "code": "06016416",
             "name_th": "วิศวกรรมความต้องการ",
-            "name_en": "REQUIREMENT ENGINEERING",
+            "name_en": "REQUIREMENTS ENGINEERING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -993,14 +993,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_335.png",
+                    "source_filename": "it2565_page_335.png",
                     "source_page": 335,
                     "document_category": "description",
                     "document_page": 330
@@ -1024,21 +1024,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_335.png",
+                    "source_filename": "it2565_page_335.png",
                     "source_page": 335,
                     "document_category": "description",
                     "document_page": 330
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_336.png",
+                    "source_filename": "it2565_page_336.png",
                     "source_page": 336,
                     "document_category": "description",
                     "document_page": 331
@@ -1062,14 +1062,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_336.png",
+                    "source_filename": "it2565_page_336.png",
                     "source_page": 336,
                     "document_category": "description",
                     "document_page": 331
@@ -1093,21 +1093,21 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_338.png",
+                    "source_filename": "it2565_page_338.png",
                     "source_page": 338,
                     "document_category": "description",
                     "document_page": 333
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_339.png",
+                    "source_filename": "it2565_page_339.png",
                     "source_page": 339,
                     "document_category": "description",
                     "document_page": 334
@@ -1131,14 +1131,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_339.png",
+                    "source_filename": "it2565_page_339.png",
                     "source_page": 339,
                     "document_category": "description",
                     "document_page": 334
@@ -1162,14 +1162,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_340.png",
+                    "source_filename": "it2565_page_340.png",
                     "source_page": 340,
                     "document_category": "description",
                     "document_page": 335
@@ -1193,14 +1193,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_341.png",
+                    "source_filename": "it2565_page_341.png",
                     "source_page": 341,
                     "document_category": "description",
                     "document_page": 336
@@ -1224,14 +1224,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_342.png",
+                    "source_filename": "it2565_page_342.png",
                     "source_page": 342,
                     "document_category": "description",
                     "document_page": 337
@@ -1255,14 +1255,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_036.png",
+                    "source_filename": "it2565_page_036.png",
                     "source_page": 36,
                     "document_category": "plan",
                     "document_page": 31
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_336.png",
+                    "source_filename": "it2565_page_336.png",
                     "source_page": 336,
                     "document_category": "description",
                     "document_page": 331
@@ -1286,7 +1286,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_037.png",
+                    "source_filename": "it2565_page_037.png",
                     "source_page": 37,
                     "document_page": 32,
                     "document_category": "plan"
@@ -1308,7 +1308,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_037.png",
+                    "source_filename": "it2565_page_037.png",
                     "source_page": 37,
                     "document_page": 32,
                     "document_category": "plan"
@@ -1330,14 +1330,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_037.png",
+                    "source_filename": "it2565_page_037.png",
                     "source_page": 37,
                     "document_category": "plan",
                     "document_page": 32
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_368.png",
+                    "source_filename": "it2565_page_368.png",
                     "source_page": 368,
                     "document_category": "description",
                     "document_page": 363
@@ -1361,7 +1361,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_037.png",
+                    "source_filename": "it2565_page_037.png",
                     "source_page": 37,
                     "document_page": 32,
                     "document_category": "plan"
@@ -1383,7 +1383,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_037.png",
+                    "source_filename": "it2565_page_037.png",
                     "source_page": 37,
                     "document_page": 32,
                     "document_category": "plan"
@@ -1405,14 +1405,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_category": "plan",
                     "document_page": 33
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_330.png",
+                    "source_filename": "it2565_page_330.png",
                     "source_page": 330,
                     "document_category": "description",
                     "document_page": 325
@@ -1436,7 +1436,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_page": 33,
                     "document_category": "plan"
@@ -1458,7 +1458,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_page": 33,
                     "document_category": "plan"
@@ -1480,7 +1480,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_page": 33,
                     "document_category": "plan"
@@ -1502,7 +1502,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_page": 33,
                     "document_category": "plan"
@@ -1524,14 +1524,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_category": "plan",
                     "document_page": 33
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_331.png",
+                    "source_filename": "it2565_page_331.png",
                     "source_page": 331,
                     "document_category": "description",
                     "document_page": 326
@@ -1554,7 +1554,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_page": 33,
                     "document_category": "plan"
@@ -1576,7 +1576,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_038.png",
+                    "source_filename": "it2565_page_038.png",
                     "source_page": 38,
                     "document_page": 33,
                     "document_category": "plan"
@@ -1600,7 +1600,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_342.png",
+                    "source_filename": "it2565_page_342.png",
                     "source_page": 342,
                     "document_page": 337,
                     "document_category": "description"
@@ -1624,7 +1624,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_343.png",
+                    "source_filename": "it2565_page_343.png",
                     "source_page": 343,
                     "document_page": 338,
                     "document_category": "description"
@@ -1648,7 +1648,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_343.png",
+                    "source_filename": "it2565_page_343.png",
                     "source_page": 343,
                     "document_page": 338,
                     "document_category": "description"
@@ -1672,7 +1672,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_344.png",
+                    "source_filename": "it2565_page_344.png",
                     "source_page": 344,
                     "document_page": 339,
                     "document_category": "description"
@@ -1696,7 +1696,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_344.png",
+                    "source_filename": "it2565_page_344.png",
                     "source_page": 344,
                     "document_page": 339,
                     "document_category": "description"
@@ -1719,14 +1719,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_344.png",
+                    "source_filename": "it2565_page_344.png",
                     "source_page": 344,
                     "document_category": "description",
                     "document_page": 339
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_345.png",
+                    "source_filename": "it2565_page_345.png",
                     "source_page": 345,
                     "document_category": "description",
                     "document_page": 340
@@ -1751,7 +1751,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_345.png",
+                    "source_filename": "it2565_page_345.png",
                     "source_page": 345,
                     "document_page": 340,
                     "document_category": "description"
@@ -1774,14 +1774,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_345.png",
+                    "source_filename": "it2565_page_345.png",
                     "source_page": 345,
                     "document_category": "description",
                     "document_page": 340
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_346.png",
+                    "source_filename": "it2565_page_346.png",
                     "source_page": 346,
                     "document_category": "description",
                     "document_page": 341
@@ -1806,7 +1806,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_346.png",
+                    "source_filename": "it2565_page_346.png",
                     "source_page": 346,
                     "document_page": 341,
                     "document_category": "description"
@@ -1830,7 +1830,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_346.png",
+                    "source_filename": "it2565_page_346.png",
                     "source_page": 346,
                     "document_page": 341,
                     "document_category": "description"
@@ -1854,7 +1854,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_347.png",
+                    "source_filename": "it2565_page_347.png",
                     "source_page": 347,
                     "document_page": 342,
                     "document_category": "description"
@@ -1878,7 +1878,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_347.png",
+                    "source_filename": "it2565_page_347.png",
                     "source_page": 347,
                     "document_page": 342,
                     "document_category": "description"
@@ -1902,7 +1902,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_348.png",
+                    "source_filename": "it2565_page_348.png",
                     "source_page": 348,
                     "document_page": 343,
                     "document_category": "description"
@@ -1926,7 +1926,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_348.png",
+                    "source_filename": "it2565_page_348.png",
                     "source_page": 348,
                     "document_page": 343,
                     "document_category": "description"
@@ -1950,7 +1950,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_349.png",
+                    "source_filename": "it2565_page_349.png",
                     "source_page": 349,
                     "document_page": 344,
                     "document_category": "description"
@@ -1974,14 +1974,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_349.png",
+                    "source_filename": "it2565_page_349.png",
                     "source_page": 349,
                     "document_category": "description",
                     "document_page": 344
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_350.png",
+                    "source_filename": "it2565_page_350.png",
                     "source_page": 350,
                     "document_category": "description",
                     "document_page": 345
@@ -2005,7 +2005,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_350.png",
+                    "source_filename": "it2565_page_350.png",
                     "source_page": 350,
                     "document_page": 345,
                     "document_category": "description"
@@ -2029,7 +2029,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_350.png",
+                    "source_filename": "it2565_page_350.png",
                     "source_page": 350,
                     "document_page": 345,
                     "document_category": "description"
@@ -2053,7 +2053,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_351.png",
+                    "source_filename": "it2565_page_351.png",
                     "source_page": 351,
                     "document_page": 346,
                     "document_category": "description"
@@ -2077,7 +2077,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_351.png",
+                    "source_filename": "it2565_page_351.png",
                     "source_page": 351,
                     "document_page": 346,
                     "document_category": "description"
@@ -2101,14 +2101,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_351.png",
+                    "source_filename": "it2565_page_351.png",
                     "source_page": 351,
                     "document_category": "description",
                     "document_page": 346
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_352.png",
+                    "source_filename": "it2565_page_352.png",
                     "source_page": 352,
                     "document_category": "description",
                     "document_page": 347
@@ -2132,7 +2132,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_352.png",
+                    "source_filename": "it2565_page_352.png",
                     "source_page": 352,
                     "document_page": 347,
                     "document_category": "description"
@@ -2156,7 +2156,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_352.png",
+                    "source_filename": "it2565_page_352.png",
                     "source_page": 352,
                     "document_page": 347,
                     "document_category": "description"
@@ -2180,7 +2180,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_353.png",
+                    "source_filename": "it2565_page_353.png",
                     "source_page": 353,
                     "document_page": 348,
                     "document_category": "description"
@@ -2204,7 +2204,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_353.png",
+                    "source_filename": "it2565_page_353.png",
                     "source_page": 353,
                     "document_page": 348,
                     "document_category": "description"
@@ -2224,11 +2224,11 @@
             "year": 0,
             "semester": 0,
             "desc_th": "ความรู้ เบื้องต้นเกี่ยวกับการจัดการลูกค้าสัมพันธ์  กระบวนการการจัดการลูกค้าสัมพันธ์ กลยุทธ์\nในการจัดการลูกค้าสัมพันธ์ การระบุ การหามาได้ การเก็บรักษาและการขยายของฐานลูกค้า เซึ่งมุ่งเน้น\nการเพิมผลกำไรในระยะยาวของลูกค้าในองค์กรการบริหารลูกค้าอย่างมีประสิทธิภาพและมีประสิทธิผล\nโดยการนำอรรถระโยชน์ของระบบสารสนเทศเข้ามาประยุกต์ ใช้ กรณีศึกษาและซอฟต์แวร์ทีใช้ในการ\nจัดการลูกค้าสัมพันธ์",
-            "desc_en": "INTRODUCTION\nTO\nCUSTOMER  RELATIONSHIP\nMANAGEMENT,\nCUSTOMER  RELATIONSHIP\nMANAGEMENT\nPROCESS,\nCUSTOMER\nRELATIONSHIP\nMANAGEMENT  STRATEGY,\nLDENTIFICATION\n(TARGETING), ACQUISITION., RETENTION., AND DEVELOPMENT (EXPANSION.) AIMING TO INCREASE THE\nLONG TERM  PROFITABILITY OF THE FIRM'S CUSTOMERS, EFFECTIVE AND EFFICIENT MANAGEMENT OF\nCUSTOMERS\nWITH\nUTILIZATION\nOF\nINFORMATION\nTECHNOLOGY,\nCUSTOMER\nRELATIONSHIP\nMANAGEMENT CASE STUDY AND SOFTWARE.",
+            "desc_en": "INTRODUCTION\nTO\nCUSTOMER  RELATIONSHIP\nMANAGEMENT,\nCUSTOMER  RELATIONSHIP\nMANAGEMENT\nPROCESS,\nCUSTOMER\nRELATIONSHIP\nMANAGEMENT  STRATEGY,\nLDENTIFICATION\n(TARGETING), ACQUISITION., RETENTION., AND DEVELOPMENT (EXPANSION) AIMING TO INCREASE THE\nLONG TERM  PROFITABILITY OF THE FIRM'S CUSTOMERS, EFFECTIVE AND EFFICIENT MANAGEMENT OF\nCUSTOMERS\nWITH\nUTILIZATION\nOF\nINFORMATION\nTECHNOLOGY,\nCUSTOMER\nRELATIONSHIP\nMANAGEMENT CASE STUDY AND SOFTWARE.",
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_354.png",
+                    "source_filename": "it2565_page_354.png",
                     "source_page": 354,
                     "document_page": 349,
                     "document_category": "description"
@@ -2252,12 +2252,18 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_354.png",
+                    "source_filename": "it2565_page_354.png",
                     "source_page": 354,
                     "document_page": 349,
                     "document_category": "description"
                 }
-            ]
+            ],
+            "credit_source_verified": true,
+            "credit_source_provenance": {
+                "source_filename": "it2565_page_354.png",
+                "source_page": 354,
+                "document_category": "description"
+            }
         },
         {
             "code": "06016455",
@@ -2276,7 +2282,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_355.png",
+                    "source_filename": "it2565_page_355.png",
                     "source_page": 355,
                     "document_page": 350,
                     "document_category": "description"
@@ -2300,7 +2306,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_355.png",
+                    "source_filename": "it2565_page_355.png",
                     "source_page": 355,
                     "document_page": 350,
                     "document_category": "description"
@@ -2324,7 +2330,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_356.png",
+                    "source_filename": "it2565_page_356.png",
                     "source_page": 356,
                     "document_page": 351,
                     "document_category": "description"
@@ -2348,14 +2354,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_356.png",
+                    "source_filename": "it2565_page_356.png",
                     "source_page": 356,
                     "document_category": "description",
                     "document_page": 351
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_357.png",
+                    "source_filename": "it2565_page_357.png",
                     "source_page": 357,
                     "document_category": "description",
                     "document_page": 352
@@ -2379,7 +2385,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_357.png",
+                    "source_filename": "it2565_page_357.png",
                     "source_page": 357,
                     "document_page": 352,
                     "document_category": "description"
@@ -2403,7 +2409,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_357.png",
+                    "source_filename": "it2565_page_357.png",
                     "source_page": 357,
                     "document_page": 352,
                     "document_category": "description"
@@ -2427,7 +2433,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_358.png",
+                    "source_filename": "it2565_page_358.png",
                     "source_page": 358,
                     "document_page": 353,
                     "document_category": "description"
@@ -2451,7 +2457,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_358.png",
+                    "source_filename": "it2565_page_358.png",
                     "source_page": 358,
                     "document_page": 353,
                     "document_category": "description"
@@ -2475,7 +2481,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_359.png",
+                    "source_filename": "it2565_page_359.png",
                     "source_page": 359,
                     "document_page": 354,
                     "document_category": "description"
@@ -2498,14 +2504,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_359.png",
+                    "source_filename": "it2565_page_359.png",
                     "source_page": 359,
                     "document_category": "description",
                     "document_page": 354
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_360.png",
+                    "source_filename": "it2565_page_360.png",
                     "source_page": 360,
                     "document_category": "description",
                     "document_page": 355
@@ -2530,7 +2536,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_360.png",
+                    "source_filename": "it2565_page_360.png",
                     "source_page": 360,
                     "document_page": 355,
                     "document_category": "description"
@@ -2554,14 +2560,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_360.png",
+                    "source_filename": "it2565_page_360.png",
                     "source_page": 360,
                     "document_category": "description",
                     "document_page": 355
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_361.png",
+                    "source_filename": "it2565_page_361.png",
                     "source_page": 361,
                     "document_category": "description",
                     "document_page": 356
@@ -2585,7 +2591,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_361.png",
+                    "source_filename": "it2565_page_361.png",
                     "source_page": 361,
                     "document_page": 356,
                     "document_category": "description"
@@ -2609,7 +2615,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_361.png",
+                    "source_filename": "it2565_page_361.png",
                     "source_page": 361,
                     "document_page": 356,
                     "document_category": "description"
@@ -2633,7 +2639,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_362.png",
+                    "source_filename": "it2565_page_362.png",
                     "source_page": 362,
                     "document_page": 357,
                     "document_category": "description"
@@ -2657,14 +2663,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_362.png",
+                    "source_filename": "it2565_page_362.png",
                     "source_page": 362,
                     "document_category": "description",
                     "document_page": 357
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_363.png",
+                    "source_filename": "it2565_page_363.png",
                     "source_page": 363,
                     "document_category": "description",
                     "document_page": 358
@@ -2688,7 +2694,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_363.png",
+                    "source_filename": "it2565_page_363.png",
                     "source_page": 363,
                     "document_page": 358,
                     "document_category": "description"
@@ -2712,14 +2718,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_363.png",
+                    "source_filename": "it2565_page_363.png",
                     "source_page": 363,
                     "document_category": "description",
                     "document_page": 358
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_364.png",
+                    "source_filename": "it2565_page_364.png",
                     "source_page": 364,
                     "document_category": "description",
                     "document_page": 359
@@ -2743,7 +2749,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_364.png",
+                    "source_filename": "it2565_page_364.png",
                     "source_page": 364,
                     "document_page": 359,
                     "document_category": "description"
@@ -2767,7 +2773,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_364.png",
+                    "source_filename": "it2565_page_364.png",
                     "source_page": 364,
                     "document_page": 359,
                     "document_category": "description"
@@ -2791,7 +2797,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_364.png",
+                    "source_filename": "it2565_page_364.png",
                     "source_page": 364,
                     "document_page": 359,
                     "document_category": "description"
@@ -2815,7 +2821,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_365.png",
+                    "source_filename": "it2565_page_365.png",
                     "source_page": 365,
                     "document_page": 360,
                     "document_category": "description"
@@ -2839,7 +2845,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_365.png",
+                    "source_filename": "it2565_page_365.png",
                     "source_page": 365,
                     "document_page": 360,
                     "document_category": "description"
@@ -2863,7 +2869,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_365.png",
+                    "source_filename": "it2565_page_365.png",
                     "source_page": 365,
                     "document_page": 360,
                     "document_category": "description"
@@ -2887,7 +2893,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_366.png",
+                    "source_filename": "it2565_page_366.png",
                     "source_page": 366,
                     "document_page": 361,
                     "document_category": "description"
@@ -2911,7 +2917,7 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_366.png",
+                    "source_filename": "it2565_page_366.png",
                     "source_page": 366,
                     "document_page": 361,
                     "document_category": "description"
@@ -2921,7 +2927,7 @@
         {
             "code": "06016481 หรือ 06016482",
             "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
-            "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+            "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
             "credits": "6(0-36-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
@@ -2935,14 +2941,14 @@
             "source_provenance": [
                 {
                     "program": "IT",
-                    "source_filename": "it_page_366.png",
+                    "source_filename": "it2565_page_366.png",
                     "source_page": 366,
                     "document_category": "description",
                     "document_page": 361
                 },
                 {
                     "program": "IT",
-                    "source_filename": "it_page_367.png",
+                    "source_filename": "it2565_page_367.png",
                     "source_page": 367,
                     "document_category": "description",
                     "document_page": 362

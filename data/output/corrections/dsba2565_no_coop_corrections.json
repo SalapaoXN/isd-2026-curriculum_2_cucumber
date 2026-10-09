@@ -147,7 +147,7 @@
         "course_code": "06026xxx",
         "field": "name_en",
         "before": "ELECTIE IN DATA SCIENCE ELECTIE IN STATISTICAL ANAL YSIS 1 ELECTIE IN DATA ENGINEERNNG 1",
-        "after": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1"
+        "after": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1"
     },
     {
         "course_code": "06026xxx",
@@ -177,7 +177,7 @@
         "course_code": "06026213",
         "field": "name_th",
         "before": "ระบบ ข้อมูลมหัต",
-        "after": "ระบบข้อมูลมหัต"
+        "after": "ระบบข้อมูลขนาดใหญ่"
     },
     {
         "course_code": "06026214",
@@ -436,12 +436,6 @@
         "field": "name_en",
         "before": "COOPERATIE EDUCATION IN DATA SCIENCE AND BUSIESS ANALTICS",
         "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
-    },
-    {
-        "course_code": "06026260",
-        "field": "name_th",
-        "before": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
-        "after": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
     },
     {
         "course_code": "06026260",

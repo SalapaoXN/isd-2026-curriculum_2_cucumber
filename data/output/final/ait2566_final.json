@@ -20,14 +20,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_287.png",
+                    "source_filename": "ait2566_page_287.png",
                     "source_page": 287,
                     "document_category": "description",
                     "document_page": 283
@@ -51,21 +51,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_288.png",
+                    "source_filename": "ait2566_page_288.png",
                     "source_page": 288,
                     "document_category": "description",
                     "document_page": 284
                 }
             ],
             "desc_th": "ระบบสมการเชิงเส่น การดำเนินการมูลฐาน การกำจัดเกาสเซียน ฺการกำจัดเกาส์-\nจอร์แดน ค่าลำดับชัน การดำเนินการของเมทริกซ์ ผกผันของเมทริกซ์\nเมทริกซ์มูลฐาน เมทริกซ์ย่อย\nและผลแบ่งส่วน เมทริกซ์ การแยกแบบแอลยู ฺดีเทอร์มิเนนต์ ตัวประกอบร่วมเกี่ยว เมทริกซ์ผูกพัน\nกฎคราเมอร์ ปริภูมิ เวกเตอร์ ปริภูมิย่อย ค่าลักษณะเฉพาะ เวกเตอร์ลักษณะเฉพาะ การทำให้เป็นเม\nริกซ์ทแยงมุม การแปลงเชิ\nน เคอร์เนล เรนจ์",
-            "desc_en": "SYSTEM OF LINEAR EQUATIONS, MATRIX OPERATIONS,\nGAUSSIAN ELIMINATION\nGAUSS- JORDAN ELIMINATION, RANK, ELEMENTARY OPERATIONS, INVERSE OF MATRIX, ELEMENTARY\nMATRIX, SUBMATRICES AND PARTITION MATRIX,\nLU DECOMPOSITION, DETERMINANT, COFACTOR,\n'S RULE,\nสูา\nร.\nADJOINT\nMATRIX,\nCRAMER'S\nVECTOR  SPACE,\nSUBSPACE,\nEIGENVALUE,\nEIGENVECTOR,\nDIAGONALIZATION., LINEAR TRANSFORMATION, KERNEL, RANGE.\nG"
+            "desc_en": "SYSTEM OF LINEAR EQUATIONS, MATRIX OPERATIONS,\nGAUSSIAN ELIMINATION\nGAUSS- JORDAN ELIMINATION, RANK, ELEMENTARY OPERATIONS, INVERSE OF MATRIX, ELEMENTARY\nMATRIX, SUBMATRICES AND PARTITION MATRIX,\nLU DECOMPOSITION, DETERMINANT, COFACTOR,\n'S RULE,\nสูา\nร.\nADJOINT\nMATRIX,\nCRAMER'S\nVECTOR  SPACE,\nSUBSPACE,\nEIGENVALUE,\nEIGENVECTOR,\nDIAGONALIZATION., LINEAR TRANSFORMATION., KERNEL, RANGE.\nG"
         },
         {
             "code": "06066000",
@@ -82,14 +82,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_288.png",
+                    "source_filename": "ait2566_page_288.png",
                     "source_page": 288,
                     "document_category": "description",
                     "document_page": 284
@@ -113,14 +113,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_289.png",
+                    "source_filename": "ait2566_page_289.png",
                     "source_page": 289,
                     "document_category": "description",
                     "document_page": 285
@@ -144,14 +144,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_289.png",
+                    "source_filename": "ait2566_page_289.png",
                     "source_page": 289,
                     "document_category": "description",
                     "document_page": 285
@@ -164,7 +164,7 @@
             "code": "90641008",
             "name_th": "พื้นฐานทักษะการสื่อสารภาษาอังกฤษ",
             "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
-            "credits": "0(0-0-45)",
+            "credits": "(0-0-45)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -175,7 +175,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_page": 19,
                     "document_category": "plan"
@@ -197,21 +197,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_287.png",
+                    "source_filename": "ait2566_page_287.png",
                     "source_page": 287,
                     "document_category": "description",
                     "document_page": 283
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_288.png",
+                    "source_filename": "ait2566_page_288.png",
                     "source_page": 288,
                     "document_category": "description",
                     "document_page": 284
@@ -235,21 +235,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_289.png",
+                    "source_filename": "ait2566_page_289.png",
                     "source_page": 289,
                     "document_category": "description",
                     "document_page": 285
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_290.png",
+                    "source_filename": "ait2566_page_290.png",
                     "source_page": 290,
                     "document_category": "description",
                     "document_page": 286
@@ -273,14 +273,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_290.png",
+                    "source_filename": "ait2566_page_290.png",
                     "source_page": 290,
                     "document_category": "description",
                     "document_page": 286
@@ -304,14 +304,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_category": "plan",
                     "document_page": 19
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_291.png",
+                    "source_filename": "ait2566_page_291.png",
                     "source_page": 291,
                     "document_category": "description",
                     "document_page": 287
@@ -335,7 +335,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_page": 19,
                     "document_category": "plan"
@@ -357,7 +357,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_page": 19,
                     "document_category": "plan"
@@ -379,7 +379,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_023.png",
+                    "source_filename": "ait2566_page_023.png",
                     "source_page": 23,
                     "document_page": 19,
                     "document_category": "plan"
@@ -401,21 +401,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_290.png",
+                    "source_filename": "ait2566_page_290.png",
                     "source_page": 290,
                     "document_category": "description",
                     "document_page": 286
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_291.png",
+                    "source_filename": "ait2566_page_291.png",
                     "source_page": 291,
                     "document_category": "description",
                     "document_page": 287
@@ -439,14 +439,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_291.png",
+                    "source_filename": "ait2566_page_291.png",
                     "source_page": 291,
                     "document_category": "description",
                     "document_page": 287
@@ -470,14 +470,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_292.png",
+                    "source_filename": "ait2566_page_292.png",
                     "source_page": 292,
                     "document_category": "description",
                     "document_page": 288
@@ -501,14 +501,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_293.png",
+                    "source_filename": "ait2566_page_293.png",
                     "source_page": 293,
                     "document_category": "description",
                     "document_page": 289
@@ -532,14 +532,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_295.png",
+                    "source_filename": "ait2566_page_295.png",
                     "source_page": 295,
                     "document_category": "description",
                     "document_page": 291
@@ -563,7 +563,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_page": 20,
                     "document_category": "plan"
@@ -585,21 +585,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_292.png",
+                    "source_filename": "ait2566_page_292.png",
                     "source_page": 292,
                     "document_category": "description",
                     "document_page": 288
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_293.png",
+                    "source_filename": "ait2566_page_293.png",
                     "source_page": 293,
                     "document_category": "description",
                     "document_page": 289
@@ -623,21 +623,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_293.png",
+                    "source_filename": "ait2566_page_293.png",
                     "source_page": 293,
                     "document_category": "description",
                     "document_page": 289
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_294.png",
+                    "source_filename": "ait2566_page_294.png",
                     "source_page": 294,
                     "document_category": "description",
                     "document_page": 290
@@ -661,14 +661,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_295.png",
+                    "source_filename": "ait2566_page_295.png",
                     "source_page": 295,
                     "document_category": "description",
                     "document_page": 291
@@ -692,14 +692,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_category": "plan",
                     "document_page": 20
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_294.png",
+                    "source_filename": "ait2566_page_294.png",
                     "source_page": 294,
                     "document_category": "description",
                     "document_page": 290
@@ -723,7 +723,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_page": 20,
                     "document_category": "plan"
@@ -745,7 +745,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_024.png",
+                    "source_filename": "ait2566_page_024.png",
                     "source_page": 24,
                     "document_page": 20,
                     "document_category": "plan"
@@ -767,14 +767,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_category": "plan",
                     "document_page": 21
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_296.png",
+                    "source_filename": "ait2566_page_296.png",
                     "source_page": 296,
                     "document_category": "description",
                     "document_page": 292
@@ -798,21 +798,21 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_category": "plan",
                     "document_page": 21
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_295.png",
+                    "source_filename": "ait2566_page_295.png",
                     "source_page": 295,
                     "document_category": "description",
                     "document_page": 291
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_296.png",
+                    "source_filename": "ait2566_page_296.png",
                     "source_page": 296,
                     "document_category": "description",
                     "document_page": 292
@@ -836,7 +836,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
                     "document_category": "plan"
@@ -847,7 +847,7 @@
             "code": "060464xx",
             "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
             "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
-            "credits": "6(3-0-6)",
+            "credits": "(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -858,7 +858,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
                     "document_category": "plan"
@@ -880,14 +880,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_category": "plan",
                     "document_page": 21
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_302.png",
+                    "source_filename": "ait2566_page_302.png",
                     "source_page": 302,
                     "document_category": "description",
                     "document_page": 298
@@ -900,7 +900,7 @@
             "code": "060464xx",
             "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
             "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
-            "credits": "6(3-0-6)",
+            "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -911,7 +911,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
                     "document_category": "plan"
@@ -933,7 +933,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
                     "document_category": "plan"
@@ -944,7 +944,7 @@
             "code": "90641006",
             "name_th": "โครงงานกลุ่ม 3",
             "name_en": "TEAM-PROJECT 3",
-            "credits": "1(0-2-1)",
+            "credits": "(0-2-1)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -955,7 +955,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
                     "document_category": "plan"
@@ -977,7 +977,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_025.png",
+                    "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
                     "document_category": "plan"
@@ -999,7 +999,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_026.png",
+                    "source_filename": "ait2566_page_026.png",
                     "source_page": 26,
                     "document_page": 22,
                     "document_category": "plan"
@@ -1021,7 +1021,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_026.png",
+                    "source_filename": "ait2566_page_026.png",
                     "source_page": 26,
                     "document_page": 22,
                     "document_category": "plan"
@@ -1043,7 +1043,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_026.png",
+                    "source_filename": "ait2566_page_026.png",
                     "source_page": 26,
                     "document_page": 22,
                     "document_category": "plan"
@@ -1065,7 +1065,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_026.png",
+                    "source_filename": "ait2566_page_026.png",
                     "source_page": 26,
                     "document_page": 22,
                     "document_category": "plan"
@@ -1087,7 +1087,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_026.png",
+                    "source_filename": "ait2566_page_026.png",
                     "source_page": 26,
                     "document_category": "plan",
                     "document_page": 22
@@ -1111,7 +1111,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_292.png",
+                    "source_filename": "ait2566_page_292.png",
                     "source_page": 292,
                     "document_page": 288,
                     "document_category": "description"
@@ -1134,14 +1134,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_296.png",
+                    "source_filename": "ait2566_page_296.png",
                     "source_page": 296,
                     "document_category": "description",
                     "document_page": 292
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_297.png",
+                    "source_filename": "ait2566_page_297.png",
                     "source_page": 297,
                     "document_category": "description",
                     "document_page": 293
@@ -1166,7 +1166,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_297.png",
+                    "source_filename": "ait2566_page_297.png",
                     "source_page": 297,
                     "document_page": 293,
                     "document_category": "description"
@@ -1190,7 +1190,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_298.png",
+                    "source_filename": "ait2566_page_298.png",
                     "source_page": 298,
                     "document_page": 294,
                     "document_category": "description"
@@ -1214,7 +1214,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_298.png",
+                    "source_filename": "ait2566_page_298.png",
                     "source_page": 298,
                     "document_page": 294,
                     "document_category": "description"
@@ -1236,14 +1236,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_298.png",
+                    "source_filename": "ait2566_page_298.png",
                     "source_page": 298,
                     "document_category": "description",
                     "document_page": 294
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_299.png",
+                    "source_filename": "ait2566_page_299.png",
                     "source_page": 299,
                     "document_category": "description",
                     "document_page": 295
@@ -1269,7 +1269,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_299.png",
+                    "source_filename": "ait2566_page_299.png",
                     "source_page": 299,
                     "document_page": 295,
                     "document_category": "description"
@@ -1293,7 +1293,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_299.png",
+                    "source_filename": "ait2566_page_299.png",
                     "source_page": 299,
                     "document_page": 295,
                     "document_category": "description"
@@ -1317,7 +1317,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_300.png",
+                    "source_filename": "ait2566_page_300.png",
                     "source_page": 300,
                     "document_page": 296,
                     "document_category": "description"
@@ -1341,7 +1341,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_300.png",
+                    "source_filename": "ait2566_page_300.png",
                     "source_page": 300,
                     "document_page": 296,
                     "document_category": "description"
@@ -1365,7 +1365,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_300.png",
+                    "source_filename": "ait2566_page_300.png",
                     "source_page": 300,
                     "document_page": 296,
                     "document_category": "description"
@@ -1389,7 +1389,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_301.png",
+                    "source_filename": "ait2566_page_301.png",
                     "source_page": 301,
                     "document_page": 297,
                     "document_category": "description"
@@ -1412,7 +1412,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_301.png",
+                    "source_filename": "ait2566_page_301.png",
                     "source_page": 301,
                     "document_page": 297,
                     "document_category": "description"
@@ -1436,7 +1436,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_301.png",
+                    "source_filename": "ait2566_page_301.png",
                     "source_page": 301,
                     "document_page": 297,
                     "document_category": "description"
@@ -1459,14 +1459,14 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_301.png",
+                    "source_filename": "ait2566_page_301.png",
                     "source_page": 301,
                     "document_category": "description",
                     "document_page": 297
                 },
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_302.png",
+                    "source_filename": "ait2566_page_302.png",
                     "source_page": 302,
                     "document_category": "description",
                     "document_page": 298
@@ -1491,7 +1491,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_302.png",
+                    "source_filename": "ait2566_page_302.png",
                     "source_page": 302,
                     "document_page": 298,
                     "document_category": "description"
@@ -1515,7 +1515,7 @@
             "source_provenance": [
                 {
                     "program": "AIT",
-                    "source_filename": "ait_page_302.png",
+                    "source_filename": "ait2566_page_302.png",
                     "source_page": 302,
                     "document_page": 298,
                     "document_category": "description"

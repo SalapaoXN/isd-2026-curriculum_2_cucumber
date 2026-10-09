@@ -9,10 +9,10 @@ from typing import Any, Iterable, Mapping
 
 
 PROGRAM_REQUIREMENT_SOURCES: Mapping[str, tuple[str, int, int]] = {
-    "AIT": ("ait_page_005.png", 5, 1),
-    "BIT": ("bit_page_006.png", 6, 1),
-    "DSBA": ("dsba_page_006.png", 6, 1),
-    "IT": ("it_page_006.png", 6, 1),
+    "AIT": ("ait2566_page_005.png", 5, 1),
+    "BIT": ("bit2565_page_006.png", 6, 1),
+    "DSBA": ("dsba2565_page_006.png", 6, 1),
+    "IT": ("it2565_page_006.png", 6, 1),
 }
 
 _TOTAL_CREDITS_HEADING_RE = re.compile(

@@ -102,12 +102,17 @@ def resolve_plan(plan: Optional[str], program: str) -> Optional[str]:
     return normalized
 
 
-def discover_page_files(input_dir: Path) -> Dict[int, Path]:
-    """Find direct-child ``<group>_page_<NNN>.<ext>`` images by page number."""
+def discover_page_files(input_dir: Path, prefix: str | None = None) -> Dict[int, Path]:
+    """Find direct-child ``<group>_page_<NNN>.<ext>`` images by page number.
+
+    ``prefix`` is an explicit source identity override for bundled non-curriculum
+    corpora such as ``rule2564`` that intentionally live under a category folder
+    (``data/input/rule``) instead of a same-named dataset directory.
+    """
     if not input_dir.is_dir():
         raise ValueError(f"Input directory does not exist or is not a directory: {input_dir}")
 
-    group = input_dir.name
+    group = str(prefix).strip() if prefix is not None else input_dir.name
     if not group:
         raise ValueError(
             f"Cannot derive page filename prefix from input directory '{input_dir}'."
@@ -136,11 +141,12 @@ def discover_page_files(input_dir: Path) -> Dict[int, Path]:
     return page_files
 
 
-def discover_pages(input_dir: Path) -> List[int]:
+def discover_pages(input_dir: Path, prefix: str | None = None) -> List[int]:
     """Return discovered page numbers in numeric order, or fail clearly."""
-    page_files = discover_page_files(input_dir)
+    page_files = discover_page_files(input_dir, prefix=prefix)
     if not page_files:
-        expected = f"{input_dir.name}_page_<NNN>.<ext>"
+        expected_group = str(prefix).strip() if prefix is not None else input_dir.name
+        expected = f"{expected_group}_page_<NNN>.<ext>"
         raise ValueError(
             f"No valid page images found directly inside '{input_dir}'. "
             f"Expected filenames like {expected}."

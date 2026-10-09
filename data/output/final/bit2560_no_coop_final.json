@@ -1,8 +1,8 @@
 {
-    "source": "OCR extraction / Academic Plan - BIT coop",
-    "description": "OCR-extracted curriculum records for BIT (plan coop)",
+    "source": "OCR extraction / Academic Plan - BIT no_coop",
+    "description": "OCR-extracted curriculum records for BIT (plan no_coop)",
     "program": "BIT",
-    "plan": "coop",
+    "plan": "no_coop",
     "total_courses": 61,
     "courses": [
         {
@@ -20,10 +20,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -51,10 +51,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -82,10 +82,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -120,10 +120,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -158,10 +158,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -189,10 +189,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -207,7 +207,7 @@
         },
         {
             "code": "06036002",
-            "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
+            "name_th": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
             "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -220,10 +220,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -251,10 +251,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -282,10 +282,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -313,10 +313,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -344,10 +344,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -375,10 +375,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_027.png",
-                    "source_page": 27,
+                    "source_filename": "bit2560_page_023.png",
+                    "source_page": 23,
                     "document_category": "plan",
-                    "document_page": 22
+                    "document_page": 18
                 },
                 {
                     "program": "BIT",
@@ -406,8 +406,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -444,8 +444,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -475,8 +475,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -506,8 +506,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -537,8 +537,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -568,8 +568,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -599,8 +599,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -630,8 +630,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -661,8 +661,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -692,8 +692,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -730,8 +730,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -761,8 +761,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_028.png",
-                    "source_page": 28,
+                    "source_filename": "bit2560_page_024.png",
+                    "source_page": 24,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -799,8 +799,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -830,8 +830,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -861,8 +861,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -892,8 +892,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -930,8 +930,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -961,8 +961,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -983,8 +983,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1014,8 +1014,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1052,8 +1052,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1083,8 +1083,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1114,8 +1114,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1145,18 +1145,18 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_029.png",
-                    "source_page": 29,
+                    "source_filename": "bit2560_page_025.png",
+                    "source_page": 25,
                     "document_page": null,
                     "document_category": "plan"
                 }
             ]
         },
         {
-            "code": "06036046",
-            "name_th": "สหกิจศึกษา",
-            "name_en": "COOPERATIVE EDUCATION",
-            "credits": "6(0-35-0)",
+            "code": "06036019",
+            "name_th": "โครงงาน 1",
+            "name_en": "PROJECT 1",
+            "credits": "3(0-9-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -1167,52 +1167,21 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_030.png",
-                    "source_page": 30,
+                    "source_filename": "bit2560_page_026.png",
+                    "source_page": 26,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_188.png",
-                    "source_page": 188,
+                    "source_filename": "bit2560_page_178.png",
+                    "source_page": 178,
                     "document_category": "description",
-                    "document_page": 111
+                    "document_page": 101
                 }
             ],
-            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน ต่างๆ ที่\nยินยอมใบ\nเห้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯๆ และ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
-            "desc_en": "COOPERATIVE  EDUCATION\nIS\nA\nCOLLABORATED  EDUCATION  PROGRAM  BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE\nENTERPRISES.\nAFTER  COMPLETION,\nSTUDENTS\nNEED\nTO\nPRESENT\nTHEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE."
-        },
-        {
-            "code": "06036047",
-            "name_th": "สหกิจศึกษาต่างประเทศ",
-            "name_en": "OVERSEA COOPERATIVE EDUCATION",
-            "credits": "6(0-35-0)",
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 4,
-            "semester": 1,
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit2560_page_030.png",
-                    "source_page": 30,
-                    "document_category": "plan",
-                    "document_page": null
-                },
-                {
-                    "program": "BIT",
-                    "source_filename": "bit2560_page_188.png",
-                    "source_page": 188,
-                    "document_category": "description",
-                    "document_page": 111
-                }
-            ],
-            "desc_th": "วิชาสหกิจศึกษา เป็\nไนโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงาน\nนันๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ และ\n..\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
-            "desc_en": "COOPERATIVE EDUCATION IS A\nPROGRAM BETWEEN EDUCATIONAL INSTITUTES AND\nENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. AFTER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE."
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการ ที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำของ\nอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการแก้ปัญหาเชิง\nปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK  PROJECT  BASED\nBY APPLYING THE THEORETICAL  ASPECTS  OF THE INFORMATION  TECHNOLOGY\nSTUDIES UNDER THE SUPERISION OFA FACULTY MEMBER TO BE ABLE TO PRESENT A PROJECT PROPOSAL\nAND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS"
         },
         {
             "code": "06036086",
@@ -1225,12 +1194,12 @@
             "flexible_year_semester": null,
             "note": null,
             "year": 4,
-            "semester": 2,
+            "semester": 1,
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_030.png",
-                    "source_page": 30,
+                    "source_filename": "bit2560_page_026.png",
+                    "source_page": 26,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1253,6 +1222,59 @@
             "desc_en": "THE\nCOURSE\nPROVIDES\nA\nSTUDY OF THE THING WE\nCALL\nSCIENCE\nTOGETHER  WITH  ITS  NATURE  AND\nMETHODOLOGY. THE TOPICS COVER THE MEANING OF SCIENCE, REALITY, THE NATURE OF SCIENTIFIC OBSERVATIONS,\nSCIENTIFIC THEORIES AND THEIR DISCOVERY/ AND FOMATION., SCIENTIFIC EXPLANATIONS AND PREDICTIONS, THE PROBLEM\nOFINDUCTION., SCIENTIFIC RATIONALITY, THE NATURE OF SCIENTIFIC KNOWLEDGE., CONCEPTS OFTRUTH., HYPOTHESIS TESTING,\nHYPOTHESIS CONFIMATION, HYPOTHESIS FALSIFICATION., LOGIC OF SCIENTIFIC METHOD., AND SCIENTIFIC PROGRESS."
         },
         {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 1",
+            "name_en": "FREE ELECTIVE COURSE 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2560_page_026.png",
+                    "source_page": 26,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036020",
+            "name_th": "โครงงาน 2",
+            "name_en": "PROJECT 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "06036019",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2560_page_026.png",
+                    "source_page": 26,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2560_page_178.png",
+                    "source_page": 178,
+                    "document_category": "description",
+                    "document_page": 101
+                }
+            ],
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการที่\nสามารถประยุกต์ ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำของ\nอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ ในหัวข้อที่ได้เสนอและศึกษาต่อ\nเนื่องมาจากวิชาโครงงาน 1",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK  PROJECT BASED  BY APPLYING THE THEORETICAL  ASPECTS  OF THE  INFORMATION TECHNOLOGY\nSTUDIES UNDER THE SUPERISION OF\nFACULTY MEMBER TO BE ABLE TO PRESENT A COMPLETE RESULT\nOF THE PROPOSED TOPIC AND STUDY AS CONTINUED FROM PROJECT 1"
+        },
+        {
             "code": "06036088",
             "name_th": "การคิดอย่างสร้างสรรค์",
             "name_en": "CREATIVE THINKING",
@@ -1267,8 +1289,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_030.png",
-                    "source_page": 30,
+                    "source_filename": "bit2560_page_026.png",
+                    "source_page": 26,
                     "document_category": "plan",
                     "document_page": null
                 },
@@ -1292,28 +1314,6 @@
         },
         {
             "code": "xxxxxxxx",
-            "name_th": "วิชาเลือกเสรี",
-            "name_en": "FREE ELECTIVE COURSE",
-            "credits": "3(3-0-6)",
-            "category": "หมวดวิชาเสรี",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 4,
-            "semester": 2,
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit2560_page_030.png",
-                    "source_page": 30,
-                    "document_page": null,
-                    "document_category": "plan"
-                }
-            ]
-        },
-        {
-            "code": "xxxxxxxx",
             "name_th": "วิชาเลือกเสรี 2",
             "name_en": "FREE ELECTIVE COURSE 2",
             "credits": "3(3-0-6)",
@@ -1327,58 +1327,10 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit2560_page_030.png",
-                    "source_page": 30,
+                    "source_filename": "bit2560_page_026.png",
+                    "source_page": 26,
                     "document_page": null,
                     "document_category": "plan"
-                }
-            ]
-        },
-        {
-            "code": "06036019",
-            "name_th": "โครงงาน 1",
-            "name_en": "PROJECT 1",
-            "credits": "3(0-9-0)",
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "เลือก",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": "4/2",
-            "note": null,
-            "year": 0,
-            "semester": 0,
-            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการ ที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำของ\nอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอหัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการแก้ปัญหาเชิง\nปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
-            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK  PROJECT  BASED\nBY APPLYING THE THEORETICAL  ASPECTS  OF THE INFORMATION  TECHNOLOGY\nSTUDIES UNDER THE SUPERISION OFA FACULTY MEMBER TO BE ABLE TO PRESENT A PROJECT PROPOSAL\nAND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS",
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit2560_page_178.png",
-                    "source_page": 178,
-                    "document_page": 101,
-                    "document_category": "description"
-                }
-            ]
-        },
-        {
-            "code": "06036020",
-            "name_th": "โครงงาน 2",
-            "name_en": "PROJECT 2",
-            "credits": "3(0-9-0)",
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "เลือก",
-            "prerequisite": "06036019",
-            "flexible_year_semester": "4/2",
-            "note": null,
-            "year": 0,
-            "semester": 0,
-            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการที่\nสามารถประยุกต์ ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำของ\nอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ ในหัวข้อที่ได้เสนอและศึกษาต่อ\nเนื่องมาจากวิชาโครงงาน 1",
-            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK  PROJECT BASED  BY APPLYING THE THEORETICAL  ASPECTS  OF THE  INFORMATION TECHNOLOGY\nSTUDIES UNDER THE SUPERISION OF\nFACULTY MEMBER TO BE ABLE TO PRESENT A COMPLETE RESULT\nOF THE PROPOSED TOPIC AND STUDY AS CONTINUED FROM PROJECT 1",
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit2560_page_178.png",
-                    "source_page": 178,
-                    "document_page": 101,
-                    "document_category": "description"
                 }
             ]
         },
@@ -1600,7 +1552,7 @@
         },
         {
             "code": "06036038",
-            "name_th": "การบริหารสมรรถนะของธุรกิจ",
+            "name_th": "การบริหารสมรรถะของธุรกิจ",
             "name_en": "BUSINESS PERFORMANCE MANAGEMENT",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1679,7 +1631,7 @@
         },
         {
             "code": "06036041",
-            "name_th": "การจัดการนวัตกรรมและความเปลี่ยนแปลง",
+            "name_th": "การนวัตกรรมและการจัดการการเปลี่ยนแปลง",
             "name_en": "INNOVATION AND CHANGE MANAGEMENT",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1793,6 +1745,54 @@
                     "source_filename": "bit2560_page_187.png",
                     "source_page": 187,
                     "document_page": 110,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036046",
+            "name_th": "สหกิจศึกษา",
+            "name_en": "COOPERATIVE EDUCATION",
+            "credits": "6(0-35-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน ต่างๆ ที่\nยินยอมใบ\nเห้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯๆ และ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE  EDUCATION\nIS\nA\nCOLLABORATED  EDUCATION  PROGRAM  BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE\nENTERPRISES.\nAFTER  COMPLETION,\nSTUDENTS\nNEED\nTO\nPRESENT\nTHEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2560_page_188.png",
+                    "source_page": 188,
+                    "document_page": 111,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036047",
+            "name_th": "สหกิจศึกษาต่างประเทศ",
+            "name_en": "OVERSEA COOPERATIVE EDUCATION",
+            "credits": "6(0-35-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": "4/2",
+            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "year": 0,
+            "semester": 0,
+            "desc_th": "วิชาสหกิจศึกษา เป็\nไนโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงาน\nนันๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ และ\n..\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A\nPROGRAM BETWEEN EDUCATIONAL INSTITUTES AND\nENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. AFTER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2560_page_188.png",
+                    "source_page": 188,
+                    "document_page": 111,
                     "document_category": "description"
                 }
             ]

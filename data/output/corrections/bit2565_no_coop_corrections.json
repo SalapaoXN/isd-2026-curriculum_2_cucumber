@@ -9,19 +9,13 @@
         "course_code": "06036101",
         "field": "name_th",
         "before": "เตศาสตร์ สำหรับธุรกิจ",
-        "after": "สถิติศาสตร์ สำหรับธุรกิจ"
+        "after": "สถิติศาสตร์สำหรับธุรกิจ"
     },
     {
         "course_code": "06036118",
         "field": "name_en",
         "before": "PROBLEM SOLVNG IN INFORMATION TECHNOLOGV",
         "after": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY"
-    },
-    {
-        "course_code": "96641001",
-        "field": "name_th",
-        "before": "โรงเรียนสรางเสนห์",
-        "after": "โรงเรียนสร้างเสน่ห์"
     },
     {
         "course_code": "96641003",
@@ -36,112 +30,22 @@
         "after": "กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ"
     },
     {
-        "course_code": "06036109",
-        "field": "name_en",
-        "before": "BUSINESS PROCESSES AND BUSIESS MODEL",
-        "after": "BUSINESS PROCESSES AND BUSINESS MODEL"
-    },
-    {
         "course_code": "06036119",
         "field": "name_en",
         "before": "PROCRAMMING FUNDAMENTALS",
         "after": "PROGRAMMING FUNDAMENTALS"
     },
     {
-        "course_code": "06036125",
-        "field": "name_en",
-        "before": "COMPUTER ARCHITECTURE AND OPERATING SSTEM",
-        "after": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM"
-    },
-    {
-        "course_code": "96641002",
-        "field": "name_en",
-        "before": "DIGITAL ITELLIGENCE QUOTIENT",
-        "after": "DIGITAL INTELLIGENCE QUOTIENT"
-    },
-    {
-        "course_code": "06036105",
+        "course_code": "9664xxxx",
         "field": "name_th",
-        "before": "บัญชีการเงินสำหรับผู้มิใช่นักบัญริ",
-        "after": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี"
-    },
-    {
-        "course_code": "06036105",
-        "field": "name_en",
-        "before": "FINANCAL ACCOUNTING FOR NON ACCOUNTANTS",
-        "after": "FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS"
-    },
-    {
-        "course_code": "06036120",
-        "field": "name_en",
-        "before": "DATA STRUCTURES AND ALGORTHMS PRINCIPLES",
-        "after": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES"
-    },
-    {
-        "course_code": "06036111",
-        "field": "name_en",
-        "before": "DIGITAL TECHNOLOCY FOR BUSIESS",
-        "after": "DIGITAL TECHNOLOGY FOR BUSINESS"
-    },
-    {
-        "course_code": "06036112",
-        "field": "name_en",
-        "before": "DATABASE SVSTEM CONCEPTS",
-        "after": "DATABASE SYSTEM CONCEPTS"
-    },
-    {
-        "course_code": "06036113",
-        "field": "name_th",
-        "before": "การออกแจเบบส่วนต่อประสานกับมนุษย์",
-        "after": "การออกแบบส่วนต่อประสานกับมนุษย์"
-    },
-    {
-        "course_code": "06036113",
-        "field": "name_en",
-        "before": "HUMAN ITERFACE DESIGN",
-        "after": "HUMAN INTERFACE DESIGN"
-    },
-    {
-        "course_code": "06036124",
-        "field": "name_en",
-        "before": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITV",
-        "after": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY"
+        "before": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
+        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1"
     },
     {
         "course_code": "9664xxxx",
         "field": "name_en",
         "before": "GE ELECTIE COURSE REOULREMENT 1",
         "after": "GE ELECTIVE COURSE REQUIREMENT 1"
-    },
-    {
-        "course_code": "06036107",
-        "field": "name_en",
-        "before": "INFORMATION TECHNOLOGV PROJECT MANAGEMENT",
-        "after": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
-    },
-    {
-        "course_code": "06036110",
-        "field": "name_en",
-        "before": "ENTERPRISE RESOURCE PLANNNG",
-        "after": "ENTERPRISE RESOURCE PLANNING"
-    },
-    {
-        "course_code": "06036114",
-        "field": "name_en",
-        "before": "WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS",
-        "after": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
-    },
-    {
-        "course_code": "06036121",
-        "field": "name_en",
-        "before": "BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN",
-        "after": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN"
-    },
-    {
-        "course_code": "06036123",
-        "field": "name_en",
-        "before": "CLOUD TECHNOLOCY",
-        "after": "CLOUD TECHNOLOGY"
     },
     {
         "course_code": "96644xxx",
@@ -166,18 +70,6 @@
         "field": "name_en",
         "before": "PROJECT IV BUSINESS INFORMATION TECHNOLOCY 1",
         "after": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1"
-    },
-    {
-        "course_code": "96643021",
-        "field": "name_th",
-        "before": "ผูประกอบการสมัยใหม่",
-        "after": "ผู้ประกอบการสมัยใหม่"
-    },
-    {
-        "course_code": "06036115",
-        "field": "name_th",
-        "before": "ความมนคงของระบบสารสนเทศ",
-        "after": "ความมั่นคงของระบบสารสนเทศ"
     },
     {
         "course_code": "06036115",
@@ -208,6 +100,12 @@
         "field": "name_en",
         "before": "GE ELECTIE COURSE REOUIREMENT 2",
         "after": "GE ELECTIVE COURSE REQUIREMENT 2"
+    },
+    {
+        "course_code": "06036xxx",
+        "field": "name_th",
+        "before": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
+        "after": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4"
     },
     {
         "course_code": "06036xxx",
@@ -315,36 +213,6 @@
         "course_code": "06036147 หรือ 06036148",
         "field": "name_en",
         "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIE EDUCATION",
-        "after": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION"
-    },
-    {
-        "course_code": "06036101",
-        "field": "name_th",
-        "before": "สถิติศาสตร์ สำหรับธุรกิจ",
-        "after": "คณิตศาสตร์สำหรับธุรกิจ"
-    },
-    {
-        "course_code": "96644042",
-        "field": "name_th",
-        "before": "กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ",
-        "after": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
-    },
-    {
-        "course_code": "96644042",
-        "field": "note",
-        "before": null,
-        "after": "กลุ่มวิชาที่กำหนดโดยคณะ"
-    },
-    {
-        "course_code": "96642033",
-        "field": "name_th",
-        "before": "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
-        "after": "กฎหมายสำหรับคนรุ่นใหม่"
-    },
-    {
-        "course_code": "96642033",
-        "field": "note",
-        "before": null,
-        "after": "กลุ่มวิชาที่กำหนดโดยคณะ"
+        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
     }
 ]

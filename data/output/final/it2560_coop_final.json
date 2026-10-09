@@ -1011,7 +1011,7 @@
         },
         {
             "code": "06016333",
-            "name_th": "เทคโนโลยีการให้บริการอินเตอร์เน็ต",
+            "name_th": "เทคโนโลยีการให้บริการอินเทอร์เน็ต",
             "name_en": "INTERNET SERVICE TECHNOLOGY",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1775,7 +1775,7 @@
         {
             "code": "060163xx",
             "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 2",
-            "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2 9OXXX 2",
+            "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",

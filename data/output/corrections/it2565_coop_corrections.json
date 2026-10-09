@@ -1,6 +1,12 @@
 [
     {
         "course_code": "06016401",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06016401",
         "field": "name_en",
         "before": "MATHEMATICS FOR INFORMATION TECHNOLOCY",
         "after": "MATHEMATICS FOR INFORMATION TECHNOLOGY"
@@ -26,8 +32,14 @@
     {
         "course_code": "90641003",
         "field": "name_en",
-        "before": "SPORTS AND RECREATIONAL ACTMTIES",
+        "before": "SPORTS AND RECREATIONAL ACTMITIES",
         "after": "SPORTS AND RECREATIONAL ACTIVITIES"
+    },
+    {
+        "course_code": "90644007",
+        "field": "name_th",
+        "before": "ภาษาอังกฤษพืนฐาน 1",
+        "after": "ภาษาอังกฤษพื้นฐาน 1"
     },
     {
         "course_code": "06016408",
@@ -64,6 +76,12 @@
         "field": "name_en",
         "before": "MULTMMEDLA TECHNOLOCY",
         "after": "MULTIMEDIA TECHNOLOGY"
+    },
+    {
+        "course_code": "06016409",
+        "field": "name_th",
+        "before": "การประมวลทางกายภาพ",
+        "after": "การประมวลผลทางกายภาพ"
     },
     {
         "course_code": "06016409",
@@ -135,7 +153,7 @@
         "course_code": "06016414",
         "field": "name_en",
         "before": "NOSOL DATABASE SYSTEMS",
-        "after": "NOSQL DATABASE SYSTEMS"
+        "after": "NoSQL DATABASE SYSTEMS"
     },
     {
         "course_code": "06016415",
@@ -177,7 +195,7 @@
         "course_code": "06016416",
         "field": "name_en",
         "before": "REOUIREMENT ENGINEERING",
-        "after": "REQUIREMENT ENGINEERING"
+        "after": "REQUIREMENTS ENGINEERING"
     },
     {
         "course_code": "06016417",
@@ -240,16 +258,52 @@
         "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
     },
     {
-        "course_code": "060164xx",
+        "course_code": "06016481 หรือ 06016482",
         "field": "name_en",
-        "before": "ELECTIE COURSE INV INFORMATION TECHNOLOGV 1",
-        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1"
+        "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
+    },
+    {
+        "course_code": "06016406",
+        "field": "name_th",
+        "before": "ไม่ระบุ 1",
+        "after": "โครงงาน 1"
+    },
+    {
+        "course_code": "06016406",
+        "field": "name_en",
+        "before": "PROECT 1",
+        "after": "PROJECT 1"
     },
     {
         "course_code": "060164xx",
         "field": "name_en",
-        "before": "ELECTIE COURSE INV INFORMATION TECHNOLOGV 2",
-        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2"
+        "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 1",
+        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1"
+    },
+    {
+        "course_code": "9064xxxx",
+        "field": "name_th",
+        "before": "วิชาเลือก หมวดศึกษาทัวไป 1",
+        "after": "วิชาเลือก หมวดศึกษาทั่วไป 1"
+    },
+    {
+        "course_code": "06016407",
+        "field": "name_th",
+        "before": "ไม่ระบุ 2",
+        "after": "โครงงาน 2"
+    },
+    {
+        "course_code": "06066100",
+        "field": "name_en",
+        "before": "INFORMATION TECHNOLGY PROJECT MANAGEMENT",
+        "after": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
+    },
+    {
+        "course_code": "90642033",
+        "field": "name_en",
+        "before": "LAW FOR NEW GENERATLON",
+        "after": "LAW FOR NEW GENERATION"
     },
     {
         "course_code": "90644042",
@@ -258,46 +312,10 @@
         "after": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
     },
     {
-        "course_code": "060164xx",
-        "field": "name_en",
-        "before": "ELECTIE COURSE IN INFORMATION TECHNOLOGY 3",
-        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 3"
-    },
-    {
-        "course_code": "90643021",
-        "field": "name_th",
-        "before": "ผู้ ประกอบการสมัยใหม่",
-        "after": "ผู้ประกอบการสมัยใหม่"
-    },
-    {
         "course_code": "9064xxxx",
         "field": "name_th",
-        "before": "วิชาเลือกหมวดศึกษาทัวไป",
-        "after": "วิชาเลือกหมวดศึกษาทั่วไป"
-    },
-    {
-        "course_code": "xxxxxxxx",
-        "field": "name_en",
-        "before": "FREE ELECTIE COURSE",
-        "after": "FREE ELECTIVE COURSE"
-    },
-    {
-        "course_code": "9064xxxx",
-        "field": "name_th",
-        "before": "วิชาเลือกหมวดศึกษาทัวไป 2",
-        "after": "วิชาเลือกหมวดศึกษาทั่วไป 2"
-    },
-    {
-        "course_code": "9064xxxx",
-        "field": "name_en",
-        "before": "ELECTIE COURSE IN GENERAL EDUCATION 2",
-        "after": "ELECTIVE COURSE IN GENERAL EDUCATION 2"
-    },
-    {
-        "course_code": "xxxxxxxx",
-        "field": "name_en",
-        "before": "FREE ELECTIE COURSE 2",
-        "after": "FREE ELECTIVE COURSE 2"
+        "before": "วิชาเลือก หมวดศึกษาทัวไป 2",
+        "after": "วิชาเลือก หมวดศึกษาทั่วไป 2"
     },
     {
         "course_code": "06016428",
@@ -382,6 +400,12 @@
         "field": "name_en",
         "before": "GAME DEVELOPMENT WTH REALTV TECHNOLOGY",
         "after": "GAME DEVELOPMENT WITH REALITY TECHNOLOGY"
+    },
+    {
+        "course_code": "06016452",
+        "field": "name_en",
+        "before": "SUPPLX CHAIN MANAGEMENT AND LOGISTICS",
+        "after": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS"
     },
     {
         "course_code": "06016453",

@@ -24,12 +24,6 @@
         "after": "INTRODUCTION TO MATHEMATICAL ECONOMICS"
     },
     {
-        "course_code": "06036002",
-        "field": "name_th",
-        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
-        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
-    },
-    {
         "course_code": "06036022",
         "field": "name_en",
         "before": "COMPUTER PROGRAMMNG",
@@ -216,16 +210,10 @@
         "after": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS"
     },
     {
-        "course_code": "06036038",
-        "field": "name_th",
-        "before": "การบริหารสมรรถะของธุรกิจ",
-        "after": "การบริหารสมรรถนะของธุรกิจ"
-    },
-    {
         "course_code": "06036041",
         "field": "name_th",
         "before": "พทัตพาสาพชีาEพพลีทNHททCาE",
-        "after": "การจัดการนวัตกรรมและความเปลี่ยนแปลง"
+        "after": "การนวัตกรรมและการจัดการการเปลี่ยนแปลง"
     },
     {
         "course_code": "06036042",

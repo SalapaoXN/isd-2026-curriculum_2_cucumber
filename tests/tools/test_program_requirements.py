@@ -1,4 +1,6 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 from src.pipeline.tools.extraction.program_requirements import (
     ProgramRequirementExtractionError,
@@ -27,7 +29,7 @@ class ProgramRequirementsTests(unittest.TestCase):
                 "4. จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร",
                 "129 หน่วยกิต",
             ],
-            source_filename="it_page_006.png",
+            source_filename="it2565_page_006.png",
             source_page=6,
             document_page=1,
         )
@@ -48,7 +50,7 @@ class ProgramRequirementsTests(unittest.TestCase):
         result = extract_program_requirement_from_lines(
             "DSBA",
             ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "๑๓๒ หน่วยกิต"],
-            source_filename="dsba_page_006.png",
+            source_filename="dsba2565_page_006.png",
             source_page=6,
         )
         self.assertEqual(result["value"], 132)
@@ -58,7 +60,7 @@ class ProgramRequirementsTests(unittest.TestCase):
             extract_program_requirement_from_lines(
                 "AIT",
                 ["รายละเอียดหลักสูตร", "120 หน่วยกิต"],
-                source_filename="ait_page_005.png",
+                source_filename="ait2566_page_005.png",
                 source_page=5,
             )
 
@@ -71,21 +73,25 @@ class ProgramRequirementsTests(unittest.TestCase):
                     "126 หน่วยกิต",
                     "129 หน่วยกิต",
                 ],
-                source_filename="bit_page_006.png",
+                source_filename="bit2565_page_006.png",
                 source_page=6,
             )
 
     def test_all_configured_sources_are_extracted_independently(self):
         pages = {
-            "ait_page_005.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "120 หน่วยกิต"],
-            "bit_page_006.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "126 หน่วยกิต"],
-            "dsba_page_006.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "132 หน่วยกิต"],
-            "it_page_006.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "129 หน่วยกิต"],
+            "ait2566_page_005.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "120 หน่วยกิต"],
+            "bit2565_page_006.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "126 หน่วยกิต"],
+            "dsba2565_page_006.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "132 หน่วยกิต"],
+            "it2565_page_006.png": ["จำนวนหน่วยกิตที่เรียนตลอดหลักสูตร", "129 หน่วยกิต"],
         }
-        results = extract_program_requirements(
-            "data/input/rule",
-            ocr_engine=FakeOCREngine(pages),
-        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_dir = Path(temp_dir)
+            for filename in pages:
+                (source_dir / filename).write_bytes(b"image")
+            results = extract_program_requirements(
+                source_dir,
+                ocr_engine=FakeOCREngine(pages),
+            )
 
         self.assertEqual(
             {item["program"]: item["value"] for item in results},
@@ -94,10 +100,10 @@ class ProgramRequirementsTests(unittest.TestCase):
         self.assertEqual(
             [item["source_provenance"][0]["source_filename"] for item in results],
             [
-                "ait_page_005.png",
-                "bit_page_006.png",
-                "dsba_page_006.png",
-                "it_page_006.png",
+                "ait2566_page_005.png",
+                "bit2565_page_006.png",
+                "dsba2565_page_006.png",
+                "it2565_page_006.png",
             ],
         )
 
@@ -211,9 +217,9 @@ class PlanTotalRequirementTests(unittest.TestCase):
              "รวมตลอดหลักสูตร 126 หน่วยกิต"),
             ("dsba-2560", "coop", 126, "dsba2560_page_034.png", 34, 29,
              "รวมตลอดหลักสูตร 126 หน่วยกิต"),
-            ("dsba-2565", "no_coop", 132, "dsba_page_032.png", 32, 27,
+            ("dsba-2565", "no_coop", 132, "dsba2565_page_032.png", 32, 27,
              "รวมตลอดหลักสูตร 132 หน่วยกิต"),
-            ("dsba-2565", "coop", 132, "dsba_page_039.png", 39, 34,
+            ("dsba-2565", "coop", 132, "dsba2565_page_039.png", 39, 34,
              "รวมตลอดหลักสูตร 132 หน่วยกิต"),
         ]
         records = []
@@ -252,7 +258,7 @@ class PlanTotalRequirementTests(unittest.TestCase):
             scope="GENED",
             source_provenance=[{
                 "program": "GENED",
-                "source_filename": "gened_page_030.png",
+                "source_filename": "gened2564_page_030.png",
                 "source_page": 30,
                 "document_category": "plan",
                 "plan": "gened",
@@ -268,7 +274,7 @@ class PlanTotalRequirementTests(unittest.TestCase):
             scope="GENED",
             source_provenance=[{
                 "program": "GENED",
-                "source_filename": "gened_page_030.png",
+                "source_filename": "gened2564_page_030.png",
                 "source_page": 30,
                 "document_category": "plan",
                 "plan": "gened",

@@ -1,18 +1,14 @@
 {
-    "source": "OCR extraction / Academic Plan - BIT no_coop",
-    "description": "OCR-extracted curriculum records for BIT (plan no_coop)",
+    "source": "OCR extraction / Academic Plan - BIT coop",
+    "description": "OCR-extracted curriculum records for BIT (plan coop)",
     "program": "BIT",
-    "catalog": {
-        "catalog_key": "bit-2565",
-        "academic_year": "2565"
-    },
-    "plan": "no_coop",
+    "plan": "coop",
     "total_courses": 63,
     "courses": [
         {
             "code": "06036100",
             "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
-            "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+            "name_en": "INFORMATION TECHNOLOGV FUNDAMENTALS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -24,14 +20,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_238_ocr.json",
+                    "source_filename": "bit2565_page_238.png",
                     "source_page": 238,
                     "document_category": "description",
                     "document_page": 233
@@ -42,7 +38,7 @@
         },
         {
             "code": "06036101",
-            "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
+            "name_th": "คณิตศาสตร์ สำหรับธุรกิจ",
             "name_en": "MATHEMATICS FOR BUSINESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -55,14 +51,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_238_ocr.json",
+                    "source_filename": "bit2565_page_238.png",
                     "source_page": 238,
                     "document_category": "description",
                     "document_page": 233
@@ -74,7 +70,7 @@
         {
             "code": "06036118",
             "name_th": "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
-            "name_en": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
+            "name_en": "PROBLEM SOLNG IN INFORMATION TECHNOLOGV",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -86,14 +82,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_246_ocr.json",
+                    "source_filename": "bit2565_page_246.png",
                     "source_page": 246,
                     "document_category": "description",
                     "document_page": 241
@@ -104,7 +100,7 @@
         },
         {
             "code": "96641001",
-            "name_th": "โรงเรียนสร้างเสน่ห์",
+            "name_th": "โรงเรียนสรางเสนห์",
             "name_en": "CHARM SCHOOL",
             "credits": "2(1-2-3)",
             "category": "หมวดวิชาเฉพาะ",
@@ -117,8 +113,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -127,7 +123,7 @@
         {
             "code": "96641003",
             "name_th": "กีฬาและนันทนาการ",
-            "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
+            "name_en": "SPORTS AND RECREATIONAL ACTIITIES",
             "credits": "1(0-3-2)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -139,8 +135,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -161,8 +157,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -177,14 +173,14 @@
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
-            "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
+            "note": null,
             "year": 1,
             "semester": 1,
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_026_ocr.json",
-                    "source_page": 26,
+                    "source_filename": "bit2565_page_031.png",
+                    "source_page": 31,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -205,14 +201,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_239_ocr.json",
+                    "source_filename": "bit2565_page_239.png",
                     "source_page": 239,
                     "document_category": "description",
                     "document_page": null
@@ -224,7 +220,7 @@
         {
             "code": "06036109",
             "name_th": "กระบวนการและโมเดลทางธุรกิจ",
-            "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
+            "name_en": "BUSINESS PROCESSES AND BUSIESS MODEL",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -236,14 +232,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_242_ocr.json",
+                    "source_filename": "bit2565_page_242.png",
                     "source_page": 242,
                     "document_category": "description",
                     "document_page": null
@@ -255,7 +251,7 @@
         {
             "code": "06036119",
             "name_th": "พื้นฐานการเขียนโปรแกรม",
-            "name_en": "PROGRAMMING FUNDAMENTALS",
+            "name_en": "PROCRAMMNG FUNDAMENTALS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -267,14 +263,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_246_ocr.json",
+                    "source_filename": "bit2565_page_246.png",
                     "source_page": 246,
                     "document_category": "description",
                     "document_page": 241
@@ -286,7 +282,7 @@
         {
             "code": "06036125",
             "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
-            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
+            "name_en": "COMPUTER ARCHITECTURE AND OPERATING SSTEM",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -298,21 +294,21 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_248_ocr.json",
+                    "source_filename": "bit2565_page_248.png",
                     "source_page": 248,
                     "document_category": "description",
                     "document_page": 243
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_249_ocr.json",
+                    "source_filename": "bit2565_page_249.png",
                     "source_page": 249,
                     "document_category": "description",
                     "document_page": 244
@@ -320,28 +316,6 @@
             ],
             "desc_th": "วิวัฒนาการของคอมพิวเตอร์,\nพื้นฐานความรู้เกี่ยวกับคอมพิวเตอร์, การคำนวณทางคณิตศาสตร์ ใน\nคอมพิวเตอร์, ข้อมูลและการส่งข้อมูล, ฺสถาปัตยกรรมของหน่วยความจำบัสและหน่วยความจำเคช, การ\nเชื่อมต่อและการสื่อสาร, โครงสร้างของหน่วยประมวลผล, การคำนวณแบบขนานและไปทไลน์, เทคโนโลยี\nของไมโครโพรเซสเ\nอินเตอร์รัพท์, การทำดีเอ็มเอ, โปรแกรมอินพทเอาต์พุต, ระบบปฏิบัติการ, โปรเซส\nและ เทรด, การจัดการหน่วยความจำของระบบปฏิบัติการ, การจัดการไฟล์",
             "desc_en": "COMPUTER  EVOLUTION,\nBASIC  COMPUTER  KNOWLEDGE,\nMATHEMATICAL\nCALCULATION\nIN\nCOMPUTER., DATA PRESENTATION AND TRANSFERENCE, ARCHITECTURE OF MEMORY UNIT, BUS AND CACHE,\nCONNECTION AND COMMUNICATION., STRUCTURE OF CENTRAL  PROCESSING UNIT, PARALLEL COMPUTING\nAND  PIPELINE,  MICROPROCESSOR  TECHNOLOGY,  INTERRUPT,\nDMA,\nTHE  PROGRAM\nVO, OPERATING\nSYSTEM., PROCESS AND THREAD., MEMORY MANAGEMENT AND FILE SYSTEM."
-        },
-        {
-            "code": "96641002",
-            "name_th": "ความฉลาดทางดิจิทัล",
-            "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
-            "credits": "3(3-0-6)",
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 1,
-            "semester": 2,
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
-                    "document_page": null,
-                    "document_category": "plan"
-                }
-            ]
         },
         {
             "code": "96644008",
@@ -358,8 +332,30 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "96641002",
+            "name_th": "ความฉลาดทางดิจิทัล",
+            "name_en": "DIGITAL ITELLIGENCE QUOTIENT",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 1,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -380,21 +376,21 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_239_ocr.json",
+                    "source_filename": "bit2565_page_239.png",
                     "source_page": 239,
                     "document_category": "description",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_240_ocr.json",
+                    "source_filename": "bit2565_page_240.png",
                     "source_page": 240,
                     "document_category": "description",
                     "document_page": null
@@ -418,14 +414,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_240_ocr.json",
+                    "source_filename": "bit2565_page_240.png",
                     "source_page": 240,
                     "document_category": "description",
                     "document_page": null
@@ -436,8 +432,8 @@
         },
         {
             "code": "06036105",
-            "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
-            "name_en": "FINANCIAL ACCOUNTING FOR NON ACCOUNTANTS",
+            "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญริ",
+            "name_en": "FINANCAL ACCOUNTING FOR NON ACCOUNTANTS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -449,14 +445,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_240_ocr.json",
+                    "source_filename": "bit2565_page_240.png",
                     "source_page": 240,
                     "document_category": "description",
                     "document_page": null
@@ -480,33 +476,33 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_245_ocr.json",
+                    "source_filename": "bit2565_page_245.png",
                     "source_page": 245,
                     "document_category": "description",
                     "document_page": 240
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_246_ocr.json",
+                    "source_filename": "bit2565_page_246.png",
                     "source_page": 246,
                     "document_category": "description",
                     "document_page": 241
                 }
             ],
             "desc_th": "ธุรกิจอัจฉริยะ (BUSINESS INTELLIGENCE) และส่วนประกอบของมัน ข้อมูลขนาดใหญ่ (BIG DATA)\nและการวิเคราะห์ข้อมูลขนาดใหญ่ (BIG DATA ANALYTICS) ลักษณะเฉพาะ 5",
-            "desc_en": "VOLUME\nลมหาศาล ฺขนาดใหญ่) VARIETY (\nรูปแบบที่ไม่แน่นอน) VELOCITY (เข้อมูลที่จะต้องวิเคราะห์เข้าสู่ระบบฐานข้อมูลอย่างรวดเร็ว\nความสำคัญกับข้อมูลที่เป็น\nREAL\nTIME) VERACITY (ความถูกต้อง ครบถ้วนของข้อมูล) และ VALUE\nที่สามารถนำมาใช้งานได้จริง) การทำคลังข้อมูล (DATA WAREHOUSING) การทำเหมืองข้อมูล (DATA MINING)\nการวิเคราะห์ ข้อมูลขนาดใหญ่ (BIG DATA ANALYTICS) การทำรายงานเชิงวิเคราะห์ (ANALYTICAL REPORTING)\nการแสดงผลข้อมูล (DATA VISUALIZATION)\nBUSINESS INTELLIGENCE  (BI) AND\nITS  COMPONENTS, BIG\nDATA\nAND  BIG\nDATA ANALYTICS,\nFOCUSING ON TECHNOLOGIES, WHICH ALLOW BUSINESS USERS TO GATHER., STORE, ACCESS AND ANALYZE\nBIG DATA TO IMPROVE THE BUSINESS DECISION MAKING CAPABILITIES, CHARACTERISTICS OF\nDATA:\nVOLUME, VARIETY., VELOCITY, VERACITY AND VALUE, DATA  WAREHOUSING, DATA  MINING  (BIG  DATA\nANALYTICS), ANALYTICAL REPORTING, DATA VISUALIZATION."
+            "desc_en": "VOLUME\nลมหาศาล ฺขนาดใหญ่) VARIETY (\nรูปแบบที่ไม่แน่นอน) VELOCITY (\nความสำคัญกับข้อมูลที่เป็น\nREAL\nTIME) VERACITY (ความถูกต้อง ครบถ้วนของข้อมูล) และ VALUE\nที่สามารถนำมาใช้งานได้จริง) การทำคลังข้อมูล (DATA WAREHOUSING) การทำเหมืองข้อมูล (DATA MINING)\nการวิเคราะห์ ข้อมูลขนาดใหญ่ (BIG DATA ANALYTICS) การทำรายงานเชิงวิเคราะห์ (ANALYTICAL REPORTING)\nการแสดงผลข้อมูล (DATA VISUALIZATION)\nBUSINESS INTELLIGENCE  (BI) AND\nITS  COMPONENTS, BIG\nDATA\nAND  BIG\nDATA ANALYTICS,\nFOCUSING ON TECHNOLOGIES, WHICH ALLOW BUSINESS USERS TO GATHER., STORE, ACCESS AND ANALYZE\nBIG DATA TO IMPROVE THE BUSINESS DECISION MAKING CAPABILITIES, CHARACTERISTICS OF\nDATA:\nVOLUME, VARIETY., VELOCITY, VERACITY AND VALUE, DATA  WAREHOUSING, DATA  MINING  (BIG  DATA\nANALYTICS), ANALYTICAL REPORTING, DATA VISUALIZATION."
         },
         {
             "code": "06036120",
             "name_th": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
-            "name_en": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
+            "name_en": "DATA STRUCTURES AND ALGORTHMS PRINCIPLES",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -518,21 +514,21 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_246_ocr.json",
+                    "source_filename": "bit2565_page_246.png",
                     "source_page": 246,
                     "document_category": "description",
                     "document_page": 241
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_247_ocr.json",
+                    "source_filename": "bit2565_page_247.png",
                     "source_page": 247,
                     "document_category": "description",
                     "document_page": 242
@@ -556,14 +552,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_027_ocr.json",
-                    "source_page": 27,
+                    "source_filename": "bit2565_page_032.png",
+                    "source_page": 32,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_247_ocr.json",
+                    "source_filename": "bit2565_page_247.png",
                     "source_page": 247,
                     "document_category": "description",
                     "document_page": 242
@@ -587,14 +583,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_242_ocr.json",
+                    "source_filename": "bit2565_page_242.png",
                     "source_page": 242,
                     "document_category": "description",
                     "document_page": null
@@ -606,7 +602,7 @@
         {
             "code": "06036111",
             "name_th": "เทคโนโลยีดิจิทัลสำหรับธุรกิจ",
-            "name_en": "DIGITAL TECHNOLOGY FOR BUSINESS",
+            "name_en": "DIGITAL TECHNOLOCY FOR BUSIESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -618,14 +614,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_243_ocr.json",
+                    "source_filename": "bit2565_page_243.png",
                     "source_page": 243,
                     "document_category": "description",
                     "document_page": null
@@ -637,7 +633,7 @@
         {
             "code": "06036112",
             "name_th": "แนวคิดระบบฐานข้อมูล",
-            "name_en": "DATABASE SYSTEM CONCEPTS",
+            "name_en": "DATABASE SVSTEM CONCEPTS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -649,21 +645,21 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_243_ocr.json",
+                    "source_filename": "bit2565_page_243.png",
                     "source_page": 243,
                     "document_category": "description",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_244_ocr.json",
+                    "source_filename": "bit2565_page_244.png",
                     "source_page": 244,
                     "document_category": "description",
                     "document_page": 239
@@ -674,8 +670,8 @@
         },
         {
             "code": "06036113",
-            "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
-            "name_en": "HUMAN INTERFACE DESIGN",
+            "name_th": "การออกแจเบบส่วนต่อประสานกับมนุษย์",
+            "name_en": "HUMAN ITERFACE DESIGN",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -687,14 +683,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_244_ocr.json",
+                    "source_filename": "bit2565_page_244.png",
                     "source_page": 244,
                     "document_category": "description",
                     "document_page": 239
@@ -706,7 +702,7 @@
         {
             "code": "06036124",
             "name_th": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น",
-            "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
+            "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITV",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -718,14 +714,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_248_ocr.json",
+                    "source_filename": "bit2565_page_248.png",
                     "source_page": 248,
                     "document_category": "description",
                     "document_page": 243
@@ -736,7 +732,7 @@
         },
         {
             "code": "9664xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1",
             "name_en": "GE ELECTIVE COURSE REQUIREMENT 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -749,8 +745,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -759,7 +755,7 @@
         {
             "code": "06036107",
             "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
-            "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+            "name_en": "INFORMATION TECHNOLOGV PROJECT MANAGEMENT",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -771,14 +767,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_241_ocr.json",
+                    "source_filename": "bit2565_page_241.png",
                     "source_page": 241,
                     "document_category": "description",
                     "document_page": null
@@ -790,7 +786,7 @@
         {
             "code": "06036110",
             "name_th": "การวางแผนทรัพยากรองค์กร",
-            "name_en": "ENTERPRISE RESOURCE PLANNING",
+            "name_en": "ENTERPRISE RESOURCE PLANNNG",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -802,14 +798,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_243_ocr.json",
+                    "source_filename": "bit2565_page_243.png",
                     "source_page": 243,
                     "document_category": "description",
                     "document_page": null
@@ -821,7 +817,7 @@
         {
             "code": "06036114",
             "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
-            "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+            "name_en": "WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -833,14 +829,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_244_ocr.json",
+                    "source_filename": "bit2565_page_244.png",
                     "source_page": 244,
                     "document_category": "description",
                     "document_page": 239
@@ -852,7 +848,7 @@
         {
             "code": "06036121",
             "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ",
-            "name_en": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
+            "name_en": "BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -864,14 +860,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_247_ocr.json",
+                    "source_filename": "bit2565_page_247.png",
                     "source_page": 247,
                     "document_category": "description",
                     "document_page": 242
@@ -883,7 +879,7 @@
         {
             "code": "06036123",
             "name_th": "เทคโนโลยีกลุ่มเมฆ",
-            "name_en": "CLOUD TECHNOLOGY",
+            "name_en": "CLOUD TECHNOLOCY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -895,14 +891,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_248_ocr.json",
+                    "source_filename": "bit2565_page_248.png",
                     "source_page": 248,
                     "document_category": "description",
                     "document_page": 243
@@ -926,8 +922,8 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_028_ocr.json",
-                    "source_page": 28,
+                    "source_filename": "bit2565_page_033.png",
+                    "source_page": 33,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -948,14 +944,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
+                    "source_filename": "bit2565_page_034.png",
+                    "source_page": 34,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_241_ocr.json",
+                    "source_filename": "bit2565_page_241.png",
                     "source_page": 241,
                     "document_category": "description",
                     "document_page": null
@@ -979,56 +975,25 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
+                    "source_filename": "bit2565_page_034.png",
+                    "source_page": 34,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_245_ocr.json",
+                    "source_filename": "bit2565_page_245.png",
                     "source_page": 245,
                     "document_category": "description",
                     "document_page": 240
                 }
             ],
-            "desc_th": "ธุรกิจและการตลาดร่วมสมัย ฺโฆษณา Yออนไลน์และออฟไลน์ในโลกดิจิทัล เช่น โทรทัศน์\nการค้นหา วิดีโอ และโฆษณาบนมือถือ ฯลฯ การโฆษณาดิจิทัลและการจัดการสื่อ\nแคมเปญการสื่อสาร\nการตลาดและการวางแผนการประเมินผล\nเกลยุทธ์แบรนด์ โซเซียลมีเดียสำหรับการจัดการแบรนด์และการ\nโฆษณา",
+            "desc_th": "ธุรกิจและการตลาดร่วมสมัย ฺโฆษณา Yออนไลน์และออฟไลน์ในโลกดิจิทัล เช่น\nการค้นหา วิดีโอ และโฆษณาบนมือถือ ฯลฯ การโฆษณาดิจิทัลและการจัดการสื่อ\nแคมเปญการสื่อสาร\nการตลาดและการวางแผนการประเมินผล\nเกลยุทธ์แบรนด์ โซเซียลมีเดียสำหรับการจัดการแบรนด์และการ\nโฆษณา",
             "desc_en": "CONTEMPORARY BUSINESS AND MARKETING, ONLINE AND OFFLINE ADVERTISING IN DIGITAL WORLD.,\nE.G., TELEVISION, DISPLAY., SEARCH., VIDEO, AND MOBILE ADVERTISING, ETC., DIGITAL ADVERTISING AND\nMEDIA MANAGEMENT, MARKETING COMMUNICATIONS CAMPAIGN AND EVALUATION PLANNING,  BRAND\nSTRATEGY., SOCIAL MEDIA FOR BRAND MANAGEMENT AND ADVERTISING."
         },
         {
-            "code": "06036145",
-            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1",
-            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1",
-            "credits": "3(0-9-0)",
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 3,
-            "semester": 2,
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
-                    "document_category": "plan",
-                    "document_page": null
-                },
-                {
-                    "program": "BIT",
-                    "source_filename": "bit_page_256_ocr.json",
-                    "source_page": 256,
-                    "document_category": "description",
-                    "document_page": null
-                }
-            ],
-            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการ ที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำ\nของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอ หัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการแก้บัญหาเชิง\nปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
-            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK\nPROJECT BASED BY APPLYING THE THEORETICAL  ASPECTS OF THE INFORMATION TECHNOLOGY\nSTUDIES UNDER THE SUPERVISION OFA FACULTY MEMBER TO BE ABLE TO PRESENT A PROJECT PROPOSAL\nAND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS."
-        },
-        {
             "code": "96643021",
-            "name_th": "ผู้ประกอบการสมัยใหม่",
+            "name_th": "ผูประกอบการสมัยใหม่",
             "name_en": "MODERN ENTREPRENEURS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1041,8 +1006,52 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
+                    "source_filename": "bit2565_page_034.png",
+                    "source_page": 34,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "06036xxx",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่มวิชาที่ 1-4",
+            "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4",
+            "credits": "หรือ 3(2-2-5)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2565_page_034.png",
+                    "source_page": 34,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 1",
+            "name_en": "FREE ELECTIVE COURSE 1",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 3,
+            "semester": 2,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2565_page_034.png",
+                    "source_page": 34,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -1050,8 +1059,8 @@
         },
         {
             "code": "06036115",
-            "name_th": "ความมั่นคงของระบบสารสนเทศ",
-            "name_en": "INFORMATION SYSTEM SECURITY",
+            "name_th": "ความมนคงของระบบสารสนเทศ",
+            "name_en": "INFORMATION SYSTEM SECURIT",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1063,14 +1072,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
+                    "source_filename": "bit2565_page_035.png",
+                    "source_page": 35,
                     "document_category": "plan",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_245_ocr.json",
+                    "source_filename": "bit2565_page_245.png",
                     "source_page": 245,
                     "document_category": "description",
                     "document_page": 240
@@ -1080,13 +1089,13 @@
             "desc_en": "BASIC\nINFORMATION\nSYSTEM  SECURITY,\nVULNERABILTIES,\nTHREATS,\nAND\nRISK,\nMALWARE,\nINTRODUCTION\nTO  INFORMATION  SECURITY., SOFTWARE  SECURITY,\nAND\nNETWORK  SECURITY., SECURITY\nIMPLEMENTATION, CRYPTOGRAPHY., IDENTITY MANAGEMENT, AUTHENTICATION\nAND  AUTHORIZATION,\nACCESS CONTROL, FIREWALLS, INFORMATION SECURITY MANAGEMENT SYSTEM."
         },
         {
-            "code": "06036146",
-            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
-            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
-            "credits": "3(0-9-0)",
+            "code": "96642033",
+            "name_th": "กฎหมายสำหรับคนรุนใหม่",
+            "name_en": "LAW FOR NEW GENERATION",
+            "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
-            "prerequisite": "06036145",
+            "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
             "note": null,
             "year": 4,
@@ -1094,38 +1103,52 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
-                    "document_category": "plan",
-                    "document_page": null
-                },
-                {
-                    "program": "BIT",
-                    "source_filename": "bit_page_256_ocr.json",
-                    "source_page": 256,
-                    "document_category": "description",
-                    "document_page": null
+                    "source_filename": "bit2565_page_035.png",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
                 }
-            ],
-            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ฺในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำ\nของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอและศึกษาต่อ\nเนื่องมาจากวิชาโครงงาน"
+            ]
         },
         {
-            "code": "96642033",
-            "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
-            "name_en": "LAW FOR NEW GENERATION",
-            "credits": "3(3-0-6)",
+            "code": "06036xxx",
+            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4",
+            "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4",
+            "credits": "หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
             "flexible_year_semester": null,
-            "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
+            "note": null,
             "year": 4,
             "semester": 1,
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
+                    "source_filename": "bit2565_page_035.png",
+                    "source_page": 35,
+                    "document_page": null,
+                    "document_category": "plan"
+                }
+            ]
+        },
+        {
+            "code": "xxxxxxxx",
+            "name_th": "วิชาเลือกเสรี 2",
+            "name_en": "FREE ELECTIVE COURSE 2",
+            "credits": "3(3-0-6)",
+            "category": "หมวดวิชาเสรี",
+            "type": "บังคับ",
+            "prerequisite": "ไม่มี",
+            "flexible_year_semester": null,
+            "note": null,
+            "year": 4,
+            "semester": 1,
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2565_page_035.png",
+                    "source_page": 35,
                     "document_page": null,
                     "document_category": "plan"
                 }
@@ -1146,18 +1169,18 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_029_ocr.json",
-                    "source_page": 29,
+                    "source_filename": "bit2565_page_035.png",
+                    "source_page": 35,
                     "document_page": null,
                     "document_category": "plan"
                 }
             ]
         },
         {
-            "code": "06036xxx",
-            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
-            "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4",
-            "credits": "หรือ 3(2-2-5)",
+            "code": "06036147 หรือ 06036148",
+            "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
+            "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
+            "credits": "6(0-35-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -1168,78 +1191,21 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_030_ocr.json",
-                    "source_page": 30,
-                    "document_page": null,
-                    "document_category": "plan"
-                }
-            ]
-        },
-        {
-            "code": "06036xxx",
-            "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4",
-            "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4",
-            "credits": "หรือ 3(2-2-5)",
-            "category": "หมวดวิชาเฉพาะ",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 4,
-            "semester": 2,
-            "source_provenance": [
+                    "source_filename": "bit2565_page_035.png",
+                    "source_page": 35,
+                    "document_category": "plan",
+                    "document_page": null
+                },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_030_ocr.json",
-                    "source_page": 30,
-                    "document_page": null,
-                    "document_category": "plan"
+                    "source_filename": "bit2565_page_257.png",
+                    "source_page": 257,
+                    "document_category": "description",
+                    "document_page": 252
                 }
-            ]
-        },
-        {
-            "code": "xxxxxxxx",
-            "name_th": "วิชาเลือกเสรี 1",
-            "name_en": "FREE ELECTIVE COURSE 1",
-            "credits": "3(3-0-6)",
-            "category": "หมวดวิชาเสรี",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 4,
-            "semester": 2,
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit_page_030_ocr.json",
-                    "source_page": 30,
-                    "document_page": null,
-                    "document_category": "plan"
-                }
-            ]
-        },
-        {
-            "code": "xxxxxxxx",
-            "name_th": "วิชาเลือกเสรี 2",
-            "name_en": "FREE ELECTIVE COURSE 2",
-            "credits": "3(3-0-6)",
-            "category": "หมวดวิชาเสรี",
-            "type": "บังคับ",
-            "prerequisite": "ไม่มี",
-            "flexible_year_semester": null,
-            "note": null,
-            "year": 4,
-            "semester": 2,
-            "source_provenance": [
-                {
-                    "program": "BIT",
-                    "source_filename": "bit_page_030_ocr.json",
-                    "source_page": 30,
-                    "document_page": null,
-                    "document_category": "plan"
-                }
-            ]
+            ],
+            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้า\n|นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นตโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่าง\nคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE  ENTERPRISES.\nAFTER\nCOMPLETION.,  STUDENTS\nNEED\nTO  PRESENT  THEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nA COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL INSTITUTES\nAND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. ATER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE."
         },
         {
             "code": "06036126",
@@ -1253,12 +1219,12 @@
             "note": null,
             "year": 0,
             "semester": 0,
-            "desc_th": "การประยุกต์เทคนิคการจัดการความต้องการ การวิเคราะห์ปัญหา การเข้าถึงและเก็บเกี่ยวความ\nJองการจากผู้ทีมีส่วนเกี่ยวข้องการจัดทำเอกสารความต้องการโดยใช้ยูสเคสโมเดล\nนตอนของเอกสารและมาตรฐานการกำหนดระดับของความต้องการ การนิยามระบบ การจัดการ\nขอบเ\n.ขตระบบและความคาดหวัง การกลันกรองความชัดเจนของระบบ การใช้งานคุณลักษณะของความ\nต้องการและติดตามย้อนรอยความต้องการ การบริหารจัดการการเปลี่ยนแปลงความต้องการที่เกิดขึน\nการนำความต้องการมาใช้ดำเนินการต่อในส่วนของการออกแบบ การทดสอบ และการจัดทำเอกสาร\nสำหรับผู้ ใช้งาน",
-            "desc_en": "APPLY REQUIREMENTS MANAGEMENT TECHNIQUES, ANALYZE THE PROBLEM, UNDERSTAND\nSTAKEHOLDER NEEDS, CAPTURE AND DOCUMENT REQUIREMENTS WITH USE-CASE MODELING, DESCRIBE\nA DOCUMENTATION HIERARCHY AND STANDARDS FOR DEFINING LEVELS OF REQUIREMENTS, DEFINE THE\nSYSTEM, MANAGE  SCOPE,\nREFINE THE SYSTEM  DEFINITION,\nUSE\nREQUIREMENT  ATTRIBUTES AND\nTRACEABILITY, MANAGE CHANGING REQUIREMENTS,\nUSE REQUIREMENTS TO DRIVE ONGOING DESIGN,\nTEST, AND USER DOCUMENTATION ACTIVITIES.",
+            "desc_th": "การประยุกต์เทคนิคการจัดการความต้องการ การวิเคราะห์ปัญหา การเข้าถึงและเก็บเกี่ยวความ",
+            "desc_en": "J\nนตอนของเอกสารและมาตรฐานการกำหนดระดับของความต้องการ การนิยามระบบ การจัดการ\nขอบเ\n.ขตระบบและความคาดหวัง การกลันกรองความชัดเจนของระบบ การใช้งานคุณลักษณะของความ\nต้องการและติดตามย้อนรอยความต้องการ การบริหารจัดการการเปลี่ยนแปลงความต้องการที่เกิดขึน\nการนำความต้องการมาใช้ดำเนินการต่อในส่วนของการออกแบบ การทดสอบ และการจัดทำเอกสาร\nสำหรับผู้ ใช้งาน\nAPPLY REQUIREMENTS MANAGEMENT TECHNIQUES, ANALYZE THE PROBLEM, UNDERSTAND\nSTAKEHOLDER NEEDS, CAPTURE AND DOCUMENT REQUIREMENTS WITH USE-CASE MODELING, DESCRIBE\nA DOCUMENTATION HIERARCHY AND STANDARDS FOR DEFINING LEVELS OF REQUIREMENTS, DEFINE THE\nSYSTEM, MANAGE  SCOPE,\nREFINE THE SYSTEM  DEFINITION,\nUSE\nREQUIREMENT  ATTRIBUTES AND\nTRACEABILITY, MANAGE CHANGING REQUIREMENTS,\nUSE REQUIREMENTS TO DRIVE ONGOING DESIGN,\nTEST, AND USER DOCUMENTATION ACTIVITIES.",
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_249_ocr.json",
+                    "source_filename": "bit2565_page_249.png",
                     "source_page": 249,
                     "document_page": 244,
                     "document_category": "description"
@@ -1282,14 +1248,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_249_ocr.json",
+                    "source_filename": "bit2565_page_249.png",
                     "source_page": 249,
                     "document_category": "description",
                     "document_page": 244
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_250_ocr.json",
+                    "source_filename": "bit2565_page_250.png",
                     "source_page": 250,
                     "document_category": "description",
                     "document_page": 245
@@ -1313,7 +1279,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_250_ocr.json",
+                    "source_filename": "bit2565_page_250.png",
                     "source_page": 250,
                     "document_page": 245,
                     "document_category": "description"
@@ -1337,7 +1303,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_250_ocr.json",
+                    "source_filename": "bit2565_page_250.png",
                     "source_page": 250,
                     "document_page": 245,
                     "document_category": "description"
@@ -1361,7 +1327,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_251_ocr.json",
+                    "source_filename": "bit2565_page_251.png",
                     "source_page": 251,
                     "document_page": 246,
                     "document_category": "description"
@@ -1385,7 +1351,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_251_ocr.json",
+                    "source_filename": "bit2565_page_251.png",
                     "source_page": 251,
                     "document_page": 246,
                     "document_category": "description"
@@ -1409,7 +1375,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_251_ocr.json",
+                    "source_filename": "bit2565_page_251.png",
                     "source_page": 251,
                     "document_page": 246,
                     "document_category": "description"
@@ -1433,7 +1399,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_252_ocr.json",
+                    "source_filename": "bit2565_page_252.png",
                     "source_page": 252,
                     "document_page": null,
                     "document_category": "description"
@@ -1457,7 +1423,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_252_ocr.json",
+                    "source_filename": "bit2565_page_252.png",
                     "source_page": 252,
                     "document_page": null,
                     "document_category": "description"
@@ -1468,7 +1434,7 @@
             "code": "06036135",
             "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
             "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2",
-            "credits": "3(3-0-6)",
+            "credits": "",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
             "prerequisite": "ไม่มี",
@@ -1481,7 +1447,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_252_ocr.json",
+                    "source_filename": "bit2565_page_252.png",
                     "source_page": 252,
                     "document_page": null,
                     "document_category": "description"
@@ -1504,14 +1470,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_252_ocr.json",
+                    "source_filename": "bit2565_page_252.png",
                     "source_page": 252,
                     "document_category": "description",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_253_ocr.json",
+                    "source_filename": "bit2565_page_253.png",
                     "source_page": 253,
                     "document_category": "description",
                     "document_page": 248
@@ -1536,7 +1502,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_253_ocr.json",
+                    "source_filename": "bit2565_page_253.png",
                     "source_page": 253,
                     "document_page": 248,
                     "document_category": "description"
@@ -1560,7 +1526,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_253_ocr.json",
+                    "source_filename": "bit2565_page_253.png",
                     "source_page": 253,
                     "document_page": 248,
                     "document_category": "description"
@@ -1583,14 +1549,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_253_ocr.json",
+                    "source_filename": "bit2565_page_253.png",
                     "source_page": 253,
                     "document_category": "description",
                     "document_page": 248
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_254_ocr.json",
+                    "source_filename": "bit2565_page_254.png",
                     "source_page": 254,
                     "document_category": "description",
                     "document_page": null
@@ -1615,7 +1581,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_254_ocr.json",
+                    "source_filename": "bit2565_page_254.png",
                     "source_page": 254,
                     "document_page": null,
                     "document_category": "description"
@@ -1639,7 +1605,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_254_ocr.json",
+                    "source_filename": "bit2565_page_254.png",
                     "source_page": 254,
                     "document_page": null,
                     "document_category": "description"
@@ -1663,7 +1629,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_255_ocr.json",
+                    "source_filename": "bit2565_page_255.png",
                     "source_page": 255,
                     "document_page": null,
                     "document_category": "description"
@@ -1687,7 +1653,7 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_255_ocr.json",
+                    "source_filename": "bit2565_page_255.png",
                     "source_page": 255,
                     "document_page": null,
                     "document_category": "description"
@@ -1710,14 +1676,14 @@
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_255_ocr.json",
+                    "source_filename": "bit2565_page_255.png",
                     "source_page": 255,
                     "document_category": "description",
                     "document_page": null
                 },
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_256_ocr.json",
+                    "source_filename": "bit2565_page_256.png",
                     "source_page": 256,
                     "document_category": "description",
                     "document_page": null
@@ -1726,28 +1692,55 @@
             "desc_en": "USER INTERFACE (UL) EVALUATING PRINCIPLES,\nUL EVAUATING TYPE, UL EVALUATING PROCESS,\nFUNDAMENTAL COMPONENTS TO EVALUATE UL DESIGN, UL EVALUATING TOOLS, CURRENT TECHNOLOGY\nOF UL EVALUATING IN ORGANIZATION."
         },
         {
-            "code": "06036147 หรือ 06036148",
-            "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
-            "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
-            "credits": "6(0-35-0)",
+            "code": "06036145",
+            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1",
+            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1",
+            "credits": "3(0-9-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",
             "prerequisite": "ไม่มี",
             "flexible_year_semester": "4/2",
-            "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
+            "note": null,
             "year": 0,
             "semester": 0,
-            "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้า\n|นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นตโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่าง\nคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
-            "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE  ENTERPRISES.\nAFTER\nCOMPLETION.,  STUDENTS\nNEED\nTO  PRESENT  THEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nA COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL INSTITUTES\nAND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. ATER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัยในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการ ที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำ\nของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอ หัวข้อ และผลการทดลองเบื้องต้นที่ได้จากการแก้บัญหาเชิง\nปฏิบัติการ หรือจากการวิเคราะห์เชิงวิชาการ",
+            "desc_en": "STUDY OR RESEARCH OF INTERESTING CURRENT TOPICS IN INFORMATION TECHNOLOGY UNDERTAKING\nWORK\nPROJECT BASED BY APPLYING THE THEORETICAL  ASPECTS OF THE INFORMATION TECHNOLOGY\nSTUDIES UNDER THE SUPERVISION OFA FACULTY MEMBER TO BE ABLE TO PRESENT A PROJECT PROPOSAL\nAND ELEMENTARY RESULT FROM PRACTICAL SOLVING OR ACADEMIC ANALYSIS.",
             "source_provenance": [
                 {
                     "program": "BIT",
-                    "source_filename": "bit_page_257_ocr.json",
-                    "source_page": 257,
-                    "document_category": "description",
-                    "document_page": 252
+                    "source_filename": "bit2565_page_256.png",
+                    "source_page": 256,
+                    "document_page": null,
+                    "document_category": "description"
+                }
+            ]
+        },
+        {
+            "code": "06036146",
+            "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
+            "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
+            "credits": "3(0-9-0)",
+            "category": "หมวดวิชาเฉพาะ",
+            "type": "เลือก",
+            "prerequisite": "06036145",
+            "flexible_year_semester": "4/2",
+            "note": null,
+            "year": 0,
+            "semester": 0,
+            "desc_th": "ศึกษาค้นคว้าหรือวิจัย ฺในหัวข้อปัจจุบันที่น่าสนใจทางเทคโนโลยีสารสนเทศ ในรูปแบบโครงการที่\nสามารถประยุกต์ใช้ทฤษฎีที่เกี่ยวข้องทางการศึกษาด้านเทคโนโลยีสารสนเทศ ภายใต้การดูแลและแนะนำ\nของอาจารย์ที่ปรึกษา เพื่อที่จะสามารถนำเสนอผลการทดลองที่สมบูรณ์ในหัวข้อที่ได้เสนอและศึกษาต่อ\nเนื่องมาจากวิชาโครงงาน",
+            "source_provenance": [
+                {
+                    "program": "BIT",
+                    "source_filename": "bit2565_page_256.png",
+                    "source_page": 256,
+                    "document_page": null,
+                    "document_category": "description"
                 }
             ]
         }
-    ]
+    ],
+    "catalog": {
+        "catalog_key": "bit-2565",
+        "academic_year": "2565"
+    }
 }

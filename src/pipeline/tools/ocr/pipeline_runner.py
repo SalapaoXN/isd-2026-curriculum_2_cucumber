@@ -152,6 +152,7 @@ def run_ocr(
     no_gpu: bool = False,
     plan: str | None = None,
     dataset_key: str | None = None,
+    source_prefix: str | None = None,
 ) -> Path:
     """Run OCR and deterministic pre-cleaning for one dataset.
 
@@ -160,11 +161,11 @@ def run_ocr(
     """
     dataset_key = _validate_dataset_key(dataset_key)
     if pages is None:
-        pages = discover_pages(input_dir)
+        pages = discover_pages(input_dir, prefix=source_prefix)
     if not pages:
         raise ValueError("No valid OCR pages were configured.")
 
-    page_files = discover_page_files(input_dir)
+    page_files = discover_page_files(input_dir, prefix=source_prefix)
     if not any(page in page_files for page in pages):
         raise ValueError(f"None of the configured pages were found in '{input_dir}'.")
 
