@@ -374,10 +374,29 @@ def _claim_line(operation: str, value: Any) -> str | None:
     return None
 
 
+def _prerequisite_owners(claim: Any) -> tuple[ResolvedTarget, ...]:
+    """Relationship subjects come from effective targets, never nested objects."""
+    scope = getattr(claim, "effective_scope", None)
+    owners = []
+    for target in getattr(scope, "course_targets", ()):
+        if not isinstance(target, Mapping):
+            return ()
+        code = target.get("course_code")
+        if not isinstance(code, str) or not re.fullmatch(r"[0-9]{8}", code):
+            return ()
+        owners.append(ResolvedTarget(kind="literal", course_code=code,
+                                    course_name=target.get("name_en") or target.get("name_th")))
+    return tuple(owners)
+
+
 def _claim_line_with_evidence(claim: Any) -> str | None:
     """Project a claim while retaining canonical raw credit notation, if present."""
     operation = str(getattr(claim, "operation", ""))
     value = getattr(claim, "value", None)
+    if operation == "prerequisite":
+        owners = _prerequisite_owners(claim)
+        # A flat relationship value cannot be attributed to multiple subjects.
+        return _member_fact(owners[0], claim) if len(owners) == 1 else None
     line = _claim_line(operation, value)
     if operation != "sum_credits" or not line:
         return line
@@ -1660,7 +1679,9 @@ def _retained_from_claims(
     seen: list[str] = []
     for claim in claims:
         try:
-            if (
+            if getattr(claim, "operation", None) == "prerequisite":
+                codes = [owner.course_code for owner in _prerequisite_owners(claim)]
+            elif (
                 getattr(claim, "operation", None) in {"list", "topic_matches", "course_set"}
                 and getattr(claim, "status", None) == "complete"
             ):
