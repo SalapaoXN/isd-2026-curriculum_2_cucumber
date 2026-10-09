@@ -481,6 +481,49 @@ def resolve_comparison_operand(
     )
 
 
+def resolve_available_plan_operands(db_path: str | Path, resolved: ResolvedIntent) -> ResolvedIntent:
+    """Enumerate a canonical pair, never interpret model-supplied plan identities."""
+    comparison = resolved.intent.comparison
+    if comparison is None or comparison.plan_selector != "available_plans" or resolved.needs_clarification:
+        return resolved
+    from rag.semantic.validation import plan_placement_contract_problem
+    problem = plan_placement_contract_problem(resolved.intent)
+    scope = resolved.scope
+    if not scope.program:
+        problem = problem or "unknown program scope"
+    elif not scope.catalog_key:
+        problem = problem or "unknown catalog scope"
+    elif (canonical_program(db_path, scope.program) != scope.program
+          or canonical_catalog_key(db_path, scope.catalog_key, scope.program) != scope.catalog_key):
+        problem = problem or "unverified available-plan scope"
+    if problem:
+        return replace(resolved, comparison_sides=(), needs_clarification=True, clarification_reason=problem)
+    try:
+        connection = _connect_ro(db_path)
+        try:
+            rows = connection.execute(
+                """SELECT cp.plan_key FROM curriculum_plans cp
+                   JOIN catalogs c ON c.catalog_id = cp.catalog_id
+                   JOIN programs p ON p.program_id = cp.program_id AND p.catalog_id = cp.catalog_id
+                   WHERE p.program_code = ? AND c.catalog_key = ? ORDER BY cp.plan_key""",
+                (scope.program, scope.catalog_key),
+            ).fetchall()
+        finally:
+            connection.close()
+        keys = [row["plan_key"] for row in rows]
+        if (len(keys) != 2 or any(not isinstance(key, str) or not key.strip() for key in keys)
+                or len({key.strip().casefold() for key in keys}) != 2):
+            raise ValueError("available-plans comparison requires exactly two distinct canonical plans")
+        if any(valid_plan(db_path, key, scope.program, scope.catalog_key) != key for key in keys):
+            raise ValueError("conflicting canonical available-plan identity")
+    except (sqlite3.Error, ValueError, KeyError, TypeError) as error:
+        return replace(resolved, comparison_sides=(), needs_clarification=True,
+                       clarification_reason="available plans: " + str(error))
+    sides = tuple(ResolvedOperand(scope=ResolvedScope(program=scope.program, catalog_key=scope.catalog_key,
+                                                     plan=key), unresolved=False) for key in keys)
+    return replace(resolved, comparison_sides=sides)
+
+
 def resolve_semantic_intent(
     db_path: str | Path,
     intent: SemanticIntent,
@@ -743,5 +786,6 @@ __all__ = [
     "canonical_catalog_key",
     "canonical_program",
     "resolve_semantic_intent",
+    "resolve_available_plan_operands",
     "valid_plan",
 ]

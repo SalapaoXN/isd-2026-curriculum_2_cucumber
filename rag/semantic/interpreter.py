@@ -32,6 +32,7 @@ from rag.semantic.schema import (
     MAX_TEXT_LEN,
     MEASURES,
     COMPARISON_MEASURES,
+    PLAN_SELECTORS,
     POLICY_TOPICS,
     RANK_DIRECTIONS,
     RELATIONS,
@@ -150,14 +151,13 @@ def semantic_intent_json_schema() -> dict[str, Any]:
     comparison_properties = {
         "left": {
             **_object_schema(operand_properties),
-            "minProperties": 1,
         },
         "right": {
             **_object_schema(operand_properties),
-            "minProperties": 1,
         },
         "measure": enum_schema(COMPARISON_MEASURES),
         "operation": _nullable(enum_schema(COMPARISON_OPERATIONS)),
+        "plan_selector": _nullable(enum_schema(PLAN_SELECTORS)),
     }
     filter_value = {
         "anyOf": [
@@ -483,7 +483,7 @@ def _parse_ranking(data: Any) -> RankingSpec | None:
     return RankingSpec(metric=metric, direction=direction, limit=limit)
 
 
-def _parse_scope_side(data: Any, field: str) -> tuple[tuple[str, Any], ...]:
+def _parse_scope_side(data: Any, field: str, *, allow_empty: bool = False) -> tuple[tuple[str, Any], ...]:
     if not isinstance(data, dict):
         raise SemanticSchemaError(f"{field} must be an object")
     items: list[tuple[str, Any]] = []
@@ -502,7 +502,7 @@ def _parse_scope_side(data: Any, field: str) -> tuple[tuple[str, Any], ...]:
         elif not isinstance(value, str) or not value.strip() or len(value) > MAX_TEXT_LEN:
             raise SemanticSchemaError(f"{field}.{key} must be bounded text")
         items.append((key, value))
-    if not items:
+    if not items and not allow_empty:
         raise SemanticSchemaError(f"{field} must be non-empty")
     return tuple(items)
 
@@ -510,7 +510,8 @@ def _parse_scope_side(data: Any, field: str) -> tuple[tuple[str, Any], ...]:
 def _parse_comparison(data: Any) -> ComparisonSpec | None:
     if data is None:
         return None
-    if not isinstance(data, dict) or set(data) != _COMPARISON_FIELDS:
+    if (not isinstance(data, dict) or not _COMPARISON_FIELDS.issubset(data)
+            or set(data) - (_COMPARISON_FIELDS | {"plan_selector"})):
         raise SemanticSchemaError("comparison has an invalid schema")
     measure = data["measure"]
     if measure not in COMPARISON_MEASURES:
@@ -518,11 +519,15 @@ def _parse_comparison(data: Any) -> ComparisonSpec | None:
     operation = data["operation"]
     if operation is not None and operation not in COMPARISON_OPERATIONS:
         raise SemanticSchemaError(f"unknown comparison operation: {operation!r}")
+    selector = data.get("plan_selector")
+    if selector is not None and (not isinstance(selector, str) or selector not in PLAN_SELECTORS):
+        raise SemanticSchemaError(f"unknown plan selector: {selector!r}")
     return ComparisonSpec(
-        left=_parse_scope_side(data["left"], "comparison.left"),
-        right=_parse_scope_side(data["right"], "comparison.right"),
+        left=_parse_scope_side(data["left"], "comparison.left", allow_empty=selector == "available_plans"),
+        right=_parse_scope_side(data["right"], "comparison.right", allow_empty=selector == "available_plans"),
         measure=measure,
         operation=operation,
+        plan_selector=selector,
     )
 
 

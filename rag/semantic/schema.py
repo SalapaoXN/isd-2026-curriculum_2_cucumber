@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-SEMANTIC_INTENT_VERSION = "semantic-intent/v3"
+SEMANTIC_INTENT_VERSION = "semantic-intent/v4"
 
 TASKS = frozenset(
     {
@@ -99,6 +99,7 @@ AGGREGATION_FUNCTIONS = frozenset({"count", "sum", "average", "minimum", "maximu
 
 MEASURES = frozenset({"course_count", "credits", "prerequisite_count"})
 COMPARISON_MEASURES = MEASURES | {"placement"}
+PLAN_SELECTORS = frozenset({"available_plans"})
 
 GROUP_DIMENSIONS = frozenset({"year", "semester", "plan", "program", "category"})
 
@@ -314,6 +315,7 @@ class ComparisonSpec:
     right: tuple[tuple[str, Any], ...] = ()
     measure: str = "credits"
     operation: str | None = None
+    plan_selector: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -481,6 +483,7 @@ __all__ = [
     "COMPARISON_OPERAND_KEYS",
     "COMPARISON_OPERATIONS",
     "COMPARISON_MEASURES",
+    "PLAN_SELECTORS",
     "FAILURE_CATEGORIES",
     "FILTER_FIELDS",
     "FILTER_OPERATORS",

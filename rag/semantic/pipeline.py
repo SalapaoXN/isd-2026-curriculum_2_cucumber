@@ -46,6 +46,7 @@ from rag.semantic.planner import (
 )
 from rag.semantic.resolver import (
     canonical_catalog_key, canonical_program, resolve_semantic_intent, valid_plan,
+    resolve_available_plan_operands,
 )
 from rag.semantic.schema import (
     LEGACY_STATUS_FOR_INTERNAL,
@@ -237,7 +238,8 @@ def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
         "has_ranking": intent.ranking is not None,
         "has_comparison": intent.comparison is not None,
         **({"comparison": {"left": dict(intent.comparison.left), "right": dict(intent.comparison.right),
-                           "measure": intent.comparison.measure, "operation": intent.comparison.operation}}
+                           "measure": intent.comparison.measure, "operation": intent.comparison.operation,
+                           **({"plan_selector": intent.comparison.plan_selector} if intent.comparison.plan_selector else {})}}
            if intent.comparison is not None else {}),
         "requested_fields": list(intent.requested_fields),
         "clarification": intent.clarification,
@@ -771,6 +773,8 @@ def _run_semantic_answer(
     resolved = resolve_semantic_intent(
         db_path, intent, merged, allow_hint_candidates=allow_hint_candidates
     )
+    if intent.comparison is not None and intent.comparison.plan_selector == "available_plans":
+        resolved = resolve_available_plan_operands(db_path, resolved)
     if (
         not resolved.needs_clarification
         and resolved.intent.comparison is not None
