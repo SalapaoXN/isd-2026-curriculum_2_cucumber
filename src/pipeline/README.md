@@ -29,17 +29,136 @@ python -m src.pipeline.run --program it --no-gpu
 python -m src.pipeline.run --program it --from corrected --with-index
 ```
 
-program ที่รองรับ: `ait`, `bit`, `dsba`, `gened`, `it`
+program หลักที่รองรับ: `ait`, `bit`, `dsba`, `gened`, `it`
+
+> คำสั่ง `src.pipeline.run --program ...` ใช้ชื่อ program หลัก 5 ชื่อนี้ ส่วนข้อมูลหลักสูตรฉบับเก่า เช่น `it2560`, `bit2560`, `dsba2560` และ `gened2557` ให้รัน OCR ด้วยคำสั่ง edition-specific ที่อธิบายในหัวข้อถัดไป
 
 ## Inputs
 
-ภาพต้นฉบับ:
+ภาพต้นฉบับอยู่ใต้ `data/input/` โดยแยกตามหลักสูตรและฉบับ เช่น:
 
 ```text
-data/input/<program>/<program>_page_NNN.png
+data/input/
+├─ ait/
+├─ bit/          # BIT ฉบับปัจจุบัน (2565)
+├─ bit2560/      # BIT 2560
+├─ dsba/         # DSBA ฉบับปัจจุบัน (2565)
+├─ dsba2560/     # DSBA 2560
+├─ gened/
+├─ gened2557/    # GENED 2557
+├─ it/           # IT ฉบับปัจจุบัน (2565)
+├─ it2560/       # IT 2560
+└─ rule/         # เอกสารกฎ/ข้อกำหนดของสถาบัน
+```
+
+รูปแบบชื่อภาพโดยทั่วไป:
+
+```text
+data/input/<dataset>/<dataset>_page_NNN.png
 ```
 
 ไฟล์ภาพขนาดใหญ่ไม่ได้เก็บครบใน repo ถ้าจะรัน OCR ใหม่ต้องเตรียม source images ก่อน
+
+## การรัน OCR
+
+### OCR ฉบับปัจจุบัน
+
+สำหรับ dataset หลัก `ait`, `bit`, `dsba`, `gened`, `it` ใช้ standalone OCR CLI ได้โดยตรง:
+
+```powershell
+python -m src.pipeline.tools.ocr.cli --prefix it
+python -m src.pipeline.tools.ocr.cli --prefix bit
+python -m src.pipeline.tools.ocr.cli --prefix dsba
+python -m src.pipeline.tools.ocr.cli --prefix gened
+python -m src.pipeline.tools.ocr.cli --prefix ait
+```
+
+ถ้าต้องการรันเฉพาะบางหน้า:
+
+```powershell
+python -m src.pipeline.tools.ocr.cli --prefix it --pages 32-38
+python -m src.pipeline.tools.ocr.cli --prefix it --pages 32
+```
+
+ถ้าต้องการบังคับใช้ CPU:
+
+```powershell
+python -m src.pipeline.tools.ocr.cli --prefix it --no-gpu
+```
+
+ผล OCR จะถูกเก็บใต้:
+
+```text
+data/output/ocr/<program>/
+```
+
+เช่น `data/output/ocr/it/`
+
+### OCR หลักสูตรฉบับเก่า 2560 / 2557
+
+ฉบับเก่าแยก source folder และ `dataset-key` เพื่อไม่ให้ผล OCR ไปชนกับฉบับปัจจุบัน
+
+#### IT 2560
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/it2560 `
+  --program IT `
+  --plan no_coop `
+  --dataset-key it2560
+```
+
+เฉพาะหน้าเดียวสำหรับทดสอบหรือ demo:
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/it2560 `
+  --program IT `
+  --plan no_coop `
+  --dataset-key it2560 `
+  --pages 27
+```
+
+#### BIT 2560
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/bit2560 `
+  --program BIT `
+  --plan no_coop `
+  --dataset-key bit2560
+```
+
+#### DSBA 2560
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/dsba2560 `
+  --program DSBA `
+  --plan no_coop `
+  --dataset-key dsba2560
+```
+
+#### GENED 2557
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/gened2557 `
+  --program GENED `
+  --plan gened `
+  --dataset-key gened2557
+```
+
+ผลจะถูกแยกตามฉบับ:
+
+```text
+data/output/ocr/it2560/
+data/output/ocr/bit2560/
+data/output/ocr/dsba2560/
+data/output/ocr/gened2557/
+```
+
+`--dataset-key` ใช้ระบุฉบับของ source dataset และป้องกันไม่ให้ output ของฉบับเก่าเขียนรวมกับฉบับปัจจุบัน
 
 ## Canonical outputs
 
