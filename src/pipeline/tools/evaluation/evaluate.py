@@ -1007,21 +1007,27 @@ def _curriculum_metadata(path: Path) -> tuple[str, str | None]:
 def discover_llm_corrected_sources(
     llm_dir: str | Path | None = None,
 ) -> list[Path]:
-    """Discover only reviewed corrected artifacts in data/output/final."""
+    """Discover reviewed final curriculum artifacts, with legacy fallback."""
     source_dir = Path(LLM_DIR if llm_dir is None else llm_dir)
-    paths = sorted(source_dir.glob("*_corrected.json"))
-    if not paths:
-        raise FileNotFoundError(
-            f"no *_corrected.json files found in {source_dir}"
-        )
-    return paths
+    current = sorted(source_dir.glob("*_final.json"))
+    if current:
+        return current
+    structured_legacy = sorted(source_dir.glob("*/curriculum_*.json"))
+    if structured_legacy:
+        return structured_legacy
+    legacy = sorted(source_dir.glob("*_corrected.json"))
+    if legacy:
+        return legacy
+    raise FileNotFoundError(
+        f"no curriculum final artifacts found in {source_dir}"
+    )
 
 
 def discover_llm_evaluation_pairs(
     llm_dir: str | Path | None = None,
     ground_truth_dir: str | Path | None = None,
 ) -> list[tuple[Path, Path]]:
-    """Match each discovered corrected source to its accepted ground truth."""
+    """Match each discovered final source to its accepted ground truth."""
     gt_root = Path(
         GROUND_TRUTH_DIR if ground_truth_dir is None else ground_truth_dir
     )

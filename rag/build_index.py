@@ -61,37 +61,32 @@ def _artifact_identity(path: Path) -> tuple[str, str, str | None] | None:
 
 
 def _default_sources() -> list[Path]:
-    """Prefer the readable dataset layout while supporting unmigrated flat artifacts.
+    """Prefer current ``*_final.json`` artifacts while supporting old layouts.
 
-    New pipeline output:
-        data/output/final/<dataset>/curriculum_<plan>.json
-
-    Older flat ``*_corrected.json`` files remain available for datasets that
-    have not been regenerated yet. A structured artifact replaces only the
-    exact same catalog/program/plan identity, never another edition.
+    Current pipeline output is flat and explicit, for example
+    ``data/output/final/it2565_coop_final.json``. During migration, an artifact
+    from a newer layout replaces only the exact same catalog/program/plan
+    identity from an older layout; other editions remain available.
     """
-    structured = sorted(_CLEAN_FINAL_DIR.glob("*/curriculum_*.json"))
-    legacy = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
+    current = sorted(_CLEAN_FINAL_DIR.glob("*_final.json"))
+    structured_legacy = sorted(_CLEAN_FINAL_DIR.glob("*/curriculum_*.json"))
+    flat_legacy = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
 
-    if not structured:
-        if legacy:
-            return legacy
-        return llm_source_paths()
+    candidates = [current, structured_legacy, flat_legacy]
+    selected: list[Path] = []
+    selected_identities: set[tuple[str, str, str | None]] = set()
+    for group in candidates:
+        for path in group:
+            identity = _artifact_identity(path)
+            if identity is not None and identity in selected_identities:
+                continue
+            selected.append(path)
+            if identity is not None:
+                selected_identities.add(identity)
 
-    structured_identities = {
-        identity
-        for path in structured
-        if (identity := _artifact_identity(path)) is not None
-    }
-
-    kept_legacy: list[Path] = []
-    for path in legacy:
-        identity = _artifact_identity(path)
-        if identity is not None and identity in structured_identities:
-            continue
-        kept_legacy.append(path)
-
-    return sorted(structured + kept_legacy, key=lambda path: path.as_posix().casefold())
+    if selected:
+        return sorted(selected, key=lambda path: path.as_posix().casefold())
+    return llm_source_paths()
 
 
 def _default_supplemental_sources() -> dict[str, Path]:

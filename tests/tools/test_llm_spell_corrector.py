@@ -57,7 +57,7 @@ def add_bit_source_provenance(record, course_code, field, before, *, page_offset
     page += page_offset
     record["source_provenance"] = [{
         "program": "BIT",
-        "source_filename": f"bit_page_{page:03d}_ocr.json",
+        "source_filename": f"bit2565_page_{page:03d}_ocr.json",
         "source_page": page,
         "document_category": "plan",
     }]
@@ -373,7 +373,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         record["note"] = None
         record["source_provenance"] = [{
             "program": "BIT",
-            "source_filename": "bit_page_031_ocr.json",
+            "source_filename": "bit2565_page_031_ocr.json",
             "source_page": 31,
             "document_category": "plan",
         }]
@@ -404,7 +404,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 "after": "กลุ่มวิชาที่กำหนดโดยคณะ",
                 "program": "BIT",
                 "plan": "coop",
-                "source_filename": "bit_page_031_ocr.json",
+                "source_filename": "bit2565_page_031_ocr.json",
                 "source_page": 31,
                 "document_category": "plan",
             }],
@@ -803,7 +803,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
             record["plan_key"] = "coop"
             record["source_provenance"] = [
                 {
-                    "source_filename": "it_page_043.png",
+                    "source_filename": "it2565_page_043.png",
                     "source_page": 43,
                     "document_category": "plan",
                 }
@@ -817,7 +817,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 "field": "name_th",
                 "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
                 "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-                "source_filename": "it_page_043.png",
+                "source_filename": "it2565_page_043.png",
                 "source_page": 43,
                 "document_category": "plan",
                 "source_occurrence": 1,
@@ -829,7 +829,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                 "field": "name_th",
                 "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
                 "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-                "source_filename": "it_page_043.png",
+                "source_filename": "it2565_page_043.png",
                 "source_page": 43,
                 "document_category": "plan",
                 "source_occurrence": 2,
@@ -854,7 +854,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
         )
         record["source_provenance"] = [
             {
-                "source_filename": "it_page_043.png",
+                "source_filename": "it2565_page_043.png",
                 "source_page": 43,
                 "document_category": "plan",
             }
@@ -870,7 +870,7 @@ class LlmSpellCorrectorTests(unittest.TestCase):
                         "field": "name_th",
                         "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
                         "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-                        "source_filename": "it_page_999.png",
+                        "source_filename": "it2565_page_999.png",
                         "source_page": 999,
                         "document_category": "plan",
                         "source_occurrence": 1,

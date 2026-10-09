@@ -15,7 +15,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
         code="06016454",
         credits="",
         plan="coop",
-        source_filename="it_page_354.png",
+        source_filename="it2565_page_354.png",
         source_page=354,
         document_category="description",
     ):
@@ -42,7 +42,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
                 "IT",
                 "coop",
                 "06016454",
-                "it_page_354.png",
+                "it2565_page_354.png",
                 354,
                 "description",
             ): {
@@ -51,7 +51,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
                 "course_code": "06016454",
                 "credits": "3(3-0-6)",
                 "source_verified": True,
-                "source_filename": "it_page_354.png",
+                "source_filename": "it2565_page_354.png",
                 "source_page": 354,
                 "document_category": "description",
             }
@@ -90,7 +90,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
         self.assertEqual(
             result["credit_source_provenance"],
             {
-                "source_filename": "it_page_354.png",
+                "source_filename": "it2565_page_354.png",
                 "source_page": 354,
                 "document_category": "description",
             },
@@ -100,7 +100,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
     def test_wrong_source_identity_does_not_repair(self):
         for changes in (
             {"source_page": 355},
-            {"source_filename": "it_page_355.png"},
+            {"source_filename": "it2565_page_355.png"},
             {"program": "BIT"},
             {"plan": "no_coop"},
             {"code": "06016455"},
@@ -119,7 +119,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
         course = self._course(
             program="BIT",
             code="06036135",
-            source_filename="bit_page_252_ocr.json",
+            source_filename="bit2565_page_252_ocr.json",
             source_page=252,
         )
         result = extraction_tool._reconcile_source_backed_credit(

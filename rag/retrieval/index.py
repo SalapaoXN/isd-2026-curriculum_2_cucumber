@@ -74,13 +74,17 @@ def canonical_source_paths() -> list[Path]:
 
 
 def llm_source_paths() -> list[Path]:
-    """Return reviewed LLM-corrected curriculum documents only."""
-    paths = sorted(_LLM_DIR.glob("*_corrected.json"))
+    """Return reviewed final curriculum documents, with legacy fallbacks."""
+    paths = sorted(_LLM_DIR.glob("*_final.json"))
+    if not paths:
+        paths = sorted(_LLM_DIR.glob("*/curriculum_*.json"))
+    if not paths:
+        paths = sorted(_LLM_DIR.glob("*_corrected.json"))
     if not paths:
         paths = sorted(_LEGACY_LLM_DIR.glob("*_corrected.json"))
     if not paths:
         raise FileNotFoundError(
-            "no LLM-corrected curriculum JSON files found in "
+            "no reviewed final curriculum JSON files found in "
             f"{_LLM_DIR}"
         )
     return paths

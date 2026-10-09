@@ -448,7 +448,7 @@ def _guard_correction_value(
             )
             if source_page is not None:
                 expected_source = {
-                    "source_filename": f"bit_page_{source_page:03d}_ocr.json",
+                    "source_filename": f"bit2565_page_{source_page:03d}_ocr.json",
                     "source_page": source_page,
                     "document_category": "plan",
                 }
@@ -926,7 +926,7 @@ def _reconstruct_document(
                     and (course_code, entry.get("source_page"))
                     in BIT_SOURCE_VERIFIED_PLACEMENT_NOTES
                     and entry.get("source_filename")
-                    == f"bit_page_{entry.get('source_page'):03d}_ocr.json"
+                    == f"bit2565_page_{entry.get('source_page'):03d}_ocr.json"
                 ),
                 None,
             )

@@ -521,16 +521,16 @@ class EvaluateDiscoveryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def test_discovery_uses_corrected_files_and_ignores_correction_logs(self):
+    def test_discovery_uses_final_files_and_ignores_correction_logs(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source_dir = Path(temp_dir)
-            corrected = source_dir / "merged_bit_coop_full_corrected.json"
-            self._write_curriculum(corrected, "BIT", "coop")
-            (source_dir / "merged_bit_coop_full_corrections.json").write_text(
+            final = source_dir / "bit2565_coop_final.json"
+            self._write_curriculum(final, "BIT", "coop")
+            (source_dir / "bit2565_coop_corrections.json").write_text(
                 "[]", encoding="utf-8"
             )
 
-            self.assertEqual(discover_llm_corrected_sources(source_dir), [corrected])
+            self.assertEqual(discover_llm_corrected_sources(source_dir), [final])
 
     def test_partial_corpus_matches_only_existing_corrected_sources(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -538,7 +538,7 @@ class EvaluateDiscoveryTests(unittest.TestCase):
             ground_truth_dir = Path(temp_dir) / "ground_truth"
             source_dir.mkdir()
             (ground_truth_dir / "BIT").mkdir(parents=True)
-            prediction = source_dir / "bit_coop_corrected.json"
+            prediction = source_dir / "bit2565_coop_final.json"
             ground_truth = ground_truth_dir / "BIT" / "BIT_academic_plan_coop.json"
             self._write_curriculum(prediction, "BIT", "coop")
             self._write_curriculum(ground_truth, "BIT", "coop")
@@ -548,7 +548,7 @@ class EvaluateDiscoveryTests(unittest.TestCase):
                 [(prediction, ground_truth)],
             )
 
-    def test_zero_corrected_files_fails_without_consolidated_fallback(self):
+    def test_zero_final_files_fails_without_consolidated_fallback(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source_dir = Path(temp_dir) / "llm"
             consolidated_dir = Path(temp_dir) / "consolidated"

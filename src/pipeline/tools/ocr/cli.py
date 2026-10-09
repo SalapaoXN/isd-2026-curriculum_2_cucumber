@@ -8,7 +8,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from src.pipeline.config import normalize_program
 from src.pipeline.datasets import DATASET_ALIASES, DATASET_CONFIG, get_dataset_config
 from src.pipeline.tools.ocr.pipeline_runner import parse_pages, run_ocr
 
@@ -37,37 +36,27 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def _run_legacy_prefix(args: argparse.Namespace, prefix: str) -> None:
-    if prefix not in SUPPORTED_PREFIXES:
-        # Year-labelled keys are also accepted through the old spelling so a
-        # command like ``--prefix it2560`` does what users naturally expect.
-        if prefix in DATASET_CONFIG:
-            config = get_dataset_config(prefix)
-            run_ocr(
-                input_dir=config.resolve_input_dir(BASE_DIR),
-                output_dir=BASE_DIR / "data" / "output",
-                program=config.program,
-                pages=(
-                    parse_pages(args.pages)
-                    if args.pages is not None
-                    else config.required_pages()
-                ),
-                no_gpu=args.no_gpu,
-                dataset_key=config.key,
-            )
-            return
-        supported = ", ".join((*SUPPORTED_PREFIXES, *SUPPORTED_DATASETS))
-        raise SystemExit(
-            f"Error: Unsupported prefix '{args.prefix}'. Choose one of: {supported}."
+    # Old unversioned prefixes resolve through the dataset registry so they
+    # continue to work after source folders are renamed to explicit editions.
+    if prefix in DATASET_ALIASES or prefix in DATASET_CONFIG:
+        config = get_dataset_config(prefix)
+        run_ocr(
+            input_dir=config.resolve_input_dir(BASE_DIR),
+            output_dir=BASE_DIR / "data" / "output",
+            program=config.program,
+            pages=(
+                parse_pages(args.pages)
+                if args.pages is not None
+                else config.required_pages()
+            ),
+            no_gpu=args.no_gpu,
+            dataset_key=config.key,
         )
+        return
 
-    input_dir = BASE_DIR / "data" / "input" / prefix
-    pages = parse_pages(args.pages) if args.pages is not None else None
-    run_ocr(
-        input_dir=input_dir,
-        output_dir=BASE_DIR / "data" / "output",
-        program=normalize_program(prefix),
-        pages=pages,
-        no_gpu=args.no_gpu,
+    supported = ", ".join((*SUPPORTED_PREFIXES, *SUPPORTED_DATASETS))
+    raise SystemExit(
+        f"Error: Unsupported prefix '{args.prefix}'. Choose one of: {supported}."
     )
 
 

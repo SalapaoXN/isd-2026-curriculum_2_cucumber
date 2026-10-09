@@ -24,7 +24,7 @@ class SourceVerifiedExtractionIntegrationTests(unittest.TestCase):
         return matches[0]
 
     def test_run_extraction_applies_reviewed_it_credit_and_preserves_provenance(self):
-        source = Path("outputs/ocr/it/it_page_354_ocr.json")
+        legacy_source = Path("outputs/ocr/it/it_page_354_ocr.json")
         self.assertEqual(
             extraction_tool.SOURCE_VERIFIED_CREDIT_CORRECTIONS_PATH,
             Path("data/corrections/source_verified_credit_corrections.json").resolve(),
@@ -32,6 +32,13 @@ class SourceVerifiedExtractionIntegrationTests(unittest.TestCase):
         self.assertTrue(extraction_tool.SOURCE_VERIFIED_CREDIT_CORRECTIONS_PATH.is_file())
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            source = temp_root / "it2565_page_354_ocr.json"
+            payload = json.loads(legacy_source.read_text(encoding="utf-8"))
+            payload["source_filename"] = "it2565_page_354.png"
+            payload["source_dataset"] = "it2565"
+            source.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
             with patch.object(
                 extraction_tool,
                 "_load_source_verified_credit_corrections",
@@ -39,30 +46,31 @@ class SourceVerifiedExtractionIntegrationTests(unittest.TestCase):
             ) as load_corrections:
                 extraction_tool.run_extraction(
                     source,
-                    Path(temp_dir),
+                    temp_root / "output",
                     program="IT",
                     plan="coop",
+                    dataset_key="it2565",
                 )
 
             load_corrections.assert_called_once_with()
-            repaired = self._course(Path(temp_dir), "IT", "06016454")
+            repaired = self._course(temp_root / "output", "IT", "06016454")
             self.assertEqual(repaired["credits"], "3(3-0-6)")
             self.assertIs(repaired["credit_source_verified"], True)
             self.assertEqual(
                 repaired["credit_source_provenance"],
                 {
-                    "source_filename": "it_page_354.png",
+                    "source_filename": "it2565_page_354.png",
                     "source_page": 354,
                     "document_category": "description",
                 },
             )
             source_entry = repaired["source_provenance"][0]
-            self.assertEqual(source_entry["source_filename"], "it_page_354.png")
+            self.assertEqual(source_entry["source_filename"], "it2565_page_354.png")
             self.assertEqual(source_entry["source_page"], 354)
             self.assertEqual(source_entry["document_category"], "description")
             self.assertIs(source_entry["source_verified"], True)
 
-            existing = self._course(Path(temp_dir), "IT", "06016453")
+            existing = self._course(temp_root / "output", "IT", "06016453")
             self.assertEqual(existing["credits"], "3(3-0-6)")
             self.assertNotIn("credit_source_verified", existing)
 

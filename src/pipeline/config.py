@@ -22,11 +22,20 @@ from typing import Dict, List, Optional
 
 SUPPORTED_PROGRAMS = ("DSBA", "IT", "AIT", "GENED", "BIT")
 PROGRAM_BY_INPUT_DIR = {
-    "dsba": "DSBA",
-    "it": "IT",
     "ait": "AIT",
-    "gened": "GENED",
+    "ait2566": "AIT",
     "bit": "BIT",
+    "bit2560": "BIT",
+    "bit2565": "BIT",
+    "dsba": "DSBA",
+    "dsba2560": "DSBA",
+    "dsba2565": "DSBA",
+    "gened": "GENED",
+    "gened2557": "GENED",
+    "gened2564": "GENED",
+    "it": "IT",
+    "it2560": "IT",
+    "it2565": "IT",
 }
 PLAN_VARIANTS = ("coop", "no_coop", "gened")
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp", ".bmp")

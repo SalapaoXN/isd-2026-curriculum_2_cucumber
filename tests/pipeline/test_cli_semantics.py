@@ -92,6 +92,9 @@ class CliSemanticsTests(unittest.TestCase):
 
     def test_program_is_derived_only_from_supported_directory_names(self):
         self.assertEqual(resolve_program(None, Path("inputs/ait")), "AIT")
+        self.assertEqual(resolve_program(None, Path("inputs/ait2566")), "AIT")
+        self.assertEqual(resolve_program(None, Path("inputs/dsba2560")), "DSBA")
+        self.assertEqual(resolve_program(None, Path("inputs/it2565")), "IT")
         self.assertEqual(resolve_program("it", Path("inputs/custom")), "IT")
 
         with self.assertRaisesRegex(ValueError, "Cannot derive a program"):

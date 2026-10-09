@@ -36,7 +36,12 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 SUPPORTED_DATASETS = tuple(DATASET_CONFIG)
 # Compatibility name for older imports/tests. Values now represent dataset keys.
 SUPPORTED_PROGRAMS = tuple(dict.fromkeys((*SUPPORTED_DATASETS, *DATASET_ALIASES)))
-FROM_CHOICES = ("ocr", "extracted", "consolidated", "corrected")
+FROM_CHOICES = ("ocr", "extracted", "consolidated", "final")
+# The accepted Ground Truth files are for the current curriculum editions only.
+# Legacy editions must not be compared against a different edition silently.
+AUTO_EVALUATION_DATASETS = frozenset(
+    {"ait2566", "bit2565", "dsba2565", "gened2564", "it2565"}
+)
 _ACADEMIC_YEAR_RE = re.compile(r"^[1-9]\d{3}(?:[-/]\d{2,4})?$")
 
 
@@ -188,10 +193,11 @@ def _paths_for_program(paths: list[Path], program_key: str) -> list[Path]:
 
 
 def _candidate_corrected_paths(llm_dir: Path) -> list[Path]:
-    """Read both the new structured layout and legacy flat corrected files."""
-    structured = sorted(llm_dir.glob("*/curriculum_*.json"))
-    legacy = sorted(llm_dir.glob("*_corrected.json"))
-    return structured + legacy
+    """Read current final artifacts plus older layouts during migration."""
+    current = sorted(llm_dir.glob("*_final.json"))
+    structured_legacy = sorted(llm_dir.glob("*/curriculum_*.json"))
+    flat_legacy = sorted(llm_dir.glob("*_corrected.json"))
+    return current + structured_legacy + flat_legacy
 
 
 def _corrected_paths_for_program(
@@ -234,10 +240,28 @@ def _corrected_paths_for_program(
 
 
 def _corrected_paths_for_dataset(llm_dir: Path, dataset_key: str) -> list[Path]:
-    paths = sorted((llm_dir / dataset_key).glob("curriculum_*.json"))
+    key = resolve_dataset_key(dataset_key)
+    config = get_dataset_config(key)
+    exact = llm_dir / f"{key}_final.json"
+    candidates = ([exact] if exact.is_file() else []) + sorted(
+        llm_dir.glob(f"{key}_*_final.json")
+    )
+    paths = []
+    for path in candidates:
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        catalog = document.get("catalog") if isinstance(document, dict) else None
+        if (
+            isinstance(document, dict)
+            and str(document.get("program", "")).strip().upper() == config.program
+            and isinstance(catalog, dict)
+            and catalog.get("catalog_key") == config.catalog_key
+        ):
+            paths.append(path)
     if paths:
-        return paths
-    config = get_dataset_config(dataset_key)
+        return sorted(dict.fromkeys(paths), key=lambda path: path.name.casefold())
     return _corrected_paths_for_program(
         llm_dir,
         config.program,
@@ -291,6 +315,14 @@ def _plan_label(value: object) -> str:
     return re.sub(r"[^A-Za-z0-9_-]+", "_", text).strip("_") or "no_plan"
 
 
+def _artifact_scope_stem(dataset_key: str, plan: object) -> str:
+    """Return a readable dataset/plan prefix for published artifacts."""
+    label = _plan_label(plan)
+    if label in {"no_plan", "gened"}:
+        return dataset_key
+    return f"{dataset_key}_{label}"
+
+
 def _working_full_paths(consolidated_work: Path, dataset_key: str) -> list[Path]:
     return sorted((consolidated_work / dataset_key).glob("**/full/*_full.json"))
 
@@ -300,25 +332,24 @@ def _publish_consolidated_artifacts(
     consolidated_final: Path,
     dataset_key: str,
 ) -> list[Path]:
-    """Publish readable pre-LLM files as consolidated/<dataset>/curriculum_<plan>.json."""
+    """Publish readable pre-LLM files as <dataset>[_<plan>]_consolidated.json."""
     sources = _working_full_paths(consolidated_work, dataset_key)
     if not sources:
         raise FileNotFoundError(
             f"no consolidated full artifacts found for dataset {dataset_key}"
         )
-    destination_dir = consolidated_final / dataset_key
-    destination_dir.mkdir(parents=True, exist_ok=True)
+    consolidated_final.mkdir(parents=True, exist_ok=True)
     published: list[Path] = []
-    seen_labels: set[str] = set()
+    seen_stems: set[str] = set()
     for source in sources:
         document = json.loads(source.read_text(encoding="utf-8"))
-        label = _plan_label(document.get("plan"))
-        if label in seen_labels:
+        stem = _artifact_scope_stem(dataset_key, document.get("plan"))
+        if stem in seen_stems:
             raise ValueError(
-                f"multiple consolidated artifacts resolve to {dataset_key}/{label}"
+                f"multiple consolidated artifacts resolve to {stem}"
             )
-        seen_labels.add(label)
-        destination = destination_dir / f"curriculum_{label}.json"
+        seen_stems.add(stem)
+        destination = consolidated_final / f"{stem}_consolidated.json"
         shutil.copy2(source, destination)
         published.append(destination)
     return published
@@ -328,31 +359,38 @@ def _consolidated_paths_for_dataset(
     consolidated_final: Path,
     dataset_key: str,
 ) -> list[Path]:
-    simple = sorted((consolidated_final / dataset_key).glob("curriculum_*.json"))
-    if simple:
-        return simple
-    # Read-only fallback for artifacts created before the simplified layout.
-    return sorted((consolidated_final / dataset_key).glob("**/full/*_full.json"))
+    key = resolve_dataset_key(dataset_key)
+    exact = consolidated_final / f"{key}_consolidated.json"
+    current = ([exact] if exact.is_file() else []) + sorted(
+        consolidated_final.glob(f"{key}_*_consolidated.json")
+    )
+    if current:
+        return sorted(dict.fromkeys(current), key=lambda path: path.name.casefold())
+    # Read-only fallback for artifacts created before the simplified flat layout.
+    structured = sorted((consolidated_final / key).glob("curriculum_*.json"))
+    if structured:
+        return structured
+    return sorted((consolidated_final / key).glob("**/full/*_full.json"))
 
 
 def _publish_corrected_artifacts(
     dataset_key: str,
     corrected_temp_paths: list[Path],
     final_root: Path,
+    corrections_root: Path,
 ) -> list[Path]:
-    """Publish readable final/<dataset>/curriculum_<plan>.json + correction logs."""
-    destination_dir = final_root / dataset_key
-    destination_dir.mkdir(parents=True, exist_ok=True)
+    """Publish final data and correction logs into separate canonical layers."""
+    final_root.mkdir(parents=True, exist_ok=True)
+    corrections_root.mkdir(parents=True, exist_ok=True)
     published: list[Path] = []
-    manifest_items: list[dict[str, str]] = []
-    seen_labels: set[str] = set()
+    seen_stems: set[str] = set()
 
     for corrected_path in corrected_temp_paths:
         document = json.loads(corrected_path.read_text(encoding="utf-8"))
-        label = _plan_label(document.get("plan"))
-        if label in seen_labels:
-            raise ValueError(f"multiple corrected artifacts resolve to {dataset_key}/{label}")
-        seen_labels.add(label)
+        stem = _artifact_scope_stem(dataset_key, document.get("plan"))
+        if stem in seen_stems:
+            raise ValueError(f"multiple corrected artifacts resolve to {stem}")
+        seen_stems.add(stem)
 
         corrections_path = corrected_path.with_name(
             corrected_path.name.replace("_corrected.json", "_corrections.json")
@@ -360,31 +398,11 @@ def _publish_corrected_artifacts(
         if not corrections_path.is_file():
             raise FileNotFoundError(corrections_path)
 
-        curriculum_destination = destination_dir / f"curriculum_{label}.json"
-        corrections_destination = destination_dir / f"corrections_{label}.json"
-        shutil.copy2(corrected_path, curriculum_destination)
+        final_destination = final_root / f"{stem}_final.json"
+        corrections_destination = corrections_root / f"{stem}_corrections.json"
+        shutil.copy2(corrected_path, final_destination)
         shutil.copy2(corrections_path, corrections_destination)
-        published.append(curriculum_destination)
-        manifest_items.append(
-            {
-                "plan": label,
-                "curriculum": curriculum_destination.name,
-                "corrections": corrections_destination.name,
-            }
-        )
-
-    config = get_dataset_config(dataset_key)
-    manifest = {
-        "dataset": config.key,
-        "program": config.program,
-        "academic_year": config.academic_year,
-        "catalog_key": config.catalog_key,
-        "artifacts": manifest_items,
-    }
-    (destination_dir / "manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=4) + "\n",
-        encoding="utf-8",
-    )
+        published.append(final_destination)
     return published
 
 
@@ -426,6 +444,7 @@ def main(argv: list[str] | None = None) -> int:
     ocr_root = output_base / "ocr"
     extracted_final = output_base / "extracted"
     consolidated_final = output_base / "consolidated"
+    corrections_root = output_base / "corrections"
     final_root = output_base / "final"
 
     if args.only_index:
@@ -502,7 +521,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 print(
                     f"Consolidated {len(consolidated_inputs)} plan artifact(s) under "
-                    f"{consolidated_final / config.key}"
+                    f"{consolidated_final}"
                 )
             else:
                 consolidated_inputs = _consolidated_paths_for_dataset(
@@ -527,34 +546,41 @@ def main(argv: list[str] | None = None) -> int:
                     config.key,
                     corrected,
                     final_root,
+                    corrections_root,
                 )
                 print(
-                    f"Corrected {len(final_paths)} plan artifact(s) under "
-                    f"{final_root / config.key}"
+                    f"Published {len(final_paths)} final artifact(s) under {final_root}"
                 )
             else:
                 final_paths = _corrected_paths_for_dataset(final_root, config.key)
 
             if not args.skip_eval:
-                from src.pipeline.tools.evaluation.evaluate import discover_llm_evaluation_pairs
-                from src.pipeline.tools.evaluation.tool import run_evaluate_stage
-
-                try:
-                    all_pairs = discover_llm_evaluation_pairs(final_root)
-                except FileNotFoundError:
-                    all_pairs = []
-                selected_paths = {path.resolve() for path in final_paths}
-                pairs = [
-                    (prediction, ground_truth)
-                    for prediction, ground_truth in all_pairs
-                    if Path(prediction).resolve() in selected_paths
-                ]
-                if pairs:
-                    run_evaluate_stage(pairs=pairs)
-                else:
+                if config.key not in AUTO_EVALUATION_DATASETS:
                     print(
-                        f"No accepted Ground Truth pair for {config.key}; skipping evaluation."
+                        f"No edition-specific Ground Truth for {config.key}; "
+                        "skipping evaluation instead of comparing across editions."
                     )
+                else:
+                    from src.pipeline.tools.evaluation.evaluate import discover_llm_evaluation_pairs
+                    from src.pipeline.tools.evaluation.tool import run_evaluate_stage
+
+                    try:
+                        all_pairs = discover_llm_evaluation_pairs(final_root)
+                    except FileNotFoundError:
+                        all_pairs = []
+                    selected_paths = {path.resolve() for path in final_paths}
+                    pairs = [
+                        (prediction, ground_truth)
+                        for prediction, ground_truth in all_pairs
+                        if Path(prediction).resolve() in selected_paths
+                    ]
+                    if pairs:
+                        run_evaluate_stage(pairs=pairs)
+                    else:
+                        print(
+                            f"No accepted Ground Truth pair for {config.key}; "
+                            "skipping evaluation."
+                        )
 
             if args.with_index:
                 from src.pipeline.tools.indexing.tool import run_build_index_stage
@@ -565,7 +591,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Error: {exc}", file=sys.stderr)
             return 1
 
-    print(f"Done. Final reviewed artifacts: {final_root / config.key}")
+    print(f"Done. Final reviewed artifacts: {', '.join(str(path) for path in final_paths)}")
     return 0
 
 

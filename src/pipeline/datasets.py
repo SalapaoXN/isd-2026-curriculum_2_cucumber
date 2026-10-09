@@ -63,7 +63,7 @@ class DatasetConfig:
         return sorted(pages)
 
     def resolve_input_dir(self, project_root: str | Path) -> Path:
-        """Resolve the first existing source folder, preferring year-labelled names."""
+        """Resolve the exact year-labelled source folder for this dataset."""
         root = Path(project_root)
         input_root = root / "data" / "input"
         for name in self.input_dir_names:
@@ -72,7 +72,8 @@ class DatasetConfig:
                 return candidate
         expected = ", ".join(str(input_root / name) for name in self.input_dir_names)
         raise FileNotFoundError(
-            f"No input directory found for dataset '{self.key}'. Expected one of: {expected}"
+            f"No year-labelled input directory found for dataset '{self.key}'. "
+            f"Expected: {expected}"
         )
 
 
@@ -103,7 +104,7 @@ DATASET_CONFIG: dict[str, DatasetConfig] = {
         program="AIT",
         academic_year="2566",
         catalog_key="ait-2566",
-        input_dir_names=("ait2566", "ait"),
+        input_dir_names=("ait2566",),
         scopes=(Scope(plan=None, pages="23-26", description_pages="287-302"),),
         shared_description=Scope(plan=None, pages="287-302"),
     ),
@@ -112,7 +113,7 @@ DATASET_CONFIG: dict[str, DatasetConfig] = {
         program="BIT",
         academic_year="2565",
         catalog_key="bit-2565",
-        input_dir_names=("bit2565", "bit"),
+        input_dir_names=("bit2565",),
         scopes=(
             Scope(plan="no_coop", pages="26-30", description_pages="238-257"),
             Scope(plan="coop", pages="31-35", description_pages="238-257"),
@@ -136,7 +137,7 @@ DATASET_CONFIG: dict[str, DatasetConfig] = {
         program="DSBA",
         academic_year="2565",
         catalog_key="dsba-2565",
-        input_dir_names=("dsba2565", "dsba"),
+        input_dir_names=("dsba2565",),
         scopes=(
             Scope(plan="no_coop", pages="26-32", description_pages="317-344"),
             Scope(plan="coop", pages="33-39", description_pages="317-344"),
@@ -160,7 +161,7 @@ DATASET_CONFIG: dict[str, DatasetConfig] = {
         program="GENED",
         academic_year="2564",
         catalog_key="gened-2564",
-        input_dir_names=("gened2564", "gened"),
+        input_dir_names=("gened2564",),
         scopes=(Scope(plan="gened", pages="16-30", description_pages="44-117"),),
         shared_description=Scope(plan="gened", pages="44-117"),
     ),
@@ -178,7 +179,7 @@ DATASET_CONFIG: dict[str, DatasetConfig] = {
         program="IT",
         academic_year="2565",
         catalog_key="it-2565",
-        input_dir_names=("it2565", "it"),
+        input_dir_names=("it2565",),
         scopes=(
             Scope(plan="no_coop", pages="32-38", description_pages="328-371"),
             Scope(plan="coop", pages="39-45", description_pages="328-371"),

@@ -56,15 +56,17 @@ class RagIndexTest(unittest.TestCase):
         )
         self.assertNotIn("rag_artifacts", str(ARTIFACTS_DIR))
 
-    def test_llm_source_discovery_ignores_logs(self):
+    def test_llm_source_discovery_prefers_final_and_ignores_logs(self):
         with tempfile.TemporaryDirectory() as directory:
             source_dir = Path(directory)
-            corrected = source_dir / "one_corrected.json"
-            corrected.write_text("{}", encoding="utf-8")
-            (source_dir / "one_corrections.json").write_text("[]", encoding="utf-8")
+            final = source_dir / "it2565_coop_final.json"
+            final.write_text("{}", encoding="utf-8")
+            (source_dir / "it2565_coop_corrections.json").write_text("[]", encoding="utf-8")
+            legacy = source_dir / "one_corrected.json"
+            legacy.write_text("{}", encoding="utf-8")
 
             with patch.object(index_module, "_LLM_DIR", source_dir):
-                self.assertEqual(llm_source_paths(), [corrected])
+                self.assertEqual(llm_source_paths(), [final])
 
     def test_llm_source_discovery_rejects_zero_files_without_consolidated_fallback(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -75,7 +77,7 @@ class RagIndexTest(unittest.TestCase):
             (consolidated_dir / "one_corrected.json").write_text("{}", encoding="utf-8")
 
             with patch.object(index_module, "_LLM_DIR", source_dir):
-                with self.assertRaisesRegex(FileNotFoundError, r"LLM-corrected"):
+                with self.assertRaisesRegex(FileNotFoundError, r"reviewed final"):
                     llm_source_paths()
 
     def test_combines_sources_and_persists_chunk_metadata_and_fingerprints(self):

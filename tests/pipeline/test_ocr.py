@@ -145,18 +145,20 @@ class OcrCliTests(unittest.TestCase):
                 (result / "dsba_page_175_ocr.json").read_text(encoding="utf-8")
             )
             self.assertEqual(metadata["program"], "DSBA")
-            self.assertNotIn("source_dataset", metadata)
+            self.assertEqual(metadata["source_dataset"], "dsba")
 
     def _run_wrapper(self, root: Path, *arguments: str) -> None:
         with patch.object(ocr, "BASE_DIR", root), patch.object(ocr, "run_ocr"):
             with patch.object(sys, "argv", ["ocr.py", *arguments]):
                 ocr.main()
 
-    def test_supported_prefixes_map_to_inputs_and_outputs(self):
+    def test_supported_prefixes_map_to_year_labelled_inputs_and_outputs(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             for prefix in ocr.SUPPORTED_PREFIXES:
-                (root / "data" / "input" / prefix).mkdir(parents=True)
+                config = ocr.get_dataset_config(prefix)
+                input_dir = root / "data" / "input" / config.key
+                input_dir.mkdir(parents=True)
                 with patch.object(ocr, "BASE_DIR", root), patch.object(
                     ocr, "run_ocr"
                 ) as run_mock:
@@ -164,17 +166,19 @@ class OcrCliTests(unittest.TestCase):
                         ocr.main()
 
                 run_mock.assert_called_once_with(
-                    input_dir=root / "data" / "input" / prefix,
+                    input_dir=input_dir,
                     output_dir=root / "data" / "output",
-                    program=prefix.upper(),
-                    pages=None,
+                    program=config.program,
+                    pages=config.required_pages(),
                     no_gpu=False,
+                    dataset_key=config.key,
                 )
 
     def test_page_range_is_forwarded_and_no_gpu_is_preserved(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            (root / "data" / "input" / "it").mkdir(parents=True)
+            input_dir = root / "data" / "input" / "it2565"
+            input_dir.mkdir(parents=True)
             with patch.object(ocr, "BASE_DIR", root), patch.object(
                 ocr, "run_ocr"
             ) as run_mock:
@@ -186,11 +190,12 @@ class OcrCliTests(unittest.TestCase):
                     ocr.main()
 
             run_mock.assert_called_once_with(
-                input_dir=root / "data" / "input" / "it",
+                input_dir=input_dir,
                 output_dir=root / "data" / "output",
                 program="IT",
                 pages=list(range(32, 39)),
                 no_gpu=True,
+                dataset_key="it2565",
             )
 
     def test_unsupported_prefix_is_rejected(self):
@@ -203,17 +208,17 @@ class OcrCliTests(unittest.TestCase):
             with patch.object(ocr, "BASE_DIR", Path(temp_dir)):
                 with patch.object(sys, "argv", ["ocr.py", "--prefix", "it"]):
                     with self.assertRaisesRegex(
-                        SystemExit, "does not exist or is not a directory"
+                        SystemExit, "No year-labelled input directory"
                     ):
                         ocr.main()
 
     def test_empty_input_directory_fails_clearly(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            (root / "data" / "input" / "it").mkdir(parents=True)
+            (root / "data" / "input" / "it2565").mkdir(parents=True)
             with patch.object(ocr, "BASE_DIR", root):
                 with patch.object(sys, "argv", ["ocr.py", "--prefix", "it"]):
-                    with self.assertRaisesRegex(SystemExit, "No valid page images"):
+                    with self.assertRaisesRegex(SystemExit, "None of the configured pages"):
                         ocr.main()
 
     def test_ocr_writes_only_ocr_boundary_and_processes_all_pages_by_default(self):
@@ -464,13 +469,13 @@ class OcrCliTests(unittest.TestCase):
 
     def test_document_page_resolver_uses_exact_source_verified_override(self):
         result = resolve_document_page(
-            "DSBA", 28, "dsba_page_028.png", ["header", "content"]
+            "DSBA", 28, "dsba2565_page_028.png", ["header", "content"]
         )
         self.assertEqual(result.document_page, 23)
         self.assertEqual(result.reason, "source_verified_override")
 
     def test_document_page_resolver_rejects_wrong_override_identity(self):
-        for program, filename in [("DSBA", "other_page_028.png"), ("AIT", "dsba_page_028.png")]:
+        for program, filename in [("DSBA", "other_page_028.png"), ("AIT", "dsba2565_page_028.png")]:
             with self.subTest(program=program, filename=filename):
                 result = resolve_document_page(program, 28, filename, ["header", "content"])
                 self.assertIsNone(result.document_page)
@@ -478,14 +483,14 @@ class OcrCliTests(unittest.TestCase):
 
     def test_document_page_resolver_fails_closed_on_unique_override_conflict(self):
         result = resolve_document_page(
-            "DSBA", 28, "dsba_page_028.png", ["24", "header"]
+            "DSBA", 28, "dsba2565_page_028.png", ["24", "header"]
         )
         self.assertIsNone(result.document_page)
         self.assertEqual(result.reason, "conflict")
 
     def test_document_page_resolver_uses_matching_override_for_ambiguous_ocr(self):
         result = resolve_document_page(
-            "DSBA", 28, "dsba_page_028.png", ["23", "header", "content", "footer", "24"]
+            "DSBA", 28, "dsba2565_page_028.png", ["23", "header", "content", "footer", "24"]
         )
         self.assertEqual(result.document_page, 23)
         self.assertEqual(result.reason, "source_verified_override")
