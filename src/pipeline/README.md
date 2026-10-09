@@ -98,14 +98,28 @@ data/output/ocr/<program>/
 
 ฉบับเก่าแยก source folder และ `dataset-key` เพื่อไม่ให้ผล OCR ไปชนกับฉบับปัจจุบัน
 
-#### IT 2560
+> **สำคัญ:** ในขั้น OCR ค่า `--plan` **ไม่ได้ใช้กรองว่าจะ OCR เฉพาะแผน `coop` หรือ `no_coop`** แต่ใช้เป็นค่าประกอบ/validation ของคำสั่งเท่านั้น สำหรับหลักสูตรที่มีหลายแผนจึงต้องระบุค่าที่ถูกต้องสักหนึ่งค่า เช่น `--plan no_coop` ส่วนหน้าที่ OCR จริงถูกกำหนดด้วย `--pages` เท่านั้น ถ้าไม่ใส่ `--pages` ระบบจะค้นและ OCR ทุกภาพที่พบใน `--input-dir` การแยกข้อมูลเป็น `coop` และ `no_coop` จะเกิดในขั้น Extract/Preparation ตาม configuration ของแต่ละฉบับ
+
+ช่วงหน้าที่ pipeline ใช้สำหรับฉบับเก่า:
+
+| Dataset | แผน `no_coop` | แผน `coop` | Course description / shared pages |
+| --- | --- | --- | --- |
+| `it2560` | 27-33 | 34-40 | 222-269 |
+| `bit2560` | 23-26 | 27-30 | 170-192 |
+| `dsba2560` | 25-29 | 30-34 | 175-207 |
+| `gened2557` | - | - | 11-18,47-92 (`gened`) |
+
+ถ้าต้องการสร้าง OCR ที่จำเป็นต่อทั้งสองแผนของแต่ละฉบับ แนะนำระบุช่วงหน้าที่ต้องใช้โดยตรงดังนี้
+
+#### IT 2560 — ทั้งสองแผน + description
 
 ```powershell
 python -m src.pipeline.tools.ocr.pipeline_runner `
   --input-dir data/input/it2560 `
   --program IT `
   --plan no_coop `
-  --dataset-key it2560
+  --dataset-key it2560 `
+  --pages 27-40,222-269
 ```
 
 เฉพาะหน้าเดียวสำหรับทดสอบหรือ demo:
@@ -119,25 +133,51 @@ python -m src.pipeline.tools.ocr.pipeline_runner `
   --pages 27
 ```
 
-#### BIT 2560
+#### BIT 2560 — ทั้งสองแผน + description
 
 ```powershell
 python -m src.pipeline.tools.ocr.pipeline_runner `
   --input-dir data/input/bit2560 `
   --program BIT `
   --plan no_coop `
-  --dataset-key bit2560
+  --dataset-key bit2560 `
+  --pages 23-30,170-192
 ```
 
-#### DSBA 2560
+#### DSBA 2560 — ทั้งสองแผน + description
 
 ```powershell
 python -m src.pipeline.tools.ocr.pipeline_runner `
   --input-dir data/input/dsba2560 `
   --program DSBA `
   --plan no_coop `
-  --dataset-key dsba2560
+  --dataset-key dsba2560 `
+  --pages 25-34,175-207
 ```
+
+ตัวอย่างถ้าต้องการ OCR เฉพาะหน้าของแผน `no_coop` ของ DSBA 2560 และ description ที่ใช้ร่วมกัน:
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/dsba2560 `
+  --program DSBA `
+  --plan no_coop `
+  --dataset-key dsba2560 `
+  --pages 25-29,175-207
+```
+
+ตัวอย่างถ้าต้องการ OCR เฉพาะหน้าของแผน `coop` ของ DSBA 2560 และ description ที่ใช้ร่วมกัน:
+
+```powershell
+python -m src.pipeline.tools.ocr.pipeline_runner `
+  --input-dir data/input/dsba2560 `
+  --program DSBA `
+  --plan coop `
+  --dataset-key dsba2560 `
+  --pages 30-34,175-207
+```
+
+> ในสองตัวอย่างด้านบน สิ่งที่ทำให้ OCR ต่างกันจริงคือค่า `--pages` ไม่ใช่ค่า `--plan`
 
 #### GENED 2557
 
@@ -146,7 +186,8 @@ python -m src.pipeline.tools.ocr.pipeline_runner `
   --input-dir data/input/gened2557 `
   --program GENED `
   --plan gened `
-  --dataset-key gened2557
+  --dataset-key gened2557 `
+  --pages 11-18,47-92
 ```
 
 ผลจะถูกแยกตามฉบับ:
