@@ -16,6 +16,7 @@ from rag.retrieval.index import (
     ensure_index,
     llm_source_paths,
 )
+from src.pipeline.datasets import DATASET_ALIASES, DATASET_CONFIG
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +32,15 @@ def _expand_input_paths(values: Iterable[str | Path]) -> list[Path]:
     return paths
 
 
+def _legacy_catalog_from_filename(path: Path) -> str | None:
+    """Map old unversioned final filenames to their known bundled edition."""
+    name = path.name.casefold()
+    for old_key, dataset_key in DATASET_ALIASES.items():
+        if name.startswith(f"merged_{old_key}_"):
+            return DATASET_CONFIG[dataset_key].catalog_key
+    return None
+
+
 def _artifact_identity(path: Path) -> tuple[str, str, str | None] | None:
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
@@ -43,9 +53,11 @@ def _artifact_identity(path: Path) -> tuple[str, str, str | None] | None:
     plan = "" if plan_value in (None, "") else str(plan_value).strip().casefold()
     catalog = document.get("catalog")
     catalog_key = catalog.get("catalog_key") if isinstance(catalog, dict) else None
+    if not isinstance(catalog_key, str) or not catalog_key:
+        catalog_key = _legacy_catalog_from_filename(path)
     if not program:
         return None
-    return program, plan, catalog_key if isinstance(catalog_key, str) else None
+    return program, plan, catalog_key
 
 
 def _default_sources() -> list[Path]:
@@ -54,9 +66,9 @@ def _default_sources() -> list[Path]:
     New pipeline output:
         data/output/final/<dataset>/curriculum_<plan>.json
 
-    Older flat ``*_corrected.json`` files are still included for datasets that
-    have not been regenerated yet. If a new structured artifact covers the
-    same catalog identity (or the same unscoped program/plan), it wins.
+    Older flat ``*_corrected.json`` files remain available for datasets that
+    have not been regenerated yet. A structured artifact replaces only the
+    exact same catalog/program/plan identity, never another edition.
     """
     structured = sorted(_CLEAN_FINAL_DIR.glob("*/curriculum_*.json"))
     legacy = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
@@ -71,21 +83,11 @@ def _default_sources() -> list[Path]:
         for path in structured
         if (identity := _artifact_identity(path)) is not None
     }
-    structured_program_plans = {(program, plan) for program, plan, _ in structured_identities}
 
     kept_legacy: list[Path] = []
     for path in legacy:
         identity = _artifact_identity(path)
-        if identity is None:
-            kept_legacy.append(path)
-            continue
-        program, plan, catalog_key = identity
-        if identity in structured_identities:
-            continue
-        # Old current-edition artifacts often predate catalog metadata. Once a
-        # year-labelled structured artifact exists for that program/plan, do
-        # not load the unscoped duplicate as a second curriculum edition.
-        if catalog_key is None and (program, plan) in structured_program_plans:
+        if identity is not None and identity in structured_identities:
             continue
         kept_legacy.append(path)
 
