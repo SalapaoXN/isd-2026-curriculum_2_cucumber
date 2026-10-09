@@ -1,134 +1,30 @@
-"""Preparation tool: processed information -> final RAG-ready staging (scope orchestration).
+"""Prepare extracted and consolidated curriculum data from persisted OCR.
 
-"Prepare extracted and consolidated curriculum data from persisted OCR.
-
-This stage deliberately starts at ``data/output/ocr``.  It does not invoke OCR,
-LLM correction, evaluation, or RAG; those remain independent pipeline stages."""
+This stage starts at ``data/output/ocr``. Dataset/edition semantics are defined
+centrally in :mod:`src.pipeline.datasets`; users no longer have to supply plan
+or page ranges manually for bundled curriculum datasets.
+"""
 from __future__ import annotations
 
+import argparse
 import re
 import sys
-import argparse
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from src.pipeline.datasets import (
+    DATASET_CONFIG,
+    DatasetConfig as ProgramConfig,
+    Scope,
+    resolve_dataset_key,
+)
 from src.pipeline.tools.extraction.tool import run_extraction
 from src.pipeline.tools.merge.consolidator import merge_consecutive_files, parse_page_range
 
 
-SUPPORTED_PROGRAMS = ("ait", "bit", "dsba", "gened", "it")
-
-
-@dataclass(frozen=True)
-class Scope:
-    """One explicit extraction/merge scope for a program."""
-
-    plan: str | None
-    pages: str | None
-    description_pages: str | None = None
-
-
-@dataclass(frozen=True)
-class ProgramConfig:
-    """Explicit program semantics; none of these values are inferred."""
-
-    program: str
-    prefix: str
-    scopes: tuple[Scope, ...]
-    shared_description: Scope | None = None
-    dataset_key: str | None = None
-    catalog_key: str | None = None
-    academic_year: str | None = None
-
-
-PROGRAM_CONFIG: dict[str, ProgramConfig] = {
-    "ait": ProgramConfig(
-        program="AIT",
-        prefix="ait",
-        scopes=(Scope(plan=None, pages=None, description_pages="287-302"),),
-    ),
-    "bit": ProgramConfig(
-        program="BIT",
-        prefix="bit",
-        scopes=(
-            Scope(plan="no_coop", pages="26-30", description_pages="238-257"),
-            Scope(plan="coop", pages="31-35", description_pages="238-257"),
-        ),
-        shared_description=Scope(plan="coop", pages="238-257"),
-    ),
-    "dsba": ProgramConfig(
-        program="DSBA",
-        prefix="dsba",
-        scopes=(
-            Scope(plan="no_coop", pages="26-32", description_pages="317-344"),
-            Scope(plan="coop", pages="33-39", description_pages="317-344"),
-        ),
-        shared_description=Scope(plan="coop", pages="317-344"),
-    ),
-    "gened": ProgramConfig(
-        program="GENED",
-        prefix="gened",
-        scopes=(
-            Scope(plan="gened", pages="16-30,44-117", description_pages="44-117"),
-        ),
-    ),
-    "dsba2560": ProgramConfig(
-        program="DSBA",
-        prefix="dsba2560",
-        scopes=(
-            Scope(plan="no_coop", pages="25-29", description_pages="175-207"),
-            Scope(plan="coop", pages="30-34", description_pages="175-207"),
-        ),
-        shared_description=Scope(plan="coop", pages="175-207"),
-        dataset_key="dsba2560",
-        catalog_key="dsba-2560",
-        academic_year="2560",
-    ),
-    "gened2557": ProgramConfig(
-        program="GENED",
-        prefix="gened2557",
-        scopes=(
-            Scope(plan="gened", pages="11-18,47-92", description_pages="47-92"),
-        ),
-        dataset_key="gened2557",
-        catalog_key="gened-2557",
-        academic_year="2557",
-    ),
-    "it2560": ProgramConfig(
-        program="IT",
-        prefix="it2560",
-        scopes=(
-            Scope(plan="no_coop", pages="27-33", description_pages="222-269"),
-            Scope(plan="coop", pages="34-40", description_pages="222-269"),
-        ),
-        shared_description=Scope(plan="coop", pages="222-269"),
-        dataset_key="it2560",
-        catalog_key="it-2560",
-        academic_year="2560",
-    ),
-    "bit2560": ProgramConfig(
-        program="BIT",
-        prefix="bit2560",
-        scopes=(
-            Scope(plan="no_coop", pages="23-26", description_pages="170-192"),
-            Scope(plan="coop", pages="27-30", description_pages="170-192"),
-        ),
-        shared_description=Scope(plan="coop", pages="170-192"),
-        dataset_key="bit2560",
-        catalog_key="bit-2560",
-        academic_year="2560",
-    ),
-    "it": ProgramConfig(
-        program="IT",
-        prefix="it",
-        scopes=(
-            Scope(plan="no_coop", pages="32-38", description_pages="328-371"),
-            Scope(plan="coop", pages="39-45", description_pages="328-371"),
-        ),
-        shared_description=Scope(plan="coop", pages="328-371"),
-    ),
-}
+# Compatibility name retained for tests and older internal imports.
+PROGRAM_CONFIG: dict[str, ProgramConfig] = DATASET_CONFIG
+SUPPORTED_PROGRAMS = tuple(PROGRAM_CONFIG)
 
 PAGE_RE = re.compile(r"page_(\d+)", re.IGNORECASE)
 OCR_SUFFIXES = {".txt", ".json"}
@@ -140,6 +36,8 @@ class PreparationError(RuntimeError):
 
 def _ocr_files(ocr_dir: Path, prefix: str | None = None) -> list[Path]:
     files = []
+    if not ocr_dir.is_dir():
+        return files
     for path in sorted(ocr_dir.iterdir()):
         if not path.is_file() or path.suffix.casefold() not in OCR_SUFFIXES:
             continue
@@ -189,22 +87,26 @@ def _scope_has_any_files(files: list[Path], page_spec: str | None) -> bool:
 
 
 def discover_supported_corpora(ocr_root: Path) -> tuple[list[tuple[str, Path]], list[str]]:
-    """Return existing supported directories and unknown directory names."""
+    """Return supported OCR dataset directories, preferring explicit year keys."""
     if not ocr_root.is_dir():
         return [], []
 
-    supported = []
-    unknown = []
-    supported_names = set(PROGRAM_CONFIG)
+    chosen: dict[str, Path] = {}
+    unknown: list[str] = []
     for child in sorted(ocr_root.iterdir(), key=lambda path: path.name.casefold()):
         if not child.is_dir():
             continue
-        key = child.name.casefold()
-        if key in supported_names:
-            supported.append((key, child))
-        else:
+        raw_key = child.name.casefold()
+        try:
+            key = resolve_dataset_key(raw_key)
+        except ValueError:
             unknown.append(child.name)
-    return supported, unknown
+            continue
+        previous = chosen.get(key)
+        if previous is None or raw_key == key:
+            chosen[key] = child
+
+    return sorted(chosen.items()), unknown
 
 
 def _run_extract(
@@ -263,15 +165,11 @@ def prepare_program(
     root: Path,
     edition_metadata: dict[str, str] | None = None,
 ) -> bool:
-    """Prepare one program corpus; shared by prepare_data() and pipeline.py."""
-    key = key.casefold()
+    """Prepare one exact dataset corpus using its deterministic configured scopes."""
+    key = resolve_dataset_key(key)
     config = PROGRAM_CONFIG[key]
-    configured_metadata = (
-        {"catalog_key": config.catalog_key, "academic_year": config.academic_year}
-        if config.catalog_key is not None and config.academic_year is not None
-        else None
-    )
-    if config.dataset_key is not None and edition_metadata not in (None, configured_metadata):
+    configured_metadata = config.edition_metadata
+    if edition_metadata not in (None, configured_metadata):
         raise ValueError(
             f"dataset {config.dataset_key!r} requires edition metadata "
             f"{configured_metadata!r}"
@@ -282,14 +180,14 @@ def prepare_program(
         print(f"Skipping empty OCR directory: {program_dir}")
         return False
 
-    usable_scopes = []
+    usable_scopes: list[Scope] = []
     for scope in config.scopes:
         if _scope_is_usable(files, scope.pages):
             _run_extract(root, program_dir, extracted_path, config, scope)
             usable_scopes.append(scope)
         else:
             print(
-                f"Skipping scope {config.program}/{scope.plan or 'no_plan'}: "
+                f"Skipping scope {config.dataset_key}/{scope.plan or 'no_plan'}: "
                 "required OCR pages are missing"
             )
 
@@ -300,12 +198,13 @@ def prepare_program(
             _run_extract(root, program_dir, extracted_path, config, shared)
             descriptions_available = True
         else:
-            print(f"No shared description OCR pages found for {config.program}")
+            print(f"No shared description OCR pages found for {config.dataset_key}")
 
+    dataset_consolidated = consolidated_path / config.dataset_key
     for scope in usable_scopes:
         _run_merge(
-            extracted_path / (config.dataset_key or config.program.casefold()),
-            consolidated_path / config.dataset_key if config.dataset_key else consolidated_path,
+            extracted_path / config.dataset_key,
+            dataset_consolidated,
             config,
             scope,
             _combined_pages(
@@ -315,19 +214,13 @@ def prepare_program(
             effective_metadata,
         )
 
-    if config.dataset_key is not None and usable_scopes:
-        if effective_metadata is None:
-            raise PreparationError(
-                f"edition metadata is not configured for {config.dataset_key}"
-            )
+    if usable_scopes:
         from src.pipeline.run import _apply_edition_metadata
         from src.pipeline.tools.merge.consolidator import edition_filename_token
 
         token = edition_filename_token(effective_metadata["catalog_key"])
         full_files = sorted(
-            (consolidated_path / config.dataset_key).glob(
-                f"**/full/*_{token}_full.json"
-            )
+            dataset_consolidated.glob(f"**/full/*_{token}_full.json")
         )
         if not full_files:
             raise PreparationError(
@@ -359,10 +252,7 @@ def prepare_data(
 
     supported, unknown = discover_supported_corpora(ocr_path)
     if dataset_keys is not None:
-        selected = tuple(dict.fromkeys(str(key).casefold() for key in dataset_keys))
-        unsupported = sorted(set(selected) - set(PROGRAM_CONFIG))
-        if unsupported:
-            raise ValueError(f"Unsupported dataset key(s): {', '.join(unsupported)}")
+        selected = tuple(dict.fromkeys(resolve_dataset_key(str(key)) for key in dataset_keys))
         directories = {key: path for key, path in supported}
         missing = [key for key in selected if key not in directories]
         if missing:
@@ -370,6 +260,7 @@ def prepare_data(
                 f"Selected OCR dataset directory not found: {', '.join(missing)}"
             )
         supported = [(key, directories[key]) for key in selected]
+
     for name in unknown:
         print(f"Ignoring unsupported OCR directory: {name}")
 
@@ -394,23 +285,29 @@ def prepare_data(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Prepare selected persisted OCR datasets.")
+    parser = argparse.ArgumentParser(description="Prepare persisted OCR datasets.")
+    parser.add_argument(
+        "--dataset",
+        action="append",
+        choices=tuple(PROGRAM_CONFIG),
+        help="Prepare only this exact dataset key; may be supplied multiple times.",
+    )
+    # Backward-compatible spelling for internal/older commands.
     parser.add_argument(
         "--dataset-key",
         action="append",
+        dest="legacy_dataset_keys",
         choices=tuple(PROGRAM_CONFIG),
-        help="Prepare only this exact OCR dataset key; may be supplied multiple times.",
+        help=argparse.SUPPRESS,
     )
     args = parser.parse_args(argv)
+    selected = (args.dataset or []) + (args.legacy_dataset_keys or [])
     try:
-        result = prepare_data(dataset_keys=args.dataset_key)
+        result = prepare_data(dataset_keys=selected or None)
     except (OSError, ValueError, PreparationError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
-    print(
-        "Preparation complete for: "
-        + ", ".join(result["prepared_programs"])
-    )
+    print("Preparation complete for: " + ", ".join(result["prepared_programs"]))
     return 0
 
 
