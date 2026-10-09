@@ -4,7 +4,12 @@ import unittest
 from pathlib import Path
 
 from src.pipeline.tools.extraction.rule_cli import main
-from src.pipeline.tools.extraction.rules import RuleExtractor, RulePage, discover_rule_ocr_files
+from src.pipeline.tools.extraction.rules import (
+    RuleExtractor,
+    RulePage,
+    apply_source_verified_rule_corrections,
+    discover_rule_ocr_files,
+)
 
 
 def page(number, lines, filename=None, metadata=None):
@@ -413,6 +418,84 @@ class RuleExtractorTests(unittest.TestCase):
         )
         self.assertIn("JSON ที่ถูกเลือก", result["rules"][1]["rule_text"])
         self.assertNotIn("TXT ควรถูกแทนที่", result["rules"][1]["rule_text"])
+
+    def test_source_verified_rule_correction_replaces_text_and_marks_provenance(self):
+        payload = {
+            "source": "Academic Rules",
+            "total_rules": 1,
+            "rules": [
+                {
+                    "rule_id": "rule:6.3.2",
+                    "rule_text": "OCR damaged",
+                    "source_provenance": [
+                        {
+                            "source_filename": "rule2564_page_003.png",
+                            "source_page": 3,
+                            "document_category": "rule",
+                        }
+                    ],
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            correction_path = Path(temp_dir) / "corrections.json"
+            correction_path.write_text(
+                json.dumps(
+                    {
+                        "corrections": [
+                            {
+                                "rule_id": "rule:6.3.2",
+                                "rule_text": "ภาคปฏิบัติไม่น้อยกว่า ๓๐ ชั่วโมง",
+                                "source_pages": [3],
+                                "source_verified": True,
+                                "verification_note": "reviewed source",
+                            }
+                        ]
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            corrected = apply_source_verified_rule_corrections(
+                payload, path=correction_path
+            )
+
+        rule = corrected["rules"][0]
+        self.assertEqual(rule["rule_text"], "ภาคปฏิบัติไม่น้อยกว่า ๓๐ ชั่วโมง")
+        self.assertIs(rule["source_verified"], True)
+        self.assertIs(rule["source_provenance"][0]["source_verified"], True)
+        self.assertEqual(corrected["source_verified_correction_count"], 1)
+
+    def test_source_verified_rule_correction_fails_on_wrong_page(self):
+        payload = {
+            "rules": [
+                {
+                    "rule_id": "rule:6.3.2",
+                    "rule_text": "OCR damaged",
+                    "source_provenance": [{"source_page": 4}],
+                }
+            ]
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            correction_path = Path(temp_dir) / "corrections.json"
+            correction_path.write_text(
+                json.dumps(
+                    {
+                        "corrections": [
+                            {
+                                "rule_id": "rule:6.3.2",
+                                "rule_text": "corrected",
+                                "source_pages": [3],
+                                "source_verified": True,
+                                "verification_note": "reviewed source",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "do not match provenance"):
+                apply_source_verified_rule_corrections(payload, path=correction_path)
 
     def test_missing_rule_ocr_files_fail_clearly(self):
         with tempfile.TemporaryDirectory() as temp_dir:

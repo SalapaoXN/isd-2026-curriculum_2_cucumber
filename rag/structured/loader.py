@@ -130,8 +130,11 @@ def _normalized_identity(value: str) -> str:
 def _normalized_course_name(value: Any, *, casefold: bool) -> Any:
     if not isinstance(value, str):
         return value
-    normalized = " ".join(value.split())
-    return normalized.casefold() if casefold else normalized
+    # Compare exact text after formatting whitespace is removed; this is not
+    # fuzzy matching and still distinguishes substantive title differences.
+    if casefold:
+        return "".join(value.split()).casefold()
+    return "".join(value.split())
 
 
 def _normalized_description(value: Any) -> str | None:

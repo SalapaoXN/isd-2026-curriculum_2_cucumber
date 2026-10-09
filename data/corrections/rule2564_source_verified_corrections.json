@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "dataset_key": "rule2564",
+  "description": "Source-verified corrections for OCR-damaged undergraduate academic rules. These corrections are applied before policy mapping so canonical policy facts are not inferred from damaged OCR.",
+  "corrections": [
+    {
+      "rule_id": "rule:6.3.2",
+      "rule_text": "รายวิชาภาคปฏิบัติ ที่ใช้เวลาฝึกหรือทดลองที่ใช้เวลาปฏิบัติไม่น้อยกว่า ๓๐ ชั่วโมงต่อภาคการศึกษา คิดเป็นปริมาณการศึกษา ๑ หน่วยกิตระบบทวิภาค",
+      "source_pages": [3],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:19.3",
+      "rule_text": "ให้ใช้ระบบหน่วยกิตเป็นหลักในการวัดผลการศึกษา การวัดและรายงานผลการศึกษาให้กำหนดค่าระดับคะแนนเป็นตัวอักษรและการคิดค่าระดับคะแนนเฉลี่ยให้เทียบค่าระดับคะแนนเป็นแต้ม ดังนี้\nค่าระดับคะแนน แต้ม ผลการศึกษา\nA ๔.๐๐ ดีเลิศ (Excellent)\nB+ ๓.๕๐ ดีมาก (Very Good)\nB ๓.๐๐ ดี (Good)\nC+ ๒.๕๐ ดีพอใช้ (Fairly Good)\nC ๒.๐๐ พอใช้ (Fair)\nD+ ๑.๕๐ อ่อน (Poor)\nD ๑.๐๐ อ่อนมาก (Very Poor)\nF ๐ ตก (Failed)\nI - ไม่สมบูรณ์ (Incomplete)\nS - พอใจ (Satisfactory)\nU - ไม่พอใจ (Unsatisfactory)\nT - รับโอน (Transfer)",
+      "source_pages": [5, 6],
+      "source_verified": true,
+      "verification_note": "Manual transcription already present in ground_truth/rules_extraction_eval.json from the source PNG pages."
+    },
+    {
+      "rule_id": "rule:22",
+      "rule_text": "นักศึกษาที่ได้ค่าระดับคะแนนเฉลี่ยสะสมต่ำกว่า ๒.๐๐ ต้องถูกภาคทัณฑ์ไว้ และจะพ้นภาคทัณฑ์เมื่อได้รับค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๒.๐๐ ทั้งนี้ ให้นับรวมถึงภาคการศึกษาพิเศษด้วย",
+      "source_pages": [7],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:25.1",
+      "rule_text": "เรียนครบหน่วยกิตและสอบผ่านทุกรายวิชาตามที่กำหนดไว้ในโครงสร้างของหลักสูตรที่ศึกษาโดยต้องได้ค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรไม่ต่ำกว่า ๒.๐๐",
+      "source_pages": [7],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:25.2",
+      "rule_text": "ได้ค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๒.๐๐ และได้ค่าระดับคะแนนการสอบภาษาอังกฤษ (English Exit Exam) ตามประกาศสถาบัน โดยผ่านความเห็นชอบจากสภาวิชาการ",
+      "source_pages": [7],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:27.1.2",
+      "rule_text": "ไม่มีรายวิชาใดได้ค่าระดับคะแนน F หรือ U",
+      "source_pages": [7],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:27.2.1",
+      "rule_text": "เกียรตินิยมอันดับหนึ่งเหรียญทอง ต้องเป็นผู้ได้รับค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรสูงสุดในกลุ่มผู้สำเร็จการศึกษาในปีการศึกษาเดียวกันในแต่ละหลักสูตร ทั้งนี้ ต้องได้ค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรและค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๗๕ และต้องไม่เทียบโอนผลการเรียนจากสถาบันการศึกษาอื่น",
+      "source_pages": [8],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:27.2.2",
+      "rule_text": "เกียรตินิยมอันดับหนึ่ง ต้องเป็นผู้ได้รับค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรและค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๕๐ ในกรณีที่โอนผลการเรียนจากสถาบันอื่นทุกรายวิชาต้องได้ค่าระดับคะแนนไม่ต่ำกว่า B หรือค่าระดับคะแนน S และจะต้องศึกษารายวิชาในหลักสูตรของสถาบันไม่น้อยกว่าสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร",
+      "source_pages": [8],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:27.2.3",
+      "rule_text": "เกียรตินิยมอันดับสอง ต้องเป็นผู้ได้รับค่าระดับคะแนนเฉลี่ยสะสมตามโครงสร้างหลักสูตรและค่าระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า ๓.๒๕ ในกรณีที่โอนผลการเรียนจากสถาบันอื่นทุกรายวิชาต้องได้ค่าระดับคะแนนไม่ต่ำกว่า B หรือค่าระดับคะแนน S และจะต้องศึกษารายวิชาในหลักสูตรของสถาบันไม่น้อยกว่าสองในสามของจำนวนหน่วยกิตรวมตลอดหลักสูตร",
+      "source_pages": [8],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:33.8",
+      "rule_text": "ทุจริตในการสอบมากกว่า ๑ ครั้ง",
+      "source_pages": [9],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    },
+    {
+      "rule_id": "rule:43",
+      "rule_text": "นักศึกษาผู้ใดถูกสั่งลงโทษตามข้อ ๓๘ หรือข้อ ๓๙ ให้ผู้นั้นมีสิทธิอุทธรณ์ต่ออธิการบดีได้โดยให้อุทธรณ์ภายใน ๓๐ วันนับตั้งแต่วันทราบคำสั่งทุกกรณี และต้องอุทธรณ์เป็นหนังสือลงลายมือชื่อของผู้อุทธรณ์ด้วย\nเมื่ออธิการบดีได้วินิจฉัยแล้วให้คณะกรรมการรักษาวินัยนักศึกษาที่สถาบันตั้งขึ้น หรือหัวหน้าส่วนงานวิชาการแล้วแต่กรณี ดำเนินการตามที่อธิการบดีสั่งการต่อไปโดยไม่ชักช้า",
+      "source_pages": [11],
+      "source_verified": true,
+      "verification_note": "Verified against a KMITL curriculum reproduction of the 2564 undergraduate academic rules."
+    },
+    {
+      "rule_id": "rule:48",
+      "rule_text": "ในทุกสิ้นปีการศึกษา หากมีนักศึกษาที่ขาดคุณสมบัติตามข้อ ๔๕ ให้คณะกรรมการประจำส่วนงานวิชาการดำเนินการตามข้อ ๔๗ และส่งผลการพิจารณามาที่สำนักทะเบียนและประมวลผลเพื่อนำเสนอสภาสถาบันพิจารณา นักศึกษาผู้ใดที่สภาสถาบันพิจารณาเห็นสมควรไม่เสนอชื่อให้ได้รับปริญญา ถ้าเห็นว่าตนไม่ได้รับความเป็นธรรมให้มีสิทธิอุทธรณ์ได้ โดยทำเป็นหนังสือลงลายมือชื่อของผู้อุทธรณ์ต่ออธิการบดี พร้อมทั้งทำสำเนารับรองถูกต้องยื่นต่อหัวหน้าส่วนงานวิชาการภายใน ๑๕ วันทำการ นับตั้งแต่วันที่ทราบว่าตนเป็นผู้ไม่สมควรได้รับปริญญา",
+      "source_pages": [12, 13],
+      "source_verified": true,
+      "verification_note": "Manual transcription already present in ground_truth/rules_extraction_eval.json from the source PNG pages."
+    },
+    {
+      "rule_id": "rule:51.2",
+      "rule_text": "ถ้าคำวินิจฉัยอุทธรณ์นั้นได้ออกโดยอาศัยข้อเท็จจริงหรือข้อกฎหมายใด และต่อมาข้อเท็จจริงหรือข้อกฎหมายนั้นเปลี่ยนแปลงไปในสาระสำคัญในทางที่จะเป็นประโยชน์แก่นักศึกษา\nการยื่นคำขอตามวรรคหนึ่ง ให้กระทำได้เฉพาะเมื่อนักศึกษาไม่อาจทราบถึงเหตุนั้นในการพิจารณาครั้งที่แล้วมาก่อนโดยมิใช่ความผิดของนักศึกษา\nการยื่นคำขอตามวรรคหนึ่ง ต้องกระทำภายใน ๓๐ วัน นับตั้งแต่นักศึกษาได้รู้ถึงเหตุซึ่งอาจขอให้พิจารณาใหม่ได้",
+      "source_pages": [13],
+      "source_verified": true,
+      "verification_note": "Verified against the KMITL undergraduate academic rules source."
+    }
+  ]
+}

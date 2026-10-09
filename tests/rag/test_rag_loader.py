@@ -14,8 +14,8 @@ class RagLoaderTest(unittest.TestCase):
         artifacts = [
             root / "data" / "output" / "final" / filename
             for filename in (
-                "merged_dsba2560_coop_edition-dsba-2560_full_corrected.json",
-                "merged_dsba2560_no_coop_edition-dsba-2560_full_corrected.json",
+                "dsba2560_coop_final.json",
+                "dsba2560_no_coop_final.json",
             )
         ]
 
@@ -23,7 +23,7 @@ class RagLoaderTest(unittest.TestCase):
             temp_root = Path(directory)
             inputs = []
             for index, artifact in enumerate(artifacts):
-                document = json.loads(artifact.read_text(encoding="utf-8"))
+                document = json.loads(artifact.read_text(encoding="utf-8-sig"))
                 courses = [course for course in document["courses"] if course.get("code") == "06026127"]
                 self.assertEqual(len(courses), 1)
                 focused = {
@@ -75,33 +75,27 @@ class RagLoaderTest(unittest.TestCase):
         )
 
     def test_dsba2560_course_type_is_plan_specific_placement_metadata(self):
-        root = Path(__file__).resolve().parents[2]
-        artifacts = [
-            root / "data" / "output" / "final" / filename
-            for filename in (
-                "merged_dsba2560_coop_edition-dsba-2560_full_corrected.json",
-                "merged_dsba2560_no_coop_edition-dsba-2560_full_corrected.json",
-            )
-        ]
-
         with tempfile.TemporaryDirectory() as directory:
             temp_root = Path(directory)
             inputs = []
-            expected_categories = []
-            for index, artifact in enumerate(artifacts):
-                document = json.loads(artifact.read_text(encoding="utf-8"))
-                matching = [
-                    course
-                    for course in document["courses"]
-                    if course.get("code") == "06026129"
-                ]
-                self.assertEqual(len(matching), 1)
-                expected_categories.append(matching[0].get("category"))
+            for index, (plan, requirement_type) in enumerate(
+                (("coop", "เลือก"), ("no_coop", "บังคับ"))
+            ):
                 focused = {
-                    "program": document["program"],
-                    "catalog": document["catalog"],
-                    "plan": document["plan"],
-                    "courses": matching,
+                    "program": "DSBA",
+                    "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
+                    "plan": plan,
+                    "courses": [
+                        {
+                            "code": "06026129",
+                            "name_en": "DATA SCIENCE AND BUSINESS ANALYTICS PROFESSIONAL PRACTICES",
+                            "credits": "3(0-18-0)",
+                            "category": "วิชาเฉพาะ",
+                            "type": requirement_type,
+                            "year": 3,
+                            "semester": index + 1,
+                        }
+                    ],
                 }
                 source = temp_root / f"dsba-plan-{index}.json"
                 source.write_text(json.dumps(focused), encoding="utf-8")
@@ -131,7 +125,7 @@ class RagLoaderTest(unittest.TestCase):
             [(row[0], row[2], row[3]) for row in placements],
             [("coop", "เลือก", course_id), ("no_coop", "บังคับ", course_id)],
         )
-        self.assertEqual([row[1] for row in placements], expected_categories)
+        self.assertEqual([row[1] for row in placements], ["วิชาเฉพาะ", "วิชาเฉพาะ"])
 
     def test_ait_elective_placeholder_repeated_on_source_page_loads_as_one_course(self):
         source = (
@@ -139,9 +133,9 @@ class RagLoaderTest(unittest.TestCase):
             / "data"
             / "output"
             / "final"
-            / "merged_ait_no_plan_full_corrected.json"
+            / "ait2566_final.json"
         )
-        document = json.loads(source.read_text(encoding="utf-8"))
+        document = json.loads(source.read_text(encoding="utf-8-sig"))
         matching = [course for course in document["courses"] if course.get("code") == "060464xx"]
         self.assertEqual(len(matching), 2)
         self.assertEqual([course["credits"] for course in matching], ["6(3-0-6)", "6(3-0-6)"])
@@ -188,9 +182,9 @@ class RagLoaderTest(unittest.TestCase):
             / "data"
             / "output"
             / "final"
-            / "merged_ait_no_plan_full_corrected.json"
+            / "ait2566_final.json"
         )
-        document = json.loads(source.read_text(encoding="utf-8"))
+        document = json.loads(source.read_text(encoding="utf-8-sig"))
         matching = [course for course in document["courses"] if course.get("code") == "xxxxxxxx"]
         self.assertEqual(
             [course["name_en"] for course in matching],
@@ -444,6 +438,50 @@ class RagLoaderTest(unittest.TestCase):
                     inputs.append(path)
                 with self.assertRaisesRegex(ValueError, expected):
                     load_jsons_to_sqlite(inputs, root / "curriculum.db")
+
+    def test_shared_thai_course_name_whitespace_is_compatible(self):
+        base = {
+            "program": "BIT",
+            "catalog": {"catalog_key": "bit-2560", "academic_year": "2560"},
+            "courses": [
+                {
+                    "code": "06036018",
+                    "name_th": "สื่อสังคม และเครือข่ายสังคม",
+                    "name_en": "SOCIAL MEDIA AND SOCIAL NETWORK",
+                    "credits": "3(3-0-6)",
+                }
+            ],
+        }
+        second = {
+            **base,
+            "plan": "no_coop",
+            "courses": [
+                {
+                    "code": "06036018",
+                    "name_th": "สื่อสังคมและเครือข่ายสังคม",
+                    "name_en": "SOCIAL MEDIA AND SOCIAL NETWORK",
+                    "credits": "3(3-0-6)",
+                }
+            ],
+        }
+        first = {**base, "plan": "coop"}
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inputs = []
+            for index, document in enumerate((first, second)):
+                path = root / f"document-{index}.json"
+                path.write_text(json.dumps(document), encoding="utf-8")
+                inputs.append(path)
+            database = root / "curriculum.db"
+            load_jsons_to_sqlite(inputs, database)
+            with closing(sqlite3.connect(database)) as connection:
+                rows = connection.execute(
+                    "SELECT course_code, name_th FROM courses WHERE course_code = '06036018'"
+                ).fetchall()
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][0], "06036018")
 
     def _load_shared_course_pair(self, first_course, second_course):
         with tempfile.TemporaryDirectory() as directory:
@@ -713,6 +751,13 @@ class RagLoaderTest(unittest.TestCase):
             {"code": "C101", "name_en": "COMPUTER PROGRAMMING", "credits": "3"},
         )
         self.assertEqual(rows, [("  COMPUTER   PROGRAMMING  ", "3")])
+
+    def test_shared_course_missing_english_word_separator_is_compatible(self):
+        rows = self._load_shared_course_pair(
+            {"code": "C101", "name_en": "VISUAL COMMUNICATION FORBUSINESS", "credits": "3"},
+            {"code": "C101", "name_en": "VISUAL COMMUNICATION FOR BUSINESS", "credits": "3"},
+        )
+        self.assertEqual(rows, [("VISUAL COMMUNICATION FORBUSINESS", "3")])
 
     def test_shared_course_substantive_name_difference_still_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:

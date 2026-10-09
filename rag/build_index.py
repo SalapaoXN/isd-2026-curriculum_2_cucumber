@@ -1,10 +1,9 @@
-"""Build the shared unified curriculum database from reviewed final JSON files."""
+"""Build the shared unified curriculum database from canonical runtime JSON files."""
 
 from __future__ import annotations
 
 import argparse
 import glob
-import json
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 
@@ -14,13 +13,15 @@ from rag.retrieval.index import (
     ARTIFACTS_DIR,
     DEFAULT_INDEX_NAME,
     ensure_index,
-    llm_source_paths,
 )
-from src.pipeline.datasets import DATASET_ALIASES, DATASET_CONFIG
+from src.pipeline.tools.runtime_artifacts import (
+    CANONICAL_DIR,
+    audit_shared_course_conflicts,
+    canonical_runtime_sources,
+)
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-_CLEAN_FINAL_DIR = _PROJECT_ROOT / "data" / "output" / "final"
 
 
 def _expand_input_paths(values: Iterable[str | Path]) -> list[Path]:
@@ -32,61 +33,9 @@ def _expand_input_paths(values: Iterable[str | Path]) -> list[Path]:
     return paths
 
 
-def _legacy_catalog_from_filename(path: Path) -> str | None:
-    """Map old unversioned final filenames to their known bundled edition."""
-    name = path.name.casefold()
-    for old_key, dataset_key in DATASET_ALIASES.items():
-        if name.startswith(f"merged_{old_key}_"):
-            return DATASET_CONFIG[dataset_key].catalog_key
-    return None
-
-
-def _artifact_identity(path: Path) -> tuple[str, str, str | None] | None:
-    try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-    if not isinstance(document, dict):
-        return None
-    program = str(document.get("program", "")).strip().upper()
-    plan_value = document.get("plan")
-    plan = "" if plan_value in (None, "") else str(plan_value).strip().casefold()
-    catalog = document.get("catalog")
-    catalog_key = catalog.get("catalog_key") if isinstance(catalog, dict) else None
-    if not isinstance(catalog_key, str) or not catalog_key:
-        catalog_key = _legacy_catalog_from_filename(path)
-    if not program:
-        return None
-    return program, plan, catalog_key
-
-
 def _default_sources() -> list[Path]:
-    """Prefer current ``*_final.json`` artifacts while supporting old layouts.
-
-    Current pipeline output is flat and explicit, for example
-    ``data/output/final/it2565_coop_final.json``. During migration, an artifact
-    from a newer layout replaces only the exact same catalog/program/plan
-    identity from an older layout; other editions remain available.
-    """
-    current = sorted(_CLEAN_FINAL_DIR.glob("*_final.json"))
-    structured_legacy = sorted(_CLEAN_FINAL_DIR.glob("*/curriculum_*.json"))
-    flat_legacy = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
-
-    candidates = [current, structured_legacy, flat_legacy]
-    selected: list[Path] = []
-    selected_identities: set[tuple[str, str, str | None]] = set()
-    for group in candidates:
-        for path in group:
-            identity = _artifact_identity(path)
-            if identity is not None and identity in selected_identities:
-                continue
-            selected.append(path)
-            if identity is not None:
-                selected_identities.add(identity)
-
-    if selected:
-        return sorted(selected, key=lambda path: path.as_posix().casefold())
-    return llm_source_paths()
+    """Read only deterministic post-evaluation canonical runtime artifacts."""
+    return canonical_runtime_sources(CANONICAL_DIR)
 
 
 def _default_supplemental_sources() -> dict[str, Path]:
@@ -116,6 +65,14 @@ def build_index(
     kwargs = {"index_path": artifact_index}
     if supplemental is not None:
         kwargs["supplemental_json_paths"] = supplemental
+    if using_defaults:
+        conflicts = audit_shared_course_conflicts(sources)
+        if conflicts:
+            raise ValueError(
+                "refusing to build from canonical runtime artifacts with "
+                f"{len(conflicts)} unresolved shared-course conflict(s):\n- "
+                + "\n- ".join(conflicts)
+            )
     return ensure_index(sources, **kwargs)
 
 
@@ -125,7 +82,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "input_json_paths",
         nargs="*",
-        help="curriculum JSON files (defaults to reviewed data/output/final artifacts)",
+        help=f"curriculum JSON files (defaults to canonical runtime artifacts in {CANONICAL_DIR})",
     )
     args = parser.parse_args(argv)
     input_paths = _expand_input_paths(args.input_json_paths)

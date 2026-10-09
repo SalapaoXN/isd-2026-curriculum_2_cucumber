@@ -62,13 +62,15 @@ class SourceCreditReconciliationTests(unittest.TestCase):
         self.assertNotIn("ground_truth", source.lower())
         self.assertNotIn("_load_authoritative_credit_lookup", source)
 
-    def test_reviewed_artifact_has_one_exact_source_verified_record(self):
+    def test_reviewed_artifact_has_exact_source_verified_records(self):
         corrections = extraction_tool._load_source_verified_credit_corrections()
-        self.assertEqual(len(corrections), 1)
-        record = next(iter(corrections.values()))
-        self.assertEqual(record["course_code"], "06016454")
-        self.assertEqual(record["credits"], "3(3-0-6)")
-        self.assertIs(record["source_verified"], True)
+        self.assertEqual(len(corrections), 2)
+        records = {record["course_code"]: record for record in corrections.values()}
+        self.assertEqual(records["06016454"]["credits"], "3(3-0-6)")
+        self.assertEqual(records["060464xx"]["credits"], "6(3-0-6)")
+        self.assertIs(records["06016454"]["source_verified"], True)
+        self.assertIs(records["060464xx"]["source_verified"], True)
+        self.assertIsNone(records["060464xx"]["plan"])
 
     def test_it_credit_repairs_only_with_exact_source_identity(self):
         result = extraction_tool._reconcile_source_backed_credit(
@@ -142,7 +144,7 @@ class SourceCreditReconciliationTests(unittest.TestCase):
         self.assertIs(result, course)
         self.assertEqual(result["credits"], "(0-2-1)")
 
-    def test_existing_valid_credit_is_not_replaced(self):
+    def test_source_verified_credit_overrides_valid_looking_but_wrong_credit(self):
         course = self._course(credits="4(3-0-6)")
         result = extraction_tool._reconcile_source_backed_credit(
             course,
@@ -150,8 +152,28 @@ class SourceCreditReconciliationTests(unittest.TestCase):
             program="IT",
             plan="coop",
         )
-        self.assertIs(result, course)
-        self.assertEqual(result["credits"], "4(3-0-6)")
+        self.assertIsNot(result, course)
+        self.assertEqual(result["credits"], "3(3-0-6)")
+        self.assertTrue(result["credit_source_verified"])
+
+    def test_ait_null_plan_source_verified_credit_is_supported(self):
+        course = self._course(
+            program="AIT",
+            plan=None,
+            code="060464xx",
+            credits="3(3-0-6)",
+            source_filename="ait2566_page_025.png",
+            source_page=25,
+            document_category="plan",
+        )
+        result = extraction_tool._reconcile_source_backed_credit(
+            course,
+            extraction_tool._load_source_verified_credit_corrections(),
+            program="AIT",
+            plan=None,
+        )
+        self.assertEqual(result["credits"], "6(3-0-6)")
+        self.assertTrue(result["credit_source_verified"])
 
     def test_matching_valid_credit_is_unchanged(self):
         course = self._course(credits="3(3-0-6)")

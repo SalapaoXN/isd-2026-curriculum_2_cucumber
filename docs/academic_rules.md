@@ -49,11 +49,11 @@ GENED ไม่มี total-program-credit record ในชุดนี้
 
 | Family | Authority |
 | --- | --- |
-| Curriculum / placement | canonical corrected curriculum JSON → SQLite |
+| Curriculum / placement | post-evaluation canonical curriculum JSON → SQLite |
 | Institution policy | `institution_policy.json` → policy tables |
 | Program total credits | `program_requirements.json` → program requirement tables |
 
-`ground_truth/` ใช้ประเมินผลเท่านั้น ไม่ใช่ fallback ของ production
+GT ของแผนหลักสูตรที่ผ่านการยอมรับจะถูกใช้โดย canonicalizer แบบ offline หลัง pre-canonical evaluation เท่านั้น (ดู ../src/pipeline/README.md). การ extract policy ใช้เอกสารต้นทางและ source-verified corrections ส่วน rules GT ใช้สำหรับ evaluation เท่านั้น ไม่ใช่ runtime truth.
 
 ## Runtime tables
 

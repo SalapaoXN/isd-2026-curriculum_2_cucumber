@@ -1,6 +1,7 @@
 [
   {
     "program": "AIT",
+    "catalog_key": "ait-2566",
     "requirement_type": "total_program_credits",
     "operator": "=",
     "value": 120,
@@ -17,6 +18,7 @@
   },
   {
     "program": "BIT",
+    "catalog_key": "bit-2565",
     "requirement_type": "total_program_credits",
     "operator": "=",
     "value": 126,
@@ -33,6 +35,7 @@
   },
   {
     "program": "DSBA",
+    "catalog_key": "dsba-2565",
     "requirement_type": "total_program_credits",
     "operator": "=",
     "value": 132,
@@ -49,6 +52,7 @@
   },
   {
     "program": "IT",
+    "catalog_key": "it-2565",
     "requirement_type": "total_program_credits",
     "operator": "=",
     "value": 129,

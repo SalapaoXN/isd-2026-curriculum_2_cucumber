@@ -53,8 +53,10 @@ def _load_source_verified_credit_corrections(path=None):
         if (
             not isinstance(record["program"], str)
             or not record["program"].strip()
-            or not isinstance(record["plan"], str)
-            or not record["plan"].strip()
+            or not (
+                (isinstance(record["plan"], str) and record["plan"].strip())
+                or (record["program"].strip().upper() == "AIT" and record["plan"] is None)
+            )
             or not isinstance(record["course_code"], str)
             or not record["course_code"].strip()
             or not isinstance(record["credits"], str)
@@ -71,7 +73,7 @@ def _load_source_verified_credit_corrections(path=None):
 
         key = (
             record["program"].strip().upper(),
-            record["plan"].strip(),
+            record["plan"].strip() if isinstance(record["plan"], str) else None,
             record["course_code"].strip(),
             record["source_filename"].strip(),
             record["source_page"],
@@ -118,7 +120,7 @@ def _reconcile_source_backed_credit(course, correction_lookup, *, program, plan)
 
     correction = correction_lookup[matching_key]
     corrected_credit = correction["credits"].strip()
-    if current_credit and _AUTHORITATIVE_CREDIT_RE.fullmatch(current_credit):
+    if current_credit == corrected_credit:
         return course
 
     repaired = dict(course)

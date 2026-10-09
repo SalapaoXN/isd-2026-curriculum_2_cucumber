@@ -35,6 +35,7 @@ class ProgramRequirementsTests(unittest.TestCase):
         )
 
         self.assertEqual(result["program"], "IT")
+        self.assertEqual(result["catalog_key"], "it-2565")
         self.assertEqual(result["requirement_type"], "total_program_credits")
         self.assertEqual(result["operator"], "=")
         self.assertEqual(result["value"], 129)

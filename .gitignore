@@ -32,7 +32,10 @@ demo.db
 !data/output/final/*.json
 !tests/reference/
 !cucumber_outputs/runtime/curriculum.db
-!reports/evaluation_reference/
+!data/output/canonical/
+!data/output/canonical/*.json
+!reports/evaluation_precanonical/
+!reports/evaluation_precanonical/*
 
 # Frontend (React/Vite)
 frontend/node_modules/

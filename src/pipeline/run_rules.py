@@ -11,7 +11,11 @@ from src.pipeline.tools.extraction.program_requirements import (
     PROGRAM_REQUIREMENT_SOURCES,
     extract_program_requirements,
 )
-from src.pipeline.tools.extraction.rules import RuleExtractor, discover_rule_ocr_files
+from src.pipeline.tools.extraction.rules import (
+    RuleExtractor,
+    apply_source_verified_rule_corrections,
+    discover_rule_ocr_files,
+)
 from src.pipeline.tools.merge.policy import RulesPolicyMapper
 
 
@@ -22,7 +26,7 @@ RULE_PAGE_NUMBERS = tuple(range(1, 14))
 
 def _source_manifest(source_dir: Path) -> dict[str, Any]:
     rule_sources = [f"{RULE_DATASET_KEY}_page_{page:03d}.png" for page in RULE_PAGE_NUMBERS]
-    program_sources = [filename for filename, _, _ in PROGRAM_REQUIREMENT_SOURCES.values()]
+    program_sources = [source[0] for source in PROGRAM_REQUIREMENT_SOURCES.values()]
     missing = [name for name in (*rule_sources, *program_sources) if not (source_dir / name).is_file()]
     if missing:
         raise FileNotFoundError(
@@ -118,13 +122,14 @@ def run_rules(
         )
         rule_files = _rule_ocr_files(resolved_output_dir)
         extracted_rules = RuleExtractor().extract_from_files(rule_files)
-        _write_json(paths["rules_extracted"], extracted_rules)
         program_requirements = extract_program_requirements(
             resolved_source_dir,
             gpu=not no_gpu,
         )
         _write_json(paths["program_requirements"], program_requirements)
 
+    extracted_rules = apply_source_verified_rule_corrections(extracted_rules)
+    _write_json(paths["rules_extracted"], extracted_rules)
     policy = RulesPolicyMapper().map_data(extracted_rules)
     _write_json(paths["institution_policy"], policy)
     return {

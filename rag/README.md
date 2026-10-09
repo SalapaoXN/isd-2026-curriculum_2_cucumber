@@ -36,7 +36,18 @@ provenance          = หลักฐานสำหรับตรวจสอ�
 answerer / renderer = เรียบเรียงคำตอบเท่านั้น
 ```
 
-ห้ามใช้ข้อมูลจาก `ground_truth/`, fixture สำหรับทดสอบ หรือข้อความที่ LLM สร้างขึ้นเองเป็นข้อเท็จจริงของระบบ production
+SQLite และ evidence ที่ตรวจสอบ provenance ได้ยังเป็นข้อเท็จจริงที่ QA อ่านตอนตอบคำถาม. Accepted teacher course-plan Ground Truth ใช้แบบ offline สอง stage: เป็น reference สำหรับประเมิน raw reviewed finals ก่อน แล้วจึงใช้ canonicalize เฉพาะ structured fields ที่ยอมรับแล้ว. QA และ rag.build_index ไม่อ่าน GT โดยตรง.
+
+## Curriculum runtime source
+
+- data/output/final/*_final.json คือ reviewed prediction ก่อน GT override และเป็น input ของ evaluation ไม่ใช่ default curriculum source ของ RAG.
+- Current GT-backed curricula ใช้ accepted teacher GT หลัง evaluation เฉพาะ fields ที่มีใน GT: code, name_th, name_en, credits, year, semester, category, type, prerequisite, flexible_year_semester และ note; descriptions และ provenance ยังคงมาจาก reviewed finals.
+- Runtime curriculum source คือ data/output/canonical/*_final.json; build ต้องผ่าน preflight ก่อน.
+- Legacy 2560 ไม่มี accepted GT edition เดียวกัน จึงไม่ evaluate เทียบ current GT และใช้เฉพาะ source-verified corrections จาก data/corrections/legacy_2560_source_verified_corrections.json เมื่อจำเป็น.
+- institution_policy.json และ program_requirements.json ยังคงโหลดจาก data/output/final/ เป็น supplemental sources.
+- Runtime rules ใช้ source-verified rules pipeline/correction artifacts. ground_truth/rules_ground_truth.json และ ground_truth/rules_extraction_eval.json ใช้สำหรับ evaluation เท่านั้น.
+
+การสร้างซ้ำจาก reviewed finals ทำได้โดยไม่รัน OCR ใหม่ ดูคำสั่งและขอบเขต evaluation ที่ ../src/pipeline/README.md และ ../reports/README.md.
 
 ## โมดูลสำคัญของ Semantic QA
 

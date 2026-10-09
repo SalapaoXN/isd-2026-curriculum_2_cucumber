@@ -1,0 +1,3571 @@
+{
+  "source": "OCR extraction / Academic Plan - GENED gened",
+  "description": "OCR-extracted curriculum records for GENED (plan gened)",
+  "program": "GENED",
+  "plan": "gened",
+  "total_courses": 123,
+  "courses": [
+    {
+      "code": "90101002",
+      "name_th": "คณิตศาสตร์ในชีวิตประจำวัน",
+      "name_en": "MATHEMATICS IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_048.png",
+          "source_page": 48,
+          "document_category": "description",
+          "document_page": 44
+        }
+      ],
+      "desc_th": "หลักการและกระบวนการคิดของมนุษย์ การวิเคราะห์ข้อมูลและข่าวสาร มูลค่าที่เพิ่มขึ้นและ\nมูลค่าที่ลดลง ดอกเบี้ยเชิงเดียว ดอกเขบี้ยทบต้น ค่ารายงวด เงินออมและการลงทุนเพื่อการลดหย่อนภาษี การ\nคิดภาษีเงินได้บุคคลธรรมดา\nค่าเสื่อมราคาและมูลค่าสุทธิของทรัพย์สินถาวร\nและการประยุกต์ เอื่นๆ\nใน\nชีวิตประจำวัน",
+      "desc_en": "PRINCIPLE\nAND\nPROCESS  OF\nHUMAN  THINKING,\nDATA\nAND\nINFORMATION  ANALYZING,\nINCREASING AND DECREASING VALUE, SIMPLE AND COMPOUND INTEREST, ANNUITIES, TAX DEDUCTIBLE\nINVESTMENTS,  PERSONAL TAX COMPUTATION, DEPRECIATION AND NET VALUE OF FIXED ASSET, AND OTHER\nDAILY LIFE APPLICATIONS."
+    },
+    {
+      "code": "90101003",
+      "name_th": "สถิติในชีวิตประจำวัน",
+      "name_en": "STATISTICS IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_048.png",
+          "source_page": 48,
+          "document_category": "description",
+          "document_page": 44
+        }
+      ],
+      "desc_th": "ข้อมูล ฺการเก็บรวบรวมข้อมูล  การนำเสนอข้อมูล ฺการวิเคราะห์ข้อมูล การแปลความหมาย|ข้อมูล\nความน่าจะเป็น การสำรวจตัวอย่าง การตัดสินใจ การวิเคราะห์แนวโน้ม และเลขดัชนี",
+      "desc_en": "DATA, DATA COLLECTION, PRESENTATIONS OF DATA, DATA ANALYSIS, INTERPRETATION OF DATA,\nPROBABILITY., SAMPLE SURVEY, DECISION MAKING, TREND AND INDEX NUMBER."
+    },
+    {
+      "code": "90101004",
+      "name_th": "คณิตศาสตร์กับเทคโนโลยี",
+      "name_en": "MATHEMATICS AND TECHNOLOGY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_048.png",
+          "source_page": 48,
+          "document_category": "description",
+          "document_page": 44
+        }
+      ],
+      "desc_th": "เรียนรู้คณิตศาสตร์และการแก้ปัญหาเชิงคณิตศาสตร์โดยใช้เทคโนโลยีและเครื่องมือที่ทันสมัย\nการใช้อุปกรณ์ช่วยคำนวณเชิงกราฟฟิค การใช้แอปพลิเคชันเชิงคณิตศาสตร์บนแพลตฟอร์มรูปแบบต่างๆ เช่น\nคอมพิวเตอร์ โทรศัพท์มือถือ แท็บเล็ต หรืออุปกรณ์พกพาใหม่ต ในอนาคต",
+      "desc_en": "STUDY  OF MATHEMATICS\nAND\nHOW TO\nSOLVE\nMATHEMATICAL  PROBLEMS  USING\nMODERN  TECHNOLOGY\nAND  GADGETS,\nHOW\nTO\nUSE\nGRAPHICAL.  CALCULATING  DEVICES, HOW\nTO\nUSE\nMATHEMATICAL\nAPPLICATIONS\nON VARIOUS\nPLATFORMS SUCH AS COMPUTERS, SMART PHONES, TABLETS,\nAND OTHER FUTURE PORTABLE DEVICES.\nหน้า 46 จาก 124"
+    },
+    {
+      "code": "90101005",
+      "name_th": "คณิตศาสตร์เพื่อการตัดสินใจ",
+      "name_en": "MATHEMATICS FOR DECISION MAKING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_049.png",
+          "source_page": 49,
+          "document_category": "description",
+          "document_page": 45
+        }
+      ],
+      "desc_th": "กระบวนการตัดสินใจโดยใช้คณิตศาสตร์ การสร้างแบบจำลองเชิงคณิตศาสตร์เพือการ\nตัดสินใจ  ทฤษฎีการตัดสินใจ การตัดสินใจภายใต้ความไม่แน่นอน ความเสี่ยง การใช้ซอฟต์แวร์คอมพิวเตอร์\nเพื่อการตัดสินใจ การประยุกต์การตัดสินใจในปัญหาต่างๆ เช่นโลจิกติกส์",
+      "desc_en": "DECISION MAKING\nPROCESS\nUSING\nMATHEMATICS,\nMATHEMATICAL  MODELING\nFOR\nDECISION-MAKING, DECISION  THEORY., DECISIONS\nUNDER  UNCERTAINTY., RISK, COMPUTER SOFTWARE FOR\nDECISION MAKING, APPLICATIONS OF DECISION MAKING IN VARIOUS PROBLEMS SUCH AS LOGISTICS."
+    },
+    {
+      "code": "90101006",
+      "name_th": "คณิตศาสตร์เพื่อพัฒนากระบวนการคิด",
+      "name_en": "MATHEMATICS FOR THINKING PROCESS DEVELOPMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_049.png",
+          "source_page": 49,
+          "document_category": "description",
+          "document_page": 45
+        }
+      ],
+      "desc_th": "ประวัติของนักคณิตศาสตร์และแนวคิดที่โดดเด่น\nวิวัฒนาการของแนวคิดเชิงคณิตศาสตร์\nกระบวนการคิดที่นำไปสู่ทฤษฎีที่สำคัญทางคณิตศาสตร์ หลักตรรกศาสตร์ การประยุกต์ กระบวนการคิดเชิง\nคณิตศาสตร์กับปัญหาทัวไป",
+      "desc_en": "HISTORY\nOF\nMATHEMATICIANS\nAND\nTHEIR\nDISTINCTIVE\nMATHEMATICAL\nCONCEPTS,\nEVOLUTION OF MATHEMATICAL CONCEPTS, THINKING PROCESSES LEADING TO WELL KNOWN MATHEMATICAL\nTHEOREMS, LOGICS, APPLICATIONS OF MATHEMATICAL THINKING PROCESS TO GENERAL PROBLEMS."
+    },
+    {
+      "code": "90101007",
+      "name_th": "คณิตเศรษฐศาสตร์เบื้องต้น",
+      "name_en": "INTRODUCTION TO MATHEMATICAL ECONOMICS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_049.png",
+          "source_page": 49,
+          "document_category": "description",
+          "document_page": 45
+        }
+      ],
+      "desc_th": "ศึกษา แเครื่องมือทางคณิตศาสตร์ ประกอบด้วย\nเมทริกซ์\nการหาผลเฉลยของระบบสมการ\nเชิงเส้น กฎของคราเมอร์ อนุพันธ์ของฟังก์ชัน ฟังก์ชันกำลังสอง  ค่าสูงสุดและค่าตำสุด อนุพันธ์ย่อย และการ\nอินทิเกรต เพื่อประยุกต์ใช้แก้ปัญหาทางเศรษฐศาสตร์และการพาณิชย์ เบื้องต้นในชีวิตประจำวัน เช่น ฺหาจุด\nสมดุลของราคาและปริมาณของสินค้าในตลาด\nวิเคราะห์การผลิต เมทริกซ์การเปลี่ยนถ่ายสถานะ ฟังก์ชัน\nฟังก์ชันอุปทาน ฺฟังก์ชันต้นทุนฺ ฺฟังก์ชันรายได้ ฟังก์ชันยืดหยุ่น",
+      "desc_en": "STUDY OF\nMATHEMATICS\nTOOLS;  MATRIX, SOLUTION  OF SYSTEM  OF EQUATIONS,\nCRAMER'S RULE,\nDERIVATIVE OF FUNCTION, QUADRATICS FUNCTIONS, MAXIMUM AND MINIMUM VALUE,\nPARTIAL DERIVATIVE, AND INTEGRATION.\nAPPLICATION OF MATHEMATICS TO SOLVE BASIC ECONOMICS AND\nCOMMERCE PROBLEMS\nIN DAILY LIFE SUCH AS,  FINDING EQUILIBRIUM\nOF PRICE AND\nQUANTITY OF\nPRODUCT\nON\nTHE\nMARKETS,\nINPUT  OUTPUT ANALYSIS,\nTRANSITION\nMATRIX,\nDEMAND\nAND  SUPPLY\nFUNCTION, COST AND REVENUE FUNCTION,\nELASTICITY FUNCTION.\nหน้า 47 จาก 124\nอุปสงค์\nPOINT"
+    },
+    {
+      "code": "90101008",
+      "name_th": "คณิตศาสตร์ในธุรกิจและอุตสาหกรรม",
+      "name_en": "MATHEMATICS IN BUSINESS AND INDUSTRY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_050.png",
+          "source_page": 50,
+          "document_category": "description",
+          "document_page": 46
+        }
+      ],
+      "desc_th": "การสร้างตัวแบบปัญหาทางคณิตศาสตร์  ตัวแบบกำหนดการเชิงเส้นและการแก้ปัญหาโดยวิธี\nกราฟ  ตัวแบบข่ายงาน\nระเบียบวิธีต้นไม้แผ่ทั่วที่น้อยที่สุด ระเบียบวิธีระยะทางที่สั้นที่สุด เทคนิคการไหลมาก\nทีสุด ระบบสมการเชิงเส้น\nการหาผลเฉลยของระบบสมการเชิงเส้น ระเบียบวิธีการกำจัดแบบเกาส์\nการ\nประยุกต์กับการไหลในข่ายงาน  ความรู้เบื้องต้นเกี่ยวกับอนุพันธ์  ฺปัญหาการหาค่าเหมาะสมที่สุด\nการ\nประยุกต์ในเรื่องส่วนที่เผื่อเอาไว้ในทางเศรษฐศาสตร์  การปรับข้อมูล\nการถดถอยเชิงเส้น  การปรับเส้นโค้ง\nพหุนาม ฺฺการปรับเส้นโค้งเลขชี้กำลัง",
+      "desc_en": "MATHEMATICAL\nPROBLEM\nFORMULATIONS,\nLINEAR\nPROGRAMMING\nMODELS\nAND\nGRAPHICAL SOLVING, NETWORK MODELS, MINIMUM SPANNING TREES METHOD., SHORTEST\nMETHOD,\nMAXIMAL FLOW TECHNIQUE, SYSTEM OF LINEAR EQUATIONS, SOLVING\nSYSTEMS OF LINEAR EQUATIONS,\nGAUSS\nELIMINATION\nMETHOD.\nAPPLICATION\nTO\nNETWORK  FLOWS,\nINTRODUCTION\nTO\nDERIVATIVES,\nOPTIMIZATION PROBLEMS, MARGINALITY IN ECONOMICS, DATA FITTING, LINEAR REGRESSION., POLYNOMIAL\nCURVE\nAND EXPONENTIAL CURVE FITTING."
+    },
+    {
+      "code": "90101009",
+      "name_th": "คณิตศาสตร์สำหรับผู้บริโภค",
+      "name_en": "MATHEMATICS FOR CONSUMERS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_050.png",
+          "source_page": 50,
+          "document_category": "description",
+          "document_page": 46
+        }
+      ],
+      "desc_th": "คณิตศาสตร์ สำหรับการทำงบรายจ่าย\nการคำนวณภาษีเงินได้บุคคลธรรมดาคณิตศาสตร์\nพื้นฐานสำหรับปัญหาการเพิ่มรายได้ลดรายจ่ายคณิตศาสตร์ สำหรับปัญหาการซื้อสินค้าอุปโภคบริโภค\nปัญหา\nค่าใช้จ่ายเครื่องนุ่งหุ่มและปัญหาที่พักอาศัย\nคณิตศาสตร์ สำหรับปัญหาธนาคารและสินเชื่อส่วนบุคคล\nคณิตศาสตร์ สำหรับปัญหาการประกันภัยการประยุกต์ใช้คิตศาสตร์ิในงานคมนาคมขนส่ง",
+      "desc_en": "MATHEMATICS FOR BUDGETING AND CALCULATING TAXES. BASIC MATHEMATICS ON HOW TO\nINCREASE INCOMES\nAND\nREDUCE  EXPENSES.\nMATHEMATICS  FOR  SOLVING  PROBLEMS  OF CONSUMER\nPRODUCT., GARMENT COSTS, AND HOUSING PROBLEMS RELATED. MATHEMATICS FOR BANKING TRANSACTIONS,\nPERSONAL LOANS, AND INSURANCE. APPLIED MATHEMATICS FOR TRANSPORTATION PROBLEMS.\nหน้า 48 จาก 124\nPATH\nFITTING"
+    },
+    {
+      "code": "90102001",
+      "name_th": "คอมพิวเตอร์ในชีวิตประจำวัน",
+      "name_en": "COMPUTER IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_051.png",
+          "source_page": 51,
+          "document_category": "description",
+          "document_page": 47
+        }
+      ],
+      "desc_th": "ความสำคัญของคอมพิวเตอร์ในชีวิตประจำวัน\nประวัติของคอมพิวเตอร์\nองค์ประกอบของ\nระบบคอมพิวเตอร์ ข้อมูลและระบบสารสนเทศ ระบบสารสนเทศในสำนักงาน การสื่อสารข้อมูลเทคโนโลยีทาง\nเว็บ การประยุกต์คอมพิวเตอร์ในชีวิตประจำวัน",
+      "desc_en": "THE IMPORTANCE OF COMPUTER IN DAILY LIFE, COMPUTER HISTORY., COMPONENTS OF\nCOMPUTER\nSYSTEM,\nDATA\nAND\nINFORMATION\nSYSTEM,\nOFFICE\nINFORMATION\nSYSTEM,\nDATA\nCOMMUNICATION., WEB TECHNOLOGY., COMPUTER APPLICATION IN EVERYDAY LIFE."
+    },
+    {
+      "code": "90102003",
+      "name_th": "คอมพิวเตอร์และการโปรแกรม",
+      "name_en": "COMPUTERS AND PROGRAMMING",
+      "credits": "3(2-2-5)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_051.png",
+          "source_page": 51,
+          "document_category": "description",
+          "document_page": 47
+        }
+      ],
+      "desc_th": "ระบบคอมพิวเตอร์เบื้องต้น คอมพิวเตอร์และเทคโนโลยีสารสนเทศที่เกี่ยวข้องกับ\nชีวิตประจำวัน\nการ์ใช้งานโปรแกรมประยุกต์เพื่อสนับสนุนการศึกษา หลักการเขียนโปรแกรมคอมพิวเตอร์ การ\nฝึกปฏิบัติการโปรแกรมในห้องปฏิบัติการคอมพิวเตอร์",
+      "desc_en": "INTRODUCTION\nTO  COMPUTER  SYSTEMS,  COMPUTER\nAND\nINFORMATION  TECHNOLOGY\nINVOLVED IN DAILY LIFE., USAGE OF SOFTWARE APPLICATIONS THAT SUPPORT ACADEMIC STUDY., PRINCIPLE\nOF COMPUTER PROGRAMMING, PROGRAMMING PRACTICE IN COMPUTER LABORATORY."
+    },
+    {
+      "code": "90102005",
+      "name_th": "ระบบสารสนเทศเพื่อการจัดการเบื้องต้น",
+      "name_en": "INTRODUCTION TO INFORMATION SYSTEMS FOR MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_051.png",
+          "source_page": 51,
+          "document_category": "description",
+          "document_page": 47
+        }
+      ],
+      "desc_th": "ความูรู้เบื้องต้นเกี่ยวกับระบบสารสนเทศ\nระบบสารสนเทศในองค์กร\nฮาร์ดแวร์และ\nซอฟต์แวร์ทีใช้ในระบบสารสนเทศ\nระบบฐานข้อมูลสารสนเทศเบื้องต้น\nระบบเครือข่ายเบื้องต้น\nระบบ\nสนับสนุนการตัดสินใจ เทคโนโลยีสารสนเทศในธุรกิจ ฺพาณิชย์อิเล็กทรอนิกส์ การจัดการทรัพยากร จริยธรรม\nทางเทคโนโลยีสารสนเทศ การพัฒนาระบบสารสนเทศเบื้องต้น",
+      "desc_en": "INTRODUCTION\nTO\nINFORMATION\nSYSTEMS,\nINFORMATION  SYSTEMS\nIN  ORGANIZATION,\nHARDWARE AND SOFTWARE IN INFORMATION SYSTEMS, FUNDAMENTAL INFORMATION  DATABASE SYSTEM,\nFUNDAMENTAL  COMPUTER\nNETWORKS,\nDECISION\nSUPPORT\nSYSTEM,\nINFORMATION  TECHNOLOGY\nIN\nBUSINESS,\nE COMMERCE,\nRESOURCE\nMANAGEMENT,\nETHICS\nIN\nINFORMATION  TECHNOLOGY,\nAND\nINFORMATION SYSTEMS DEVELOPMENT.\nหน้า 49 จาก 124"
+    },
+    {
+      "code": "90102006",
+      "name_th": "การจัดการข้อมูลการวิจัยทางวิทยาศาสตร์และการเกษตร ด้วยโปรแกรมคอมพิวเตอร์",
+      "name_en": "INTEGRATED DATA MANAGEMENT FOR SCIENTIFIC AND AGRICULTURAL RESEARCH BY USING COMPUTATIONAL PROGRAM",
+      "credits": "3(2-3-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_052.png",
+          "source_page": 52,
+          "document_category": "description",
+          "document_page": 48
+        }
+      ],
+      "desc_th": "การประยุกต์ใช้คำสังและฟังชันก์ของโปรแกรมสำเร็จรูปประเภทเสปรดชีตทีนิยม ฺอาทิ",
+      "desc_en": "MICROSOFT\nEXCEL หรือ QUATROPR0 LOTUS 1-2-3\nการเรียบเรียงข้อมูลฺการคำนวณและวิเคราะห์ข้อมูลทางสถิติเบื้องต้น\nAPPLICATION  OF COMMAND AND FUNCTIONALITY OF POPULAR SPREADSHEET PROGRAM\nSUCH\nAS\nMICROSOFT EXCEL\nOR\nQUATROPRO LOTUS 1-2-3 TO MANAGE RAW EXPERIMENTAL  DATA, DATA\nPROCESSING, DATA COMPILATION, BASIC STATISTICAL DATA CALCULATION AND ANALYSIS."
+    },
+    {
+      "code": "90103003",
+      "name_th": "เทคโนโลยีรถยนต์",
+      "name_en": "AUTOMOTIVE TECHNOLOGY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_052.png",
+          "source_page": 52,
+          "document_category": "description",
+          "document_page": 48
+        }
+      ],
+      "desc_th": "แ\nนะนำประวัติของรถยนต์ การทำงานของรถยนต์ ได้แก่ เครื่องยนต์ ระบบส่งกำลัง ระบบ\nเบรก ระบบกันสะเทือน\nระบบบังคับเลี้ยว ระบบเชื้อเพลิง ระบบหล่อลื่น เรียนรู้เทคโนโลยียานยนต์ในปัจจุบัน\nได้แก่ ระบบคอมมอนเรล ระบบวาล์วแปรผัน ระบบเบรกเอบีเอส ระบบไฮบริดจ์ ระบบเชื้อเพลิงก๊าซธรรมชาติ\nอัด (เชีเอ็นจี) รถเชื้อเพลิงก๊าซปิโตรเลียมเหลว (แอลพีจี) การบำรุงรักษารถยนต์ระบบต่าง\nการเลือกชี้\nอ\nรถยนต์ใหม่และรถยนต์มือสอง",
+      "desc_en": "INTRODUCTION\nTO\nAUTOMOTIVE  HISTORY.,  STUDY\nOF\nCAR\nSYSTEMS  SUCH\nAS\nENGINES,\nTRANSMISSION SYSTEM, BRAKE SYSTEM, SUSPENSION SYSTEM, FUEL SYSTEM, LUBRICATION SYSTEM, RECENT\nAUTOMOTIVE TECHNOLOGY SUCH AS COMMON RAIL SYSTEM., VARIABLE VALUE SYSTEM., HYBRID SYSTEM., CNG-\nFUEL SYSTEM, LPG FUEL SYSTEM, CAR MAINTENANCE AND SELECTION OF NEW AND USED CARS"
+    },
+    {
+      "code": "90104003",
+      "name_th": "สุขภาพและโภชนาการ",
+      "name_en": "HEALTH AND NUTRITION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_052.png",
+          "source_page": 52,
+          "document_category": "description",
+          "document_page": 48
+        }
+      ],
+      "desc_th": "ความสำคัญของอาหารต่อสุขภาพมนุษย์ โรคที่เกิดจากภาวะโภชนาการไม่สมดุล ฺหน้าที่ของ\nคาร์โบไฮเดรต  ไขมัน  โปรตีน  เกลือแร่\nและวิตามินต่าง\nในร่างกาย\nการย่อย\nการดูดซึม  ฺการสังเคราะห์\nพลังงานจากอาหารทีรับประทาน การขับถ่าย การขาดสารอาหาร ความต้องการอาหารของบุคคลในวัย และ\nสภาวะต่าง\nหน้า 50 จาก 124\nข้อมูล"
+    },
+    {
+      "code": "90104004",
+      "name_th": "นวัตกรรมการสื่อสารเพื่อการพัฒนา",
+      "name_en": "COMMUNICATION INNOVATION FOR DEVELOPMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_053.png",
+          "source_page": 53,
+          "document_category": "description",
+          "document_page": 49
+        }
+      ],
+      "desc_th": "ศึกษาแนวคิด ความหมาย บทบาท ประเภท ผลกระทบของนวัตกรรมการสื่อสาร การนำ\nนวัตกรรมการ สื่อสารไปประยุกต์?ใช้ในการพัฒนาองค์กรและประเทศในด้านต่าง\nโดยเน้นกระบวนการพัฒนา\nการนำไปใช้ประโยชน์ของนวัตกรรมการสื่อสารและการปรับตัวขององค์กรในสังคมยุคใหม่ รวมถึงการวิเคราะห์\nนวัตกรรมสื่อสารควบคู่กับจริยธรรมในสังคมยุคใหม่",
+      "desc_en": "STUDY OF COMMUNICATION INNOVATION IN TERMS OF CONCEPT; MEANINGS; ROLES;\nTYPES  AND ITS IMPACT, THE  APPLICATION  OF COMMUNICATION\nINNOVATION\nTO  ORGANIZATIONS  AND\nCOUNTRY\nDEVELOPMENTS  FOCUSING\nON\nDEVELOPMENT\nPROCESS,\nTHE\nUSE\nOF\nCOMMUNICATION\nINNOVATION AND THE ADAPTATION OF ORGANIZATIONS IN MODERN SOCIETY., INCLUDING THE ANALYSIS OF\nCOMMUNICATION INNOVATION PARALLELING WITH THE ETHICS."
+    },
+    {
+      "code": "90104005",
+      "name_th": "วิทยาศาสตร์การถ่ายภาพ",
+      "name_en": "SCIENCE OF PHOTOGRAPHY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_011.png",
+          "source_page": 11,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_053.png",
+          "source_page": 53,
+          "document_category": "description",
+          "document_page": 49
+        }
+      ],
+      "desc_th": "ประวัติของการถ่ายภาพ  วิวัฒนาการของกล้องถ่ายภาพและส่วนประกอบที่สำคัญของกล้อง\nถ่ายภาพ หลักการการเกิดภาพของระบบออปติกส์ เซนเซอร์รับภาพและการถ่ายภาพดิจิตอล ฺหลักการทำงาน\nของเครื่องมือถ่ายภาพทางวิทยาศาสตร์ขั้นสูง เช่น เกล้องจุลทัศน์อิเล็กตรอนแบบสแกน ทฤษฎี'แสง\nแสงและ\nศิลปการถ่ายภาพ\nการจัดองค์ประกอบภาพ การถ่ายภาพสี ภาพขาวดำและภาพอินฟราเรด\nเทคนิคการ\nถ่ายภาพเพื่อถ่ายภาพทิวทัศน์ ภาพกลางคืน ภาพทางดาราศาสตร์ และอื่นๆ",
+      "desc_en": "HISTORY OF PHOTOGRAPHY,\nEVOLUTION OF\nCAMERAS\nAND\nMAJOR  COMPONENTS\nOF\nCAMERAS,\nOPTICAL PRINCIPLES OF IMAGING,\nIMAGING SENSOR AND DIGITAL PHOTOGRAPHY., PRINCIPLE OF\nADVANCED\nSCIENTIFIC\nINSTRUMENTS\nFOR\nIMAGING\nSUCH\nAS\nA\nSCANNING  TUNNELLING\nELECTRON\nMICROSCOPE,\nTHEORY  OF LIGHT,  LIGHT\nAND\nART  OF  PHOTOGRAPHY,\nPHOTOGRAPHIC  COMPOSITION,\nCOLOUR PHOTOGRAPHY., BLACK & WHITE PHOTOGRAPHY AND INFRARED PHOTOGRAPHY,\nBASIC TECHNIQUES\nIN\nLANDSCAPE PHOTOGRAPHY., NIGHT PHOTOGRAPHYS, ASTROPHOTOGRAPHY AND SO ON.\nหน้า 51 จาก 124"
+    },
+    {
+      "code": "90104006",
+      "name_th": "โภชนาการอาหารเบื้องต้น",
+      "name_en": "INTRODUCTION TO FOOD NUTRITION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_054.png",
+          "source_page": 54,
+          "document_category": "description",
+          "document_page": 50
+        }
+      ],
+      "desc_th": "ความสัมพันธ์ของสุขภาพและโกชนาการกับชีวิตมนุษย์ หน้าที่ของคาร์โบไฮเดรท โปรตีน ไขมัน\nเกลือแร่\nและวิตามินต่าง\nในร่างกาย การย่อย การดูดซึม เมตาบอลิซึม ฺและการขับถ่ายของสารอาหารต่าง\nบทบาทที่สำคัญของไฟโตนิวเตรียน\nและสารยับยั้งการเปิดปฏิกิริยาออกซิเดชันต่อสุขภาพและโกซนาการในปัจจุบัน\nโรคที่เกิดจากภาวะโภชนาการไม่สมดุล เความต้องการอาหารของบุคคลในวัยและสภาวะต่าง",
+      "desc_en": "RELATIONSHIP\nBETWEEN\nHEALTH\nAND\nNUTRITION\nAND\nHUMAN\nLIFE,\nFUNCTIONS\nOF\nCARBOHYDRATE, FAT, PROTEIN, MINERALS, WATER AND VARIOUS VITAMINS IN HUMAN BODY; DIGESTION,\nABSORPTION., METABOLISM AND EXCRETION OF VARIOUS NUTRIENTS;  IMPORTANT ROLE OF PHYTONUTRIENTS\nAND ANTIOXIDANT ON HEALTH AND NUTRITION, DISEASES CAUSED BY MALNUTRITION; NUTRIENT NEEDS OF\nINDIVIDUALS AT DIFFERENT AGES AND PHYSICAL CONDITIONS."
+    },
+    {
+      "code": "90104007",
+      "name_th": "วิทยาศาสตร์การอาหารสำหรับชีวิตประจำวัน",
+      "name_en": "FOOD SCIENCE IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_054.png",
+          "source_page": 54,
+          "document_category": "description",
+          "document_page": 50
+        }
+      ],
+      "desc_th": "สถานการณ์ปัจจุบันของอาหารแปรรูปที่มีผลกระทบต่อชีวิตประจำวัน ผลิตภัณฑ์ อาหารแปร\nรูปประเภทต่างๆ ฺอาหารเพื่อสุขภาพ หลักการกระบวนการแปรรูปอาหารพื้นฐาน กฎหมายอาหารที่เกี่ยวข้อง\nกับชีวิตประจำวัน\nการเลือกชื้อและการเลือกบริโภคอาหารแปรรูปต่าง",
+      "desc_en": "CURRENT SITUATION OF PROCESSED FOODS THAT IMPACT DAILY LIFE,\nVARIOUS TYPES OF\nPROCESSED FOODS, HEALTHY FOODS, PRINCIPLE OF BASIC FOOD PROCESSING METHODS, DAILY-LIFE FOOD\nLAWS, PURCHASING AND CONSUMPTION OF PROCESSED FOODS."
+    },
+    {
+      "code": "90104008",
+      "name_th": "สุขอนามัยส่วนบุคคลและชุมชน",
+      "name_en": "PERSONAL AND COMMUNITY HYGIENE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_054.png",
+          "source_page": 54,
+          "document_category": "description",
+          "document_page": 50
+        }
+      ],
+      "desc_th": "ความูรู้เบื้องต้นเกี่ยวกับสุขอนามัยส่วนบุคคลและชุมชนฺสุขอนามัยส่วนบุคคลในชีวิตประจำวัน\nที่.เกี่ยวข้องกับการล้างมือ\nการ\nดูแลรักษาความสะอาดร่างกาย เป็นต้น ฺอาหาร โภชนาการและการ\nสุขาภิบาลอาหาร การสุขาภิบาลสิ่งแวดล้อม โรคติดต่อและโรคไม่ติดต่อรวมทั้งการควบคุมป้องกันโรค",
+      "desc_en": "INTRODUCTION TO PERSONAL AND COMMUNITY HYGIENE, PERSONAL HYGIENE IN DAILY\nLIFE  INCLUDING\nHAND\nWASHING,  BATHING\nAND\nBODY  HYGIENE\nETC., FOOD,\nNUTRITION\nAND\nFOOD\nSANITATION., ENVIRONMENTAL SANITATION, COMMUNICABLE AND NON COMMUNUNICABLE DISEASE WITH\nTHEIR PREVENTIONS.\nหน้า 52 จาก 124\nการอาบน้ำ"
+    },
+    {
+      "code": "90104009",
+      "name_th": "สิ่งแวดล้อมและการอนุรักษ์ทรัพยากรธรรมชาติ",
+      "name_en": "ENVIRONMENT AND NATURAL RESOURCE CONSERVATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_055.png",
+          "source_page": 55,
+          "document_category": "description",
+          "document_page": 51
+        }
+      ],
+      "desc_th": "ความสำคัญของสิงแวดล้อมต่อคุณภาพชีวิต\nผลกระทบจากพฤ\nติกรรมของมนุษย์ทั้ง\nทางบวกและลบต่อทรัพยากรธรรมชาติและสิงแวดล้อม ฺหลักการจัดการสิงแวดล้อมและการพัฒนา\nทรัพยากรธรรมชาติอย่างยังยืนกฎหมายและมาตรฐานทีเกียวข้อง",
+      "desc_en": "IMPORTANCE OF ENVIRONMENT TO QUALITY OF LIFE, POSITIVE AND NEGATIVE IMPACTS OF\nHUMAN\nBEHAVIORS\nON\nNATURAL\nRESOURCE\nAND\nENVIRONMENT,\nPRINCIPLES\nOF\nENVIRONMENTAL\nMANAGEMENT\nAND\nSUSTAINABLE\nDEVELOPMENT\nOF\nNATURAL\nRESOURCE,  RELATED  POLICY\nAND\nSTANDARDS."
+    },
+    {
+      "code": "90104010",
+      "name_th": "การจัดการสวนในบ้าน",
+      "name_en": "HOME GARDEN MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_055.png",
+          "source_page": 55,
+          "document_category": "description",
+          "document_page": 51
+        }
+      ],
+      "desc_th": "การออกแบบ จัดสวนภายในบ้าน\nการปลูกผักสวนครัว และการจัดการสวนไม้ดอกไม้ประดับ\nพรรณไม้ทีใช้ในการจัดสวน การปู่สนามหญ้าการจัดสวน ในบ้านโดยใช้\nรระบบการปลูกพืชแบบไฮโดรโปรนิค\nการดูแลรักษาสวน",
+      "desc_en": "HOME\nLANDSAPE DESIGN., VEGETABLE PLANTING, ORNAMENTAL PLANT GARDENING, LANDSCAPING\nPLANT\nMATERIALS,\nLAWN\nINSTALLATION,\nHYDROPONIC\nSYSTEM\nFOR\nLANDSCAPING\nAND\nGARDEN\nMAINTENANCE."
+    },
+    {
+      "code": "90104011",
+      "name_th": "การเลี้ยงสัตว์สวยงาม",
+      "name_en": "PET MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_055.png",
+          "source_page": 55,
+          "document_category": "description",
+          "document_page": 51
+        }
+      ],
+      "desc_th": "การเลือกประเภทสัตว์ที่จะเลี้ยง การให้อาหารสัตว์เลี้ยงสวยงาม เช่น สุนัข แมว กระต่าย นก\nสวยงาม เป็นต้น ความต้องการสารอาหารของสัต\nเว์เลี้ยงระยะต่างๆ กรรมวิธีในการดูแล ป้องกัน รักษา สัตว์\nเลียงสวยงาม",
+      "desc_en": "SELECTION OF PETS, DIFERENT FEEDING METHODS FOR PETS SUCH AS\nCAT, RABBIT,\nBIRD, NUTRIENT REQUIREMENTS OF PETS AT VARIOUS STAGES, AND PROCESS OF KEEPING\nหน้า 53 จาก 124\nDOG,\nPETS."
+    },
+    {
+      "code": "90104012",
+      "name_th": "นวัตกรรมนาโนเทคโนโลยี",
+      "name_en": "NANOTECHNOLOGY INNOVATIONS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_056.png",
+          "source_page": 56,
+          "document_category": "description",
+          "document_page": 52
+        }
+      ],
+      "desc_th": "ศึกษาเกี่ยวกับหลักการ ที่มา ความสำคัญของวิทยาศาสตร์นาโนและนาโนเทคโนโลยีใน\nชีวิตประจำวันนิยามของวิทยาศาสตร์นาโนและนาโนเทคโนโลยี ประเภทของวัสดุนาโน เครื่องมือตรวจสอบ\nวัสดุนาโน นาโนเทคโนโลยีในธรรมชาติ นาโนอิเล็กทรอนิกส์ นาโนเทคโนโลยีชีวภาพ เผลิตภัณฑ์นาโนแท้และ\nของปลอม ความปลอดภัยด้านนาโน แนวโน้มการวิจัยด้านนาโนเทคโนโลยี การเสริมสร้างความคิดสร้างสรรค์\nและนวัตกรรมด้วยการประยุกต์ใช้งานนาโนเทคโนโลยีในชีวิตประจำวัน",
+      "desc_en": "INTRODUCTION\nTO\nTHE\nUNDERLYING\nPRINCIPLES,\nHISTORY,\nIMPORTANCE\nOF\nNANOTECHNOLOGY\nAND\nNANOSCIENCE\nIN\nDAILY\nLIFE.\nDEFINITIONS\nOF\nNANOSCIENCE\nAND\nNANOTECHNOLOGY.,  TYPES\nOF  NANOMATERIALS,\nINVESTIGATION\nTOOLS,  NANOTECHNOLOGY\nIN\nNATURE,\nNANO ELECTRONICS, NANO BIOTECHNOLOGY., GENUINE AND FALSE NANO PRODUCTS, NANO-SAFETY., FUTURE\nRESEARCH TRENDS, FOSTERING CREATIVITY AND INNOVATIONS WITH SIMPLE NANOTECHNOLGY APPLICATIONS\nIN DAILY LIFE."
+    },
+    {
+      "code": "90105002",
+      "name_th": "สารเคมีในชีวิตประจำวัน",
+      "name_en": "CHEMICALS IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_056.png",
+          "source_page": 56,
+          "document_category": "description",
+          "document_page": 52
+        }
+      ],
+      "desc_th": "ความรู้เกี่ยวกับสารเคมีต่างๆ ในผลิตภัณฑ์ที่ใช้ชีวิตประจำวัน เช่น สบฺู่ยาสีฟัน ฺสารทำความ\nสะอาด\nสารเติมแต่งในอาหาร\nนมและผลิตภัณฑ์ของนม  เครื่องสำอาง\nกระดาษ\nกาว\nเรซิน\nฯลฯ\nการใช้\nผลิตภัณฑ์ที่มีสารเคมือย่างถูกวิธี และการแก้ไขพิษเบื้องต้นจากการได้รับสารเคมีในผลิตภัณฑ์",
+      "desc_en": "PROPERTIES OF CHEMICAL INGREDIENTS IN DAILY LIFE PRODUCTS, E.G. SOAP., TOOTHPASTE,\nDETERGENT., FOOD ADDITIVES, MILK AND DAIRY PRODUCTS, COSMETIC PRODUCTS, PAPER, ADHESIVES, RESIN\nPROPER\nUSE\nOF  CONSUMER  PRODUCTS  AND\nTHE  FIRST AID\nTREATMENT  DUE\nTO\nEXCEEDED  CHEMICAL\nEXPOSURES FROM PRODUCTS."
+    },
+    {
+      "code": "90106001",
+      "name_th": "ฟิสิกส์ในชีวิตประจำวัน",
+      "name_en": "PHYSICS IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_056.png",
+          "source_page": 56,
+          "document_category": "description",
+          "document_page": 52
+        }
+      ],
+      "desc_th": "ฟิสิกส์ของร่างกาย ฟิสิกส์ของแสงและการมองเห็น ฟิสิกส์ของดนตรี ฟิสิกส์ของกีฬา เฟิสิกส์\nของพลังงานจากอะตอมถึงคอมพิวเตอร์ ฟิสิกส์ในครัว วัสดุนิวเคลียร์ ฟิสิกส์ของจักรวาล ฟิสิกส์ของภัย\nธรรมชาติและฟิสิกส์ของโทรศัพท์มือถือ",
+      "desc_en": "PHYSICS OF HUMAN BODY., LIGHT AND VISION., MUSIC, SPORTS, ENERGY FROM ATOM TO\nCOMPUTER, PHYSICS IN THE KITCHEN, NUCLEAR MATTERS, UNIVERSE, DISASTER, AND MOBILE PHONE.\nหน้า 54 จาก 124"
+    },
+    {
+      "code": "90106002",
+      "name_th": "มนุษย์กับพลังงาน",
+      "name_en": "HUMAN AND ENERGY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_057.png",
+          "source_page": 57,
+          "document_category": "description",
+          "document_page": 53
+        }
+      ],
+      "desc_th": "แหล่งกำเนิดพลังงาน มนุษย์กับการใช้พลังงาน เผลกระทบของการใช้พลังงานน้ำมันและถ่าน\nหินต่อสิงแวดล้อม ฺสถานการณ์ปัจจุบันและอนาคตของแหล่งพลังงาน\nวิทยาศาสตร์พื้นฐานและเทคโนโลยี\nสำหรับการใช้พลังงานอย่างมีประสิทธิภาพ พลังงานทดแทนและการนำมาใช้ในอนาคต",
+      "desc_en": "ENERGY SOURCES,\nHUMAN  AND ENERGY UTILIZATIONS, IMPACT OF THE OIL  AND  COAL\nCONSUMPTIONS TO ENVIRONMENT.\nTHE PRESENT AND FUTURE STATUS OF ENERGY, BASIC SCIENCE AND\nTECHNOLOGY FOR EFFICIENT ENERGY USAGE. RENEWABLE ENERGIES AND THEIR FUTURE USE."
+    },
+    {
+      "code": "90106003",
+      "name_th": "โลกและเอกภพ",
+      "name_en": "EARTH AND UNIVERSE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_057.png",
+          "source_page": 57,
+          "document_category": "description",
+          "document_page": 53
+        }
+      ],
+      "desc_th": "ดาวเคราะห์ ดาวฤกษ์ ระบบสุริยะ กาแลกชี ทฤษฎีควอนตัมเบื้องต้น เอกภพ กำเนิดของเอก\nภพ\nหลุมดำโครงสร้างของโลกและดวงอาทิตย์ สภาพเปลือกโลกและดวงอาทิตย์ สภาพเปลือกโลกและ\nสิงแวดล้อมของโลก แผ่นเปลือกโลก ฺแร่ธาตฺุชนิดของดิน\nชันดิน ทะเลและมหาสมุทร ทรัพยากรของโลก\nบรรยากาศ",
+      "desc_en": "STUDY\nOF  PLANETS,\nSTARS,\nSOLAR\nSYSTEM,\nGALAXY,\nBASIC  QUANTUM  THEORY,\nUNIVERSE, THE REVOLUTION OF THE UNIVERSE, THE BLACK HOLE, THE STRUCTURE OF THE EARTH AND THE\nSUN., THE PLATE TECTONIC AND THE EARTH ENVIRONMENT, MINERAL., SOIL TYPES, SOIL LAYERS, SEAS AND\nOCEANS, EARTH RESOURCES, AND ATMOSPHERE.\n."
+    },
+    {
+      "code": "90106004",
+      "name_th": "ฟิสิกส์และเทคโนโลยีเพื่อเตรียมพร้อมเผชิญภัยพิบัติ",
+      "name_en": "PHYSICS AND TECHNOLOGY FOR DISASTER PREPAREDNESS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_057.png",
+          "source_page": 57,
+          "document_category": "description",
+          "document_page": 53
+        }
+      ],
+      "desc_th": "นิยามของภัยพิบัติ  ประเภทของภัยพิบัติ\nลักษณะพิเศษของภัยพิบัติ  สาเหตุของการเกิดภัย\nพิบัติ ผลกระทบและความเสียหาย ฟิสิกส์ของแผ่นดินไหว ฟิสิกส์ของคลืนสึนามิ ฟิสิกส์ของพายุสุริยะ ฟิสิกส์\nของสนามแม่เหล็กโลก และอื่นต เทคโนโลยีการเฝ้าระวัง การแจ้งเตือนภัยการรับมือและการฟื้นฟู เทคโนโลยี\nอวกาศและ\n'ภูมิสารสนเทศ\nเทคโนโลยีสารสนเทศและการสื่อสารในการแก้ปัญหาอุทกภัยและภัยแล้ง\nการ\nป้องกันตนเองจากภัยพิบัติ\nการเตรียมตัวก่อนการเกิดภัย\nระหว่างการเกิดภัยและหลังจากภัยพิบัติผ่านพ้นไป\nระบบบริหารการจัดการภัยพิบัติ ระดับการมีส่วนร่วมในการบริหารจัดการภัยพิบัติ\nหน้า 55 จาก 124"
+    },
+    {
+      "code": "90108003",
+      "name_th": "ชีวิตกับสิ่งแวดล้อม",
+      "name_en": "LIFE AND ENVIRONMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_058.png",
+          "source_page": 58,
+          "document_category": "description",
+          "document_page": 54
+        }
+      ],
+      "desc_th": "ความสัมพันธ์ระหว่างสิ่งแวดล้อมทางกายภาพและชีวภาพต่อการดำรงชีวิตของมนุษย์\nสาร\nมลพิษและภาวะมลพิษในสิ่งแวดล้อม\nชนิดของสารพิษและแหล่งกำเนิด\nการป้องกันมลพิษและการจัดการ\nปัญหามลพิษในสิ่งแวดล้อมในระดับท้องถิ่น\nระดับประเทศและระดับสากล\nเช่น\nภาวะโลกร้อน,\nการ\nเปลี่ยนแปลงของ ภูมิอากาศ",
+      "desc_en": "RELATIONSHIP BETWEEN PHYSICAL AND BIOLOGICAL ENVIRONMENT TO HUMAN LIVING,\nENVIRONMENTAL  POLLUTANTS\nAND  POLLUTION.\nTYPES\nAND\nSOURCES\nOF\nPOLLUTANTS,  POLLUTION\nPREVENTION AND POLLUTION MANAGEMENT IN LOCAL, INTERNATIONAL AND GLOBAL LEVEL SUCH AS GLOBAL\nWARMING, CLIMATE CHANGE."
+    },
+    {
+      "code": "90108005",
+      "name_th": "เทคโนโลยีพลังงานทดแทน",
+      "name_en": "RENEWABLE ENERGY TECHNOLOGIES",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_058.png",
+          "source_page": 58,
+          "document_category": "description",
+          "document_page": 54
+        }
+      ],
+      "desc_th": "แนะนำแหล่งกำเนิดพลังงานสะอาด เซลแสงอาทิตย์ ระบบผลิตไฟฟ้าจากพลังงานลม ระบบ\nความร้อนร่วม พลังงานชีวมวล ฺเซลเชื้อเพลิง เทคโนโลยีการเชื่อมต่อระบบ ผลกระทบทางสิ่งแวดล้อม การ\nพิจารณาทางเศรษฐศาสตร์และทางสังคม",
+      "desc_en": "INTRODUCTION TO CLEAN ENERGY SOURCES, PHOTOVOLTAIC, WIND  POWER  GENERATION,\nCOMBINED\nHEAT\nPOWER\nSYSTEM,\nBIOMASS\nENERGY,\nFUEL\nCELLS,\nINTERFACE\nTECHNOLOGIES,\nENVIRONMENTAL EFFECTS, ECONOMIC AND SOCIAL CONSIDERATION.\nหน้า56 จาก 124"
+    },
+    {
+      "code": "90108007",
+      "name_th": "สิ่งแวดล้อมศึกษา",
+      "name_en": "ENVIRONMENTAL STUDY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_059.png",
+          "source_page": 59,
+          "document_category": "description",
+          "document_page": 55
+        }
+      ],
+      "desc_th": "ระบบสิ่งแวดล้อม องค์ประกอบและกระบวนการ แหล่งทรัพยากร แหล่งรองรับของเสียและ\nเส้นทางสิ่งแวดล้อมเกี่ยวกับที่ดิน แหล่งน้ำอากาศ สิ่งมีชีวิต ฺเช่น พืช สัตว์และจุลินทรีย์ การเปลี่ยนแปลงและ\nความสามารถในการรองรับของระบบสิงแวดล้อม\nปัญหาและการวิเคราะห์สภาพปัญหาสิงแวดล้อม แนวคิด\nแนวทางปฏิบัติป้องกันปัญหาเพื่อหนทางสู่ความยั่งยืนของระบบสิ่งเวดล้อม",
+      "desc_en": "ENVIRONMENTAL  SYSTEM,\nCOMPONENTS\nAND\nPROCESSES,\nSOURCES,\nSINKS\nAND\nPATHWAY., LAND-WATER-AIR BASE ENVIRONMENT INCLUDING LIVING ORGANISM SUCH AS PLANTS, ANIMALS,\nAND MICROORGANISM. DYNAMICS AND CARRYING CAPACITY OF ENVIRONMENTAL SYSTEM, PROBLEMS AND\nPROBLEM\nDIAGNOSIS,\nCALLS\nFOR\nMANAGEMENT,\nPRINCIPLES\nCONCEPTS\nAND\nPRACTICES\nFOR\nENVIRONMENTAL PROTECTION TOWARDS ENVIRONMENTAL SUSTAINABILITY."
+    },
+    {
+      "code": "90108010",
+      "name_th": "มลพิษและการป้องกัน",
+      "name_en": "POLLUTION AND PREVENTION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_059.png",
+          "source_page": 59,
+          "document_category": "description",
+          "document_page": 55
+        }
+      ],
+      "desc_th": "ชนิดและแหล่งกำเนิดของสารมลพิษ ได้แก่ สารมลพิษในดิน น้ำและอากาศ สมบัติทางเคมี\nและปฏิกิริยาเคมีของสารมลพิษ ผลกระทบทางสิงแวดล้อมของสารพิษจากอุตสาหกรรม เทคโนโลยีการ\nควบคุม และ\nบำบัดสารมลพิษด้วยวิธีการทางเคมีตามข้อกำหนดมาตรฐานสิ่งแวดล้อม",
+      "desc_en": "TYPES\nAND\nSOURCES\nOF\nPOLLUTANTS\nE.S.\nPOLLUTANTS\nIN\nSOIL,\nWATER  AND\nAIR,\nCHEMISTRY\nAND\nCHEMICAL\nREACTIONS\nOF  POLLUTANTS,\nENVIRONMENTAL  IMPACT  FROM\nINDUSTRIAL\nPOLLUTANTS, TECHNOLOGY ON CONTROL AND CHEMICAL TREATMENT OF INDUSTRIAL POLLUTANTS ACCORDING\nTO STANDARD REGULATIONS."
+    },
+    {
+      "code": "90010007",
+      "name_th": "การออกแบบเชิงภูมิสังคมไทย หน้า 10 จาก 124",
+      "name_en": "THAI GEOSOCIAL DESIGN",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_012.png",
+          "source_page": 12,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_059.png",
+          "source_page": 59,
+          "document_category": "description",
+          "document_page": 55
+        }
+      ],
+      "desc_th": "ศึกษาและเรียนรู้ใไห้เข้าใจถึงความสำคัญของสภาพถิ่นฐาน ฺที่ตั้ง และ ภูมิประเทศที่แตกต่างกัน\nอันเป็นบ่อเกิดของความหลากหลายทางสังคมและวัฒนธรรมไทย ที่ดำรงความมีเอกลักษณ์และสามารถพัฒนา\nต่อยอดภูมิปัญญาแบบพื้นถิ่นไว้เป็นมรดกทางวัฒนธรรมสืบไปได้\nอันจะนำไปส่การออกแบบในรูปแบบสห\nวิชาการเพื่อแก้ไขปัญหาแบบองค์รวมในแต่ละภูมิสังคม",
+      "desc_en": "STUDY OF AN IMPORTANT ROLE OF TOPOGRAPHY AS A ROOT OF VARIOUS THAI SOCIAL\nCULTURES REFLECTING A STRONG IDENTITY., LOCAL FOCI, AND CULTURAL HERITAGE RESULTING IN DESIGN IN THE\nFORM OF DISCIPLINARY TO SOLVE THE HOLISTIC PROBLEMS.\nหน้า 57 จาก 124\nพื้นฐานและเ"
+    },
+    {
+      "code": "90201001",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+      "name_en": "FOUNDATION ENGLISH 1",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_060.png",
+          "source_page": 60,
+          "document_category": "description",
+          "document_page": 56
+        }
+      ],
+      "desc_th": "ฝึกทักษะการใช้ภาษาอังกฤษเพื่อการฟัง การพูด การอ่าน และการเขียนในบริบทที่เกี่ยวข้อง\nกับชีวิตประจำวันฝึกการใช้พจนานุกรม ศึกษาศัพท์ สำนวน และภาษาจากบทอ่านที่คัดเลือกจากสิ่งพิมพ์ต่างๆ\nเช่น วารสาร หนังสือพิมพ์ ทบทวนโครงสร้างไวยากรณ์ และการใช้ภาษาในโอกาสต่างๆ",
+      "desc_en": "PRACTICE IN\nFOUR LANGUAGE SKILLS RELATED TO DAILY LIFE ACTIVITIES, INCLUDING THE\nUSE OF DICTIONARY AS WELL. AS THE STUDY OF VOCABULARY, LANGUAGE AND EXPRESSIONS IN READING\nPASSAGES SELECTED  FROM  PRINTED  MATERIALS SUCH\nAS JOURNALS, NEWSPAPERS, ETC\nAS\nWELL\nAS\nA\nREVISION OF GRAMMATICAL STRUCTURES AND SOCIAL FUNCTIONS OF LANGUAGE IN VARIOUS SITUATIONS."
+    },
+    {
+      "code": "90201002",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+      "name_en": "FOUNDATION ENGLISH 2",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": "90201001",
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_060.png",
+          "source_page": 60,
+          "document_category": "description",
+          "document_page": 56
+        }
+      ],
+      "desc_th": "ฝึกทักษะการใช้ภาษาอังกฤษในการอ่าน เขียน ฟัง\nและพูดเพื่อการศึกษา เช่น การใช้หนังสือ\nอ้างอิง การอ่านกราฟ ตาราง ฯล\nการเขียนบทสรุป ฟัง พูด โต้ตอบแสดงความคิดเห็นเกี่ยวกับเรื่องที่อ่านหรือ\nฟังได้รวมทั้งทบทวนโครงสร้างไวยากรณ์ และการใช้ภาษาโอกาสต่างๆ เพิ่มเติม",
+      "desc_en": "PRACTICE IN FOUR LANGUAGE SKILLS FOR ACADEMIC PURPOSES, FOR EXAMPLE, USING\nREFERENCES, READING  NON VERBAL  TEXTS, INCLUDING SUMMARY WRITING,  LISTENING  AND  DISCUSSION,\nGRAMMAR REVISION AND FURTHER PRACTICE IN SOCIAL LANGUAGE."
+    },
+    {
+      "code": "90201003",
+      "name_th": "ภาษาอังกฤษเชิงวิชาการ",
+      "name_en": "ENGLISH FOR ACADEMIC PURPOSES",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": "90201002",
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_060.png",
+          "source_page": 60,
+          "document_category": "description",
+          "document_page": 56
+        }
+      ],
+      "desc_th": "พัฒนาทักษะทางภาษาและการเรียนภาษาอังกฤษเชิงวิชาการ\nโดยเน้นการอ่านที่มีเนื้อหาทางวิชาชีพของ\nนักศึกษา การใช้ภาษาเพื่อแสดงคำจำกัดความ ฺการเปรียบเทียบ การจำแนก การแสดงจุดประสงค์ การแสดง\nหน้าที่การใช้งาน การอธิบายกระบวนการและการแสดงเหตุและผล เป็นต้น",
+      "desc_en": "DEVELOPMENT OF LANGUAGE AND STUDY SKILLS IN ENGLISH FOR ACADEMIC PURPOSES\nWITH AN EMPHASIS ON READING TEXTS RELATED TO STUDENTS\nFIELDS OF SUBJECTS INCLUDING LANGUAGE\nUSE FOR EXPRESSING DEFINITION., COMPARISON, CLASSIFICATION., PURPOSES, FUNCTIONS, PROCESSES, CAUSE\nAND EFFECT, ETC.\nหน้า 58 จาก 124"
+    },
+    {
+      "code": "90201012",
+      "name_th": "การพัฒนาทักษะการอ่านและการเขียนภาษาอังกฤษ",
+      "name_en": "DEVELOPMENT OF READING AND WRITING SKILLS IN ENGLISH",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": "90201002",
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_061.png",
+          "source_page": 61,
+          "document_category": "description",
+          "document_page": 57
+        }
+      ],
+      "desc_th": "ศึกษาวิธีการอ่านอย่างมีประสิทธิภาพ การอ่านจับใจความ การอ่านหนังสือพิมพ์\nการอ่าน\nเพื่อแปลใจความ ฺการพัฒนาทักษะการเขียน  โดยเน้นการเขียนที่ถูกรูปแบบทางภาษาและไวยากรณ์\nฝึกการ\nเขียนที่จะนำไปใช้ประโยชน์ ทั้งทางด้านการศึกษาและอาชีพ เช่น การเขียนจดหมาย\nการกรอกใบสมัคร การ\nเขียนรายงาน เป็นต้น",
+      "desc_en": "STUDY OF EFFECTIVE READING TECHNIQUES IN ENGLISH RELEVANT TO READING FOR THE\nMAIN IDEA, NEWSPAPER READING, READING FOR TRANSLATION, WRITING SKILLS DEVELOPMENT IN ENGLISH\nFOCUSING\nACCURACY\nIN\nBOTH  LANGUAGE  FORMS\nAND  GRAMMAR\nBENEFICIAL\nTO\nCAREERS\nAND\nACADEMIC\nPURPOSES\nSUCH\nAS\nWRITING  APPLICATION  LETTERS,  FILLING  APPLICATION  FORMS,\nWRITING\nREPORTS, ETC."
+    },
+    {
+      "code": "90201013",
+      "name_th": "ภาษาอังกฤษเพื่อการจัดการ",
+      "name_en": "ENGLISH FOR MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_061.png",
+          "source_page": 61,
+          "document_category": "description",
+          "document_page": 57
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกใช้โครงสร้างภาษา คำศัพท์และสำนวนจากบริบทที่เกี่ยวกับการจัดการซึ่ง\nคัดเลือกเนื้อหาด้านการจัดการที่เป็นเนื้อหาจริงมาให้ฝึก โดยเน้นทักษะการอ่านเพื่อความเข้าใจพร้อมทั้ง\nประยุกต์ิความรู้'ที่ได้ศึกษามา",
+      "desc_en": "STUDY AND  PRACTICE OF LANGUAGE STRUCTURES, VOCABULARY AND EXPRESSIONS IN\nMANAGEMENT CONTEXTS EXTRACTED FROM AUTHENTIC MANAGEMENT MATERIALS WITH AN\nEMPHASIS ON\nREADING COMPREHENSION., INCLUDING THE APPLICATION OF KNOWLEDGE STUDIED."
+    },
+    {
+      "code": "90201016",
+      "name_th": "ภาษาอังกฤษเพื่อการสื่อสารทางวิชาชีพ",
+      "name_en": "ENGLISH FOR PROFESSIONAL COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_061.png",
+          "source_page": 61,
+          "document_category": "description",
+          "document_page": 57
+        }
+      ],
+      "desc_th": "ฝึกทักษะในการติดต่อสื่อความหมายภาษาอังกฤษ\nโดยเน้นทักษะในการฟังและการพูดใน\nโอกาสต่าง\nรวมทั้งพัฒนาทักษะการสนทนา การอภิปราย การแสดงความคิดเห็น การกล่าวสุนทรพจน์ และ\nฝึกการเสนอผลงานทางวิชาชีพต่อที่ประชุม",
+      "desc_en": "PRACTICE IN ENGLISH COMMUNICATION SKILLS EMPHASIZING LISTENING AND SPEAKING\nSKILLS FOR VARIOUS OCCASIONS, INCLUDING THE DEVELOPMENT OF SKILLS IN CONVERSATION., DISCUSSION,\nEXCHANGES OF OPINIONS, SPEECH MAKING AND ACADEMIC PAPER PRESENTATION IN PUBLIC,\nหน้า59 จาก 124\nON"
+    },
+    {
+      "code": "90201017",
+      "name_th": "ภาษาอังกฤษสำหรับธุรกิจ",
+      "name_en": "ENGLISH FOR BUSINESS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_062.png",
+          "source_page": 62,
+          "document_category": "description",
+          "document_page": 58
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกการใช้ภาษาอังกฤษเพื่อการสื่อสารทางธุรกิจ โดยเน้นความเข้าใจในการอ่าน\nข้อเขียนทางธุรกิจประเภทต่าง\nการใช้ศัพท์ สำนวน และภาษาในเชิงธุรกิจ ฺการเขียนจดหมายบันทึกช่วยจำ\nรวมทังการฝึกฟังและพูดในสถานการณ์ต่าง\nทางธุรกิจ",
+      "desc_en": "STUDY AND PRACTICE IN THE\nUSE OF ENGLISH FOR BUSINESS COMMUNICATION, WITH\nEMPHASIS\nON\nREADING TEXTS FROM\nVARIOUS KINDS  OF BUSINESS,\nON\nVOCABULARY AND EXPRESSION\nUSAGE IN BUSINESS CONTEXTS, ON WRITING BUSINESS LETTERS, MEMOS, AND ON LISTENING AND SPEAKING\nIN VARIOUS SITUATIONS OF BUSINESS."
+    },
+    {
+      "code": "90201018",
+      "name_th": "การเขียนภาษาอังกฤษเพื่อการสื่อสาร",
+      "name_en": "ENGLISH FOR COMMUNICATIVE WRITING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_062.png",
+          "source_page": 62,
+          "document_category": "description",
+          "document_page": 58
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกการเขียนเพื่อการสื่อสาร โดยเน้นฝึกการเขียนจดหมาย ในลักษณะต่างๆ เขียน\nรายงาน คำสั่ง เคู่มือ ประวัติส่วนตัว รวมทั้งการเขียนบรรยายสิ่งของ สถานที่ เหตุการณ์และกระบวนการ",
+      "desc_en": "STUDY AND PRACTICE IN ENGLISH FOR COMMUNICATIVE WRITING FOCUSING ON FORMAL\nAND INFORMAL LETTERS, INSTRUCTIONS, MANUALS, PERSONAL DATA, AND A DESCRIPTION OF THINGS, PLACES,\nEVENTS AND PROCESS."
+    },
+    {
+      "code": "90201019",
+      "name_th": "ภาษาอังกฤษเพื่อการพัฒนาทักษะการอ่าน",
+      "name_en": "ENGLISH FOR DEVELOPING READING SKILLS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_062.png",
+          "source_page": 62,
+          "document_category": "description",
+          "document_page": 58
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกเทคนิคการอ่านจากบทอ่านทางวิชาการในสาขาต่างๆโดยฝึกทักษะการอ่านเก็บ\nใจความสำคัญ การเดาศัพท์จากบริบท  การใช้พจนานุกรม ฺรวมทั้งการศึกษาศัพท์\nสำนวน และการใช้ภาษา\nจากบทอ่าน",
+      "desc_en": "STUDY\nAND  PRACTICE\nIN\nREADING  TECHNIQUES  THROUGH\nVARIOUS\nSOURCES\nOF\nACADEMIC READING TEXTS, SUCH\nAS,\nPRACTICES IN SKIMMING, SCANNING, GUESSING MEANINGS FROM\nCONTEXTUAL CLUES, USING\nA\nDICTIONARY, THE STUDY OF VOCABULARY, EXPRESSIONS AND LANGUAGE IN\nCONTEXTS, INCLUDING READING FOR MAIN IDEAS.\nหน้า 60 จาก 124"
+    },
+    {
+      "code": "90201020",
+      "name_th": "ภาษาอังกฤษเพื่ออุตสาหกรรม",
+      "name_en": "ENGLISH FOR INDUSTRY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_063.png",
+          "source_page": 63,
+          "document_category": "description",
+          "document_page": 59
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกใช้ภาษาอังกฤษในวงการอุตสาหกรรมในรูปแบบต่างๆ เช่น การบรรยาย\nกระบวนการผลิต การอธิบายการใช้อุปกรณ์ หรือการทำงานของเครื่องจักรการอธิบายความปลอดภัยในที่ทำงาน\nการเขียนป้ายเตือนอันตราย การเขียนคำสัง\nการฝึกฝนทักษะการสื่อสารทั้งการพูดและการเขียนในที่ทำงาน",
+      "desc_en": "STUDY AND  PRACTICE IN  DIFFERENT INDUSTRIAL  ASPECTS\nDESCRIBING  PRODUCTION\nPROCESSES; EXPLAINING HOW TO USE EQUIPMENT OR HOW TO OPERATE MACHINES; EXPLAINING SAFETY\nAT WORK; WRITING WARNINGS AND INSTRUCTIONS, APPLYING COMMUNICATION SKILLS BOTH SPEAKING AND\nWRITING RELATED TO WORK."
+    },
+    {
+      "code": "90201022",
+      "name_th": "ภาษาอังกฤษเพื่อการศึกษาต่อ",
+      "name_en": "ENGLISH FOR FURTHER STUDIES",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_063.png",
+          "source_page": 63,
+          "document_category": "description",
+          "document_page": 59
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกการใช้ภาษาอังกฤษเพื่อการศึกษาต่อในระดับบัณฑิต\nโดยเน้นฝึกการอ่าน\nข้อเขียนทางวิชาการ การย่อความ ฺการฟัง และการเขียนโน้ตย่อ  รวมทังฝึกทำข้อทดสอบทางภาษาอังกฤษใน\nรูปแบบต่าง",
+      "desc_en": "STUDY\nAND\nPRACTICE\nOF  ENGLISH\nFOR  FURTHER  GRADUATE  STUDY  FOCUSING\nON\nACADEMIC READING, SUMMARY WRITING, LISTENING AND NOTE-TAKING, INCLUDING A PRACTICE IN DOING\nVARIOUS KINDS OF ENGLISH TEST PAPER."
+    },
+    {
+      "code": "90201024",
+      "name_th": "ภาษาอังกฤษเพื่อการประกอบอาชีพ",
+      "name_en": "ENGLISH FOR PROFESSIONAL PURPOSES",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_063.png",
+          "source_page": 63,
+          "document_category": "description",
+          "document_page": 59
+        }
+      ],
+      "desc_th": "พัฒนาทักษะการ\nรใช้ภาษาอังกฤษที่จำเป็นต่อการปฏิบัติงาน เช่น การอ่านคู่มือ เครื่องหมาย\nสัญลักษณ์ที่ใช้ในงานอาชีพ การเขียนจดหมายสมัครงาน การเขียนประวัติย่อ บันทึกข้อความ บทคัดย่อ\nรายงาน จดหมายอิเลคทรอนิคส์\nจดหมายเชิญประชุม บันทึกและรายงานการประชุม ฺรวามทั้งฝึกการ\nสัมภาษณ์ การอภิปรายต่อที่ประชุม ฺและการนำเสนอผลงาน",
+      "desc_en": "DEVELOPMENT OF LANGUAGE SKILLS NECESSARY FOR PROFESSIONAL PURPOSES\nREADING\nMANUALS\nAND\nTECHNICAL\nSIGNS;\nWRITING  JOB  APPLICATION  LETTER,\nRESUMES,\nMEMOS,  REPORTS,\nABSTRACTS,  EMAILS,\nCALLS  FOR  MEETING,\nMINUTES\nAND  PROCEEDINGS;  PRACTICING  INTERVIEWS, JOB\nDISCUSSION AND WORK PRESENTATION.\nหน้า 61 จาก 124"
+    },
+    {
+      "code": "90201026",
+      "name_th": "ภาษาอังกฤษเพื่อการสื่อสาร",
+      "name_en": "ENGLISH FOR COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_064.png",
+          "source_page": 64,
+          "document_category": "description",
+          "document_page": 60
+        }
+      ],
+      "desc_th": "การพัฒนาความสามารถในการติดต่อสื่อสารโดยใช้ภาษาอังกฤษ\nโดยเน้นทักษะในการฟัง\nและการพูดทีใช้ในโอกาสต่างๆ\nฝึกการสนทนาเป็นกลุ่มและการนำเสนอผลงานทักษะการอ่านโดยใช้เทคนิค\nการอ่านที่หลากหลาย  เช่นการอ่านเพื่อหาหัวเรื่อง\nการอ่านเพือจับใจความสำคัญและรายละเอียดเพื่อเขียน\nสรุปความ และเขียนรายงาน",
+      "desc_en": "DEVELOPMENT\nOF\nSTUDENTS'\nABILITY\nTO\nCOMMUNICATE\nIN\nENGLISH\nWITH\nIN\nEMPHASIS\nON  LISTENING  AND  SPEAKING\nSKILLS  FOR  DIFFERENT\nPURPOSES\nAND  PRACTICE\nIN\nGROUP\nDISCUSSION AND PRESENTATION AS WELL AS THE DEVELOPMENT OF A READING SKILL BY USING VARIOUS\nREADING TECHNIQUES SUCH AS READING FOR HEADINGS, READING FOR MAIN IDEAS AND DETAILS, READING\nFOR SUMMARIZING AND WRITING REPORTS."
+    },
+    {
+      "code": "90201029",
+      "name_th": "ภาษาอังกฤษเพื่อการท่องเที่ยวและการเดินทาง",
+      "name_en": "ENGLISH FOR TOURISM AND TRAVELLING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_064.png",
+          "source_page": 64,
+          "document_category": "description",
+          "document_page": 60
+        }
+      ],
+      "desc_th": "ศึกษาคำศัพท์และการใช้ภาษาเกี่ยวกับการเดินทาง ธุรกิจการท่องเที่ยว การโรงแรม\nร้านอาหาร สนามบินฯลฯ พร้อมทั้งฝึกทักษะการฟัง การพูด การอ่านและการเขียนในปริบทดังกล่าว เช่น การ\nทักทาย การต้อนรับ การเดินทาง การแนะนำสถานที่ท่องเที่ยว การวางแผน\nการหาและสอบถามข้อมูลการ\nเดินทาง การถามทาง\nการผ่านด่านตรวจคนเข้าเมืองและศุลกากร ตลอดจนความ รู้|ทั่วไปในด้านการท่องเที่ยว\nและการเดินทาง",
+      "desc_en": "STUDY OF VOCABULARY AND LANGUAGE USED IN TRAVELLING AND TOURISM BUSINESS,\nSUCH AS HOTEL., RESTAURANT, AIRPORT, INCLUDING A PRACTICE OF THE FOUR SKILLS IN CONTEXTS AS GREETING,\nWELCOMING, TRAVELLING, INTRODUCING TOURIST ATTRACTION, PLANNING TRIPS, LOOKING FOR AND INQUIRING\nTRAVELLING INFORMATION, DEALING WITH CUSTOMS AND PASSPORT CONTROL AS WELL AS AN\nEXPLANATION\nOF GENERAL KNOWLEDGE ON TOURISM AND TRAVELLING."
+    },
+    {
+      "code": "90201030",
+      "name_th": "ภาษาอังกฤษเพื่อการนำเสนอผลงานทางวิชาชีพ",
+      "name_en": "ENGLISH FOR PROFESSIONAL PRESENTATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_064.png",
+          "source_page": 64,
+          "document_category": "description",
+          "document_page": 60
+        }
+      ],
+      "desc_th": "ฝึกทักษะในการติดต่อสือความหมายและการพูดนำเสนอผลงานภาษาอังกฤษ มุ่งเน้นการนำทฤษฎีไป\nใช้รวมทั้งการฝึกปฏิบัติจริง ฺอาทิเช่น การพัฒนาทักษะทั้งการจัดเตรียมข้อมูล การใช้สื่อประกอบการนำเสนอ\nการพัฒนาบุคลิกภาพ เพือการนำเสนอผลงานได้อย่างมีประสิทธิภาพ\nหน้า 62 จาก 124"
+    },
+    {
+      "code": "90201031",
+      "name_th": "ภาษาอังกฤษเพื่อการสื่อสารระหว่างวัฒนธรรม",
+      "name_en": "ENGLISH FOR INTERCULTURAL COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_065.png",
+          "source_page": 65,
+          "document_category": "description",
+          "document_page": 61
+        }
+      ],
+      "desc_th": "ศึกษาความรู้ในเรื่องภาษาและวัฒนธรรม ฺการใช้ภาษาอังกฤษในฐานะภาษานานาชาติ การ\nสื่อสารระหว่างวัฒนธรรมของผู้ใช้ภาษาอังกฤษที่เป็นเจ้าของภาษาและผู้ใช้ภาษาอังกฤษที่ไม่ได้เป็นเจ้าของภาษา\nวัจนปฏิบัติศาสตร์ข้ามวัฒนธรรม ฺและการพัฒนาทักษะการใช้ภาษาอังกฤษในการสื่อสารระหว่างวัฒนธรรม",
+      "desc_en": "STUDY OF INTER-RELATIONSHIP BETWEEN LANGUAGE AND CULTURE, USING ENGLISH\nAS\nAN\nINTERNATIONAL  LANGUAGE,\nINTER CULTURAL  COMMUNICATION\nBETWEEN\nNATIVE\nAND\nNON NATIVE\nENGLISH SPEAKERS, CROSS- CULTURAL  PRAGMATICS AND DEVELOPING ENGLISH LANGUAGE SKILLS FOR INTER-\nCULTURAL COMMUNICATION."
+    },
+    {
+      "code": "90201032",
+      "name_th": "หน้า 11 จาก 124",
+      "name_en": "ENGLISH FOR UNDERSTANDING NEWS AND INFORMATION IN MASS MEDIA",
+      "credits": "ภาษาอังกฤษเพื่อความเข้าใจข่าวสารและข้อมูลในสื่อสารมวลชน 3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_013.png",
+          "source_page": 13,
+          "document_category": "plan",
+          "document_page": 26
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_065.png",
+          "source_page": 65,
+          "document_category": "description",
+          "document_page": 61
+        }
+      ],
+      "desc_th": "ศึกษาภาษาอังกฤษในสื่อสารมวลชนรูปแบบต่างๆ เช่นหนังสือพิมพ์ ินิตยาสาร โฆษณา\nเว็บไซต์ รายการวิทยุและโทรทัศน์ เพื่อเข้าใจข่าวสารและเนื้อหา",
+      "desc_en": "STUDY\nOF  ENGLISH\nIN\nVARIOUS  TYPES  OF\nMASS\nMEDIA\nSUCH\nAS\nNEWSPAPERS,\nMAGAZINES, ADVERTISEMENTS, WEB SITES, RADIO, AND TELEVISION IN ORDER TO UNDERSTAND NEWS AND\nINFORMATION."
+    },
+    {
+      "code": "90201033",
+      "name_th": "ไวยากรณ์ภาษาอังกฤษเพื่อการสื่อสาร",
+      "name_en": "COMMUNICATIVE ENGLISH GRAMMAR",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_065.png",
+          "source_page": 65,
+          "document_category": "description",
+          "document_page": 61
+        }
+      ],
+      "desc_th": "ฝึกทักษะการใช้ไวยากรณ์ในการพัฒนาทักษะในการอ่าน การเขียน\nการพูด การฟังเพือ\nสื่อสารความหมายอย่างมีประสิทธิภาพโดยเน้นการส่งเสริมความมันใจในการติดต่อสือความหมาย\nภาษาอังกฤษ อภิปราย แสดงความคิดเห็น การเล่าเรือง การพูดสรุปความ ฝึกการเขียน การอ่านบทความและ\nการฟังเพือจับใจความ\nหน้า 63 จาก 124"
+    },
+    {
+      "code": "90201034",
+      "name_th": "ภาษาอังกฤษแบบเข้ม",
+      "name_en": "INTENSIVE ENGLISH",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_066.png",
+          "source_page": 66,
+          "document_category": "description",
+          "document_page": 62
+        }
+      ],
+      "desc_th": "ศึกษา เฝึกฝน และพัฒนาประสิทธิภาพภาษาอังกฤษในด้านต่างๆ เช่น การใช้คำศัพท์\nไวยากรณ์ การอ่านและการเขียน เพื่อการสอบวัดประสิทธิภาพภาษาอังกฤษในองค์กรต่างๆ ในอนาคต",
+      "desc_en": "STUDY  AND  PRACTICE  OF ENHANCING  ENGLISH  PROFICIENCY\nIN\nVARIOUS  ASPECTS:\nVOCABULARY, GRAMMAR, READING, AND  WRITING FOR FUTURE  ENGLISH  PROFICIENCY TESTING IN  CERTAIN\nORGANIZATIONS."
+    },
+    {
+      "code": "90201035",
+      "name_th": "การเขียนและการพูดในงานอาชีพ",
+      "name_en": "WRITING AND SPEAKING IN THE PROFESSIONS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_066.png",
+          "source_page": 66,
+          "document_category": "description",
+          "document_page": 62
+        }
+      ],
+      "desc_th": "พัฒนาทักษะการเขียนและการพูดเกียวกับสาขางานอาชีพ เช่น การเขียนจดหมายธุรกิจ\nแฟิกซ์ บันทึกข้อความ จดหมายไม่เป็นทางการ จดหมายอิเล็กโทรนิกส์ คู่มือ หรือรายงานประจำวัน การมีส่วน\nร่วมในการประชุมฺการนำเสนอผลงาน และการใช้ภาษาอังกฤษในปริบทของการทำงาน",
+      "desc_en": "IMPROVEMENT OF WRITING AND  SPEAKING SKILLS RELATED TO  AREAS  OF PROFESSIONAL\nACTIVITIES SUCH\nAS\nWRITING BUSINESS LETTERS, FAXES, MEMOS, INFORMAL  LETTERS, EMAILS, TECHNICAL\nMANUALS,\nOR\nROUTINE  REPORTS;  PARTICIPATING  IN\nA\nMEETING;  SIVING\nA\nPRESENTATION;\nAND\nUSING\nENGLISH IN PROFESSIONAL SETTINGS."
+    },
+    {
+      "code": "90201036",
+      "name_th": "การพัฒนาทักษะทางภาษาอังกฤษเพื่อการเรียนรู้ตลอดชีวิต",
+      "name_en": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_066.png",
+          "source_page": 66,
+          "document_category": "description",
+          "document_page": 62
+        }
+      ],
+      "desc_th": "ฝึกและพัฒนาทักษะทางภาษาอังกฤษทั้ง"
+    },
+    {
+      "code": "90201037",
+      "name_th": "การออกเสียงภาษาอังกฤษเบื้องต้น",
+      "name_en": "BASIC ENGLISH PRONUNCIATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_067.png",
+          "source_page": 67,
+          "document_category": "description",
+          "document_page": 63
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกฝนระบบเสียงและระดับเสียงในภาษาอังกฤษ โดยเน้นการออกเสียงสระและ\nพยัญชนะ การเน้นเสียงในระดับคำและระดับประโยค  รูปแบบของระดับเสียงในประโยคลักษณะต่างๆ รวมไป\nถึงการศึกษา สัทอักษรในระบบเสียงภาษาอังกฤษเบื้องต้น และสำเนียงภาษาอังกฤษในปัจจุบัน",
+      "desc_en": "STUDY AND PRACTICE OF ENGLISH SOUND SYSTEMS AND INTONATION., FOCUSING ON THE\nPRONUNCIATION OF ENGLISH VOWEL AND CONSONANT SOUNDS, WORD AND SENTENCE STRESS, INTONATION\nPATTERNS IN  DIFFERENT TYPES OF SENTENCES, AS\nWELL\nAS THE STUDY OF PHONETIC ALPHABETS AND\nDIFFERENT ACCENTS IN TODAY'S ENGLISH."
+    },
+    {
+      "code": "90201038",
+      "name_th": "พื้นฐานการเขียนเพื่อการสื่อความหมายทางวิชาชีพ",
+      "name_en": "BASIC WRITING FOR PROFESSIONAL COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_067.png",
+          "source_page": 67,
+          "document_category": "description",
+          "document_page": 63
+        }
+      ],
+      "desc_th": "ฝึกทักษะโครงสร้างภาษา คำศัพท์ สำนวน และ การเขียนภาษาอังกฤษเพื่อการสื่อ\nความหมายทางวิชาชีพในบริบทต่างๆ เช่น การเขียนจดหมายธุรกิจ การเขียนบันทึกข้อความ การเขียน\nโครงการ การเขียนข่าวประกาศ และ ติดต่อสื่อสารด้วยจดหมายอิเล็กทรอนิกส์",
+      "desc_en": "STUDY AND  PRACTICE  OF LANGUAGE\nSTRUCTURES AND  EXPRESSIONS IN WRITING FOR\nPROFESSIONAL  COMMUNICATION\nIN  DIFFERENT  CONTEXTS  SUCH\nAS\nBUSINESS  LETTER,  MEMORANDUM,\nBUSINESS PROPOSAL, PRESS RELEASE, AND E-MAIL COMMUNICATION."
+    },
+    {
+      "code": "90201039",
+      "name_th": "ภาษาอังกฤษจากสื่อบันเทิง",
+      "name_en": "ENGLISH FROM ENTERTAINMENT MEDIA",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_067.png",
+          "source_page": 67,
+          "document_category": "description",
+          "document_page": 63
+        }
+      ],
+      "desc_th": "การศึกษาเชิงวิเคราะห์ภาษาอังกฤษและวัฒนธรรมตะวันตก ผ่านสื่อบันเทิง ได้แก่ เพลง\nภาพยนตร์ นิตยสาร และโฆษณา โดยเบจ\nเน้นที่รูปแบบของภาษา คำศัพท์ สำนวนและแสลงที่ใข้ในการสื่อสารใน\nชีวิตประจำวัน",
+      "desc_en": "AN  ANALYTICAL STUDY OF ENGLISH  AND WESTERN CULTURES THROUGH ENTERTAINMENT\nMEDIA,\nWHICH\nARE\nSONGS,  MOVIES,\nMAGAZINES\nAND  PRINTED\nAND\nTELEVISION\nADVERTISEMENT,\nFOCUSING\nLANGUAGE  STYLE,  VOCABULARY\nAND\nEXPRESSIONS,\nAND  SLANGS\nUSED\nIN\nEVERYDAY\nCOMMUNICATION.\nหน้า 65 จาก 124\nON"
+    },
+    {
+      "code": "90201040",
+      "name_th": "การพูดภาษาอังกฤษเพื่อการสื่อสารในที่ทำงาน",
+      "name_en": "ORAL ENGLISH COMMUNICATION AT WORK",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_068.png",
+          "source_page": 68,
+          "document_category": "description",
+          "document_page": 64
+        }
+      ],
+      "desc_th": "ฝึกทักษะการพูดภาษาอังกฤษเพื่อการสื่อสารในที่ทำงานในสถานการณ์ต่างๆ เช่น การ\nอภิปรายกลุ่มในที่ประชุม ฺและการนำเสนอผลงาน",
+      "desc_en": "PRACTICE  OF ENGLISH  COMMUNICATION\nAT WORK IN\nVARIOUS  SITUATIONS\nWITH\nAN\nEMPHASIS\nON\nEXPRESSING OPINIONS\nON\nWORK ORIENTED  CONTEXT, DISCUSSING IN\nA\nMEETING, AND\nGIVING\nPRESENTATION."
+    },
+    {
+      "code": "90020008",
+      "name_th": "ภาษาอังกฤษเพื่อการตลาด กลุ่มวิชามนุษยศาสตร์ จำนวน",
+      "name_en": "ENGLISH FOR MARKETING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_068.png",
+          "source_page": 68,
+          "document_category": "description",
+          "document_page": 64
+        }
+      ],
+      "desc_th": "ศึกษาและฝึกใช้โครงสร้างภาษา คำศัพท์และสำนวนจากบริบทที่เกี่ยวกับการตลาดซึ่ง\nคัดเลือกเนื้อหาด้านการตลาดที่เป็นเนื้อหาจริงมาให้ฝึก โดยเน้นทักษะการอ่านเพื่อความเข้าใจพร้อมทั้ง\nประยุกต์ความรู้ที่ได้ศึกษามา",
+      "desc_en": "STUDY AND  PRACTICE OF LANGUAGE STRUCTURES, VOCABULARY AND EXPRESSIONS IN\nMARKETING  CONTEXTS\nEXTRACTED\nFROM  AUTHENTIC  MARKETING\nMATERIALS\nWITH\nAN\nEMPHASIS\nON\nREADING COMPREHENSION, INCLUDING THE APPLICATION OF KNOWLEDGE STUDIED.\nหน้า 66 จาก 124"
+    },
+    {
+      "code": "90301003",
+      "name_th": "ปรัชญาทั่วไป",
+      "name_en": "GENERAL PHILOSOPHY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_069.png",
+          "source_page": 69,
+          "document_category": "description",
+          "document_page": 65
+        }
+      ],
+      "desc_th": "ศึกษาปรัชญาในฐานะเป็นจุดกำเนิดและจุดร่วมของศาสตร์ ต่าง\nศึกษาประวัติและแนวคิด\nของนักปรัชญา  ยุคต่าง\nฝึกคิดปัญหาต่าง\nที่มือยู่ในปรัชญาบริสุทธิ์  สาขาต่างๆ ได้แก่ อภิปรัชญา ญาณ\nคุณวิทยา (จริยปรัชญา และสุนทรียศาสตร์)\nและตรรกวิทยา ศึกษาแนวคิดปรัชญาตะวันออกที่สำคัญ\nเช่น ปรัชญาอินเดีย ปรัชญาจีน และปรัชญาญี่ปุ่น และปัญหาในปรัชญาประยุกต์ เพื่อฝึกสร้างความคิดที่ลึก\nกว้าง เป็นระบบ",
+      "desc_en": "STUDY OF PHILOSOPHY\nAS\nA\nCONTRIBUTION TO VARIOUS FIELDS OF SCIENCE, HISTORY\nAND DEVELOPMENT OF PHILOSOPHICAL THINKING, A  PRACTICE IN THINKING ABOUT THE ARGUMENTS IN\nPURE PHILOSOPHY\nMETAPHYSICS, EPISTEMOLOGY., AXIOLOGY (ETHICS AND AESTHETICS) AND LOGIC,\nA\nSTUDY OF  SIGNIFICANT EASTERN PHILOSOPHIES SUCH AS INDIAN, CHINESE AND JAPANESE PHILOSOPHIES,\nAND PROBLEMS IN APPLIED PHILOSOPHY IN ORDER TO PRACTICE CREATING A\nWIDE PERSPECTIVE,\nAND SYSTEMATIC THINKING."
+    },
+    {
+      "code": "90301007",
+      "name_th": "จริยศาสตร์และสุนทรียศาสตร์",
+      "name_en": "ETHICS AND AESTHETICS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_069.png",
+          "source_page": 69,
+          "document_category": "description",
+          "document_page": 65
+        }
+      ],
+      "desc_th": "ศึกษาความหมาย ความสำคัญ วิวัฒนาการ และลักษณะทางปรัชญาเกียวกับคุณค่าหรือ\nสาขาจริยศาสตร์ และสนุทรียศาสตร์ ของนักปรัชญาตะวันตกและตะวันออก ตั้งแต่อดีตจนถึงปัจจุบันทั้งใน\nส่วนที่มีพื้นฐานมาจากคติ ความเชื่อ ศาสนา และจากแนวความคิดที่เป็นปรัชญาล้วน\nรวมทั้งการวิเคราะห์\nหลักการและแนวคิดจริยศาสตร์และสุนทรียศาสตร์ในศิลปะ",
+      "desc_en": "STUDY OF MEANING, SIGNIFICANCE, EVOLUTION., AND PHILOSOPHICAL CHARACTERISTICS\nOF\nAXIOLOGY\nIN\nTHE\nFIELD\nOF  ETHICS\nAND\nAESTHETICS  GENERATED\nBY\nWESTERN\nAND\nEASTERN\nPHILOSOPHERS  FROM\nTHE  PAST  TO  THE  PRESENT\nTIME,\nBASED\nON\nBELIEFS, RELIGIONS  AND  PURE\nPHILOSOPHICAL CONCEPTS, INCLUDING A  PRACTICE IN ANALYZING ETHICAL  AND AESTHETICAL  PRINCIPLES\nAND CONCEPT OF ARTS.\nหน้า 67 จาก 124\nวิทยา\nDEEP,"
+    },
+    {
+      "code": "90302001",
+      "name_th": "จิตวิทยาทั่วไป",
+      "name_en": "GENERAL PSYCHOLOGY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_070.png",
+          "source_page": 70,
+          "document_category": "description",
+          "document_page": 66
+        }
+      ],
+      "desc_th": "ศึกษาพฤติกรรมของมนุษย์  โดยใช้ระเบียบวิธีการทางวิทยาศาสตร์\nความเป็นมาของ\nจิตวิทยาในฐานะเป็นวิทยาศาสตร์ กระบวนการทำงานของสมองที่มีผลต่อพฤติกรรม  พัฒนาการของมนุษย์\nการรับรู้ การเรียนรู้ ความจำการคิด การจูงใจ อารมณ์ บุคลิกภาพ สุขภาพจิตและพฤติกรรมทางสังคม",
+      "desc_en": "STUDY OF HUMAN\nBEHAVIORS  BY SCIENTIFIC METHODS  OF PSYCHOLOGICAL  STUDIES,\nBACKGROUND KNOWLEDGE OF PSYCHOLOGY\nAS SCIENCE,\nOPERATIONAL  PROCESSES OF BRAIN AFFECTING\nBEHAVIORS,\nHUMAN\nDEVELOPMENT,\nPERCEPTION,  LEARNING,\nMEMORY,\nTHINKING,\nMOTIVATION,\nEMOTION., PERSONALITY., MENTAL HEALTH AND SOCIAL BEHAVIORS."
+    },
+    {
+      "code": "90302003",
+      "name_th": "มนุษยสัมพันธ์",
+      "name_en": "HUMAN RELATIONS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_070.png",
+          "source_page": 70,
+          "document_category": "description",
+          "document_page": 66
+        }
+      ],
+      "desc_th": "ความสัมพันธ์ระหว่างบุคคลและกลุ่มต่างๆ ในสังคม\nอิทธิพลของวัฒนธรรม ฺขนบธรรมเนียม\nประ\nแเพณีที่มีบทบาทต่อบุคคลและกลุ่ม ศิลปะการพูด การสนทนาและการฟัง การปรับตัวให้เหมาะสมกับ\nสภาพแวดล้อมในสังคมไทย\nโดยเรียนรู้อารยธรรมของมนุษย์ในแง่ของอารมณ์\nความแตกต่างระหว่างบุคคล\nและการฝึกพฤติกรรมที่เหมาะสมตลอดจนมารยาททางสังคม",
+      "desc_en": "STUDY OF INTERPERSONAL AND INTERGROUP RELATIONS, INFLUENCES OF CULTURE AND\nTRADITION  AFFECTING\nVARIOUS  ASPECTS\nOF\nINDIVIDUAL\nAND\nGROUP  ROLES,  THE\nARTS\nOF  SPEAKING,\nCONVERSATION AND LISTENING, WELL ADJUSTED BEHAVIOR IN DIFERENT THAI SUB CULTURES BY LEARNING\nTHE  NATURE\nOF HUMANS IN\nMENTAL  BEHAVIORS, INDIVIDUAL  DIFFERENCES AND  PROPER  BEHAVIORAL\nAPPROACHES INCLUDING SOCIAL MANNERS."
+    },
+    {
+      "code": "90302010",
+      "name_th": "จิตวิทยาเพื่อพัฒนาตน",
+      "name_en": "PSYCHOLOGY FOR SELF DEVELOPMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_070.png",
+          "source_page": 70,
+          "document_category": "description",
+          "document_page": 66
+        }
+      ],
+      "desc_th": "การนำองค์ความ'รู้ แนวคิดและทฤษฎีทางจิตวิทยามาประยุกต์ใช้เพื่อการเข้าใจและการ\nจัดการตน เช่น การรู้จักตน กระบวนการพัฒนาตนฺการเห็นคุณค่าในตนเอง เชาวน์อารมณ์ การคิดเชิงบวก\nการจัดการกับความเครียด\nความรักและความสัมพันธ์กับผู้อืน การทำงานเป็นทีม ฺและการสร้างคุณค่าชีวิต",
+      "desc_en": "AN APPLICATION OF PSYCHOLOGICAL CONCEPTS AND THEORIES TO\nUNDERSTANDING\nAND\nMANAGEMENT,\nSELF\nESTEEM,\nEMOTIONAL\nINTELLIGENCE,\nPOSITIVE  THINKING,\nSTRESS\nMANAGEMENT, LOVE AND RELATIONSHIPS, TEAM WORKING AND CREATING VALUES OF LIFE.\nหน้า 68 จาก 124\nSELF\nSELF"
+    },
+    {
+      "code": "90302011",
+      "name_th": "จิตวิทยาการคิด",
+      "name_en": "PSYCHOLOGY OF THINKING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_071.png",
+          "source_page": 71,
+          "document_category": "description",
+          "document_page": 67
+        }
+      ],
+      "desc_th": "ศึกษาแนวคิดเชิงทฤษฎีเกียวกับความสามารถในการคิดในด้านต่างๆ ของมนุษย์\nกระบวนการคิดแก้ปัญหา ความคิดสร้างสรรค์\nการพัฒนาทักษะในการคิด  กลยุทธ์การคิดแก้ปัญหา\nและ\nวิธีการพัฒนาความคิดสร้างสรรค์",
+      "desc_en": "STUDY OF CONCEPTS AND THEORIES OF HUMAN THINKING ABILITY, PROBLEM SOLVING PROCESS,\nCREATIVITY., DEVELOPMENT OF THINKING, PROBLEM SOLVING STRATEGIES AND CREATIVITY DEVELOPMENT."
+    },
+    {
+      "code": "90302012",
+      "name_th": "จิตวิทยาธุรกิจอุตสาหกรรม",
+      "name_en": "INDUSTRIAL BUSINESS PSYCHOLOGY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_071.png",
+          "source_page": 71,
+          "document_category": "description",
+          "document_page": 67
+        }
+      ],
+      "desc_th": "การศึกษาการนำองค์ความรู้ ทฤษฎีและแนวคิดทางจิตวิทยามาประยุกต์ใช้ในชีวิตการทำงานเพือ\nแก้ปัญหาในโรงงานอุตสาหกรรมและองค์การ เพื่อพัฒนาสุขภาพจิตและการทำงานอย่างมีประสิทธิภาพ การมีมนุษย\nสัมพันธ์ที่ดี การพึ่งพาอาศัยต่อกันและกันอย่างมีความสุขฺฺการมีปฏิสัมพันธ์ต่อกันในกลุ่มอย่างมีประสิทธิภาพ การ\nจูงใจในงาน การสร้างขวัญและความพึงพอใจในงานและการพัฒนาองค์การรวมทังการประยุกต์ใช้หลักจิตวิทยาใน\nโปรแกรมแบบต่างๆ อย่างมีประสิทธิภาพ เช่น 5 ส, MT, OCC, TPM, REENGINEERING, JIT, TOC, และ SS",
+      "desc_en": "STUDY OF THE EFFICIENT APPLICATIONS OF KNOWLEDGE., THEORIES AND CONCEPTS AND\nSCIENTIFIC TECHNIQUES FOR SOLVING PROBLEMS IN BUSINESS INDUSTRY AND ORGANIZATIONS IN ORDER TO\nIMPROVE\nMENTAL\nHEALTH\nAND\nWORK  EFFECTIVELY.\nHUMAN\nRELATIONS  DEVELOPMENT,\nEFFEETIVE\nINTERPERSONAL AND INTERGROUP ADJUSTMENT, WORK MOTIVATION., JOB SATISFACTION AND ORGANIZATIONAL\nDEVELOPMENT, INCLUDING THE EFFICIENT APPLICATIONS OF PSYCHOLOGY IN SEVERAL PROGRAMS SUCH\nAS\n5S, KIT, OCC, TPM, REENGINEERNG, JIT, TOC, AND SS, BASED ON SOCIETIES PROFESSIONS, MORALS,\nINNOVATIONS AND WORK-LIFE."
+    },
+    {
+      "code": "90302013",
+      "name_th": "การพัฒนาบุคลิกภาพและสุขภาพจิต หน้า 12 จาก 124",
+      "name_en": "PERSONALITY AND MENTAL HEALTH DEVELOPMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_014.png",
+          "source_page": 14,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_071.png",
+          "source_page": 71,
+          "document_category": "description",
+          "document_page": 67
+        }
+      ],
+      "desc_th": "ศึกษาทฤษฎีทางบุคลิกภาพ  วิธีการวัดบุคลิกภาพ\nพัฒนาการทางบุคลิกภาพของบุคคล\nแนวความคิดและทฤษฎีเกี่ยวกับสุขภาพจิตฺฺปัจจัยที่มีผลต่อสุขภาพจิต ฺพฤติกรรมอปกติ\nความผิดปกติทาง\nอารมณ์และความเจ็บป่วยทางจิตใจ\nตลอดจนการบำบัดรักษา\nการฟื้นฟูการป้องกันและส่งเสริมสุขภาพจิต\nของบุคคล\nหน้า 69 จาก 124"
+    },
+    {
+      "code": "90303005",
+      "name_th": "พลศึกษาเบื้องต้น",
+      "name_en": "INTRODUCTION TO PHYSICAL EDUCATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_072.png",
+          "source_page": 72,
+          "document_category": "description",
+          "document_page": 68
+        }
+      ],
+      "desc_th": "การศึกษาถึงความหมายและความสำคัญของพลศึกษา ความรู้เบื้องต้นของการออกกำลังกาย และ\nสมรรถภาพของร่างกาย\nการเรียนรู้ทักษะการเคลื่อนไหวต่างๆ เพื่อส่งเสริมสุขภาพและพัฒนาจิตใจ\nขอบข่ายของกิจกรรมทางพลศึกษา  กิจกรรมกีฬาทังประเภทบุคคลและประเภททีม\nการจัดกิจกรรมพลศึกษาและ\nกิจกรรมเพื่อนันทนาการ การป้องกันการบาดเจ็บทางกีฬา ตลอดจนการปฐมพยาบาล (ไทั้งภาคทฤษฎีและภาคปฏิบัติ)",
+      "desc_en": "STUDY OF DEFINITION AND IMPORTANCE OF PHYSICAL.  EDUCATION, BASIC KNOWLEDGE OF\nEXERCISE AND PHYSICAL FITNESS, BASIC MOVEMENTS FOR HEALTH IMPROVEMENT AND MENTAL DEVELOPMENT,\nFUNDAMENTAL KNOWLEDGE OF THE SCOPE AND TYPES OF  PHYSICAL EDUCATION ACTIVITIES, SPORTS ACTIVITIES\nBOTH\nIN\nINDIVIDUALS  AND TEAMS, THE ORGANIZATION  OF PHYSICAL EDUCATION  ACTIVITIES AND RECREATIONAL\nACTIVITIES, PREVENTION AND TREATMENT OF INJURIES PREVALENT IN SPORTS."
+    },
+    {
+      "code": "90303006",
+      "name_th": "การจัดการสุขภาพ",
+      "name_en": "HEALTH MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_072.png",
+          "source_page": 72,
+          "document_category": "description",
+          "document_page": 68
+        }
+      ],
+      "desc_th": "ศึกษาเกี่ยวกับความรู้เบื้องต้นเกี่ยวกับสุขภาพของร่างกายและจิตใจ ธรรมชาติของมนุษย์ที่มี\nสุขภาพดี การพักผ่อนและการนอนหลับ การจัดการ การปฏิบัติและการทดสอบทางสุขภาพ ร่างกายและจิตใจ\nโภชนาการเพื่อสุขภาพ โรคส่วนบุคคลและโรคติดต่อการเลือกใช้บริการทางการแพทย์",
+      "desc_en": "STUDY OF INTRODUCTION TO PHYSICAL AND MENTAL HEALTH, THE NATURE OF HEALTHY\nHUMANS, REST AND SLEEP., MANAGEMENT, PERFORMANCE AND TEST OF PHYSICAL AND MENTAL HEALTH,\nNUTRITION FOR HEALTH, PREVENTION OF DISEASES, AND SELECTION OF MEDICAL SERVICES"
+    },
+    {
+      "code": "90303007",
+      "name_th": "นันทนาการเบื้องต้น",
+      "name_en": "FUNDAMENTAL RECREATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_072.png",
+          "source_page": 72,
+          "document_category": "description",
+          "document_page": 68
+        }
+      ],
+      "desc_th": "ศึกษาเกี่ยวกับความรู้ เบื้องต้นของนันทนาการ\nความสำคัญและความจำเป็นต่อชีวิตในสังคม\nปัจจุบัน  ความ'รู้เกี่ยวกับเวลาและเวลาว่าง\nขอบข่ายและประเภทของนันทนาการ\nขอบข่ายของกิจกรรม\nนนทนาการ\nองค์กรทางนันทนาการ\nความต้องการนันทนาการในวัยต่าง\nการจัดและบริหารนันทนาการ\nตลอดจนการศึกษา ผู้นำทางนันทนาการ\nหน้า 70 จาก 124\nความู'รู้ เกี่ยวกับ\nผู้นำเกม"
+    },
+    {
+      "code": "90303008",
+      "name_th": "การปฐมพยาบาล",
+      "name_en": "FIRST AIDS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_073.png",
+          "source_page": 73,
+          "document_category": "description",
+          "document_page": 69
+        }
+      ],
+      "desc_th": "ศึกษาความรู้เบื้องต้นเกี่ยวกับการปฐมพยาบาล\nความสำคัญและความจำเป็นของการปฐม\nพยาบาล\nองค์ประกอบของการปฐมพยาบาล  การปฐมพยาบาลในกรณีต่าง\nการเคลื่อนย้ายผู้ป่วย\nการ\nป้องกันการเกิดอันตราย ตลอดจนการจัดเก็บ และการรักษาเครื่องมือทีใช้ในการปฐมพยาบาล",
+      "desc_en": "STUDY OF BASIC KNOWLEDGE AND  UNDERSTANDING OF FIRST AIDS, ITS SIGNIFICANCE,\nFACTORS OF FIRST AIDS, FIRST AIDS  PROCEDURES IN VARIOUS CASES, TRANSFERE OF THE INJURED, DANGER\nPREVENTION, AND THE STORAGE AND CARE OF\nTOOLS AND EQUIPMENT FOR FIRST AIDS."
+    },
+    {
+      "code": "90303009",
+      "name_th": "หลักความปลอดภัยในการทำงาน",
+      "name_en": "PRINCIPLES OF WORK SAFETY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_073.png",
+          "source_page": 73,
+          "document_category": "description",
+          "document_page": 69
+        }
+      ],
+      "desc_th": "ความรู้ทั่วไปเกี่ยวกับอันตรายต่างๆ ที่มักจะเกิด ขื้นในการทำงาน สาเหตุของการเกิดอันตราย\nต่าง\nหลักการสร้างความปลอดภัยในสำนักงานและในอุตสาหกรรม การใช้เครื่องมือและเครื่องจักรเพื่อการ\nทำงานอย่างปลอดภัย  การจัดเก็บวัสดุในหน่วยงาน\nการจัดและการใช้อุปกรณ์ป้องกันอันตรายต่างๆ\nการ\nป้องกันและการจัดการเมื่อเกิดอันตรายจากอุบัติเหตุ",
+      "desc_en": "GENERAL\nKNOWLEDGE\nABOUT  POTENTIALLY  RECURRING  DANGERS\nIN\nUNSAFE\nWORKING\nCONDITIONS, CAUSES OF DANGERS, PRINCIPLES OF SAFETY AT WORK AND INDUSTRIES, THE UTILIZATION OF\nTOOLS AND\nMACHINES FOR SAFETY., MATERIAL STORAGE AT WORK., PROVISION AND UTILIZATION OF SAFETY\nTOOLS, ACCIDENT PREVENTION AND HANDLING PROCEDURES."
+    },
+    {
+      "code": "90303010",
+      "name_th": "สุขศาสตร์อุตสาหกรรมเบื้องต้น",
+      "name_en": "INTRODUCTION TO INDUSTRIAL HYGIENE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_073.png",
+          "source_page": 73,
+          "document_category": "description",
+          "document_page": 69
+        }
+      ],
+      "desc_th": "ความ รู้ทัวไปเกียวกับสุขภาพและอนามัย  สิงแวดล้อมและหลักสุขศาสตร์ของผู้ ปฏิบัติงานใน\nอุตสาหกรรม ฺการป้องกันและควบคุมสิงอันตราย โรคต่างๆจากการทำงาน และหลักการจัดโปรแกรมสุขภาพ\nในสถานอุตสาหกรรม\nหน้า 71 จาก 124"
+    },
+    {
+      "code": "90303011",
+      "name_th": "การเสริมสร้างคุณภาพชีวิต",
+      "name_en": "ENHANCEMENT OF QUALITY OF LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_074.png",
+          "source_page": 74,
+          "document_category": "description",
+          "document_page": 70
+        }
+      ],
+      "desc_th": "ความรู้ทั่วไปเกี่ยวกับคุณภาพชีวิต คุณภาพชีวิตกับสังคมปัจจุบันโดยเน้นเรื่องการเสริมสร้าง\nการดูแลรักษาและการพัฒนาสุขภาพ ทางด้านร่างกาย จิตใจ อารมณ์. สังคม ฺและสติปัญญา ให้มีประสิทธิภาพ\nโดยอาศัยหลักการและกิจกรรมทางสุขศึกษา พลศึกษา และนันทนาการ",
+      "desc_en": "GENERAL  KNOWLEDGE ABOUT  QUALITY  OF LIFE, QUALITY  OF LIFE IN\nMODERN  SOCIETY\nFOCUSING ON ENHANCEMENT, MAINTENANCE AND HEALTH DEVELOPMENT IN FIVE ASPECTS: PHYSICAL,\nPSYCHOLOGICAL,\nEMOTIONAL,\nSOCIAL,\nAND  INTELLECTUAL\nBASED\nON  PRINCIPLES\nAND\nACTIVITIES IN\nHYGIENE, PHYSICAL EDUCATION AND RECREATION."
+    },
+    {
+      "code": "90303012",
+      "name_th": "การพัฒนาสุขภาพแบบองค์รวม",
+      "name_en": "HOLISTIC HEALTH DEVELOPMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_074.png",
+          "source_page": 74,
+          "document_category": "description",
+          "document_page": 70
+        }
+      ],
+      "desc_th": "ศึกษาความสำคัญของการรักษาสุขภาพกายและสุขภาพจิต องค์ประกอบของการพัฒนา\nสุขภาพกายและสุขภาพจิตที่ดี กระบวนการพัฒนาสุขภาพกายและสุขภาพจิตโดยใช้หลักการบริหารกาย\nนันทนาการและกีฬา ปัจจัยที่มีผลต่อการพัฒนาสุขภาพกายและสุขภาพจิต ฺอาทิ โภชนาการ บุคลิกภาพ และ\nการปรับตัวเพื่อการอยู่ร่วมกับผู้อื่นในสังคมอย่างเป็นสุข ฺรวมทั้งการศึกษาดูงานนอกสถานที่ ในหน่วยงาน\nและองค์กรที่มีส่วนร่วมในการพัฒนาสุขภาพกายและสุขภาพจิต",
+      "desc_en": "A\nSTUDY\nOF\nAN\nIMPORTANCE\nOF\nMAINTAINING  PHYSICAL\nAND\nMENTAL\nHEALTH,\nELEMENTS OF DEVELOPMENT OF PHYSICAL AND\nMENTAL HEALTH, DEVELOPMENTAL  AT PROCESSES OF\nPHYSICAL AND MENTAL HEALTH USING PHYSICAL EXERCISES, RECREATION AND SPORTS, FACTORS AFFECTING\nPHYSICAL AND MENTAL HEALTH DEVELOPMENT, NAMELY NUTRITION, PERSONALITY., ETC., ADJUSTMENT TO\nLIVING IN HARMONY WITH OTHERS IN THE SOCIETY., INCLUDING STUDY TOURS IN ORGANIZATIONS TAKING PART\nIN THE PHYSICAL AND MENTAL HEALTH DEVELOPMENT.\nหน้า 72 จาก 124\nอื่น1"
+    },
+    {
+      "code": "90304001",
+      "name_th": "การใช้ห้องสมุดและสารนิเทศ",
+      "name_en": "LIBRARY USAGE AND INFORMATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_075.png",
+          "source_page": 75,
+          "document_category": "description",
+          "document_page": 71
+        }
+      ],
+      "desc_th": "ความ\nเรู้ เบื้องต้นเกี่ยวกับห้องสมุดและแหล่งสารนิเทศ ทรัพยากรห้องสมุดและสารนิเทศ\nวิธีการจัดเก็บ การสืบค้นสารนิเทศจากห้องสมุด และแหล่งสารนิเทศทั้งในประเทศและต่างประเทศ การเขียน\nภาคนิพนธ์และการอ้างอิงตามหลักสากล",
+      "desc_en": "BASIC\nKNOWLEDGE\nOF\nLIBRARIES\nAND\nINFORMATION\nSOURCES,\nLIBRARIES\nAND\nINFORMATION RESOURCES, ARRANGEMENT AND STORAGE, INFORMATION SEARCHING METHODS IN\nLIBRARIES\nBOTH DOMESTIC AND INTERNATIONAL INFORMATION SOURCES, TERM PAPER WRITING, AND REFERENCES."
+    },
+    {
+      "code": "90304004",
+      "name_th": "การเขียนรายงาน",
+      "name_en": "REPORT WRITING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_075.png",
+          "source_page": 75,
+          "document_category": "description",
+          "document_page": 71
+        }
+      ],
+      "desc_th": "ศึกษารูปแบบ และวิธีการเขียนรายงาน รวมทั้งฝึกการเขียนรายงานรูปแบบต่าง\nเช่น รายงาน\nข่าว รายงานการประชุม และรายงานเชิงวิชาการ เป็นต้น",
+      "desc_en": "STUDY OF FORMATS AND PROCEDURES OF REPORT WRITING AS WELL. AS\nA\nPRACTICE OF\nVARIOUS REPORT WRITING SUCH AS NEWS REPORTS, MINUTES, ACADEMIC PAPERS ETC."
+    },
+    {
+      "code": "90304005",
+      "name_th": "ศิลปะแห่งการสื่อสาร",
+      "name_en": "ART OF COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_075.png",
+          "source_page": 75,
+          "document_category": "description",
+          "document_page": 71
+        }
+      ],
+      "desc_th": "ศึกษาหลักการ และศิลปะแห่งการสื่อสาร แบบจำลองการสื่อสาร ความสำคัญของการสื่อสาร\nที่มีต่อสังคม ฺศาสตร์และศิลป์ที่ใช้ในการสื่อสารในรูปแบบต่างๆ เช่น การสื่อสารระหว่างบุคคล การ\nสื่อสารมวลชนฺการสื่อสารเพื่อการโฆษณาและการประชาสัมพันธ์ ตลอดจนกระบวนการและกิจกรรมต่างๆ ที่\nใช้ในการสือสาร",
+      "desc_en": "STUDY\nOF  PRINCIPLES\nAND\nART\nOF  COMMUNICATION\nON\nSOCIETY.,  IMPACTS\nOF\nCOMMUNICATION\nON\nSOCIETY.,\nSCIENCE\nAND\nART\nIN\nCOMMUNICATION,\nSUCH\nAS\nINDIVIDUAL\nCOMMUNICATION, MASS COMMUNICATION., COMMUNICATION FOR ADVERTISING AND PUBLIC RELATIONS,\nAS WELL AS PROCESS AND ACTIVITIES IN COMMUNICATION.\nหน้า 73 จาก 124"
+    },
+    {
+      "code": "90305001",
+      "name_th": "อารยธรรมไทย",
+      "name_en": "THAI CIVILIZATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_076.png",
+          "source_page": 76,
+          "document_category": "description",
+          "document_page": 72
+        }
+      ],
+      "desc_th": "ศึกษาวิวัฒนาการของชาติไทย\nตั้งแต่เริ่มตั้งบ้านเมืองเป็นรัฐอิสระ จนเป็นราชอาณาจักรที่มี\nเอกภาพและความมันคง\nศึกษาแนวความคิด\nความเชือ\nศรัทธา\nตลอดจนการแสดงออกทางด้านศิลปะ\nววรรณคดี\nดนตรี  และสถาปัตยกรรมทางด้านที่อยู่อาศัย  ทั้งที่เป็นวัฒนธรรมราชสำนักและวัฒนธรรมพื้นบ้าน\nซึงประกอบกันเป็นวัฒนธรรมไทย\nอิทธิพลของวัฒนธรรมไทย\nและการสร้างความมุ่งหวังและอุดมการณ์ของ\nชาติในสภาพการณ์ปัจจุบัน",
+      "desc_en": "STUDY OF THE EVOLUTION OF THAI NATION, CONCEPTS, BELIEFS, FAITH AS WELL AS THE\nEXPRESSION OF ARTS, LITERATURE, MUSIC, ACCOMMODATION, ARCHITECTURE CONCERNING THE TRADITION OF\nTHE ROYAL COURT AND THAI FOLK CULTURE, INFLUENCE OF THAI CULTURE, AND THE CREATION OF NATIONAL\nAND IDEALS IN THE CURRENT SITUATION."
+    },
+    {
+      "code": "90305003",
+      "name_th": "เหตุการณ์โลกปัจจุบัน",
+      "name_en": "THE WORLD TODAY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_076.png",
+          "source_page": 76,
+          "document_category": "description",
+          "document_page": 72
+        }
+      ],
+      "desc_th": "ศึกษาเกี่ยวกับความรู้ความเข้าใจ ปัญหา เศรษฐกิจ การเมือง สังคมและวัฒนธรรม ฺตลอดจน\nความสัมพันธ์ของประเทศมหาอำนาจกับภูมิภาคอื่นต โดยเน้นประเด็นสำคัญเพื่อชี้ไห้เห็นความเป็นมาอิทธิพล\nผลกระทบต่อสังคมโลกร่วมสมัย รวมถึงผลกระทบต่อประเทศไทย ปัญหาและทางออกของประเทศ",
+      "desc_en": "STUDY\nOF\nWORLD\nECONOMIC,  POLITICAL,\nSOCIAL  AND\nCULTURAL  PROBLEMS\nAND\nRELATIONS AMONG POWERFUL COUNTRIES AND OTHER REGIONS WITH AN EMPHASIS ON SIGNIFICANT ISSUES\nWHICH INFLUENCE\nTHE\nWORLD TODAY INCLUDING EFFECTS TO  THAILAND\nAS\nWELL\nAS\nPROBLEMS  AND\nSOLUTION TO THOSE EFFECTS."
+    },
+    {
+      "code": "90305004",
+      "name_th": "ภูมิประวัติศาสตร์เพื่อการท่องเที่ยว",
+      "name_en": "GEOGRAPHY AND HISTORY FOR TOURISM",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_076.png",
+          "source_page": 76,
+          "document_category": "description",
+          "document_page": 72
+        }
+      ],
+      "desc_th": "ศึกษาภูมิศาสตร์ของประเทศไทย ฺสภาพภูมิประเทศ ภูมิอากาศ ทรัพยากรธรรมชาติในฐานะ\nที่เป็นทรัพยากรการท่องเที่ยวของแต่ละภาค ซึงนำไปสู่การศึกษาประวัติศาสตร์ของชุมชนที่มีการปรับตัว\nผสมผสานกับอารยธรรมอันเป็นปัจจัยในการพัฒนาไปรูวามเป็นรัฐและอาณาจักรรวมทั้งศึกษาเอกลักษณ์ของ\nอารยธรรมไทยทางด้านสถาบันการเมืองการปกครอง เศรษฐกิจ ฺศาสนา ปรัชญา ความเชือ ขนบธรรมเนียม\nประเพณี วรรณกรรม ศิลปกรรมและอื่นต ฺที่ปรากฏอยู่ตามแหล่งท่องเที่ยวที่สำคัญของประเทศมีการศึกษา\nนอกสถานที่\nหน้า 74 จาก 124",
+      "desc_en": "SOALS"
+    },
+    {
+      "code": "90305005",
+      "name_th": "มนุษย์กับการท่องเที่ยว",
+      "name_en": "HUMAN AND TOURISM",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_077.png",
+          "source_page": 77,
+          "document_category": "description",
+          "document_page": 73
+        }
+      ],
+      "desc_th": "ศึกษาความสำคัญและความหมายของการท่องเทียว\nความเป็นมา\nแนวโน้ม\nบทบาท\nและ\nองค์ประกอบที่สำคัญของอุตสาหกรรมการท่องเที่ยว ศึกษาโครงสร้างพื้นฐานของอุตสาหกรรมการท่องเที่ยว ปัจจัย\nต่างๆ ที่มีอิทธิพลต่อการท่องเที่ยวได้แก่ การคมนาคม ฺการขนส่งที่พักแรม ร้านอาหารและสวัสดิการ ร้านค้าของที่\nระลึก ตลอดจนการให้ความปลอดภัยต่อชีวิต และทรัพย์สินของนักท่องเที่ยวมีการศึกษานอกสถานที่",
+      "desc_en": "STUDY OF AN IMPORTANCE AND A DEFINITION OF TOURISM, ITS BACKGROUND., TREND,\nROLE AND FACTORS OF TOURISM INDUSTRY., INCLUDING BASIC STRUCTURE OF TOURISM INDUSTRY AND FACTORS\nINFLUENCING TOURISM INDUSTRY\nTRANSPORTATION, HOTELS, RESTAURANTS AND FACILITIES, SOUVENIR SHOPS\nAND INSURANCE FOR LIFE AND PROPERTY OF TOURISTS INCLUDING STUDY TOURS."
+    },
+    {
+      "code": "90305006",
+      "name_th": "มนุษย์กับสิ่งแวดล้อม",
+      "name_en": "HUMAN AND ENVIRONMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_077.png",
+          "source_page": 77,
+          "document_category": "description",
+          "document_page": 73
+        }
+      ],
+      "desc_th": "ศึกษากฎเกณฑ์โดยทั่วไปของนิเวศวิทยาเพื่อให้เกิดความเข้าใจถึงความสัมพันธ์ระหว่างมนุษย์\nกับสิ่งแวดล้อม ฺสถานการณ์สิ่งแวดล้อมและการอนุรักษ์สิ่งแวดล้อม รวมทั้งกฎหมายที่เกี่ยวข้องและจริยธรรม\nต่อสิ่งแวดล้อม ฺตลอดจนอนาคตของมนุษย์กับสิ่งแวดล้อม",
+      "desc_en": "STUDY\nOF\nBASIC  PRINCIPLES\nOF  ECOLOGY\nTO\nUNDERSTAND\nTHE  RELATIONSHIP\nBETWEEN\nHUMAN\nAND\nENVIRONMENT,\nENVIRONMENTAL\nSITUATIONS\nAND\nENVIRONMENTAL\nCONSERVATION., INCLUDING ETHICS AND ENVIRONMENT\nHUMAN AND ENVIRONMENT IN THE FUTURE.\nหน้า75 จาก 124\nLAWS,"
+    },
+    {
+      "code": "90306003",
+      "name_th": "ทักษะการดำเนินชีวิต",
+      "name_en": "LIVING SKILLS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_078.png",
+          "source_page": 78,
+          "document_category": "description",
+          "document_page": 74
+        }
+      ],
+      "desc_th": "ศึกษาความหมาย  ความสำคัญ\nและองค์ประกอบของทักษะการดำเนินชีวิตชีวิต\nประเภท\nของทักษะการดำเนินชีวิต ทักษะการดำเนินชีวิตที่สำคัญและจำเป็นสำหรับนักศึกษา และการฝึกปฏิบัติ\nกิจกรรมเสริมสร้างทักษะการดำเนินชีวิตสำหรับนักศึกษา",
+      "desc_en": "STUDY OF MEANING., IMPORTANCE, AND COMPONENTS OF LIVING SKILLS, TYPES OF\nLIVING SKILLS ESSENTIAL AND NECESSARY FOR UNIVERSITY STUDENTS , PRACTICES OF LIVING SKILLS ACTIVITIES."
+    },
+    {
+      "code": "90306004",
+      "name_th": "ครอบครัวอบอุ่น",
+      "name_en": "LOVING FAMILY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_015.png",
+          "source_page": 15,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_078.png",
+          "source_page": 78,
+          "document_category": "description",
+          "document_page": 74
+        }
+      ],
+      "desc_th": "ศึกษาความหมาย  ความสำคัญ องค์ประกอบและลักษณะของครอบครัวอบอุ่น  หลักการ\nสร้างความอบอุ่นในครอบครัว  รวมทั้งปัจจัยภายในและภายนอกครอบครัวที่มีผลต่อความสุขในครอบครัว",
+      "desc_en": "STUDY OF MEANING, IMPORTANCE., ELEMENTS AND CHARACTERISTICS OF LOVING FAMILY,\nPRINCIPLES OF BEING A LOVING FAMILY INCLUDING INTERNAL AND EXTERNAL FACTORS AFFECTING HAPPINESS\nIN FAMILY."
+    },
+    {
+      "code": "90306005",
+      "name_th": "ภูมิปัญญาไทย",
+      "name_en": "THAI WISDOM",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_078.png",
+          "source_page": 78,
+          "document_category": "description",
+          "document_page": 74
+        }
+      ],
+      "desc_th": "ความหมายและ\nพัฒนาการของภูมิปัญญา\nลักษณะภูมิศาสตร์และสภาพแวดล้อมทางสังคม\nวัฒนธรรมในภูมิภาคต่างๆของไทยอันเป็นปัจจัยพื้นฐานของการก่อเกิด ภูมิปัญญาท้องถิ่นในสาขาวิชาต่างๆ\nความรู้ความเข้าใจในภูมิปัญญา-ปรีชาญาณสั่งสมในวัฒนธรรมไทยและในดำรงชีวิต ตลอดจนการนำภูมิปัญญา\nมาปรับใช้\nไนสถานการณ์ปัจจุบันและอนาคต",
+      "desc_en": "STUDY\nOF  TERMINOLOGY\nAND\nDEFINITION\nOF WISDOM,  GEOGRAPHIC\nAND  SOCIO-\nCULTURAL  ENVIRONMENT IN  DIFFERENT REGIONS OF THAILAND,\nAS THE BASIS  OF LOCAL  KNOWLEDGE IN\nVARIOUS FIELDS, UNDERSTANDING  OF WISDOMS  GAINED\nIN\nTHAI CULTURE  AND  LIFESTYLE\nAS\nWELL\nAS\nAPPLICATION OF WISDOM IN THE PRESENT AND FUTURE SITUATION.\nหน้า 76 จาก 124"
+    },
+    {
+      "code": "90306006",
+      "name_th": "การจัดการความรู้",
+      "name_en": "KNOWLEDGE MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_079.png",
+          "source_page": 79,
+          "document_category": "description",
+          "document_page": 75
+        }
+      ],
+      "desc_th": "ความหมายและ\n:เความสำคัญของการจัดการความรู้ กระบวนการจัดการความ'รู้ เครื่องมือทีใช้\nในการจัดการความรู้ รูปแบบการจัดการความรู้ และการประยุกต์ใช้การจัดการความรู้ในบริบทต่างๆ",
+      "desc_en": "DEFINITION\nAND\nIMPORTANCE\nOF\nKNOWLEDGE\nMANAGEMENT,\nKNOWLEDGE\nMANAGEMENT PROCESSES, TOOLS FOR KNOWLEDGE MANAGEMENT, KNOWLEDGE MANAGEMENT MODELS,\nAND\nAPPLICATION OF KNOWLEDGE MANAGEMENT IN VARIOUS CONTEXTS."
+    },
+    {
+      "code": "90306007",
+      "name_th": "ทักษะแห่งความสุข",
+      "name_en": "HAPPINESS SKILLS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_079.png",
+          "source_page": 79,
+          "document_category": "description",
+          "document_page": 75
+        }
+      ],
+      "desc_th": "ศึกษาหลักการและวิธีการทางจิตวิทยา มนุษย์ศาสตร์ และสังคมศาสตร์ เกี่ยวกับความสุขใน\nระดับต่าง\nทั้งมิติทางกายภาพ มิติทางสังคม มิติทางอารมณ์ มิติทางจิตใจ และมิติทางการรู้คิด โดยมุ่งเน้น\nการฝึกปฏิบัติเพื่อบริหารความเครียด การเข้าใจตนเอง และการพัฒนาทักษะแห่งความสุข",
+      "desc_en": "STUDY OF PRINCIPLES AND STRATEGIES FOM PSYCHOLOGY., HUMANITIES, AND SOCIAL. SCIENCES,\nCONCEMING THE NATURE OF HAPPINESS IN PHYSICAL., SOCIO CULTURAL, EMOTIONAL AND COGNITIVE DOMAINS.\nA\nPRACTICE OF STRESS MANAGEMENT., SELF UNDERSTANDING AND SELF DEVELOPMENT OF HAPPINESS SKILLS."
+    },
+    {
+      "code": "90306008",
+      "name_th": "สมาธิเพื่อพัฒนาชีวิต",
+      "name_en": "MEDITATION FOR LIFE DEVELOPMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_079.png",
+          "source_page": 79,
+          "document_category": "description",
+          "document_page": 75
+        }
+      ],
+      "desc_th": "ความหมายของการทำสมาธิ จุดประสงค์ วิธีการ ขั้นตอน จุดเริ่มต้นของการทำสมาธิ ลักษณะ\nของการบริกรรมและการทำสมาธิ\nประโยชน์ของสมาธิ\nลักษณะอาการต่อต้านสมาธิ\nและการนำสมาธิไปใช้ใน\nชีวิตประจำวัน สมาธิกับการเรียนและการงาน ลักษณะ ขั้นตอน คุณสมบัติ ประโยชน์ของฌานและญาณ สิ่งที่ควร\nรู้ เรื่องวิปัสสนา ความแตกต่างระหว่างสมกะกับวิปัสสนา แผนผังสมกะกับวิปัสสนาฺชาวโลกกับวิปัสสนา",
+      "desc_en": "MEANING\nOF\nMEDITATION,\nOBJECTIVES,\nMETHODS,\nTHE\nBEGINNING,\nPROCESS\nCHARACTERISTICS OF RECITING AND MEDITATING, BENEFITS OF MEDITATION, MEDITATION RESISTANCES AND\nAPPLYING MEDITATION IN DAILY LIFE., MEDITATION AS RELATED TO EDUCATION AND WORKING PURPOSES,\nOBJECTIVES,\nMETHODS,\nCHARACTERISTICS\nOF\nTHE\nSTATES\nOF\nABSORPTION\n(HANA)\nAND\nINSIGHT\nKNOWLEDGE (NANA), FUNDAMENTAL KNOWLEDGE ABOUT INSIGHT MEDITATION (VIPASSANA), DIFFERENCES\nBETWEEN FOUNDATION\nMEDITATION  (SUMMATA) AND INSIGHT\nMEDITATION  (VIPASSANA), LAYOUT OF\nFOUNDATION\nMEDITATION (SUMMATA) AND INSIGHT MEDITATION (VIPASSANA), INSIGHT\nMEDIATION\nAS\nRELATED TO WORLD\nPOPULATION.\nหน้า77 จาก 124"
+    },
+    {
+      "code": "90307001",
+      "name_th": "ภาษาไทยเพื่อการสื่อสาร",
+      "name_en": "THAI USAGE FOR COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_080.png",
+          "source_page": 80,
+          "document_category": "description",
+          "document_page": 76
+        }
+      ],
+      "desc_th": "ศึกษาหลักการพื้นฐานของการใช้ภาษาไทยเพื่อการสื่อสารอย่างมีประสิทธิภาพ ฝึกทักษะทั้งสี่\nที่ใช้เพื่อการสื่อสาร ได้แก่ ทักษะการฟัง การพูด การอ่าน และการเขียนในสถานการณ์ต่าง\nเช่น การฟังเพือ\nจับใจความสำคัญ การพูดในที่ชุมชนฺ ฺการอ่านเพื่อจับใจความ ฺการตีความ ฺการวิเคราะห์และวิจารณ์. และการ\nเขียนงานรูปแบบต่าง",
+      "desc_en": "STUDY\nOF\nBASIC  PRINCIPLES\nOF  EFFECTIVE  COMMUNICATION.,  PRACTICE\nOF FOUR\nCOMMUNICATION SKILLS, NAMELY LISTENING, SPEAKING, READING AND WRITING IN DIFFERENT SITUATIONS\nSUCH\nAS\nLISTENING FOR\nMAIN IDEAS, PUBLIC SPEAKING,  CRITICAL, READING OF SELECTED\nPROSE,\nAND\nDIFFERENT GENRES OF WRITING LANGUAGE."
+    },
+    {
+      "code": "90307002",
+      "name_th": "ภาษาและวัฒนธรรมญี่ปุ่น",
+      "name_en": "JAPANESE LANGUAGE AND CULTURE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_080.png",
+          "source_page": 80,
+          "document_category": "description",
+          "document_page": 76
+        }
+      ],
+      "desc_th": "ศึกษาการใช้ภาษาญี่ปุ่นในการติดต่อสือสารในชีวิตประจำวันอย่างง่าย\nตลอดจน\nขนบธรรมเนียมประเพณี และวัฒนธรรมของชาวญี่ปุ่น เพื่อให้เกิดความรู้ความเข้าใจอย่างถูกต้อง",
+      "desc_en": "STUDY\nOF SIMPLE JAPANESE  LANGUAGE  TO\nCOMMUNICATE\nIN\nDAILY  LIFE  INCLUDING\nJAPANESE CULTURE AND TRADITION FOR PROPER UNDERSTANDING."
+    },
+    {
+      "code": "90307003",
+      "name_th": "วรรณกรรมวิจารณ์",
+      "name_en": "LITERARY CRITICISM",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_080.png",
+          "source_page": 80,
+          "document_category": "description",
+          "document_page": 76
+        }
+      ],
+      "desc_th": "ศึกษาองค์ประกอบของวรรณกรรม แนวทางการอ่านและวิจารณ์วรรณกรรมประเภทต่างๆ\nทฤษฎีการวิจารณ์และหลักเกณฑ์การวิจารณ์ในระดับเบื้องต้น  ตลอดจนเข้าใจความสัมพันธ์ของวรรณกรรมกับ\nศาสตร์ อื่นๆ",
+      "desc_en": "STUDY OF LITERARY  CRITICISM, ELEMENTS  AND METHODS FOR  CRITICISM  OF LITERARY\nWORKS, INCLUDING THE RELATIONSHIP BETWEEN LITERARY WORK AND OTHER FIELDS.\nหน้า 78 จาก 124"
+    },
+    {
+      "code": "90307004",
+      "name_th": "ภาษาในสังคมไทย",
+      "name_en": "LANGUAGE IN THAI SOCIETY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_081.png",
+          "source_page": 81,
+          "document_category": "description",
+          "document_page": 77
+        }
+      ],
+      "desc_th": "ศึกษาโครงสร้างของภาษาและความหลากหลายของภาษาทีใช้ในสังคมไทย ความสัมพันธ์\nระหว่างภาษา บริบททางสังคมและวัฒนธรรมฺธรรมชาติและการเปลี่ยนแปลงของภาษา รวมทั้งการพัฒนา\nภาษากับการพัฒนาสังคมและประเทศชาติ",
+      "desc_en": "A\nSTUDY OF LANGUAGE STRUCTURE AND VARIETIES OF LANGUAGES USED IN THAI SOCIETY,\nRELATIONSHIP BETWEEN LANGUAGES, SOCIAL AND CULTURAL CONTEXT; CHARACTERISTICS OF LANGUAGE AND\nLANGUAGE CHANGE; LANGUAGE DEVELOPMENT AND THE DEVELOPMENT OF THE NATION."
+    },
+    {
+      "code": "90307005",
+      "name_th": "การฟังและการอ่านเพื่อพัฒนาคุณภาพชีวิต",
+      "name_en": "LISTENING AND READING FOR IMPROVING LIFE QUALITY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_081.png",
+          "source_page": 81,
+          "document_category": "description",
+          "document_page": 77
+        }
+      ],
+      "desc_th": "หลักการรับสารอย่างมีวิจารณญาณ  ฝึกทักษะการฟังและการอ่านเพื่อพัฒนาคุณภาพชีวิต\nให้เกิดความรอบรู้ มีประสบการณ์และสร้างจินตนาการ การพัฒนาความสามารถในการจับใจความสำคัญการ\nสรุปประเด็น การวิเคราะห์และประเมินค่าสารทั้งสาระความรู้และบันเทิงคดี",
+      "desc_en": "STUDY AND  PRACTICE OF PRINCIPLE AND PERCEPTION SKILLS, LISTENING AND READING\nFOR\nIMPROVING\nLIFE\nQUALITY\nTO\nUNDERSTAND,\nEXPERIENCE\nENHANCEMENT,\nAND\nIMAGINATION.\nDEVELOPMENT IN ABILITY OF FINDING\nMAIN IDEAS, ANALYZING AND EVALUATING MESSAGES FOR BOTH\nACADEMIC AND NON ACADEMIC PURPOSES."
+    },
+    {
+      "code": "90307006",
+      "name_th": "ศิลปะการต่อรอง",
+      "name_en": "ART OF NEGOTIATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_081.png",
+          "source_page": 81,
+          "document_category": "description",
+          "document_page": 77
+        }
+      ],
+      "desc_th": "แนะนำการต่อรองที่เกิด ขึ้นในชีวิตจริง ฺเหตุการณ์สำคัญในประวัติศาสตร์ที่มีเหตุมาจากการ\nต่อรอง ศึกษาปัจจัยกระตุ้นให้เกิดการต่อรอง เรียนรู้และจดจำความต้องการพื้นฐานของมนุษย์ ทฤษฎีความ\nต้องการที่เกี่ยวข้องกับการต่อรอง การเตรียมพร้อมก่อนการเจรจาต่อรอง ศึกษาสถานการณ์ต่าง\nที่เกิด:ขึ้นได้\nขณะเจรจา ต่อรอง\nการมองหาสมมติฐานที่ช่อนไว้ เทคนิคการต่อรอง กรณีตัวอย่างของการต่อรอง",
+      "desc_en": "INTRODUCTION  TO  NEGOTIATION\nIN\nREAL  LIFE,\nLEARNING SOME IMPORTANT HISTORICAL\nEVENTS\nAS\nA\nRESULT OF NEGOTIATION., STUDYING THE\nMOTIVATION FOR MAKING NEGOTIATION, HUMAN\nDEMANDS\nAND\nTHEORIES\nCONCERNING\nHUMAN\nDEMANDS\nFOR\nNEGOTIATION.,\nPREPARING\nAND\nUNDERSTANING\nCONTEXTS\nAROUND\nTHE\nNEGOTIATION\nCIRCUMSTANCE,\nSEARCHING\nFOR\nHIDDEN\nASSUMPTIONS DURING NEGOTIATION, AND STUDYING NEGOTIATION TECHNIQUES AND CASES.\nหน้า 79 จาก 124"
+    },
+    {
+      "code": "90307007",
+      "name_th": "วาทวิทยา",
+      "name_en": "SPEECH COMMUNICATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_082.png",
+          "source_page": 82,
+          "document_category": "description",
+          "document_page": 78
+        }
+      ],
+      "desc_th": "ศึกษากระบวนการสื่อสารของมนุษย์ ศิลปะการพูดในที่สาธารณะ ฝึกการใช้วัจนภาษา\nและอวัจนภาษาในการสื่อสาร หลักการเตรียมการพูดในสถานการณ์ต่างๆการแก้ไขความวิตกกังวลในการพูด\nรวมทั้งเรียนรู้เทคนิคการใช้เสียง ฺท่าทางและบุคลิกภาพที่เหมาะสมฺฺเพื่อการนำเสนอที่มีประสิทธิภาพ",
+      "desc_en": "STUDY OF HUMAN COMMUNICATION PROCESSES AND THE ART OF PUBLIC SPEAKING.\nPRACTICE OF VERBAL AND NONVERBAL COMMUNICATION IN VARIOUS SETTINGS, HOW TO STRUCTURE AND\nORGANIZE  INFORMATION\nTO  PRESENT TO\nA\nVARIETY OF AUDIENCES,\nAND  PHYSICAL\nAND\nVOCAL  SKILLS\nINCLUDES TECHNIQUES IN CONTROLLING SPEECH ANXIETY."
+    },
+    {
+      "code": "90307008",
+      "name_th": "ภาษาเพื่อสื่อสารมวลชน",
+      "name_en": "LANGUAGE FOR MASS MEDIA",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_082.png",
+          "source_page": 82,
+          "document_category": "description",
+          "document_page": 78
+        }
+      ],
+      "desc_th": "เทคนิคการใช้ภาษาไทยในสื่อการวิเคราะห์ลักษณะเฉพาะของภาษา สื่อสารมวลชนฺที่ปรากฏ\nทางสื่อหนังสือพิมพ์ เสื่อวิทยุโทรทัศน์ สื่ออินเทอร์เน็ต และสื่อมวลชนอื่นๆ",
+      "desc_en": "TECHNIQUES OF THAI LANGUAGE\nUSE IN\nMASS MEDIA.\nAN ANALYSIS OF THE SPECIFIC\nCHARACTERISTICS\nOF\nMASS\nMEDIA  LANGUAGE  ESPECIALLY\nIN\nNEWSPAPERS,  RADIO,  TELEVISION,\nTHE\nINTERNET AND OTHER MEDIA."
+    },
+    {
+      "code": "90030001",
+      "name_th": "การคิดเชิงวิทยาศาสตร์",
+      "name_en": "SCIENTIFIC THINKING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_082.png",
+          "source_page": 82,
+          "document_category": "description",
+          "document_page": 78
+        }
+      ],
+      "desc_th": "ศึกษาหลักการ วิธีการ และกลยุทธ์ในการคิดแบบวิทยาศาสตร์ ฐานะที่เป็นคำตอบหนึ่งใน\nหลาย\nคำถามของปัญหาความจริงแห่งจักรวาล วิทยาศาสตร์ในฐานะวิธีการหาความรู้วิธีหนึ่งในหลาย\nวิธีที่\nมือยู่ในโลก อิทธิพลของวิทยาศาสตร์ต่อชีวิต และความหมายเกียวกับความก้าวหน้าทางวิทยาศาสตร์ รวมทั้ง\nการประยุกต์วิธีคิดแบบประจำวัน เพื่อฝึกสร้างความคิดที่ลึก กว้าง เป็นระบบ ในปัญหาต่าง\nในชีวิต",
+      "desc_en": "STUDY  OF  PRINCIPLES,\nMETHODS\nAND\nSTRATEGIES\nOF SCIENTIFIC  THINKING\nAS\nAN\nANSWER TO VARIOUS QUESTIONS ABOUT THE TRUTH OF THE UNIVERSE. SCIENCE\nAS ONE OF THE MANY\nMETHODS\nOF KNOWLEDGE  ACQUISITION.\nINFLUENCES\nOF\nSCIENCE\nON\nLIFE\nAND\nTHE\nMEANINGS  OF\nSCIENTIFIC PROGRESS. APPLICATION OF SCIENTIFIC THINKING TO DEVELOPING BROAD BASED AND IN DEPTH\nSYSTEMATIC THINKING CONCERNING DAILY LIFE PROBLEMS.\nหน้า 80 จาก 124"
+    },
+    {
+      "code": "90401003",
+      "name_th": "เศรษฐกิจกับวิถีชีวิต",
+      "name_en": "ECONOMY AND LIVING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_083.png",
+          "source_page": 83,
+          "document_category": "description",
+          "document_page": 79
+        }
+      ],
+      "desc_th": "ความรู้เบื้องต้นทางเศรษฐศาสตร์ที่เกี่ยวข้องกับการดำเนินชีวิตประจำวันของมนุษย์\nการ\nบริโภค การลงทุน เงินเฟ้อ เงินฝิด ฺสถาบันการเงิน ภาษีอากร เรียนรู้ถึงสภาพการณ์ต่างๆ ทางเศรษฐกิจ เข้าใจ\nปัญหาเศรษฐกิจที่เกิดขึ้น และแนวทางในการแก้ไขปัญหาเศรษฐกิจของรัฐบาล รู้จักปรับตนเองให้ดำรงชีวิตอยู่\nได้อย่างเหมาะสมกับสภาพเศรษฐกิจต่างๆ ในสังคม",
+      "desc_en": "STUDY\nOF\nFUNDAMENTAL\nKNOWLEDGE\nOF\nECONOMICS\nIN\nEVERYDAY\nLIFE,\nCONSUMPTION., INVESTMENT, INFLATION, DEFLATION, FINANCIAL INSTITUTION, TAXATION, UNDERSTANDING OF\nHOW TO SOLVE ECONOMIC PROBLEMS AND THE ROLE OF GOVERNMENT, AND ADJUSTMENTS TO ONE'S\nLIVING IN VARIOUS ECONOMIC SITUATIONS."
+    },
+    {
+      "code": "90401007",
+      "name_th": "ความรู้เบื้องต้นเกี่ยวกับเศรษฐกิจไทย",
+      "name_en": "INTRODUCTION TO THAI ECONOMY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_083.png",
+          "source_page": 83,
+          "document_category": "description",
+          "document_page": 79
+        }
+      ],
+      "desc_th": "ศึกษาโครงสร้างและพัฒนาการของระบบเศรษฐกิจไทย  กลไกการทำงานของระบบศเศรษฐกิจ\nไทย\nความสัมพันธ์ของระบบศเศรษฐกิจไทยและเศรษฐกิจโลก  ประเด็นปัญหาเศรษฐกิจและสังคมไทยที่สำคัญ\nและนโยบายในการแก้ปัญหา",
+      "desc_en": "STUDY OF STRUCTURE AND DEVELOPMENT OF THAI ECONOMY., MECHANISM OF THAI\nECONOMY SYSTEM, THE RELATIONSHIP BETWEEN THAI ECONOMY AND WORLD ECONOMY., IMPORTANT\nISSUES OF THAI ECONOMIC AND SOCIAL PROBLEMS AND THE SOLUTIONS."
+    },
+    {
+      "code": "90401008",
+      "name_th": "เศรษฐกิจเอเชีย",
+      "name_en": "ECONOMY OF ASIAN COUNTRIES",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_083.png",
+          "source_page": 83,
+          "document_category": "description",
+          "document_page": 79
+        }
+      ],
+      "desc_th": "ศึกษาสถานการณ์ที่เกี่ยวโยงกับเศรษฐกิจเอเชีย ตลอดจนปัจจัยต่างๆ ที่มีผลต่อการ\nเปลี่ยนแปลงทางเศรษฐกิจ โดยเน้นศึกษาประเทศที่มีบทบาทสำคัญต่อเศรษฐกิจ ฺเช่น จีน ฺญี่ปุ่น ฺเกาหลีใต้ไทย\nกลุ่มประเทศอาเซียน",
+      "desc_en": "STUDY OF THE SITUATIONS LINKING WITH THE ECONOMY OF ASIAN  COUNTRIES AND\nFACTORS AFFECTING ECONOMIC CHANGES, EMPHASIZING ON COUNTRIES THAT PLAY IMPORTANT ROLES ON\nWORLD ECONOMY SUCH AS CHINA, JAPAN, SOUTH KOREA., THAILAND AND ASEAN COUNTRIES.\nหน้า 81 จาก 124"
+    },
+    {
+      "code": "90401009",
+      "name_th": "เศรษฐศาสตร์เพื่อธุรกิจ หน้า 14 จาก 124",
+      "name_en": "ECONOMICS FOR BUSINESS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_016.png",
+          "source_page": 16,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_084.png",
+          "source_page": 84,
+          "document_category": "description",
+          "document_page": 80
+        }
+      ],
+      "desc_th": "ศึกษาแนวคิดและการประยุกต์ใช้ทฤษฎีทางเศรษฐศาสตร์\nการทำงานของระบบศเศรษฐกิจใน\nการแก้ปัญหาพื้นฐานทางเศรษฐกิจ\nอุปทานและดุลยภาพ ความยืดหยุ่น ทฤษฎีผู้บริโภค ทฤษฎีต้นทุน\nการผลิต  การกำหนดราคาและปริมาณการผลิตในตลาดต่างๆ  บทบาทของรัฐบาลในการแก้บัญหาต่างๆ  โดย\nศึกษาบริบทที่เกี่ยวข้องกับธุรกิจอุตสาหกรรม",
+      "desc_en": "STUDY OF CONCEPTS AND APPLICATION OF ECONOMIC THEORIES,\nTHE ECONOMIC\nSYSTEM TO SOLVE THE BASIC ECONOMIC PROBLEMS, DEMAND., SUPPLY., AND EQUILIBRIUM., ELASTICITY,\nCONSUMER  THEORY.,  PRODUCTION\nCOSTS  THEORY.,  PRICING  AND  PRODUCTION\nVOLUMES\nIN\nDIFFERENT\nMARKETS, ROLE OF THE GOVERNMENT IN SOLVING PROBLEMS."
+    },
+    {
+      "code": "90401010",
+      "name_th": "ความรู้เบื้องต้นเกี่ยวกับการลงทุน",
+      "name_en": "INTRODUCTION TO INVESTMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_084.png",
+          "source_page": 84,
+          "document_category": "description",
+          "document_page": 80
+        }
+      ],
+      "desc_th": "ศึกษาความรู้เบื้องต้นเกี่ยวกับการลงทุนฺฺการวางแผนการเงินส่วนบุคคล การู้จักหาเงินออม\nและใช้เงินอย่างมีประสิทธิภาพ ทางเลือกในการลงทุนประเภทต่างๆ ตลาดการเงิน ผลตอบแทนและความเสียง\nจากการลงทุน  เงินและสถาบันการเงินที่เกี่ยวข้องกับชีวิตประจำวัน การดำเนินงานของธนาคารกลาง ธนาคาร\nพาณิชย์ ตลาดหลักทรัพย์ และสถาบันการเงินต่างๆ ตลอดจนสถานการณ์ทางการเงินการธนาคารของประเทศ\nไทย",
+      "desc_en": "STUDY OF INTRODUCTION TO INVESTMENT, PERSONAL FINANCIAL PLANNING., METHODS\nOF SAVING AND EFFICIENCY IN MONEY SPENDING, CHOICES OF INVESTMENT, FINANCIAL MARKET, RETURN\nAND RISK FROM INVESTMENT,\nMONEY AND FINANCIAL INSTITUTION., FUNCTIONS OF THE  CENTRAL  BANK,\nCOMMERCIAL\nBANKS,\nSTOCK  EXCHANGE\nMARKETS\nAND\nOTHER\nFINANCIAL\nINSTITUTIONS\nAND\nTHE\nINTERESTING SITUATIONS ABOUT MONEY AND BANKING IN THAILAND."
+    },
+    {
+      "code": "90401011",
+      "name_th": "การประกอบการ",
+      "name_en": "ENTREPRENEURSHIP",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_084.png",
+          "source_page": 84,
+          "document_category": "description",
+          "document_page": 80
+        }
+      ],
+      "desc_th": "ศึกษาเกียวกับผู้ประกอบการที่ประสบความสำเร็จ\nประเภทของผู้ประกอบการ\nการจัดตั้ง\nองค์ประกอบของการเขียนแผนธุรกิจ\nกลยุทธ์การดำเนินการธุรกิจในหน้าที่ต่างๆ\nเทคนิคการ\nบริหารธุรกิจสมัยใหม่  และกรณีศึกษาการประกอบการธุรกิจที่ประสบความสำเร็จ\nหน้า 82 จาก 124\nอุปสงค์\nธุรกิจ"
+    },
+    {
+      "code": "90401012",
+      "name_th": "ความรู้เบื้องต้นทางการตลาด",
+      "name_en": "INTRODUCTION TO MARKETING",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_085.png",
+          "source_page": 85,
+          "document_category": "description",
+          "document_page": 81
+        }
+      ],
+      "desc_th": "วิชานี้ศึกษาเกี่ยวกับพฤติกรรมของผู้บริโภคในยุคโลกาภิวัตน์\nการกำหนดกลยุทธ์ส่วนแบ่ง\nตลาด การกำหนดกลุ่มเป้าหมาย\nและการกำหนดตำแหน่งทางการตลาดที่เฉพาะเจาะจงมากยิ่งขึ้น รวมถึงการ\nดำเนินการสร้างผลิตภัณฑ์\nการกำหนดราคา\nการเลือกใช้ช่องทางจัดจำหน่ายตลอดจนการใช้การส่งเสริม\nการตลาดโดยคำนึงความรับผิดชอบสังคมเป็นหลักเพื่อช่วยให้การตลาดสามารถดำเนินไปควบคู่กับการกินดีอยู่\nดีของผู้บริโภค",
+      "desc_en": "STUDY\nOF  CONSUMER  BEHAVIORS  IN  GLOBALIZATION, THE  DEFINITION\nOF SPECIFIC\nSTRATEGY\nIN  SEGMENTATION.,  TARGET  GROUP\nAND\nPOSITIONING,  PRODUCT  IMPLEMENTATION\nPRICING\nPRODUCT DISTRIBUTION AND PROMOTION\nREGARDING\nSOCIAL RESPONSIBILITY."
+    },
+    {
+      "code": "90401013",
+      "name_th": "ความรู้ทั่วไปเกี่ยวกับธุรกิจ",
+      "name_en": "GENERAL BUSINESS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_085.png",
+          "source_page": 85,
+          "document_category": "description",
+          "document_page": 81
+        }
+      ],
+      "desc_th": "ศึกษาความหมายของกระบวนการบริหาร\nโดยเป็นเนื้อหาในองค์การธุรกิจ\nการใช้ทรัพยากร\nทางการบริหารให้เป็นประโยชน์ต่อธรกิจ รูปแบบของการดำเนินงานทางธุรกิจฺการจัดองค์การ การสร้างมนุษย\nสัมพันธ์  ความเป็นผู้นำและการจูงใจบุคคลภายในองค์การ\nและการนำหลักการพื้นฐานและความู'รู้ทั่วไปทางด้าน\nการตลาด\nการบริหารงานบุคคล การบริหารการเงิน ฺและการบัญชีมาใช้ในการบริหารธุรกิจขององค์การ",
+      "desc_en": "STUDY OF THE  MEANING OF ADMINISTRATION  PROCESSES FOCUSING\nON  BUSINESS,\nBUSINESS\nRESOURCES\nAND\nALLOCATION,\nTYPES\nOF\nBUSINESS\nORGANIZATION,\nORGANIZING,\nHUMAN\nRELATIONS, LEADERSHIP, MOTIVATION\nAND\nTHE\nIMPLEMENTATION\nOF BASIC  PRINCIPLES  AND  GENERAL\nKNOWLEDGE OF MARKETING, PERSONNEL MANAGEMENT, FINANCE AND ACCOUNTING IN THE BUSINESS.\nหน้า 83 จาก 124"
+    },
+    {
+      "code": "90402007",
+      "name_th": "ความรู้เบื้องต้นเกี่ยวกับสิทธิทางสังคมและครอบครัว",
+      "name_en": "INTRODUCTION TO PRINCIPLES OF SOCIAL AND FAMILY RIGHTS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_086.png",
+          "source_page": 86,
+          "document_category": "description",
+          "document_page": 82
+        }
+      ],
+      "desc_th": "ศึกษาแบบบูรณาการถึงความรู้|พื้นฐานเกี่ยวกับ สิทธิอันพึงมี พึงได้รับการรับรองและคุ้มครอง\nตามกฎหมาย\nสิทธิในความเป็นส่วนตัวและไม่ถูกล่วงละเมิด\nสิทธิที่จะได้รับความคุ้มครองในฐานะผู้บริโภค\nสิทธิที่จะได้รับการคุ้มครองในชีวิตและทรัพย์สิน  สิทธิในทางครอบครัว\nและมรดก\nทังในฐานะคู่หมัน  คู่สมรส\nผู้สืบสันดาน บุพการี และในฐานะเป็นทายาท  ภายใต้กรอบแห่งกฎหมายและสังคมไทย\nรวมถึงกรณีศึกษาที่\nเกียวข้อง",
+      "desc_en": "INTEGRATIVE\nSTUDY\nOF\nBASIC\nKNOWLEDGE\nABOUT\nCHARACTERISTICS\nOF\nRIGHTS\nRECOGNIZED AND PROTECTED BY LAW, RIGHTS TO PROTECT PRIVACY AND AGAINST HARASSMENT, RIGHTS TO\nBE\nPROTECTED AS CONSUMERS, RIGHTS TO THE PROTECTION OF LIFE AND PROPERTY., RIGHTS TO THE FAMILY\nAND HERITAGE AS\nA\nFIANCE,\nA\nSPOUSE, A PARENT AND DESCENDANT HEIRS WITHIN THE FRAMEWORK OF\nLAW AND SOCIETY AND A STUDY OF CASE STUDIES RELATED."
+    },
+    {
+      "code": "90402008",
+      "name_th": "ความรู้เบื้องต้นในการทำงานและสวัสดิการทางสังคม",
+      "name_en": "INTRODUCTION TO WORKING AND SOCIAL WELFARE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_086.png",
+          "source_page": 86,
+          "document_category": "description",
+          "document_page": 82
+        }
+      ],
+      "desc_th": "ศึกษาแบบบูรณาการถึงความรู้พื้นฐานเกี่ยวกับ\nการสมัครงาน\nการสัมภาษณ์งาน\nการ\nทดลองงาน\nการจ้างแรงงาน\nการใช้แรงงาน ค่าตอบแทนการทำงาน\nการลา การหยุด  โทษทางวินัย\nการ\nลาออก การเลิกจ้าง เค่าชดเชย เอีกทั้ง สิทธิประโยชน์ทดแทนและสวัสดิการทางสังคม ฺซึ่งรัฐหรือนายจ้างเป็นผู้\nจัดให้ เพื่อความมั่นคงทั้งในการทำงาน และการดำรงชีวิต อันได้แก่ เงินสงเคราะห์ลูกจ้างเงินทดแทน\nเงิน\nประกันสังคม และเงินสำรองเลี้ยงชีพ  รวมถึงกรณีศึกษาที่เกี่ยวข้อง",
+      "desc_en": "INTEGRATIVE STUDY OF BASIC KNOWLEDGE ABOUT JOB APPLICATION, JOB INTERVIEW,\nJOB PROBATION., EMPLOYMENT, LABOR USE, REMUNERATION, LEAVE,\nDISCIPLINARY ACTION, RESIGNATION.,\nTERMINATION OF EMPLOYMENT, COMPENSATION\nAS WELL\nAS  BENEFITS AND SOCIAL WELFARE FOR JOB\nSECURITY AND LIVELIHOOD, INCLUDING ALLOWANCE, SOCIAL WORKERS COMPENSATION, SOCIAL INSURANCE,\nPROVIDENT FUNDS AND\nA\nSTUDY OF CASE STUDIES RELATED.\nหน้า 84 จาก 124"
+    },
+    {
+      "code": "90402009",
+      "name_th": "ความรู้เบื้องต้นเกี่ยวกับกฎหมายในชีวิตประจำวัน",
+      "name_en": "INTRODUCTION TO PRINCIPLES OF LAWS IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_087.png",
+          "source_page": 87,
+          "document_category": "description",
+          "document_page": 83
+        }
+      ],
+      "desc_th": "ศึกษาแบบบูรณาการถึงความรู้|พื้นฐานเกี่ยวกับสิทธิในความเป็นมนุษย์\nภายใต้กรอบ\nแห่ง\nรัฐธรรมนูญ\nและกฎหมายอื่นที่เกี่ยวข้อง\nการทำนิติกรรม สัญญา\nลักษณะและประเภทของสัญญาที่เกี่ยวข้อง\nกับชีวิตประจำวัน\nหลักเบื้องต้นเกี่ยวกับการประกอบอาชีพในรูปแบบต่างๆ ตั๋วเงินและความรับผิด การติดต่อ\nกับหน่วยงานของทางราชการ อันได้แก่ อำเภอ สถานีตำรวจ ศาล และสิทธิ หน้าที่ ทางภาษีสำหรับประชาชน\nทั่วไป  รวมถึงกรณีศึกษาที่เกี่ยวข้อง",
+      "desc_en": "INTEGRATIVE\nSTUDY\nOF\nBASIC  KNOWLEDGE\nABOUT\nHUMAN\nRIGHTS\nUNDER\nTHE\nCONSTITUTION\nAND\nOTHER  LAWS,  LEGAL  ACTION,\nMAKING\nCONTRACT,  CHARACTERISTICS\nAND  TYPES\nOF\nCONTRACTS RELATED TO DAILY LIFE AS WELL AS BASIC PRINCIPLES ABOUT OCCUPATIONS IN DIFFERENT WAYS,\nBILLS, LIABILITY, DEALING WITH GOVERNMENT AGENCIES INCLUDING DISTRICT POLICE STATIONS AND COURTS,\nRIGHTS AND DUTIES OF CITIZENS AS TAXPAYERS, AND A STUDY OF CASE STUDIES RELATED."
+    },
+    {
+      "code": "90402010",
+      "name_th": "ความรู้เบื้องต้นเกี่ยวกับกฎหมายไทย",
+      "name_en": "INTRODUCTION TO THAI LAWS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_087.png",
+          "source_page": 87,
+          "document_category": "description",
+          "document_page": 83
+        }
+      ],
+      "desc_th": "ความจำเป็นที่ต้องมีกฎหมายใช้บังคับในสังคม\nความหมายของกฎหมาย\nลักษณะของ\nกฎหมาย\nประเภทของกฎหมาย\nกฎหมายการทะเบียนราษฎร์\nกฎหมายเกี่ยวกับการรับราชการทหาร\nกฎหมายแพ่งที่เกี่ยวข้องในชีวิตประจำวัน\nบุคคล\nครอบครัว\nมรดก\nพินัยกรรม  ฺการทำเอกสารและสัญญา\nความุูรู้เกี่ยวกับทรัพย์  เความรู้เกี่ยวกับที่ดิน\nหลักเกณฑ์ของกฎหมายในการทำนิติกรรมและสัญญา\nสัญญา\nประเภท ต่าง\nที่พบได้บ่อย  ความรู้พื้นฐานเกี่ยวกับกฎหมายอาญา\nความรับผิดในทางอาญา\nความผิดและเหตุยกเว้นโทษ",
+      "desc_en": "STUDY OF NEEDS FOR LAW ENFORCEMENT, CONCEPTS, CHARACTERISTICS, AND TYPES OF\nLAWS,\nHOUSE  REGISTRATION  LAW, MILITARY  LAW,  CIVIL\nLAWS\nDEALING\nWITH\nDAILY\nLIFE:\nINDIVIDUALS,\nFAMILIES,\nLEGACIES,\nAND  TESTAMENTS,\nLEGAL\nDOCUMENTATION\nAND\nCONTRACTS,  PROPERTIES\nAND\nESTATES, RULES IN PERFORMING JURISTIC ACT AND CONTRACTS, TYPES OF COMMONLY FOUND CONTRACTS,\nFUNDAMENTALS OF CRIMINAL LAWS, CRIMINAL LIABILITY., EXEMPTION OF LIABILITY AND PENALTY DUE TO\nEXTENUATING CIRCUMSTANCES.\nหน้า 85 จาก 124\nเหตุยกเว้น"
+    },
+    {
+      "code": "90402011",
+      "name_th": "กฎหมายวิศวกรรมและเทคโนโลยี",
+      "name_en": "ENGINEERING AND TECHNOLOGY LAWS",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_088.png",
+          "source_page": 88,
+          "document_category": "description",
+          "document_page": 84
+        }
+      ],
+      "desc_th": "ความ รู้ เบื้องต้นเกี่ยวกับกฎหมาย ประมวลกฎหมาย ฺกฎกระทรวง ประกาศ ระเบียบข้อบังคับ\nข้อบัญญัติ พระราชบัญญัติวิศวกร และกฎหมายวิศวกรรมและเทคโนโลยี การคุ้มครองข้อมูลข่าวสารส่วน\nบุคคล\nและความรู้เกี่ยวกับสิทธิความเป็นอยู่ส่วนตัว",
+      "desc_en": "INTRODUCTION\nTO  LAW,\nCODE,\nMINISTERIAL\nREGULATIONS,  PROCLAMATION.,  STANDING\nORDERS,\nCODE\nOF\nACT  OF  PARLIAMENT  FOR  ENGINEERS,  ENGINEERING\nAND  TECHNOLOGY\nPERSONAL DATA PROTECTION AND KNOWLEDGE OF PERSONAL PRIVACY RIGHTS."
+    },
+    {
+      "code": "90402012",
+      "name_th": "ความรู้เบื้องต้นเกี่ยวกับตลาดแรงงานและการค้าในกลุ่มอาเซียน",
+      "name_en": "INTRODUCTION TO ASEAN TRADE AND LABOR MARKET",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_088.png",
+          "source_page": 88,
+          "document_category": "description",
+          "document_page": 84
+        }
+      ],
+      "desc_th": "ศึกษาถึงความรู้พื้นฐานเกี่ยวกับ ลักษณะแรงงานไทยในตลาดแรงงานไทยและอาเซียนฺการ\nเตรียมความพร้อมในการเข้าสู่ตลาดแรงงาน ทั้งภายในประเทศและกลุ่มประเทศอาเซียน ฺการประกอบธุรกิจ\nการค้าระหว่างประเทศในกลุ่มอาเซียน ฺสัญญาทางการค้าการขนส่งการประกันภัย และพิธีศุลกากร รวมถึง\nกฎหมายและกรณีศึกษาที่เกี่ยวข้อง",
+      "desc_en": "STUDY\nOF BASIC  KNOWLEDGE  ABOUT\nTHAI\nWORKERS  IN\nTHE\nLABOR\nMARKET\nAND\nASEAN,  PREPARATION  OF LOGGING IN\nTHE\nLABOR\nMARKET\nBOTH  DOMESTIC  AND\nASEAN  COUNTRIES.\nINTERNATIONAL\nBUSINESS\nAND\nTRADE\nIN\nASEAN\nCOUNTRIES,\nTRADE\nAGREEMENT,  TRANSPORTATION,\nINSURANCE AND CUSTOMS, INCLUDING LAW AND RELEVANT CASE STUDIES."
+    },
+    {
+      "code": "90402013",
+      "name_th": "ทรัพย์สินทางปัญญาไทย",
+      "name_en": "THAI INTELLECTUAL PROPERTY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_088.png",
+          "source_page": 88,
+          "document_category": "description",
+          "document_page": 84
+        }
+      ],
+      "desc_th": "ลักษณะทั่วไป สาระสำคัญ ประเภท การได้มา ความเป็นเจ้าของสิทธิในทรัพย์สินทางปัญญา\nความคุ้มครองและวิธีการขอรับความคุ้มครองตามกฎหมายในทรัพย์สินทางปัญญาแต่ละประเภท\nได้แก่\nลิขสิทธิ์ สิทธิบัตร อนุสิทธิบัตร เครื่องหมายการค้า แบบผังรูปของวงจรรวม ฺความลับทางการค้า\nพันธุ์พืช\nสิ่งบ่งชี้ทางภูมิศาสตร์รวมทั้งลักษณะและ รูปแบบของทรัพย์สินทางปัญญาและกรณีศึกษาที่น่าสนใจ",
+      "desc_en": "BASIC CONCEPTS, ESSENCE, TYPES, ACQUISITION, OWNERSHIP OF INTELLECTUAL PROPERTY\nRIGHT,  PROTECTION\nAND  LAW PROTECTED  RECEPTION  OF INTELLECTUAL  PROPERTY\nSUCH\nAS\nCOPYRIGHT,\nPATENT, PETTY  PATENT, TRADEMARK., LAY-OUT DESIGNS OF INTEGRATED CIRCUIT, TRADE SECRET., PLANTS,\nGEOGRAPHICAL\nINDICATION\nAS\nWELL\nAS\nQUALITY\nAND\nOTHER  KINDS\nOF  INTELLECTUAL  PROPERTY,\nTHE\nINFRINGEMENT, LEGAL PROCEEDINGS AND SOME INTERESTING CASE STUDIES.\nหน้า 86 จาก 124\nLAW,\nLAW,"
+    },
+    {
+      "code": "90403004",
+      "name_th": "การบริหารท้องถิ่นไทย",
+      "name_en": "THAI LOCAL ADMINISTRATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_089.png",
+          "source_page": 89,
+          "document_category": "description",
+          "document_page": 85
+        }
+      ],
+      "desc_th": "ศึกษาหลักการทั่วไปในการบริหารประเทศ\nหลักและแนวความคิดในการบริหารท้องถิ่น\nประวัติการบริหารท้องถิ่นไทย การบริหารท้องถิ่นของไทยในปัจจุบัน องค์การและกระบวนการบริหารท้องถิ่น\nไทย ปัญหาและอุปสรรคต่างๆของการบริหารท้องถินไทย  รวมทังแนวโน้มการพัฒนาและปรับปรุงการบริหาร\nท้องถินไทย",
+      "desc_en": "STUDY OF GENERAL PRINCIPLES OF THAI ADMINISTRATION., PRINCIPLES AND CONCEPTS\nOF THAI\nLOCAL ADMINISTRATION, HISTORY  AND\nCURRENT  OF THAI LOCAL ADMINISTRATION, THAI LOCAL\nORGANIZATIONS\nAND\nADMINISTRATION\nPROCESS,\nOBSTACLES\nAND\nTHE\nTREND\nOF\nTHAI\nLOCAL\nADMINISTRATION REFORM."
+    },
+    {
+      "code": "90403007",
+      "name_th": "การดำรงชีพในสังคม",
+      "name_en": "LIVING IN SOCIETY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_089.png",
+          "source_page": 89,
+          "document_category": "description",
+          "document_page": 85
+        }
+      ],
+      "desc_th": "ศึกษาเกี่ยวกับสภาพการใช้ชีวิตในสังคมไทยในปัจจุบัน สิทธิและหน้าที่ของพลเมือง ความมี\nวินัยและความรับผิดชอบต่อสังคมส่วนรวม ฺบทบาทและอิทธิพลของศาสนาและความเชื่อที่มีต่อการใช้ชีวิต\nคุณธรรมและจริยธรรมที่พึงปฏิบัติสำหรับการเป็นคนดีในสังคมไทย เพศศึกษาและการใช้ชีวิตคู่รวมทั้ง\nการศึกษาแบบอย่างการใช้ชีวิตที่เหมาะสมในสังคมไทยปัจจุบัน",
+      "desc_en": "STUDY OF TRAITS OF LIVING IN CURRENT THAI SOCIETY., CIVIL RIGHT AND OBLIGATIONS,\nDISCIPLINE AND RESPONSIBILITIES FOR SOCIETY, RELIGION AND BELIEF'S ROLE AND INFLUENCE THAT EFECTS\nTO LIVING, MERIT AND ETHICS IN THAI SOCIETY, SEX EDUCATION, AND SAMPLES OF APPROPRIATE LIVING IN\nCURRENT THAI SOCIETY."
+    },
+    {
+      "code": "90403008",
+      "name_th": "สังคมและวัฒนธรรมไทย",
+      "name_en": "THAI SOCIETY AND CULTURE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_089.png",
+          "source_page": 89,
+          "document_category": "description",
+          "document_page": 85
+        }
+      ],
+      "desc_th": "เรียนรู้แนวคิดเกี่ยวกับการศึกษาและสังคมไทย ประเภทของสังคมไทย ระบบอุปถัมภ์และ\nโครงสร้างชนชั้น เครือญาติ และการแต่งงาน ภูมิปัญญาท้องถิ่นและเอกลักษณ์ไทย ค่านิยมและลักษณะนิสัย\nของคนไทย\nรวมทั้งแนวโน้มการเปลี่ยนแปลงทางสังคมไทย",
+      "desc_en": "STUDY OF THAI SOCIETY FRAMEWORK., TYPES OF THAI SOCIETY., PATRONAGE SYSTEM\nAND SOCIETY CLASS STRUCTURE, MARRIAGE AND KINSHIP, LOCAL WISDOM AND THAI IDENTITY., VALUE AND\nHABITS AND TREND OF THAI SOCIETY AND CULTURAL CHANGE.\nหน้า 87 จาก 124"
+    },
+    {
+      "code": "90403009",
+      "name_th": "พลวัตสังคมไทย",
+      "name_en": "DYNAMICS OF THAI SOCIETY",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_090.png",
+          "source_page": 90,
+          "document_category": "description",
+          "document_page": 86
+        }
+      ],
+      "desc_th": "ศึกษาลักษณะทั่วไปของสังคมไทย การปกครองของไทย ศาสนาและความเชื่อของสังคมไทย\nวัฒนธรรม ประเพณีและการเปลี่ยนแปลง ปัญหาสังคมไทย ภูมิปัญญาไทย วิสัยทัศน์ทางสังคมไทย รวมทั้ง\nการศึกษาดูงานนอกสถานที่ในประเด็นที่เกี่ยวข้อง",
+      "desc_en": "STUDY OF GENERAL TRAITS OF THAI SOCIETY., THAI GOVERNENCE AND POLITICS, RELIGIONS\nAND\nBELIEFS  OF THAI SOCIETY., CULTURE TRADITION\nAND  CHANGE, SOCIAL  PROBLEMS,\nTHAI WISDOM,\nVISIONS OF THAI SOCIETY., AND FIELD STUDY OF RELEVANT TOPICS."
+    },
+    {
+      "code": "90403010",
+      "name_th": "การบริหารจัดการภาครัฐ",
+      "name_en": "PUBLIC MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_090.png",
+          "source_page": 90,
+          "document_category": "description",
+          "document_page": 86
+        }
+      ],
+      "desc_th": "ศึกษาหลักของการบริหารราชการโดยมุ่งเน้นที่การบริหารจัดการ การประเมินผลการ\nปฏิบัติงานและประสิทธิภาพของการบริหารจัดการ การใช้เทคโนโลยีในกระบวนการบริหารจัดการ รวมถึงการใช้\nระบบกึ่ง๒ตลาดและสร้างสรรค์สิ่งใหม่ตให้เหมาะสมและสอดคล้องกับยุทธศาสตร์ที่เปลี่ยนแปลงไป",
+      "desc_en": "STUDY OF PRINCIPLES  OF BUREAUCRATIC\nADMINISTRATION FOCUSING MANAGEMENT,\nMANAGEMENT  PERFORMANCE\nAND  EFFICIENCY,\nUSING  INFORMATION  TECHNOLOGY\nIN  MANAGEMENT\nPROCESS,\nAND  USING  SEMI MARKETING  SYSTEM\nAND\nCREATIVE\nIDEAS\nIN\nRESPONSE\nTO\nCHANGING\nSTRATEGIES."
+    },
+    {
+      "code": "90403011",
+      "name_th": "การจัดการเทคโนโลยีในชีวิตประจำวัน",
+      "name_en": "TECHNOLOGY MANAGEMENT IN DAILY LIFE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_090.png",
+          "source_page": 90,
+          "document_category": "description",
+          "document_page": 86
+        }
+      ],
+      "desc_th": "ศึกษา หลักการจัดการเทคโนโลยี บทบาทของเทคโนโลยีในชีวิตประจำวัน วงจรชีวิตของ\nเทคโนโลยี การถ่ายโอนเทคโนโลยี ซึงครอบคลุมถึงกระบวนการประเมินเทคโนโลยี การจัดการการ\nเปลียนแปลงและการบริหารความเสี่ยงในยุคโลกาภิวัตน์",
+      "desc_en": "STUDY OF PRINCIPLES OF TECHNOLOGY MANAGEMENT, ROLES OF TECHNOLOGY IN DAILY\nLIFE,\nTECHNOLOGY\nLIFE\nCYCLE,\nTECHNOLOGY  TRANSFER,  TECHNOLOGY\nEVALUTION\nPROCESS,  CHANGE\nMANAGEMENT AND RISK MANAGEMENT IN THE GLOBALIZATION ERA_\nหน้า 88 จาก 124"
+    },
+    {
+      "code": "90403012",
+      "name_th": "การจัดการประสิทธิภาพตนเองและอาชีพ หน้า 15 จาก 124",
+      "name_en": "SELF EFFICIENCY AND CAREER MANAGEMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_017.png",
+          "source_page": 17,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_091.png",
+          "source_page": 91,
+          "document_category": "description",
+          "document_page": 87
+        }
+      ],
+      "desc_th": "ศึกษาความหมายและความสำคัญของการจัดการตนเองและจัดการงาน การเรียนรู้ด้วย\nตนเองเพื่อกำหนดเป้าหมายชีวิตและวางแผนการทำงาน เคุณสมบัติหลักในการจัดการงานและการเพิ่ม\nประสิทธิภาพในการทำงานองค์ประกอบทีจะทำให้ประสบความสำเร็จในการทำงาน การประเมินผลการทำงาน\nของตนเองอย่างมีระบบและการพัฒนาตนเอง",
+      "desc_en": "STUDY\nOF\nTHE  MEANING\nAND  IMPORTANCE\nOF  SELF -EFFICIENCY\nAND\nCAREER\nMANAGEMENT, SELF LEARNING FOR\nSETTING AND WORK PLANNING., PRINCIPLES OF MANAGEMENT FOR\nJOB AND EFFICIENCY IMPROVEMENT,\nSUCCESS FACTORS, SELF PERFORMANCE EVALUATION AND SELF-\nIMPROVEMENT."
+    },
+    {
+      "code": "90403013",
+      "name_th": "ศิลปะและวัฒนธรรมไทย",
+      "name_en": "THAI ART AND CULTURE",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_018.png",
+          "source_page": 18,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_091.png",
+          "source_page": 91,
+          "document_category": "description",
+          "document_page": 87
+        }
+      ],
+      "desc_th": "ศึกษาบริบทของสังคมไทย การสร้างสรรค์งานศิลปกรรม ความเชือ จารีตและประเพณี\nศิลปะและวัฒนธรรมของไทย ตั้งแต่ในช่วงก่อนสมัยใหม่จนถึงปัจจุบัน\nผลกระทบความเป็นสมัยใหม่กับศิลปะ\nและวัฒนธรรมของไทย  ศิลปะและวัฒนธรรมไทยในยุคโลกาภิวัฒน์ การสงวนรักษามรดกทางศิลปะและ\nวัฒนธรรมของไทย",
+      "desc_en": "STUDY OF THAI SOCIETIES ON THAI CONTEXT, BELIEFS AND THAI TRADITION, THAI ARTS\nAND CULTURE FROM ANCIENT TIME TO MODERM TIME, IMPACT OF MODERNIZATION TO THAI ARTS AND\nCULTURE,\nTHAI ARTS AND CULTURE IN THE GLOBALIZATION ERA., PRESERVATION OF THAI ARTS AND CULTURE.\n(อาจารย์ญาณินทร์ คณะสถาปัตยกรรมศาสตร์ แก้ไขมาให้แล้วค่ะ)"
+    },
+    {
+      "code": "90403014",
+      "name_th": "ประชากรศึกษา",
+      "name_en": "POPULATION EDUCATION",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_018.png",
+          "source_page": 18,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_091.png",
+          "source_page": 91,
+          "document_category": "description",
+          "document_page": 87
+        }
+      ],
+      "desc_th": "มิติประชากรในการพัฒนา  อัตราชีพทางประชากร ความหมาย และการนำไปใช้ การศึกษา\nกับการพัฒนาคุณภาพประชากร เศรษฐกิจกับการพัฒนาคุณภาพประชากร วิทยาศาสตร์และเทคโนโลยีกับการ\nพัฒนาคุณภาพประชากร ศิลปะและวัฒนธรรมกับการพัฒนาคุณภาพประชากร",
+      "desc_en": "STUDY OF\nPOPULATION DEVELOPMENT., DEFINITION AND APPLICATION OF VITAL RATE,\nEDUCATION AND QUALITY DEVELOPMENT OF POPULATION, ECONOMICS AND QUALITY DEVELOPMENT OF\nPOPULATION,\nSCIENCE\nAND  TECHNOLOGY\nAND\nQUALITY  DEVELOPMENT\nOF  POPULATION,  ARTS\nAND\nCULTURE AND QUALITY DEVELOPMENT OF POPULATION.\nหน้า 89 จาก 124\nGOAL\nKEY"
+    },
+    {
+      "code": "90403015",
+      "name_th": "การเมืองการปกครองไทย หน้า 16 จาก 124",
+      "name_en": "THAI POLITICS AND GOVERNMENT",
+      "credits": "3(3-0-6)",
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "prerequisite": null,
+      "flexible_year_semester": null,
+      "note": null,
+      "source_provenance": [
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_018.png",
+          "source_page": 18,
+          "document_category": "plan",
+          "document_page": null
+        },
+        {
+          "program": "GENED",
+          "source_filename": "gened2557_page_092.png",
+          "source_page": 92,
+          "document_category": "description",
+          "document_page": 88
+        }
+      ],
+      "desc_th": "ศึกษาสภาพทั่วไปของการเมืองการปกครอง\nหลักและแนวคิดการปกครองระบอบ\nประชาธิปไตย สถาบันทางการเมือง กระบวนการและพฤติกรรมทางการเมือง ปัญหาและแนวโน้มการเมืองการ\nปกครองไทย",
+      "desc_en": "STUDY OF GENERAL. TRAITS OF POLITICS AND GOVERNANCE., PRINCIPLES AND CONCEPTS\nOF DEMOCRACY., POLITICAL  INSTITUTIONS, POLITICAL  PROCESSES AND  BEHAVIORS,  PROBLEMS  AND\nTHE\nTREND OF THAI POLITICS AND GOVERNANCE.\nหน้า 90 จาก 124"
+    }
+  ],
+  "catalog": {
+    "catalog_key": "gened-2557",
+    "academic_year": "2557"
+  }
+}

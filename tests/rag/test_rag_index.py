@@ -623,13 +623,13 @@ class RagIndexTest(unittest.TestCase):
                 index_path=default_index_path,
             )
 
-    def test_build_index_cli_defaults_to_llm_corrected_sources(self):
-        sources = [Path("outputs/llm/one_corrected.json")]
+    def test_build_index_cli_defaults_to_canonical_runtime_sources(self):
+        sources = [Path("data/output/canonical/it2565_coop_final.json")]
         default_index_path = ARTIFACTS_DIR / DEFAULT_INDEX_NAME
-        # Clean layout: build_index() prefers data/output/final via
-        # _default_sources(), falling back to llm_source_paths().
         with patch(
             "rag.build_index._default_sources", return_value=sources
+        ), patch(
+            "rag.build_index.audit_shared_course_conflicts", return_value=[]
         ), patch(
             "rag.build_index.ensure_index", return_value=default_index_path
         ) as ensure:

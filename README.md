@@ -67,35 +67,39 @@ Semantic QA ปัจจุบันรองรับงานหลักด�
 
 ## แหล่งข้อมูลหลักของระบบ
 
-```text
-data/output/final/*_final.json
-        +
-data/output/final/institution_policy.json
-        +
-data/output/final/program_requirements.json
-        ↓
-python -m rag.build_index
-        ↓
-cucumber_outputs/runtime/curriculum.db
-        ↓
-Semantic QA / API / Web UI
-```
+ลำดับการสร้าง runtime curriculum database ปัจจุบัน:
 
-บทบาทของไฟล์สำคัญ:
+    Source documents
+    → OCR
+    → Extract / Merge
+    → Gemini correction
+    → data/output/final/*_final.json
+      (reviewed prediction / PRE-CANONICAL artifact)
+    → Evaluation against accepted teacher Ground Truth
+    → reports/evaluation_precanonical/
+    → Post-evaluation canonicalization
+    → data/output/canonical/*_final.json
+    → Preflight
+    → python -m rag.build_index
+    → cucumber_outputs/runtime/curriculum.db
 
-- `*_final.json` — ข้อมูลหลักสูตรที่ผ่านการตรวจแก้และใช้เป็นข้อมูลมาตรฐาน
-- `institution_policy.json` — ข้อมูลกฎและข้อกำหนดของสถาบันในรูปแบบที่ระบบใช้งานได้
-- `program_requirements.json` — ข้อมูลข้อกำหนดและหน่วยกิตรวมของแต่ละฉบับหลักสูตร
-- `cucumber_outputs/runtime/curriculum.db` — ฐานข้อมูลข้อเท็จจริงที่ระบบใช้ตอนรัน
-- `ground_truth/` — ใช้สำหรับทดสอบและประเมินผลเท่านั้น ไม่ใช่แหล่งข้อเท็จจริงของระบบ production
-- `ground_truth/GT_FIXED.md` — บันทึกประวัติการแก้ Ground Truth
-- `submission/` — เอกสาร submission รุ่นเก่าที่เก็บไว้เป็นหลักฐาน ไม่ใช่สถานะปัจจุบันของระบบ
+data/output/final/*_final.json คือ prediction ที่ใช้ประเมินคุณภาพจริงก่อน GT override และไม่ใช่แหล่ง curriculum เริ่มต้นของ RAG อีกต่อไป หลังบันทึกผล evaluation แล้ว canonicalizer จึงใช้ teacher GT เป็น authority เฉพาะ structured academic-plan fields ที่ GT มี ได้แก่ code, name_th, name_en, credits, year, semester, category, type, prerequisite, flexible_year_semester และ note ส่วน descriptions กับ source provenance ยังคงมาจาก reviewed finals
 
-ถ้าแก้ข้อมูลมาตรฐานของหลักสูตร ต้องสร้าง runtime DB ใหม่ด้วย:
+ขอบเขต evaluation ที่มี accepted Ground Truth ตรง edition มี 8 scopes: AIT 2566; BIT, DSBA และ IT 2565 ทั้ง coop/no_coop; และ GENED 2564. BIT/DSBA/IT 2560 และ GENED 2557 ไม่มี accepted GT edition เดียวกัน จึงไม่ถูกนำมา evaluation. Runtime ของ 2560 ใช้ source-verified legacy correction artifact เมื่อจำเป็น ไม่ใช้ current GT.
 
-```powershell
-python -m rag.build_index
-```
+ไฟล์เสริมยังอ่านจาก data/output/final/ ตามเดิม:
+
+- institution_policy.json — ข้อกำหนดสถาบันที่ผ่าน extraction/correction และ provenance
+- program_requirements.json — ข้อกำหนดหน่วยกิตรวมราย catalog
+
+Ground Truth สำหรับ rules และ rules_extraction_eval.json เป็น evaluation artifacts เท่านั้น; runtime rules ยังคงมาจาก source-verified rules pipeline/corrections. submission/ เป็นเอกสารย้อนหลังและไม่ใช่สถานะ runtime ปัจจุบัน
+
+ถ้ามี reviewed finals อยู่แล้ว สามารถประเมินและสร้าง runtime ใหม่โดยไม่รัน OCR/Gemini ซ้ำ:
+
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation_precanonical
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.canonicalize_runtime
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.preflight_runtime
+    .\.venv\Scripts\python.exe -m rag.build_index
 
 ## วิธีเปิดเว็บ
 
@@ -257,7 +261,7 @@ python -m src.pipeline.run --dataset it2565 --with-index
 python -m unittest discover -s tests -t .
 ```
 
-สถานะล่าสุดก่อนปิดการพัฒนา G5-C:
+สถานะล่าสุด
 
 - ชุดทดสอบแบบไม่เรียก provider ภายนอก รันทั้งหมด **2,804 tests**
 - **0 failures**, **0 errors**, **3 skipped**

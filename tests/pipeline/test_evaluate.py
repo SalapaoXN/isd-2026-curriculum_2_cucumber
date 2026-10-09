@@ -515,9 +515,29 @@ class EvaluateCoverageTests(unittest.TestCase):
 
 class EvaluateDiscoveryTests(unittest.TestCase):
     @staticmethod
-    def _write_curriculum(path: Path, program: str, plan: str | None) -> None:
+    def _write_curriculum(
+        path: Path,
+        program: str,
+        plan: str | None,
+        catalog_key: str | None = None,
+    ) -> None:
+        if catalog_key is None:
+            catalog_key = {
+                "AIT": "ait-2566",
+                "BIT": "bit-2565",
+                "DSBA": "dsba-2565",
+                "GENED": "gened-2564",
+                "IT": "it-2565",
+            }[program]
         path.write_text(
-            json.dumps({"program": program, "plan": plan, "courses": []}),
+            json.dumps(
+                {
+                    "program": program,
+                    "plan": plan,
+                    "catalog": {"catalog_key": catalog_key},
+                    "courses": [],
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -547,6 +567,15 @@ class EvaluateDiscoveryTests(unittest.TestCase):
                 discover_llm_evaluation_pairs(source_dir, ground_truth_dir),
                 [(prediction, ground_truth)],
             )
+
+    def test_discovery_skips_legacy_without_using_current_ground_truth(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_dir = Path(temp_dir) / "final"
+            source_dir.mkdir()
+            legacy = source_dir / "bit2560_coop_final.json"
+            self._write_curriculum(legacy, "BIT", "coop", "bit-2560")
+
+            self.assertEqual(discover_llm_evaluation_pairs(source_dir), [])
 
     def test_zero_final_files_fails_without_consolidated_fallback(self):
         with tempfile.TemporaryDirectory() as temp_dir:

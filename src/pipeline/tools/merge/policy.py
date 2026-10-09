@@ -136,8 +136,10 @@ _STATUS_VALUE_RE = re.compile(
     rf"(?P<value>{_STRUCTURED_NUMBER}){_STRUCTURED_NUMBER_END}"
 )
 _GRADE_ROW_RE = re.compile(
-    r"(?m)^[ \t]*(?P<grade>A|B\+|C\+|D\+|B|C|D|F)[ \t]*\r?\n"
-    r"[ \t]*(?P<value>[^\r\n \t]+)[ \t]*(?:\r?\n|$)"
+    r"(?m)^[ \t]*(?P<grade>A|B\+|C\+|D\+|B|C|D|F)"
+    r"(?:[ \t]+|[ \t]*\r?\n[ \t]*)"
+    r"(?P<value>[^\r\n \t]+)"
+    r"(?=[ \t]|\r?$)"
 )
 _HONORS_GPA_RE = re.compile(
     r"ค่าระดับคะแนน\s*เฉลี่ย\s*สะสม\s*ไม(?:่)?ต่ำกว่า\s*"
@@ -146,7 +148,11 @@ _HONORS_GPA_RE = re.compile(
 _HONORS_FRACTION_RE = re.compile(
     r"(?P<value>สองในสาม)\s*ของจำนวนหน่วยกิตรวมตลอดหลักสูตร"
 )
+_HONORS_CLEAN_GRADE_RE = re.compile(r"ค่าระดับคะแนน\s*F\s*หรือ\s*U")
 _HONORS_DAMAGED_GRADE_RE = re.compile(r"ค่าระดับคะแนน\s*F\s*หรือ\s*บ\.")
+_HONORS_CLEAN_TRANSFER_RE = re.compile(
+    r"ค่าระดับคะแนนไม่ต่ำกว่า\s*B\s*หรือ\s*ค่าระดับคะแนน\s*S"
+)
 _HONORS_DAMAGED_TRANSFER_RE = re.compile(
     r"ค่าระดับคะแนนไม่ต่ำกว่า\s*8\s*หรือ\s*ค่าระดับคะแนน\s*S"
 )
@@ -756,6 +762,18 @@ def _honors_values(
                 }
             )
 
+        for match in _HONORS_CLEAN_GRADE_RE.finditer(text):
+            if rule_id != "rule:27.1.2":
+                continue
+            snippets[rule_id].append(
+                {
+                    "kind": "honors_excluded_grade",
+                    "text": _snippet(text, match.start(), match.end()),
+                    "raw_value": match.group(0),
+                    "status": "source_verified",
+                }
+            )
+
         for match in _HONORS_DAMAGED_GRADE_RE.finditer(text):
             if rule_id != "rule:27.1.2":
                 continue
@@ -767,6 +785,34 @@ def _honors_values(
                     "status": "damaged_grade_symbol",
                 }
             )
+
+        for match in _HONORS_CLEAN_TRANSFER_RE.finditer(text):
+            if rule_id not in fraction_rules:
+                continue
+            snippet_text = _snippet(text, match.start(), match.end())
+            snippets[rule_id].append(
+                {
+                    "kind": "honors_transfer_grade",
+                    "text": snippet_text,
+                    "raw_value": match.group(0),
+                    "status": "source_verified",
+                }
+            )
+            if rule_id == "rule:27.2.2":
+                identity = (rule_id, "transfer_grade", "B or S")
+                if identity not in seen:
+                    seen.add(identity)
+                    values.append(
+                        {
+                            "value": "B or S",
+                            "label": "เกรดวิชาที่โอนจากสถาบันอื่น",
+                            "condition": "at_least",
+                            "accepted_grades": ["B", "S"],
+                            "verification_status": "source_verified",
+                            "source_rule_id": rule_id,
+                            "source_snippet": snippet_text,
+                        }
+                    )
 
         for match in _HONORS_DAMAGED_TRANSFER_RE.finditer(text):
             if rule_id not in fraction_rules:

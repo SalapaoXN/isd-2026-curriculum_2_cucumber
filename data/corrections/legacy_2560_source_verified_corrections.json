@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "description": "Source-verified plan-field corrections for 2560 catalogs. Applied only after OCR evaluation; source plan pages are cited per correction.",
+  "corrections": [
+    {
+      "catalog_key": "dsba-2560",
+      "program": "DSBA",
+      "plan": "no_coop",
+      "course_code": "06026104",
+      "fields": {
+        "name_th": "การสร้างโปรแกรมคอมพิวเตอร์",
+        "name_en": "COMPUTER PROGRAMMING"
+      },
+      "source_provenance": [
+        {
+          "program": "DSBA",
+          "source_filename": "dsba2560_page_025.png",
+          "source_page": 25,
+          "document_page": 20,
+          "document_category": "plan",
+          "evidence": "No-coop plan table lists code 06026104 as COMPUTER PROGRAMMING."
+        }
+      ]
+    },
+    {
+      "catalog_key": "dsba-2560",
+      "program": "DSBA",
+      "plan": "no_coop",
+      "course_code": "90201001",
+      "fields": {
+        "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+        "name_en": "FOUNDATION ENGLISH 1"
+      },
+      "source_provenance": [
+        {
+          "program": "DSBA",
+          "source_filename": "dsba2560_page_025.png",
+          "source_page": 25,
+          "document_page": 20,
+          "document_category": "plan",
+          "evidence": "No-coop plan table lists code 90201001 as FOUNDATION ENGLISH 1."
+        }
+      ]
+    },
+    {
+      "catalog_key": "dsba-2560",
+      "program": "DSBA",
+      "plan": "coop",
+      "course_code": "90201012",
+      "fields": {
+        "name_th": "การพัฒนาทักษะการอ่านและการเขียนภาษาอังกฤษ",
+        "name_en": "DEVELOPMENT OF READING AND WRITING SKILLS IN ENGLISH"
+      },
+      "source_provenance": [
+        {
+          "program": "DSBA",
+          "source_filename": "dsba2560_page_031.png",
+          "source_page": 31,
+          "document_category": "plan",
+          "evidence": "Co-op plan table lists code 90201012 without a trailing 9 in either course name."
+        }
+      ]
+    },
+    {
+      "catalog_key": "dsba-2560",
+      "program": "DSBA",
+      "plan": "coop",
+      "course_code": "06026128",
+      "fields": {
+        "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2",
+        "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
+        "credits": "3(0-9-0)"
+      },
+      "source_provenance": [
+        {
+          "program": "DSBA",
+          "source_filename": "dsba2560_page_033.png",
+          "source_page": 33,
+          "document_page": 28,
+          "document_category": "plan",
+          "evidence": "Co-op plan table lists code 06026128 as Project in DSBA 2 with 3(0-9-0); following elective rows are separate records."
+        }
+      ]
+    }
+  ]
+}

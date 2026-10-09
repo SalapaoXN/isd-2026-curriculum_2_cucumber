@@ -208,17 +208,10 @@
                     "source_page": 287,
                     "document_category": "description",
                     "document_page": 283
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_288.png",
-                    "source_page": 288,
-                    "document_category": "description",
-                    "document_page": 284
                 }
             ],
             "desc_th": "ฟังก์ชันหลายตัวแปรและการประยุกต์ใช้ พีชคณิตของเวกเตอร์ในสามมิติ พิกัดเชิงขัว\nแคลคูลัสของ ฟังก์ชันจำนวนจริงสองตัวแปร การหาอนุพันธ์และปริพันธ์ของฟังก์ชันจำนวนจริงและ\nฟังก์ชันเวกเตอร์จำนวนจริงหลายตัวแปร แนะนำปริพันธ์เส้น เส้น ระนาบ และพื้นผิว ในปริภูมิสามมิติ\nแคลคูลัสของฟังก์ชันจำนวนจริงในปริภูมิสามมิติ เทฤษฎีบทหลักที่เกี่ยวกับการประยุกต์ เช่น ทฤษฎีบท\nของกรีน ทฤษฎีไดเวอร์เจนซ์ ทฤษฎีบทของเกาส์ ทฤษฎีบทของสโตกส์ เป็นต้น",
-            "desc_en": "FUNCTIONS OF SEVERAL VARIABLES AND THEIRS APPLICATIONS, VECTOR ALGEBRA IN\nTHREE\nDIMENSIONS,\nPOLAR  COORDINATES,\nCALCULUS\nOF  REAL\nVALUED FUNCTIONS\nOF\nTWO\nVARIABLES, DIFERENTIATION AND INTEGRATION OF REAL\nVALUED AND VECTOR\nVALUED FUNCTIONS\nOF MULTIPLE REAL VARIABLES, INTRODUCTION TO LINE INTEGRALS, LINES, PLANES AND SUNRFACES IN\nTHREE DIMENSIONAL  SPACE,\nCALCULUS  OF REAL\nVALUED FUNCTIONS\nIN  THREE DIMENSIONAL\nSPACE, PRINCIPAL THEORY FOR APPLICATIONS SUCH AS GREEN'S THEOREM, DIVERGENCE THEOREM,\nGAUSS THEOREM, STOKES THEOREM, ETC."
+            "desc_en": "FUNCTIONS OF SEVERAL VARIABLES AND THEIRS APPLICATIONS, VECTOR ALGEBRA IN\nTHREE\nDIMENSIONS,\nPOLAR  COORDINATES,\nCALCULUS\nOF  REAL\nVALUED FUNCTIONS\nOF\nTWO\nVARIABLES, DIFERENTIATION AND INTEGRATION OF REAL\nVALUED AND VECTOR\nVALUED FUNCTIONS"
         },
         {
             "code": "06046403",
@@ -246,17 +239,9 @@
                     "source_page": 289,
                     "document_category": "description",
                     "document_page": 285
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_290.png",
-                    "source_page": 290,
-                    "document_category": "description",
-                    "document_page": 286
                 }
             ],
-            "desc_th": "แนะนำภาษาการสร้างโปรแกรมเชิงโครงสร้างและเชิงวัตถฺการเขียนผังงาน แนวคิด\nของโปรแกรมฟังก์ชันเบื้องต้นและข้อความสั่งกำหนดค่า โครงสร้างการวนข้ำและเงื่อนไข อาร์เรย์ การ\nประมวลผลสตริง ฺการเขียนการเขียนฟังก์ชัน การเขียนข้อมูลชนิดโครงสร้าง การเขียนข้อมูลเซนิด อ็อบ\nเจกต์ หลักการห่อหุ้ม คลาสและอ็อบเจกต์ เมธอดและการส่งสาร การสืบทอดคุณลักษณะ ภาวะพหุ\nสณฐาน",
-            "desc_en": "INTRODUCTION TO PROGRAMMING LANGUAGES, STRUCTURED PROGRAMMING, OBJECT-\nORIENTED PROGRAMMING, ASSIGNMENT STATEMENT AND BASIC FUNCTIONS, CONDITIONAL AND LOOP\nSTRUCTURES, ARRAY., STRING, FUNCTION,  POINTER,  STRUCTURE, CLASS, OBJECT, OBJECT  ORIENTED\nDESIGN., ENCAPSULATION., CLASSES AND OBJECTS, METHODS AND MESSAGE PASSING, INHERITANCE\nAND POLYMORPHISM"
+            "desc_th": "แนะนำภาษาการสร้างโปรแกรมเชิงโครงสร้างและเชิงวัตถฺการเขียนผังงาน แนวคิด\nของโปรแกรมฟังก์ชันเบื้องต้นและข้อความสั่งกำหนดค่า โครงสร้างการวนข้ำและเงื่อนไข อาร์เรย์ การ\nประมวลผลสตริง ฺการเขียนการเขียนฟังก์ชัน การเขียนข้อมูลชนิดโครงสร้าง การเขียนข้อมูลเซนิด อ็อบ\nเจกต์ หลักการห่อหุ้ม คลาสและอ็อบเจกต์ เมธอดและการส่งสาร การสืบทอดคุณลักษณะ ภาวะพหุ\nสณฐาน"
         },
         {
             "code": "06066301",
@@ -412,17 +397,10 @@
                     "source_page": 290,
                     "document_category": "description",
                     "document_page": 286
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_291.png",
-                    "source_page": 291,
-                    "document_category": "description",
-                    "document_page": 287
                 }
             ],
             "desc_th": "แนะนำฐานข้อมูลและระบบจัดการฐานข้อมูล ระบบฐานข้อมูลและสภาพแวดล้อม\nระบบจัดการฐานข้อมูล ฺชนิดของฐานข้อมูล แบบจำลองข้อมูล แบบจำลองฐานข้อมูลเชิงสัมพันธ์ สกี\nมา อินแสตน เรีเลชันชิป กฏบูรณภาพ\nพจนานุกรมข้อมูล\nแ\nบบจำลองความสัมพันธ์ระหว่างเอนทิตี\nฟังก์ชันดีเพนเดนซี นอร์มัลไลซ์เซชัน พีชคณิตเชิงสัมพันธ์ เอสคิวแอล การประมวลผลทรานแซคชัน\nแนวคิดคลังข้อมูลและการออกแบบ ปฏิบัติการด้านการจำลองข้อมูลและภาษาฐานข้อมูล",
-            "desc_en": "INTRODUCTION TO THE DATABASE SYSTEM AND DBMS, DATABASE SYSTEMS AND\nENVIRONMENT,\nDATABASE\nMANAGEMENT  SYSTEMS, TYPES\nOF  DATABASES,\nDATA  MODELS,\nRELATIONAL MODEL, SCHEMAS, INSTANCES,\nRELATIONSHIPS, INTEGRITY RULES, DATA  DICTIONARY.,\nRELATIONAL  DATABASE\nMODELING, ENTITY RELATIONSHIP\nMODEL, LOGICAL  DESIGN, FUNCTIONAL\nDEPENDENCIES, NORMALIZATION,\nRELATIONAL  ALGEBRA, SOL, TRANSACTION\nPROCESSING,  DATA\nWAREHOUSE CONCEPTS AND DESIGN., DATA MODELING AND DATABASE LANGUAGE LABORATORY."
+            "desc_en": "INTRODUCTION TO THE DATABASE SYSTEM AND DBMS, DATABASE SYSTEMS AND\nENVIRONMENT,\nDATABASE\nMANAGEMENT  SYSTEMS, TYPES\nOF  DATABASES,\nDATA  MODELS,"
         },
         {
             "code": "06046405",
@@ -596,17 +574,9 @@
                     "source_page": 292,
                     "document_category": "description",
                     "document_page": 288
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_293.png",
-                    "source_page": 293,
-                    "document_category": "description",
-                    "document_page": 289
                 }
             ],
-            "desc_th": "หลักการการแสดงข้อมูลด้วยแผนภาพ การออกแบบการแสดงข้อมูลด้วยแผนภาพ\nเครืองมือทีใช้ การแสดงข้อมูลด้วยแผนภาพ\nการได้มาซึ่งข้อมูล การจัดระเบียบข้อมูล ฺการเลือก\nที่เหมาะสมฺ ฺเช่น ฮึทโตรแกรม แผนภูมิการกระจาย แผนภูมิเส้น\nแผนภูมิ\nวงกลม\nแผนภูมิแบบเครือข่าย กราฟสตรีม แผนภูมิตัวชี้วัดผลงาน แผนที่ แผนภูมิแบบ\nปฏิสัมพันธ์ การอธิบายแผนภูมิ หลักการเล่าเรื่องด้วยภาพ",
-            "desc_en": "PRINCIPLES\nOF\nDATA\nVISUALIZATION,\nDATA\nVISUALIZATION\nDESIGN,\nDATA\nVISUALIZATION TOOLS, DATA ACQUISITION., DATA ORGANIZATION, CHOOSING THE APPROPRIATE CHART\nTYPE, E.G., HISTOGRAM., SCATTER PLOT, LINE CHART., BAR CHART., PIE CHART., TREE DIAGRAM, NETWORK\nCHART, STREAM\nKPI CHART, MAP, INTERACTION CHART, CHART DESCRIPTION., STON TELLING\nWITH DATA."
+            "desc_th": "หลักการการแสดงข้อมูลด้วยแผนภาพ การออกแบบการแสดงข้อมูลด้วยแผนภาพ\nเครืองมือทีใช้ การแสดงข้อมูลด้วยแผนภาพ\nการได้มาซึ่งข้อมูล การจัดระเบียบข้อมูล ฺการเลือก"
         },
         {
             "code": "06046410",
@@ -634,17 +604,8 @@
                     "source_page": 293,
                     "document_category": "description",
                     "document_page": 289
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_294.png",
-                    "source_page": 294,
-                    "document_category": "description",
-                    "document_page": 290
                 }
-            ],
-            "desc_th": "แนะนำการประมวลผลภาษาธรรมชาติ พืนฐานการประมวลผลข้อความ นิพจน์ปกติ\nพื้นฐานการขูดเว็บ ไปป์ไลน์การประมวลผลภาษา พื้นฐานการเตรียมประมวลผลภาษา การตัดโทเคน\nการทำสเต็มมิ่ง การทำเลมม่า คำหยุด การกระจายความถี่ของคำการกระจายความถี่ของคำแบบมี\nเอ็นแกรม ทีเอฟ-ไอดีเอฟ แนะนำเวกเตอร์แทนคำและเวกเตอร์แทนเอกสาร การกำกับส่วน\nหน้าที่ของคำการรู้จำชื่อเฉพาะ การจำแนกข้อความ เมตริกซ์การวัดประสิทธิภาพ แนะนำตัวแจก\nแจงไวยากรณ์และไวยากรณ์. คลังข้อมูลภาษาและทรัพยากรภาษา การวิเคราะห์ความ รู้สึก\nแบบจำลองหัวข้อเรื่อง แนะนำออโตมาต้าและทฤษฎีภาษาทางการ แนะนำการเรียนรู้เชิงลึกสำหรับ\nการประมวลผลภาษา",
-            "desc_en": "INTRODUCTION\nTO\nNATURAL  LANGUAGE  PROCESSING; TEXT  PROCESSING  BASICS,\nREGULAR  EXPRESSION;\nSCRAPPING  BASICS;  LANGUAGE  PROCESSING  PIPELINE;  LANGUAGE\nPREPROCESSING\nBASICS,\nTOKENIZATION,\nSTEMMING,\nLEMMATIZATION,\nSTOP\nWORDS,\nWORD\nFREQUENCY\nDISTRIBUTION,\nCONDITIONAL\nFREQUENCY\nDISTRIBUTION,\nN-GRAMS,\nIDF,\nINTRODUCTION\nTO\nDOC2VEC\nAND\nWORD2VEC;\nPART OF SPEECH\nTAGSING;\nNAME\nENTITY\nRECOGNITION; TEXT CLASSIFICATION, CONFUSION MATRIX; INTRODUCTION TO PARSERS AND GRAMMARS;\nCORPUS AND LANGUAGE RESOURCES; SENTIMENT ANALYSIS; TOPIC MODELING; INTRODUCTION TO\nAUTOMATA AND FORMAL LANGUAGE THEORY; INTRODUCTION TO DEEP LEARNING FOR NLP"
+            ]
         },
         {
             "code": "06046412",
@@ -809,17 +770,9 @@
                     "source_page": 295,
                     "document_category": "description",
                     "document_page": 291
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_296.png",
-                    "source_page": 296,
-                    "document_category": "description",
-                    "document_page": 292
                 }
             ],
-            "desc_th": "แบบจำลองภาษาและโครงข่ายประสาทเทียมเชิงลึก การแทนความหมายแบบ\nกระจายและการแทนคำด้วยเวกเตอร์ การลดขนาดมิติด้วยเทคนิค SVD\nเมตริกซ์ การประมวลผลภาษาเชิงโครงข่ายประสาทเทียม แบบจำลองเข้ารหัสถอดรหัส การตัดโทเคน\nนสูง แบบจำลองแบบเรียงลำดับ ทรานฟอร์มเมอร์และกลไกความสนใจ การถามตอบและการ\nแปลภาษาโดยใช้ทรานฟอร์เมอร์ งานประยุกต์ด้านการประมวลผลภาษาด้วยการเรียนรู้เชิงลึก",
-            "desc_en": "LANGUAGE MODEL AND DEEP NEURAL NETWORK; DISTRIBUTIONAL SEMANTICS AND\nWORD\nEMBEDDINGS REPRESENTATION., MATRIX FACTORIZATION AND SINGLE VALUE DECOMPOSITION\n(SVD) FOR DIMENSIONAL REDUCTION; NEURAL NATURAL LANGUAGE PROCESSING, ENCODER DECODER\nMODELS,\nADVANCED\nTOKENIZATION,\nSEQ2SEQ\nMODELS,\nTRANSFORMER\nAND\nATTENTION\nMECHANISM;\nQUESTION\nANSWERING\nAND\nMACHINE\nTRANSLATION\nUSING\nTRANSFORMER;\nAPPLICATIONS OF NLP WITH DEEP LEARNING"
+            "desc_th": "แบบจำลองภาษาและโครงข่ายประสาทเทียมเชิงลึก การแทนความหมายแบบ\nกระจายและการแทนคำด้วยเวกเตอร์ การลดขนาดมิติด้วยเทคนิค SVD\nเมตริกซ์ การประมวลผลภาษาเชิงโครงข่ายประสาทเทียม แบบจำลองเข้ารหัสถอดรหัส การตัดโทเคน"
         },
         {
             "code": "90642012",
@@ -847,7 +800,7 @@
             "code": "060464xx",
             "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
             "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
-            "credits": "(3-0-6)",
+            "credits": "6(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -861,9 +814,16 @@
                     "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "source_verified": true
                 }
-            ]
+            ],
+            "credit_source_verified": true,
+            "credit_source_provenance": {
+                "source_filename": "ait2566_page_025.png",
+                "source_page": 25,
+                "document_category": "plan"
+            }
         },
         {
             "code": "06046440",
@@ -900,7 +860,7 @@
             "code": "060464xx",
             "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
             "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
-            "credits": "3(3-0-6)",
+            "credits": "6(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -914,9 +874,16 @@
                     "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "source_verified": true
                 }
-            ]
+            ],
+            "credit_source_verified": true,
+            "credit_source_provenance": {
+                "source_filename": "ait2566_page_025.png",
+                "source_page": 25,
+                "document_category": "plan"
+            }
         },
         {
             "code": "06046441",
@@ -1130,24 +1097,16 @@
             "note": null,
             "year": 0,
             "semester": 0,
-            "desc_th": "เรียนรู้รูปแบบในการแสดงข้อมูลภาพเพื่อใช้ในงานด้านคอมพิวเตอร์วิทัศน์ต่าง\nรวมถึงงานด้านการจับคู่ การค้นคืน และการรู้จำข้อมูลภาพ เช่น การจัดประเภทภาพ การตรวจจับ\nและการระบุตำแหน่งของวัตถฺและการรู้จำทัศนียภาพ  สำรวจวิธีการต่าง\nซึ่งเป็นที่รู้จักกัน\nโดยทั่วไป โดยเริ่มจากวิธีการในการบรรยายภาพด้วยรูปแบบระดับล่างไปจนถึงการแสดงรูปแบบ\nข้อมูลในระดับกลาง และเข้าใจการประยุกต์ใช้วิธีการดังกล่าวกับงานที่เป็นเป้าหมายสุดท้าย  ศึกษา\nวิธีการใช้ข้อมูลในการขับเคลื่อนการแก้ไขปัญหาให้เป็นไปตามวัตถุประสงค์ ของงาน โดยใช้\nกระบวนการซึงได้รับการปรับปรุงให้เหมาะสมผ่านการสอน  ทำความเข้าใจโมเดลการเรียนรู้เชิงลึก\nอย่างละเอียด รวมถึงสถาปัตยกรรมและการออกแบบเครือข่ายการเรียนรู้ อัลกอริทึมการเรียนรู้ กล\nยุทธ์การทำให้ถูกต้องและเป็นระเบียบ การปรับให้เป็นรูปแบบทั่วไป การสร้างเครือข่าย การฝึกสอน\nการแก้ไขจุดผิดพลาด การปรับแต่ง การประเมินและการทดสอบ และการนำไปใช้งานจริง รวมถึงการ\nทำความเข้าใจความเชื่อมโยงกับโมเดลแบบเดิม  โดยศึกษาจากวิธีการล่าสุดที่ทันสมัยและดีที่สุด\nสำหรับงานแอปพลิเคชันขนาดใหญ่",
+            "desc_th": "เรียนรู้รูปแบบในการแสดงข้อมูลภาพเพื่อใช้ในงานด้านคอมพิวเตอร์วิทัศน์ต่าง\nรวมถึงงานด้านการจับคู่ การค้นคืน และการรู้จำข้อมูลภาพ เช่น การจัดประเภทภาพ การตรวจจับ\nและการระบุตำแหน่งของวัตถฺและการรู้จำทัศนียภาพ  สำรวจวิธีการต่าง\nซึ่งเป็นที่รู้จักกัน\nโดยทั่วไป โดยเริ่มจากวิธีการในการบรรยายภาพด้วยรูปแบบระดับล่างไปจนถึงการแสดงรูปแบบ\nข้อมูลในระดับกลาง และเข้าใจการประยุกต์ใช้วิธีการดังกล่าวกับงานที่เป็นเป้าหมายสุดท้าย  ศึกษา",
             "source_provenance": [
                 {
                     "program": "AIT",
                     "source_filename": "ait2566_page_296.png",
                     "source_page": 296,
-                    "document_category": "description",
-                    "document_page": 292
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_297.png",
-                    "source_page": 297,
-                    "document_category": "description",
-                    "document_page": 293
+                    "document_page": 292,
+                    "document_category": "description"
                 }
-            ],
-            "desc_en": "LEARN\nVISUAL\nREPRESENTATIONS\nFOR\nCOMMON\nCOMPUTER\nVISION\nTASKS\nINCLUDING MATCHING, RETRIEVAL., AND VISUAL RECOGNITION SUCH AS IMAGE CLASSIFICATION, OBJECT\nDETECTION AND LOCALIZATION, AND SCENE RECOGNITION. EXPLORE WELL KNOWN METHODS FROM\nLOW LEVEL DESCRIPTION TO AN INTERMEDIATE REPRESENTATION, AND THEIR DEPENDENCE ON THE\nEND TASK.\nSTUDY A DATA DRIVEN APPROACH WHERE THE ENTIRE PIPELINE IS\nOPTIMIZED JOINTLY\nIN\nA\nSUPERVISED FASHION, ACCORDING TO A TASK DEPENDENT OBJECTIVE. UNDERSTAND\nLEARNING\nMODELS\nIN\nDETAIL  INCLUDING\nNETWORK\nARCHITECTURES\nAND\nDESIGN,  LEARNING\nALGORITHMS,\nZATION\nSTRATEGIES,\nGENERALIZATION,\nIMPLEMENTATION,\nTRAINING,\nDEBUGGING, FINE TUNING, EVALUATION AND TESTING, AND DEPLOYMENT, AND INTERPRET THEM IN\nCONNECTION TO CONVENTIONAL MODELS.\nFOCUS ON RECENT, STATE OF THE ART\nMETHODS AND\nLARGE-SCALE APPLICATIONS.\nE"
+            ]
         },
         {
             "code": "06046417",
@@ -1238,19 +1197,10 @@
                     "program": "AIT",
                     "source_filename": "ait2566_page_298.png",
                     "source_page": 298,
-                    "document_category": "description",
-                    "document_page": 294
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_299.png",
-                    "source_page": 299,
-                    "document_category": "description",
-                    "document_page": 295
+                    "document_page": 294,
+                    "document_category": "description"
                 }
-            ],
-            "desc_th": "การกรองแบบอิงเบิ\nอหา; การกรองแบบรวม; การกรองแบบรวม ผู้\nช้; การ\nกรองแบบรวม\nการแยกตัวประกอบเมตริกซ์; การประเมินและมาตรวัดสำหรับระบบให้ตำ\nแนะนำ;",
-            "desc_en": "CONTENT BASED FILTERING; COLLABORATIVE FILTERING; USER USER COLLABORATIVE\nFILTERING; ITEM-ITEM COLLABORATIVE FILTERING; MATRIX FACTORIZATION; EVALUATION AND METRICS\nFOR RECOMMENDER SYSTEMS;"
+            ]
         },
         {
             "code": "06046421",
@@ -1461,18 +1411,10 @@
                     "program": "AIT",
                     "source_filename": "ait2566_page_301.png",
                     "source_page": 301,
-                    "document_category": "description",
-                    "document_page": 297
-                },
-                {
-                    "program": "AIT",
-                    "source_filename": "ait2566_page_302.png",
-                    "source_page": 302,
-                    "document_category": "description",
-                    "document_page": 298
+                    "document_page": 297,
+                    "document_category": "description"
                 }
-            ],
-            "desc_en": "THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST IN\nTHE FIELD OF ARTIFICIAL INTELLIGENCE SELECTED BY THE INSTRUCTOR."
+            ]
         },
         {
             "code": "06046434",

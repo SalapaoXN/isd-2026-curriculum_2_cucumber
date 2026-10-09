@@ -66,19 +66,22 @@ def calculate_wer(gt: str, pred: str) -> float:
 THAI_WER_FIELDS = {"name_th", "desc_th"}
 WHITESPACE_WER_FIELDS = {"name_en", "desc_en", "prerequisite"}
 WER_NOT_APPLICABLE_FIELDS = {"code", "credits", "year", "semester"}
-REPORT_DIR = Path("reports/evaluation")
+REPORT_DIR = Path("reports/evaluation_precanonical")
 LLM_DIR = Path("data/output/final")
 GROUND_TRUTH_DIR = Path("ground_truth")
 ACCEPTED_GROUND_TRUTH = {
-    ("AIT", None): Path("AIT/AIT_academic_plan.json"),
-    ("BIT", "coop"): Path("BIT/BIT_academic_plan_coop.json"),
-    ("BIT", "no_coop"): Path("BIT/BIT_academic_plan_no_coop.json"),
-    ("DSBA", "coop"): Path("DSBA/DSBA_academic_plan_coop.json"),
-    ("DSBA", "no_coop"): Path("DSBA/DSBA_academic_plan_no_coop.json"),
-    ("GENED", "gened"): Path("general_education_ground_truth.json"),
-    ("IT", "coop"): Path("IT/IT_academic_plan_coop.json"),
-    ("IT", "no_coop"): Path("IT/IT_academic_plan_no_coop.json"),
+    ("ait-2566", "AIT", None): Path("AIT/AIT_academic_plan.json"),
+    ("bit-2565", "BIT", "coop"): Path("BIT/BIT_academic_plan_coop.json"),
+    ("bit-2565", "BIT", "no_coop"): Path("BIT/BIT_academic_plan_no_coop.json"),
+    ("dsba-2565", "DSBA", "coop"): Path("DSBA/DSBA_academic_plan_coop.json"),
+    ("dsba-2565", "DSBA", "no_coop"): Path("DSBA/DSBA_academic_plan_no_coop.json"),
+    ("gened-2564", "GENED", "gened"): Path("general_education_ground_truth.json"),
+    ("it-2565", "IT", "coop"): Path("IT/IT_academic_plan_coop.json"),
+    ("it-2565", "IT", "no_coop"): Path("IT/IT_academic_plan_no_coop.json"),
 }
+NON_EVALUATED_CATALOGS = frozenset(
+    {"bit-2560", "dsba-2560", "gened-2557", "it-2560"}
+)
 SUMMARY_COLUMNS = (
     "program",
     "plan",
@@ -988,7 +991,7 @@ def write_evaluation_reports(
     return payload
 
 
-def _curriculum_metadata(path: Path) -> tuple[str, str | None]:
+def _curriculum_metadata(path: Path) -> tuple[str, str | None, str]:
     with path.open("r", encoding="utf-8") as handle:
         document = json.load(handle)
     if not isinstance(document, dict):
@@ -1001,7 +1004,11 @@ def _curriculum_metadata(path: Path) -> tuple[str, str | None]:
     plan = document.get("plan")
     if plan is not None and not isinstance(plan, str):
         raise ValueError(f"curriculum JSON has an invalid plan: {path}")
-    return program.strip(), plan.strip() if plan else None
+    catalog = document.get("catalog")
+    catalog_key = catalog.get("catalog_key") if isinstance(catalog, dict) else None
+    if not isinstance(catalog_key, str) or not catalog_key.strip():
+        raise ValueError(f"curriculum JSON has no catalog_key: {path}")
+    return program.strip(), plan.strip().casefold() if plan else None, catalog_key.strip()
 
 
 def discover_llm_corrected_sources(
@@ -1033,9 +1040,13 @@ def discover_llm_evaluation_pairs(
     )
     pairs = []
     for prediction_path in discover_llm_corrected_sources(llm_dir):
-        program, plan = _curriculum_metadata(prediction_path)
+        program, plan, catalog_key = _curriculum_metadata(prediction_path)
+        if catalog_key in NON_EVALUATED_CATALOGS:
+            continue
         try:
-            gt_relative_path = ACCEPTED_GROUND_TRUTH[(program, plan)]
+            gt_relative_path = ACCEPTED_GROUND_TRUTH[
+                (catalog_key, program.strip().upper(), plan)
+            ]
         except KeyError as error:
             raise ValueError(
                 f"no accepted ground-truth mapping for {program}/{plan}: "
@@ -1082,6 +1093,11 @@ def main():
         default=None,
         help="Optional: Path to save the summary report JSON file",
     )
+    parser.add_argument(
+        "--reports-dir",
+        default=None,
+        help="Directory for the evaluation JSON and CSV reports",
+    )
 
     args = parser.parse_args()
 
@@ -1107,7 +1123,7 @@ def main():
             evaluate_pair(ground_truth, prediction)
             for prediction, ground_truth in pairs
         ]
-        report_payload = write_evaluation_reports(cases)
+        report_payload = write_evaluation_reports(cases, args.reports_dir)
         output_payload = (
             cases[0]["result"] if len(cases) == 1 else report_payload
         )

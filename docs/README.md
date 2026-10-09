@@ -10,7 +10,7 @@
 - `semantic-qa-vnext.md` — architecture ของ Semantic QA production path
 - `../rag/README.md` — implementation map ของ QA/RAG และ authority boundaries
 - `academic_rules.md` — policy / institution rules subsystem
-- `../src/pipeline/README.md` — OCR → canonical data → runtime DB
+- `../src/pipeline/README.md` — Source/OCR → reviewed finals → evaluation → canonical runtime → DB
 - `../reports/README.md` — evaluation/data-quality artifacts และวิธีอ่าน report
 
 ## Evaluation and audit artifacts

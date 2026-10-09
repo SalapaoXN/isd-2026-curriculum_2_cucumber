@@ -7,7 +7,7 @@ bundled page/plan/edition metadata automatically:
     python -m src.pipeline.run --dataset it2565
 
 Stages:
-    OCR -> Extract -> Merge -> Gemini name correction -> (Evaluate) -> (Index)
+    OCR -> Extract -> Merge -> Gemini name correction -> Evaluate -> Canonicalize -> Preflight -> (Index)
 
 The public CLI intentionally does not accept manual page, plan, output-folder,
 or edition flags for normal bundled datasets. Those values live in the central
@@ -85,6 +85,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     # Some older tests/callers inspect args.program. Keep it as the resolved
     # dataset key rather than the ambiguous unversioned program label.
     args.program = args.dataset
+    if args.with_index and args.skip_eval:
+        parser.error("--with-index requires evaluation before canonicalization")
+    if args.only_index and args.with_index:
+        parser.error("--only-index and --with-index cannot be used together")
     return args
 
 
@@ -431,7 +435,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     edition_metadata = explicit_metadata or config.edition_metadata
 
-    print("Stages: ocr -> extract -> merge -> correct -> (evaluate) -> (build_index)")
+    print(
+        "Stages: ocr -> extract -> merge -> correct -> evaluate -> canonicalize "
+        "-> preflight -> (build_index)"
+    )
     print(
         f"Dataset={config.key} program={config.program} year={config.academic_year} "
         f"from={args.from_stage}"
@@ -450,10 +457,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.only_index:
         from src.pipeline.tools.indexing.tool import run_build_index_stage
 
-        paths = None
-        if args.index_path is not None:
-            paths = _corrected_paths_for_dataset(final_root, config.key)
-        print(run_build_index_stage(paths, args.index_path))
+        print(run_build_index_stage(None, args.index_path))
         return 0
 
     from_stage = args.from_stage
@@ -554,7 +558,43 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 final_paths = _corrected_paths_for_dataset(final_root, config.key)
 
-            if not args.skip_eval:
+            if args.with_index:
+                from src.pipeline.tools.evaluation.evaluate import discover_llm_evaluation_pairs
+                from src.pipeline.tools.evaluation.tool import run_evaluate_stage
+
+                pairs = discover_llm_evaluation_pairs(final_root)
+                if not pairs:
+                    raise ValueError(
+                        "no accepted current-curriculum Ground Truth pairs were found; "
+                        "cannot evaluate before canonicalization"
+                    )
+                evaluation_dir = BASE_DIR / "reports" / "evaluation_precanonical"
+                run_evaluate_stage(pairs=pairs, reports_dir=evaluation_dir)
+
+                from src.pipeline.tools.runtime_artifacts import (
+                    canonicalize_runtime_artifacts,
+                    preflight_runtime_artifacts,
+                )
+
+                canonicalization = canonicalize_runtime_artifacts()
+                print(
+                    f"Canonicalized {len(canonicalization.paths)} curriculum artifact(s); "
+                    f"plan-GT fields={canonicalization.plan_gt_fields_applied}, "
+                    "shared-GE fields="
+                    f"{canonicalization.shared_general_education_fields_applied}, "
+                    f"legacy source corrections={canonicalization.legacy_corrections_applied}."
+                )
+                conflicts = preflight_runtime_artifacts()
+                if conflicts:
+                    raise ValueError(
+                        "canonical runtime preflight found "
+                        f"{len(conflicts)} unresolved shared-course conflict(s):\n- "
+                        + "\n- ".join(conflicts)
+                    )
+                from src.pipeline.tools.indexing.tool import run_build_index_stage
+
+                print(run_build_index_stage(None, args.index_path))
+            elif not args.skip_eval:
                 if config.key not in AUTO_EVALUATION_DATASETS:
                     print(
                         f"No edition-specific Ground Truth for {config.key}; "
@@ -575,17 +615,20 @@ def main(argv: list[str] | None = None) -> int:
                         if Path(prediction).resolve() in selected_paths
                     ]
                     if pairs:
-                        run_evaluate_stage(pairs=pairs)
+                        run_evaluate_stage(
+                            pairs=pairs,
+                            reports_dir=(
+                                BASE_DIR
+                                / "reports"
+                                / "evaluation_precanonical"
+                                / config.key
+                            ),
+                        )
                     else:
                         print(
                             f"No accepted Ground Truth pair for {config.key}; "
                             "skipping evaluation."
                         )
-
-            if args.with_index:
-                from src.pipeline.tools.indexing.tool import run_build_index_stage
-
-                print(run_build_index_stage(None, args.index_path))
 
         except Exception as exc:
             print(f"Error: {exc}", file=sys.stderr)

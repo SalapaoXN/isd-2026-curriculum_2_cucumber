@@ -76,6 +76,140 @@ _SIGNATURE_RE = re.compile(
 _SIGNATURE_START_RE = re.compile(r"^\s*ประกาศ\s*$", re.IGNORECASE)
 _PAGE_NAME_RE = re.compile(r"(?:page|หน้า)[_-]?(\d+)", re.IGNORECASE)
 
+SOURCE_VERIFIED_RULE_CORRECTIONS_PATH = (
+    Path(__file__).resolve().parents[4]
+    / "data"
+    / "corrections"
+    / "rule2564_source_verified_corrections.json"
+)
+_REQUIRED_RULE_CORRECTION_FIELDS = {
+    "rule_id",
+    "rule_text",
+    "source_pages",
+    "source_verified",
+    "verification_note",
+}
+
+
+def load_source_verified_rule_corrections(path: str | Path | None = None) -> dict[str, dict[str, Any]]:
+    """Load source-reviewed OCR corrections keyed by exact rule id."""
+    correction_path = SOURCE_VERIFIED_RULE_CORRECTIONS_PATH if path is None else Path(path)
+    try:
+        with correction_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError) as error:
+        raise ValueError(
+            f"cannot load source-verified rule corrections: {correction_path}"
+        ) from error
+
+    records = payload.get("corrections") if isinstance(payload, Mapping) else None
+    if not isinstance(records, list):
+        raise ValueError("source-verified rule corrections must contain a corrections list")
+
+    lookup: dict[str, dict[str, Any]] = {}
+    for index, record in enumerate(records):
+        if not isinstance(record, Mapping) or set(record) != _REQUIRED_RULE_CORRECTION_FIELDS:
+            raise ValueError(f"invalid source-verified rule correction at index {index}")
+        rule_id = record.get("rule_id")
+        rule_text = record.get("rule_text")
+        source_pages = record.get("source_pages")
+        verification_note = record.get("verification_note")
+        if (
+            not isinstance(rule_id, str)
+            or not rule_id.startswith("rule:")
+            or not isinstance(rule_text, str)
+            or not rule_text.strip()
+            or not isinstance(source_pages, list)
+            or not source_pages
+            or any(isinstance(page, bool) or not isinstance(page, int) or page < 1 for page in source_pages)
+            or len(set(source_pages)) != len(source_pages)
+            or record.get("source_verified") is not True
+            or not isinstance(verification_note, str)
+            or not verification_note.strip()
+        ):
+            raise ValueError(f"invalid source-verified rule correction at index {index}")
+        if rule_id in lookup:
+            raise ValueError(f"duplicate source-verified rule correction for {rule_id}")
+        lookup[rule_id] = dict(record)
+    return lookup
+
+
+def apply_source_verified_rule_corrections(
+    extracted_rules: Mapping[str, Any],
+    *,
+    path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Replace only explicitly source-reviewed rule text and preserve audit metadata."""
+    if not isinstance(extracted_rules, Mapping):
+        raise ValueError("extracted rules payload must be an object")
+    raw_rules = extracted_rules.get("rules")
+    if not isinstance(raw_rules, list):
+        raise ValueError("extracted rules payload must contain a rules list")
+
+    corrections = load_source_verified_rule_corrections(path)
+    rules_by_id = {
+        str(rule.get("rule_id")): rule
+        for rule in raw_rules
+        if isinstance(rule, Mapping) and isinstance(rule.get("rule_id"), str)
+    }
+    missing = sorted(set(corrections) - set(rules_by_id))
+    if missing:
+        raise ValueError(
+            "source-verified rule correction refers to missing rule(s): " + ", ".join(missing)
+        )
+
+    corrected_rules: list[Any] = []
+    for raw_rule in raw_rules:
+        if not isinstance(raw_rule, Mapping):
+            corrected_rules.append(raw_rule)
+            continue
+        rule = dict(raw_rule)
+        rule_id = str(rule.get("rule_id", ""))
+        correction = corrections.get(rule_id)
+        if correction is None:
+            corrected_rules.append(rule)
+            continue
+
+        provenance = rule.get("source_provenance")
+        if not isinstance(provenance, list):
+            raise ValueError(f"{rule_id} has no source provenance for verified correction")
+        expected_pages = set(correction["source_pages"])
+        actual_pages = {
+            entry.get("source_page")
+            for entry in provenance
+            if isinstance(entry, Mapping) and isinstance(entry.get("source_page"), int)
+        }
+        if not expected_pages.issubset(actual_pages):
+            raise ValueError(
+                f"{rule_id} correction pages {sorted(expected_pages)} do not match provenance pages {sorted(actual_pages)}"
+            )
+
+        rule["rule_text"] = correction["rule_text"].strip()
+        rule["source_verified"] = True
+        rule["source_verification"] = {
+            "source_pages": list(correction["source_pages"]),
+            "verification_note": correction["verification_note"],
+        }
+        rule["source_provenance"] = [
+            {
+                **dict(entry),
+                **(
+                    {"source_verified": True}
+                    if isinstance(entry, Mapping) and entry.get("source_page") in expected_pages
+                    else {}
+                ),
+            }
+            if isinstance(entry, Mapping)
+            else entry
+            for entry in provenance
+        ]
+        corrected_rules.append(rule)
+
+    result = dict(extracted_rules)
+    result["rules"] = corrected_rules
+    result["source_verified_correction_count"] = len(corrections)
+    return result
+
 
 def normalize_identifier(identifier: str) -> str:
     """Normalize Thai digits and scoped OCR zero variants in an identifier."""

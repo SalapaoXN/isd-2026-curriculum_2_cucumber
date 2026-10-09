@@ -88,6 +88,7 @@ class RulesPipelineTests(unittest.TestCase):
                 patch.object(run_rules.RuleExtractor, "extract_from_files", return_value=fake_rules) as extract_rules,
                 patch.object(run_rules.RulesPolicyMapper, "map_data", return_value=fake_policy),
                 patch("src.pipeline.run_rules.extract_program_requirements", return_value=fake_program_requirements) as extract_programs,
+                patch("src.pipeline.run_rules.apply_source_verified_rule_corrections", return_value=fake_rules) as apply_corrections,
             ):
                 result = run_rules.run_rules(
                     source_dir=source_dir,
@@ -103,6 +104,7 @@ class RulesPipelineTests(unittest.TestCase):
                 [f"rule2564_page_{page:03d}_ocr.json" for page in range(1, 14)],
             )
             self.assertEqual(extract_programs.call_args.args[0], source_dir)
+            apply_corrections.assert_called_once_with(fake_rules)
             self.assertEqual(result["program_requirement_count"], 4)
             self.assertTrue(Path(result["institution_policy"]).is_file())
             self.assertTrue(Path(result["program_requirements"]).is_file())
@@ -132,7 +134,11 @@ class RulesPipelineTests(unittest.TestCase):
                 json.dumps([]), encoding="utf-8"
             )
 
-            with patch("src.pipeline.tools.ocr.pipeline_runner.run_ocr") as ocr:
+            existing_rules = {"rules": []}
+            with (
+                patch("src.pipeline.tools.ocr.pipeline_runner.run_ocr") as ocr,
+                patch("src.pipeline.run_rules.apply_source_verified_rule_corrections", return_value=existing_rules) as apply_corrections,
+            ):
                 result = run_rules.run_rules(
                     source_dir=source_dir,
                     output_dir=output_dir,
@@ -140,6 +146,7 @@ class RulesPipelineTests(unittest.TestCase):
                 )
 
             ocr.assert_not_called()
+            apply_corrections.assert_called_once_with(existing_rules)
             self.assertEqual(result["program_requirement_count"], 0)
             self.assertTrue((final_dir / "institution_policy.json").is_file())
 

@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from src.pipeline import run as pipeline_run
@@ -179,16 +180,20 @@ class IndexingSafetyTests(unittest.TestCase):
         self.assertEqual(result, scoped_index)
         build.assert_called_once_with([new], scoped_index)
 
-    def test_shared_default_discovery_keeps_all_catalogs(self):
+    def test_shared_default_discovery_reads_canonical_artifacts_only(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
+            canonical_dir = root / "canonical"
+            canonical_dir.mkdir()
             old = self._write_edition_source(
-                root, "old_corrected.json", catalog_key="dsba-2565-coop"
+                canonical_dir, "old_final.json", catalog_key="dsba-2565-coop"
             )
             new = self._write_edition_source(
-                root, "new_corrected.json", catalog_key="dsba-2568-coop"
+                canonical_dir, "new_final.json", catalog_key="dsba-2568-coop"
             )
-            with patch("rag.build_index._CLEAN_FINAL_DIR", root):
+            raw_final = root / "dsba2560_coop_final.json"
+            raw_final.write_text("{}", encoding="utf-8")
+            with patch("rag.build_index.CANONICAL_DIR", canonical_dir):
                 sources = indexing_tool._default_sources()
 
         self.assertEqual(sources, [new, old])
@@ -278,45 +283,62 @@ class IndexingSafetyTests(unittest.TestCase):
             build.assert_called_once_with([source], scoped_index)
 
     def test_only_index_default_target_uses_unified_source_discovery(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_dir = Path(temp_dir) / "output"
-            with patch(
-                "src.pipeline.tools.indexing.tool.run_build_index_stage"
-            ) as build:
-                result = pipeline_run.main(
-                    [
-                        "--program",
-                        "it",
-                        "--only-index",
-                        "--output-dir",
-                        str(output_dir),
-                    ]
-                )
+        with patch(
+            "src.pipeline.tools.indexing.tool.run_build_index_stage"
+        ) as build:
+            result = pipeline_run.main(["--dataset", "it2565", "--only-index"])
 
-            self.assertEqual(result, 0)
-            build.assert_called_once_with(None, None)
+        self.assertEqual(result, 0)
+        build.assert_called_once_with(None, None)
 
-    def test_with_index_default_target_uses_unified_source_discovery(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_dir = Path(temp_dir) / "output"
-            with patch(
-                "src.pipeline.tools.indexing.tool.run_build_index_stage"
-            ) as build:
-                result = pipeline_run.main(
-                    [
-                        "--program",
-                        "it",
-                        "--from",
-                        "corrected",
-                        "--skip-eval",
-                        "--with-index",
-                        "--output-dir",
-                        str(output_dir),
-                    ]
-                )
+    def test_with_index_runs_evaluation_canonicalization_preflight_and_build_in_order(self):
+        events = []
+        final_path = Path("data/output/final/it2565_coop_final.json")
+        pair = (final_path, Path("ground_truth/IT/IT_academic_plan_coop.json"))
+        canonicalization = SimpleNamespace(
+            paths=(Path("data/output/canonical/it2565_coop_final.json"),),
+            plan_gt_fields_applied=1,
+            shared_general_education_fields_applied=1,
+            legacy_corrections_applied=0,
+        )
 
-            self.assertEqual(result, 0)
-            build.assert_called_once_with(None, None)
+        with (
+            patch.object(pipeline_run, "_corrected_paths_for_dataset", return_value=[final_path]),
+            patch.object(pipeline_run, "_consolidated_paths_for_dataset", return_value=[]),
+            patch(
+                "src.pipeline.tools.evaluation.evaluate.discover_llm_evaluation_pairs",
+                side_effect=lambda *_: events.append("discover") or [pair],
+            ),
+            patch(
+                "src.pipeline.tools.evaluation.tool.run_evaluate_stage",
+                side_effect=lambda **_: events.append("evaluate"),
+            ),
+            patch(
+                "src.pipeline.tools.runtime_artifacts.canonicalize_runtime_artifacts",
+                side_effect=lambda: events.append("canonicalize") or canonicalization,
+            ),
+            patch(
+                "src.pipeline.tools.runtime_artifacts.preflight_runtime_artifacts",
+                side_effect=lambda: events.append("preflight") or [],
+            ),
+            patch(
+                "src.pipeline.tools.indexing.tool.run_build_index_stage",
+                side_effect=lambda *args: events.append("build") or Path("curriculum.db"),
+            ) as build,
+        ):
+            result = pipeline_run.main(
+                ["--dataset", "it2565", "--from", "final", "--with-index"]
+            )
+
+        self.assertEqual(result, 0)
+        self.assertEqual(events, ["discover", "evaluate", "canonicalize", "preflight", "build"])
+        build.assert_called_once_with(None, None)
+
+    def test_with_index_cannot_skip_evaluation(self):
+        with self.assertRaises(SystemExit):
+            pipeline_run.parse_args(
+                ["--dataset", "it2565", "--with-index", "--skip-eval"]
+            )
 
 
 if __name__ == "__main__":

@@ -253,33 +253,22 @@ python -m src.pipeline.run_rules
 
 rules source ใช้ dataset identity `rule2564` สำหรับหน้ากฎ 1-13 แม้จะเก็บรวมอยู่ใน category folder `data/input/rule/` โดย output OCR จะอยู่ที่ `data/output/ocr/rule2564/` แยกจาก curriculum OCR ชัดเจน
 
-### 9. Build runtime index หลัง Final และ Rules พร้อม
+### 9. Evaluation → canonicalize → preflight → Build runtime index
 
-เมื่อ curriculum final ครบและ rules/program requirements พร้อมแล้ว:
+เมื่อมี reviewed finals ใน data/output/final/*_final.json ให้รันตามลำดับนี้:
 
-```powershell
-python -m rag.build_index
-```
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation_precanonical
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.canonicalize_runtime
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.preflight_runtime
+    .\.venv\Scripts\python.exe -m rag.build_index
 
-หรือสำหรับ pipeline dataset เดียวสามารถใช้:
+Evaluation ใช้ raw reviewed finals ก่อน canonicalization และเขียนผลแยกใน reports/evaluation_precanonical/. ประเมินเฉพาะ 8 scopes ที่มี accepted GT ตรง edition: AIT 2566; BIT/DSBA/IT 2565 ทั้ง coop และ no_coop; GENED 2564. BIT/DSBA/IT 2560 และ GENED 2557 จะถูกข้ามเพราะไม่มี accepted Ground Truth ของ edition เดียวกัน.
 
-```powershell
-python -m src.pipeline.run --dataset it2565 --from final --with-index
-```
+หลัง evaluation เสร็จ canonicalizer ใช้ accepted teacher GT เป็น authority เฉพาะ fields ที่มีใน GT: code, name_th, name_en, credits, year, semester, category, type, prerequisite, flexible_year_semester และ note. Descriptions และ provenance มาจาก reviewed finals. สำหรับ legacy 2560 ใช้ data/corrections/legacy_2560_source_verified_corrections.json เท่านั้น; ไม่ใช้ current GT. preflight_runtime แสดง unresolved shared-course conflicts ทั้งหมด และ build จะหยุดถ้ายังมี conflict.
 
-### 10. Evaluation จาก Final จริง
+rag.build_index ใช้ curriculum artifacts จาก data/output/canonical/*_final.json เท่านั้น. institution_policy.json และ program_requirements.json ยังคงโหลดจาก data/output/final/ เป็น supplemental sources. เมื่อ raw finals พร้อมแล้วไม่ต้องรัน OCR หรือ Gemini ซ้ำ. คำสั่ง src.pipeline.run --dataset it2565 --from final --with-index ทำ evaluation → canonicalization → preflight → build ต่อเนื่อง; ห้ามใช้ --skip-eval กับ --with-index. --only-index ใช้ canonical artifacts ที่มีอยู่แล้ว.
 
-ถ้าต้องการประเมินจาก final ที่สร้างเสร็จแล้วโดยไม่ OCR/correct ซ้ำ ใช้ `--from final`:
-
-```powershell
-python -m src.pipeline.run --dataset ait2566 --from final
-python -m src.pipeline.run --dataset bit2565 --from final
-python -m src.pipeline.run --dataset dsba2565 --from final
-python -m src.pipeline.run --dataset gened2564 --from final
-python -m src.pipeline.run --dataset it2565 --from final
-```
-
-รุ่นเก่า `bit2560`, `dsba2560`, `gened2557`, `it2560` ไม่มี Ground Truth edition-specific ที่ยอมรับ ระบบจึง skip evaluation แทนการเอาไปเทียบกับคนละ edition
+หากต้องสร้าง raw finals ใหม่ ให้รัน Source/OCR → Extract/Merge → Gemini correction ก่อน แล้วจึงใช้ลำดับสี่คำสั่งด้านบน.
 
 ## Flow
 
@@ -291,9 +280,11 @@ Source images
 → Merge study plan + course descriptions
 → Gemini proofreading เฉพาะชื่อวิชา
 → Final reviewed JSON
+→ Evaluation against accepted teacher Ground Truth
+→ Deterministic post-evaluation canonicalization
+→ Shared-course preflight
 → Rules / program requirements gate
 → Build Index
-→ Evaluation / smoke test
 ```
 
 ## Dataset configuration
@@ -469,25 +460,11 @@ python -m src.pipeline.run --dataset it2560 --keep-intermediates
 
 ## Runtime DB
 
-สร้างอย่างเดียวจาก final artifacts ที่มีอยู่แล้ว:
-
-```powershell
-python -m rag.build_index
-```
-
-หรือให้ pipeline สร้างต่อท้าย:
-
-```powershell
-python -m src.pipeline.run --dataset it2560 --with-index
-```
+python -m rag.build_index สร้าง runtime database จาก data/output/canonical/*_final.json หลังผ่าน preflight; ไม่อ่าน raw curriculum finals เป็น default curriculum source. ให้ทำ evaluation → canonicalize → preflight ก่อน build ตามคำสั่งในหัวข้อ 9. institution_policy.json และ program_requirements.json ยังคงเป็น supplemental sources จาก data/output/final/.
 
 runtime database:
 
-```text
-cucumber_outputs/runtime/curriculum.db
-```
-
-build index จะเลือก `*_final.json` แบบใหม่ก่อน และยังมี read-only fallback สำหรับ layout เก่าในช่วง migration โดยไฟล์ใหม่จะแทนที่ไฟล์เก่าเฉพาะเมื่อ JSON identity (`catalog_key` / program / plan) ตรงกัน
+    cucumber_outputs/runtime/curriculum.db
 
 ## Rules pipeline
 

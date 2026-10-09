@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 
-PROGRAM_REQUIREMENT_SOURCES: Mapping[str, tuple[str, int, int]] = {
-    "AIT": ("ait2566_page_005.png", 5, 1),
-    "BIT": ("bit2565_page_006.png", 6, 1),
-    "DSBA": ("dsba2565_page_006.png", 6, 1),
-    "IT": ("it2565_page_006.png", 6, 1),
+PROGRAM_REQUIREMENT_SOURCES: Mapping[str, tuple[str, int, int, str]] = {
+    "AIT": ("ait2566_page_005.png", 5, 1, "ait-2566"),
+    "BIT": ("bit2565_page_006.png", 6, 1, "bit-2565"),
+    "DSBA": ("dsba2565_page_006.png", 6, 1, "dsba-2565"),
+    "IT": ("it2565_page_006.png", 6, 1, "it-2565"),
 }
 
 _TOTAL_CREDITS_HEADING_RE = re.compile(
@@ -84,6 +84,7 @@ def extract_program_requirement_from_lines(
         )
 
     normalized_lines = _normalize_lines(lines)
+    catalog_key = PROGRAM_REQUIREMENT_SOURCES[normalized_program][3]
     anchor_indexes = [
         index
         for index, line in enumerate(normalized_lines)
@@ -113,6 +114,7 @@ def extract_program_requirement_from_lines(
 
     return {
         "program": normalized_program,
+        "catalog_key": catalog_key,
         "requirement_type": "total_program_credits",
         "operator": "=",
         "value": values[0],
@@ -142,9 +144,9 @@ def extract_program_requirement_from_image(
 
         ocr_engine = OCREngine(languages=["th", "en"], gpu=gpu)
     lines = ocr_engine.extract_text(path, detail=0)
-    source_page, document_page = PROGRAM_REQUIREMENT_SOURCES[
+    _, source_page, document_page, _ = PROGRAM_REQUIREMENT_SOURCES[
         str(program).strip().upper()
-    ][1:]
+    ]
     return extract_program_requirement_from_lines(
         program,
         lines,
@@ -170,7 +172,7 @@ def extract_program_requirements(
         ocr_engine = OCREngine(languages=["th", "en"], gpu=gpu)
 
     results: list[dict[str, Any]] = []
-    for program, (filename, source_page, document_page) in PROGRAM_REQUIREMENT_SOURCES.items():
+    for program, (filename, source_page, document_page, _) in PROGRAM_REQUIREMENT_SOURCES.items():
         path = root / filename
         if not path.is_file():
             raise FileNotFoundError(f"Program requirement image not found: {path}")
