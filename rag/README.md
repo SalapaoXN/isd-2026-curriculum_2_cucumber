@@ -1,122 +1,163 @@
-# rag/ — ระบบถาม-ตอบหลักสูตรแบบมีหลักฐานอ้างอิง
+# rag/ — QA architecture (current)
 
-## ภาพรวม
-ส่วนนี้รับคำถามภาษาไทย แล้วตอบโดยอ้างอิงหลักฐานจากฐานข้อมูล
-SQLite ทางการ พร้อม provenance สำหรับคำตอบเชิงข้อเท็จจริง ทางเข้า
-หลักคือ `rag.qa.ask()` (มี `rag.hybrid_demo.answer_question_once()`
-หุ้มไว้อีกชั้นหนึ่ง)
+`rag/` มีทั้ง legacy QA machinery และ **Semantic QA production path** ปัจจุบัน
 
-## ข้อมูลนำเข้า
-รับข้อความคำถามหนึ่งข้อ กับ `QueryContext`
-(`rag/resolution.py`) ที่บรรจุได้เฉพาะโครงสร้างอ้างอิง
-(`catalog_key`/program/plan/ปี/เทอม/หมวด/วิชา/operation) เท่านั้น —
-ห้ามเก็บคำตอบหรือ transcript ทั้งก้อน — พร้อม model callable ที่ส่งเข้ามาจากภายนอก
-(ถ้ามี)
+## Current production path
 
-ใน web/API มี conversation state เพิ่มที่ระดับ service แบบ bounded และ client-held เช่น
-semantic topic, focus course, result identities และ `last_answer` reference สำหรับ follow-up
-โดย `last_answer` เก็บเพียง route/scope/evidence reference ที่จำเป็นต่อการ re-ground เท่านั้น
-ไม่เก็บ assistant prose หรือ cached factual value เป็น authority
+เมื่อ `CUCUMBER_QA_MODE=semantic`:
 
-## กระบวนการทำงาน
 ```text
-คำถาม → ตีความ → คำขอแบบมีโครงสร้าง → หลักฐานทางการ →
-ผลลัพธ์แบบมีหลักฐานรองรับ → คำตอบสำเร็จรูป
+question
+→ rag.semantic.interpreter
+→ SemanticIntent
+→ rag.semantic.validation
+→ rag.semantic.context
+→ rag.semantic.resolver
+→ ResolvedIntent
+→ rag.semantic.planner
+→ rag.semantic.executor
+→ VerifiedResult + provenance
+→ rag.semantic.answerer
+→ public API response
 ```
-1. **แยกสาย policy ก่อน** (`policy/routing.py`) — คำถาม
-   วงเงินลงทะเบียน/โปร/เกียรตินิยม/กลับเข้าศึกษา/รวมหลักสูตร
-   ตามรายการที่รองรับ จะตอบจากตาราง policy โดยตรงโดยไม่
-   ใช้โมเดลเลย
-2. **แยกวิเคราะห์แบบ deterministic** (`query_spec.py`) ได้เป็น
-   `QuerySpec` แล้ว **resolve** (`resolution.py`) เพื่อตรึง
-   ตัวตนของวิชาและขอบเขตให้ชัดเจน
-3. **previous-answer follow-up แบบ bounded** — คำอย่าง “มาจากไหน”,
-   “ขยายความ”, “เพราะอะไร” จะอ้างถึงคำตอบก่อนหน้าได้เฉพาะเมื่อเทิร์นนั้น
-   ไม่มี subject/target ใหม่ และจะ re-ground จากหลักฐานเดิมทุกครั้ง
-   ถ้ามีหัวข้อใหม่ เช่น “เกียรตินิยมมาจากกฎข้อไหน” จะไม่ยึด referent เก่า
-4. **ตีความแบบมีขอบเขต** (`intent_interpreter.py`,
-   `intent_compiler.py`) — โมเดลถูกเรียกได้มากสุดหนึ่งครั้ง
-   และเฉพาะรูปคำถามที่เข้าเกณฑ์ (เช่น อยากได้รายชื่อแต่ไม่ได้
-   ระบุ intent, หรือคำถามเชิงความชอบ) ข้อเสนอของโมเดลทุกชิ้น
-   ต้องผ่านการตรวจกับขอบเขตที่แน่นอนก่อน ไม่ผ่านคือทิ้ง
-5. **วางแผนและดึงหลักฐาน** (`evidence_planner.py`,
-   `evidence_executor.py`, `structured/queries.py`,
-   `retrieval/retrieve.py`) — สร้างกราฟคำขอนิรนามแล้วรันแบบ
-   deterministic ทีละ plan ส่วน SQL fallback
-   (`structured/fallback.py`) ให้โมเดลใช้เลือกได้แค่ id ของ
-   candidate ข้อเท็จจริงทุก field ต้อง hydrate จากข้อมูล
-   ทางการใหม่เสมอ
-6. **สรุปผลแบบมีหลักฐาน** (`aggregation.py`,
-   `judgement.py`, `grounded_answer.py`) — รวมผลด้วยฟังก์ชัน
-   deterministic ล้วน ได้เป็น claim ที่มีชนิดชัดเจน
-7. **แสดงผล** (`answer.py`) — เรียงข้อความเป็นภาษาไทย
-   การขัดเกลาถ้อยคำเป็นเพียงเรื่องสำนวนโดยคงหลักฐานเดิม
-   และจะถูกปิดหลังเทิร์นที่ใช้การตีความ (ยกเว้นคำแนะนำเชิง
-   ความชอบที่รองรับไว้โดยเฉพาะ)
 
-## ผลลัพธ์
-`GroundedAnswerResult` ประกอบด้วยสถานะ (`answer`,
-`insufficient_evidence`, `valid_empty`, `no_data`,
-`clarify_program`, `clarify_catalog`, `context_conflict`, `unsupported`)
-ข้อความตอบสุดท้าย claim ที่มีชนิด และแหล่งอ้างอิงของข้อมูล
-(program + เลขหน้า) การสนทนาหลายเทิร์นใช้วิธีส่ง
-`next_context` จาก response กลับมาเป็น
-`conversation_context` ของครั้งถัดไป โดยคง `catalog_key`, plan,
-focus/result references และขอบเขตอื่นที่ตรวจสอบแล้ว
+`rag/semantic/modes.py` เป็น adapter ระหว่าง semantic pipeline กับ API contract
 
-## กลุ่มคำถามที่รองรับ
-รายชื่อวิชา / จำนวนวิชา / มีวิชานี้ไหม / วิชานี้เรียนตอนไหน
-หน่วยกิตรายวิชา กรองรายชื่อด้วยเงื่อนไข `N หน่วยกิต`
-(เฉพาะ list) ผลรวมหน่วยกิตตาม scope ผลรวมรายหมวดตาม scope
-และหน่วยกิตรวมทั้งหลักสูตรจาก canonical `program_requirements`
-วิชาบังคับก่อนทั้งแบบรายวิชาและแบบติดตามผลข้ามเทิร์น
-รหัสวิชา/หลักสูตรของวิชา/คำอธิบายรายวิชา semantic topic search
-ความคล้ายสองวิชา การเปรียบเทียบช่วงเรียนและเปรียบเทียบแผน
-ความชอบที่ระบุชัด คำถามนโยบายตามรายการที่รองรับ และ follow-up
-แบบ source/explain/rationale ต่อคำตอบที่ grounded แล้ว
-รูปที่รองรับแต่หลักฐานไม่พอจะได้คำตอบแบบ fail-closed ที่ควบคุมไว้
-ไม่ใช่การเดา
+Legacy modules เช่น `query_spec.py`, `resolution.py`, `evidence_planner.py`, `evidence_executor.py`, `grounded_answer.py` ยังมีบทบาทเป็น proven deterministic primitives และ legacy runtime support แต่ raw student wording ใน semantic mode จะไม่ถูกส่งกลับไปให้ legacy parser ทำ language understanding
 
-## องค์ประกอบหลัก
-`qa.py` (pipeline) · `query_spec.py` · `resolution.py` ·
-`policy/` (routing/answer/repository) · `evidence_planner.py` ·
-`evidence_executor.py` · `structured/` · `retrieval/` ·
-`aggregation.py` · `judgement.py` · `grounded_answer.py` ·
-`answer.py` · `prev_answer.py` · `intent_interpreter.py` ·
-`intent_compiler.py` · `intent_gate.py` (shadow สำหรับประเมินผลเท่านั้น) ·
-`hybrid_demo.py` · `providers/gemini.py` · `build_index.py`
+## Authority boundary
 
-## วิธีใช้งาน
+```text
+LLM                    = language proposal only
+canonical resolver     = identity/scope authority
+SQLite/evidence        = factual authority
+VerifiedResult         = answerable fact boundary
+provenance             = trust/audit boundary
+answerer/renderer      = presentation only
+```
+
+ห้ามใช้ `ground_truth/`, evaluation fixture หรือ LLM output เป็น production fact
+
+## Semantic modules
+
+- `semantic/schema.py` — closed intent/resolved/verified contracts
+- `semantic/prompts.py` — interpreter v15 / answerer v1 prompts
+- `semantic/interpreter.py` — strict structured interpretation
+- `semantic/validation.py` — grounding + supported-shape contracts
+- `semantic/context.py` — bounded client-held context merge
+- `semantic/resolver.py` — canonical identity/scope resolution
+- `semantic/compiler.py` — resolved structure → deterministic execution specs
+- `semantic/planner.py` — deterministic / policy / guarded SQL / unsupported routing
+- `semantic/executor.py` — evidence execution and typed higher-order composition
+- `semantic/answerer.py` — deterministic complex rendering + bounded presentation
+- `semantic/pipeline.py` — end-to-end pipeline and trace
+- `semantic/modes.py` — legacy/shadow/semantic API adaptation
+- `semantic/trace.py` — observability
+
+## Supported semantic contracts
+
+### Exact course facts
+
+รองรับ code/name/description/credits/placement/direct prerequisites และ multi-field lookup โดย accepted requested fields ต้องถูก consume downstream หรือ fail closed
+
+### Collections and aggregates
+
+รองรับ scoped lists/counts/credit totals, semantic topic discovery และ whole-program totals จาก `program_requirements`
+
+### Explicit course sets
+
+`target.kind="literal_set"` ใช้สำหรับหลายวิชาที่ผู้ใช้ระบุชัดเจน สมาชิกทุกตัวต้อง resolve แยกกันและครบทั้งหมด
+
+### Alternative groups
+
+ตรวจ canonical group membership และ min/max choice bounds จากฐานข้อมูล ไม่สร้าง choice count จาก LLM
+
+### Mixed-scope composition
+
+คำถามหนึ่งข้อสามารถรวม course-local facts กับ enclosing-term total โดยสอง scope ถูก execute แยกกันก่อนประกอบเป็นผลลัพธ์เดียว
+
+### Placement comparison
+
+รองรับ comparison ของ complete placement sets ข้ามแผน ทั้ง explicit plan operands และ `available_plans` selector
+
+`earliest_placement` derivation มาจาก canonical terms ไม่ใช่ LLM judgement
+
+### Placement sequence
+
+สำหรับ explicit course set ที่ถามลำดับปี/เทอม:
+
+- placement ของแต่ละวิชาต้อง verified ครบ
+- direct prerequisite ownership เป็นของ target course นั้น ๆ
+- sort จาก canonical `(year, semester)`
+- ไม่อนุมาน prerequisite จาก chronological order
+- same-term tie / overlapping ranges ที่พิสูจน์ลำดับเดียวไม่ได้จะ fail closed
+- `result_courses` ถูกเรียงให้ตรงกับ sequence ที่แสดง เพื่อให้ ordinal follow-up ชี้ตัวเดียวกัน
+
+## Conversation context
+
+Web/API ส่ง `next_context` กลับมาในเทิร์นถัดไป Context เป็น bounded structural state เช่น:
+
+- program / catalog_key / plan / years / semesters
+- focus course
+- result course identities
+- limited previous-operation references
+
+Context ไม่ใช่ transcript memory และไม่เก็บ cached factual prose เป็น authority
+
+Explicit current-turn scope ต้องชนะ inherited context
+
+## Policy path
+
+Institution rules / program requirements ใช้ canonical supplemental authority และ deterministic/policy execution แยกจาก curriculum facts
+
+ดู `docs/academic_rules.md`
+
+## Fail-closed behavior
+
+ระบบควร non-answer เมื่อ:
+
+- identity/scope ambiguous
+- edition/plan ไม่ชัดเมื่อจำเป็น
+- evidence/provenance ไม่ครบ
+- explicit course-set member หายหรือ resolve ไม่ได้
+- accepted request มี field/clause ที่ downstream consume ไม่ได้
+- sequence ไม่มี unique canonical order
+- policy threshold ไม่มีใน authority
+
+wrong factual answer มี priority สูงกว่า false failure; เมื่อไม่แน่ใจให้หยุดแทนการเดา
+
+## Running
+
+Semantic backend:
+
 ```powershell
-python -m unittest tests.rag.test_final_core_eval -v
-python scripts/ask.py "IT ปี 1 เทอม 1 มีวิชาอะไรบ้าง"
+$env:CUCUMBER_QA_MODE="semantic"
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
-ชุดประเมินผลไม่ต้องใช้ API key (model ทุกจุดเป็น stub)
-ส่วน CLI จะสร้าง Gemini provider ตั้งแต่เริ่มโปรแกรม จึงต้อง
-มี `GEMINI_API_KEY`
 
-## การประเมินผล
-Core Evaluation 35/35 PASS
-(`tests/rag/fixtures/final_core_eval_v1.json`) Real-user
-Robustness 50/50 PASS (ชุดเสริมด้านสำนวนภาษา) fixture ใต้
-`tests/rag/fixtures/` กับ `ground_truth/` ใช้ประเมินผล
-เท่านั้น ไม่ใช่ข้อเท็จจริงของระบบ production
+Full tests:
 
-## ข้อจำกัด
-- ข้อเท็จจริงทางการคือหลักฐาน SQLite/deterministic ส่วนผล
-  จาก LLM ไม่ใช่ข้อเท็จจริงไม่ว่ากรณีใด
-- `catalog_key` คือ identity ของฉบับหลักสูตร; `academic_year` ใช้แสดงผล/
-  เรียงลำดับ และ `plan` เป็น variant ภายในฉบับ
-- คำถามของ program ที่มีหลายฉบับต้องระบุฉบับ มิฉะนั้นระบบจะขอให้เลือกแทนการรวม
-  หลักฐานข้ามฉบับ
-- หน่วยกิตรวมทั้งหลักสูตรตอบจาก `program_requirements` ที่ผูกกับ `catalog_key`
-  ไม่คำนวณจากการบวก placement รายเทอม
-- ไม่มี authority สำหรับการเปิดสอนจริงในอนาคต จึงไม่ยืนยัน future offering
-- ถ้า canonical policy ไม่มีคะแนนผ่าน English Exit ระบบจะไม่สร้าง threshold ขึ้นเอง
-- คำถามสิทธิ์ส่วนบุคคล เช่น “GPA เท่านี้ลงสหกิจได้ไหม” จะ fail closed เมื่อไม่มี
-  เกณฑ์เฉพาะของคณะ/หลักสูตรเพียงพอ
-- ordinal หรือ follow-up ที่ resolve referent ไม่ได้จะ fail closed และห้าม fallback ไปใช้
-  focus/referent เก่าแบบเงียบ ๆ
-- semantic topic และ result set เป็น retrieval/reference state เท่านั้น ไม่ใช่ factual authority
-- ห้ามแก้ runtime DB จากเส้นทาง QA
-- ตั้งใจไม่รองรับ memory ข้าม session; backend ไม่เก็บ chat history ฝั่ง server
+```powershell
+python -m unittest discover -s tests -t .
+```
+
+Closeout snapshot ก่อน refresh docs:
+
+- full provider-isolated discovery: 2,804 tests / 0 failures / 3 skipped
+- G5-C sequence: 35/35
+- focused semantic regression after retained-order fix: 140/140
+
+## Legacy and historical tests
+
+`tests/rag/test_final_core_eval.py` และ legacy robustness fixtures ยังเป็น regression coverage ที่มีประโยชน์ แต่ไม่ใช่ตัวแทนความสามารถ semantic ทั้งหมดในปัจจุบัน
+
+Dated reports ใต้ `eval/results/` เป็น historical snapshots ของแต่ละ checkpoint; อย่าใช้ failure list เก่าเป็น current TODO โดยไม่ reproduce บน current tree
+
+## Non-goals / deferred
+
+- arbitrary multi-hop prerequisite graph traversal
+- arbitrary SQL as factual authority
+- unrestricted cross-session memory
+- future offering prediction
+- personal eligibility without canonical criteria
+- speculative architecture refactor during closeout

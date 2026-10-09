@@ -1,131 +1,189 @@
-# Semantic QA vNext — architecture and operation
+# Semantic QA vNext — current architecture
 
-Build-phase implementation. Evaluation/debug of the 50-question benchmark is a
-separate next phase.
+This document describes the **current semantic production path**, not an unfinished build phase.
 
-## Old architecture (legacy, frozen at 0764d3e)
+## Core architecture
 
-student language → deterministic regex parser (`parse_query_spec`) →
-bounded LLM fallback → resolver → DB.
-
-The deterministic parser owned language understanding, which forced repeated
-phrase-grammar additions for every new student phrasing.
-
-## New architecture (semantic)
-
-```
+```text
 Student Question
-       │  LLM: language / semantic interpretation
+       │
+       │  LLM: language interpretation only
        ▼
-Structured SemanticIntent (closed schema, zero DB facts)
-       │  deterministic: schema + question-grounding validation
+SemanticIntent (closed schema, zero factual authority)
+       │
+       │  deterministic validation + current-turn grounding
        ▼
-Conversation Context Merge (explicit turn > validated context > unknown)
-       │  deterministic: canonical program/catalog/plan/course resolution
+Context Merge
+       │
+       │  deterministic canonical resolution
        ▼
-ResolvedIntent (canonical IDs only, still fact-free)
-       │  deterministic: plan deterministic vs guarded-SQL vs unsupported
+ResolvedIntent
+       │
+       │  deterministic planner
        ▼
-Query Planner ──┬── deterministic executor (frozen evidence machinery)
-                └── guarded SQL executor (guard/scope/verify unchanged)
-       │  canonical SQLite: FACTUAL AUTHORITY
+Execution
+  ├─ deterministic evidence
+  ├─ verified comparison / mixed-scope / course-set execution
+  ├─ canonical policy path
+  └─ guarded SQL only for explicitly supported compositional shapes
+       │
+       │  canonical SQLite = factual authority
        ▼
-VerifiedResult (claims + provenance + missing info)
-       │  LLM: natural-language presentation of verified results only
+VerifiedResult + provenance
+       │
+       ├─ deterministic renderer for typed complex results
+       └─ bounded LLM presentation for supported simple results
        ▼
-Grounded Answer
+User-facing grounded answer
 ```
 
-Invariant: LANGUAGE → LLM. IDENTITY/SCOPE → DETERMINISTIC.
-FACTS → DATABASE. TRUST → EVIDENCE. PRESENTATION → LLM.
+Invariant:
 
-## Authority boundaries
+```text
+LANGUAGE       → LLM
+IDENTITY/SCOPE → deterministic
+FACTS          → canonical SQLite
+TRUST          → evidence + provenance
+PRESENTATION   → verified-facts-only
+```
 
-- The interpreter proposes language only (task/subject/relation, literal
-  spans, scope mentions, filters, aggregation, ranking, comparison). It can
-  never emit course codes-as-identity, credits, thresholds, SQL, or answers.
-- Normalized hints (e.g. nickname spellings) only generate lookup
-  candidates; v1 never accepts them as identity (`allow_hint_candidates`
-  defaults False).
-- Program/catalog/plan/course identity is created exclusively by
-  deterministic resolvers against canonical tables.
-- Aggregates are computed by deterministic aggregation or verified SQL
-  results, never by the answerer.
-- The answerer receives verified facts + missing-information only, with a
-  deterministic fallback renderer when the provider fails.
+## Current contracts
 
-## Code layout (`rag/semantic/`)
+- semantic intent schema: `semantic-intent/v4`
+- interpreter prompt: `semantic-interpreter/v15`
+- answerer prompt: `semantic-answerer/v1`
+- requested fields include `alternative_selection`, `prerequisite_placement`, and `placement_sequence`
+- `literal_set` supports bounded explicit multi-course references
+- placement comparison supports explicit plan operands and `available_plans`
 
-`schema.py` (closed intent/resolved/verified types + failure taxonomy),
-`prompts.py` (versioned interpreter/answerer prompts),
-`interpreter.py` (one call, strict parse, no retries),
-`validation.py` (combo + question-grounding checks),
-`context.py` (precedence merge + stale invalidation),
-`resolver.py` (canonical bridges reusing `exact_course_candidates`),
-`compiler.py` (ResolvedIntent → constructed QuerySpec; canonical utterance
-synthesizer for the SQL adapter),
-`planner.py` (deterministic / SQL / policy / unsupported routing),
-`executor.py` (frozen evidence + policy + guarded `ask_sql` bridges),
-`answerer.py` (evidence-bounded render + deterministic fallback),
-`pipeline.py` (`semantic_answer` entry point, latency + call counts),
-`modes.py` (mode switch, shadow logging, API adaptation),
-`trace.py` (JSON-safe observability), `eval.py` (benchmark harness).
+The interpreter never supplies canonical course identity or factual values. It supplies linguistic structure and exact current-turn spans; the resolver must verify identity against canonical data.
 
-The semantic path never calls `parse_query_spec(question)` for language
-understanding. QuerySpec is constructed from resolved structure only.
+## Pipeline responsibilities
 
-## Mode switch
+### `schema.py`
+Closed typed intent / resolved / verified structures. Unknown transport fields fail closed.
 
-`CUCUMBER_QA_MODE`: `legacy` (default) | `shadow` | `semantic`.
-Unknown values fall back to legacy with a warning.
+### `prompts.py`
+Versioned semantic-interpreter and answerer contracts. Prompt examples are synthetic/category examples, never benchmark answers.
 
-- legacy: frozen behavior; semantic code never runs.
-- shadow: legacy response unchanged (same answer/claims/provenance/context);
-  the semantic pipeline additionally runs and records a comparison entry
-  through internal logging only; shadow failures never affect the user.
-- semantic: `semantic_answer` serves `POST /api/ask` with the same
-  `AskResponse` fields. Missing provider key fails closed, never 500s.
+### `interpreter.py`
+One semantic interpretation call with strict JSON parsing/transport behavior. No factual authority.
 
-`GET /api/health` exposes non-sensitive `qa_mode`.
+### `validation.py`
+Checks task/subject/relation compatibility, grounding, literal-set/sequence contracts, comparison contracts, and unsupported combinations.
 
-## Running modes
+### `context.py`
+Merges bounded client-held conversation context. Explicit current-turn scope wins; stale references are invalidated when scope changes.
+
+### `resolver.py`
+Canonical program/catalog/plan/course resolution. Also resolves explicit course sets and available-plan inventories deterministically.
+
+### `compiler.py`
+Constructs deterministic execution specs from resolved structure. It does not re-parse the student's language.
+
+### `planner.py`
+Routes to deterministic, policy, guarded SQL, or unsupported execution. Complex supported shapes have explicit typed contracts rather than sentence-specific routing.
+
+### `executor.py`
+Runs canonical evidence and builds `VerifiedResult`. Important current capabilities include:
+
+- multi-field course facts
+- explicit course sets
+- alternative-group choice verification
+- mixed course + enclosing-term composition
+- direct prerequisite placement
+- placement matrices across plans
+- available-plan earliest-placement comparison
+- chronological placement sequence with member-local prerequisite facts
+
+### `answerer.py`
+Renders typed complex results deterministically where completeness matters, and validates bounded LLM presentation for simpler verified facts.
+
+### `pipeline.py`
+End-to-end semantic entry point and trace assembly.
+
+### `modes.py`
+`legacy | shadow | semantic` mode switch and API adaptation.
+
+## Supported higher-order semantics
+
+### Explicit course sets
+
+Multiple explicitly named courses use `target.kind="literal_set"`. Every member must resolve independently in the same canonical program/catalog scope. One unresolved member blocks the whole set rather than silently dropping it.
+
+### Alternative selection
+
+Alternative groups are verified from canonical group membership and min/max choice bounds. The LLM never invents group IDs or selection counts.
+
+### Mixed course + term scope
+
+A single question may request facts about one exact course while separately requesting the enclosing semester total. The two scopes are executed independently and then combined atomically.
+
+### Placement comparison across plans
+
+Placement comparison is non-numeric. The executor preserves complete placement sets for every course-plan cell. `difference` means descriptive placement-set contrast, not arithmetic subtraction.
+
+When the user asks which plan to choose without naming plans, the interpreter may request `plan_selector="available_plans"`; the resolver enumerates the canonical plan inventory.
+
+### Placement sequence
+
+For an explicit course set asking “เรียนอะไรก่อนหลัง / เรียงตามปีเทอม”:
+
+1. every course placement is verified independently;
+2. direct prerequisite facts remain owned by their target course;
+3. ordering is derived only from canonical `(year, semester)` values;
+4. chronological order never creates a dependency edge;
+5. overlapping flexible placement ranges or same-term ties fail closed when a unique sequence cannot be proved;
+6. retained `result_courses` are reordered to match the displayed deterministic sequence so ordinal follow-ups remain stable.
+
+## QA modes
+
+`CUCUMBER_QA_MODE`:
+
+- `legacy` — default safe fallback mode
+- `shadow` — legacy answer remains user-visible while semantic trace runs beside it
+- `semantic` — current semantic production path
+
+For demo/submission:
 
 ```powershell
-$env:CUCUMBER_QA_MODE="legacy"    # default
-$env:CUCUMBER_QA_MODE="shadow"    # compare via logs (logger cucumber.semantic_shadow)
-$env:CUCUMBER_QA_MODE="semantic"  # semantic production path (needs GEMINI_API_KEY)
+$env:CUCUMBER_QA_MODE="semantic"
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-## Running evaluation (next phase)
+`GET /api/health` should report:
 
-```powershell
-python -m rag.semantic.eval <db> <dataset.json> <out.jsonl>
+```text
+status=ok
+database_ready=true
+qa_mode=semantic
 ```
 
-Dataset format: `{version, cases[]}` with `id/difficulty/source/question`,
-optional `conversation_context` + `stubs`, and `expected` stage constraints
-(`intent/resolved/plan/status/facts_contain/safe_failure`). Stage grading:
-`intent_correct, resolution_correct, query_correct, fact_correct,
-safe_failure_correct`; one failure category per case
-(`INTERPRETATION/RESOLUTION/QUERY/DATA/GROUNDING/ANSWER_ERROR`,
-`EXPECTED_SAFE_FAILURE`, `NONE`).
+## Fail-closed boundaries
 
-Seed: `eval/semantic_vnext_seed.json` (custom phrasings only).
-Teacher-slide verbatim rows (25/15/10 across Easy/Medium/Hard) are pending
-source input; `ground_truth/rag/gold_questions.json` (30 rows, no slide
-markers) is the identified candidate source — import via
-`import_gold_candidates()` with source `gold_candidate_pending`, never as
-`teacher_slide`, and never into interpreter few-shot prompts.
+Semantic QA intentionally refuses or clarifies when:
 
-## Provider-call expectations
+- program/catalog/plan/course identity is ambiguous;
+- an explicit course-set member cannot be resolved;
+- evidence/provenance is incomplete;
+- a requested combination has no typed execution contract;
+- a placement sequence has no uniquely provable order;
+- policy authority lacks a required threshold;
+- the user asks for future offering or personal eligibility without canonical authority.
 
-Simple question: interpreter (1) + answerer (1) ≈ 2 calls.
-SQL question: + SQL generation/summary inside the guarded bridge.
-Trace records `llm_request_count` and per-stage milliseconds; the benchmark
-compares accuracy/latency/count between legacy and semantic.
+The system must never answer only the easier subset of an accepted multi-field/multi-clause request.
 
-## What remains factual authority
+## Testing status
 
-Canonical SQLite + deterministic evidence + provenance (HSQL rescue,
-aggregate verification, COUNT semantics, plan isolation all reused
-unchanged above the new pipeline). LLM output is never factual authority.
+Latest closeout snapshots before the documentation refresh:
+
+- provider-isolated full discovery: **2,804 tests, 0 failures/errors, 3 skipped**
+- G5-C sequence suite: **35/35 pass**
+- focused semantic regression after retained-result ordering fix: **140/140 pass**
+- latest instrumented Gold #30 production-route replay: **end-to-end success**
+
+Historical semantic evaluation reports under `eval/results/` describe earlier checkpoints and should not be used as the current implementation contract.
+
+## Authority reminder
+
+Canonical SQLite + deterministic evidence + provenance are the only factual authority. LLM interpretation and presentation remain untrusted until bounded by deterministic validation and verified facts.

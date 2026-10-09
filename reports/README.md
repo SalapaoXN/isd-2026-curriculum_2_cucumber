@@ -1,6 +1,14 @@
 # Reports
 
-โฟลเดอร์นี้เก็บผลการประเมินคุณภาพข้อมูลและ runtime benchmark ของ CUCUMBER
+โฟลเดอร์นี้เก็บ **evaluation/audit snapshots** ของ CUCUMBER ไม่ใช่เอกสารสถานะ implementation หลักของ Semantic QA
+
+การอ่านเอกสารในโฟลเดอร์นี้:
+
+- `README.md` นี้อธิบาย current data-quality evaluation artifacts
+- `runtime_benchmark.md` เป็น latency snapshot ณ วันที่รัน benchmark
+- `final_automated_hardening.md` เป็น hardening snapshot วันที่ 2026-10-08 และถูกเก็บเป็น historical evidence; failure/manual-gate list ในนั้นไม่ใช่ current TODO โดยอัตโนมัติ
+- semantic QA architecture/capability ปัจจุบันให้อ่าน `../README.md`, `../docs/semantic-qa-vnext.md` และ `../rag/README.md`
+- historical report ห้าม rewrite ย้อนหลังเพียงเพื่อให้ตัวเลขตรงกับ code รุ่นใหม่
 
 ## 1. Current curriculum evaluation
 

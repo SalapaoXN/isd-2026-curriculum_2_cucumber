@@ -2,92 +2,104 @@
 
 **P2 LLM ถาม-ตอบหลักสูตร**
 
-CUCUMBER เป็นระบบแปลงข้อมูลหลักสูตรให้เป็นฐานข้อมูลที่ตรวจสอบย้อนกลับได้ แล้วใช้ตอบคำถามภาษาไทยแบบ **grounded** โดยให้ข้อเท็จจริงมาจาก canonical data / SQLite ไม่ใช่จากความจำของ LLM
+CUCUMBER เป็นระบบถาม-ตอบข้อมูลหลักสูตรภาษาไทยที่ให้ **LLM ทำหน้าที่ตีความภาษา** แต่ให้ **canonical SQLite + deterministic evidence เป็น factual authority** คำตอบเชิงข้อเท็จจริงจึงต้องมีหลักฐานรองรับและ fail closed เมื่อ identity, scope หรือ evidence ไม่พอ
 
 สมาชิก:
 1. 67070049 Nattachai Kaewchum — Discord: GoodDee
 2. 67070063 Thanachin Chukiatchai — Discord: วันลพ มีงบมาก
 3. 67070103 Pongsakorn Panyacom — Discord: เบบี๋คือดวงใจ
 
----
-
-## 1. ภาพรวมระบบ
+## Current architecture
 
 ```text
-เอกสารหลักสูตร
-→ OCR / Extraction / Merge
-→ LLM-assisted correction
-→ Canonical JSON
-→ SQLite + Semantic Index
-→ Query understanding
-→ Evidence retrieval
-→ Deterministic aggregation
-→ Grounded answer + Provenance
+Curriculum / policy sources
+→ OCR / extraction / correction
+→ canonical JSON
+→ runtime SQLite
+→ LLM SemanticIntent (language only)
+→ deterministic validation + context merge
+→ deterministic program/catalog/plan/course resolution
+→ deterministic planner / evidence / guarded SQL where needed
+→ VerifiedResult + provenance
+→ bounded answer presentation
 ```
 
-ระบบรองรับข้อมูลหลักสูตร AIT, BIT, DSBA, GENED และ IT โดยแยก **ฉบับหลักสูตร** ด้วย `catalog_key` และแยกแผน เช่น `coop` / `no_coop` เมื่อมี
+Authority rule:
 
-หลักการสำคัญ:
+```text
+LANGUAGE      → LLM
+IDENTITY/SCOPE→ deterministic resolver
+FACTS         → canonical SQLite
+TRUST         → evidence + provenance
+PRESENTATION  → bounded LLM or deterministic renderer
+```
 
-- `catalog_key` = ตัวตนของฉบับหลักสูตร
-- `program` = หลักสูตร เช่น IT, DSBA
-- `plan` = แผนการเรียนภายในฉบับ
-- ปี/เทอม/หน่วยกิต/prerequisite ต้องมาจากหลักฐานที่ตรวจสอบได้
-- LLM ใช้ช่วยตีความภาษาและงานที่ถูกจำกัดขอบเขต แต่ไม่ใช่ factual authority
-- ถ้าหลักฐานไม่พอ ระบบจะ clarify / fail closed แทนการเดา
-- backend เป็น stateless; การสนทนาหลายเทิร์นใช้ `next_context` ที่ฝั่ง client ส่งกลับมา โดยเก็บเฉพาะ scope/ตัวอ้างอิงที่มีขอบเขต ไม่ใช้ประวัติแชตทั้งหมดเป็น factual authority
+Semantic production path ปัจจุบันใช้:
 
-หน้าเว็บหลัก:
+- semantic intent contract: `semantic-intent/v4`
+- interpreter prompt: `semantic-interpreter/v15`
+- runtime mode: `CUCUMBER_QA_MODE=semantic`
 
-- `/chat` — ถามคำถามแบบมี scope และ conversation context
-- `/curriculum` — ค้นและดูข้อมูลรายวิชาตาม program / edition / plan / year / semester
+ระบบรองรับ AIT, BIT, DSBA, GENED และ IT โดยแยก curriculum edition ด้วย `catalog_key` และแยก study plan เช่น `coop` / `no_coop`
 
----
+## Supported QA surface
 
-## 2. Source of truth
+ปัจจุบัน semantic path รองรับ capability หลักดังนี้
 
-ลำดับข้อมูล production:
+- exact course identity / name / description / credits
+- placement ตามปี/เทอม/แผน
+- direct prerequisites และ explicit no-prerequisite
+- scoped course lists, counts และ credit totals
+- whole-program total credits จาก authoritative `program_requirements`
+- semantic topic discovery จาก course descriptions
+- explicit multi-course sets โดย resolve สมาชิกแต่ละตัวแยกกัน
+- alternative-group selection เช่น “เลือกกี่วิชาจากกลุ่มนี้”
+- mixed-scope planning: facts ของรายวิชา + total credits ของเทอมเดียวกัน
+- placement comparison ข้ามแผน รวม flexible placement sets
+- available-plan comparison เมื่อผู้ใช้ถามว่า “ควรเลือกแผนไหน” โดยไม่ระบุชื่อแผน
+- chronological placement sequence ของ explicit course set โดยเรียงจาก canonical year/semester และไม่สร้าง prerequisite chain จากลำดับเวลา
+- policy / institutional rules ที่มี canonical authority รองรับ
+- bounded conversation context ผ่าน `next_context`
+
+เมื่อ semantic shape ยังไม่รองรับหรือ evidence ไม่ครบ ระบบจะคืน clarification / `insufficient_evidence` / `unsupported` แทนการเดา
+
+## Source of truth
 
 ```text
 data/output/final/*_corrected.json
+        +
+data/output/final/institution_policy.json
+        +
+data/output/final/program_requirements.json
         ↓
 python -m rag.build_index
         ↓
 cucumber_outputs/runtime/curriculum.db
         ↓
-QA / API / Web UI
+Semantic QA / API / Web UI
 ```
 
-นอกจาก curriculum corpus แล้ว การสร้าง DB แบบ default จะโหลด supplemental authority สองไฟล์อย่างชัดเจน:
+บทบาทสำคัญ:
 
-- `data/output/final/institution_policy.json`
-- `data/output/final/program_requirements.json`
+- `*_corrected.json` — canonical curriculum corpus
+- `institution_policy.json` — normalized institution-policy facts
+- `program_requirements.json` — edition-scoped whole-program credit requirements
+- `cucumber_outputs/runtime/curriculum.db` — runtime factual authority
+- `ground_truth/` — evaluation/test only; ไม่ใช่ production authority
+- `ground_truth/GT_FIXED.md` — audit log ของ Ground Truth corrections
+- `submission/` — frozen historical submission; **ไม่ใช่เอกสารสถานะ runtime ปัจจุบัน**
 
-บทบาทของไฟล์สำคัญ:
-
-- `data/output/final/*_corrected.json` — canonical curriculum corpus
-- `institution_policy.json` — ข้อกำหนด/นโยบายสถาบันที่ผ่านการจัดโครงสร้าง
-- `program_requirements.json` — ข้อกำหนดหน่วยกิตรวมแบบผูกกับ `catalog_key`; คำถาม “หลักสูตรนี้รวมกี่หน่วยกิต” ใช้ authority นี้แทนการบวก placement รายเทอม
-- `cucumber_outputs/runtime/curriculum.db` — runtime DB ที่สร้างจากข้อมูลข้างต้น
-- `ground_truth/` — ใช้ evaluation/test เท่านั้น ไม่ใช่ production authority
-- `ground_truth/GT_FIXED.md` — audit log ว่า Ground Truth เคยแก้อะไร จากค่าใด เป็นค่าใด และเพราะอะไร
-- `submission/` — **frozen historical submission** ที่เคยส่งแล้ว ไม่ใช่ runtime ปัจจุบัน
-
-ถ้าแก้ canonical data ให้สร้าง runtime DB ใหม่:
+หาก canonical data เปลี่ยน ให้ rebuild runtime DB:
 
 ```powershell
 python -m rag.build_index
 ```
 
----
-
-## 3. Run the web app
+## Run the web app
 
 ต้องใช้ Python 3.10+ และ Node.js
 
-> สำหรับเครื่องที่เพิ่ง clone repo ใหม่ ต้องทำ **ทุกขั้นตามลำดับ** ด้านล่าง โดยเฉพาะ `npm run build` ก่อนเปิดเว็บผ่าน FastAPI ที่พอร์ต `8000`
-
-### 3.1 Python environment
+### Python
 
 ```powershell
 python -m venv .venv
@@ -95,8 +107,6 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 python -m pip install -r backend/requirements.txt
 ```
-
-### 3.2 Gemini
 
 สร้าง `.env` ที่ root:
 
@@ -106,15 +116,7 @@ GEMINI_API_KEY=your_key_here
 
 ห้าม commit `.env` หรือ API key
 
-provider ปัจจุบันใช้:
-
-```text
-gemini-3.5-flash-lite
-```
-
-### 3.3 Build frontend — ห้ามข้ามเมื่อรันผ่าน FastAPI
-
-รันจาก root repo:
+### Build frontend
 
 ```powershell
 cd frontend
@@ -123,35 +125,18 @@ npm run build
 cd ..
 ```
 
-หลัง build สำเร็จควรมีไฟล์ประมาณนี้:
-
-```text
-frontend/
-└─ dist/
-   ├─ index.html
-   └─ assets/
-```
-
-FastAPI จะ serve React bundle จาก `frontend/dist/` หากยังไม่มี `dist` ระบบจะ fallback ไปที่ `frontend/index.html` ซึ่งเป็น Vite development entry และ browser จะร้องขอ `/src/main.jsx`; FastAPI production-style server ไม่ได้ serve path นี้ จึงจะเห็น `GET /src/main.jsx 404 Not Found`
-
-### 3.4 Start backend (semantic mode — submission path)
-
-หลังจาก build frontend แล้ว ให้กลับมาที่ root repo และรัน:
+### Start semantic backend
 
 ```powershell
 $env:CUCUMBER_QA_MODE = "semantic"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-หรือใช้สคริปต์ช่วยเริ่ม (ทำเหมือนกัน: ตั้งค่าโหมด ตรวจ `frontend/dist`
-แล้ว start backend พร้อมรอ health check):
+หรือ:
 
 ```powershell
 .\scripts\run_semantic.ps1
 ```
-
-> ถ้าไม่ตั้ง `CUCUMBER_QA_MODE=semantic` backend จะรันโหมด `legacy`
-> ซึ่งเป็นพฤติกรรมตั้งต้น ไม่ใช่สินค้า semantic ที่ส่งมอบ
 
 เปิด:
 
@@ -161,7 +146,7 @@ http://127.0.0.1:8000/curriculum
 http://127.0.0.1:8000/api/health
 ```
 
-ตรวจ `GET /api/health` ก่อนเดโม ต้องได้ครบ:
+ก่อน demo ตรวจ health:
 
 ```text
 status = ok
@@ -169,59 +154,21 @@ database_ready = true
 qa_mode = semantic
 ```
 
-ถ้า `qa_mode` ไม่ใช่ `semantic` ให้หยุด server ตั้งค่า
-`$env:CUCUMBER_QA_MODE = "semantic"` แล้ว start ใหม่
+> `rag/semantic/modes.py` ยังตั้ง default เป็น `legacy` เพื่อความปลอดภัย ดังนั้นการรัน production semantic ต้องตั้ง environment variable ให้ชัดเจน
 
-ถ้า log มี:
+### Frontend development mode
 
-```text
-GET /src/main.jsx 404 Not Found
+```powershell
+# backend: port 8000
+cd frontend
+npm run dev
 ```
 
-ให้หยุด server แล้วรัน `npm install` และ `npm run build` ในโฟลเดอร์ `frontend` ก่อน จากนั้นจึง start backend ใหม่
+เปิด `http://127.0.0.1:5173`
 
-`GET /favicon.ico 404 Not Found` ไม่กระทบการทำงานของเว็บ
-
-### 3.4b Semantic warm-up (แนะนำก่อนเดโม)
-
-Backend โหลด embedding model แบบ lazy ในการเรียก semantic/topic query ครั้งแรก
-จึงอาจใช้เวลาประมาณ 30–40 วินาทีบนเครื่องที่ทดสอบ (ไม่ใช่ SLA รับประกัน)
-
-คำสั่ง warm-up ตัวอย่าง (ถามครั้งเดียวหลัง start backend โดยเลือก
-ขอบเขต IT / ฉบับ 2565 ก่อน เนื่องจากมี grounded semantic matches
-ที่ยืนยันแล้วในคลัง IT):
-
-```text
-มีวิชาเกี่ยวกับ cyber security อะไรบ้าง
-```
-
-query แบบ semantic ครั้งถัด ๆ ไปที่ model อยู่ใน memory แล้ว
-ถูกสังเกตว่าตอบราว 1–2 วินาที
-
-ข้อควรทราบ:
-
-- `python -m rag.build_index` จำเป็นเฉพาะตอน setup หรือเมื่อข้อมูลหลักสูตร
-  canonical เปลี่ยนเท่านั้น ไม่ต้องรันใหม่ทุกครั้งที่ restart backend
-- ไม่ต้อง rebuild embeddings/index ทุกครั้งที่ restart backend
-- แนะนำให้ยิง semantic warm-up หนึ่งครั้งก่อนเริ่มเดโมสด
-
-### 3.5 Frontend development mode
-
-ถ้าต้องการใช้ Vite dev server แทน built frontend:
-
-1. รัน backend ที่พอร์ต `8000`
-2. เข้า `frontend` แล้วรัน `npm run dev`
-3. เปิดเว็บที่ `http://127.0.0.1:5173`
-
-ทั้งโหมด built frontend และ Vite development ใช้ backend ที่พอร์ต `8000` เหมือนกัน โดย Vite config ปัจจุบัน proxy `/api` ไปที่ `http://127.0.0.1:8000`
-
----
-
-## 4. API Contract
+## API contract
 
 ### `POST /api/ask`
-
-Request:
 
 ```json
 {
@@ -233,12 +180,7 @@ Request:
 }
 ```
 
-- `question`: string, 2–500 ตัวอักษร
-- `conversation_context`: object หรือ `null`
-- เทิร์นถัดไปควรส่ง `next_context` จาก response กลับมาเป็น `conversation_context`
-- context เป็น state แบบ bounded และ client-held: เก็บ scope ที่ตรวจสอบแล้ว เช่น program/catalog/plan/year/semester รวมถึงตัวอ้างอิงรายวิชา/ผลลัพธ์/คำตอบก่อนหน้าที่จำเป็นต่อ follow-up เท่านั้น ไม่ใช่การเก็บ transcript ทั้งหมดหรือ cached factual answer
-
-Response หลัก:
+Response semantic path หลัก:
 
 ```json
 {
@@ -246,15 +188,20 @@ Response หลัก:
   "answer": "...",
   "status": "answer",
   "action": null,
-  "route": "llm_sql",
+  "route": "semantic",
   "provenance": [],
-  "next_context": {}
+  "next_context": {},
+  "comparison": null
 }
 ```
 
-response อาจมี field เพิ่ม เช่น `comparison`, `plan_results`, `hard_task_type`
+เทิร์นถัดไปควรส่ง `next_context` กลับมาเป็น `conversation_context` ระบบเก็บเฉพาะ bounded structural references เช่น program/catalog/plan/year/semester, focus course และ result identities ไม่ใช้ transcript หรือ cached answer prose เป็น factual authority
 
-กรณีข้อมูลไม่พอหรือ scope ไม่ชัด ระบบจะคืนสถานะ เช่น `insufficient_evidence` หรือ `clarification_required` แทนการสร้างข้อเท็จจริงเอง
+สถานะ non-answer ที่พบได้ เช่น:
+
+- `clarification_required`
+- `insufficient_evidence`
+- `unsupported`
 
 ### Curriculum API
 
@@ -265,117 +212,79 @@ GET /api/courses/{course_code}?program=&catalog_key=
 GET /api/health
 ```
 
-FastAPI error response ใช้ field `detail`; validation error อาจเป็น structured list
-
-Frontend ฝั่ง Chat มีสถานะ UX หลักครบ: Idle, Loading, Success และ Error
-
----
-
-## 5. CLI
-
-ถามหนึ่งข้อ:
+## CLI
 
 ```powershell
 python scripts/ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
 ```
 
-โหมดต่อเนื่อง:
+หรือ interactive loop:
 
 ```powershell
 python scripts/ask.py
 ```
 
-CLI loop นี้ไม่ได้เก็บ conversation context ระหว่างคำถามแบบ web chat
+Web chat มี conversation context มากกว่า CLI loop
 
----
-
-## 6. Pipeline
-
-entry point:
-
-```powershell
-python -m src.pipeline.run
-```
-
-flow:
+## Data pipeline
 
 ```text
-ocr → extract → merge → correct → evaluate → build_index
+OCR → Extract → Merge → Correct → Evaluate → Build Index
 ```
-
-ตัวอย่าง:
 
 ```powershell
 python -m src.pipeline.run --program it --dry-run
 python -m src.pipeline.run --program it --with-index
-python -m src.pipeline.run --program it --pages 32-38
 ```
 
 รายละเอียด: `src/pipeline/README.md`
 
----
+## Testing
 
-## 7. Testing และ Evaluation
-
-รัน test suite:
+Full Python suite:
 
 ```powershell
 python -m unittest discover -s tests -t .
 ```
 
-evaluation ล่าสุดถูก regenerate เมื่อ 2026-10-04 จาก **8 GT-backed current scopes** ที่มี Ground Truth ตรงกัน
+ล่าสุดในรอบ G5-C provider-isolated full discovery รัน **2,804 tests, 0 failures, 0 errors, 3 skipped** ก่อน closeout; focused sequence และ semantic regressions ผ่านหลังแก้ retained-result ordering ด้วย
 
-ผล record coverage:
+ผล data-quality report ของ canonical GT-backed scopes อยู่ใน `reports/README.md` ตัวเลข 100% ที่รายงานที่นั่นหมายถึง **record coverage** ไม่ใช่ทุก field มี character accuracy 100%
 
-```text
-GT records:         839
-Prediction records: 839
-Matched:            839
-Precision/Recall/F1: 100%
-```
+`eval/results/*.md` และ dated hardening reports เป็น historical snapshots ของแต่ละรอบ ไม่ควรถูกใช้แทนสถานะ implementation ปัจจุบัน
 
-100% ตรงนี้หมายถึง **record coverage** ไม่ได้หมายความว่าทุก field ตรง 100%; รายละเอียด CER/WER และ error rows อยู่ที่ `reports/README.md` และ `reports/evaluation/`
+## Important fail-closed boundaries
 
-ไฟล์ corrected ของ historical editions ที่ยังไม่มี edition-specific Ground Truth จะไม่ถูกนำมาปนกับ metric ชุดนี้ เพื่อหลีกเลี่ยงการเทียบคนละฉบับหลักสูตร
+- ไม่ยืนยัน future course offering เพราะ runtime ไม่มี authority ว่าวิชาจะเปิดจริงในอนาคต
+- ไม่สร้าง English Exit threshold ที่ source ไม่มี
+- ไม่ฟันธง personal eligibility ถ้าไม่มีเกณฑ์ authoritative ครบ
+- ไม่รวมข้อมูลข้าม `catalog_key` เพื่อทำให้คำตอบสำเร็จ
+- explicit multi-course request ต้อง resolve สมาชิกครบทั้งหมด มิฉะนั้น fail closed
+- placement sequence ไม่สร้าง dependency จาก chronological order
+- ambiguous multi-placement sequence / same-term tie ที่ให้ลำดับเดียวไม่ได้จะ fail closed
+- topic discovery + unsupported combined constraints จะไม่ถูกลดเหลือคำถามที่ง่ายกว่า
+- ordinal/follow-up ที่ resolve referent อย่างปลอดภัยไม่ได้จะไม่ย้อนใช้ referent เก่าแบบเงียบ ๆ
+- LLM output ไม่เป็น factual authority ไม่ว่ากรณีใด
 
-Runtime benchmark ล่าสุดอยู่ที่ `reports/runtime_benchmark.md` โดย snapshot ปัจจุบันชี้ว่า local parsing/SQLite ใช้เวลาเพียงระดับ sub-ms ถึงไม่กี่ ms ขณะที่ latency หลักมาจาก external model call
+## Documentation map
 
----
+เริ่มจาก `docs/README.md` ซึ่งแยก active documentation ออกจาก historical snapshots ไว้แล้ว
 
-## 8. ข้อจำกัดที่ตั้งใจ fail closed
+Active docs หลัก:
 
-- ระบบไม่มีข้อมูลการเปิดสอนจริงของรายวิชาในภาคเรียนอนาคต จึงไม่ยืนยันว่า “ถอน/ตกแล้วจะเปิดให้ลงใหม่เทอมไหน”
-- หาก policy ระบุว่าต้องผ่าน English Exit แต่ canonical evidence ไม่มีคะแนนผ่าน ระบบจะไม่สร้างคะแนนขึ้นมาเอง
-- คำถามสิทธิ์ส่วนบุคคล เช่น “GPA เท่านี้ลงสหกิจได้ไหม” จะไม่ถูกฟันธงถ้าฐานข้อมูลยังไม่มีเกณฑ์เฉพาะของคณะ/หลักสูตรเพียงพอ
-- คำถามที่ต้องใช้หลักฐานนอก canonical curriculum / policy data จะไม่ถูกเดาคำตอบ
-- program ที่มีหลายฉบับต้องรักษา `catalog_key` ไม่รวมข้อมูลข้าม edition
-- ordinal/follow-up ที่อ้างอิงเป้าหมายไม่ได้อย่างปลอดภัยจะ fail closed แทนการย้อนกลับไปใช้ referent เก่า
-- **คำถามเปรียบเทียบต่อเนื่องแบบย่อ — ข้อจำกัดที่ยอมรับสำหรับการส่งงาน:** ระบบรองรับการถามต่อเนื่องแบบย่อสำหรับคำถามทั่วไปบางประเภท เช่น การเปลี่ยนภาคการศึกษาในรายการรายวิชาด้วย “แล้วเทอม 2 ล่ะ” แต่ยังไม่รองรับการสืบทอดบริบทของคำถามเปรียบเทียบหลายหลักสูตรแบบย่อ เช่น “แล้วปี 2 ล่ะ” หรือ “แล้ว DSBA ปี 2560 ล่ะ”
-  ผู้ใช้จึงต้องระบุเงื่อนไขการเปรียบเทียบให้ครบในคำถามใหม่ โดยระบุหลักสูตรและฉบับหลักสูตรของแต่ละฝั่ง พร้อมแผนการเรียนและปี/ภาคการศึกษาที่เกี่ยวข้อง รวมถึงลักษณะการเปรียบเทียบ เมื่อบริบทไม่ครบหรือไม่ชัดเจน ระบบเลือกหยุดหรือขอข้อมูลเพิ่มเติมแทนการคาดเดาฝั่งหรือเงื่อนไขที่ต้องการเปลี่ยน เพื่อป้องกันการตอบผิดหลักสูตรหรือผิดแผนการเรียน โดยความสามารถนี้ถูกเลื่อนไปพัฒนาภายหลังการส่งงาน
-- semantic result ยังขึ้นกับคุณภาพ course description และหลักฐานที่มีจริง
+- `README.md` — overview / setup / API / current capability
+- `docs/semantic-qa-vnext.md` — Semantic QA architecture ปัจจุบัน
+- `rag/README.md` — implementation map ของ QA/RAG
+- `src/pipeline/README.md` — data pipeline
+- `docs/academic_rules.md` — policy subsystem
+- `reports/README.md` — evaluation/data-quality reports
+- `ground_truth/GT_FIXED.md` — GT correction audit log
 
----
+Week 11 artifacts:
 
-## 9. เอกสารที่ควรอ่าน
+- `docs/wireframes/chat-wireframe.svg`
+- `docs/wireframes/curriculum-wireframe.svg`
+- `docs/wireframes/user-flow.svg`
+- `frontend/`
 
-เอกสาร active ถูกลดให้เหลือเฉพาะส่วนที่มีหน้าที่ชัดเจน:
-
-- `README.md` — ภาพรวม, setup, API contract
-- `rag/README.md` — QA/RAG architecture ปัจจุบัน
-- `src/pipeline/README.md` — OCR → canonical data → DB
-- `docs/academic_rules.md` — policy/rules subsystem
-- `docs/wireframes/` — Week 11 low-fidelity wireframes และ user flow
-- `reports/README.md` — วิธี evaluation และ report artifacts
-- `reports/runtime_benchmark.md` — latency benchmark
-- `ground_truth/GT_FIXED.md` — audit log ของการแก้ Ground Truth
-- `submission/submission.md` — frozen historical submission; เก็บเพื่ออ้างอิงเท่านั้น
-
-เอกสาร phase/baseline/history รุ่นเก่าถูกนำออกจาก active tree เพื่อไม่ให้ปนกับสถานะปัจจุบัน
-
-## Week 11 Deliverables
-
-- API Contract: README.md → Section 4
-- Chat Wireframe: docs/wireframes/chat-wireframe.svg
-- Curriculum Wireframe: docs/wireframes/curriculum-wireframe.svg
-- User Flow: docs/wireframes/user-flow.svg
-- Implemented UI: frontend/
+`submission/` ถูกเก็บแบบ frozen และไม่ได้ rewrite ในการจัดเอกสารรอบนี้
