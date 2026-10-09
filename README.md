@@ -1,69 +1,71 @@
 # CUCUMBER
 
-**P2 LLM ถาม-ตอบหลักสูตร**
+**P2 ระบบถาม-ตอบข้อมูลหลักสูตรด้วย LLM**
 
-CUCUMBER เป็นระบบถาม-ตอบข้อมูลหลักสูตรภาษาไทยที่ให้ **LLM ทำหน้าที่ตีความภาษา** แต่ให้ **canonical SQLite + deterministic evidence เป็น factual authority** คำตอบเชิงข้อเท็จจริงจึงต้องมีหลักฐานรองรับและ fail closed เมื่อ identity, scope หรือ evidence ไม่พอ
+CUCUMBER เป็นระบบถาม-ตอบข้อมูลหลักสูตรภาษาไทย โดยให้ **LLM ช่วยตีความว่าผู้ใช้ต้องการถามอะไร** แต่ข้อเท็จจริง เช่น รหัสวิชา หน่วยกิต ปี/เทอม แผนการเรียน และวิชาบังคับก่อน จะต้องมาจาก **ฐานข้อมูล SQLite และหลักฐานที่ระบบตรวจสอบแล้ว** เท่านั้น
+
+ถ้าระบบระบุวิชา ขอบเขตหลักสูตร หรือหลักฐานได้ไม่ชัดเจน ระบบจะ **หยุดและขอข้อมูลเพิ่มหรือไม่ตอบ** แทนการคาดเดา (fail closed)
 
 สมาชิก:
 1. 67070049 Nattachai Kaewchum — Discord: GoodDee
 2. 67070063 Thanachin Chukiatchai — Discord: วันลพ มีงบมาก
 3. 67070103 Pongsakorn Panyacom — Discord: เบบี๋คือดวงใจ
 
-## Current architecture
+## สถาปัตยกรรมของระบบปัจจุบัน
 
 ```text
-Curriculum / policy sources
-→ OCR / extraction / correction
-→ canonical JSON
-→ runtime SQLite
-→ LLM SemanticIntent (language only)
-→ deterministic validation + context merge
-→ deterministic program/catalog/plan/course resolution
-→ deterministic planner / evidence / guarded SQL where needed
-→ VerifiedResult + provenance
-→ bounded answer presentation
+เอกสารหลักสูตร / กฎของสถาบัน
+→ OCR / ดึงข้อมูล / ตรวจแก้
+→ ข้อมูล JSON มาตรฐาน
+→ ฐานข้อมูล SQLite ที่ใช้ตอนรันระบบ
+→ LLM ตีความความหมายของคำถามเป็น SemanticIntent
+→ ตรวจความถูกต้องและรวมบริบทของบทสนทนา
+→ ระบุหลักสูตร / ฉบับ / แผน / รายวิชาแบบ deterministic
+→ วางแผนค้นหลักฐานและใช้ SQL แบบจำกัดขอบเขตเมื่อจำเป็น
+→ VerifiedResult + แหล่งอ้างอิง (provenance)
+→ สร้างคำตอบให้ผู้ใช้
 ```
 
-Authority rule:
+หลักการแบ่งหน้าที่ของระบบ:
 
 ```text
-LANGUAGE      → LLM
-IDENTITY/SCOPE→ deterministic resolver
-FACTS         → canonical SQLite
-TRUST         → evidence + provenance
-PRESENTATION  → bounded LLM or deterministic renderer
+การตีความภาษา          → LLM
+การระบุตัวตน/ขอบเขต    → ตัว resolver แบบ deterministic
+ข้อเท็จจริง              → SQLite มาตรฐาน
+การตรวจสอบความน่าเชื่อถือ → หลักฐาน + provenance
+การเรียบเรียงคำตอบ       → LLM แบบจำกัดขอบเขต หรือ renderer แบบ deterministic
 ```
 
-Semantic production path ปัจจุบันใช้:
+Semantic QA ปัจจุบันใช้:
 
-- semantic intent contract: `semantic-intent/v4`
-- interpreter prompt: `semantic-interpreter/v15`
-- runtime mode: `CUCUMBER_QA_MODE=semantic`
+- สัญญารูปแบบ intent: `semantic-intent/v4`
+- prompt สำหรับตีความคำถาม: `semantic-interpreter/v15`
+- โหมดรันระบบ: `CUCUMBER_QA_MODE=semantic`
 
-ระบบรองรับ AIT, BIT, DSBA, GENED และ IT โดยแยก curriculum edition ด้วย `catalog_key` และแยก study plan เช่น `coop` / `no_coop`
+ระบบรองรับหลักสูตร AIT, BIT, DSBA, GENED และ IT โดยใช้ `catalog_key` แยก **ฉบับหลักสูตร** และใช้ `plan` แยก **แผนการเรียน** เช่น `coop` และ `no_coop`
 
-## Supported QA surface
+## ความสามารถที่รองรับ
 
-ปัจจุบัน semantic path รองรับ capability หลักดังนี้
+Semantic QA ปัจจุบันรองรับงานหลักดังนี้
 
-- exact course identity / name / description / credits
-- placement ตามปี/เทอม/แผน
-- direct prerequisites และ explicit no-prerequisite
-- scoped course lists, counts และ credit totals
-- whole-program total credits จาก authoritative `program_requirements`
-- semantic topic discovery จาก course descriptions
-- explicit multi-course sets โดย resolve สมาชิกแต่ละตัวแยกกัน
-- alternative-group selection เช่น “เลือกกี่วิชาจากกลุ่มนี้”
-- mixed-scope planning: facts ของรายวิชา + total credits ของเทอมเดียวกัน
-- placement comparison ข้ามแผน รวม flexible placement sets
-- available-plan comparison เมื่อผู้ใช้ถามว่า “ควรเลือกแผนไหน” โดยไม่ระบุชื่อแผน
-- chronological placement sequence ของ explicit course set โดยเรียงจาก canonical year/semester และไม่สร้าง prerequisite chain จากลำดับเวลา
-- policy / institutional rules ที่มี canonical authority รองรับ
-- bounded conversation context ผ่าน `next_context`
+- ค้นหารหัส ชื่อ คำอธิบาย และหน่วยกิตของรายวิชา
+- ตรวจว่ารายวิชาเรียนปีไหน เทอมไหน และอยู่ในแผนใด
+- ตรวจวิชาบังคับก่อน และกรณีที่ไม่มีวิชาบังคับก่อน
+- แสดงรายวิชา นับจำนวนวิชา และรวมหน่วยกิตตามขอบเขตที่กำหนด
+- ตอบหน่วยกิตรวมทั้งหลักสูตรจาก `program_requirements` ซึ่งเป็นแหล่งข้อมูลที่กำหนดไว้โดยตรง
+- ค้นหารายวิชาที่เกี่ยวข้องกับหัวข้อจากคำอธิบายรายวิชา
+- รองรับคำถามที่ระบุหลายวิชา โดยตรวจแต่ละวิชาแยกกัน
+- ตรวจกลุ่มวิชาเลือก เช่น “ต้องเลือกกี่วิชาจากกลุ่มนี้”
+- ตอบคำถามที่รวมข้อมูลรายวิชากับหน่วยกิตรวมของเทอมเดียวกัน
+- เปรียบเทียบช่วงเวลาที่เรียนได้ระหว่างแผนต่าง ๆ และเก็บช่วงปี/เทอมที่เป็นไปได้ทั้งหมด
+- เปรียบเทียบแผนที่มีอยู่ เมื่อผู้ใช้ถามว่า “ควรเลือกแผนไหน” โดยไม่ได้ระบุชื่อแผน
+- เรียงลำดับรายวิชาตามปี/เทอมจากข้อมูลจริง โดยไม่สร้างความสัมพันธ์วิชาบังคับก่อนขึ้นมาเอง
+- ตอบคำถามเกี่ยวกับกฎหรือข้อกำหนดของสถาบันที่มีข้อมูลรองรับ
+- รองรับบริบทการสนทนาหลายเทิร์นผ่าน `next_context` โดยเก็บเฉพาะข้อมูลโครงสร้างที่จำเป็น
 
-เมื่อ semantic shape ยังไม่รองรับหรือ evidence ไม่ครบ ระบบจะคืน clarification / `insufficient_evidence` / `unsupported` แทนการเดา
+ถ้ารูปแบบคำถามยังไม่รองรับหรือหลักฐานไม่ครบ ระบบจะคืนสถานะขอข้อมูลเพิ่ม (`clarification_required`), หลักฐานไม่พอ (`insufficient_evidence`) หรือยังไม่รองรับ (`unsupported`) แทนการเดาคำตอบ
 
-## Source of truth
+## แหล่งข้อมูลหลักของระบบ
 
 ```text
 data/output/final/*_corrected.json
@@ -79,27 +81,27 @@ cucumber_outputs/runtime/curriculum.db
 Semantic QA / API / Web UI
 ```
 
-บทบาทสำคัญ:
+บทบาทของไฟล์สำคัญ:
 
-- `*_corrected.json` — canonical curriculum corpus
-- `institution_policy.json` — normalized institution-policy facts
-- `program_requirements.json` — edition-scoped whole-program credit requirements
-- `cucumber_outputs/runtime/curriculum.db` — runtime factual authority
-- `ground_truth/` — evaluation/test only; ไม่ใช่ production authority
-- `ground_truth/GT_FIXED.md` — audit log ของ Ground Truth corrections
-- `submission/` — frozen historical submission; **ไม่ใช่เอกสารสถานะ runtime ปัจจุบัน**
+- `*_corrected.json` — ข้อมูลหลักสูตรที่ผ่านการตรวจแก้และใช้เป็นข้อมูลมาตรฐาน
+- `institution_policy.json` — ข้อมูลกฎและข้อกำหนดของสถาบันในรูปแบบที่ระบบใช้งานได้
+- `program_requirements.json` — ข้อมูลข้อกำหนดและหน่วยกิตรวมของแต่ละฉบับหลักสูตร
+- `cucumber_outputs/runtime/curriculum.db` — ฐานข้อมูลข้อเท็จจริงที่ระบบใช้ตอนรัน
+- `ground_truth/` — ใช้สำหรับทดสอบและประเมินผลเท่านั้น ไม่ใช่แหล่งข้อเท็จจริงของระบบ production
+- `ground_truth/GT_FIXED.md` — บันทึกประวัติการแก้ Ground Truth
+- `submission/` — เอกสาร submission รุ่นเก่าที่เก็บไว้เป็นหลักฐาน ไม่ใช่สถานะปัจจุบันของระบบ
 
-หาก canonical data เปลี่ยน ให้ rebuild runtime DB:
+ถ้าแก้ข้อมูลมาตรฐานของหลักสูตร ต้องสร้าง runtime DB ใหม่ด้วย:
 
 ```powershell
 python -m rag.build_index
 ```
 
-## Run the web app
+## วิธีเปิดเว็บ
 
 ต้องใช้ Python 3.10+ และ Node.js
 
-### Python
+### 1. เตรียม Python
 
 ```powershell
 python -m venv .venv
@@ -108,7 +110,7 @@ python -m pip install -r requirements.txt
 python -m pip install -r backend/requirements.txt
 ```
 
-สร้าง `.env` ที่ root:
+สร้างไฟล์ `.env` ที่ root ของโปรเจกต์:
 
 ```dotenv
 GEMINI_API_KEY=your_key_here
@@ -116,7 +118,7 @@ GEMINI_API_KEY=your_key_here
 
 ห้าม commit `.env` หรือ API key
 
-### Build frontend
+### 2. Build frontend
 
 ```powershell
 cd frontend
@@ -125,20 +127,20 @@ npm run build
 cd ..
 ```
 
-### Start semantic backend
+### 3. เปิด backend ในโหมด semantic
 
 ```powershell
 $env:CUCUMBER_QA_MODE = "semantic"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-หรือ:
+หรือใช้สคริปต์:
 
 ```powershell
 .\scripts\run_semantic.ps1
 ```
 
-เปิด:
+เปิดหน้าเว็บ:
 
 ```text
 http://127.0.0.1:8000/chat
@@ -146,7 +148,7 @@ http://127.0.0.1:8000/curriculum
 http://127.0.0.1:8000/api/health
 ```
 
-ก่อน demo ตรวจ health:
+ก่อนเดโมควรตรวจ `GET /api/health` ให้ได้:
 
 ```text
 status = ok
@@ -154,9 +156,9 @@ database_ready = true
 qa_mode = semantic
 ```
 
-> `rag/semantic/modes.py` ยังตั้ง default เป็น `legacy` เพื่อความปลอดภัย ดังนั้นการรัน production semantic ต้องตั้ง environment variable ให้ชัดเจน
+> `rag/semantic/modes.py` ยังตั้งค่าเริ่มต้นเป็น `legacy` เพื่อความปลอดภัย ดังนั้นถ้าต้องการรัน Semantic QA ต้องกำหนด `CUCUMBER_QA_MODE=semantic` ให้ชัดเจน
 
-### Frontend development mode
+### โหมดพัฒนา frontend
 
 ```powershell
 # backend: port 8000
@@ -166,9 +168,11 @@ npm run dev
 
 เปิด `http://127.0.0.1:5173`
 
-## API contract
+## รูปแบบ API
 
 ### `POST /api/ask`
+
+ตัวอย่าง request:
 
 ```json
 {
@@ -180,7 +184,7 @@ npm run dev
 }
 ```
 
-Response semantic path หลัก:
+ตัวอย่าง response จาก semantic path:
 
 ```json
 {
@@ -195,13 +199,15 @@ Response semantic path หลัก:
 }
 ```
 
-เทิร์นถัดไปควรส่ง `next_context` กลับมาเป็น `conversation_context` ระบบเก็บเฉพาะ bounded structural references เช่น program/catalog/plan/year/semester, focus course และ result identities ไม่ใช้ transcript หรือ cached answer prose เป็น factual authority
+ในคำถามถัดไปควรส่ง `next_context` จาก response ก่อนหน้ากลับมาเป็น `conversation_context`
 
-สถานะ non-answer ที่พบได้ เช่น:
+ระบบเก็บเฉพาะข้อมูลโครงสร้างที่จำเป็น เช่น หลักสูตร (`program`), ฉบับหลักสูตร (`catalog_key`), แผน (`plan`), ปี, เทอม, วิชาที่กำลังอ้างถึง และรายการวิชาจากผลลัพธ์ก่อนหน้า โดยไม่ใช้ข้อความคำตอบเก่าเป็นข้อเท็จจริงของเทิร์นใหม่
 
-- `clarification_required`
-- `insufficient_evidence`
-- `unsupported`
+สถานะที่อาจพบเมื่อระบบไม่สามารถตอบได้ทันที:
+
+- `clarification_required` — ต้องการข้อมูลจากผู้ใช้เพิ่ม
+- `insufficient_evidence` — หลักฐานไม่เพียงพอ
+- `unsupported` — รูปแบบคำถามยังไม่รองรับ
 
 ### Curriculum API
 
@@ -212,79 +218,90 @@ GET /api/courses/{course_code}?program=&catalog_key=
 GET /api/health
 ```
 
-## CLI
+## การใช้งานผ่านคำสั่ง CLI
+
+ถามหนึ่งคำถาม:
 
 ```powershell
 python scripts/ask.py "IT ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"
 ```
 
-หรือ interactive loop:
+หรือเปิดโหมดถามต่อเนื่อง:
 
 ```powershell
 python scripts/ask.py
 ```
 
-Web chat มี conversation context มากกว่า CLI loop
+Web chat รองรับบริบทการสนทนาได้มากกว่า CLI loop
 
-## Data pipeline
+## กระบวนการเตรียมข้อมูล
 
 ```text
-OCR → Extract → Merge → Correct → Evaluate → Build Index
+OCR → ดึงข้อมูล → รวมข้อมูล → ตรวจแก้ → ประเมินผล → สร้างดัชนีและฐานข้อมูล
 ```
+
+ตัวอย่างคำสั่ง:
 
 ```powershell
 python -m src.pipeline.run --program it --dry-run
 python -m src.pipeline.run --program it --with-index
 ```
 
-รายละเอียด: `src/pipeline/README.md`
+รายละเอียดเพิ่มเติม: `src/pipeline/README.md`
 
-## Testing
+## การทดสอบ
 
-Full Python suite:
+รันชุดทดสอบ Python ทั้งหมด:
 
 ```powershell
 python -m unittest discover -s tests -t .
 ```
 
-ล่าสุดในรอบ G5-C provider-isolated full discovery รัน **2,804 tests, 0 failures, 0 errors, 3 skipped** ก่อน closeout; focused sequence และ semantic regressions ผ่านหลังแก้ retained-result ordering ด้วย
+สถานะล่าสุดก่อนปิดการพัฒนา G5-C:
 
-ผล data-quality report ของ canonical GT-backed scopes อยู่ใน `reports/README.md` ตัวเลข 100% ที่รายงานที่นั่นหมายถึง **record coverage** ไม่ใช่ทุก field มี character accuracy 100%
+- ชุดทดสอบแบบไม่เรียก provider ภายนอก รันทั้งหมด **2,804 tests**
+- **0 failures**, **0 errors**, **3 skipped**
+- ชุดทดสอบ placement sequence ผ่าน **35/35**
+- ชุด semantic regression ที่เกี่ยวข้องหลังแก้ลำดับ `result_courses` ผ่าน **140/140**
 
-`eval/results/*.md` และ dated hardening reports เป็น historical snapshots ของแต่ละรอบ ไม่ควรถูกใช้แทนสถานะ implementation ปัจจุบัน
+ผลประเมินคุณภาพข้อมูลของชุดที่มี Ground Truth อยู่ใน `reports/README.md`
 
-## Important fail-closed boundaries
+ตัวเลข 100% ที่รายงานในส่วนนั้นหมายถึง **ความครบถ้วนของจำนวน record** ไม่ได้หมายความว่าทุกข้อความหรือทุก field ถูกต้องระดับตัวอักษร 100%
 
-- ไม่ยืนยัน future course offering เพราะ runtime ไม่มี authority ว่าวิชาจะเปิดจริงในอนาคต
-- ไม่สร้าง English Exit threshold ที่ source ไม่มี
-- ไม่ฟันธง personal eligibility ถ้าไม่มีเกณฑ์ authoritative ครบ
-- ไม่รวมข้อมูลข้าม `catalog_key` เพื่อทำให้คำตอบสำเร็จ
-- explicit multi-course request ต้อง resolve สมาชิกครบทั้งหมด มิฉะนั้น fail closed
-- placement sequence ไม่สร้าง dependency จาก chronological order
-- ambiguous multi-placement sequence / same-term tie ที่ให้ลำดับเดียวไม่ได้จะ fail closed
-- topic discovery + unsupported combined constraints จะไม่ถูกลดเหลือคำถามที่ง่ายกว่า
-- ordinal/follow-up ที่ resolve referent อย่างปลอดภัยไม่ได้จะไม่ย้อนใช้ referent เก่าแบบเงียบ ๆ
-- LLM output ไม่เป็น factual authority ไม่ว่ากรณีใด
+ไฟล์ใน `eval/results/*.md` และรายงาน hardening ที่มีวันที่ เป็น **ผลการทดสอบย้อนหลังของแต่ละช่วงเวลา** ไม่ควรใช้แทนสถานะ implementation ปัจจุบันโดยตรง
 
-## Documentation map
+## ข้อจำกัดที่ระบบตั้งใจไม่เดาคำตอบ
 
-เริ่มจาก `docs/README.md` ซึ่งแยก active documentation ออกจาก historical snapshots ไว้แล้ว
+- ไม่ยืนยันว่ารายวิชาจะเปิดสอนจริงในอนาคต เพราะ runtime ไม่มีข้อมูลการเปิดสอนจริงของภาคเรียนอนาคต
+- ไม่สร้างคะแนนผ่าน English Exit ขึ้นเอง ถ้าแหล่งข้อมูลไม่มีระบุ
+- ไม่ตัดสินสิทธิ์ส่วนบุคคล เช่น “GPA เท่านี้ลงสหกิจได้ไหม” ถ้ายังไม่มีเกณฑ์ทางการครบ
+- ไม่รวมข้อมูลข้าม `catalog_key` เพื่อบังคับให้คำถามตอบได้
+- ถ้าผู้ใช้ระบุหลายวิชา ระบบต้องระบุและตรวจได้ครบทุกวิชา มิฉะนั้นจะหยุดแทนการตัดบางวิชาออก
+- การเรียงลำดับวิชาตามปี/เทอมไม่ถือว่าเป็นหลักฐานว่าวิชาก่อนหน้าคือวิชาบังคับก่อน
+- ถ้าหลายวิชาอยู่เทอมเดียวกันหรือมีช่วงปี/เทอมที่ซ้อนกันจนเรียงลำดับเดียวไม่ได้ ระบบจะไม่สร้างลำดับขึ้นเอง
+- ถ้าคำถามรวมเงื่อนไขหลายแบบที่ระบบยังไม่รองรับ ระบบจะไม่ตัดเงื่อนไขที่ยากทิ้งแล้วตอบเฉพาะส่วนที่ง่ายกว่า
+- ถ้าคำถามต่อเนื่องอ้างถึง “วิชาที่ 2” หรือผลลัพธ์ก่อนหน้า แต่ระบบระบุไม่ได้อย่างปลอดภัย จะไม่ย้อนกลับไปเลือกวิชาเก่าแบบเงียบ ๆ
+- ข้อความจาก LLM ไม่ถือเป็นข้อเท็จจริงของระบบโดยตรง
 
-Active docs หลัก:
+## เอกสารที่เกี่ยวข้อง
 
-- `README.md` — overview / setup / API / current capability
-- `docs/semantic-qa-vnext.md` — Semantic QA architecture ปัจจุบัน
-- `rag/README.md` — implementation map ของ QA/RAG
-- `src/pipeline/README.md` — data pipeline
-- `docs/academic_rules.md` — policy subsystem
-- `reports/README.md` — evaluation/data-quality reports
-- `ground_truth/GT_FIXED.md` — GT correction audit log
+เริ่มจาก `docs/README.md` ซึ่งแบ่งเอกสารปัจจุบันออกจากรายงานย้อนหลังไว้แล้ว
 
-Week 11 artifacts:
+เอกสารหลัก:
+
+- `README.md` — ภาพรวมระบบ วิธีติดตั้ง วิธีรัน API และความสามารถปัจจุบัน
+- `docs/semantic-qa-vnext.md` — สถาปัตยกรรมของ Semantic QA
+- `rag/README.md` — โครงสร้างการทำงานของ QA/RAG
+- `src/pipeline/README.md` — กระบวนการ OCR จนถึงฐานข้อมูล
+- `docs/academic_rules.md` — ระบบกฎและข้อกำหนดของสถาบัน
+- `reports/README.md` — วิธีอ่านผลประเมินคุณภาพข้อมูลและรายงานต่าง ๆ
+- `ground_truth/GT_FIXED.md` — ประวัติการแก้ Ground Truth
+
+ไฟล์จาก Week 11:
 
 - `docs/wireframes/chat-wireframe.svg`
 - `docs/wireframes/curriculum-wireframe.svg`
 - `docs/wireframes/user-flow.svg`
 - `frontend/`
 
-`submission/` ถูกเก็บแบบ frozen และไม่ได้ rewrite ในการจัดเอกสารรอบนี้
+`submission/` เป็น submission รุ่นเก่าที่เก็บไว้เป็นประวัติ และไม่ได้ถูกแก้ในการปรับเอกสารรอบนี้
