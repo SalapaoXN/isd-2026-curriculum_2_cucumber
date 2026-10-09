@@ -267,6 +267,16 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         problem = mixed_scope_contract_problem(intent)
         if problem is not None:
             return problem
+        # Guard operation completeness only; do not invent timing, identity,
+        # or evidence from language. Ordinary prerequisite lookups are excluded.
+        text = question.casefold()
+        prerequisite_request = intent.relation == "prerequisite" or "prerequisites" in intent.requested_fields
+        prior_term_request = (
+            any(cue in text for cue in ("term", "semester", "เทอม", "ภาค"))
+            and any(cue in text for cue in ("previous", "preceding", "prior", "ก่อนหน้า", "เทอมก่อน", "ภาคก่อน"))
+        )
+        if prerequisite_request and prior_term_request and not {"placement", "prerequisite_placement"}.issubset(intent.requested_fields):
+            return "mixed-scope prerequisite planning requires target and direct-prerequisite placement"
     elif task == "lookup" and intent.subject == "course" and intent.aggregation is not None:
         return "course lookup plus aggregate requires explicit mixed-scope composition"
     elif "prerequisite_placement" in intent.requested_fields:
@@ -359,6 +369,11 @@ def mixed_scope_contract_problem(intent: SemanticIntent) -> str | None:
         or not intent.requested_fields or any(field not in fields for field in intent.requested_fields)
     ):
         return "mixed-scope course request missing or unsupported"
+    if "prerequisite_placement" in intent.requested_fields and (
+        "placement" not in intent.requested_fields
+        or (intent.relation != "prerequisite" and "prerequisites" not in intent.requested_fields)
+    ):
+        return "mixed-scope prerequisite planning requires target placement and prerequisite identity"
     aggregation = intent.aggregation
     if (
         aggregation is None or aggregation.function != "sum"
