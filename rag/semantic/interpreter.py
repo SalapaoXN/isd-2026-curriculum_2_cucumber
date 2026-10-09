@@ -31,6 +31,7 @@ from rag.semantic.schema import (
     MAX_ORDINAL,
     MAX_TEXT_LEN,
     MEASURES,
+    COMPARISON_MEASURES,
     POLICY_TOPICS,
     RANK_DIRECTIONS,
     RELATIONS,
@@ -155,7 +156,7 @@ def semantic_intent_json_schema() -> dict[str, Any]:
             **_object_schema(operand_properties),
             "minProperties": 1,
         },
-        "measure": enum_schema(MEASURES),
+        "measure": enum_schema(COMPARISON_MEASURES),
         "operation": _nullable(enum_schema(COMPARISON_OPERATIONS)),
     }
     filter_value = {
@@ -512,7 +513,7 @@ def _parse_comparison(data: Any) -> ComparisonSpec | None:
     if not isinstance(data, dict) or set(data) != _COMPARISON_FIELDS:
         raise SemanticSchemaError("comparison has an invalid schema")
     measure = data["measure"]
-    if measure not in MEASURES:
+    if measure not in COMPARISON_MEASURES:
         raise SemanticSchemaError(f"unknown comparison measure: {measure!r}")
     operation = data["operation"]
     if operation is not None and operation not in COMPARISON_OPERATIONS:

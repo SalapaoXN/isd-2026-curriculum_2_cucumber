@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from rag.semantic.schema import ResolvedIntent, REQUESTED_FIELDS
-from rag.semantic.validation import mixed_scope_contract_problem
+from rag.semantic.validation import mixed_scope_contract_problem, plan_placement_contract_problem
 
 EXECUTION_DETERMINISTIC = "deterministic"
 EXECUTION_SQL = "sql"
@@ -114,6 +114,22 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
         return SemanticPlan(EXECUTION_UNSUPPORTED, "placement_sequence execution is unsupported until G5-C")
     if any(item not in REQUESTED_FIELDS for item in intent.requested_fields):
         return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported requested field")
+    if intent.task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement":
+        problem = plan_placement_contract_problem(intent)
+        members = resolved.target.members if resolved.target.kind == "literal_set" else (resolved.target,)
+        sides = resolved.comparison_sides
+        if (
+            problem or not resolved.scope.program or not resolved.scope.catalog_key or not members
+            or any(not member.course_code or (member.program, member.catalog_key) !=
+                   (resolved.scope.program, resolved.scope.catalog_key) for member in members)
+            or len(sides) != 2 or any(side.unresolved or not side.scope.plan
+                   or side.target.kind != "none" or side.scope.years or side.scope.semesters
+                   or (side.scope.program, side.scope.catalog_key) !=
+                      (resolved.scope.program, resolved.scope.catalog_key) for side in sides)
+            or (len(sides) == 2 and sides[0].scope.plan == sides[1].scope.plan)
+        ):
+            return SemanticPlan(EXECUTION_UNSUPPORTED, problem or "incomplete or incompatible plan-placement matrix scope")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "complete canonical course by plan placement matrix")
     if intent.task == "compose":
         problem = mixed_scope_contract_problem(intent)
         missing = missing_mixed_scope(resolved)

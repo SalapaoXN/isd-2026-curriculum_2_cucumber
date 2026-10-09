@@ -987,6 +987,25 @@ def render_verified_mixed_scope(verified: VerifiedResult) -> str:
     return "\n".join("- " + fact for part in verified.scoped_results for fact in part.summary_facts)
 
 
+def render_verified_plan_placement(verified: VerifiedResult) -> str:
+    """Render the entire typed matrix before each evidence-derived verdict."""
+    lines = []
+    comparison = verified.placement_comparison
+    if comparison is None:
+        return ""
+    for cell in comparison.cells:
+        label = " ".join(value for value in (cell.course_code, cell.course_name) if value)
+        terms = " | ".join(f"ชั้นปีที่ {year} ภาคการศึกษาที่ {semester}" for year, semester in cell.placements)
+        lines.append(f"{label}: แผน{_plan_display(cell.scope.plan)} ({cell.scope.program}, {cell.scope.catalog_key}): {terms}")
+    for conclusion in comparison.conclusions:
+        terms = "; ".join(f"แผน{_plan_display(plan)} เร็วที่สุด: ชั้นปีที่ {term[0]} ภาคการศึกษาที่ {term[1]}"
+                          for plan, term in zip(conclusion.plans, conclusion.earliest))
+        verdict = "เร็วที่สุดเท่ากัน" if conclusion.tie else f"แผน{_plan_display(conclusion.earlier_plan)} เรียนได้เร็วกว่า"
+        lines.append(f"{conclusion.course_code}: {terms}; {verdict}")
+    return render_verified_course_set(VerifiedResult(summary_facts=tuple(lines),
+                                                     alternative_selections=verified.alternative_selections))
+
+
 def render_verified_course_set(verified: VerifiedResult) -> str:
     """Complete member-local facts and typed group cardinality, without a model."""
     lines = list(verified.summary_facts)
@@ -1070,6 +1089,8 @@ def render_semantic_answer(
     """
     if verified.status != "answer" or not verified.summary_facts:
         return "", "deterministic"
+    if verified.placement_comparison is not None:
+        return render_verified_plan_placement(verified), "deterministic"
     if verified.scoped_results:
         return render_verified_mixed_scope(verified), "deterministic"
     if verified.explicit_course_set:

@@ -41,6 +41,7 @@ from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
 from rag.semantic.compiler import (
     compile_resolved_intent_to_query_spec,
     compile_mixed_scope_requests,
+    compile_plan_placement_requests,
     CompiledScopedRequest,
     synthesize_canonical_utterance,
 )
@@ -54,6 +55,9 @@ from rag.semantic.schema import (
     VerifiedNumericComparisonSide,
     VerifiedResult,
     VerifiedScopedResult,
+    VerifiedPlacementCell,
+    VerifiedPlacementComparison,
+    VerifiedEarliestPlacement,
 )
 from rag.semantic.resolver import _connect_ro, _course_reference_candidates
 from rag.structured.queries import scoped_course_set, _provenance_for
@@ -1396,9 +1400,127 @@ def _hydrated_provenance(
     return tuple(dict(ref) for ref in hydration.provenance)
 
 
+def _comparable_placement_choices(row: Mapping) -> tuple[tuple[int, int], ...]:
+    """Never silently drop a malformed choice while selecting a minimum."""
+    def valid(term):
+        return (isinstance(term, (tuple, list)) and len(term) == 2
+                and type(term[0]) is int and 1 <= term[0] <= 5
+                and type(term[1]) is int and 1 <= term[1] <= 2)
+    choices = row.get("year_semester_choices")
+    fixed = (row.get("year_number"), row.get("semester_number"))
+    if fixed != (None, None) and not valid(fixed):
+        raise ValueError("malformed fixed placement")
+    if choices is None:
+        choices = (fixed,) if valid(fixed) else ()
+    if not isinstance(choices, (tuple, list)) or not choices or any(not valid(term) for term in choices):
+        raise ValueError("missing or non-comparable canonical placement choices")
+    terms = tuple(sorted({tuple(term) for term in choices}))
+    if valid(fixed) and fixed not in terms:
+        raise ValueError("conflicting fixed and flexible placement")
+    return terms
+
+
+def execute_plan_placement_comparison(db_path: str | Path, resolved: ResolvedIntent) -> VerifiedResult:
+    """Atomic nonnumeric comparison using existing singleton placement evidence."""
+    try:
+        requests = compile_plan_placement_requests(resolved, "")
+        members = resolved.target.members if resolved.target.kind == "literal_set" else (resolved.target,)
+        by_code = {member.course_code: member for member in members}
+        connection = _connect_ro(db_path)
+        try:
+            catalog = connection.execute("SELECT catalog_id FROM catalogs WHERE catalog_key = ?",
+                                         (resolved.scope.catalog_key,)).fetchone()
+        finally:
+            connection.close()
+        if catalog is None:
+            raise ValueError("placement catalog unavailable")
+        cells, claims, references = [], [], []
+        for request in requests:
+            scope = request.scope
+            result = execute_deterministic(db_path, request.spec, QueryContext(
+                program=scope.program, catalog_key=scope.catalog_key, plan=scope.plan), "")
+            if (result.status != "answer" or len(result.claims) != 1
+                    or result.claims[0].operation != "placement" or result.claims[0].status != "complete"
+                    or not _complete_source_references(result.provenance)):
+                raise ValueError("incomplete course-plan placement evidence")
+            claim = result.claims[0]
+            effective = claim.effective_scope
+            if (effective is None or effective.program != scope.program
+                    or effective.catalog_key != scope.catalog_key or effective.plans != (scope.plan,)
+                    or len(effective.course_targets) != 1
+                    or effective.course_targets[0].get("course_code") != request.course_code):
+                raise ValueError("placement claim has incompatible course-plan scope")
+            rows = claim.value
+            if not isinstance(rows, (tuple, list)) or not rows:
+                raise ValueError("course-plan cell missing")
+            placements, sources = set(), []
+            for row in rows:
+                if (not isinstance(row, Mapping) or row.get("program") != scope.program
+                        or row.get("catalog_id") != catalog["catalog_id"] or row.get("plan_key") != scope.plan
+                        or not _complete_source_references(row.get("provenance"))):
+                    raise ValueError("out-of-scope placement row or missing sources")
+                codes = {row.get("course_code")}
+                if row.get("is_alternative"):
+                    alternatives = row.get("alternative_courses", ())
+                    if not alternatives or any(member.get("catalog_id") != catalog["catalog_id"]
+                                               for member in alternatives):
+                        raise ValueError("alternative placement member scope missing")
+                    codes = {member.get("course_code") for member in alternatives}
+                if request.course_code not in codes:
+                    raise ValueError("placement evidence belongs to another member")
+                placements.update(_comparable_placement_choices(row))
+                for ref in row["provenance"]:
+                    if ref not in sources:
+                        sources.append(ref)
+            member = by_code[request.course_code]
+            cells.append(VerifiedPlacementCell(request.course_code, member.course_name, scope,
+                                               tuple(sorted(placements)), tuple(sources)))
+            claims.append(claim)
+            for ref in result.provenance:
+                if ref not in references:
+                    references.append(ref)
+        # Derivation starts only after ALL cells have passed evidence verification.
+        conclusions = []
+        if resolved.intent.comparison.operation == "earliest_placement":
+            for index in range(0, len(cells), 2):
+                left, right = cells[index:index + 2]
+                earliest = (min(left.placements), min(right.placements))
+                tie = earliest[0] == earliest[1]
+                earlier = None if tie else left.scope.plan if earliest[0] < earliest[1] else right.scope.plan
+                conclusions.append(VerifiedEarliestPlacement(left.course_code,
+                    (left.scope.plan, right.scope.plan), earliest, earlier, tie))
+        selections = []
+        if "alternative_selection" in resolved.intent.requested_fields:
+            for side in resolved.comparison_sides:
+                selection = _verify_alternative_selection(db_path, replace(resolved, scope=side.scope))
+                selections.append(selection)
+                for ref in selection.provenance:
+                    if ref not in references:
+                        references.append(ref)
+        verified = VerifiedResult(status="answer", claims=tuple(claims), provenance=tuple(references),
+            placement_comparison=VerifiedPlacementComparison(tuple(cells), tuple(conclusions)),
+            alternative_selections=tuple(selections),
+            result_courses=tuple({"course_code": member.course_code, "program": member.program,
+                                  "catalog_key": member.catalog_key} for member in members),
+            result_scope_program=resolved.scope.program)
+        from rag.semantic.answerer import render_verified_plan_placement, MAX_ANSWER_LEN
+        answer = render_verified_plan_placement(verified)
+        if len(answer) > MAX_ANSWER_LEN:
+            return VerifiedResult(status="unsupported", missing_information=("placement matrix exceeds presentation bound",),
+                                  failure_category="EXPECTED_SAFE_FAILURE")
+        return replace(verified, summary_facts=tuple(answer.splitlines()))
+    except Exception as error:
+        if is_provider_error(error):
+            raise SemanticOperationalError("provider_unavailable") from None
+        return VerifiedResult(status="missing_data", missing_information=("plan-placement evidence: " + str(error),),
+                              failure_category="EXPECTED_SAFE_FAILURE")
+
+
 def execute_comparison(db_path: str | Path, resolved: ResolvedIntent) -> VerifiedResult:
     """Execute verified numeric/set comparison with per-side provenance."""
     comparison = resolved.intent.comparison
+    if comparison is not None and comparison.measure == "placement":
+        return execute_plan_placement_comparison(db_path, resolved)
     if comparison is None or comparison.operation not in {
         "greater", "less", "equal", "difference", "set_difference", "overlap",
     }:

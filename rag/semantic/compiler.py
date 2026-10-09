@@ -94,6 +94,8 @@ def compile_resolved_intent_to_query_spec(
     target = resolved.target
     if intent.task == "compose" or (intent.task == "lookup" and intent.subject == "course" and intent.aggregation is not None):
         raise ValueError("mixed-scope composition requires separate scoped execution requests")
+    if intent.task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement":
+        raise ValueError("plan-placement comparison requires separate matrix requests")
     if "placement_sequence" in intent.requested_fields:
         raise ValueError("placement_sequence execution is unsupported until G5-C")
     category = next(
@@ -156,6 +158,25 @@ class CompiledScopedRequest:
     scope: ResolvedScope
     spec: QuerySpec
     course_code: str | None = None
+
+
+def compile_plan_placement_requests(resolved: ResolvedIntent, question: str) -> tuple[CompiledScopedRequest, ...]:
+    """Each canonical course × plan cell is a singleton placement request."""
+    from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+    if (resolved.intent.comparison is None or resolved.intent.comparison.measure != "placement"
+            or plan_semantic_query(resolved).execution != EXECUTION_DETERMINISTIC):
+        raise ValueError("unsupported or unresolved plan-placement matrix")
+    members = resolved.target.members if resolved.target.kind == "literal_set" else (resolved.target,)
+    requests = []
+    for member in members:
+        for side in resolved.comparison_sides:
+            cell = replace(resolved, scope=side.scope, target=member, intent=replace(
+                resolved.intent, task="lookup", relation="placement", comparison=None,
+                requested_fields=("placement",),
+            ))
+            requests.append(CompiledScopedRequest("course_plan", side.scope,
+                            compile_resolved_intent_to_query_spec(cell, question), member.course_code))
+    return tuple(requests)
 
 
 def compile_mixed_scope_requests(

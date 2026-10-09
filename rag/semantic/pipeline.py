@@ -236,6 +236,9 @@ def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
            if intent.task == "compose" and intent.aggregation is not None else {}),
         "has_ranking": intent.ranking is not None,
         "has_comparison": intent.comparison is not None,
+        **({"comparison": {"left": dict(intent.comparison.left), "right": dict(intent.comparison.right),
+                           "measure": intent.comparison.measure, "operation": intent.comparison.operation}}
+           if intent.comparison is not None else {}),
         "requested_fields": list(intent.requested_fields),
         "clarification": intent.clarification,
         "policy_topic": intent.policy_topic,
@@ -784,8 +787,8 @@ def _run_semantic_answer(
                 side,
                 resolved.scope.program,
                 resolved.scope.catalog_key,
-                default_years=resolved.scope.years,
-                default_semesters=resolved.scope.semesters,
+                default_years=() if resolved.intent.comparison.measure == "placement" else resolved.scope.years,
+                default_semesters=() if resolved.intent.comparison.measure == "placement" else resolved.scope.semesters,
             )
             for side in (
                 resolved.intent.comparison.left,
@@ -923,7 +926,9 @@ def _run_semantic_answer(
         **({"alternative_selection_count": len(verified.alternative_selections)}
            if verified.explicit_course_set else {}),
         **({"scope_kinds": [part.scope_kind for part in verified.scoped_results]}
-           if verified.scoped_results else {}),
+            if verified.scoped_results else {}),
+        **({"placement_cell_count": len(verified.placement_comparison.cells)}
+           if verified.placement_comparison is not None else {}),
     }
     if verified.status != "answer":
         trace.timing = timing

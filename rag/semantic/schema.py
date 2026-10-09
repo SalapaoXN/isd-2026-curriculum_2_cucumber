@@ -98,6 +98,7 @@ FILTER_OPERATORS = frozenset(
 AGGREGATION_FUNCTIONS = frozenset({"count", "sum", "average", "minimum", "maximum"})
 
 MEASURES = frozenset({"course_count", "credits", "prerequisite_count"})
+COMPARISON_MEASURES = MEASURES | {"placement"}
 
 GROUP_DIMENSIONS = frozenset({"year", "semester", "plan", "program", "category"})
 
@@ -111,6 +112,7 @@ COMPARISON_OPERATIONS = frozenset(
         "difference",
         "set_difference",
         "overlap",
+        "earliest_placement",
     }
 )
 
@@ -307,6 +309,7 @@ class RankingSpec:
 
 @dataclass(frozen=True, slots=True)
 class ComparisonSpec:
+    """Placement compares root course targets across left/right plan operands."""
     left: tuple[tuple[str, Any], ...] = ()
     right: tuple[tuple[str, Any], ...] = ()
     measure: str = "credits"
@@ -396,6 +399,31 @@ class VerifiedResult:
     alternative_selections: tuple[VerifiedAlternativeSelection, ...] = ()
     explicit_course_set: bool = False
     scoped_results: tuple[VerifiedScopedResult, ...] = ()
+    placement_comparison: VerifiedPlacementComparison | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedPlacementCell:
+    course_code: str
+    course_name: str | None
+    scope: ResolvedScope
+    placements: tuple[tuple[int, int], ...]
+    provenance: tuple[Any, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedEarliestPlacement:
+    course_code: str
+    plans: tuple[str, str]
+    earliest: tuple[tuple[int, int], tuple[int, int]]
+    earlier_plan: str | None
+    tie: bool
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedPlacementComparison:
+    cells: tuple[VerifiedPlacementCell, ...]
+    conclusions: tuple[VerifiedEarliestPlacement, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -452,6 +480,7 @@ __all__ = [
     "AGGREGATION_FUNCTIONS",
     "COMPARISON_OPERAND_KEYS",
     "COMPARISON_OPERATIONS",
+    "COMPARISON_MEASURES",
     "FAILURE_CATEGORIES",
     "FILTER_FIELDS",
     "FILTER_OPERATORS",
@@ -488,6 +517,9 @@ __all__ = [
     "VerifiedAlternativeSelection",
     "VerifiedResult",
     "VerifiedScopedResult",
+    "VerifiedPlacementCell",
+    "VerifiedEarliestPlacement",
+    "VerifiedPlacementComparison",
     "VerifiedNumericComparison",
     "VerifiedNumericComparisonSide",
 ]

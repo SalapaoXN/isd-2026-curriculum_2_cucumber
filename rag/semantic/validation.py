@@ -25,6 +25,7 @@ from rag.query_spec import (
     _extract_category,
     _extract_topic,
     canonical_plan_meanings,
+    _extract_plans,
 )
 
 _SUPPORTED_FILTER_SHAPES = frozenset(
@@ -270,7 +271,12 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         return "course lookup plus aggregate requires explicit mixed-scope composition"
     elif "prerequisite_placement" in intent.requested_fields:
         return "prerequisite_placement requires mixed-scope composition"
-    if intent.target.kind == "literal_set" and (
+    placement_comparison = task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement"
+    if placement_comparison:
+        problem = plan_placement_contract_problem(intent, question)
+        if problem:
+            return problem
+    if intent.target.kind == "literal_set" and not placement_comparison and (
         task != "lookup" or intent.subject != "course" or intent.filters
         or intent.comparison is not None or intent.aggregation is not None or intent.ranking is not None
     ):
@@ -291,13 +297,15 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
         return "compare requires a comparison specification"
     if task == "compare" and intent.comparison is not None:
         comparison = intent.comparison
-        if comparison.operation not in COMPARISON_OPERATIONS:
+        if not placement_comparison and comparison.operation not in COMPARISON_OPERATIONS:
             return "compare requires an explicit comparison operation"
         if comparison.operation in {"set_difference", "overlap"}:
             if intent.comparison.measure != "course_count":
                 return "set comparison requires the course_count measure"
-        elif intent.comparison.measure != "credits":
+        elif not placement_comparison and intent.comparison.measure != "credits":
             return "numeric comparison requires the credits measure"
+        if not placement_comparison and comparison.operation == "earliest_placement":
+            return "earliest_placement requires placement measure"
         for side_label, side in (
             ("left", comparison.left),
             ("right", comparison.right),
@@ -357,6 +365,45 @@ def mixed_scope_contract_problem(intent: SemanticIntent) -> str | None:
         or aggregation.measure != "credits" or aggregation.group_by
     ):
         return "mixed-scope term request requires an ungrouped sum of credits"
+    return None
+
+
+def plan_placement_contract_problem(intent: SemanticIntent, question: str | None = None) -> str | None:
+    """Closed nonnumeric variant; plans are sides, explicit courses are subject."""
+    comparison = intent.comparison
+    if (
+        intent.task != "compare" or intent.subject != "course" or comparison is None
+        or comparison.measure != "placement" or comparison.operation not in {None, "earliest_placement"}
+        or intent.target.kind not in {"literal", "literal_set"}
+        or intent.relation not in {None, "placement"}
+        or intent.filters or intent.aggregation is not None or intent.ranking is not None
+        or intent.policy_topic is not None or intent.observed_value is not None
+        or intent.scope.plan is not None or intent.scope.plan_hint is not None
+        or intent.scope.year is not None or intent.scope.semester is not None
+        or "placement" not in intent.requested_fields
+        or any(field not in {"code", "name", "placement", "alternative_selection"} for field in intent.requested_fields)
+    ):
+        return "unsupported plan-placement comparison shape"
+    raw_plans = []
+    for side in (comparison.left, comparison.right):
+        fields = dict(side)
+        if not fields.get("plan") or set(fields) - {"plan", "plan_hint", "program", "catalog"}:
+            return "plan-placement operands require plans only, not course or term targets"
+        raw_plans.append(fields["plan"])
+    if raw_plans[0].casefold() == raw_plans[1].casefold():
+        return "plan-placement operands must be distinct"
+    if question is not None:
+        # Cue guards validate the requested property, never interpret identities
+        # or compute a conclusion. Plan inventory reuses existing G3B authority.
+        text = question.casefold()
+        if not any(cue in text for cue in ("placement", "semester", "year", "when", "earlier", "earliest", "เทอม", "ภาค", "ปี", "เร็ว")):
+            return "placement comparison is not grounded in the question"
+        earlier = any(cue in text for cue in ("earlier", "earliest", "sooner", "เร็วกว่า", "เร็วที่สุด", "ก่อนกว่า"))
+        if earlier != (comparison.operation == "earliest_placement"):
+            return "earliest-placement request must be preserved and grounded"
+        represented = {meaning for raw in raw_plans for meaning in canonical_plan_meanings(raw)}
+        if set(_extract_plans(question)) - represented:
+            return "explicit comparison plan omitted"
     return None
 
 
