@@ -1,9 +1,10 @@
-"""Build the shared unified curriculum database from consolidated JSON files."""
+"""Build the shared unified curriculum database from reviewed final JSON files."""
 
 from __future__ import annotations
 
 import argparse
 import glob
+import json
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 
@@ -30,12 +31,65 @@ def _expand_input_paths(values: Iterable[str | Path]) -> list[Path]:
     return paths
 
 
+def _artifact_identity(path: Path) -> tuple[str, str, str | None] | None:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(document, dict):
+        return None
+    program = str(document.get("program", "")).strip().upper()
+    plan_value = document.get("plan")
+    plan = "" if plan_value in (None, "") else str(plan_value).strip().casefold()
+    catalog = document.get("catalog")
+    catalog_key = catalog.get("catalog_key") if isinstance(catalog, dict) else None
+    if not program:
+        return None
+    return program, plan, catalog_key if isinstance(catalog_key, str) else None
+
+
 def _default_sources() -> list[Path]:
-    """Clean-layout final output first, original layout as fallback."""
-    preferred = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
-    if preferred:
-        return preferred
-    return llm_source_paths()
+    """Prefer the readable dataset layout while supporting unmigrated flat artifacts.
+
+    New pipeline output:
+        data/output/final/<dataset>/curriculum_<plan>.json
+
+    Older flat ``*_corrected.json`` files are still included for datasets that
+    have not been regenerated yet. If a new structured artifact covers the
+    same catalog identity (or the same unscoped program/plan), it wins.
+    """
+    structured = sorted(_CLEAN_FINAL_DIR.glob("*/curriculum_*.json"))
+    legacy = sorted(_CLEAN_FINAL_DIR.glob("*_corrected.json"))
+
+    if not structured:
+        if legacy:
+            return legacy
+        return llm_source_paths()
+
+    structured_identities = {
+        identity
+        for path in structured
+        if (identity := _artifact_identity(path)) is not None
+    }
+    structured_program_plans = {(program, plan) for program, plan, _ in structured_identities}
+
+    kept_legacy: list[Path] = []
+    for path in legacy:
+        identity = _artifact_identity(path)
+        if identity is None:
+            kept_legacy.append(path)
+            continue
+        program, plan, catalog_key = identity
+        if identity in structured_identities:
+            continue
+        # Old current-edition artifacts often predate catalog metadata. Once a
+        # year-labelled structured artifact exists for that program/plan, do
+        # not load the unscoped duplicate as a second curriculum edition.
+        if catalog_key is None and (program, plan) in structured_program_plans:
+            continue
+        kept_legacy.append(path)
+
+    return sorted(structured + kept_legacy, key=lambda path: path.as_posix().casefold())
 
 
 def _default_supplemental_sources() -> dict[str, Path]:
@@ -74,7 +128,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "input_json_paths",
         nargs="*",
-        help="curriculum JSON files (defaults to reviewed data/output/final corrected files)",
+        help="curriculum JSON files (defaults to reviewed data/output/final artifacts)",
     )
     args = parser.parse_args(argv)
     input_paths = _expand_input_paths(args.input_json_paths)
