@@ -68,7 +68,7 @@ Semantic QA ปัจจุบันรองรับงานหลักด�
 ## แหล่งข้อมูลหลักของระบบ
 
 ```text
-data/output/final/*_corrected.json
+data/output/final/*_final.json
         +
 data/output/final/institution_policy.json
         +
@@ -83,7 +83,7 @@ Semantic QA / API / Web UI
 
 บทบาทของไฟล์สำคัญ:
 
-- `*_corrected.json` — ข้อมูลหลักสูตรที่ผ่านการตรวจแก้และใช้เป็นข้อมูลมาตรฐาน
+- `*_final.json` — ข้อมูลหลักสูตรที่ผ่านการตรวจแก้และใช้เป็นข้อมูลมาตรฐาน
 - `institution_policy.json` — ข้อมูลกฎและข้อกำหนดของสถาบันในรูปแบบที่ระบบใช้งานได้
 - `program_requirements.json` — ข้อมูลข้อกำหนดและหน่วยกิตรวมของแต่ละฉบับหลักสูตร
 - `cucumber_outputs/runtime/curriculum.db` — ฐานข้อมูลข้อเท็จจริงที่ระบบใช้ตอนรัน
@@ -243,8 +243,8 @@ OCR → ดึงข้อมูล → รวมข้อมูล → ตร�
 ตัวอย่างคำสั่ง:
 
 ```powershell
-python -m src.pipeline.run --program it --dry-run
-python -m src.pipeline.run --program it --with-index
+python -m src.pipeline.run --dataset it2565 --dry-run
+python -m src.pipeline.run --dataset it2565 --with-index
 ```
 
 รายละเอียดเพิ่มเติม: `src/pipeline/README.md`
