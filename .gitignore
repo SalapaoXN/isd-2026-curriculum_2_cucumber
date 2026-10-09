@@ -17,7 +17,6 @@ outputs/*
 prototype_outputs/*
 example/*
 work/*
-data/input/*
 data/output/ocr/*
 data/output/extracted/*
 data/output/consolidated/*
