@@ -1,279 +1,270 @@
 # src/pipeline — Data Pipeline
 
-ส่วนนี้แปลงภาพหลักสูตรให้เป็น canonical data ที่ใช้สร้าง runtime database
+ส่วนนี้แปลงภาพหลักสูตรเป็น canonical curriculum data สำหรับสร้าง runtime database
 
-## Flow
+## คำสั่งหลัก
 
-```text
-OCR
-→ Extract
-→ Merge
-→ Correct
-→ Evaluate
-→ Build Index
-```
-
-entry point:
+ผู้ใช้เลือกเพียง **dataset** เดียว ระบบจะรู้เองว่าเป็นหลักสูตรอะไร ปีไหน แผนสหกิจ/ไม่สหกิจอยู่หน้าใด และคำอธิบายรายวิชาอยู่หน้าใด
 
 ```powershell
-python -m src.pipeline.run
+python -m src.pipeline.run --dataset it2560
+```
+
+ตัวอย่าง dataset ที่รองรับ:
+
+```text
+ait2566
+bit2565
+bit2560
+dsba2565
+dsba2560
+gened2564
+gened2557
+it2565
+it2560
 ```
 
 ตัวอย่าง:
 
 ```powershell
-python -m src.pipeline.run --program it --dry-run
-python -m src.pipeline.run --program it --with-index
-python -m src.pipeline.run --program it --pages 32-38
-python -m src.pipeline.run --program it --no-gpu
-python -m src.pipeline.run --program it --from corrected --with-index
+python -m src.pipeline.run --dataset it2565
+python -m src.pipeline.run --dataset it2560
+python -m src.pipeline.run --dataset dsba2565
+python -m src.pipeline.run --dataset dsba2560
+python -m src.pipeline.run --dataset bit2565
+python -m src.pipeline.run --dataset ait2566
 ```
 
-program หลักที่รองรับ: `ait`, `bit`, `dsba`, `gened`, `it`
+ไม่ต้องระบุ `--plan`, `--pages`, `--catalog-key`, `--academic-year` หรือ `--output-dir` สำหรับการใช้งานปกติ ค่าเหล่านี้ถูกกำหนดแบบ deterministic ใน `src/pipeline/datasets.py`
 
-> คำสั่ง `src.pipeline.run --program ...` ใช้ชื่อ program หลัก 5 ชื่อนี้ ส่วนข้อมูลหลักสูตรฉบับเก่า เช่น `it2560`, `bit2560`, `dsba2560` และ `gened2557` ให้รัน OCR ด้วยคำสั่ง edition-specific ที่อธิบายในหัวข้อถัดไป
+ถ้าต้องการดูว่าจะรันอะไรโดยไม่ประมวลผลจริง:
+
+```powershell
+python -m src.pipeline.run --dataset it2560 --dry-run
+```
+
+ถ้าเครื่องไม่มี GPU:
+
+```powershell
+python -m src.pipeline.run --dataset it2560 --no-gpu
+```
+
+ถ้าต้องการสร้าง runtime DB ต่อหลังจบ pipeline:
+
+```powershell
+python -m src.pipeline.run --dataset it2560 --with-index
+```
+
+## Flow
+
+```text
+Source images
+→ EasyOCR (TH + EN)
+→ deterministic pre-clean
+→ Extract structured curriculum fields
+→ Merge study plan + course descriptions
+→ Gemini proofreading เฉพาะชื่อวิชา
+→ Final reviewed JSON
+→ Evaluation (ถ้ามี Ground Truth ที่ตรงกัน)
+→ Build Index (เมื่อใช้ --with-index)
+```
+
+## Dataset configuration
+
+หน้า plan/description และ edition metadata อยู่ที่:
+
+```text
+src/pipeline/datasets.py
+```
+
+ตัวอย่าง IT 2560:
+
+```text
+dataset        = it2560
+program        = IT
+academic year  = 2560
+no_coop        = pages 27-33
+coop           = pages 34-40
+description    = pages 222-269
+catalog key    = it-2560
+```
+
+ดังนั้นคำสั่งเดียว:
+
+```powershell
+python -m src.pipeline.run --dataset it2560
+```
+
+จะ OCR เฉพาะหน้าที่ dataset นี้ต้องใช้ แล้วแยก plan ตอน Extract/Preparation เอง
 
 ## Inputs
 
-ภาพต้นฉบับอยู่ใต้ `data/input/` โดยแยกตามหลักสูตรและฉบับ เช่น:
+รูปแบบที่แนะนำคือใช้ชื่อ dataset พร้อมปี:
 
 ```text
-data/input/
-├─ ait/
-├─ bit/          # BIT ฉบับปัจจุบัน (2565)
-├─ bit2560/      # BIT 2560
-├─ dsba/         # DSBA ฉบับปัจจุบัน (2565)
-├─ dsba2560/     # DSBA 2560
-├─ gened/
-├─ gened2557/    # GENED 2557
-├─ it/           # IT ฉบับปัจจุบัน (2565)
-├─ it2560/       # IT 2560
-└─ rule/         # เอกสารกฎ/ข้อกำหนดของสถาบัน
+data/input/it2565/
+data/input/it2560/
+data/input/bit2565/
+data/input/bit2560/
+data/input/dsba2565/
+data/input/dsba2560/
+data/input/ait2566/
+data/input/gened2564/
+data/input/gened2557/
 ```
 
-รูปแบบชื่อภาพโดยทั่วไป:
+สำหรับ source ปัจจุบันที่ยังใช้ชื่อ folder เดิม (`it`, `bit`, `dsba`, `ait`, `gened`) ระบบยังรองรับเป็น fallback เพื่อไม่ให้ dataset เดิมพัง แต่ generated artifacts ใหม่จะใช้ชื่อแบบมีปี เช่น `it2565_page_032_ocr.json`
+
+ชื่อ source image ต้องลงท้ายด้วยเลขหน้า 3 หลัก เช่น:
 
 ```text
-data/input/<dataset>/<dataset>_page_NNN.png
+it_page_032.png
+it2560_page_027.png
 ```
 
-ไฟล์ภาพขนาดใหญ่ไม่ได้เก็บครบใน repo ถ้าจะรัน OCR ใหม่ต้องเตรียม source images ก่อน
+ชื่อ source จริงจะถูกเก็บใน provenance แม้ generated output จะใช้ dataset key แบบมีปี
 
-## การรัน OCR
+## Outputs
 
-### OCR ฉบับปัจจุบัน
-
-สำหรับ dataset หลัก `ait`, `bit`, `dsba`, `gened`, `it` ใช้ standalone OCR CLI ได้โดยตรง:
-
-```powershell
-python -m src.pipeline.tools.ocr.cli --prefix it
-python -m src.pipeline.tools.ocr.cli --prefix bit
-python -m src.pipeline.tools.ocr.cli --prefix dsba
-python -m src.pipeline.tools.ocr.cli --prefix gened
-python -m src.pipeline.tools.ocr.cli --prefix ait
-```
-
-ถ้าต้องการรันเฉพาะบางหน้า:
-
-```powershell
-python -m src.pipeline.tools.ocr.cli --prefix it --pages 32-38
-python -m src.pipeline.tools.ocr.cli --prefix it --pages 32
-```
-
-ถ้าต้องการบังคับใช้ CPU:
-
-```powershell
-python -m src.pipeline.tools.ocr.cli --prefix it --no-gpu
-```
-
-ผล OCR จะถูกเก็บใต้:
+output root ถูกกำหนดตายตัวที่:
 
 ```text
-data/output/ocr/<program>/
+data/output/
 ```
 
-เช่น `data/output/ocr/it/`
-
-### OCR หลักสูตรฉบับเก่า 2560 / 2557
-
-ฉบับเก่าแยก source folder และ `dataset-key` เพื่อไม่ให้ผล OCR ไปชนกับฉบับปัจจุบัน
-
-> **สำคัญ:** ในขั้น OCR ค่า `--plan` **ไม่ได้ใช้กรองว่าจะ OCR เฉพาะแผน `coop` หรือ `no_coop`** แต่ใช้เป็นค่าประกอบ/validation ของคำสั่งเท่านั้น สำหรับหลักสูตรที่มีหลายแผนจึงต้องระบุค่าที่ถูกต้องสักหนึ่งค่า เช่น `--plan no_coop` ส่วนหน้าที่ OCR จริงถูกกำหนดด้วย `--pages` เท่านั้น ถ้าไม่ใส่ `--pages` ระบบจะค้นและ OCR ทุกภาพที่พบใน `--input-dir` การแยกข้อมูลเป็น `coop` และ `no_coop` จะเกิดในขั้น Extract/Preparation ตาม configuration ของแต่ละฉบับ
-
-ช่วงหน้าที่ pipeline ใช้สำหรับฉบับเก่า:
-
-| Dataset | แผน `no_coop` | แผน `coop` | Course description / shared pages |
-| --- | --- | --- | --- |
-| `it2560` | 27-33 | 34-40 | 222-269 |
-| `bit2560` | 23-26 | 27-30 | 170-192 |
-| `dsba2560` | 25-29 | 30-34 | 175-207 |
-| `gened2557` | - | - | 11-18,47-92 (`gened`) |
-
-ถ้าต้องการสร้าง OCR ที่จำเป็นต่อทั้งสองแผนของแต่ละฉบับ แนะนำระบุช่วงหน้าที่ต้องใช้โดยตรงดังนี้
-
-#### IT 2560 — ทั้งสองแผน + description
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/it2560 `
-  --program IT `
-  --plan no_coop `
-  --dataset-key it2560 `
-  --pages 27-40,222-269
-```
-
-เฉพาะหน้าเดียวสำหรับทดสอบหรือ demo:
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/it2560 `
-  --program IT `
-  --plan no_coop `
-  --dataset-key it2560 `
-  --pages 27
-```
-
-#### BIT 2560 — ทั้งสองแผน + description
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/bit2560 `
-  --program BIT `
-  --plan no_coop `
-  --dataset-key bit2560 `
-  --pages 23-30,170-192
-```
-
-#### DSBA 2560 — ทั้งสองแผน + description
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/dsba2560 `
-  --program DSBA `
-  --plan no_coop `
-  --dataset-key dsba2560 `
-  --pages 25-34,175-207
-```
-
-ตัวอย่างถ้าต้องการ OCR เฉพาะหน้าของแผน `no_coop` ของ DSBA 2560 และ description ที่ใช้ร่วมกัน:
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/dsba2560 `
-  --program DSBA `
-  --plan no_coop `
-  --dataset-key dsba2560 `
-  --pages 25-29,175-207
-```
-
-ตัวอย่างถ้าต้องการ OCR เฉพาะหน้าของแผน `coop` ของ DSBA 2560 และ description ที่ใช้ร่วมกัน:
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/dsba2560 `
-  --program DSBA `
-  --plan coop `
-  --dataset-key dsba2560 `
-  --pages 30-34,175-207
-```
-
-> ในสองตัวอย่างด้านบน สิ่งที่ทำให้ OCR ต่างกันจริงคือค่า `--pages` ไม่ใช่ค่า `--plan`
-
-#### GENED 2557
-
-```powershell
-python -m src.pipeline.tools.ocr.pipeline_runner `
-  --input-dir data/input/gened2557 `
-  --program GENED `
-  --plan gened `
-  --dataset-key gened2557 `
-  --pages 11-18,47-92
-```
-
-ผลจะถูกแยกตามฉบับ:
+### OCR
 
 ```text
-data/output/ocr/it2560/
-data/output/ocr/bit2560/
-data/output/ocr/dsba2560/
-data/output/ocr/gened2557/
+data/output/ocr/<dataset>/
 ```
 
-`--dataset-key` ใช้ระบุฉบับของ source dataset และป้องกันไม่ให้ output ของฉบับเก่าเขียนรวมกับฉบับปัจจุบัน
-
-## Canonical outputs
-
-ผลหลักสูตรปัจจุบันอยู่ที่:
+เช่น:
 
 ```text
-data/output/final/*_corrected.json
-data/output/final/*_corrections.json
+data/output/ocr/it2560/it2560_page_027_ocr.txt
+data/output/ocr/it2560/it2560_page_027_ocr.json
 ```
 
-- `*_corrected.json` = canonical curriculum corpus
-- `*_corrections.json` = audit log ของ correction
+JSON OCR เก็บทั้งข้อความและ provenance เช่น source filename, source page, document page, confidence/bounding box และขนาดภาพ
 
-สาย rules/policy สร้าง supplemental authority:
+### Extracted
+
+ถ้าใช้ `--keep-intermediates` จะเก็บไฟล์ per-page ที่:
 
 ```text
-data/output/final/institution_policy.json
-data/output/final/program_requirements.json
+data/output/extracted/<dataset>/
+```
+
+### Consolidated ก่อน LLM
+
+ไฟล์ที่รวม Study Plan + Course Description แล้ว แต่ยังไม่ผ่าน Gemini:
+
+```text
+data/output/consolidated/<dataset>/curriculum_<plan>.json
+```
+
+เช่น:
+
+```text
+data/output/consolidated/it2560/curriculum_no_coop.json
+data/output/consolidated/it2560/curriculum_coop.json
+```
+
+### Final หลัง LLM correction
+
+ไฟล์ canonical ที่ใช้ต่อกับระบบ:
+
+```text
+data/output/final/<dataset>/curriculum_<plan>.json
+data/output/final/<dataset>/corrections_<plan>.json
+data/output/final/<dataset>/manifest.json
+```
+
+เช่น:
+
+```text
+data/output/final/it2560/curriculum_no_coop.json
+data/output/final/it2560/corrections_no_coop.json
+data/output/final/it2560/curriculum_coop.json
+data/output/final/it2560/corrections_coop.json
+data/output/final/it2560/manifest.json
+```
+
+`curriculum_*.json` คือข้อมูลหลัง correction ส่วน `corrections_*.json` คือ audit log ว่าเปลี่ยนข้อความใดจากอะไรเป็นอะไร
+
+## Gemini correction แก้อะไรบ้าง
+
+Gemini ใช้ `gemini-3.5-flash-lite`, `temperature=0` และทำงานเป็น batch
+
+แก้อัตโนมัติเฉพาะ:
+
+```text
+name_th
+name_en
+```
+
+ไม่อนุญาตให้ Gemini แก้ factual fields เช่น:
+
+```text
+course code
+credits
+year
+semester
+prerequisite
+desc_th
+desc_en
+```
+
+`desc_th` และ `desc_en` ยังคงมาจาก deterministic extraction/merge เพราะเป็นข้อความ factual ยาว การให้ LLM rewrite โดยอัตโนมัติมีความเสี่ยงเปลี่ยนความหมายมากกว่าการ proofread ชื่อวิชา
+
+ก่อนรับผล Gemini ระบบตรวจจำนวน record, unit index, field identity, empty replacement และ terminal numeric suffix และยังมี source-verified deterministic corrections สำหรับกรณีที่ตรวจต้นฉบับแล้ว
+
+## Resume / Debug
+
+ปกติให้เริ่มจาก OCR ด้วยคำสั่ง dataset เดียว
+
+ถ้ามี intermediate ที่สร้างไว้แล้ว:
+
+```powershell
+python -m src.pipeline.run --dataset it2560 --from extracted
+python -m src.pipeline.run --dataset it2560 --from consolidated
+python -m src.pipeline.run --dataset it2560 --from corrected
+```
+
+เก็บ extracted intermediates สำหรับ debug:
+
+```powershell
+python -m src.pipeline.run --dataset it2560 --keep-intermediates
 ```
 
 ## Runtime DB
 
-สร้างด้วย:
+สร้างอย่างเดียวจาก final artifacts ที่มีอยู่แล้ว:
 
 ```powershell
 python -m rag.build_index
 ```
 
-default build จะโหลด:
+หรือให้ pipeline สร้างต่อท้าย:
 
-1. canonical `*_corrected.json`
-2. `institution_policy.json`
-3. `program_requirements.json`
+```powershell
+python -m src.pipeline.run --dataset it2560 --with-index
+```
 
-แล้วสร้าง:
+runtime database:
 
 ```text
 cucumber_outputs/runtime/curriculum.db
 ```
 
-QA อ่าน DB นี้แบบ runtime authority และไม่ควรแก้ DB ด้วยมือ
-
-## Intermediate data
-
-โดย default intermediate data ใช้สำหรับการประมวลผล/debug และไม่ใช่ factual authority ของ QA
-
-เมื่อต้องการเก็บ:
-
-```powershell
-python -m src.pipeline.run --program it --keep-intermediates
-```
-
-จะเก็บ extracted/consolidated output เพิ่มตาม configuration
-
-## Evaluation
-
-pipeline สามารถประเมิน canonical data เทียบ Ground Truth ได้ รายงานอยู่ใต้:
-
-```text
-reports/evaluation/
-```
-
-runtime ปัจจุบันมีหลาย curriculum editions แต่ Ground Truth ยังไม่ได้มีแยกทุก edition ดังนั้น final report ต้องประเมินเฉพาะ prediction/GT pairs ที่ตรงกันอย่างชัดเจน ไม่ใช้ no-argument discovery เพื่อเอา historical editions มาปนกับ metric
-
-คำสั่งและ scope ที่ใช้สร้าง report ปัจจุบันดูที่ `reports/README.md`
-
-`ground_truth/` ใช้สำหรับ evaluation/test เท่านั้น ไม่ถูกใช้เป็น production factual source
+เมื่อมีทั้ง final layout ใหม่และ flat `*_corrected.json` แบบเก่า ตัว build index จะเลือก structured artifact ใหม่ก่อน และยังอ่าน legacy artifacts ของ dataset ที่ยังไม่ได้ regenerate เพื่อให้ migration ทำได้ทีละ dataset
 
 ## Rules pipeline
 
-ข้อกำหนดสถาบันใช้ entry point แยก:
+ข้อกำหนดสถาบันยังใช้ entry point แยก:
 
 ```powershell
 python -m src.pipeline.run_rules
 ```
 
-รายละเอียดอยู่ที่ `docs/academic_rules.md`
+รายละเอียดดูที่ `docs/academic_rules.md`
