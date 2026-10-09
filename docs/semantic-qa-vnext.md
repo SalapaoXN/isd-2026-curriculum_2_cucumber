@@ -1,157 +1,158 @@
-# Semantic QA vNext — current architecture
+# Semantic QA vNext — สถาปัตยกรรมปัจจุบัน
 
-This document describes the **current semantic production path**, not an unfinished build phase.
+เอกสารนี้อธิบาย **เส้นทางการทำงานของ Semantic QA ที่ใช้จริงในปัจจุบัน** ไม่ใช่แผนพัฒนาที่ยังทำไม่เสร็จ
 
-## Core architecture
+## ภาพรวมการทำงาน
 
 ```text
-Student Question
+คำถามของนักศึกษา
        │
-       │  LLM: language interpretation only
+       │  LLM ตีความภาษาเท่านั้น
        ▼
-SemanticIntent (closed schema, zero factual authority)
+SemanticIntent
+(โครงสร้างคำถามที่ยังไม่ถือเป็นข้อเท็จจริง)
        │
-       │  deterministic validation + current-turn grounding
+       │  ตรวจรูปแบบ + ตรวจว่าข้อมูลมาจากคำถามเทิร์นปัจจุบันจริง
        ▼
-Context Merge
+รวมบริบทการสนทนา
        │
-       │  deterministic canonical resolution
+       │  ระบุหลักสูตร / ฉบับ / แผน / วิชาแบบ deterministic
        ▼
 ResolvedIntent
        │
-       │  deterministic planner
+       │  วางแผนว่าจะใช้หลักฐานแบบใด
        ▼
 Execution
-  ├─ deterministic evidence
-  ├─ verified comparison / mixed-scope / course-set execution
-  ├─ canonical policy path
-  └─ guarded SQL only for explicitly supported compositional shapes
+  ├─ หลักฐานแบบ deterministic
+  ├─ การเปรียบเทียบ / mixed-scope / course-set ที่ตรวจสอบแล้ว
+  ├─ เส้นทางกฎและข้อกำหนดของสถาบัน
+  └─ guarded SQL เฉพาะรูปแบบที่ระบบรองรับชัดเจน
        │
-       │  canonical SQLite = factual authority
+       │  SQLite มาตรฐาน = แหล่งข้อเท็จจริง
        ▼
 VerifiedResult + provenance
        │
-       ├─ deterministic renderer for typed complex results
-       └─ bounded LLM presentation for supported simple results
+       ├─ renderer แบบ deterministic สำหรับผลลัพธ์ซับซ้อน
+       └─ LLM ช่วยเรียบเรียงเฉพาะข้อมูลที่ตรวจแล้ว
        ▼
-User-facing grounded answer
+คำตอบที่มีหลักฐานรองรับ
 ```
 
-Invariant:
+หลักการสำคัญของระบบ:
 
 ```text
-LANGUAGE       → LLM
-IDENTITY/SCOPE → deterministic
-FACTS          → canonical SQLite
-TRUST          → evidence + provenance
-PRESENTATION   → verified-facts-only
+การตีความภาษา          → LLM
+การระบุตัวตน/ขอบเขต    → deterministic
+ข้อเท็จจริง              → canonical SQLite
+ความน่าเชื่อถือ          → evidence + provenance
+การเรียบเรียงคำตอบ       → ใช้เฉพาะข้อเท็จจริงที่ตรวจแล้ว
 ```
 
-## Current contracts
+## สัญญาและเวอร์ชันที่ใช้อยู่
 
-- semantic intent schema: `semantic-intent/v4`
-- interpreter prompt: `semantic-interpreter/v15`
-- answerer prompt: `semantic-answerer/v1`
-- requested fields include `alternative_selection`, `prerequisite_placement`, and `placement_sequence`
-- `literal_set` supports bounded explicit multi-course references
-- placement comparison supports explicit plan operands and `available_plans`
+- รูปแบบ Semantic Intent: `semantic-intent/v4`
+- prompt สำหรับตีความคำถาม: `semantic-interpreter/v15`
+- prompt สำหรับเรียบเรียงคำตอบ: `semantic-answerer/v1`
+- field ที่รองรับเพิ่มเติม เช่น `alternative_selection`, `prerequisite_placement`, `placement_sequence`
+- `literal_set` ใช้แทนกรณีผู้ใช้ระบุหลายวิชาแบบชัดเจน
+- การเปรียบเทียบแผนรองรับทั้งแผนที่ผู้ใช้ระบุเองและ `available_plans`
 
-The interpreter never supplies canonical course identity or factual values. It supplies linguistic structure and exact current-turn spans; the resolver must verify identity against canonical data.
+LLM ฝั่ง interpreter มีหน้าที่บอกว่า **ผู้ใช้กำลังถามอะไร** เท่านั้น ไม่สามารถกำหนดรหัสวิชาจริง หน่วยกิตจริง หรือข้อเท็จจริงของหลักสูตรได้เอง หลังจากตีความแล้ว `resolver` ต้องตรวจและระบุตัวตนจากข้อมูลมาตรฐานอีกครั้ง
 
-## Pipeline responsibilities
+## หน้าที่ของแต่ละโมดูล
 
 ### `schema.py`
-Closed typed intent / resolved / verified structures. Unknown transport fields fail closed.
+กำหนดโครงสร้างข้อมูลของ intent, resolved intent และ verified result แบบปิด ถ้ามี field ที่ไม่รู้จักจะหยุดแทนการเดา
 
 ### `prompts.py`
-Versioned semantic-interpreter and answerer contracts. Prompt examples are synthetic/category examples, never benchmark answers.
+เก็บ prompt ที่มีเวอร์ชันชัดเจนสำหรับ interpreter และ answerer ตัวอย่างใน prompt เป็นตัวอย่างทั่วไป ไม่ใช้คำตอบจาก benchmark มา hardcode
 
 ### `interpreter.py`
-One semantic interpretation call with strict JSON parsing/transport behavior. No factual authority.
+เรียก LLM เพื่อแปลงภาษาของผู้ใช้เป็นโครงสร้าง JSON ตาม schema โดยไม่มีสิทธิ์สร้างข้อเท็จจริงเอง
 
 ### `validation.py`
-Checks task/subject/relation compatibility, grounding, literal-set/sequence contracts, comparison contracts, and unsupported combinations.
+ตรวจว่ารูปแบบคำถามที่ตีความมาสอดคล้องกันหรือไม่ เช่น task, subject, relation, การอ้างหลายวิชา, การเปรียบเทียบ และการเรียงลำดับวิชา
 
 ### `context.py`
-Merges bounded client-held conversation context. Explicit current-turn scope wins; stale references are invalidated when scope changes.
+รวม `conversation_context` จากเทิร์นก่อนหน้า โดยข้อมูลที่ผู้ใช้ระบุใหม่ในเทิร์นปัจจุบันมีสิทธิ์เหนือบริบทเก่า และ reference เก่าจะถูกยกเลิกถ้า scope เปลี่ยน
 
 ### `resolver.py`
-Canonical program/catalog/plan/course resolution. Also resolves explicit course sets and available-plan inventories deterministically.
+ระบุ program, `catalog_key`, plan และ course จากข้อมูลมาตรฐานแบบ deterministic รวมถึง resolve หลายวิชาและรายการแผนที่มีอยู่จริง
 
 ### `compiler.py`
-Constructs deterministic execution specs from resolved structure. It does not re-parse the student's language.
+แปลง `ResolvedIntent` เป็นคำสั่งสำหรับการทำงานต่อ โดยไม่ย้อนกลับไปตีความประโยคของผู้ใช้อีกครั้ง
 
 ### `planner.py`
-Routes to deterministic, policy, guarded SQL, or unsupported execution. Complex supported shapes have explicit typed contracts rather than sentence-specific routing.
+เลือกเส้นทางการทำงานที่เหมาะสม เช่น deterministic, policy, guarded SQL หรือ `unsupported`
 
 ### `executor.py`
-Runs canonical evidence and builds `VerifiedResult`. Important current capabilities include:
+ดึงหลักฐานจริงและสร้าง `VerifiedResult` ความสามารถสำคัญที่รองรับตอนนี้ ได้แก่:
 
-- multi-field course facts
-- explicit course sets
-- alternative-group choice verification
-- mixed course + enclosing-term composition
-- direct prerequisite placement
-- placement matrices across plans
-- available-plan earliest-placement comparison
-- chronological placement sequence with member-local prerequisite facts
+- ดึงข้อมูลหลาย field ของรายวิชาในคำถามเดียว
+- ตรวจหลายวิชาที่ผู้ใช้ระบุชัดเจน
+- ตรวจเงื่อนไขกลุ่มวิชาเลือก
+- รวมข้อมูลรายวิชากับหน่วยกิตรวมของเทอม
+- ตรวจวิชาบังคับก่อนและช่วงปี/เทอมที่เกี่ยวข้อง
+- เปรียบเทียบช่วงเรียนระหว่างหลายแผน
+- เปรียบเทียบแผนที่มีอยู่ทั้งหมดเพื่อหาว่าแผนใดเรียนได้เร็วกว่า
+- เรียงลำดับหลายวิชาตามปี/เทอมพร้อมข้อมูลวิชาบังคับก่อนของแต่ละวิชา
 
 ### `answerer.py`
-Renders typed complex results deterministically where completeness matters, and validates bounded LLM presentation for simpler verified facts.
+ถ้าผลลัพธ์ซับซ้อนและต้องการความครบถ้วน ระบบจะสร้างคำตอบแบบ deterministic ส่วนคำตอบง่ายสามารถให้ LLM ช่วยเรียบเรียงได้ แต่ต้องอ้างจาก `VerifiedResult` เท่านั้น
 
 ### `pipeline.py`
-End-to-end semantic entry point and trace assembly.
+เป็นจุดรวมของ Semantic QA ตั้งแต่รับ intent จนได้ผลลัพธ์สุดท้าย พร้อม trace สำหรับตรวจสอบการทำงาน
 
 ### `modes.py`
-`legacy | shadow | semantic` mode switch and API adaptation.
+ควบคุมโหมด `legacy | shadow | semantic` และแปลงผลลัพธ์ให้เข้ากับ API เดิม
 
-## Supported higher-order semantics
+## ความสามารถเชิงโครงสร้างที่รองรับ
 
-### Explicit course sets
+### หลายวิชาที่ระบุชัดเจน (`literal_set`)
 
-Multiple explicitly named courses use `target.kind="literal_set"`. Every member must resolve independently in the same canonical program/catalog scope. One unresolved member blocks the whole set rather than silently dropping it.
+เมื่อผู้ใช้ระบุหลายวิชา ระบบใช้ `target.kind="literal_set"` และต้อง resolve ทุกวิชาแยกกันภายใต้ program / catalog เดียวกัน ถ้ามีวิชาใดวิชาหนึ่งหาไม่เจอ ระบบจะหยุดทั้งชุดแทนการตัดวิชานั้นออกเงียบ ๆ
 
-### Alternative selection
+### กลุ่มวิชาเลือก (Alternative selection)
 
-Alternative groups are verified from canonical group membership and min/max choice bounds. The LLM never invents group IDs or selection counts.
+ระบบตรวจสมาชิกของกลุ่มและจำนวนขั้นต่ำ/สูงสุดที่ต้องเลือกจากข้อมูล canonical จริง LLM ไม่สามารถสร้าง group ID หรือจำนวนวิชาที่ต้องเลือกขึ้นมาเอง
 
-### Mixed course + term scope
+### คำถามหลายขอบเขตในครั้งเดียว (Mixed scope)
 
-A single question may request facts about one exact course while separately requesting the enclosing semester total. The two scopes are executed independently and then combined atomically.
+คำถามหนึ่งข้อสามารถถามข้อมูลเฉพาะวิชาหนึ่ง พร้อมกับถามหน่วยกิตรวมของเทอมเดียวกันได้ ระบบจะคำนวณสองส่วนแยกกันก่อน แล้วจึงรวมคำตอบเมื่อทั้งสองส่วนมีหลักฐานครบ
 
-### Placement comparison across plans
+### เปรียบเทียบช่วงเรียนระหว่างแผน
 
-Placement comparison is non-numeric. The executor preserves complete placement sets for every course-plan cell. `difference` means descriptive placement-set contrast, not arithmetic subtraction.
+การเปรียบเทียบ placement ไม่ใช่การลบตัวเลข แต่เป็นการเปรียบเทียบ **ชุดปี/เทอมที่เรียนได้ทั้งหมด** ของแต่ละวิชาในแต่ละแผน
 
-When the user asks which plan to choose without naming plans, the interpreter may request `plan_selector="available_plans"`; the resolver enumerates the canonical plan inventory.
+ถ้าผู้ใช้ถามว่า “ควรเลือกแผนไหน” โดยไม่ได้ระบุชื่อแผน interpreter สามารถส่ง `plan_selector="available_plans"` แล้ว resolver จะดึงรายการแผนจริงของ program/catalog นั้นมาเปรียบเทียบ
 
-### Placement sequence
+### เรียงลำดับวิชา (`placement_sequence`)
 
-For an explicit course set asking “เรียนอะไรก่อนหลัง / เรียงตามปีเทอม”:
+สำหรับคำถาม เช่น “ควรเรียนอะไร ก่อน-หลัง” หรือ “เรียงตามปี/เทอม” ระบบใช้กติกา:
 
-1. every course placement is verified independently;
-2. direct prerequisite facts remain owned by their target course;
-3. ordering is derived only from canonical `(year, semester)` values;
-4. chronological order never creates a dependency edge;
-5. overlapping flexible placement ranges or same-term ties fail closed when a unique sequence cannot be proved;
-6. retained `result_courses` are reordered to match the displayed deterministic sequence so ordinal follow-ups remain stable.
+1. ตรวจ placement ของทุกวิชาแยกกันก่อน
+2. วิชาบังคับก่อนยังเป็นข้อมูลของวิชาเป้าหมายนั้น ๆ ไม่ย้ายความสัมพันธ์ข้ามวิชา
+3. เรียงจากค่า `(year, semester)` ที่ตรวจแล้วเท่านั้น
+4. การเรียนก่อนตามเวลา **ไม่ได้แปลว่า** เป็น prerequisite
+5. ถ้าหลายวิชาอยู่ช่วงเวลาเดียวกันหรือช่วงเวลาซ้อนกันจนพิสูจน์ลำดับเดียวไม่ได้ ระบบจะ fail closed
+6. `result_courses` จะถูกเรียงให้ตรงกับลำดับที่แสดง เพื่อให้คำถามต่อ เช่น “วิชาที่ 2” ชี้ไปยังวิชาเดียวกัน
 
-## QA modes
+## โหมดการทำงานของ QA
 
-`CUCUMBER_QA_MODE`:
+กำหนดด้วย `CUCUMBER_QA_MODE`:
 
-- `legacy` — default safe fallback mode
-- `shadow` — legacy answer remains user-visible while semantic trace runs beside it
-- `semantic` — current semantic production path
+- `legacy` — โหมดเดิม ใช้เป็น fallback ที่ปลอดภัย
+- `shadow` — ผู้ใช้ยังเห็นคำตอบจาก legacy แต่ระบบ semantic ทำงานคู่ขนานเพื่อเก็บ trace เปรียบเทียบ
+- `semantic` — โหมด Semantic QA ปัจจุบัน
 
-For demo/submission:
+สำหรับเดโมหรือส่งงาน:
 
 ```powershell
 $env:CUCUMBER_QA_MODE="semantic"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-`GET /api/health` should report:
+ตรวจ `GET /api/health` ควรได้:
 
 ```text
 status=ok
@@ -159,31 +160,31 @@ database_ready=true
 qa_mode=semantic
 ```
 
-## Fail-closed boundaries
+## กรณีที่ระบบตั้งใจหยุดแทนการเดา (Fail closed)
 
-Semantic QA intentionally refuses or clarifies when:
+Semantic QA จะขอข้อมูลเพิ่มหรือไม่ตอบ เมื่อ:
 
-- program/catalog/plan/course identity is ambiguous;
-- an explicit course-set member cannot be resolved;
-- evidence/provenance is incomplete;
-- a requested combination has no typed execution contract;
-- a placement sequence has no uniquely provable order;
-- policy authority lacks a required threshold;
-- the user asks for future offering or personal eligibility without canonical authority.
+- program / catalog / plan / course ยังระบุไม่ได้ชัดเจน
+- มีวิชาในชุดที่ผู้ใช้ระบุ แต่ resolve ไม่สำเร็จแม้แต่หนึ่งวิชา
+- หลักฐานหรือ provenance ไม่ครบ
+- ผู้ใช้ขอรูปแบบการทำงานที่ระบบยังไม่มี contract รองรับ
+- placement sequence ไม่มีลำดับเดียวที่พิสูจน์ได้
+- กฎหรือ policy ไม่มี threshold ที่ต้องใช้
+- ผู้ใช้ถามเรื่องการเปิดสอนในอนาคต หรือสิทธิ์ส่วนบุคคลที่ไม่มีข้อมูลทางการรองรับ
 
-The system must never answer only the easier subset of an accepted multi-field/multi-clause request.
+ถ้าระบบยอมรับคำถามที่มีหลาย field หรือหลายเงื่อนไขแล้ว จะต้องตอบครบทุกส่วน หรือ fail closed ทั้งคำถาม ห้ามตัดส่วนที่ยากทิ้งแล้วตอบเฉพาะส่วนที่ง่ายกว่า
 
-## Testing status
+## สถานะการทดสอบ
 
-Latest closeout snapshots before the documentation refresh:
+snapshot ล่าสุดก่อนปรับเอกสารรอบนี้:
 
-- provider-isolated full discovery: **2,804 tests, 0 failures/errors, 3 skipped**
-- G5-C sequence suite: **35/35 pass**
-- focused semantic regression after retained-result ordering fix: **140/140 pass**
-- latest instrumented Gold #30 production-route replay: **end-to-end success**
+- ชุดทดสอบแบบไม่พึ่ง provider ภายนอก: **2,804 tests, 0 failures/errors, 3 skipped**
+- ชุด G5-C placement sequence: **35/35 ผ่าน**
+- focused semantic regression หลังแก้ลำดับ `result_courses`: **140/140 ผ่าน**
+- Gold #30 แบบ instrumented บน production route ล่าสุด: **ผ่านครบตั้งแต่ต้นจนจบ**
 
-Historical semantic evaluation reports under `eval/results/` describe earlier checkpoints and should not be used as the current implementation contract.
+รายงานใน `eval/results/` เป็น snapshot ของรอบก่อนหน้า จึงไม่ควรใช้ failure list เก่าแทนสถานะ implementation ปัจจุบันโดยไม่ทดสอบซ้ำบน code ปัจจุบัน
 
-## Authority reminder
+## ข้อเตือนเรื่องแหล่งข้อเท็จจริง
 
-Canonical SQLite + deterministic evidence + provenance are the only factual authority. LLM interpretation and presentation remain untrusted until bounded by deterministic validation and verified facts.
+ข้อเท็จจริงของระบบมาจาก **canonical SQLite + deterministic evidence + provenance** เท่านั้น ส่วน LLM มีหน้าที่ช่วยตีความภาษาและเรียบเรียงคำตอบภายใต้ข้อมูลที่ตรวจแล้ว ไม่ถือเป็นแหล่งข้อเท็จจริงโดยตัวมันเอง
