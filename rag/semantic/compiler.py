@@ -10,7 +10,8 @@ surface-pattern reads cannot misfire on semantic-mode input.
 from __future__ import annotations
 
 from rag.query_spec import QuerySpec
-from rag.semantic.schema import ResolvedIntent
+from dataclasses import dataclass, replace
+from rag.semantic.schema import ResolvedIntent, ResolvedScope, SemanticTarget, ResolvedTarget
 from rag.semantic.planner import effective_aggregation_group_by
 from typing import Any
 
@@ -21,6 +22,19 @@ _RELATION_OPERATIONS = {
     "prerequisite": ("prerequisite",),
     "placement": ("placement",),
     "existence": ("existence",),
+    "alternative_selection": ("placement",),
+}
+
+_REQUESTED_FIELD_OPERATIONS = {
+    "code": "identity",
+    "name": "identity",
+    "credits": "sum_credits",
+    "placement": "placement",
+    "placement_sequence": "placement",
+    "prerequisites": "prerequisite",
+    "prerequisite_placement": "prerequisite",
+    "description": "describe",
+    "alternative_selection": "placement",
 }
 
 
@@ -29,7 +43,12 @@ def _operations_for(resolved: ResolvedIntent) -> tuple[str, ...]:
     if intent.task == "lookup" and intent.subject == "course":
         operation = _RELATION_OPERATIONS.get(intent.relation or "")
         if operation is not None:
-            return operation
+            operations = list(operation)
+            for requested_field in intent.requested_fields:
+                requested_operation = _REQUESTED_FIELD_OPERATIONS.get(requested_field)
+                if requested_operation is not None and requested_operation not in operations:
+                    operations.append(requested_operation)
+            return tuple(operations)
     if intent.task == "lookup" and intent.subject == "program":
         return ("sum_credits",)
     if intent.task == "list":
@@ -74,6 +93,14 @@ def compile_resolved_intent_to_query_spec(
     intent = resolved.intent
     scope = resolved.scope
     target = resolved.target
+    if intent.task == "compose" or (intent.task == "lookup" and intent.subject == "course" and intent.aggregation is not None):
+        raise ValueError("mixed-scope composition requires separate scoped execution requests")
+    if intent.task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement":
+        raise ValueError("plan-placement comparison requires separate matrix requests")
+    if "placement_sequence" in intent.requested_fields:
+        from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+        if plan_semantic_query(resolved).execution != EXECUTION_DETERMINISTIC:
+            raise ValueError("placement_sequence requires complete canonical set and scope")
     category = next(
         (
             item.value
@@ -92,7 +119,16 @@ def compile_resolved_intent_to_query_spec(
     )
     codes: tuple[str, ...] = ()
     name: str | None = None
-    if target.kind in {"literal", "current_course", "result_ordinal"}:
+    if target.kind == "literal_set":
+        if (
+            resolved.needs_clarification or not target.members
+            or any(member.course_code is None for member in target.members)
+        ):
+            raise ValueError("cannot compile an unresolved course set")
+        codes = tuple(member.course_code for member in target.members)
+        if intent.filters:
+            raise ValueError("literal_set cannot compile discovery filters")
+    elif target.kind in {"literal", "current_course", "result_ordinal"}:
         if target.course_code is not None:
             codes = (target.course_code,)
         elif target.course_name is not None:
@@ -116,6 +152,53 @@ def compile_resolved_intent_to_query_spec(
             intent.target.kind == "previous_result_set"
         ),
         result_ordinal=None,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class CompiledScopedRequest:
+    scope_kind: str
+    scope: ResolvedScope
+    spec: QuerySpec
+    course_code: str | None = None
+
+
+def compile_plan_placement_requests(resolved: ResolvedIntent, question: str) -> tuple[CompiledScopedRequest, ...]:
+    """Each canonical course × plan cell is a singleton placement request."""
+    from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+    if (resolved.intent.comparison is None or resolved.intent.comparison.measure != "placement"
+            or plan_semantic_query(resolved).execution != EXECUTION_DETERMINISTIC):
+        raise ValueError("unsupported or unresolved plan-placement matrix")
+    members = resolved.target.members if resolved.target.kind == "literal_set" else (resolved.target,)
+    requests = []
+    for member in members:
+        for side in resolved.comparison_sides:
+            cell = replace(resolved, scope=side.scope, target=member, intent=replace(
+                resolved.intent, task="lookup", relation="placement", comparison=None,
+                requested_fields=("placement",),
+            ))
+            requests.append(CompiledScopedRequest("course_plan", side.scope,
+                            compile_resolved_intent_to_query_spec(cell, question), member.course_code))
+    return tuple(requests)
+
+
+def compile_mixed_scope_requests(
+    resolved: ResolvedIntent, question: str,
+) -> tuple[CompiledScopedRequest, CompiledScopedRequest]:
+    """Keep exact-course operations separate from target-free term aggregation."""
+    from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+    if resolved.intent.task != "compose" or plan_semantic_query(resolved).execution != EXECUTION_DETERMINISTIC:
+        raise ValueError("unsupported or unresolved mixed-scope composition")
+    course_scope = replace(resolved.scope, years=(), semesters=())
+    course = replace(resolved, scope=course_scope,
+                     intent=replace(resolved.intent, task="lookup", aggregation=None))
+    term = replace(resolved, target=ResolvedTarget(), intent=replace(
+        resolved.intent, task="aggregate", subject="semester", relation=None,
+        target=SemanticTarget(), requested_fields=(),
+    ))
+    return (
+        CompiledScopedRequest("course", course_scope, compile_resolved_intent_to_query_spec(course, question), resolved.target.course_code),
+        CompiledScopedRequest("term", resolved.scope, compile_resolved_intent_to_query_spec(term, question)),
     )
 
 
@@ -176,5 +259,7 @@ def synthesize_canonical_utterance(resolved: ResolvedIntent) -> str | None:
 
 __all__ = [
     "compile_resolved_intent_to_query_spec",
+    "compile_mixed_scope_requests",
+    "CompiledScopedRequest",
     "synthesize_canonical_utterance",
 ]

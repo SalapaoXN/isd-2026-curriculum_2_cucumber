@@ -1,8 +1,143 @@
 """HTTP request and response schemas for the CUCUMBER FastAPI app."""
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    model_validator,
+)
+
+ShortStr = Annotated[StrictStr, Field(min_length=1, max_length=80)]
+CatalogStr = Annotated[StrictStr, Field(min_length=1, max_length=128)]
+StudyYear = Annotated[StrictInt, Field(ge=1, le=5)]
+StudySemester = Annotated[StrictInt, Field(ge=1, le=2)]
+
+
+class CourseRef(BaseModel):
+    """One bounded course identity (focus or retained result).
+
+    Keys mirror the downstream focus/result validators exactly
+    (course_code, course_name, program, catalog_key); length caps match
+    the strictest downstream bound so abuse fails at the request
+    boundary with 422 instead of mid-pipeline.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    course_code: StrictStr = Field(min_length=1, max_length=64)
+    course_name: StrictStr | None = Field(
+        default=None, min_length=1, max_length=160
+    )
+    program: ShortStr | None = None
+    catalog_key: CatalogStr | None = None
+
+
+class LastAnswerCourseRef(BaseModel):
+    """Bounded previous-answer reference to a course turn."""
+
+    model_config = ConfigDict(extra="forbid")
+    route: Literal["course"]
+    course_code: ShortStr
+    operations: list[
+        Literal["sum_credits", "placement", "describe", "prerequisite", "existence"]
+    ] = Field(min_length=1, max_length=8)
+    program: ShortStr | None = None
+    catalog_key: CatalogStr | None = None
+
+
+class LastAnswerPolicyRef(BaseModel):
+    """Bounded previous-answer reference to a policy turn."""
+
+    model_config = ConfigDict(extra="forbid")
+    route: Literal["policy"]
+    policy_kind: ShortStr
+    program: ShortStr | None = None
+    catalog_key: CatalogStr | None = None
+    plan: ShortStr | None = None
+    amount: StrictInt | None = Field(default=None, ge=0)
+    evidence_ids: list[ShortStr] | None = Field(default=None, max_length=50)
+
+
+class LastNormalOperation(BaseModel):
+    """Closed shape of the last successful ordinary list operation."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["list_courses"]
+    program: ShortStr
+    catalog_key: CatalogStr | None = None
+    plan: ShortStr | None = None
+    years: list[StudyYear] = Field(default_factory=list, max_length=6)
+    semesters: list[StudySemester] = Field(default_factory=list, max_length=3)
+
+
+class StudyPlanContext(BaseModel):
+    """Bounded legacy study-plan context (exact supported shape only)."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["seven_term_plan"]
+    program: ShortStr
+    catalog_key: CatalogStr
+    plan: ShortStr
+
+
+class ConversationContext(BaseModel):
+    """Bounded client conversation state for every QA mode.
+
+    Only fields actually emitted by the API or consumed by the legacy
+    and semantic pipelines are accepted; anything else (operand state,
+    facts, trace data, giant nested objects) is rejected with 422
+    BEFORE expensive semantic/provider work. Comparison operands and
+    clarification progress travel exclusively through the dedicated
+    clarification transport fields, never through this context.
+
+    The retained-course bound (50) matches the largest context the
+    backends themselves emit; semantic retention still keeps at most
+    20 for new answers.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    program: ShortStr | None = None
+    catalog_key: CatalogStr | None = None
+    plan: ShortStr | None = None
+    plans: list[ShortStr] | None = Field(default=None, max_length=1)
+    year: StudyYear | None = None
+    years: list[StudyYear] = Field(default_factory=list, max_length=6)
+    semester: StudySemester | None = None
+    semesters: list[StudySemester] = Field(default_factory=list, max_length=3)
+    category: ShortStr | None = None
+    course_code: ShortStr | None = None
+    operations: list[ShortStr] | None = Field(default=None, max_length=8)
+    focus_course: CourseRef | None = None
+    focus_catalog_key: CatalogStr | None = None
+    result_courses: list[CourseRef] = Field(default_factory=list, max_length=50)
+    result_scope_program: ShortStr | None = None
+    result_set_empty: StrictBool | None = None
+    last_answer: LastAnswerCourseRef | LastAnswerPolicyRef | None = None
+    last_normal_operation: LastNormalOperation | None = None
+    semantic_topic: ShortStr | None = None
+    study_plan_context: StudyPlanContext | None = None
+    pending_catalog_selection: StrictBool | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _wrap_bare_scalars(cls, data: Any) -> Any:
+        # Legacy clients may send a bare string/int where a singleton
+        # list is canonical. Normalize before validation so the same
+        # downstream code sees one shape; bounds still apply to the list.
+        if not isinstance(data, dict):
+            return data
+        wrapped = dict(data)
+        if isinstance(wrapped.get("plans"), str):
+            wrapped["plans"] = [wrapped["plans"]]
+        for key in ("years", "semesters"):
+            value = wrapped.get(key)
+            if isinstance(value, int) and not isinstance(value, bool):
+                wrapped[key] = [value]
+        return wrapped
 
 
 class ClarificationTarget(BaseModel):
@@ -25,7 +160,7 @@ class ClarificationResolution(ClarificationTarget):
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)
-    conversation_context: dict[str, Any] | None = Field(default=None)
+    conversation_context: ConversationContext | None = Field(default=None)
     home_program: StrictStr | None = Field(default=None)
     clarification_resolution: ClarificationResolution | None = None
     clarification_resolutions: list[ClarificationResolution] | None = Field(default=None, max_length=4)

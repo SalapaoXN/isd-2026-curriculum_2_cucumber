@@ -81,7 +81,7 @@ def semantic_ask_response(
     if status != "answer":
         action = "insufficient_evidence" if status == "insufficient_evidence" else status
     summary = getattr(getattr(outcome, "trace", None), "verified_summary", {})
-    if status == "clarify_program" and summary.get("scope_dimension") in {"program", "catalog", "plan", "comparison_operation"}:
+    if status == "clarify_program" and summary.get("scope_dimension") in {"program", "catalog", "plan", "year", "semester", "comparison_operation"}:
         status = "clarification_required"
         action = summary["scope_dimension"] + "_required"
     response = {

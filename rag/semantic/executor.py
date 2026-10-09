@@ -16,6 +16,9 @@ Bridges return VerifiedResult payloads; they never render user answers.
 from __future__ import annotations
 
 import re
+import math
+from dataclasses import replace
+from types import MappingProxyType
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
@@ -37,15 +40,30 @@ from rag.query_spec import QuerySpec
 from rag.resolution import QueryContext, ResolutionOutcome, resolve_query_spec
 from rag.semantic.compiler import (
     compile_resolved_intent_to_query_spec,
+    compile_mixed_scope_requests,
+    compile_plan_placement_requests,
+    CompiledScopedRequest,
     synthesize_canonical_utterance,
 )
+from rag.semantic.errors import SemanticOperationalError, is_provider_error
 from rag.semantic.planner import SemanticPlan
 from rag.semantic.schema import (
     ResolvedIntent,
+    ResolvedScope,
+    ResolvedTarget,
+    VerifiedAlternativeSelection,
     VerifiedNumericComparison,
     VerifiedNumericComparisonSide,
     VerifiedResult,
+    VerifiedScopedResult,
+    VerifiedPlacementCell,
+    VerifiedPlacementComparison,
+    VerifiedEarliestPlacement,
 )
+from rag.semantic.resolver import _connect_ro, _course_reference_candidates
+from rag.structured.queries import scoped_course_set, _provenance_for
+
+MAX_DISPLAYED_COURSES = 20
 
 _SINGLE_KIND_POLICY_TOPICS = {
     "graduation": "graduation_requirements",
@@ -68,7 +86,7 @@ def _claim_texts(claims: tuple[Any, ...]) -> tuple[str, ...]:
         try:
             operation = getattr(claim, "operation", "")
             value = getattr(claim, "value", None)
-            line = _claim_line(str(operation), value)
+            line = _claim_line_with_evidence(claim)
         except Exception:
             continue
         if line:
@@ -170,7 +188,12 @@ def _collection_course_identities(value: Any) -> list[tuple[str, str | None]]:
         if not isinstance(code, str):
             return
         code = code.strip()
-        if len(code) != 8 or not code.isascii() or not code.isdigit():
+        display_reference = (
+            len(code) == 8 and code[:5].isascii() and code[:5].isdigit()
+            and code[5:] == "xxx"
+        )
+        numeric_identity = len(code) == 8 and code.isascii() and code.isdigit()
+        if not numeric_identity and not display_reference:
             return
         if code not in positions:
             positions[code] = len(found)
@@ -207,23 +230,44 @@ def _titles(value: Any) -> list[str]:
 
 
 def _placement_terms(value: Any) -> list[tuple[int | None, int | None, str | None]]:
-    """Collect distinct (year, semester, plan) triples from placement values."""
+    """Collect distinct fixed and flexible (year, semester, plan) placements."""
     terms: list[tuple[int | None, int | None, str | None]] = []
     items = value if isinstance(value, (list, tuple)) else [value]
     for item in items:
         if not isinstance(item, Mapping):
             continue
+        plan = item.get("plan_key")
+        plan = plan.strip() if isinstance(plan, str) and plan.strip() else None
+
+        choices = item.get("year_semester_choices")
+        if isinstance(choices, (list, tuple)):
+            for choice in choices:
+                if not isinstance(choice, (list, tuple)) or len(choice) != 2:
+                    continue
+                year, semester = choice
+                if (
+                    isinstance(year, bool)
+                    or not isinstance(year, int)
+                    or isinstance(semester, bool)
+                    or not isinstance(semester, int)
+                ):
+                    continue
+                term = (year, semester, plan)
+                if term not in terms:
+                    terms.append(term)
+
         year = item.get("year_number")
         semester = item.get("semester_number")
-        plan = item.get("plan_key")
         year = year if isinstance(year, int) and not isinstance(year, bool) else None
         semester = (
             semester if isinstance(semester, int) and not isinstance(semester, bool) else None
         )
-        plan = plan.strip() if isinstance(plan, str) and plan.strip() else None
-        term = (year, semester, plan)
-        if term != (None, None, None) and term not in terms:
-            terms.append(term)
+        fixed_term = (year, semester, plan)
+        if (
+            (year is not None or semester is not None)
+            and fixed_term not in terms
+        ):
+            terms.append(fixed_term)
     return terms
 
 
@@ -237,19 +281,53 @@ def _course_label(value: Any) -> str:
     return " ".join(parts)
 
 
+def _description_evidence_texts(value: Any) -> list[str]:
+    """Return bounded, distinct text from retrieved course-description rows."""
+    found: list[str] = []
+
+    def collect(item: Any) -> None:
+        if isinstance(item, Mapping):
+            text = item.get("text")
+            if (
+                item.get("chunk_type") == "description"
+                and item.get("entity_type") == "course"
+                and isinstance(text, str)
+                and text.strip()
+            ):
+                normalized = " ".join(text.split())[:600].rstrip()
+                if normalized and normalized not in found:
+                    found.append(normalized)
+                return
+            for nested in item.values():
+                collect(nested)
+        elif isinstance(item, (list, tuple)):
+            for nested in item:
+                collect(nested)
+
+    collect(value)
+    return found[:3]
+
+
 def _claim_line(operation: str, value: Any) -> str | None:
     if operation in {"list", "topic_matches", "course_set"}:
         identities = _collection_course_identities(value)
         if identities:
             line = "รายวิชาที่พบ:\n" + "\n".join(
                 f"- {code} — {title}" if title else f"- {code}"
-                for code, title in identities[:10]
+                for code, title in identities[:MAX_DISPLAYED_COURSES]
             )
-            if len(identities) > 10:
-                line += f"\n(แสดง 10 จาก {len(identities)} รายวิชา)"
+            if len(identities) > MAX_DISPLAYED_COURSES:
+                line += (
+                    f"\n(แสดง {MAX_DISPLAYED_COURSES} จาก "
+                    f"{len(identities)} รายวิชา)"
+                )
             return line
         titles = _titles(value)
-        return "รายวิชาที่พบ: " + ", ".join(titles[:10]) if titles else None
+        return (
+            "รายวิชาที่พบ: "
+            + ", ".join(titles[:MAX_DISPLAYED_COURSES])
+            if titles else None
+        )
     codes = _codes(value)
     titles = _titles(value)
     numbers = _numbers(value)
@@ -282,12 +360,65 @@ def _claim_line(operation: str, value: Any) -> str | None:
     if operation == "identity":
         return _course_label(value) or None
     if operation in {"describe", "description_evidence"}:
-        return _course_label(value) or None
+        label = _course_label(value)
+        descriptions = _description_evidence_texts(value)
+        if descriptions:
+            return "\n".join(
+                f"{label}: {text}" if label else text
+                for text in descriptions
+            )
+        return label or None
     if operation == "existence":
         return "พบข้อมูลตามเงื่อนไข" if value else None
     if operation == "count":
         return f"จำนวน: {numbers[0]}" if numbers else None
     return None
+
+
+def _prerequisite_owners(claim: Any) -> tuple[ResolvedTarget, ...]:
+    """Relationship subjects come from effective targets, never nested objects."""
+    scope = getattr(claim, "effective_scope", None)
+    owners = []
+    for target in getattr(scope, "course_targets", ()):
+        if not isinstance(target, Mapping):
+            return ()
+        code = target.get("course_code")
+        if not isinstance(code, str) or not re.fullmatch(r"[0-9]{8}", code):
+            return ()
+        owners.append(ResolvedTarget(kind="literal", course_code=code,
+                                    course_name=target.get("name_en") or target.get("name_th")))
+    return tuple(owners)
+
+
+def _claim_line_with_evidence(claim: Any) -> str | None:
+    """Project a claim while retaining canonical raw credit notation, if present."""
+    operation = str(getattr(claim, "operation", ""))
+    value = getattr(claim, "value", None)
+    if operation == "prerequisite":
+        owners = _prerequisite_owners(claim)
+        # A flat relationship value cannot be attributed to multiple subjects.
+        return _member_fact(owners[0], claim) if len(owners) == 1 else None
+    line = _claim_line(operation, value)
+    if operation != "sum_credits" or not line:
+        return line
+    evidence = getattr(claim, "evidence", None)
+    components = getattr(evidence, "components", ())
+    raw_values: list[str] = []
+    if isinstance(components, (list, tuple)):
+        for component in components:
+            if not isinstance(component, Mapping):
+                continue
+            raw = component.get("credits_raw")
+            if isinstance(raw, str) and raw.strip() and raw.strip() not in raw_values:
+                raw_values.append(raw.strip())
+    if len(raw_values) == 1:
+        number = _numbers(value)
+        if number:
+            return (
+                f"{_course_label(value)}: {raw_values[0]} "
+                f"({number[0]} หน่วยกิต)"
+            ).strip(": ")
+    return line
 
 
 def execute_deterministic(
@@ -360,6 +491,394 @@ def execute_deterministic(
         result_courses=retained[0],
         result_scope_program=retained[1],
     )
+
+
+def _complete_source_references(value: Any) -> bool:
+    return isinstance(value, (tuple, list)) and bool(value) and all(
+        isinstance(ref, Mapping)
+        and isinstance(ref.get("source_filename"), str) and bool(ref["source_filename"].strip())
+        and type(ref.get("source_page")) is int and ref["source_page"] > 0
+        and isinstance(ref.get("document_category"), str) and bool(ref["document_category"].strip())
+        for ref in value
+    )
+
+
+def _verify_alternative_selection(
+    db_path: str | Path, resolved: ResolvedIntent,
+) -> VerifiedAlternativeSelection:
+    """Verify the complete group, never infer bounds from named alternatives."""
+    scope = resolved.scope
+    wanted = tuple(member.course_code for member in resolved.target.members)
+    if not scope.program or not scope.catalog_key or not scope.plan or len(wanted) < 2:
+        raise ValueError("alternative_selection needs complete canonical set and plan scope")
+    payload = scoped_course_set(
+        db_path, scope.program, (scope.plan,), catalog_key=scope.catalog_key,
+        years=scope.years, semesters=scope.semesters,
+        course_targets=tuple({"course_code": code} for code in wanted),
+    )
+    rows = payload.get("courses", ())
+    if payload.get("status") != "ok" or not rows:
+        raise ValueError("alternative group evidence missing")
+    connection = _connect_ro(db_path)
+    references = []
+    signature = None
+    try:
+        catalog = connection.execute("SELECT catalog_id FROM catalogs WHERE catalog_key = ?", (scope.catalog_key,)).fetchone()
+        if catalog is None:
+            raise ValueError("alternative group catalog missing")
+        for row in rows:
+            group_id = row.get("alternative_group_id")
+            members = row.get("alternative_courses", ())
+            minimum, maximum = row.get("minimum_choices"), row.get("maximum_choices")
+            if (
+                type(group_id) is not int or group_id <= 0 or not row.get("is_alternative")
+                or row.get("catalog_id") != catalog["catalog_id"]
+                or row.get("program") != scope.program or row.get("plan_key") != scope.plan
+                or not isinstance(members, (list, tuple)) or not members
+                or type(minimum) is not int or type(maximum) is not int
+                or not _complete_source_references(row.get("provenance"))
+            ):
+                raise ValueError("incomplete or out-of-scope alternative group evidence")
+            codes = tuple(member.get("course_code") for member in members)
+            if (
+                len(codes) != len(set(codes)) or set(codes) != set(wanted)
+                or not 0 <= minimum <= maximum <= len(codes)
+                or any(member.get("catalog_id") != catalog["catalog_id"]
+                       or not _complete_source_references(member.get("provenance")) for member in members)
+            ):
+                raise ValueError("alternative membership or choice bounds do not prove the exact set")
+            current = (group_id, frozenset(codes), minimum, maximum)
+            if signature is not None and signature != current:
+                raise ValueError("conflicting alternative group evidence")
+            signature = current
+            # The merged row cannot prove that each provenance boundary exists.
+            # Check placement, group and membership source links independently.
+            links = [("plan_placement_provenance", "placement_id", row.get("placement_id")),
+                     ("alternative_group_provenance", "alternative_group_id", group_id)]
+            links.extend(("alternative_group_member_provenance", "alternative_group_member_id",
+                          member.get("alternative_group_member_id")) for member in members)
+            for table, column, identity in links:
+                if type(identity) is not int:
+                    raise ValueError("alternative evidence identity missing")
+                source_refs = _provenance_for(connection, table, column, identity)
+                if not _complete_source_references(source_refs):
+                    raise ValueError("alternative evidence source link missing")
+                for ref in source_refs:
+                    if ref not in references:
+                        references.append(ref)
+            for ref in row["provenance"]:
+                if ref not in references:
+                    references.append(dict(ref))
+    finally:
+        connection.close()
+    return VerifiedAlternativeSelection(
+        program=scope.program, catalog_key=scope.catalog_key, plan=scope.plan,
+        alternative_group_id=signature[0], member_course_codes=wanted,
+        minimum_choices=signature[2], maximum_choices=signature[3],
+        provenance=tuple(MappingProxyType(dict(ref)) for ref in references),
+    )
+
+
+def _member_fact(member: ResolvedTarget, claim: Any) -> str | None:
+    """Project member-local evidence without choosing a nested first code."""
+    label = " ".join(value for value in (member.course_code, member.course_name) if value)
+    operation, value = claim.operation, claim.value
+    if operation == "placement":
+        terms = _placement_terms(value)
+        if not terms:
+            return None
+        return label + ": " + " | ".join(
+            f"ชั้นปีที่ {year} ภาคการศึกษาที่ {semester} แผน{_plan_display(plan)}"
+            for year, semester, plan in terms
+        )
+    if operation == "prerequisite":
+        records = value if isinstance(value, (list, tuple)) else ()
+        if records and all(row.get("prerequisite_state") == "explicit_none" for row in records):
+            return label + ": ไม่มีวิชาบังคับก่อน"
+        codes = []
+        for row in records:
+            code = row.get("prerequisite_code")
+            if row.get("alternative_group_id") is not None or not isinstance(code, str):
+                return None  # Never flatten an alternative prerequisite into mandatory courses.
+            if code not in codes:
+                codes.append(code)
+        return label + " มีวิชาบังคับก่อน: " + ", ".join(codes) if codes else None
+    line = _claim_line_with_evidence(claim)
+    return label + ": " + line if line else None
+
+
+def _sequence_member_placements(member: ResolvedTarget, result: VerifiedResult,
+                                scope: ResolvedScope, catalog_id: int) -> tuple[tuple[int, int], ...]:
+    """Check factual ownership/scope before deriving an order from full placement sets."""
+    placements = set()
+    operations = [claim.operation for claim in result.claims]
+    if operations.count("placement") != 1 or operations.count("prerequisite") > 1:
+        raise ValueError("sequence member has conflicting duplicate fact claims")
+    for claim in result.claims:
+        if claim.operation not in {"placement", "prerequisite"}:
+            continue
+        effective = claim.effective_scope
+        if (
+            effective is None or effective.program != scope.program
+            or effective.catalog_key != scope.catalog_key or effective.plans != (scope.plan,)
+            or len(effective.course_targets) != 1
+            or effective.course_targets[0].get("course_code") != member.course_code
+            or effective.course_targets[0].get("catalog_id") != catalog_id
+            or not _complete_source_references(claim.provenance)
+            or any(ref not in result.provenance for ref in claim.provenance)
+            or not isinstance(claim.value, (tuple, list)) or not claim.value
+        ):
+            raise ValueError("sequence member has incomplete or incompatible claim scope")
+        owner_id = effective.course_targets[0].get("course_id")
+        if type(owner_id) is not int:
+            raise ValueError("sequence member canonical owner identity missing")
+        for row in claim.value:
+            if (not isinstance(row, Mapping) or not _complete_source_references(row.get("provenance"))
+                    or any(ref not in claim.provenance for ref in row["provenance"])):
+                raise ValueError("sequence member fact has missing sources")
+            if claim.operation == "placement":
+                if (row.get("program") != scope.program or row.get("catalog_id") != catalog_id
+                        or row.get("plan_key") != scope.plan):
+                    raise ValueError("sequence placement leaks canonical scope")
+                if row.get("is_alternative"):
+                    members = row.get("alternative_courses", ())
+                    if (not members or any(item.get("catalog_id") != catalog_id for item in members)
+                            or member.course_code not in {item.get("course_code") for item in members}):
+                        raise ValueError("sequence alternative placement has wrong ownership")
+                elif row.get("course_code") != member.course_code or row.get("course_id") != owner_id:
+                    raise ValueError("sequence placement belongs to another member")
+                placements.update(_comparable_placement_choices(row))
+            elif row.get("course_id") != owner_id:
+                raise ValueError("sequence prerequisite belongs to another target course")
+        if claim.operation == "prerequisite":
+            absent = [row.get("prerequisite_state") == "explicit_none" for row in claim.value]
+            if any(absent) and not all(absent):
+                raise ValueError("conflicting prerequisite absence and dependency facts")
+            if all(absent) and any(row.get("prerequisite_code") or row.get("prerequisite_course_id")
+                                   for row in claim.value):
+                raise ValueError("explicit prerequisite absence cannot carry a dependency")
+    if not placements:
+        raise ValueError("sequence member has no complete canonical placement")
+    return tuple(sorted(placements))
+
+
+def execute_explicit_course_set(
+    db_path: str | Path, resolved: ResolvedIntent, question: str,
+) -> VerifiedResult:
+    """Atomic bounded member-local execution over canonical resolved targets."""
+    from rag.semantic.planner import plan_semantic_query, EXECUTION_DETERMINISTIC
+    plan = plan_semantic_query(resolved)
+    if plan.execution != EXECUTION_DETERMINISTIC or resolved.target.kind != "literal_set":
+        return VerifiedResult(status="unsupported", missing_information=(plan.reason,),
+                              failure_category="EXPECTED_SAFE_FAILURE")
+    facts, claims, references, courses = [], [], [], []
+    scope = resolved.scope
+    sequence = "placement_sequence" in resolved.intent.requested_fields
+    sequence_parts = []
+    try:
+        spec = compile_resolved_intent_to_query_spec(resolved, question)
+        if not spec.operations:
+            raise ValueError("no executable member operations")
+        context = QueryContext(program=scope.program, catalog_key=scope.catalog_key,
+                               plan=scope.plan, years=scope.years, semesters=scope.semesters)
+        catalog_id = None
+        if sequence:
+            connection = _connect_ro(db_path)
+            try:
+                catalog = connection.execute("SELECT catalog_id FROM catalogs WHERE catalog_key = ?",
+                                             (scope.catalog_key,)).fetchone()
+            finally:
+                connection.close()
+            if catalog is None:
+                raise ValueError("sequence catalog unavailable")
+            catalog_id = catalog["catalog_id"]
+        for index, member in enumerate(resolved.target.members, 1):
+            if (member.program, member.catalog_key) != (scope.program, scope.catalog_key):
+                raise ValueError(f"member {index} has incompatible canonical scope")
+            member_spec = replace(spec, course_codes=(member.course_code,))
+            result = execute_deterministic(db_path, member_spec, context, question)
+            operations = {claim.operation for claim in result.claims if claim.status in {"complete", "valid_empty"}}
+            if (
+                result.status != "answer" or not set(spec.operations).issubset(operations)
+                or not result.provenance
+                or any(claim.status not in {"complete", "valid_empty"} for claim in result.claims)
+            ):
+                raise ValueError(f"member {index} ({member.course_code}): incomplete requested evidence")
+            member_facts = []
+            for claim in result.claims:
+                line = _member_fact(member, claim)
+                if not line:
+                    raise ValueError(f"member {index} ({member.course_code}): unsupported evidence projection")
+                facts.append(line)
+                member_facts.append(line)
+            if sequence:
+                terms = _sequence_member_placements(member, result, scope, catalog_id)
+                sequence_parts.append((terms, VerifiedScopedResult(
+                    scope_kind="sequence_course", scope=scope, course_code=member.course_code,
+                    summary_facts=tuple(member_facts), claims=result.claims, provenance=result.provenance,
+                )))
+            claims.extend(result.claims)
+            for ref in result.provenance:
+                if ref not in references:
+                    references.append(ref)
+            courses.append({"course_code": member.course_code, "program": member.program,
+                             "catalog_key": member.catalog_key})
+        parts = ()
+        if sequence:
+            # A complete range must precede the next complete range. Sorting by
+            # the lower bound never selects an earliest placement for display.
+            sequence_parts.sort(key=lambda item: item[0][0])
+            if any(left[0][-1] >= right[0][0] for left, right in zip(sequence_parts, sequence_parts[1:])):
+                raise ValueError("placement_sequence has ambiguous overlapping placements or same-term ties")
+            parts = tuple(part for _, part in sequence_parts)
+            facts = [fact for part in parts for fact in part.summary_facts]
+            claims = [claim for part in parts for claim in part.claims]
+            course_by_code = {entry["course_code"]: entry for entry in courses}
+            if len(course_by_code) != len(courses) or any(part.course_code not in course_by_code for part in parts):
+                raise ValueError("placement_sequence retained-course identities are incomplete")
+            # Retained result order must match the deterministic order shown to
+            # the user, otherwise ordinal follow-ups can point at another course.
+            courses = [course_by_code[part.course_code] for part in parts]
+        selections = ()
+        if resolved.intent.relation == "alternative_selection" or "alternative_selection" in resolved.intent.requested_fields:
+            selections = (_verify_alternative_selection(db_path, resolved),)
+            for ref in selections[0].provenance:
+                if ref not in references:
+                    references.append(ref)
+        verified = VerifiedResult(
+            status="answer", summary_facts=tuple(facts), claims=tuple(claims),
+            provenance=tuple(references), result_courses=tuple(courses), result_scope_program=scope.program,
+            alternative_selections=selections, explicit_course_set=True,
+            scoped_results=parts,
+        )
+        # Do not accept more facts than the bounded renderer can retain.
+        from rag.semantic.answerer import render_verified_course_set, render_verified_placement_sequence, MAX_ANSWER_LEN
+        rendered = render_verified_placement_sequence(verified) if sequence else render_verified_course_set(verified)
+        if len(rendered) > MAX_ANSWER_LEN:
+            return VerifiedResult(status="unsupported", missing_information=("explicit course-set answer exceeds presentation bound",),
+                                  failure_category="EXPECTED_SAFE_FAILURE")
+        return verified
+    except Exception as error:
+        return VerifiedResult(status="missing_data", missing_information=("course-set evidence: " + str(error),),
+                              failure_category="EXPECTED_SAFE_FAILURE")
+
+
+def _execute_scoped_request(
+    db_path: str | Path, request: CompiledScopedRequest, question: str,
+    target: ResolvedTarget | None = None, parent_course_code: str | None = None,
+) -> VerifiedScopedResult:
+    scope = request.scope
+    context = QueryContext(program=scope.program, catalog_key=scope.catalog_key,
+                           plan=scope.plan, years=scope.years, semesters=scope.semesters)
+    result = execute_deterministic(db_path, request.spec, context, question)
+    operations = {claim.operation for claim in result.claims}
+    if (
+        result.status != "answer" or not result.provenance
+        or not set(request.spec.operations).issubset(operations)
+        or any(claim.status not in {"complete", "valid_empty"} for claim in result.claims)
+    ):
+        raise ValueError(f"{request.scope_kind}: incomplete requested evidence")
+    total = None
+    if request.scope_kind == "term":
+        credits = [claim for claim in result.claims if claim.operation == "sum_credits"]
+        if (
+            len(credits) != 1 or type(credits[0].value) not in {int, float}
+            or not math.isfinite(credits[0].value) or credits[0].value < 0
+        ):
+            raise ValueError("term: one verified scalar credit total required")
+        claim = credits[0]
+        effective = claim.effective_scope
+        if (
+            effective is None or effective.program != scope.program
+            or effective.catalog_key != scope.catalog_key or effective.plans != (scope.plan,)
+            or effective.years != scope.years or effective.semesters != scope.semesters
+            or effective.course_targets
+        ):
+            raise ValueError("term aggregate evidence has incompatible scope")
+        total = claim.value  # Already computed by canonical credit evidence, not presentation.
+        facts = (f"{scope.program} แผน{_plan_display(scope.plan)} ({scope.catalog_key}) "
+                 f"ชั้นปีที่ {scope.years[0]} ภาคการศึกษาที่ {scope.semesters[0]} "
+                 f"หน่วยกิตรวมทั้งเทอม: {total}",)
+    else:
+        if target is None or target.course_code != request.course_code:
+            raise ValueError("course evidence needs its canonical target binding")
+        facts = tuple(_member_fact(target, claim) for claim in result.claims)
+        if not facts or any(not fact for fact in facts):
+            raise ValueError("course: incomplete member-local evidence projection")
+    return VerifiedScopedResult(
+        scope_kind=request.scope_kind, scope=scope, course_code=request.course_code,
+        parent_course_code=parent_course_code, total_credits=total,
+        summary_facts=facts, claims=result.claims, provenance=result.provenance,
+    )
+
+
+def _direct_prerequisite_placements(
+    db_path: str | Path, resolved: ResolvedIntent, course: VerifiedScopedResult, question: str,
+) -> tuple[VerifiedScopedResult, ...]:
+    """Placement of verified direct prerequisites only; no recursive traversal."""
+    codes = []
+    for claim in course.claims:
+        if claim.operation != "prerequisite":
+            continue
+        for record in claim.value:
+            if record.get("prerequisite_state") == "explicit_none":
+                continue
+            code = record.get("prerequisite_code")
+            if record.get("alternative_group_id") is not None or not isinstance(code, str):
+                raise ValueError("direct prerequisite placement has unsupported requirement shape")
+            if code not in codes:
+                codes.append(code)
+    parts = []
+    for code in codes:
+        candidates = _course_reference_candidates(db_path, code, course.scope.program, course.scope.catalog_key)
+        if len(candidates) != 1:
+            raise ValueError("direct prerequisite identity does not resolve uniquely")
+        candidate = candidates[0]
+        target = ResolvedTarget(kind="literal", course_code=code,
+                                course_name=candidate.get("name_en") or candidate.get("name_th"),
+                                program=course.scope.program, catalog_key=course.scope.catalog_key)
+        dependency = replace(resolved, scope=course.scope, target=target, intent=replace(
+            resolved.intent, task="lookup", relation="placement", requested_fields=("placement",), aggregation=None,
+        ))
+        request = CompiledScopedRequest("prerequisite_course", course.scope,
+                                       compile_resolved_intent_to_query_spec(dependency, question), code)
+        parts.append(_execute_scoped_request(db_path, request, question, target, resolved.target.course_code))
+    return tuple(parts)
+
+
+def execute_mixed_scope(
+    db_path: str | Path, resolved: ResolvedIntent, question: str,
+) -> VerifiedResult:
+    """Atomically compose complete course work and a separate canonical term total."""
+    try:
+        course_request, term_request = compile_mixed_scope_requests(resolved, question)
+        course = _execute_scoped_request(db_path, course_request, question, resolved.target)
+        prerequisites = ()
+        if "prerequisite_placement" in resolved.intent.requested_fields:
+            prerequisites = _direct_prerequisite_placements(db_path, resolved, course, question)
+        term = _execute_scoped_request(db_path, term_request, question)
+        parts = (course, *prerequisites, term)
+        provenance = []
+        for part in parts:
+            for ref in part.provenance:
+                if ref not in provenance:
+                    provenance.append(ref)
+        verified = VerifiedResult(
+            status="answer", summary_facts=tuple(fact for part in parts for fact in part.summary_facts),
+            claims=tuple(claim for part in parts for claim in part.claims), provenance=tuple(provenance),
+            scoped_results=parts,
+            result_courses=({"course_code": resolved.target.course_code, "program": resolved.scope.program,
+                             "catalog_key": resolved.scope.catalog_key},),
+            result_scope_program=resolved.scope.program,
+        )
+        from rag.semantic.answerer import render_verified_mixed_scope, MAX_ANSWER_LEN
+        if len(render_verified_mixed_scope(verified)) > MAX_ANSWER_LEN:
+            return VerifiedResult(status="unsupported", missing_information=("mixed-scope answer exceeds presentation bound",),
+                                  failure_category="EXPECTED_SAFE_FAILURE")
+        return verified
+    except Exception as error:
+        return VerifiedResult(status="missing_data", missing_information=("mixed-scope evidence: " + str(error),),
+                              failure_category="EXPECTED_SAFE_FAILURE")
 
 
 def _policy_kinds_for(topic: str | None) -> tuple[str, ...]:
@@ -520,6 +1039,11 @@ def _retained_courses_from_context(
     return tuple(entries), scope_program
 
 
+def _missing_answer_provider(*args: Any, **kwargs: Any) -> str:
+    """Stand-in when no answer provider is injected (never a real provider)."""
+    return ""
+
+
 def execute_sql_bridge(
     db_path: str | Path,
     resolved: ResolvedIntent,
@@ -571,13 +1095,24 @@ def execute_sql_bridge(
             conversation_context=service_context or None,
             grounding_callable=grounding_callable,
         )
-    except Exception:
+    except Exception as exc:
+        if is_provider_error(exc):
+            raise SemanticOperationalError("provider_unavailable") from None
         return VerifiedResult(
             status="missing_data",
             missing_information=("ไม่สามารถประมวลผลคำถามเชิงประกอบได้",),
             failure_category="QUERY_ERROR",
         )
     if not isinstance(result, dict) or result.get("status") != "answer":
+        error = result.get("error") if isinstance(result, dict) else None
+        code = error.get("code") if isinstance(error, dict) else None
+        if code == "sql_model_failure" or (
+            code == "answer_model_failure"
+            and answer_callable is not _missing_answer_provider
+        ):
+            # The SQL/answer provider itself failed; this is operational,
+            # never evidence insufficiency.
+            raise SemanticOperationalError("provider_unavailable") from None
         return VerifiedResult(
             status="missing_data",
             missing_information=("ไม่มีผลลัพธ์ที่ยืนยันได้จากฐานข้อมูล",),
@@ -979,9 +1514,127 @@ def _hydrated_provenance(
     return tuple(dict(ref) for ref in hydration.provenance)
 
 
+def _comparable_placement_choices(row: Mapping) -> tuple[tuple[int, int], ...]:
+    """Never silently drop a malformed choice while selecting a minimum."""
+    def valid(term):
+        return (isinstance(term, (tuple, list)) and len(term) == 2
+                and type(term[0]) is int and 1 <= term[0] <= 5
+                and type(term[1]) is int and 1 <= term[1] <= 2)
+    choices = row.get("year_semester_choices")
+    fixed = (row.get("year_number"), row.get("semester_number"))
+    if fixed != (None, None) and not valid(fixed):
+        raise ValueError("malformed fixed placement")
+    if choices is None:
+        choices = (fixed,) if valid(fixed) else ()
+    if not isinstance(choices, (tuple, list)) or not choices or any(not valid(term) for term in choices):
+        raise ValueError("missing or non-comparable canonical placement choices")
+    terms = tuple(sorted({tuple(term) for term in choices}))
+    if valid(fixed) and fixed not in terms:
+        raise ValueError("conflicting fixed and flexible placement")
+    return terms
+
+
+def execute_plan_placement_comparison(db_path: str | Path, resolved: ResolvedIntent) -> VerifiedResult:
+    """Atomic nonnumeric comparison using existing singleton placement evidence."""
+    try:
+        requests = compile_plan_placement_requests(resolved, "")
+        members = resolved.target.members if resolved.target.kind == "literal_set" else (resolved.target,)
+        by_code = {member.course_code: member for member in members}
+        connection = _connect_ro(db_path)
+        try:
+            catalog = connection.execute("SELECT catalog_id FROM catalogs WHERE catalog_key = ?",
+                                         (resolved.scope.catalog_key,)).fetchone()
+        finally:
+            connection.close()
+        if catalog is None:
+            raise ValueError("placement catalog unavailable")
+        cells, claims, references = [], [], []
+        for request in requests:
+            scope = request.scope
+            result = execute_deterministic(db_path, request.spec, QueryContext(
+                program=scope.program, catalog_key=scope.catalog_key, plan=scope.plan), "")
+            if (result.status != "answer" or len(result.claims) != 1
+                    or result.claims[0].operation != "placement" or result.claims[0].status != "complete"
+                    or not _complete_source_references(result.provenance)):
+                raise ValueError("incomplete course-plan placement evidence")
+            claim = result.claims[0]
+            effective = claim.effective_scope
+            if (effective is None or effective.program != scope.program
+                    or effective.catalog_key != scope.catalog_key or effective.plans != (scope.plan,)
+                    or len(effective.course_targets) != 1
+                    or effective.course_targets[0].get("course_code") != request.course_code):
+                raise ValueError("placement claim has incompatible course-plan scope")
+            rows = claim.value
+            if not isinstance(rows, (tuple, list)) or not rows:
+                raise ValueError("course-plan cell missing")
+            placements, sources = set(), []
+            for row in rows:
+                if (not isinstance(row, Mapping) or row.get("program") != scope.program
+                        or row.get("catalog_id") != catalog["catalog_id"] or row.get("plan_key") != scope.plan
+                        or not _complete_source_references(row.get("provenance"))):
+                    raise ValueError("out-of-scope placement row or missing sources")
+                codes = {row.get("course_code")}
+                if row.get("is_alternative"):
+                    alternatives = row.get("alternative_courses", ())
+                    if not alternatives or any(member.get("catalog_id") != catalog["catalog_id"]
+                                               for member in alternatives):
+                        raise ValueError("alternative placement member scope missing")
+                    codes = {member.get("course_code") for member in alternatives}
+                if request.course_code not in codes:
+                    raise ValueError("placement evidence belongs to another member")
+                placements.update(_comparable_placement_choices(row))
+                for ref in row["provenance"]:
+                    if ref not in sources:
+                        sources.append(ref)
+            member = by_code[request.course_code]
+            cells.append(VerifiedPlacementCell(request.course_code, member.course_name, scope,
+                                               tuple(sorted(placements)), tuple(sources)))
+            claims.append(claim)
+            for ref in result.provenance:
+                if ref not in references:
+                    references.append(ref)
+        # Derivation starts only after ALL cells have passed evidence verification.
+        conclusions = []
+        if resolved.intent.comparison.operation == "earliest_placement":
+            for index in range(0, len(cells), 2):
+                left, right = cells[index:index + 2]
+                earliest = (min(left.placements), min(right.placements))
+                tie = earliest[0] == earliest[1]
+                earlier = None if tie else left.scope.plan if earliest[0] < earliest[1] else right.scope.plan
+                conclusions.append(VerifiedEarliestPlacement(left.course_code,
+                    (left.scope.plan, right.scope.plan), earliest, earlier, tie))
+        selections = []
+        if "alternative_selection" in resolved.intent.requested_fields:
+            for side in resolved.comparison_sides:
+                selection = _verify_alternative_selection(db_path, replace(resolved, scope=side.scope))
+                selections.append(selection)
+                for ref in selection.provenance:
+                    if ref not in references:
+                        references.append(ref)
+        verified = VerifiedResult(status="answer", claims=tuple(claims), provenance=tuple(references),
+            placement_comparison=VerifiedPlacementComparison(tuple(cells), tuple(conclusions)),
+            alternative_selections=tuple(selections),
+            result_courses=tuple({"course_code": member.course_code, "program": member.program,
+                                  "catalog_key": member.catalog_key} for member in members),
+            result_scope_program=resolved.scope.program)
+        from rag.semantic.answerer import render_verified_plan_placement, MAX_ANSWER_LEN
+        answer = render_verified_plan_placement(verified)
+        if len(answer) > MAX_ANSWER_LEN:
+            return VerifiedResult(status="unsupported", missing_information=("placement matrix exceeds presentation bound",),
+                                  failure_category="EXPECTED_SAFE_FAILURE")
+        return replace(verified, summary_facts=tuple(answer.splitlines()))
+    except Exception as error:
+        if is_provider_error(error):
+            raise SemanticOperationalError("provider_unavailable") from None
+        return VerifiedResult(status="missing_data", missing_information=("plan-placement evidence: " + str(error),),
+                              failure_category="EXPECTED_SAFE_FAILURE")
+
+
 def execute_comparison(db_path: str | Path, resolved: ResolvedIntent) -> VerifiedResult:
     """Execute verified numeric/set comparison with per-side provenance."""
     comparison = resolved.intent.comparison
+    if comparison is not None and comparison.measure == "placement":
+        return execute_plan_placement_comparison(db_path, resolved)
     if comparison is None or comparison.operation not in {
         "greater", "less", "equal", "difference", "set_difference", "overlap",
     }:
@@ -1121,7 +1774,9 @@ def _retained_from_claims(
     seen: list[str] = []
     for claim in claims:
         try:
-            if (
+            if getattr(claim, "operation", None) == "prerequisite":
+                codes = [owner.course_code for owner in _prerequisite_owners(claim)]
+            elif (
                 getattr(claim, "operation", None) in {"list", "topic_matches", "course_set"}
                 and getattr(claim, "status", None) == "complete"
             ):

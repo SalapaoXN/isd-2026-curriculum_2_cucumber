@@ -92,8 +92,8 @@ test("plan popup keeps canonical plan retry separate from catalog selection", ()
   assert.equal(retry.session.plan, "coop");
   assert.equal(retry.clarificationResolution.value, "no_coop");
   const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /handleCatalogChange\(edition\.catalog_key, true\)/);
-  assert.match(page, /catalogOptionLabel\(edition, pendingCatalogs\)/);
-  assert.match(page, /selectCatalogForRetry\(active, catalogKey, programs\)/);
-  assert.match(page, /onChange=\{plan => handlePlanChange\(plan, true\)\}/);
+  assert.match(page, /handleCatalogChange\(edition\.catalog_key, m\.id\)/);
+  assert.match(page, /clarificationCatalogs\(clarificationSession, programs, clarification\)/);
+  assert.match(page, /selectCatalogForRetry\(selectionSession, catalogKey, programs, clarification\)/);
+  assert.match(page, /onChange=\{plan => handlePlanChange\(plan, m\.id\)\}/);
 });

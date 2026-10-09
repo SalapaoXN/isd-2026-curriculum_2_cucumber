@@ -14,6 +14,7 @@ import time
 from copy import deepcopy
 from collections.abc import Callable
 from dataclasses import dataclass, replace as _replace_resolved
+from functools import wraps
 from pathlib import Path
 from typing import Any
 
@@ -23,9 +24,13 @@ from rag.resolution import QueryContext
 from rag.semantic.answerer import render_semantic_answer
 from rag.semantic.compiler import compile_resolved_intent_to_query_spec
 from rag.semantic.context import merge_semantic_context, _validated_prior_context
+from rag.semantic.errors import SemanticOperationalError, is_provider_error as _is_provider_error
 from rag.semantic.executor import (
+    _missing_answer_provider,
     execute_comparison,
     execute_deterministic,
+    execute_explicit_course_set,
+    execute_mixed_scope,
     execute_policy,
     execute_sql_bridge,
 )
@@ -36,10 +41,12 @@ from rag.semantic.planner import (
     EXECUTION_SQL,
     MissingScopeRequirement,
     missing_comparison_plan,
+    missing_mixed_scope,
     plan_semantic_query,
 )
 from rag.semantic.resolver import (
     canonical_catalog_key, canonical_program, resolve_semantic_intent, valid_plan,
+    resolve_available_plan_operands,
 )
 from rag.semantic.schema import (
     LEGACY_STATUS_FOR_INTERNAL,
@@ -210,6 +217,8 @@ def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
             "raw_text": intent.target.raw_text,
             "normalized_hint": intent.target.normalized_hint,
             "ordinal": intent.target.ordinal,
+            **({"members": [{"raw_text": member.raw_text, "normalized_hint": member.normalized_hint}
+                             for member in intent.target.members]} if intent.target.kind == "literal_set" else {}),
         },
         "scope": {
             "program": intent.scope.program,
@@ -223,8 +232,15 @@ def _intent_summary(intent: SemanticIntent) -> dict[str, Any]:
             {"field": item.field, "operator": item.operator} for item in intent.filters
         ],
         "has_aggregation": intent.aggregation is not None,
+        **({"aggregation": {"function": intent.aggregation.function, "measure": intent.aggregation.measure,
+                             "group_by": list(intent.aggregation.group_by)}, "scope_kinds": ["course", "term"]}
+           if intent.task == "compose" and intent.aggregation is not None else {}),
         "has_ranking": intent.ranking is not None,
         "has_comparison": intent.comparison is not None,
+        **({"comparison": {"left": dict(intent.comparison.left), "right": dict(intent.comparison.right),
+                           "measure": intent.comparison.measure, "operation": intent.comparison.operation,
+                           **({"plan_selector": intent.comparison.plan_selector} if intent.comparison.plan_selector else {})}}
+           if intent.comparison is not None else {}),
         "requested_fields": list(intent.requested_fields),
         "clarification": intent.clarification,
         "policy_topic": intent.policy_topic,
@@ -239,6 +255,9 @@ def _resolved_summary(resolved: ResolvedIntent) -> dict[str, Any]:
         "plan": resolved.scope.plan,
         "target_kind": resolved.target.kind,
         "has_course_code": resolved.target.course_code is not None,
+        **({"members": [{"course_code": member.course_code, "program": member.program,
+                         "catalog_key": member.catalog_key} for member in resolved.target.members]}
+           if resolved.target.kind == "literal_set" else {}),
         "needs_clarification": resolved.needs_clarification,
         "clarification_reason": resolved.clarification_reason,
         "comparison_sides": [
@@ -370,6 +389,7 @@ def _scope_clarification(
     label = {
         "program": "หลักสูตร", "catalog": "ปีหลักสูตร/ฉบับหลักสูตร",
         "plan": "แผนการเรียน", "comparison_operation": "ลักษณะการเปรียบเทียบที่ต้องการ เช่น ส่วนต่าง หรือความเท่ากัน",
+        "year": "ชั้นปี", "semester": "ภาคการศึกษา",
     }[dimension]
     text = f"กรุณาระบุ{label}"
     if program is not None:
@@ -594,6 +614,9 @@ def _run_semantic_answer(
         if not callable(callable_object):
             return None
 
+        # Preserve provider signature so transport capability inspection sees
+        # the original callable rather than this generic counting wrapper.
+        @wraps(callable_object)
         def wrapped(*args: Any, **kwargs: Any) -> str:
             counts["llm"] += 1
             output = callable_object(*args, **kwargs)
@@ -654,13 +677,9 @@ def _run_semantic_answer(
         timing.interpreter_ms = (time.monotonic() - stage_started) * 1000.0
         trace.timing = timing
         trace.llm_request_count = counts["llm"]
-        return _fail_closed(
-            trace,
-            "INTERPRETATION_ERROR",
-            f"interpreter provider failed: {type(error).__name__}",
-            "invalid_interpretation",
-            started=started,
-        )
+        if _is_provider_error(error):
+            raise SemanticOperationalError("provider_unavailable") from None
+        raise SemanticOperationalError("error") from None
     timing.interpreter_ms = (time.monotonic() - stage_started) * 1000.0
     trace.timing = timing
     trace.llm_request_count = counts["llm"]
@@ -754,6 +773,8 @@ def _run_semantic_answer(
     resolved = resolve_semantic_intent(
         db_path, intent, merged, allow_hint_candidates=allow_hint_candidates
     )
+    if intent.comparison is not None and intent.comparison.plan_selector == "available_plans":
+        resolved = resolve_available_plan_operands(db_path, resolved)
     if (
         not resolved.needs_clarification
         and resolved.intent.comparison is not None
@@ -770,8 +791,8 @@ def _run_semantic_answer(
                 side,
                 resolved.scope.program,
                 resolved.scope.catalog_key,
-                default_years=resolved.scope.years,
-                default_semesters=resolved.scope.semesters,
+                default_years=() if resolved.intent.comparison.measure == "placement" else resolved.scope.years,
+                default_semesters=() if resolved.intent.comparison.measure == "placement" else resolved.scope.semesters,
             )
             for side in (
                 resolved.intent.comparison.left,
@@ -843,6 +864,10 @@ def _run_semantic_answer(
             started=started,
         )
 
+    mixed_dimension = missing_mixed_scope(resolved)
+    if mixed_dimension is not None:
+        return _scope_clarification(trace, mixed_dimension, resolved.scope.program, started=started)
+
     plan = plan_semantic_query(resolved)
     trace.query_plan = {"execution": plan.execution, "reason": plan.reason}
 
@@ -851,6 +876,10 @@ def _run_semantic_answer(
         verified = execute_policy(db_path, resolved)
     elif plan.execution == EXECUTION_DETERMINISTIC and resolved.intent.task == "compare":
         verified = execute_comparison(db_path, resolved)
+    elif plan.execution == EXECUTION_DETERMINISTIC and resolved.target.kind == "literal_set":
+        verified = execute_explicit_course_set(db_path, resolved, question)
+    elif plan.execution == EXECUTION_DETERMINISTIC and resolved.intent.task == "compose":
+        verified = execute_mixed_scope(db_path, resolved, question)
     elif plan.execution == EXECUTION_SQL:
         if sql_provider is None:
             verified = VerifiedResult(
@@ -872,7 +901,7 @@ def _run_semantic_answer(
                 sql_provider,
                 answer_provider
                 if answer_provider is not None
-                else (lambda *args, **kwargs: ""),
+                else _missing_answer_provider,
                 service_context,
             )
     elif plan.execution == EXECUTION_DETERMINISTIC:
@@ -898,6 +927,12 @@ def _run_semantic_answer(
         "claim_count": len(verified.claims),
         "provenance_count": len(verified.provenance),
         "missing": list(verified.missing_information),
+        **({"alternative_selection_count": len(verified.alternative_selections)}
+           if verified.explicit_course_set else {}),
+        **({"scope_kinds": [part.scope_kind for part in verified.scoped_results]}
+            if verified.scoped_results else {}),
+        **({"placement_cell_count": len(verified.placement_comparison.cells)}
+           if verified.placement_comparison is not None else {}),
     }
     if verified.status != "answer":
         trace.timing = timing
@@ -942,4 +977,4 @@ def _run_semantic_answer(
     )
 
 
-__all__ = ["SemanticPipelineResult", "semantic_answer"]
+__all__ = ["SemanticOperationalError", "SemanticPipelineResult", "semantic_answer"]

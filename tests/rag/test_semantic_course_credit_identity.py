@@ -1,6 +1,7 @@
 """Focused producer-to-consumer checks for semantic course-credit lookups."""
 
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
 
 from rag.resolution import QueryContext
@@ -76,10 +77,19 @@ class SemanticCourseCreditIdentityTests(unittest.TestCase):
         self.assertIn("3", answer)
         self.assertTrue(result.provenance)
         self.assertTrue(validate_answer_text(answer, result))
+        credit_claim = next(
+            claim for claim in result.claims if claim.operation == "sum_credits"
+        )
+        raw_values = tuple(
+            component.get("credits_raw")
+            for component in getattr(credit_claim.evidence, "components", ())
+            if isinstance(component, Mapping) and component.get("credits_raw")
+        )
+        credit_detail = f" {raw_values[0]}" if len(raw_values) == 1 else ""
         normal_answer, mode = render_semantic_answer(
             course_name,
             result,
-            lambda _prompt: f"{course_name} ({course_code}): 3 credits",
+            lambda _prompt: f"{course_name} ({course_code}): 3{credit_detail} credits",
         )
         self.assertEqual(mode, "grounded_synthesis")
         self.assertIn(course_code, normal_answer)

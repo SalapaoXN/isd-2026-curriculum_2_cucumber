@@ -1,5 +1,7 @@
 import unittest
 from pathlib import Path
+import json
+import sqlite3
 import tempfile
 from decimal import Decimal
 from unittest.mock import patch
@@ -56,6 +58,82 @@ def _result(
 
 
 class GoldEvaluationTest(unittest.TestCase):
+    def test_submission_no_coop_y4s2_gold_provenance_matches_canonical_plan(self):
+        project_root = Path(__file__).resolve().parents[2]
+        gold_path = project_root / "submission" / "gold_questions.json"
+        gold_rows = json.loads(gold_path.read_bytes().decode("utf-8"))
+        gold = next(
+            row for row in gold_rows
+            if row.get("id") == "medium_it_no_coop_y4s2_credits"
+        )
+        self.assertEqual(
+            {
+                key: gold["expected"][key]
+                for key in ("program", "plan", "year", "semester", "total_credits")
+            },
+            {
+                "program": "IT", "plan": "no_coop", "year": 4,
+                "semester": 2, "total_credits": 9,
+            },
+        )
+        expected_provenance = gold["required_provenance"]
+        self.assertEqual(
+            expected_provenance,
+            [{
+                "document_category": "plan",
+                "source_document_key": "it_page_038.png",
+                "source_page": 38,
+            }],
+        )
+
+        database = project_root / "cucumber_outputs" / "runtime" / "curriculum.db"
+        uri = f"file:{database.resolve().as_posix()}?mode=ro"
+        connection = sqlite3.connect(uri, uri=True)
+        connection.row_factory = sqlite3.Row
+        try:
+            scoped_sources = connection.execute(
+                """SELECT DISTINCT provenance.source_document_key,
+                          provenance.source_page, provenance.document_category
+                   FROM plan_placement_provenance link
+                   JOIN plan_placements placement
+                     ON placement.placement_id = link.placement_id
+                   JOIN curriculum_plans plan ON plan.plan_id = placement.plan_id
+                   JOIN programs program ON program.program_id = plan.program_id
+                   JOIN catalogs catalog ON catalog.catalog_id = plan.catalog_id
+                   JOIN provenance ON provenance.provenance_id = link.provenance_id
+                   WHERE lower(trim(program.program_code)) = 'it'
+                     AND lower(trim(catalog.catalog_key)) = 'it-2565'
+                     AND lower(trim(plan.plan_key)) = 'no_coop'
+                     AND placement.year_number = 4
+                     AND placement.semester_number = 2"""
+            ).fetchall()
+            page_39_owners = connection.execute(
+                """SELECT DISTINCT plan.plan_key
+                   FROM plan_placement_provenance link
+                   JOIN plan_placements placement
+                     ON placement.placement_id = link.placement_id
+                   JOIN curriculum_plans plan ON plan.plan_id = placement.plan_id
+                   JOIN provenance ON provenance.provenance_id = link.provenance_id
+                   WHERE provenance.source_document_key = 'it_page_039.png'
+                     AND provenance.source_page = 39"""
+            ).fetchall()
+        finally:
+            connection.close()
+
+        self.assertIn(
+            ("it_page_038.png", 38, "plan"),
+            {tuple(row) for row in scoped_sources},
+        )
+        self.assertEqual({row[0] for row in page_39_owners}, {"coop"})
+
+        ocr_path = project_root / "tests" / "reference" / "ocr" / "it" / "it_page_038_ocr.json"
+        ocr = json.loads(ocr_path.read_bytes().decode("utf-8"))
+        text_lines = ocr["text_lines"]
+        self.assertEqual(ocr["source_filename"], "it_page_038.png")
+        self.assertEqual(ocr["source_page"], 38)
+        self.assertIn("ภาคการศึกษาที่ 2", text_lines)
+        self.assertIn("9", text_lines)
+
     def test_unseen_root_object_unwraps_items(self):
         path = Path(__file__).resolve().parents[2] / "ground_truth" / "rag" / "unseen_factual_v1.json"
         if not path.is_file():

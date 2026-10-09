@@ -58,8 +58,11 @@ class ListIdentityProjectionTests(unittest.TestCase):
             codes = [f'{10000000 + index:08d}' for index in range(count)]
             line, retained = self.project(codes)
             self.assertEqual(retained, codes[:20])
-            self.assertEqual(re.findall(r'\d{8}', line), codes[:10])
-            self.assertIn(f'แสดง 10 จาก {count} รายวิชา', line)
+            self.assertEqual(re.findall(r'\d{8}', line), codes[:20])
+            if count > 20:
+                self.assertIn(f'แสดง 20 จาก {count} รายวิชา', line)
+            else:
+                self.assertNotIn('แสดง', line)
 
     def test_non_list_identity_and_generic_limit_unchanged(self):
         value = {'course_code': '06016454', 'name_en': 'UX TOOLS'}

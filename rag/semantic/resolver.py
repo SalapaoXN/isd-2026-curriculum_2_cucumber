@@ -17,9 +17,11 @@ from __future__ import annotations
 
 import re
 import sqlite3
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
+from rag.query_spec import canonical_plan_meanings
 from rag.semantic.context import MergedContext
 from rag.semantic.schema import (
     ResolvedIntent,
@@ -27,10 +29,13 @@ from rag.semantic.schema import (
     ResolvedScope,
     ResolvedTarget,
     SemanticIntent,
+    SemanticTarget,
 )
 from rag.structured.queries import exact_course_candidates
 
 _COURSE_CODE_RE = re.compile(r"^\d{8}$")
+_DIGIT_RUN_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
+_TITLE_WRAPPER_RE = re.compile(r"[()\[\]{}]")
 
 
 def _connect_ro(db_path: str | Path) -> sqlite3.Connection:
@@ -152,12 +157,178 @@ def valid_plan(
     return str(rows[0]["plan_key"]).strip()
 
 
+def _resolve_raw_plan(
+    db_path: str | Path,
+    raw_plan: str | None,
+    plan_hint: str | None,
+    program: str | None,
+    catalog_key: str | None,
+) -> tuple[str | None, str | None]:
+    """Resolve an explicit raw plan without allowing its hint to define meaning."""
+    if raw_plan is None:
+        if plan_hint is not None:
+            return None, "plan hint requires a current-turn raw plan mention"
+        return None, None
+    if not isinstance(raw_plan, str) or not raw_plan.strip():
+        return None, "empty raw plan mention"
+
+    direct = valid_plan(db_path, raw_plan, program, catalog_key)
+    if direct is not None:
+        if (
+            plan_hint is not None
+            and (
+                not isinstance(plan_hint, str)
+                or plan_hint.strip().casefold() != direct.casefold()
+            )
+        ):
+            return None, "plan hint contradicts canonical raw plan"
+        return direct, None
+
+    meanings = canonical_plan_meanings(raw_plan)
+    if len(meanings) != 1:
+        return None, "raw plan has no unique supported deterministic meaning"
+    meaning = meanings[0]
+    if (
+        plan_hint is not None
+        and (
+            not isinstance(plan_hint, str)
+            or plan_hint.strip().casefold() != meaning.casefold()
+        )
+    ):
+        return None, "plan hint contradicts deterministic raw plan meaning"
+    canonical = valid_plan(db_path, meaning, program, catalog_key)
+    if canonical is None:
+        return None, "deterministic raw plan meaning is unavailable in canonical scope"
+    return canonical, None
+
+
 def _candidate_identity(candidate: dict[str, Any]) -> tuple[str | None, str | None]:
     code = candidate.get("course_code")
     name = candidate.get("name_en") or candidate.get("name_th")
     code = code.strip() if isinstance(code, str) and code.strip() else None
     name = name.strip() if isinstance(name, str) and name.strip() else None
     return code, name
+
+
+def _logical_candidates(
+    candidates: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Collapse candidate rows by the identity contract used by this resolver."""
+    by_identity: dict[tuple[str | None, str | None], dict[str, Any]] = {}
+    for candidate in candidates:
+        identity = _candidate_identity(candidate)
+        if identity != (None, None):
+            by_identity.setdefault(identity, candidate)
+    return list(by_identity.values())
+
+
+def _candidate_course_key(candidate: dict[str, Any]) -> tuple[str, str] | None:
+    program = candidate.get("program")
+    code = candidate.get("course_code")
+    if not isinstance(program, str) or not program.strip():
+        return None
+    if not isinstance(code, str) or not code.strip():
+        return None
+    return program.strip().casefold(), code.strip()
+
+
+def _strong_enough_for_partial_title(raw_text: str) -> bool:
+    """Reject weak references before lexical partial-title matching."""
+    text = raw_text.strip()
+    if not text or text.isdigit():
+        return False
+    # Require at least a short alphabetic/Thai phrase; punctuation and digits
+    # do not contribute to reference strength.
+    return sum(character.isalpha() for character in text) >= 2
+
+
+def _course_reference_candidates(
+    db_path: str | Path,
+    raw_text: str,
+    program: str | None,
+    catalog_key: str | None,
+) -> list[dict[str, Any]]:
+    """Resolve a code or exact-first/partial-second canonical course reference.
+
+    Both lookup stages use the already validated program/catalog scope. An
+    ambiguous exact result is returned as-is and therefore cannot be narrowed
+    by a later partial lookup.
+    """
+    reference = raw_text.strip()
+    if _COURSE_CODE_RE.fullmatch(reference):
+        return _logical_candidates(
+            exact_course_candidates(
+                db_path,
+                course_code=reference,
+                program=program,
+                catalog_key=catalog_key,
+            )
+        )
+
+    digit_runs = list(_DIGIT_RUN_RE.finditer(reference))
+    code_runs = [match for match in digit_runs if len(match.group()) >= 7]
+    if code_runs:
+        # Do not let malformed or multiple code-like numbers fall through to
+        # title/partial matching, where digits could otherwise be ignored.
+        if len(code_runs) != 1 or len(code_runs[0].group()) != 8:
+            return []
+        code_match = code_runs[0]
+        code_candidates = _logical_candidates(
+            exact_course_candidates(
+                db_path,
+                course_code=code_match.group(),
+                program=program,
+                catalog_key=catalog_key,
+            )
+        )
+        if not code_candidates:
+            return []
+
+        supplied_title = _TITLE_WRAPPER_RE.sub(
+            " ", reference[:code_match.start()] + " " + reference[code_match.end():],
+        ).strip(" \t\r\n,;:.-")
+        if not any(character.isalpha() for character in supplied_title):
+            return code_candidates
+
+        title_candidates = _logical_candidates(
+            exact_course_candidates(
+                db_path,
+                course_name=supplied_title,
+                program=program,
+                catalog_key=catalog_key,
+                exact_title=True,
+            )
+        )
+        matching_keys = {
+            key for candidate in title_candidates
+            if (key := _candidate_course_key(candidate)) is not None
+        }
+        return [
+            candidate for candidate in code_candidates
+            if _candidate_course_key(candidate) in matching_keys
+        ]
+
+    exact = _logical_candidates(
+        exact_course_candidates(
+            db_path,
+            course_name=reference,
+            program=program,
+            catalog_key=catalog_key,
+            exact_title=True,
+        )
+    )
+    if exact or not _strong_enough_for_partial_title(reference):
+        return exact
+
+    return _logical_candidates(
+        exact_course_candidates(
+            db_path,
+            course_name=reference,
+            program=program,
+            catalog_key=catalog_key,
+            exact_title=False,
+        )
+    )
 
 
 def _lookup_literal(
@@ -172,21 +343,9 @@ def _lookup_literal(
     """Return (accepted_candidates, hint_candidates_for_trace)."""
     hint_candidates: tuple[str, ...] = ()
     try:
-        if _COURSE_CODE_RE.fullmatch(raw_text.strip()):
-            direct = exact_course_candidates(
-                db_path,
-                course_code=raw_text.strip(),
-                program=program,
-                catalog_key=catalog_key,
-            )
-        else:
-            direct = exact_course_candidates(
-                db_path,
-                course_name=raw_text.strip(),
-                program=program,
-                catalog_key=catalog_key,
-                exact_title=True,
-            )
+        direct = _course_reference_candidates(
+            db_path, raw_text, program, catalog_key
+        )
     except Exception:
         return [], ()
     if hint and allow_hint_candidates:
@@ -269,15 +428,11 @@ def resolve_comparison_operand(
             return ResolvedOperand(unresolved=True, reason="ambiguous operand catalog")
     raw_plan = fields.get("plan")
     plan_hint = fields.get("plan_hint")
-    if plan_hint is not None and raw_plan is None:
-        return ResolvedOperand(
-            unresolved=True, reason="operand plan hint requires raw plan mention"
-        )
-    plan = valid_plan(db_path, raw_plan, program, catalog_key)
-    if plan is None and raw_plan is not None and plan_hint is not None:
-        plan = valid_plan(db_path, plan_hint, program, catalog_key)
-    if raw_plan is not None and plan is None:
-        return ResolvedOperand(unresolved=True, reason="unknown operand plan")
+    plan, plan_error = _resolve_raw_plan(
+        db_path, raw_plan, plan_hint, program, catalog_key
+    )
+    if plan_error is not None:
+        return ResolvedOperand(unresolved=True, reason=plan_error)
     years: tuple[int, ...] = ()
     semesters: tuple[int, ...] = ()
     year = _side_int(fields.get("year"))
@@ -306,14 +461,9 @@ def resolve_comparison_operand(
     if not isinstance(course_raw, str) or not course_raw.strip():
         return ResolvedOperand(scope=scope, unresolved=True, reason="empty operand course")
     try:
-        if _COURSE_CODE_RE.fullmatch(course_raw.strip()):
-            candidates = exact_course_candidates(
-                db_path, course_code=course_raw.strip(),
-                program=program, catalog_key=catalog_key)
-        else:
-            candidates = exact_course_candidates(
-                db_path, course_name=course_raw.strip(),
-                program=program, catalog_key=catalog_key, exact_title=True)
+        candidates = _course_reference_candidates(
+            db_path, course_raw, program, catalog_key
+        )
     except Exception:
         return ResolvedOperand(scope=scope, unresolved=True, reason="operand lookup failed")
     identities = {_candidate_identity(c) for c in candidates}
@@ -329,6 +479,49 @@ def resolve_comparison_operand(
                               program=program, catalog_key=catalog_key),
         unresolved=False,
     )
+
+
+def resolve_available_plan_operands(db_path: str | Path, resolved: ResolvedIntent) -> ResolvedIntent:
+    """Enumerate a canonical pair, never interpret model-supplied plan identities."""
+    comparison = resolved.intent.comparison
+    if comparison is None or comparison.plan_selector != "available_plans" or resolved.needs_clarification:
+        return resolved
+    from rag.semantic.validation import plan_placement_contract_problem
+    problem = plan_placement_contract_problem(resolved.intent)
+    scope = resolved.scope
+    if not scope.program:
+        problem = problem or "unknown program scope"
+    elif not scope.catalog_key:
+        problem = problem or "unknown catalog scope"
+    elif (canonical_program(db_path, scope.program) != scope.program
+          or canonical_catalog_key(db_path, scope.catalog_key, scope.program) != scope.catalog_key):
+        problem = problem or "unverified available-plan scope"
+    if problem:
+        return replace(resolved, comparison_sides=(), needs_clarification=True, clarification_reason=problem)
+    try:
+        connection = _connect_ro(db_path)
+        try:
+            rows = connection.execute(
+                """SELECT cp.plan_key FROM curriculum_plans cp
+                   JOIN catalogs c ON c.catalog_id = cp.catalog_id
+                   JOIN programs p ON p.program_id = cp.program_id AND p.catalog_id = cp.catalog_id
+                   WHERE p.program_code = ? AND c.catalog_key = ? ORDER BY cp.plan_key""",
+                (scope.program, scope.catalog_key),
+            ).fetchall()
+        finally:
+            connection.close()
+        keys = [row["plan_key"] for row in rows]
+        if (len(keys) != 2 or any(not isinstance(key, str) or not key.strip() for key in keys)
+                or len({key.strip().casefold() for key in keys}) != 2):
+            raise ValueError("available-plans comparison requires exactly two distinct canonical plans")
+        if any(valid_plan(db_path, key, scope.program, scope.catalog_key) != key for key in keys):
+            raise ValueError("conflicting canonical available-plan identity")
+    except (sqlite3.Error, ValueError, KeyError, TypeError) as error:
+        return replace(resolved, comparison_sides=(), needs_clarification=True,
+                       clarification_reason="available plans: " + str(error))
+    sides = tuple(ResolvedOperand(scope=ResolvedScope(program=scope.program, catalog_key=scope.catalog_key,
+                                                     plan=key), unresolved=False) for key in keys)
+    return replace(resolved, comparison_sides=sides)
 
 
 def resolve_semantic_intent(
@@ -363,13 +556,24 @@ def resolve_semantic_intent(
             needs_clarification=True,
             clarification_reason="plan hint requires a current-turn raw plan mention",
         )
-    plan = valid_plan(db_path, merged.plan, program, catalog_key)
-    if plan is None and intent.scope.plan is not None and merged.plan_hint is not None:
-        # Normalized plan-hint path: the interpreter's canonical-key
-        # proposal is accepted only on exact deterministic match against
-        # canonical plan data (0 → fail, 1 → accept, ambiguous → fail).
-        # No Thai alias table exists anywhere in this path.
-        plan = valid_plan(db_path, merged.plan_hint, program, catalog_key)
+    if intent.scope.plan is not None:
+        plan, plan_error = _resolve_raw_plan(
+            db_path,
+            intent.scope.plan,
+            intent.scope.plan_hint,
+            program,
+            catalog_key,
+        )
+        if plan_error is not None:
+            return ResolvedIntent(
+                intent=intent,
+                needs_clarification=True,
+                clarification_reason=plan_error,
+            )
+    else:
+        # Inherited plans are already canonical context, not current-turn
+        # linguistic phrases. Preserve direct database validation only.
+        plan = valid_plan(db_path, merged.plan, program, catalog_key)
     if merged.plan is not None and plan is None:
         return ResolvedIntent(
             intent=intent,
@@ -385,6 +589,38 @@ def resolve_semantic_intent(
     )
 
     target = intent.target
+    if target.kind == "literal_set":
+        if program is None or catalog_key is None:
+            return ResolvedIntent(
+                intent=intent, scope=scope, needs_clarification=True,
+                clarification_reason="unknown program scope" if program is None else "unknown catalog scope",
+            )
+        members = []
+        seen = set()
+        for index, reference in enumerate(target.members, 1):
+            member = resolve_semantic_intent(
+                db_path,
+                replace(intent, target=SemanticTarget(
+                    kind="literal", raw_text=reference.raw_text,
+                    normalized_hint=reference.normalized_hint,
+                )),
+                merged, allow_hint_candidates=allow_hint_candidates,
+            )
+            if member.needs_clarification or member.target.course_code is None:
+                return ResolvedIntent(
+                    intent=intent, scope=scope, needs_clarification=True,
+                    clarification_reason=f"member {index} ({reference.raw_text}): "
+                    + (member.clarification_reason or "canonical course code missing"),
+                )
+            key = (member.target.program, member.target.catalog_key, member.target.course_code)
+            if key not in seen:
+                seen.add(key)
+                members.append(member.target)
+        if not members:
+            return ResolvedIntent(intent=intent, scope=scope, needs_clarification=True,
+                                  clarification_reason="empty canonical course set")
+        return ResolvedIntent(intent=intent, scope=scope,
+                              target=ResolvedTarget(kind="literal_set", members=tuple(members)))
     if (
         intent.subject == "program"
         and target.kind == "literal"
@@ -550,5 +786,6 @@ __all__ = [
     "canonical_catalog_key",
     "canonical_program",
     "resolve_semantic_intent",
+    "resolve_available_plan_operands",
     "valid_plan",
 ]

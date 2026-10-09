@@ -120,9 +120,18 @@ export function normalCatalogTarget(target) {
     && target.operand === null;
 }
 
-export function clarificationPlans(session, programs) {
-  const target = session.pendingClarification?.clarification_target;
-  if (target == null) return availablePlans(session, programs);
+export function clarificationPlans(session, programs, clarification = session.pendingClarification) {
+  const target = clarification?.clarification_target;
+  if (target == null) {
+    const context = clarification?.next_context
+      ?? clarification?.request_scope?.conversation_context;
+    const scopedSession = context ? {
+      ...session,
+      program: context.program || session.program,
+      catalogKey: context.catalog_key || session.catalogKey,
+    } : session;
+    return availablePlans(scopedSession, programs);
+  }
   if (!operandTarget(target, "plan")) return [];
   const program = programs.find(p => p.program_code === target.program);
   const plans = program?.plans?.length ? program.plans
@@ -130,17 +139,26 @@ export function clarificationPlans(session, programs) {
   return [...new Map(plans.map(plan => [plan.plan_key, plan])).values()];
 }
 
-export function selectPlanForRetry(session, plan, programs) {
-  const target = session.pendingClarification?.clarification_target;
-  if (target == null) return {session: selectPlan(session, plan, programs), clarificationResolution: null};
-  if (!operandTarget(target, "plan") || !clarificationPlans(session, programs).some(p => p.plan_key === plan)) {
+export function selectPlanForRetry(session, plan, programs, clarification = session.pendingClarification) {
+  const target = clarification?.clarification_target;
+  if (target == null) {
+    const context = clarification?.next_context
+      ?? clarification?.request_scope?.conversation_context;
+    const scopedSession = context ? {
+      ...session,
+      program: context.program || session.program,
+      catalogKey: context.catalog_key || session.catalogKey,
+    } : session;
+    return {session: selectPlan(scopedSession, plan, programs), clarificationResolution: null};
+  }
+  if (!operandTarget(target, "plan") || !clarificationPlans(session, programs, clarification).some(p => p.plan_key === plan)) {
     throw new Error("ไม่สามารถระบุแผนของฝั่งเปรียบเทียบได้อย่างปลอดภัย");
   }
-  return accumulatedRetry(session, {...target, value: plan});
+  return accumulatedRetry(session, {...target, value: plan}, clarification);
 }
 
-function accumulatedRetry(session, resolution) {
-  const previous = session.pendingClarification?.clarification_resolutions ?? [];
+function accumulatedRetry(session, resolution, clarification = session.pendingClarification) {
+  const previous = clarification?.clarification_resolutions ?? [];
   if (!Array.isArray(previous) || previous.length > 4) {
     throw new Error("ข้อมูลการระบุขอบเขตต่อเนื่องไม่ถูกต้อง");
   }
@@ -161,13 +179,26 @@ function accumulatedRetry(session, resolution) {
   }
   if (unique.size > 4) throw new Error("ข้อมูลการระบุขอบเขตเกินขอบเขตที่รองรับ");
   const history = [...unique.values()];
-  return {session: {...session, pendingClarification: {
-      ...session.pendingClarification, clarification_resolutions: history.map(item => ({...item})),
-    }}, clarificationResolution: resolution, clarificationResolutions: history};
+  const updatedClarification = {
+    ...clarification,
+    clarification_resolutions: history.map(item => ({...item})),
+  };
+  const pendingClarification = {
+    ...(clarification?.question ? {question: clarification.question} : {}),
+    ...(clarification?.messageId != null ? {messageId: clarification.messageId} : {}),
+    ...(clarification?.clarification_target ? {clarification_target: clarification.clarification_target} : {}),
+    clarification_resolutions: history.map(item => ({...item})),
+  };
+  return {
+    session: {...session, pendingClarification},
+    clarification: updatedClarification,
+    clarificationResolution: resolution,
+    clarificationResolutions: history,
+  };
 }
 
-export function clarificationCatalogs(session, programs) {
-  const target = session.pendingClarification?.clarification_target;
+export function clarificationCatalogs(session, programs, clarification = session.pendingClarification) {
+  const target = clarification?.clarification_target;
   if (target != null && !operandTarget(target, "catalog") && !normalCatalogTarget(target)) return [];
   const program = target?.program || session.program;
   return (programs.find(p => p.program_code === program)?.editions || [])
@@ -192,8 +223,8 @@ export function selectCatalog(session, catalogKey, programs) {
     context: resetContextForEdition(session.program, catalogKey, plan)};
 }
 
-export function selectCatalogForRetry(session, catalogKey, programs) {
-  const target = session.pendingClarification?.clarification_target;
+export function selectCatalogForRetry(session, catalogKey, programs, clarification = session.pendingClarification) {
+  const target = clarification?.clarification_target;
   if (target == null) return {session: selectCatalog(session, catalogKey, programs), clarificationResolution: null};
   if (normalCatalogTarget(target)) {
     if (session.program && session.program !== target.program) {
@@ -211,10 +242,10 @@ export function selectCatalogForRetry(session, catalogKey, programs) {
     return {session: {...session, context: normal.context, pendingClarification: null},
       clarificationResolution: null};
   }
-  if (!operandTarget(target, "catalog") || !clarificationCatalogs(session, programs).some(e => e.catalog_key === catalogKey)) {
+  if (!operandTarget(target, "catalog") || !clarificationCatalogs(session, programs, clarification).some(e => e.catalog_key === catalogKey)) {
     throw new Error("ไม่สามารถระบุฉบับหลักสูตรของฝั่งเปรียบเทียบได้อย่างปลอดภัย");
   }
-  return accumulatedRetry(session, {...target, value: catalogKey});
+  return accumulatedRetry(session, {...target, value: catalogKey}, clarification);
 }
 
 export function newSession(program = "", catalogKey = "", programs = []) {
@@ -232,20 +263,282 @@ export function newSession(program = "", catalogKey = "", programs = []) {
   };
 }
 
+const STORED_CONTEXT_STRINGS = {
+  program: 80, catalog_key: 128, plan: 80, category: 80, course_code: 80,
+  result_scope_program: 80, focus_catalog_key: 128, semantic_topic: 80,
+};
+
+function cleanStoredString(value, maxLength) {
+  return typeof value === "string" && value.trim() && value.length <= maxLength
+    ? value : null;
+}
+
+function cleanStoredIntList(value, maxValue, maxLength) {
+  if (!Array.isArray(value)) return null;
+  const cleaned = value.filter(item => Number.isInteger(item) && item >= 1 && item <= maxValue).slice(0, maxLength);
+  return cleaned;
+}
+
+function cleanStoredCourseRef(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const code = cleanStoredString(item.course_code, 64);
+  if (!code) return null;
+  const ref = {course_code: code};
+  const program = cleanStoredString(item.program, 80);
+  if (program) ref.program = program;
+  const catalogKey = cleanStoredString(item.catalog_key, 128);
+  if (catalogKey) ref.catalog_key = catalogKey;
+  const name = cleanStoredString(item.course_name, 160);
+  if (name) ref.course_name = name;
+  return ref;
+}
+
+export function normalizeStoredContext(context) {
+  if (!context || typeof context !== "object" || Array.isArray(context)) return null;
+  const cleaned = {};
+  for (const [key, maxLength] of Object.entries(STORED_CONTEXT_STRINGS)) {
+    const value = cleanStoredString(context[key], maxLength);
+    if (value) cleaned[key] = value;
+  }
+  for (const key of ["years", "semesters"]) {
+    if (context[key] !== undefined) cleaned[key] = cleanStoredIntList(context[key], key === "years" ? 5 : 2, key === "years" ? 6 : 3) || [];
+  }
+  for (const key of ["year", "semester"]) {
+    if (Number.isInteger(context[key]) && context[key] >= 1 && context[key] <= (key === "year" ? 5 : 2)) cleaned[key] = context[key];
+  }
+  if (context.plans !== undefined) {
+    const plans = Array.isArray(context.plans) ? context.plans : [context.plans];
+    const cleanedPlans = plans.filter(item => cleanStoredString(item, 80));
+    if (cleanedPlans.length) cleaned.plans = cleanedPlans.slice(0, 1);
+  }
+  if (context.operations !== undefined && Array.isArray(context.operations)) {
+    const operations = context.operations.filter(item => cleanStoredString(item, 80));
+    if (operations.length) cleaned.operations = operations.slice(0, 8);
+  }
+  const focus = cleanStoredCourseRef(context.focus_course);
+  if (focus) cleaned.focus_course = focus;
+  if (Array.isArray(context.result_courses)) {
+    const courses = context.result_courses.slice(0, 50).map(cleanStoredCourseRef).filter(Boolean);
+    if (courses.length || context.result_set_empty === true) cleaned.result_courses = courses;
+  }
+  if (typeof context.result_set_empty === "boolean" && context.result_set_empty) {
+    cleaned.result_set_empty = true;
+  }
+  if (typeof context.pending_catalog_selection === "boolean") {
+    cleaned.pending_catalog_selection = context.pending_catalog_selection;
+  }
+  const operation = context.last_normal_operation;
+  if (operation && typeof operation === "object" && !Array.isArray(operation)
+      && operation.kind === "list_courses" && cleanStoredString(operation.program, 80)) {
+    const normalized = {kind: "list_courses", program: operation.program, catalog_key: null, plan: null};
+    const catalogKey = cleanStoredString(operation.catalog_key, 128);
+    if (catalogKey) normalized.catalog_key = catalogKey;
+    const plan = cleanStoredString(operation.plan, 80);
+    if (plan) normalized.plan = plan;
+    normalized.years = cleanStoredIntList(operation.years, 5, 6) || [];
+    normalized.semesters = cleanStoredIntList(operation.semesters, 2, 3) || [];
+    cleaned.last_normal_operation = normalized;
+  }
+  const studyPlan = context.study_plan_context;
+  const last = context.last_answer;
+  if (last && typeof last === "object" && !Array.isArray(last)) {
+    const ref = {};
+    for (const [key, bound] of Object.entries({program: 80, catalog_key: 128})) {
+      const value = cleanStoredString(last[key], bound);
+      if (value) ref[key] = value;
+    }
+    if (last.route === "course" && cleanStoredString(last.course_code, 80) && Array.isArray(last.operations)) {
+      const operations = last.operations.filter(op => ["sum_credits", "placement", "describe", "prerequisite", "existence"].includes(op)).slice(0, 8);
+      if (operations.length) cleaned.last_answer = {...ref, route: "course", course_code: last.course_code, operations};
+    } else if (last.route === "policy" && cleanStoredString(last.policy_kind, 80)) {
+      const policy = {...ref, route: "policy", policy_kind: last.policy_kind};
+      if (cleanStoredString(last.plan, 80)) policy.plan = last.plan;
+      if (Number.isSafeInteger(last.amount) && last.amount >= 0) policy.amount = last.amount;
+      if (Array.isArray(last.evidence_ids)) policy.evidence_ids = last.evidence_ids.filter(id => cleanStoredString(id, 80)).slice(0, 50);
+      cleaned.last_answer = policy;
+    }
+  }
+  if (studyPlan && typeof studyPlan === "object" && !Array.isArray(studyPlan)
+      && studyPlan.kind === "seven_term_plan"
+      && cleanStoredString(studyPlan.program, 80)
+      && cleanStoredString(studyPlan.catalog_key, 128)
+      && cleanStoredString(studyPlan.plan, 80)) {
+    cleaned.study_plan_context = {
+      kind: "seven_term_plan", program: studyPlan.program,
+      catalog_key: studyPlan.catalog_key, plan: studyPlan.plan,
+    };
+  }
+  return Object.keys(cleaned).length > 0 ? cleaned : null;
+}
+
+function normalizeClarificationTarget(target) {
+  if (normalCatalogTarget(target)) {
+    return {dimension: "catalog", program: target.program, operand: null};
+  }
+  if (target && (operandTarget(target, "catalog") || operandTarget(target, "plan"))) {
+    return {
+      dimension: target.dimension,
+      program: target.program,
+      operand: target.operand,
+    };
+  }
+  return null;
+}
+
+function normalizeClarificationResolutions(value) {
+  if (value == null) return [];
+  if (!Array.isArray(value) || value.length > 4) return [];
+  const normalized = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)
+      || Object.keys(item).length !== 4
+      || !["catalog", "plan"].includes(item.dimension)
+      || !["left", "right"].includes(item.operand)) {
+      return [];
+    }
+    const program = cleanStoredString(item.program, 80);
+    const selectedValue = cleanStoredString(item.value, 80);
+    if (!program || !selectedValue) return [];
+    normalized.push({
+      dimension: item.dimension,
+      program,
+      operand: item.operand,
+      value: selectedValue,
+    });
+  }
+  return normalized;
+}
+
+function normalizeClarificationRequestScope(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const homeProgram = value.home_program == null
+    ? null : cleanStoredString(value.home_program, 80);
+  if (value.home_program != null && homeProgram == null) return null;
+  return {
+    home_program: homeProgram,
+    conversation_context: normalizeStoredContext(value.conversation_context),
+  };
+}
+
+function normalizeMessageClarification(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const action = value.action;
+  if (!["catalog_required", "plan_required", "program_required"].includes(action)) return null;
+  const target = value.clarification_target == null
+    ? null : normalizeClarificationTarget(value.clarification_target);
+  if (value.clarification_target != null && target == null) return null;
+  if (action === "program_required" && target != null) return null;
+  if (target && target.dimension !== action.replace("_required", "")) return null;
+  return {
+    action,
+    clarification_target: target,
+    next_context: normalizeStoredContext(value.next_context),
+    request_scope: normalizeClarificationRequestScope(value.request_scope),
+    clarification_resolutions: normalizeClarificationResolutions(
+      value.clarification_resolutions,
+    ),
+  };
+}
+
+function migrateLegacyClarification(message, pending, sessionScope) {
+  if (!message || !pending || pending.messageId !== message.id) return null;
+  if (typeof pending.question === "string" && pending.question !== message.question) return null;
+  const target = pending.clarification_target == null
+    ? null : normalizeClarificationTarget(pending.clarification_target);
+  if (pending.clarification_target != null && target == null) return null;
+  const action = pending.action
+    || (message.planClarification ? "plan_required"
+      : message.catalogClarification ? "catalog_required"
+        : message.programClarification ? "program_required"
+          : target?.dimension ? `${target.dimension}_required` : null);
+  if (!action) return null;
+  return normalizeMessageClarification({
+    action,
+    clarification_target: target,
+    next_context: pending.next_context ?? sessionScope,
+    request_scope: pending.request_scope ?? {
+      home_program: sessionScope?.program ?? null,
+      conversation_context: sessionScope,
+    },
+    clarification_resolutions: pending.clarification_resolutions,
+  });
+}
+
+function legacyPendingPointer(message) {
+  const clarification = message?.clarification;
+  if (!clarification) return null;
+  return {
+    question: message.question,
+    messageId: message.id,
+    ...(clarification.clarification_target
+      ? {clarification_target: clarification.clarification_target} : {}),
+    ...(clarification.clarification_resolutions?.length
+      ? {clarification_resolutions: clarification.clarification_resolutions.map(item => ({...item}))}
+      : {}),
+  };
+}
+
+function derivePendingClarification(messages, preferredMessageId = null) {
+  const preferred = preferredMessageId == null
+    ? null : messages.find(message => message?.id === preferredMessageId);
+  const mostRecent = preferred?.clarification
+    ? preferred
+    : [...messages].reverse().find(message => message?.clarification);
+  return legacyPendingPointer(mostRecent);
+}
+
+export function updateMessageClarification(sessions, originId, messageId, value) {
+  return sessions.map(session => {
+    if (session.id !== originId) return session;
+    const clarification = normalizeMessageClarification(value);
+    const messages = session.messages.map(message => {
+      if (message.id !== messageId) return message;
+      const updated = {...message};
+      if (clarification) updated.clarification = clarification;
+      else delete updated.clarification;
+      return updated;
+    });
+    return {
+      ...session,
+      messages,
+      pendingClarification: derivePendingClarification(
+        messages,
+        clarification ? messageId : null,
+      ),
+    };
+  });
+}
+
 export function normalizeStoredSession(session) {
   if (!session || typeof session !== "object" || typeof session.id !== "string" || !session.id) return null;
   const validProgram = typeof session.program === "string";
   const program = validProgram ? session.program : "";
+  const context = validProgram && session.context && typeof session.context === "object" && !Array.isArray(session.context)
+    ? normalizeStoredContext(session.context) : null;
+  const messages = Array.isArray(session.messages)
+    ? session.messages.map(message => {
+      if (!message || typeof message !== "object" || Array.isArray(message)) return message;
+      const normalized = {...message};
+      const hadLocalClarification = Object.hasOwn(message, "clarification");
+      let clarification = normalizeMessageClarification(message.clarification);
+      if (clarification == null && !hadLocalClarification) {
+        clarification = migrateLegacyClarification(message, session.pendingClarification, context);
+      }
+      if (clarification) normalized.clarification = clarification;
+      else delete normalized.clarification;
+      return normalized;
+    })
+    : [];
+  const pendingClarification = derivePendingClarification(messages);
   return {
     ...session,
     program,
     catalogKey: program && typeof session.catalogKey === "string" ? session.catalogKey : "",
     plan: program && typeof session.plan === "string" ? session.plan : null,
-    messages: Array.isArray(session.messages) ? session.messages : [],
+    messages,
     title: typeof session.title === "string" ? session.title : "New chat",
-    context: validProgram && session.context && typeof session.context === "object" && !Array.isArray(session.context)
-      ? session.context : null,
-    pendingClarification: validProgram ? session.pendingClarification || null : null,
+    context,
+    pendingClarification,
   };
 }
 
@@ -257,30 +550,112 @@ export function selectProgram(session, program, programs) {
     context: resetContextForEdition(program, catalogKey, plan)};
 }
 
+export function selectProgramForRetry(session, program, programs, clarification) {
+  const canonicalProgram = programs.find(item => item.program_code === program);
+  if (!canonicalProgram || clarification?.action !== "program_required") {
+    throw new Error("ไม่สามารถระบุหลักสูตรสำหรับคำถามนี้ได้");
+  }
+  const selected = selectProgram(session, canonicalProgram.program_code, programs);
+  const retryScope = {
+    home_program: canonicalProgram.program_code,
+    conversation_context: buildConversationContext(selected),
+  };
+  const updatedClarification = normalizeMessageClarification({
+    ...clarification,
+    action: "program_required",
+    clarification_target: null,
+    next_context: retryScope.conversation_context,
+    request_scope: retryScope,
+    clarification_resolutions: clarification.clarification_resolutions,
+  });
+  if (!updatedClarification) {
+    throw new Error("ข้อมูลการระบุหลักสูตรต่อเนื่องไม่ถูกต้อง");
+  }
+  return {session: selected, clarification: updatedClarification, retryScope};
+}
+
 export function applyChatResponse(sessions, originId, entry, data, retryId, clarificationResolutions = null) {
   return sessions.map(session => {
     if (session.id !== originId) return session;
-    const sameQuestion = retryId && entry.id === retryId
-      && session.messages.some(message => message.id === retryId && message.question === entry.question);
-    const previous = session.pendingClarification;
-    const history = sameQuestion
-      ? clarificationResolutions ?? (previous?.messageId === retryId && previous.question === entry.question
-        ? previous.clarification_resolutions : null)
-      : null;
+    const existingMessage = retryId == null
+      ? null : session.messages.find(message => message?.id === retryId);
+    const sameQuestion = Boolean(
+      retryId != null && entry.id === retryId
+      && existingMessage?.question === entry.question
+    );
+    const existingClarification = existingMessage?.clarification
+      ? normalizeMessageClarification(existingMessage.clarification)
+      : migrateLegacyClarification(existingMessage, session.pendingClarification, session.context);
+    const existingHistory = existingClarification?.clarification_resolutions
+      ?? (retryId != null && session.pendingClarification?.messageId === retryId
+        ? normalizeClarificationResolutions(session.pendingClarification.clarification_resolutions)
+        : []);
+    const history = normalizeClarificationResolutions(
+      clarificationResolutions ?? existingHistory,
+    );
+    const {request_scope: requestScope, clarification: suppliedClarification, ...messageEntry} = entry;
+    const action = data?.action
+      ?? (entry.planClarification ? "plan_required"
+        : entry.catalogClarification ? "catalog_required" : null);
+    let messageClarification = null;
+    if (
+      action === "plan_required"
+      || action === "catalog_required"
+      || action === "program_required"
+    ) {
+      messageClarification = normalizeMessageClarification({
+        action,
+        clarification_target: data?.clarification_target
+          ?? suppliedClarification?.clarification_target
+          ?? existingClarification?.clarification_target
+          ?? null,
+        next_context: data?.next_context
+          ?? suppliedClarification?.next_context
+          ?? existingClarification?.next_context
+          ?? null,
+        request_scope: requestScope
+          ?? suppliedClarification?.request_scope
+          ?? existingClarification?.request_scope
+          ?? null,
+        clarification_resolutions: history,
+      });
+    } else if (
+      sameQuestion && existingClarification
+      && (data?.status ?? entry.status) !== "answer"
+    ) {
+      messageClarification = normalizeMessageClarification({
+        ...existingClarification,
+        clarification_resolutions: history,
+        next_context: data?.next_context ?? existingClarification.next_context,
+        request_scope: requestScope ?? existingClarification.request_scope,
+      });
+    }
+    if (messageClarification) messageEntry.clarification = messageClarification;
+    else delete messageEntry.clarification;
+    const messages = retryId != null
+      ? session.messages.map(message => message.id === retryId ? messageEntry : message)
+      : [...session.messages, messageEntry];
+    const hasOtherClarifications = messages.some(
+      message => message?.id !== messageEntry.id && message?.clarification,
+    );
+    const updateSharedContext = !messageClarification
+      && !(sameQuestion && hasOtherClarifications);
+    const context = messageClarification
+      ? session.context
+      : updateSharedContext
+        ? buildConversationContext({...session, context: data.next_context})
+        : session.context;
     return {
-    ...session,
-    messages: retryId ? session.messages.map(m => m.id === retryId ? entry : m) : [...session.messages, entry],
-    pendingClarification: entry.planClarification || entry.catalogClarification ? {
-      question: entry.question, messageId: entry.id,
-      ...(data.clarification_target != null ? {clarification_target: data.clarification_target} : {}),
-      ...(data.clarification_target != null && Array.isArray(history) && history.length
-        ? {clarification_resolutions: history.map(item => ({...item}))} : {}),
-    } : sameQuestion && previous?.messageId === retryId && (data.status || entry.status) !== "answer"
-      && Array.isArray(history) && history.length ? previous : null,
-    context: buildConversationContext({...session, context: data.next_context}),
-    title: session.messages.length === 0
-      ? entry.question.length > 42 ? `${entry.question.slice(0, 42)}…` : entry.question
-      : session.title,
+      ...session,
+      messages,
+      pendingClarification: derivePendingClarification(
+        messages,
+        messageClarification ? messageEntry.id : null,
+      ),
+      context,
+      title: session.messages.length === 0
+        ? messageEntry.question.length > 42 ? `${messageEntry.question.slice(0, 42)}…` : messageEntry.question
+        : session.title,
     };
   });
 }

@@ -403,6 +403,16 @@ def validate_readonly_sql(
         connection.execute(f"EXPLAIN QUERY PLAN {safe_sql}").fetchall()
 
 
+# Deterministic SQLite execution budget for model-generated queries.
+# Representative curriculum queries complete in under 30k VM steps;
+# the budget aborts pathological shapes (multi-way self-joins, sorts
+# over unbounded intermediates) in seconds instead of hanging the
+# worker. The abort surfaces as sqlite3.OperationalError("interrupted"),
+# which callers already map to a safe typed SQL failure.
+_SQL_MAX_VM_STEPS = 1_000_000
+_SQL_PROGRESS_INTERVAL = 1000
+
+
 def execute_readonly(
     db_path: str | Path,
     sql: str,
@@ -437,9 +447,25 @@ def execute_readonly(
                 years=years,
                 semesters=semesters,
             )
-        cursor = connection.execute(safe_sql)
-        columns = [description[0] for description in cursor.description or ()]
-        rows = cursor.fetchall()
+        remaining = _SQL_MAX_VM_STEPS
+
+        def budget_exhausted() -> int:
+            nonlocal remaining
+            remaining -= _SQL_PROGRESS_INTERVAL
+            return int(remaining <= 0)
+
+        # Install after deterministic scope setup; retain it through
+        # fetchall, since sorts and joins can continue during iteration.
+        connection.set_progress_handler(budget_exhausted, _SQL_PROGRESS_INTERVAL)
+        if hasattr(connection, "setlimit"):
+            # Progress callbacks cannot interrupt a single large allocation.
+            connection.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, 1_000_000)
+        try:
+            cursor = connection.execute(safe_sql)
+            columns = [description[0] for description in cursor.description or ()]
+            rows = cursor.fetchall()
+        finally:
+            connection.set_progress_handler(None, 0)
     return columns, rows
 
 

@@ -28,7 +28,8 @@ class ComparisonPlanPreflightTests(unittest.TestCase):
     def run_comparison(self, **kwargs):
         return run_intent(
             self.intent(**kwargs),
-            "เปรียบเทียบ IT it-2565 coop กับ DSBA dsba-2565 no_coop ปี 1 06016454 06026201")
+            "เปรียบเทียบ IT it-2565 coop กับ DSBA dsba-2565 no_coop ปี 1"
+            + (" 06016454 06026201" if kwargs.get("courses") else ""))
 
     def test_right_missing_plan(self):
         response, planner, normal, comparison = self.run_comparison(left_plan="coop")

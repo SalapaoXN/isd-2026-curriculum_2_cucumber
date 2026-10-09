@@ -18,11 +18,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-SEMANTIC_INTENT_VERSION = "semantic-intent/v1"
+SEMANTIC_INTENT_VERSION = "semantic-intent/v4"
 
 TASKS = frozenset(
     {
         "lookup",
+        "compose",
         "list",
         "search",
         "aggregate",
@@ -53,12 +54,14 @@ RELATIONS = frozenset(
         "prerequisite",
         "placement",
         "existence",
+        "alternative_selection",
     }
 )
 
 TARGET_KINDS = frozenset(
     {
         "literal",
+        "literal_set",
         "current_course",
         "result_ordinal",
         "previous_result_set",
@@ -95,6 +98,8 @@ FILTER_OPERATORS = frozenset(
 AGGREGATION_FUNCTIONS = frozenset({"count", "sum", "average", "minimum", "maximum"})
 
 MEASURES = frozenset({"course_count", "credits", "prerequisite_count"})
+COMPARISON_MEASURES = MEASURES | {"placement"}
+PLAN_SELECTORS = frozenset({"available_plans"})
 
 GROUP_DIMENSIONS = frozenset({"year", "semester", "plan", "program", "category"})
 
@@ -108,6 +113,7 @@ COMPARISON_OPERATIONS = frozenset(
         "difference",
         "set_difference",
         "overlap",
+        "earliest_placement",
     }
 )
 
@@ -133,7 +139,10 @@ REQUESTED_FIELDS = frozenset(
         "credits",
         "placement",
         "prerequisites",
+        "prerequisite_placement",
         "description",
+        "alternative_selection",
+        "placement_sequence",
     }
 )
 
@@ -163,6 +172,7 @@ POLICY_TOPICS = frozenset(
 VALID_TASK_SUBJECTS = frozenset(
     {
         ("lookup", "course"),
+        ("compose", "course"),
         ("lookup", "program"),
         ("list", "course"),
         ("list", "semester"),
@@ -233,6 +243,7 @@ LEGACY_STATUS_FOR_INTERNAL = {
 MAX_TEXT_LEN = 80
 MAX_HINT_LEN = 80
 MAX_ORDINAL = 50
+MAX_COURSE_SET_MEMBERS = 20
 
 
 class SemanticSchemaError(ValueError):
@@ -258,6 +269,14 @@ class ScopeMention:
 
 
 @dataclass(frozen=True, slots=True)
+class LiteralCourseReference:
+    """One current-turn course mention, not a canonical identity."""
+
+    raw_text: str
+    normalized_hint: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class SemanticTarget:
     """What the user referred to — never a canonical database identity."""
 
@@ -265,6 +284,7 @@ class SemanticTarget:
     raw_text: str | None = None
     normalized_hint: str | None = None
     ordinal: int | None = None
+    members: tuple[LiteralCourseReference, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -290,10 +310,12 @@ class RankingSpec:
 
 @dataclass(frozen=True, slots=True)
 class ComparisonSpec:
+    """Placement compares root course targets across left/right plan operands."""
     left: tuple[tuple[str, Any], ...] = ()
     right: tuple[tuple[str, Any], ...] = ()
     measure: str = "credits"
     operation: str | None = None
+    plan_selector: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -337,6 +359,7 @@ class ResolvedTarget:
     program: str | None = None
     catalog_key: str | None = None
     via_hint: bool = False
+    members: tuple[ResolvedTarget, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -375,6 +398,62 @@ class VerifiedResult:
     result_courses: tuple[dict[str, Any], ...] = ()
     result_scope_program: str | None = None
     numeric_comparison: VerifiedNumericComparison | None = None
+    alternative_selections: tuple[VerifiedAlternativeSelection, ...] = ()
+    explicit_course_set: bool = False
+    scoped_results: tuple[VerifiedScopedResult, ...] = ()
+    placement_comparison: VerifiedPlacementComparison | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedPlacementCell:
+    course_code: str
+    course_name: str | None
+    scope: ResolvedScope
+    placements: tuple[tuple[int, int], ...]
+    provenance: tuple[Any, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedEarliestPlacement:
+    course_code: str
+    plans: tuple[str, str]
+    earliest: tuple[tuple[int, int], tuple[int, int]]
+    earlier_plan: str | None
+    tie: bool
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedPlacementComparison:
+    cells: tuple[VerifiedPlacementCell, ...]
+    conclusions: tuple[VerifiedEarliestPlacement, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedScopedResult:
+    """One complete evidence result with its explicit factual ownership."""
+
+    scope_kind: str
+    scope: ResolvedScope
+    course_code: str | None = None
+    parent_course_code: str | None = None
+    total_credits: int | float | None = None
+    summary_facts: tuple[str, ...] = ()
+    claims: tuple[Any, ...] = ()
+    provenance: tuple[Any, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedAlternativeSelection:
+    """Complete canonical group membership and selection bounds with sources."""
+
+    program: str
+    catalog_key: str
+    plan: str
+    alternative_group_id: int
+    member_course_codes: tuple[str, ...]
+    minimum_choices: int
+    maximum_choices: int
+    provenance: tuple[Any, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -403,6 +482,8 @@ __all__ = [
     "AGGREGATION_FUNCTIONS",
     "COMPARISON_OPERAND_KEYS",
     "COMPARISON_OPERATIONS",
+    "COMPARISON_MEASURES",
+    "PLAN_SELECTORS",
     "FAILURE_CATEGORIES",
     "FILTER_FIELDS",
     "FILTER_OPERATORS",
@@ -410,6 +491,7 @@ __all__ = [
     "INTERNAL_STATUSES",
     "LEGACY_STATUS_FOR_INTERNAL",
     "MAX_HINT_LEN",
+    "MAX_COURSE_SET_MEMBERS",
     "MAX_ORDINAL",
     "MAX_TEXT_LEN",
     "MEASURES",
@@ -434,7 +516,13 @@ __all__ = [
     "SemanticIntent",
     "SemanticSchemaError",
     "SemanticTarget",
+    "LiteralCourseReference",
+    "VerifiedAlternativeSelection",
     "VerifiedResult",
+    "VerifiedScopedResult",
+    "VerifiedPlacementCell",
+    "VerifiedEarliestPlacement",
+    "VerifiedPlacementComparison",
     "VerifiedNumericComparison",
     "VerifiedNumericComparisonSide",
 ]

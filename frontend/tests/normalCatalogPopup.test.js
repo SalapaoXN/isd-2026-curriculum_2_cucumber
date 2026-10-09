@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import {readFileSync} from "node:fs";
 import {askQuestion} from "../src/api.js";
 import {applyChatResponse, buildConversationContext, clarificationCatalogs, selectCatalogForRetry} from "../src/chatScope.js";
 
@@ -23,6 +24,64 @@ test("normal target supplies DSBA editions in an unscoped chat without parsing t
   assert.equal(before.program, "");
   assert.deepEqual(before.pendingClarification.clarification_target, target);
   assert.deepEqual(clarificationCatalogs(before, programs), programs[0].editions);
+});
+
+test("legacy catalog clarification payload renders editions and retries the pending question", async () => {
+  const legacyResponse = {
+    status: "clarification_required",
+    action: "catalog_required",
+    clarification_target: target,
+    next_context: {program: "DSBA", pending_catalog_selection: true, operations: ["describe"]},
+  };
+  const originalQuestion = "ใน DSBA วิชาไหนเรียนเกี่ยวกับเว็บบ้างครับ";
+  const message = {
+    ...entry,
+    question: originalQuestion,
+    catalogClarification: legacyResponse.status === "clarification_required"
+      && legacyResponse.action === "catalog_required",
+  };
+  const [before] = applyChatResponse([session], "a", message, legacyResponse);
+  const editions = clarificationCatalogs(before, programs);
+
+  assert.equal(before.pendingClarification.question, originalQuestion);
+  assert.equal(before.messages[0].clarification.action, "catalog_required");
+  assert.deepEqual(before.messages[0].clarification.clarification_target, target);
+  assert.deepEqual(editions.map(edition => edition.catalog_key), ["dsba-2560", "dsba-2565"]);
+  const page = readFileSync(new URL("../src/pages/ChatPage.jsx", import.meta.url), "utf8");
+  assert.match(page, /clarificationCatalogs\(clarificationSession, programs, clarification\)/);
+  assert.match(page, /handleCatalogChange\(edition\.catalog_key, m\.id\)/);
+  assert.match(page, /handleAsk\(message\.question, retry\.session, message\.id/);
+
+  for (const edition of editions) {
+    const retry = selectCatalogForRetry(before, edition.catalog_key, programs);
+    assert.equal(retry.session.pendingClarification, null);
+    assert.equal(before.messages[0].clarification.action, "catalog_required");
+    const expectedContext = {
+      program: "DSBA", catalog_key: edition.catalog_key,
+      ...(edition.catalog_key === "dsba-2560" ? {plan: "no_coop"} : {}),
+    };
+    assert.deepEqual(buildConversationContext(retry.session), expectedContext);
+
+    const requests = [];
+    const oldFetch = globalThis.fetch;
+    globalThis.fetch = async (_url, options) => {
+      requests.push(JSON.parse(options.body));
+      return {ok: true, json: async () => ({status: "answer"})};
+    };
+    try {
+      await askQuestion(
+        before.pendingClarification.question,
+        buildConversationContext(retry.session),
+        retry.session.program || null,
+      );
+    } finally {
+      globalThis.fetch = oldFetch;
+    }
+    assert.equal(requests[0].question, originalQuestion);
+    assert.equal(requests[0].conversation_context.program, "DSBA");
+    assert.equal(requests[0].conversation_context.catalog_key, edition.catalog_key);
+    assert.equal(requests[0].conversation_context.plan, expectedContext.plan);
+  }
 });
 
 test("unscoped normal selection seeds DSBA context and retries original text without operand transport", async () => {

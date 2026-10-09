@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rag.semantic.schema import ResolvedIntent
+from rag.semantic.schema import ResolvedIntent, REQUESTED_FIELDS
+from rag.semantic.validation import mixed_scope_contract_problem, plan_placement_contract_problem, placement_sequence_contract_problem
 
 EXECUTION_DETERMINISTIC = "deterministic"
 EXECUTION_SQL = "sql"
@@ -109,6 +110,55 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
             EXECUTION_UNSUPPORTED,
             resolved.clarification_reason or "clarification required",
         )
+    if "placement_sequence" in intent.requested_fields:
+        problem = placement_sequence_contract_problem(intent)
+        scope, members = resolved.scope, resolved.target.members
+        if (
+            problem or resolved.target.kind != "literal_set" or len(members) < 2
+            or not scope.program or not scope.catalog_key or not scope.plan
+            or scope.years or scope.semesters
+            or any(not member.course_code or (member.program, member.catalog_key) !=
+                   (scope.program, scope.catalog_key) for member in members)
+            or len({member.course_code for member in members}) != len(members)
+        ):
+            return SemanticPlan(EXECUTION_UNSUPPORTED, problem or "placement_sequence requires complete canonical members and one plan scope")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "complete canonical placement_sequence with member-local facts")
+    if any(item not in REQUESTED_FIELDS for item in intent.requested_fields):
+        return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported requested field")
+    if intent.task == "compare" and intent.comparison is not None and intent.comparison.measure == "placement":
+        problem = plan_placement_contract_problem(intent)
+        members = resolved.target.members if resolved.target.kind == "literal_set" else (resolved.target,)
+        sides = resolved.comparison_sides
+        if (
+            problem or not resolved.scope.program or not resolved.scope.catalog_key or not members
+            or any(not member.course_code or (member.program, member.catalog_key) !=
+                   (resolved.scope.program, resolved.scope.catalog_key) for member in members)
+            or len(sides) != 2 or any(side.unresolved or not side.scope.plan
+                   or side.target.kind != "none" or side.scope.years or side.scope.semesters
+                   or (side.scope.program, side.scope.catalog_key) !=
+                      (resolved.scope.program, resolved.scope.catalog_key) for side in sides)
+            or (len(sides) == 2 and sides[0].scope.plan == sides[1].scope.plan)
+        ):
+            return SemanticPlan(EXECUTION_UNSUPPORTED, problem or "incomplete or incompatible plan-placement matrix scope")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "complete canonical course by plan placement matrix")
+    if intent.task == "compose":
+        problem = mixed_scope_contract_problem(intent)
+        missing = missing_mixed_scope(resolved)
+        if problem or missing or resolved.target.course_code is None:
+            return SemanticPlan(EXECUTION_UNSUPPORTED, problem or f"mixed-scope missing {missing or 'course identity'}")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "atomic course and enclosing term evidence")
+    if resolved.target.kind == "literal_set":
+        if (
+            intent.task != "lookup" or intent.subject != "course" or intent.filters
+            or intent.aggregation is not None or intent.ranking is not None or intent.comparison is not None
+            or not resolved.target.members
+        ):
+            return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported explicit course-set shape")
+        if (
+            intent.relation == "alternative_selection" or "alternative_selection" in intent.requested_fields
+        ) and resolved.scope.plan is None:
+            return SemanticPlan(EXECUTION_UNSUPPORTED, "alternative_selection requires one canonical plan")
+        return SemanticPlan(EXECUTION_DETERMINISTIC, "complete explicit course-set lookup")
     if intent.task == "unknown":
         return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported judgement or intent")
     if intent.task in {"policy", "requirement"}:
@@ -150,6 +200,21 @@ def plan_semantic_query(resolved: ResolvedIntent) -> SemanticPlan:
     return SemanticPlan(EXECUTION_UNSUPPORTED, "unsupported task shape")
 
 
+def missing_mixed_scope(resolved: ResolvedIntent) -> str | None:
+    """Never infer term dimensions from the target course's placement."""
+    if resolved.intent.task != "compose":
+        return None
+    scope = resolved.scope
+    for name, value in (("program", scope.program), ("catalog", scope.catalog_key), ("plan", scope.plan)):
+        if value is None:
+            return name
+    if len(scope.years) != 1:
+        return "year"
+    if len(scope.semesters) != 1:
+        return "semester"
+    return None
+
+
 __all__ = [
     "MissingScopeRequirement",
     "missing_comparison_plan",
@@ -160,4 +225,5 @@ __all__ = [
     "SemanticPlan",
     "effective_aggregation_group_by",
     "plan_semantic_query",
+    "missing_mixed_scope",
 ]
