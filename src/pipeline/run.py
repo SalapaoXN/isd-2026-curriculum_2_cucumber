@@ -1,30 +1,18 @@
-"""Single end-to-end pipeline entry point (clean rebuild).
+"""Single end-to-end curriculum preprocessing entry point.
+
+Normal usage selects one explicit dataset key and the pipeline resolves all
+bundled page/plan/edition metadata automatically:
+
+    python -m src.pipeline.run --dataset it2560
+    python -m src.pipeline.run --dataset it2565
 
 Stages:
-  ocr -> extract -> merge -> correct -> (evaluate) -> (build_index)
+    OCR -> Extract -> Merge -> Gemini name correction -> (Evaluate) -> (Index)
 
-Final RAG-ready output: data/output/final/*_corrected.json (+ optional curriculum.db).
-scripts/ask.py stays separate and is not run here.
-
-Defaults (adjust only by flags, behavior unchanged):
-  - evaluate.py IS included by default; pass --skip-eval to skip it.
-  - build_index is OFF by default; pass --with-index to continue to
-    curriculum.db, or --only-index to build only the DB from existing
-    corrected files.
-
-Intermediates (extracted/, page_ranges/, legacy_summaries/) go to a temp
-directory and are deleted automatically. Pass --keep-intermediates for
-debug to persist them under the output tree.
-
-Resume points (--from):
-  ocr          run everything from OCR (default)
-  extracted    skip OCR and per-file extraction; merge from existing extracted/
-  consolidated skip to LLM correction from existing consolidated full files
-  corrected    skip to evaluate/index from existing corrected files
-Resume modes read persisted data/output/ layout, so they pair with
---keep-intermediates output from a previous debug run.
+The public CLI intentionally does not accept manual page, plan, output-folder,
+or edition flags for normal bundled datasets. Those values live in the central
+``src.pipeline.datasets`` registry so one dataset key is enough.
 """
-
 from __future__ import annotations
 
 import argparse
@@ -34,45 +22,69 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
+
+from src.pipeline.datasets import (
+    DATASET_ALIASES,
+    DATASET_CONFIG,
+    get_dataset_config,
+    resolve_dataset_key,
+)
 from src.pipeline.tools.merge.consolidator import edition_filename_token
 
+
 BASE_DIR = Path(__file__).resolve().parents[2]
-SUPPORTED_PROGRAMS = ("ait", "bit", "dsba", "gened", "it")
+SUPPORTED_DATASETS = tuple(DATASET_CONFIG)
+# Compatibility name for older imports/tests. Values now represent dataset keys.
+SUPPORTED_PROGRAMS = tuple(dict.fromkeys((*SUPPORTED_DATASETS, *DATASET_ALIASES)))
 FROM_CHOICES = ("ocr", "extracted", "consolidated", "corrected")
 _ACADEMIC_YEAR_RE = re.compile(r"^[1-9]\d{3}(?:[-/]\d{2,4})?$")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run OCR -> extract -> merge -> correct -> (evaluate) -> (build_index).",
-        epilog="Example: python -m src.pipeline.run --program it --with-index",
+        description="Run OCR -> extract -> merge -> correct for one configured curriculum dataset.",
+        epilog="Example: python -m src.pipeline.run --dataset it2560",
     )
-    parser.add_argument("--program", choices=SUPPORTED_PROGRAMS, default="it")
-    parser.add_argument("--pages", default=None, help="OCR pages/ranges, e.g. 32-38 or 32-34,328-330.")
-    parser.add_argument("--no-gpu", action="store_true")
-    parser.add_argument("--skip-eval", action="store_true", help="Skip evaluate.py stage.")
-    parser.add_argument("--with-index", action="store_true", help="Continue to curriculum.db after correction.")
-    parser.add_argument("--only-index", action="store_true", help="Only build curriculum.db from existing corrected files.")
+    selector = parser.add_mutually_exclusive_group()
+    selector.add_argument(
+        "--dataset",
+        choices=SUPPORTED_DATASETS,
+        help="Explicit dataset edition, for example it2560 or dsba2565.",
+    )
+    # Backward compatibility: old commands such as --program it still work,
+    # but the README uses --dataset and explicit year-labelled keys.
+    selector.add_argument(
+        "--program",
+        choices=SUPPORTED_PROGRAMS,
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument("--no-gpu", action="store_true", help="Force EasyOCR to CPU mode.")
+    parser.add_argument("--skip-eval", action="store_true", help="Skip evaluation after correction.")
+    parser.add_argument("--with-index", action="store_true", help="Build the unified runtime DB after correction.")
+    parser.add_argument("--only-index", action="store_true", help="Build only the runtime DB from reviewed final artifacts.")
     parser.add_argument("--from", dest="from_stage", choices=FROM_CHOICES, default="ocr")
-    parser.add_argument("--keep-intermediates", action="store_true")
-    parser.add_argument("--output-dir", default="data/output")
-    parser.add_argument("--index-path", default=None)
-    parser.add_argument(
-        "--catalog-key",
-        default=None,
-        help="Explicit curriculum edition identity stored in corrected JSON metadata.",
-    )
-    parser.add_argument(
-        "--academic-year",
-        default=None,
-        help="Explicit 4-digit academic year (optionally a range, e.g. 2568-2569).",
-    )
+    parser.add_argument("--keep-intermediates", action="store_true", help="Persist extracted debug artifacts.")
+    parser.add_argument("--index-path", default=None, help=argparse.SUPPRESS)
+    # Retained only for compatibility with focused metadata tests/advanced
+    # internal use. Bundled datasets always provide these values automatically.
+    parser.add_argument("--catalog-key", default=None, help=argparse.SUPPRESS)
+    parser.add_argument("--academic-year", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--dry-run", action="store_true")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+
+    requested = args.dataset or args.program or "it2565"
+    try:
+        args.dataset = resolve_dataset_key(requested)
+    except ValueError as error:
+        parser.error(str(error))
+    # Some older tests/callers inspect args.program. Keep it as the resolved
+    # dataset key rather than the ambiguous unversioned program label.
+    args.program = args.dataset
+    return args
 
 
 def _edition_metadata_from_args(args: argparse.Namespace) -> dict[str, str] | None:
-    """Validate the optional, explicitly supplied curriculum edition identity."""
+    """Validate an optional explicit metadata override (advanced compatibility)."""
     catalog_key = getattr(args, "catalog_key", None)
     academic_year = getattr(args, "academic_year", None)
     if catalog_key is None and academic_year is None:
@@ -81,7 +93,6 @@ def _edition_metadata_from_args(args: argparse.Namespace) -> dict[str, str] | No
         raise ValueError("catalog_key and academic_year must be supplied together")
     if catalog_key != catalog_key.strip():
         raise ValueError("catalog_key must not have leading or trailing whitespace")
-
     if isinstance(academic_year, bool) or not isinstance(academic_year, (str, int)):
         raise ValueError("academic_year must be a 4-digit year or explicit year range")
     year_text = str(academic_year)
@@ -93,7 +104,7 @@ def _edition_metadata_from_args(args: argparse.Namespace) -> dict[str, str] | No
 def _apply_edition_metadata(
     paths: list[str | Path], metadata: dict[str, str] | None
 ) -> list[Path]:
-    """Stamp canonical metadata and give explicitly scoped artifacts unique names."""
+    """Stamp canonical catalog metadata and preserve edition-safe filenames."""
     if metadata is None:
         return [Path(path) for path in paths]
     if not paths:
@@ -110,9 +121,7 @@ def _apply_edition_metadata(
             raise ValueError(f"cannot apply edition metadata to {path}") from error
         if not isinstance(document, dict):
             raise ValueError(f"curriculum artifact must be a JSON object: {path}")
-        catalog = document.get("catalog")
-        if catalog is None:
-            catalog = {}
+        catalog = document.get("catalog") or {}
         if not isinstance(catalog, dict):
             raise ValueError(f"curriculum artifact catalog metadata must be an object: {path}")
         existing_key = catalog.get("catalog_key")
@@ -148,7 +157,8 @@ def _apply_edition_metadata(
     renamed: list[Path] = []
     for path, destination, document in updates:
         destination.write_text(
-            json.dumps(document, ensure_ascii=False, indent=4) + "\n", encoding="utf-8"
+            json.dumps(document, ensure_ascii=False, indent=4) + "\n",
+            encoding="utf-8",
         )
         if destination != path:
             path.unlink()
@@ -164,14 +174,6 @@ def _apply_edition_metadata(
     return renamed
 
 
-def _ensure_edition_corrected_targets_available(inputs: list[Path], llm_dir: Path) -> None:
-    for path in inputs:
-        corrected = llm_dir / f"{path.stem}_corrected.json"
-        corrections = llm_dir / f"{path.stem}_corrections.json"
-        if corrected.exists() or corrections.exists():
-            raise FileExistsError(f"edition artifact already exists: {corrected}")
-
-
 def _paths_for_program(paths: list[Path], program_key: str) -> list[Path]:
     wanted = program_key.upper()
     matching: list[Path] = []
@@ -185,42 +187,11 @@ def _paths_for_program(paths: list[Path], program_key: str) -> list[Path]:
     return matching
 
 
-def _program_scoped_prepare(
-    program_key: str,
-    ocr_root: Path,
-    extracted_root: Path,
-    consolidated_root: Path,
-    edition_metadata: dict[str, str] | None = None,
-) -> dict:
-    """Run the prepare_data scope logic for one program only (no duplication)."""
-    from src.pipeline.tools.preparation import tool as _pd
-
-    key = program_key.casefold()
-    if not _pd.prepare_program(
-        key, ocr_root / key, extracted_root, consolidated_root, BASE_DIR, edition_metadata
-    ):
-        raise _pd.PreparationError(f"No usable OCR source for program '{key}' under {ocr_root}")
-    return {"prepared_programs": [key]}
-
-
-def _copy_final_full_files(
-    consolidated_tmp: Path,
-    consolidated_final: Path,
-    *,
-    edition_mode: bool = False,
-) -> list[Path]:
-    kept: list[Path] = []
-    sources = sorted(consolidated_tmp.glob("**/full/merged_*_full.json"))
-    destinations = [consolidated_final / src.relative_to(consolidated_tmp) for src in sources]
-    if edition_mode:
-        existing = [path for path in destinations if path.exists()]
-        if existing:
-            raise FileExistsError(f"edition artifact already exists: {existing[0]}")
-    for src, dest in zip(sources, destinations):
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dest)
-        kept.append(dest)
-    return kept
+def _candidate_corrected_paths(llm_dir: Path) -> list[Path]:
+    """Read both the new structured layout and legacy flat corrected files."""
+    structured = sorted(llm_dir.glob("*/curriculum_*.json"))
+    legacy = sorted(llm_dir.glob("*_corrected.json"))
+    return structured + legacy
 
 
 def _corrected_paths_for_program(
@@ -230,9 +201,10 @@ def _corrected_paths_for_program(
     catalog_key: str | None = None,
     plan: str | None = None,
 ) -> list[Path]:
+    """Compatibility discovery by JSON identity, never by filename substring."""
     wanted = program_key.upper()
     kept: list[Path] = []
-    for path in sorted(llm_dir.glob("*_corrected.json")):
+    for path in _candidate_corrected_paths(llm_dir):
         try:
             doc = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
@@ -245,9 +217,8 @@ def _corrected_paths_for_program(
             catalog = doc.get("catalog")
             if not isinstance(catalog, dict) or catalog.get("catalog_key") != catalog_key:
                 continue
-            kept.append(path)
-        else:
-            kept.append(path)
+        kept.append(path)
+
     if catalog_key is not None:
         if not kept:
             raise FileNotFoundError(
@@ -262,42 +233,207 @@ def _corrected_paths_for_program(
     return kept
 
 
+def _corrected_paths_for_dataset(llm_dir: Path, dataset_key: str) -> list[Path]:
+    paths = sorted((llm_dir / dataset_key).glob("curriculum_*.json"))
+    if paths:
+        return paths
+    config = get_dataset_config(dataset_key)
+    return _corrected_paths_for_program(
+        llm_dir,
+        config.program,
+        catalog_key=config.catalog_key,
+    )
+
+
+def _dataset_scoped_prepare(
+    dataset_key: str,
+    ocr_root: Path,
+    extracted_root: Path,
+    consolidated_root: Path,
+    edition_metadata: dict[str, str] | None = None,
+) -> dict:
+    from src.pipeline.tools.preparation import tool as _pd
+
+    key = resolve_dataset_key(dataset_key)
+    if not _pd.prepare_program(
+        key,
+        ocr_root / key,
+        extracted_root,
+        consolidated_root,
+        BASE_DIR,
+        edition_metadata,
+    ):
+        raise _pd.PreparationError(
+            f"No usable OCR source for dataset '{key}' under {ocr_root}"
+        )
+    return {"prepared_programs": [key]}
+
+
+# Backward-compatible helper name used by older focused tests/imports.
+def _program_scoped_prepare(
+    program_key: str,
+    ocr_root: Path,
+    extracted_root: Path,
+    consolidated_root: Path,
+    edition_metadata: dict[str, str] | None = None,
+) -> dict:
+    return _dataset_scoped_prepare(
+        resolve_dataset_key(program_key),
+        ocr_root,
+        extracted_root,
+        consolidated_root,
+        edition_metadata,
+    )
+
+
+def _plan_label(value: object) -> str:
+    text = str(value).strip() if value not in (None, "") else "no_plan"
+    return re.sub(r"[^A-Za-z0-9_-]+", "_", text).strip("_") or "no_plan"
+
+
+def _working_full_paths(consolidated_work: Path, dataset_key: str) -> list[Path]:
+    return sorted((consolidated_work / dataset_key).glob("**/full/*_full.json"))
+
+
+def _publish_consolidated_artifacts(
+    consolidated_work: Path,
+    consolidated_final: Path,
+    dataset_key: str,
+) -> list[Path]:
+    """Publish readable pre-LLM files as consolidated/<dataset>/curriculum_<plan>.json."""
+    sources = _working_full_paths(consolidated_work, dataset_key)
+    if not sources:
+        raise FileNotFoundError(
+            f"no consolidated full artifacts found for dataset {dataset_key}"
+        )
+    destination_dir = consolidated_final / dataset_key
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    published: list[Path] = []
+    seen_labels: set[str] = set()
+    for source in sources:
+        document = json.loads(source.read_text(encoding="utf-8"))
+        label = _plan_label(document.get("plan"))
+        if label in seen_labels:
+            raise ValueError(
+                f"multiple consolidated artifacts resolve to {dataset_key}/{label}"
+            )
+        seen_labels.add(label)
+        destination = destination_dir / f"curriculum_{label}.json"
+        shutil.copy2(source, destination)
+        published.append(destination)
+    return published
+
+
+def _consolidated_paths_for_dataset(
+    consolidated_final: Path,
+    dataset_key: str,
+) -> list[Path]:
+    simple = sorted((consolidated_final / dataset_key).glob("curriculum_*.json"))
+    if simple:
+        return simple
+    # Read-only fallback for artifacts created before the simplified layout.
+    return sorted((consolidated_final / dataset_key).glob("**/full/*_full.json"))
+
+
+def _publish_corrected_artifacts(
+    dataset_key: str,
+    corrected_temp_paths: list[Path],
+    final_root: Path,
+) -> list[Path]:
+    """Publish readable final/<dataset>/curriculum_<plan>.json + correction logs."""
+    destination_dir = final_root / dataset_key
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    published: list[Path] = []
+    manifest_items: list[dict[str, str]] = []
+    seen_labels: set[str] = set()
+
+    for corrected_path in corrected_temp_paths:
+        document = json.loads(corrected_path.read_text(encoding="utf-8"))
+        label = _plan_label(document.get("plan"))
+        if label in seen_labels:
+            raise ValueError(f"multiple corrected artifacts resolve to {dataset_key}/{label}")
+        seen_labels.add(label)
+
+        corrections_path = corrected_path.with_name(
+            corrected_path.name.replace("_corrected.json", "_corrections.json")
+        )
+        if not corrections_path.is_file():
+            raise FileNotFoundError(corrections_path)
+
+        curriculum_destination = destination_dir / f"curriculum_{label}.json"
+        corrections_destination = destination_dir / f"corrections_{label}.json"
+        shutil.copy2(corrected_path, curriculum_destination)
+        shutil.copy2(corrections_path, corrections_destination)
+        published.append(curriculum_destination)
+        manifest_items.append(
+            {
+                "plan": label,
+                "curriculum": curriculum_destination.name,
+                "corrections": corrections_destination.name,
+            }
+        )
+
+    config = get_dataset_config(dataset_key)
+    manifest = {
+        "dataset": config.key,
+        "program": config.program,
+        "academic_year": config.academic_year,
+        "catalog_key": config.catalog_key,
+        "artifacts": manifest_items,
+    }
+    (destination_dir / "manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=4) + "\n",
+        encoding="utf-8",
+    )
+    return published
+
+
+def _print_dry_run(dataset_key: str) -> None:
+    config = get_dataset_config(dataset_key)
+    print(f"Dataset: {config.key}")
+    print(f"Program: {config.program}")
+    print(f"Academic year: {config.academic_year}")
+    print(f"Catalog: {config.catalog_key}")
+    print(f"OCR pages: {config.required_pages()}")
+    for scope in config.scopes:
+        print(
+            f"Plan {scope.plan or 'no_plan'}: plan pages={scope.pages}; "
+            f"description pages={scope.description_pages}"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    config = get_dataset_config(args.dataset)
+
     try:
-        edition_metadata = _edition_metadata_from_args(args)
+        explicit_metadata = _edition_metadata_from_args(args)
     except ValueError as error:
         print(f"Invalid edition metadata: {error}", file=sys.stderr)
         return 2
-    print("Stages: ocr -> extract -> merge -> correct -> (evaluate) -> (build_index)")
-    print(f"Program={args.program} from={args.from_stage} keep_intermediates={args.keep_intermediates}")
-    if args.dry_run:
-        print("Dry run: no stages executed.")
-        return 0
-    if args.only_index and args.from_stage != "ocr":
-        print("Note: --only-index ignores --from; building index only.", file=sys.stderr)
+    edition_metadata = explicit_metadata or config.edition_metadata
 
-    output_base = Path(args.output_dir)
-    if not output_base.is_absolute():
-        output_base = BASE_DIR / output_base
+    print("Stages: ocr -> extract -> merge -> correct -> (evaluate) -> (build_index)")
+    print(
+        f"Dataset={config.key} program={config.program} year={config.academic_year} "
+        f"from={args.from_stage}"
+    )
+    if args.dry_run:
+        _print_dry_run(config.key)
+        return 0
+
+    output_base = BASE_DIR / "data" / "output"
     ocr_root = output_base / "ocr"
     extracted_final = output_base / "extracted"
     consolidated_final = output_base / "consolidated"
-    llm_dir = output_base / "final"
+    final_root = output_base / "final"
 
     if args.only_index:
         from src.pipeline.tools.indexing.tool import run_build_index_stage
 
-        # The default runtime database is unified.  Let the indexing stage
-        # validate and discover the complete source set unless the caller
-        # explicitly supplied a separate index path for a scoped build.
         paths = None
         if args.index_path is not None:
-            paths = _corrected_paths_for_program(
-                llm_dir,
-                args.program,
-                catalog_key=(edition_metadata or {}).get("catalog_key"),
-            )
+            paths = _corrected_paths_for_dataset(final_root, config.key)
         print(run_build_index_stage(paths, args.index_path))
         return 0
 
@@ -306,143 +442,130 @@ def main(argv: list[str] | None = None) -> int:
     do_extract_merge = from_stage in ("ocr", "extracted")
     do_correct = from_stage in ("ocr", "extracted", "consolidated")
 
-    tmp_holder: tempfile.TemporaryDirectory | None = None
-    try:
-        if args.keep_intermediates:
-            extracted_root = extracted_final
-            consolidated_work = consolidated_final
-        else:
-            tmp_holder = tempfile.TemporaryDirectory(prefix="pipeline_")
-            tmp_base = Path(tmp_holder.name)
-            extracted_root = tmp_base / "extracted"
-            consolidated_work = tmp_base / "consolidated"
+    with tempfile.TemporaryDirectory(prefix="pipeline_") as temporary_directory:
+        tmp_base = Path(temporary_directory)
+        extracted_root = extracted_final if args.keep_intermediates else tmp_base / "extracted"
+        consolidated_work = tmp_base / "consolidated"
 
-        if do_ocr:
-            from src.pipeline.tools.ocr.tool import run_ocr_stage
+        try:
+            if do_ocr:
+                from src.pipeline.tools.ocr.tool import run_ocr_stage
 
-            run_ocr_stage(args.program, args.pages, args.no_gpu, BASE_DIR)
+                input_dir = config.resolve_input_dir(BASE_DIR)
+                run_ocr_stage(
+                    config.program,
+                    config.required_pages(),
+                    args.no_gpu,
+                    BASE_DIR,
+                    input_dir=input_dir,
+                    output_dir=output_base,
+                    dataset_key=config.key,
+                )
 
-        if do_extract_merge:
-            if from_stage == "extracted":
-                # Merge only, from persisted extracted/ (debug resume path).
-                from src.pipeline.tools.preparation import tool as _pd
+            if do_extract_merge:
+                if from_stage == "extracted":
+                    from src.pipeline.tools.preparation import tool as _pd
 
-                config = _pd.PROGRAM_CONFIG[args.program.casefold()]
-                for scope in config.scopes:
-                    _pd._run_merge(
-                        extracted_final / args.program.casefold(),
+                    extracted_dataset = extracted_final / config.key
+                    if not extracted_dataset.is_dir():
+                        raise FileNotFoundError(
+                            f"persisted extracted dataset not found: {extracted_dataset}"
+                        )
+                    for scope in config.scopes:
+                        _pd._run_merge(
+                            extracted_dataset,
+                            consolidated_work / config.key,
+                            config,
+                            scope,
+                            _pd._combined_pages(scope, True),
+                            edition_metadata,
+                        )
+                else:
+                    _dataset_scoped_prepare(
+                        config.key,
+                        ocr_root,
+                        extracted_root,
                         consolidated_work,
-                        config,
-                        scope,
-                        _pd._combined_pages(scope, True),
                         edition_metadata,
                     )
-            else:
-                _program_scoped_prepare(
-                    args.program,
-                    ocr_root,
-                    extracted_root,
-                    consolidated_work,
-                    edition_metadata,
-                )
-            if not args.keep_intermediates:
-                kept = _copy_final_full_files(
+
+                working_full = _working_full_paths(consolidated_work, config.key)
+                if not working_full:
+                    raise FileNotFoundError(
+                        f"no merged full artifacts produced for {config.key}"
+                    )
+                _apply_edition_metadata(working_full, edition_metadata)
+                consolidated_inputs = _publish_consolidated_artifacts(
                     consolidated_work,
                     consolidated_final,
-                    edition_mode=edition_metadata is not None,
+                    config.key,
                 )
-                print(f"Kept {len(kept)} final full file(s) under {consolidated_final}")
-
-        if edition_metadata is not None:
-            if from_stage == "corrected":
-                metadata_paths = _corrected_paths_for_program(
-                    llm_dir, args.program, catalog_key=edition_metadata["catalog_key"]
+                print(
+                    f"Consolidated {len(consolidated_inputs)} plan artifact(s) under "
+                    f"{consolidated_final / config.key}"
                 )
             else:
-                edition_token = edition_filename_token(edition_metadata["catalog_key"])
-                consolidated_paths = sorted(
-                    consolidated_final.glob("**/full/merged_*_full.json")
+                consolidated_inputs = _consolidated_paths_for_dataset(
+                    consolidated_final,
+                    config.key,
                 )
-                metadata_paths = [
-                    path
-                    for path in _paths_for_program(consolidated_paths, args.program)
-                    if f"_{edition_token}_full" in path.name
-                ]
-            metadata_paths = _apply_edition_metadata(metadata_paths, edition_metadata)
 
-        if do_correct:
-            from src.pipeline.tools.correction.tool import run_correct_stage
+            if do_correct:
+                if not consolidated_inputs:
+                    raise FileNotFoundError(
+                        f"no consolidated artifacts found for {config.key}"
+                    )
+                from src.pipeline.tools.correction.tool import run_correct_stage
 
-            if from_stage == "consolidated":
-                if edition_metadata is None:
-                    inputs: list[Path] | None = None
-                else:
-                    token = edition_filename_token(edition_metadata["catalog_key"])
-                    inputs = [
-                        path
-                        for path in sorted(
-                            consolidated_final.glob("**/full/merged_*_full.json")
-                        )
-                        if token in path.stem
-                        and str(
-                            json.loads(path.read_text(encoding="utf-8")).get("program", "")
-                        ).casefold()
-                        == args.program.casefold()
-                    ]
-                    if not inputs:
-                        raise FileNotFoundError(
-                            f"no consolidated artifact for catalog_key={edition_metadata['catalog_key']!r}"
-                        )
+                corrected_temp = tmp_base / "corrected"
+                corrected = run_correct_stage(
+                    consolidated_final,
+                    corrected_temp,
+                    consolidated_inputs,
+                )
+                final_paths = _publish_corrected_artifacts(
+                    config.key,
+                    corrected,
+                    final_root,
+                )
+                print(
+                    f"Corrected {len(final_paths)} plan artifact(s) under "
+                    f"{final_root / config.key}"
+                )
             else:
-                full_files = sorted(consolidated_final.glob("**/full/merged_*_full.json"))
-                wanted = [p for p in full_files if args.program.casefold() in p.as_posix().casefold()]
-                if edition_metadata is not None:
-                    token = edition_filename_token(edition_metadata["catalog_key"])
-                    wanted = [path for path in wanted if token in path.stem]
-                inputs = wanted or None
-            if edition_metadata is not None and inputs is not None:
-                _ensure_edition_corrected_targets_available(inputs, llm_dir)
-            if inputs is None:
-                corrected = run_correct_stage(consolidated_final, llm_dir)
-            else:
-                corrected = run_correct_stage(consolidated_final, llm_dir, inputs)
-            print(f"Corrected {len(corrected)} file(s) under {llm_dir}")
+                final_paths = _corrected_paths_for_dataset(final_root, config.key)
 
-        if not args.skip_eval:
-            from src.pipeline.tools.evaluation.tool import run_evaluate_stage
-
-            program_paths = _corrected_paths_for_program(
-                llm_dir,
-                args.program,
-                catalog_key=(edition_metadata or {}).get("catalog_key"),
-            ) if edition_metadata is not None else _corrected_paths_for_program(llm_dir, args.program)
-            if program_paths:
+            if not args.skip_eval:
                 from src.pipeline.tools.evaluation.evaluate import discover_llm_evaluation_pairs
+                from src.pipeline.tools.evaluation.tool import run_evaluate_stage
 
-                all_pairs = discover_llm_evaluation_pairs(llm_dir)
-                pairs = [(p, g) for p, g in all_pairs if Path(p) in set(program_paths)]
-                run_evaluate_stage(pairs=pairs)
-            else:
-                print(f"No corrected files for {args.program}; skipping evaluation.")
+                try:
+                    all_pairs = discover_llm_evaluation_pairs(final_root)
+                except FileNotFoundError:
+                    all_pairs = []
+                selected_paths = {path.resolve() for path in final_paths}
+                pairs = [
+                    (prediction, ground_truth)
+                    for prediction, ground_truth in all_pairs
+                    if Path(prediction).resolve() in selected_paths
+                ]
+                if pairs:
+                    run_evaluate_stage(pairs=pairs)
+                else:
+                    print(
+                        f"No accepted Ground Truth pair for {config.key}; skipping evaluation."
+                    )
 
-        if args.with_index:
-            from src.pipeline.tools.indexing.tool import run_build_index_stage
+            if args.with_index:
+                from src.pipeline.tools.indexing.tool import run_build_index_stage
 
-            program_paths = None
-            if args.index_path is not None:
-                program_paths = _corrected_paths_for_program(
-                    llm_dir,
-                    args.program,
-                    catalog_key=(edition_metadata or {}).get("catalog_key"),
-                )
-            print(run_build_index_stage(program_paths or None, args.index_path))
-    except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 1
-    finally:
-        if tmp_holder is not None:
-            tmp_holder.cleanup()
-    print(f"Done. RAG-ready files under {llm_dir}")
+                print(run_build_index_stage(None, args.index_path))
+
+        except Exception as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
+
+    print(f"Done. Final reviewed artifacts: {final_root / config.key}")
     return 0
 
 
