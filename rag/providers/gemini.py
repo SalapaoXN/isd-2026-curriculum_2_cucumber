@@ -95,8 +95,10 @@ def _create_client(api_key: str) -> Any:
     )
 
 
-def make_gemini_callable() -> Callable[..., str]:
+def make_gemini_callable(model_name: str = DEFAULT_MODEL) -> Callable[..., str]:
     """Return a lazy Gemini callable with bounded timeout and transient retry."""
+    if not isinstance(model_name, str) or not model_name.strip():
+        raise ValueError("model_name must be a non-empty string")
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key.strip():
         raise RuntimeError("GEMINI_API_KEY is required to create the Gemini provider")
@@ -130,7 +132,7 @@ def make_gemini_callable() -> Callable[..., str]:
                 if response_json_schema is not None:
                     config_options["response_json_schema"] = response_json_schema
                 response = client.models.generate_content(
-                    model=DEFAULT_MODEL,
+                    model=model_name,
                     contents=prompt,
                     config=types.GenerateContentConfig(**config_options),
                 )
@@ -153,9 +155,10 @@ def make_gemini_callable() -> Callable[..., str]:
                     or response_json_schema is not None
                 )
                 _logger.warning(
-                    "Gemini request failed stage=%s attempt=%d/%d "
+                    "Gemini request failed model=%s stage=%s attempt=%d/%d "
                     "exception_type=%s transient=%s elapsed=%.3fs "
                     "api_code=%s api_message=%s structured_output_requested=%s",
+                    model_name,
                     stage,
                     attempt,
                     MAX_PROVIDER_ATTEMPTS,
@@ -166,6 +169,7 @@ def make_gemini_callable() -> Callable[..., str]:
                     api_message,
                     str(structured_output_requested).lower(),
                     extra={
+                        "model": model_name,
                         "api_code": api_code,
                         "api_message": api_message,
                         "exception_type": exception_type,

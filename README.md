@@ -1,44 +1,75 @@
-# CUCUMBER curriculum extraction and index builder
+# CUCUMBER Curriculum Assistant
 
-This repository is currently reduced to curriculum-source processing and building
-the SQLite curriculum index. The user-facing application and question-answering
-runtime orchestration have been removed so they can be recreated from this point.
+CUCUMBER contains the curriculum extraction/index pipeline, a React chatbot, a
+curriculum document browser, and a FastAPI service. FastAPI serves the built React
+pages at `/` and `/curriculum`. The chat API routes course
+questions through the Gemini model, retrieves relevant chunks from the SQLite
+curriculum index, and returns source-linked responses.
 
-## Current data flow
+## Data flow
 
 ```text
-approved source curriculum documents
-  -> OCR / extraction / merge / correction
-  -> data/output/final/*_final.json (reviewed finals)
-  -> evaluation and canonicalization
-  -> data/output/canonical/*_final.json
+curriculum sources -> OCR / extraction / merge / correction
+  -> reviewed finals -> evaluation -> canonical curriculum JSON
   -> python -m rag.build_index
   -> cucumber_outputs/runtime/curriculum.db
+  -> FastAPI retrieval + Gemini answer
+  -> React chatbot at http://127.0.0.1:8000/
 ```
 
-`rag.build_index` reads canonical, post-evaluation curriculum artifacts by default.
-The canonical source selection and shared-course conflict checks remain in
-`src/pipeline/tools/runtime_artifacts.py`. Structured loading, chunking, embedding,
-and SQLite index construction remain under `rag/structured` and `rag/retrieval`.
+The index defaults to the post-evaluation files in
+`data/output/canonical/*_final.json`. It stores structured course information,
+source provenance, text chunks, and 384-dimensional vectors. Query-time retrieval
+uses the same `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` embedder
+and sqlite-vec database.
 
-Build or reuse the curriculum index:
+## Run locally
+
+Python 3.10+ and Node.js 20+ are required. Install dependencies and set `GEMINI_API_KEY`
+in a root `.env` file. Never commit `.env` or API keys. A separate lightweight
+classifier defaults to `gemini-3.1-flash-lite`; override it with
+`CHAT_CLASSIFIER_MODEL` if needed. The answering/rewrite model uses the provider's
+default model configuration.
+
+Build the curriculum index if it does not exist yet:
 
 ```powershell
 python -m rag.build_index
 ```
 
-Optional explicit JSON paths may be passed to the command. The default sources are
-the canonical `data/output/canonical/*_final.json` artifacts. Only curriculum
-artifacts are loaded into this index; institutional-policy and program-requirement
-supplemental JSON files are not loaded by the current build path.
+Build React and start FastAPI from the project root:
 
-## Curriculum extraction pipeline
+```powershell
+cd frontend
+npm install
+npm run build
+cd ..
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
 
-Python 3.10+ is required. Install `requirements.txt`; source processing may require
-the OCR and Gemini credentials documented by the pipeline configuration. Never
-commit `.env` or API credentials.
+Open `http://127.0.0.1:8000/`. The index health endpoint is `/api/health`.
 
-Reviewed finals can be evaluated and canonicalized without repeating OCR/correction:
+Chat diagnostics are written to the Uvicorn log stream. Each turn logs a short
+`request_id`, the classifier's `use_rag` decision, whether database retrieval ran,
+result/source counts, final status, and elapsed time. Question text, answer text,
+and prompt contents are not logged. Successful responses include the same
+`X-Request-ID` header for correlation; errors include the header as well. If Uvicorn
+is run in the background with redirected output, inspect
+`cucumber_outputs/runtime/uvicorn.log` and `uvicorn-error.log`.
+
+For frontend development, leave FastAPI running and run Vite in another terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Vite proxies `/api` requests to the FastAPI server.
+
+## Curriculum extraction and index rebuild
+
+Reviewed finals can be evaluated/canonicalized without repeating OCR or correction:
 
 ```powershell
 python -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation_precanonical
@@ -47,22 +78,20 @@ python -m src.pipeline.tools.preflight_runtime
 python -m rag.build_index
 ```
 
-The canonical directory contains the current reviewed/evaluated curriculum records.
-`data/output/final/` holds pre-canonical extraction/correction artifacts and
-supplemental source JSON. Ground-truth artifacts are used for evaluation and
-canonicalization, not as a replacement for extracted descriptions/provenance.
+The index builder currently loads canonical curriculum sources only; policy and total
+credit supplemental JSON files are not loaded into this build path. See
+`src/pipeline/README.md` for extraction runbooks.
 
-## Remaining directories
+## Project areas
 
-- `src/pipeline/` — source extraction, correction, evaluation, canonicalization,
-  preflight, and the index build stage.
-- `rag/build_index.py` — index CLI and default source selection.
-- `rag/structured/` — curriculum JSON to relational SQLite loading.
-- `rag/retrieval/` — document chunking, embedding, vector persistence, and index
-  construction primitives.
-- `data/`, `ground_truth/`, and `reports/` — source, reviewed, and evaluation data.
-- `tests/pipeline/`, `tests/tools/`, and index-specific tests — remaining data and
-  build-pipeline validation.
+- `frontend/` — React JSX chatbot, curriculum browser, conversation list, citations, filters, and responsive UI.
+- `backend/` — FastAPI home/static routes and curriculum RAG query service.
+- `src/pipeline/` — OCR, extraction, correction, evaluation, canonicalization, and
+  preflight.
+- `rag/build_index.py` — index CLI and canonical source selection.
+- `rag/structured/` and `rag/retrieval/` — curriculum loading, chunks, embeddings,
+  and SQLite vector construction.
 
-The former course Q&A application, answer/retrieval runtime, and application-specific
-acceptance suite were intentionally removed for recreation.
+Course-specific answers need a built index and Gemini credentials. When evidence is
+missing or insufficient, the assistant reports that limitation rather than relying
+on model memory.
