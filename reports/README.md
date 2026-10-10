@@ -1,6 +1,6 @@
 # Reports — evaluation และหลักฐานการทดสอบ
 
-ไฟล์ใน reports/ มีทั้งผล evaluation ที่สร้างซ้ำได้และรายงาน snapshot. อ่าน ../README.md, ../src/pipeline/README.md และ ../rag/README.md สำหรับ architecture ปัจจุบัน; อย่าใช้ตัวเลขจาก historical snapshots แทนผลที่สร้างจาก raw finals ปัจจุบัน.
+ไฟล์ใน reports/ มีผล evaluation และ data-quality artifacts สำหรับ curriculum extraction. อ่าน ../README.md และ ../src/pipeline/README.md สำหรับ data flow ปัจจุบัน; อย่าใช้ตัวเลขจาก historical snapshots แทนผลที่สร้างจาก raw finals ปัจจุบัน.
 
 ## Evaluation ปัจจุบัน
 
@@ -32,19 +32,12 @@ Evaluation วัดผลของ reviewed prediction ใน data/output/final
     .\.venv\Scripts\python.exe -m src.pipeline.tools.preflight_runtime
     .\.venv\Scripts\python.exe -m rag.build_index
 
-Flow เมื่อ raw finals ต้องสร้างใหม่คือ Source/OCR → Extract/Merge → Gemini correction → reviewed finals → evaluation → canonicalization → preflight → build. Canonical curriculum artifacts อยู่ใน data/output/canonical/*_final.json. rag.build_index ใช้ไฟล์เหล่านี้เป็น curriculum source; institution_policy.json และ program_requirements.json ยังคงอ่านจาก data/output/final/ เป็น supplemental sources.
+Flow เมื่อ raw finals ต้องสร้างใหม่คือ Source/OCR → Extract/Merge → Gemini correction → reviewed finals → evaluation → canonicalization → preflight → build. Canonical curriculum artifacts อยู่ใน data/output/canonical/*_final.json. rag.build_index ใช้ไฟล์เหล่านี้เป็น curriculum source; supplemental policy/credit-requirement loading is not part of the current index path.
 
 Teacher GT ใช้เป็น runtime authority หลัง evaluation เฉพาะ structured academic-plan fields ที่มีใน accepted GT: code, name_th, name_en, credits, year, semester, category, type, prerequisite, flexible_year_semester และ note. Descriptions และ source provenance ยังคงมาจาก reviewed finals. Rules GT/evaluation files ไม่ใช่ runtime truth; runtime rules มาจาก source-verified rules pipeline/corrections.
 
-## Historical reports และ benchmark
+## Historical reports
 
 reports/evaluation/ เป็น report path เดิมและไม่ใช่ output ของคำสั่งปัจจุบัน; evaluator ปัจจุบันเขียนไปที่ reports/evaluation_precanonical/. เก็บ historical metrics ตามสภาพเดิม ไม่ควรเปลี่ยนย้อนหลังเพื่อให้ตรงกับ code ปัจจุบัน.
-
-- final_automated_hardening.md — snapshot วันที่ 2026-10-08; findings ในนั้นไม่ใช่ TODO ปัจจุบันโดยอัตโนมัติ
-- runtime_benchmark.md — latency snapshot ณ วันที่ benchmark
-
-รัน benchmark ใหม่ด้วย:
-
-    .\.venv\Scripts\python.exe scripts/benchmark_runtime.py --runs 5
 
 ประวัติการแก้ Ground Truth ดูที่ ../ground_truth/GT_FIXED.md.

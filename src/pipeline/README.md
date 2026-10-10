@@ -266,7 +266,7 @@ Evaluation ใช้ raw reviewed finals ก่อน canonicalization และ
 
 หลัง evaluation เสร็จ canonicalizer ใช้ accepted teacher GT เป็น authority เฉพาะ fields ที่มีใน GT: code, name_th, name_en, credits, year, semester, category, type, prerequisite, flexible_year_semester และ note. Descriptions และ provenance มาจาก reviewed finals. สำหรับ legacy 2560 ใช้ data/corrections/legacy_2560_source_verified_corrections.json เท่านั้น; ไม่ใช้ current GT. preflight_runtime แสดง unresolved shared-course conflicts ทั้งหมด และ build จะหยุดถ้ายังมี conflict.
 
-rag.build_index ใช้ curriculum artifacts จาก data/output/canonical/*_final.json เท่านั้น. institution_policy.json และ program_requirements.json ยังคงโหลดจาก data/output/final/ เป็น supplemental sources. เมื่อ raw finals พร้อมแล้วไม่ต้องรัน OCR หรือ Gemini ซ้ำ. คำสั่ง src.pipeline.run --dataset it2565 --from final --with-index ทำ evaluation → canonicalization → preflight → build ต่อเนื่อง; ห้ามใช้ --skip-eval กับ --with-index. --only-index ใช้ canonical artifacts ที่มีอยู่แล้ว.
+rag.build_index ใช้ curriculum artifacts จาก data/output/canonical/*_final.json เท่านั้น. ขณะนี้ index builder ไม่โหลด institution_policy.json หรือ program_requirements.json เป็น supplemental sources. เมื่อ raw finals พร้อมแล้วไม่ต้องรัน OCR หรือ Gemini ซ้ำ. คำสั่ง src.pipeline.run --dataset it2565 --from final --with-index ทำ evaluation → canonicalization → preflight → build ต่อเนื่อง; ห้ามใช้ --skip-eval กับ --with-index. --only-index ใช้ canonical artifacts ที่มีอยู่แล้ว.
 
 หากต้องสร้าง raw finals ใหม่ ให้รัน Source/OCR → Extract/Merge → Gemini correction ก่อน แล้วจึงใช้ลำดับสี่คำสั่งด้านบน.
 
@@ -460,7 +460,7 @@ python -m src.pipeline.run --dataset it2560 --keep-intermediates
 
 ## Runtime DB
 
-python -m rag.build_index สร้าง runtime database จาก data/output/canonical/*_final.json หลังผ่าน preflight; ไม่อ่าน raw curriculum finals เป็น default curriculum source. ให้ทำ evaluation → canonicalize → preflight ก่อน build ตามคำสั่งในหัวข้อ 9. institution_policy.json และ program_requirements.json ยังคงเป็น supplemental sources จาก data/output/final/.
+python -m rag.build_index สร้าง curriculum index จาก data/output/canonical/*_final.json หลังผ่าน preflight; ไม่อ่าน raw curriculum finals เป็น default source. ให้ทำ evaluation → canonicalize → preflight ก่อน build ตามคำสั่งในหัวข้อ 9. Index ปัจจุบันรับเฉพาะ curriculum artifacts และไม่โหลด institutional policy/program-requirements supplements.
 
 runtime database:
 

@@ -12,11 +12,10 @@ from pathlib import Path
 from typing import Any
 
 from rag.structured.loader import load_jsons_to_sqlite
-from rag.structured.supplemental_loader import load_supplemental_jsons_to_sqlite
 
 from .chunks import build_chunks
 from .embedder import EMBEDDING_DIMENSION, MODEL_NAME, embed_texts
-from .vector_store import insert_embeddings, nearest_neighbor_search
+from .vector_store import insert_embeddings
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -735,7 +734,6 @@ def ensure_index(
     embed_texts_callable: Callable[[Iterable[str]], Any] | None = None,
     embedding_model_identity: str | None = None,
     vector_dimension: int | None = None,
-    supplemental_json_paths: Mapping[str, str | Path] | None = None,
 ) -> Path:
     """Build or reuse the unified curriculum database for source JSON files."""
     source_paths = _source_paths(input_json_paths)
@@ -744,13 +742,7 @@ def ensure_index(
     model_identity, dimension = _effective_settings(
         embedding_model_identity, vector_dimension
     )
-    supplemental_paths: list[Path] = []
-    if supplemental_json_paths is not None:
-        required_keys = {"institution_policy", "program_requirements"}
-        if set(supplemental_json_paths) != required_keys:
-            raise ValueError("supplemental_json_paths must name both authority files")
-        supplemental_paths = _source_paths(supplemental_json_paths.values())
-    all_source_paths = source_paths + supplemental_paths
+    all_source_paths = source_paths
     source_rows = []
     for path in all_source_paths:
         fingerprint = _source_fingerprint(path)
@@ -761,12 +753,6 @@ def ensure_index(
 
     _remove_database(database_path)
     catalog_ids = load_jsons_to_sqlite(source_paths, database_path)
-    if supplemental_paths:
-        load_supplemental_jsons_to_sqlite(
-            supplemental_json_paths["institution_policy"],
-            supplemental_json_paths["program_requirements"],
-            database_path,
-        )
     source_by_catalog_id: defaultdict[
         int, list[tuple[Path, str, str, list[str], str]]
     ] = defaultdict(list)
@@ -796,98 +782,6 @@ def ensure_index(
     return database_path
 
 
-def _source_pages(chunk: Mapping[str, Any]) -> list[Any]:
-    pages = chunk.get("source_page")
-    if pages is not None:
-        if isinstance(pages, (list, tuple, set)):
-            return [page for page in pages if page is not None]
-        return [pages]
-    provenance = chunk.get("provenance")
-    if isinstance(provenance, list):
-        return [
-            reference.get("source_page")
-            for reference in provenance
-            if isinstance(reference, Mapping) and reference.get("source_page") is not None
-        ]
-    return []
-
-
-def search_index(
-    index_database_path: str | Path,
-    query_text: str,
-    top_k: int = 5,
-    *,
-    embed_texts_callable: Callable[[Iterable[str]], Any] | None = None,
-    vector_dimension: int | None = None,
-) -> list[dict[str, Any]]:
-    """Search a persistent index, embedding only the supplied question."""
-    if not isinstance(query_text, str) or not query_text.strip():
-        raise ValueError("query_text must be a non-empty string")
-    _effective_settings(None, vector_dimension)
-    embed = _embedder(embed_texts_callable)
-    query_embedding = embed([query_text])
-    hits = nearest_neighbor_search(index_database_path, query_embedding, limit=top_k)
-    hit_ids = [hit["chunk_id"] for hit in hits]
-    if not hit_ids:
-        return []
-
-    placeholders = ", ".join("?" for _ in hit_ids)
-    with closing(sqlite3.connect(str(index_database_path))) as connection:
-        rows = connection.execute(
-            f"SELECT chunk_id, chunk_json FROM {_CHUNKS_TABLE} "
-            f"WHERE chunk_id IN ({placeholders})",
-            hit_ids,
-        ).fetchall()
-    chunks = {row[0]: json.loads(row[1]) for row in rows}
-
-    results: list[dict[str, Any]] = []
-    for hit in hits:
-        chunk_id = hit["chunk_id"]
-        chunk = chunks.get(chunk_id)
-        if chunk is None:
-            raise KeyError(f"vector hit has no persisted semantic chunk: {chunk_id}")
-        results.append(
-            {
-                "chunk_id": chunk_id,
-                "distance": float(hit["distance"]),
-                "text": chunk.get("text", ""),
-                "source_page": _source_pages(chunk),
-                "provenance": [dict(reference) for reference in chunk.get("provenance", [])],
-            }
-        )
-    results.sort(key=lambda result: (result["distance"], result["chunk_id"]))
-    return results
-
-
-def query_index(
-    input_json_paths: str | Path | Iterable[str | Path],
-    query_text: str,
-    top_k: int = 5,
-    *,
-    index_path: str | Path | None = None,
-    artifact_dir: str | Path = ARTIFACTS_DIR,
-    embed_texts_callable: Callable[[Iterable[str]], Any] | None = None,
-    embedding_model_identity: str | None = None,
-    vector_dimension: int | None = None,
-) -> list[dict[str, Any]]:
-    """Ensure the curriculum database is current, then search it by embedding."""
-    database_path = ensure_index(
-        input_json_paths,
-        index_path=index_path,
-        artifact_dir=artifact_dir,
-        embed_texts_callable=embed_texts_callable,
-        embedding_model_identity=embedding_model_identity,
-        vector_dimension=vector_dimension,
-    )
-    return search_index(
-        database_path,
-        query_text,
-        top_k=top_k,
-        embed_texts_callable=embed_texts_callable,
-        vector_dimension=vector_dimension,
-    )
-
-
 __all__ = [
     "ARTIFACTS_DIR",
     "DEFAULT_INDEX_NAME",
@@ -895,6 +789,4 @@ __all__ = [
     "llm_source_paths",
     "ensure_index",
     "index_path_for_source",
-    "query_index",
-    "search_index",
 ]

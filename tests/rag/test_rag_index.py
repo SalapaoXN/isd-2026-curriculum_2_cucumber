@@ -17,7 +17,6 @@ from rag.retrieval.index import (
     ensure_index,
     index_path_for_source,
     llm_source_paths,
-    query_index,
 )
 
 
@@ -498,58 +497,6 @@ class RagIndexTest(unittest.TestCase):
                     "repo:outputs/consolidated/program/full/merged_program_full.json",
                 )
 
-    def test_valid_index_is_reused_and_query_embeds_only_question(self):
-        with tempfile.TemporaryDirectory() as directory:
-            directory_path = Path(directory)
-            source_path = directory_path / "curriculum.json"
-            artifact_dir = directory_path / "cucumber_outputs" / "runtime"
-            self._write_source(source_path, "course")
-            embed_calls = []
-            chunks = [
-                {
-                    "chunk_id": "chunk-1",
-                    "text": "indexed curriculum content",
-                    "provenance": [{"source_page": 12}],
-                }
-            ]
-
-            def fake_embed(texts):
-                values = list(texts)
-                embed_calls.append(values)
-                return [[0.0] * 384 for _ in values]
-
-            with patch(
-                "rag.retrieval.index.build_chunks", return_value=chunks
-            ) as build_chunks, patch(
-                "rag.retrieval.index.insert_embeddings"
-            ) as insert_embeddings, patch(
-                "rag.retrieval.index.nearest_neighbor_search",
-                return_value=[{"chunk_id": "chunk-1", "distance": 0.1}],
-            ):
-                first = query_index(
-                    source_path,
-                    "คำถามแรก",
-                    artifact_dir=artifact_dir,
-                    embed_texts_callable=fake_embed,
-                    embedding_model_identity="model-a",
-                )
-                second = query_index(
-                    source_path,
-                    "คำถามที่สอง",
-                    artifact_dir=artifact_dir,
-                    embed_texts_callable=fake_embed,
-                    embedding_model_identity="model-a",
-                )
-
-            self.assertEqual(first[0]["source_page"], [12])
-            self.assertEqual(second[0]["source_page"], [12])
-            self.assertEqual(
-                embed_calls,
-                [["indexed curriculum content"], ["คำถามแรก"], ["คำถามที่สอง"]],
-            )
-            self.assertEqual(build_chunks.call_count, 1)
-            self.assertEqual(insert_embeddings.call_count, 1)
-
     def test_rebuilds_when_any_source_model_or_dimension_changes(self):
         with tempfile.TemporaryDirectory() as directory:
             directory_path = Path(directory)
@@ -636,22 +583,7 @@ class RagIndexTest(unittest.TestCase):
             with redirect_stdout(io.StringIO()):
                 build_index_main([])
 
-            ensure.assert_called_once_with(
-                sources,
-                index_path=default_index_path,
-                supplemental_json_paths={
-                    "institution_policy": index_module._PROJECT_ROOT
-                    / "data"
-                    / "output"
-                    / "final"
-                    / "institution_policy.json",
-                    "program_requirements": index_module._PROJECT_ROOT
-                    / "data"
-                    / "output"
-                    / "final"
-                    / "program_requirements.json",
-                },
-            )
+            ensure.assert_called_once_with(sources, index_path=default_index_path)
 
     def test_cli_loads_dotenv_before_embedding_index_starts(self):
         events = []
