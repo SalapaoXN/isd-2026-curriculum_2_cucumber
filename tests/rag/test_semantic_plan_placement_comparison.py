@@ -153,7 +153,7 @@ class PlanPlacementEvidenceTests(unittest.TestCase):
         actual = {(c.course_code, c.scope.plan): c.placements for c in cells}
         self.assertEqual(actual, {
             ("06016418", "coop"): ((3, 1),), ("06016418", "no_coop"): ((3, 1),),
-            ("06016465", "coop"): ((4, 1),), ("06016465", "no_coop"): ((3, 1), (3, 2), (4, 1)),
+            ("06016465", "coop"): ((4, 1),), ("06016465", "no_coop"): ((3, 2), (4, 1), (4, 2)),
         })
         self.assertTrue(all(c.provenance for c in cells))
 
@@ -161,7 +161,7 @@ class PlanPlacementEvidenceTests(unittest.TestCase):
         result = self.execute()
         self.assertEqual(result.status, "answer", result.missing_information)
         conclusions = {c.course_code: c for c in result.placement_comparison.conclusions}
-        self.assertEqual(conclusions["06016465"].earliest, ((4, 1), (3, 1)))
+        self.assertEqual(conclusions["06016465"].earliest, ((4, 1), (3, 2)))
         self.assertEqual(conclusions["06016465"].earlier_plan, "no_coop")
         self.assertIsNone(conclusions["06016418"].earlier_plan)
         self.assertTrue(conclusions["06016418"].tie)
@@ -171,14 +171,13 @@ class PlanPlacementEvidenceTests(unittest.TestCase):
         self.assertEqual(result.status, "answer", result.missing_information)
         self.assertEqual(result.placement_comparison.conclusions, ())
 
-    def test_alternative_set_shape_and_exactly_one(self):
+    def test_alternative_set_without_no_coop_plan_placement_fails_closed(self):
         result = self.execute(payload(("06016481", "06016482"), earliest=False, alternative=True))
-        self.assertEqual(result.status, "answer", result.missing_information)
-        self.assertEqual(len(result.placement_comparison.cells), 4)
-        for cell in result.placement_comparison.cells:
-            self.assertEqual(cell.placements, ((3, 2),) if cell.scope.plan == "coop" else ((3, 1), (3, 2), (4, 1)))
-        self.assertEqual([s.plan for s in result.alternative_selections], ["coop", "no_coop"])
-        self.assertTrue(all((s.minimum_choices, s.maximum_choices) == (1, 1) for s in result.alternative_selections))
+        self.assertEqual(result.status, "missing_data")
+        self.assertIsNone(result.placement_comparison)
+        self.assertTrue(
+            any("plan-placement evidence" in item for item in result.missing_information)
+        )
 
     def mutate_query(self, change):
         original = executor.execute_deterministic

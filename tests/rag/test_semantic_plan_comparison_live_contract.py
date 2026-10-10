@@ -63,22 +63,23 @@ class DescriptivePlacementContractTests(unittest.TestCase):
         data["comparison"]["left"]["plan"] = "coop"
         self.assertFalse(validate_semantic_intent(parse(data), Q28).valid)
 
-    def test_descriptive_difference_reuses_complete_matrix_without_arithmetic(self):
+    def test_descriptive_difference_fails_closed_when_matrix_is_incomplete(self):
         result = executor.execute_comparison(DB, resolve(contrast()))
-        self.assertEqual(result.status, "answer", result.missing_information)
+        # 06016481/06016482 have canonical plan placement only in the coop
+        # plan. Description-only rows in no_coop are not placement evidence,
+        # so a cross-plan placement matrix must remain incomplete.
+        self.assertEqual(result.status, "missing_data", result.missing_information)
         self.assertIsNone(result.numeric_comparison)
-        self.assertEqual(result.placement_comparison.conclusions, ())
-        self.assertEqual(len(result.placement_comparison.cells), 4)
-        for cell in result.placement_comparison.cells:
-            self.assertEqual(cell.placements, ((3, 2),) if cell.scope.plan == "coop" else ((3, 1), (3, 2), (4, 1)))
-        self.assertEqual([selection.plan for selection in result.alternative_selections], ["coop", "no_coop"])
-        self.assertTrue(all((s.minimum_choices, s.maximum_choices) == (1, 1) for s in result.alternative_selections))
+        self.assertIsNone(result.placement_comparison)
+        self.assertFalse(result.alternative_selections)
+        self.assertTrue(any(
+            "plan-placement evidence" in item for item in result.missing_information
+        ))
 
-    def test_live_shape_public_replay_has_selection_and_complete_choices(self):
+    def test_live_shape_public_replay_fails_closed_on_incomplete_matrix(self):
         response = semantic_ask_response(DB, Q28, CONTEXT, interpret_callable=lambda prompt: json.dumps(contrast()))
-        self.assertEqual(response["status"], "answer")
-        self.assertIn("เลือก 1 วิชาจาก 2 วิชา", response["answer"])
-        self.assertIn("ชั้นปีที่ 4 ภาคการศึกษาที่ 1", response["answer"])
+        self.assertEqual(response["status"], "insufficient_evidence")
+        self.assertNotIn("เลือก 1 วิชาจาก 2 วิชา", response.get("answer", ""))
 
 
 class AvailablePlansContractTests(unittest.TestCase):
@@ -168,7 +169,7 @@ class AvailablePlansContractTests(unittest.TestCase):
         self.assertTrue(conclusions["06016418"].tie)
         self.assertEqual(conclusions["06016465"].earlier_plan, "no_coop")
         flexible = [cell for cell in result.placement_comparison.cells if cell.course_code == "06016465" and cell.scope.plan == "no_coop"]
-        self.assertEqual(flexible[0].placements, ((3, 1), (3, 2), (4, 1)))
+        self.assertEqual(flexible[0].placements, ((3, 2), (4, 1), (4, 2)))
 
     def test_available_matrix_still_fails_atomically_on_missing_cell(self):
         from rag.semantic.schema import VerifiedResult

@@ -870,6 +870,10 @@ def _run_semantic_answer(
 
     plan = plan_semantic_query(resolved)
     trace.query_plan = {"execution": plan.execution, "reason": plan.reason}
+    topic_discovery = any(
+        item.field == "topic" and item.operator == "related_to"
+        for item in resolved.intent.filters
+    )
 
     stage_started = time.monotonic()
     if plan.execution == EXECUTION_POLICY:
@@ -913,7 +917,13 @@ def _run_semantic_answer(
             years=tuple(resolved.scope.years),
             semesters=tuple(resolved.scope.semesters),
         )
-        verified = execute_deterministic(db_path, spec, resolution_context, question)
+        verified = execute_deterministic(
+            db_path,
+            spec,
+            resolution_context,
+            question,
+            topic_relevance_judge=answer_provider if topic_discovery else None,
+        )
     else:
         verified = VerifiedResult(
             status="unsupported",
@@ -955,7 +965,7 @@ def _run_semantic_answer(
     answer_text, answer_mode = render_semantic_answer(
         question,
         verified,
-        answer_provider,
+        None if topic_discovery else answer_provider,
         numeric_comparison=verified.numeric_comparison,
     )
     timing.answerer_ms = (time.monotonic() - stage_started) * 1000.0

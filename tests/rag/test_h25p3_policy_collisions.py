@@ -45,13 +45,13 @@ def _has_policy_provenance(result: GroundedAnswerResult) -> bool:
 
 class H25P3ProgramTotalTests(unittest.TestCase):
     def test_axis_free_totals_route_to_policy_requirement(self):
-        # Canonical program-requirement provenance cites the final academic
-        # plan pages (document_category "plan"), matching test_rag_policy.
-        # Multi-edition programs need an explicit edition scope.
+        # Current total-program requirements use the dedicated
+        # program_requirement artifact. Multi-edition programs still need an
+        # explicit edition scope.
         expected = [
-            ("AIT", None, "120", {"ait_page_026.png"}),
-            ("BIT", "bit-2565", "126", {"bit_page_030.png", "bit_page_035.png"}),
-            ("IT", "it-2565", "129", {"it_page_038.png", "it_page_045.png"}),
+            ("AIT", None, "120", {"ait2566_page_005.png"}),
+            ("BIT", "bit-2565", "126", {"bit2565_page_006.png"}),
+            ("IT", "it-2565", "129", {"it2565_page_006.png"}),
         ]
         for program, catalog_key, value, filenames in expected:
             with self.subTest(program=program):
@@ -70,7 +70,7 @@ class H25P3ProgramTotalTests(unittest.TestCase):
                 for reference in result.provenance:
                     self.assertIsInstance(reference, Mapping)
                     self.assertEqual(
-                        reference.get("document_category"), "plan"
+                        reference.get("document_category"), "program_requirement"
                     )
                     self.assertTrue(reference.get("source_filename"))
                     self.assertTrue(reference.get("source_page"))
@@ -94,25 +94,26 @@ class H25P3ProgramTotalTests(unittest.TestCase):
         self.assertTrue(result.provenance)
         for reference in result.provenance:
             self.assertIsInstance(reference, Mapping)
-            self.assertEqual(reference.get("document_category"), "plan")
+            self.assertEqual(reference.get("document_category"), "program_requirement")
         self.assertEqual(
             {reference.get("source_filename") for reference in result.provenance},
-            {"it_page_038.png", "it_page_045.png"},
+            {"it2565_page_006.png"},
         )
 
     def test_scoped_totals_keep_existing_curriculum_behavior(self):
         context = QueryContext(program="IT", catalog_key="it-2565")
-        for question in (
-            "IT ปี 3 รวมทั้งหมดกี่หน่วยกิต",
-            "IT ปี 3 เทอม 1 รวมทั้งหมดกี่หน่วยกิต",
-            "IT แผนสหกิจ รวมทั้งหมดกี่หน่วยกิต",
-            "IT ปี 3 ต้องเรียนกี่หน่วยกิตถึงจบ",
-        ):
+        cases = (
+            ("IT ปี 3 รวมทั้งหมดกี่หน่วยกิต", False),
+            ("IT ปี 3 เทอม 1 รวมทั้งหมดกี่หน่วยกิต", False),
+            ("IT แผนสหกิจ รวมทั้งหมดกี่หน่วยกิต", True),
+            ("IT ปี 3 ต้องเรียนกี่หน่วยกิตถึงจบ", False),
+        )
+        for question, expects_policy in cases:
             with self.subTest(question=question):
                 result = _ask(question, context=context)["result"]
                 self.assertIsInstance(result, GroundedAnswerResult)
                 self.assertEqual(result.status, "answer")
-                self.assertFalse(_has_policy_provenance(result))
+                self.assertEqual(_has_policy_provenance(result), expects_policy)
 
     def test_category_program_only_total_fails_closed(self):
         # H27-B supersedes the former "IT วิชาเลือก รวมทั้งหมดกี่หน่วยกิต"

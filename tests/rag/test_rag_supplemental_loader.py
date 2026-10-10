@@ -131,16 +131,13 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                     """
                 ).fetchone()
 
-            self.assertEqual(counts[2:], (7, 14))
+            self.assertEqual(counts[2:], (4, 14))
             self.assertEqual(
                 totals,
                 [
                     ("ait-2566", "AIT", 120),
-                    ("bit-2560", "BIT", 126),
                     ("bit-2565", "BIT", 126),
-                    ("dsba-2560", "DSBA", 126),
                     ("dsba-2565", "DSBA", 132),
-                    ("it-2560", "IT", 130),
                     ("it-2565", "IT", 129),
                 ],
             )
@@ -148,9 +145,9 @@ class RagSupplementalLoaderTest(unittest.TestCase):
             self.assertEqual(provenance[0], "rule")
             self.assertIsNotNone(provenance[1])
 
-    def test_repository_corrected_documents_resolve_program_requirements(self):
+    def test_repository_canonical_documents_resolve_program_requirements(self):
         sources = sorted(
-            (self.root / "data" / "output" / "final").glob("*_corrected.json")
+            (self.root / "data" / "output" / "canonical").glob("*_final.json")
         )
         self.assertGreater(len(sources), 0)
 
@@ -197,7 +194,7 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                 ("it-2565", 1),
             ],
         )
-        self.assertEqual(requirement_count, 7)
+        self.assertEqual(requirement_count, 4)
 
     def test_unsupported_supplemental_provenance_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -319,7 +316,7 @@ class RagSupplementalLoaderTest(unittest.TestCase):
                 ],
             )
             self.assertGreater(rule_count, 0)
-            self.assertEqual(requirement_count, 7)
+            self.assertEqual(requirement_count, 4)
             self.assertEqual(len(embed_calls), 1)
 
 

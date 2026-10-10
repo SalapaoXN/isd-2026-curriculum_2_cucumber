@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import re
 import math
+from decimal import Decimal, InvalidOperation
 from dataclasses import replace
 from types import MappingProxyType
 from collections.abc import Callable, Mapping
@@ -29,6 +30,7 @@ from rag.evidence_planner import plan_evidence
 from rag.grounded_answer import compose_grounded_answer
 from rag.policy.answer import PolicyQuery, answer_policy_query
 from rag.policy.routing import adapt_policy_answer
+from rag.process_log import process_log
 # Reuse the frozen claim-adaptation boundary (the same private seam legacy
 # qa.py uses to turn evidence bundles into typed claims). Importing the
 # underscore helpers keeps one canonical implementation instead of a
@@ -81,16 +83,32 @@ _SINGLE_KIND_POLICY_TOPICS = {
 
 def _claim_texts(claims: tuple[Any, ...]) -> tuple[str, ...]:
     """Render conservative human-readable lines from verified claims only."""
+    collection_operations = {"list", "topic_matches", "course_set"}
+    collection_plans: set[str] = set()
+    for claim in claims:
+        if getattr(claim, "operation", "") not in collection_operations:
+            continue
+        scope = getattr(claim, "effective_scope", None)
+        plans = tuple(getattr(scope, "plans", ()) or ())
+        if len(plans) == 1 and isinstance(plans[0], str) and plans[0].strip():
+            collection_plans.add(plans[0].strip())
+
+    label_collections = len(collection_plans) > 1
     facts: list[str] = []
     for claim in claims:
         try:
             operation = getattr(claim, "operation", "")
-            value = getattr(claim, "value", None)
             line = _claim_line_with_evidence(claim)
         except Exception:
             continue
-        if line:
-            facts.append(line)
+        if not line:
+            continue
+        if label_collections and operation in collection_operations:
+            scope = getattr(claim, "effective_scope", None)
+            plans = tuple(getattr(scope, "plans", ()) or ())
+            if len(plans) == 1 and isinstance(plans[0], str) and plans[0].strip():
+                line = f"แผน{_plan_display(plans[0].strip())}\n{line}"
+        facts.append(line)
     return tuple(facts)
 
 
@@ -163,10 +181,10 @@ def _collection_course_codes(value: Any) -> list[str]:
 
 
 def _collection_course_identities(value: Any) -> list[tuple[str, str | None]]:
-    """Pair each concrete code with a title from the same grounded row."""
+    """Pair concrete courses and distinct masked slots with grounded titles."""
     found: list[tuple[str, str | None]] = []
-    positions: dict[str, int] = {}
-    priorities: dict[str, int] = {}
+    positions: dict[tuple[Any, ...], int] = {}
+    priorities: dict[tuple[Any, ...], int] = {}
 
     def collect(item: Any) -> None:
         if isinstance(item, Mapping) and "course_code" in item:
@@ -189,20 +207,34 @@ def _collection_course_identities(value: Any) -> list[tuple[str, str | None]]:
             return
         code = code.strip()
         display_reference = (
-            len(code) == 8 and code[:5].isascii() and code[:5].isdigit()
-            and code[5:] == "xxx"
+            len(code) == 8
+            and code.isascii()
+            and "x" in code.casefold()
+            and all(char.isdigit() or char.casefold() == "x" for char in code)
         )
         numeric_identity = len(code) == 8 and code.isascii() and code.isdigit()
         if not numeric_identity and not display_reference:
             return
-        if code not in positions:
-            positions[code] = len(found)
-            priorities[code] = priority
+        identity = ("course", code)
+        if display_reference:
+            placement_id = item.get("placement_id") if isinstance(item, Mapping) else None
+            if (
+                isinstance(placement_id, bool)
+                or not isinstance(placement_id, (int, str))
+                or (isinstance(placement_id, str) and not placement_id.strip())
+            ):
+                # A mask/title cannot prove two rows represent the same slot.
+                found.append((code, title))
+                return
+            identity = ("placement", code, placement_id)
+        if identity not in positions:
+            positions[identity] = len(found)
+            priorities[identity] = priority
             found.append((code, title))
-        elif priority > priorities[code]:
+        elif priority > priorities[identity]:
             # Better grounded title for the same identity; retain source order.
-            found[positions[code]] = (code, title)
-            priorities[code] = priority
+            found[positions[identity]] = (code, title)
+            priorities[identity] = priority
 
     collect(value)
     return found
@@ -426,6 +458,8 @@ def execute_deterministic(
     spec: QuerySpec,
     resolution_context: QueryContext,
     question: str,
+    *,
+    topic_relevance_judge: Callable[[str], str] | None = None,
 ) -> VerifiedResult:
     """Run the frozen deterministic evidence pipeline for one compiled spec."""
     try:
@@ -446,7 +480,31 @@ def execute_deterministic(
         plan = plan_evidence(
             spec, resolution, catalog_key=resolution_context.catalog_key
         )
-        bundle = execute_evidence_plan(db_path, plan)
+        bundle = execute_evidence_plan(
+            db_path,
+            plan,
+            topic_relevance_judge=topic_relevance_judge,
+        )
+        process_log(
+            "evidence_bundle",
+            results=[
+                {
+                    "request_id": item.request_id,
+                    "kind": item.kind,
+                    "status": item.status,
+                    "primitive_state": item.primitive_state,
+                    "scope": {
+                        "program": item.effective_scope.program,
+                        "catalog_key": item.effective_scope.catalog_key,
+                        "plans": list(item.effective_scope.plans),
+                        "years": list(item.effective_scope.years),
+                        "semesters": list(item.effective_scope.semesters),
+                        "category": item.effective_scope.category,
+                    },
+                }
+                for item in tuple(bundle.results)[:30]
+            ],
+        )
         claims = _legacy_compose_claims(spec, bundle)
         if "identity" in tuple(getattr(spec, "operations", ())):
             identity_claims = compose_grounded_answer(
@@ -454,7 +512,9 @@ def execute_deterministic(
             ).claims
             claims = (*identity_claims, *claims)
         grounded = compose_grounded_answer(composed_claims=claims)
-    except Exception:
+    except Exception as error:
+        if is_provider_error(error):
+            raise SemanticOperationalError("provider_unavailable") from None
         return VerifiedResult(
             status="missing_data",
             missing_information=("ไม่สามารถประมวลผลหลักฐานได้",),
@@ -906,12 +966,32 @@ def execute_policy(
 ) -> VerifiedResult:
     """Answer single-kind policy topics from canonical policy evidence."""
     topic = resolved.intent.policy_topic
-    if resolved.intent.observed_value is not None:
-        return VerifiedResult(
-            status="unsupported",
-            missing_information=("ไม่สามารถรับรองสิทธิ์รายบุคคลจากค่าที่ให้มาได้",),
-            failure_category="EXPECTED_SAFE_FAILURE",
-        )
+    observed_value = resolved.intent.observed_value
+    observed_gpa: Decimal | None = None
+    if observed_value is not None:
+        # The LLM may identify the user-stated value, but it never decides the
+        # policy outcome. Only the bounded probation comparison is supported;
+        # the canonical policy engine performs the actual threshold check.
+        if topic != "probation" or re.fullmatch(r"\d{1,2}(?:\.\d{1,4})?", observed_value) is None:
+            return VerifiedResult(
+                status="unsupported",
+                missing_information=("ค่าที่ระบุยังไม่รองรับสำหรับหัวข้อนโยบายนี้",),
+                failure_category="EXPECTED_SAFE_FAILURE",
+            )
+        try:
+            observed_gpa = Decimal(observed_value)
+        except (InvalidOperation, ValueError):
+            return VerifiedResult(
+                status="unsupported",
+                missing_information=("ค่า GPA ที่ระบุไม่ถูกต้อง",),
+                failure_category="EXPECTED_SAFE_FAILURE",
+            )
+        if not observed_gpa.is_finite():
+            return VerifiedResult(
+                status="unsupported",
+                missing_information=("ค่า GPA ที่ระบุไม่ถูกต้อง",),
+                failure_category="EXPECTED_SAFE_FAILURE",
+            )
     kinds = _program_total_kinds(resolved) or _policy_kinds_for(topic)
     if not kinds:
         return VerifiedResult(
@@ -926,7 +1006,11 @@ def execute_policy(
         for kind in kinds:
             answered = answer_policy_query(
                 db_path,
-                PolicyQuery(kind, program=program),
+                PolicyQuery(
+                    kind,
+                    program=program,
+                    observed_gpa=observed_gpa if kind == "probation_entry" else None,
+                ),
                 catalog_key=resolved.scope.catalog_key,
             )
             adapted = adapt_policy_answer(answered)
@@ -1434,26 +1518,35 @@ def _side_credits(
 
 
 def _side_course_set(
-    db_path: str | Path, side: Any
+    db_path: str | Path, side: Any, *, operation: str = "set_difference"
 ) -> tuple[tuple[tuple[str, int], ...] | None, str | None]:
     """Resolve one side to catalog-scoped canonical course identities.
 
     Course-code strings define cross-edition set equality only when the code
     is identical; differently coded rows are never equated. Each catalog's
-    course_id is retained separately for provenance hydration.
+    course_id is retained separately for provenance hydration. Only overlap
+    may omit masked slots: they cannot prove equality, but can hide membership
+    and therefore prevent an absence claim in set_difference.
     """
+    from rag.aggregation import is_masked_course_code
+    from rag.structured.queries import placement_year_semester_choices
+
     scope = getattr(side, "scope", None)
     if scope is None:
         return None, "operand without scope"
     program = getattr(scope, "program", None)
     catalog_key = getattr(scope, "catalog_key", None)
     plan = getattr(scope, "plan", None)
+    years = tuple(getattr(scope, "years", ()))
+    semesters = tuple(getattr(scope, "semesters", ()))
     if catalog_key is None and program is None:
         return None, "set operand needs catalog or program scope"
     try:
         connection = _connect_ro(db_path)
         try:
-            sql = """SELECT DISTINCT c.course_id, c.course_code FROM courses c
+            sql = """SELECT c.course_id, c.course_code, pp.year_number,
+                            pp.semester_number, pp.flexible_year_semester_raw
+                     FROM courses c
                      JOIN plan_placements pp ON pp.course_id = c.course_id
                      JOIN curriculum_plans cp ON cp.plan_id = pp.plan_id
                      JOIN catalogs c2 ON c2.catalog_id = cp.catalog_id
@@ -1469,23 +1562,37 @@ def _side_course_set(
             if plan is not None:
                 sql += " AND cp.plan_key = ?"
                 args.append(plan)
+            sql += " ORDER BY c.course_id, pp.placement_id"
             rows = connection.execute(sql, args).fetchall()
         finally:
             connection.close()
     except Exception:
         return None, "course set query failed"
-    identities = tuple(
-        (row["course_code"], row["course_id"])
-        for row in rows
-        if isinstance(row["course_code"], str)
-        and row["course_code"].strip()
-        and isinstance(row["course_id"], int)
-        and not isinstance(row["course_id"], bool)
-    )
-    from rag.aggregation import is_masked_course_code
-
-    if any(is_masked_course_code(code) for code, _ in identities):
-        return None, "course set contains masked placeholder identities"
+    selected: dict[tuple[str, int], None] = {}
+    for row in rows:
+        if years or semesters:
+            choices = placement_year_semester_choices(
+                row["year_number"], row["semester_number"], row["flexible_year_semester_raw"]
+            )
+            if not choices:
+                return None, "course set contains unverified temporal membership"
+            if not any(
+                (not years or year in years) and (not semesters or semester in semesters)
+                for year, semester in choices
+            ):
+                continue
+        code, course_id = row["course_code"], row["course_id"]
+        if is_masked_course_code(code):
+            if operation == "overlap":
+                continue
+            return None, "course set contains masked placeholder identities"
+        if (
+            not isinstance(code, str) or len(code) != 8 or not code.isascii() or not code.isdigit()
+            or not isinstance(course_id, int) or isinstance(course_id, bool)
+        ):
+            return None, "course set contains unknown course identities"
+        selected[(code, course_id)] = None
+    identities = tuple(selected)
     if len(identities) > 200:
         return None, "course set exceeds bounded comparison size"
     return identities, None
@@ -1718,8 +1825,8 @@ def execute_comparison(db_path: str | Path, resolved: ResolvedIntent) -> Verifie
             failure_category="NONE",
             numeric_comparison=numeric_comparison,
         )
-    left_codes, left_error = _side_course_set(db_path, left)
-    right_codes, right_error = _side_course_set(db_path, right)
+    left_codes, left_error = _side_course_set(db_path, left, operation=comparison.operation)
+    right_codes, right_error = _side_course_set(db_path, right, operation=comparison.operation)
     if left_codes is None or right_codes is None:
         return VerifiedResult(
             status="missing_data",

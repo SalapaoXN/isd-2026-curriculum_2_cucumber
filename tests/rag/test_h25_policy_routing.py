@@ -170,7 +170,12 @@ class H25PolicyRoutingTests(unittest.TestCase):
             shutil.copy2(DB_PATH, path)
             with closing(sqlite3.connect(path)) as connection:
                 connection.execute("PRAGMA foreign_keys = ON")
-                connection.execute("DELETE FROM policy_facts WHERE fact_id = 28")
+                connection.execute(
+                    """DELETE FROM policy_facts
+                       WHERE category = 'เกณฑ์การลงทะเบียน'
+                         AND fact_key = 'regular_maximum'
+                         AND context = 'regular_semester'"""
+                )
                 connection.commit()
             result = _ask("ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต", db_path=path)["result"]
             self.assertIsInstance(result, GroundedAnswerResult)

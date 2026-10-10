@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import math
 import re
@@ -12,7 +13,7 @@ from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Callable
 
 from .embedder import embed_texts
 from .search import search
@@ -23,6 +24,9 @@ from .vector_store import compare_stored_vectors, score_candidate_vectors
 _SEMANTIC_CHUNKS_TABLE = "semantic_chunks"
 _EXPLICIT_COURSE_CODE = re.compile(r"(?<![0-9])([0-9]{8})(?![0-9])")
 CONSTRAINED_TOPIC_DISTANCE_THRESHOLD = 0.4428954516935646
+TOPIC_TIER2_MAX_COURSES = 20
+TOPIC_JUDGE_DESCRIPTION_CHARS = 420
+TOPIC_RELEVANCE_JUDGE_PROMPT_VERSION = "topic-relevance/v1"
 CONSTRAINED_RETRIEVAL_STATES = (
     "empty_structural_candidates",
     "description_missing",
@@ -814,6 +818,20 @@ def _normalize_lexical_text(value: Any) -> str:
     return "".join(character if character.isalnum() else " " for character in value)
 
 
+def _description_text_for_lexical_topic(value: Any) -> str:
+    """Remove chunk-format labels that are not course subject matter.
+
+    Description chunks include the fixed label ``คำอธิบายรายวิชาภาษาอังกฤษ``
+    whenever an English description exists. Treating that label as content
+    makes a topic query for ``ภาษาอังกฤษ`` match almost every described
+    course. Only the formatting label is removed; genuine occurrences in the
+    course name or description body remain searchable.
+    """
+    if not isinstance(value, str):
+        return ""
+    return re.sub(r"คำอธิบายรายวิชาภาษาอังกฤษ\s*:?", " ", value)
+
+
 def _ascii_phrase_match(topic: str, text: str) -> bool:
     topic_tokens = topic.split()
     if not topic_tokens:
@@ -871,7 +889,9 @@ def lexical_topic_match(
         if not isinstance(evidence, Mapping):
             continue
         normalized_value = _normalize_lexical_text(
-            evidence.get("text", evidence.get("description"))
+            _description_text_for_lexical_topic(
+                evidence.get("text", evidence.get("description"))
+            )
         )
         if normalized_value:
             searchable_texts.append(normalized_value)
@@ -906,6 +926,196 @@ def _candidate_topic_matches(
         if lexical_match or semantic_match:
             matches.append(candidate)
     return tuple(matches)
+
+
+def _topic_candidate_identity(candidate: Mapping[str, Any]) -> tuple[str, Any]:
+    course_id = candidate.get("course_id")
+    if isinstance(course_id, int) and not isinstance(course_id, bool):
+        return ("course_id", course_id)
+    return ("course_code", str(candidate.get("course_code", "")))
+
+
+def _topic_candidate_best_distance(candidate: Mapping[str, Any]) -> float | None:
+    distances = [
+        float(evidence["distance"])
+        for evidence in candidate.get("description_evidence", ())
+        if isinstance(evidence, Mapping)
+        and isinstance(evidence.get("distance"), (int, float))
+        and not isinstance(evidence.get("distance"), bool)
+        and math.isfinite(float(evidence["distance"]))
+    ]
+    return min(distances) if distances else None
+
+
+def _tier_topic_candidates(
+    topic: str,
+    candidates: Iterable[Mapping[str, Any]],
+) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
+    """Split unique course candidates into deterministic strong and bounded judge tiers.
+
+    Tier 1 keeps the existing conservative lexical/semantic acceptance rule.
+    Tier 2 is the best remaining semantic candidates, bounded by course count;
+    everything else is Tier 3 and never reaches a model. Ranking is per logical
+    course, so duplicate placement rows cannot consume the bounded judge budget.
+    """
+    unique: list[Mapping[str, Any]] = []
+    seen: set[tuple[str, Any]] = set()
+    for candidate in candidates:
+        if not candidate.get("description_evidence"):
+            continue
+        identity = _topic_candidate_identity(candidate)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        unique.append(candidate)
+
+    tier1: list[Mapping[str, Any]] = []
+    tier2_pool: list[tuple[float, str, Mapping[str, Any]]] = []
+    for candidate in unique:
+        distance = _topic_candidate_best_distance(candidate)
+        if lexical_topic_match(topic, candidate) or (
+            distance is not None
+            and is_topic_match(distance, CONSTRAINED_TOPIC_DISTANCE_THRESHOLD)
+        ):
+            tier1.append(candidate)
+            continue
+        if distance is None:
+            continue
+        tier2_pool.append((distance, str(candidate.get("course_code", "")), candidate))
+
+    tier2_pool.sort(key=lambda item: (item[0], item[1]))
+    tier2 = tuple(item[2] for item in tier2_pool[:TOPIC_TIER2_MAX_COURSES])
+    return tuple(tier1), tier2
+
+
+def _topic_judge_prompt(
+    topic: str,
+    candidates: tuple[Mapping[str, Any], ...],
+) -> str:
+    lines = [
+        f"{TOPIC_RELEVANCE_JUDGE_PROMPT_VERSION}",
+        "You are a bounded course-topic relevance classifier.",
+        "Decide only whether each supplied course is directly or substantially related to the topic.",
+        "Use only the supplied title and description. Reject incidental mentions and weak background overlap.",
+        "Do not invent courses, facts, or indices. Return exactly one JSON object: {\"relevant\":[1,3]}",
+        f"TOPIC: {topic}",
+        "CANDIDATES:",
+    ]
+    for index, candidate in enumerate(candidates, 1):
+        code = str(candidate.get("course_code", "")).strip()
+        title = next(
+            (
+                str(candidate.get(key)).strip()
+                for key in ("name_th", "name_en", "course_name")
+                if isinstance(candidate.get(key), str) and str(candidate.get(key)).strip()
+            ),
+            "",
+        )
+        description_parts: list[str] = []
+        for evidence in candidate.get("description_evidence", ()):
+            if not isinstance(evidence, Mapping):
+                continue
+            text = _description_text_for_lexical_topic(
+                evidence.get("text", evidence.get("description"))
+            )
+            if isinstance(text, str) and text.strip():
+                normalized = " ".join(text.split())
+                if normalized not in description_parts:
+                    description_parts.append(normalized)
+        description = " ".join(description_parts)[:TOPIC_JUDGE_DESCRIPTION_CHARS].rstrip()
+        lines.append(f"[{index}] {code} | {title} | {description}")
+    return "\n".join(lines)
+
+
+def _parse_topic_judge_selection(raw: Any, candidate_count: int) -> tuple[int, ...] | None:
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict) or set(payload) != {"relevant"}:
+        return None
+    relevant = payload.get("relevant")
+    if not isinstance(relevant, list):
+        return None
+    selected: list[int] = []
+    for value in relevant:
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int)
+            or value < 1
+            or value > candidate_count
+            or value in selected
+        ):
+            return None
+        selected.append(value)
+    return tuple(selected)
+
+
+def _topic_judge_structured_kwargs(
+    relevance_judge: Callable[..., str],
+    candidate_count: int,
+) -> dict[str, Any]:
+    """Request provider-enforced JSON when the callable supports it.
+
+    Simple injected test/provider callables remain valid: unsupported keyword
+    arguments are never sent. The parser below remains authoritative even when
+    transport-level structured output is available.
+    """
+    try:
+        parameters = inspect.signature(relevance_judge).parameters.values()
+    except (TypeError, ValueError):
+        return {}
+
+    def supports(keyword: str) -> bool:
+        return any(
+            parameter.kind == inspect.Parameter.VAR_KEYWORD
+            or (
+                parameter.name == keyword
+                and parameter.kind != inspect.Parameter.POSITIONAL_ONLY
+            )
+            for parameter in parameters
+        )
+
+    if not supports("response_mime_type"):
+        return {}
+    options: dict[str, Any] = {"response_mime_type": "application/json"}
+    if supports("response_json_schema"):
+        options["response_json_schema"] = {
+            "type": "object",
+            "properties": {
+                "relevant": {
+                    "type": "array",
+                    "maxItems": candidate_count,
+                    "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": candidate_count,
+                    },
+                }
+            },
+            "required": ["relevant"],
+            "additionalProperties": False,
+        }
+    return options
+
+
+def _judge_tier2_candidates(
+    topic: str,
+    candidates: tuple[Mapping[str, Any], ...],
+    relevance_judge: Callable[..., str],
+) -> tuple[Mapping[str, Any], ...] | None:
+    if not candidates:
+        return ()
+    raw = relevance_judge(
+        _topic_judge_prompt(topic, candidates),
+        **_topic_judge_structured_kwargs(relevance_judge, len(candidates)),
+    )
+    selected = _parse_topic_judge_selection(raw, len(candidates))
+    if selected is None:
+        return None
+    return tuple(candidates[index - 1] for index in selected)
 
 
 def make_constrained_topic_retrieval_result(
@@ -965,8 +1175,15 @@ def retrieve_constrained_topic_evidence(
     db_path: str | Path,
     topic: str,
     candidate_courses: Iterable[Mapping[str, Any]],
+    *,
+    relevance_judge: Callable[[str], str] | None = None,
 ) -> ConstrainedTopicRetrievalResult:
-    """Retrieve topic evidence only within already-constrained courses."""
+    """Retrieve topic evidence only within already-constrained courses.
+
+    With no relevance judge, behavior remains the frozen lexical + threshold
+    path. When a judge is supplied, Tier 1 is accepted deterministically and
+    only the bounded Tier 2 candidates are classified in one provider call.
+    """
     mapped_candidates = map_course_candidates_to_description_evidence(
         db_path, tuple(candidate_courses)
     )
@@ -998,7 +1215,36 @@ def retrieve_constrained_topic_evidence(
     enriched = enrich_candidate_description_scores(
         mapped_candidates, candidate_scores
     )
-    topic_matches = _candidate_topic_matches(topic, enriched["candidates"])
+    if relevance_judge is None:
+        topic_matches = _candidate_topic_matches(topic, enriched["candidates"])
+        return make_constrained_topic_retrieval_result(
+            enriched["candidates"], candidate_scores, topic_matches
+        )
+
+    tier1, tier2 = _tier_topic_candidates(topic, enriched["candidates"])
+    judged = _judge_tier2_candidates(topic, tier2, relevance_judge) if tier2 else ()
+    if judged is None:
+        return ConstrainedTopicRetrievalResult(
+            status="vector_missing_or_invalid",
+            candidates=tuple(enriched["candidates"]),
+            scored_candidates=tuple(tier1),
+            missing_description_course_ids=tuple(
+                candidate.get("course_id")
+                for candidate in enriched["candidates"]
+                if not candidate.get("description_evidence")
+            ),
+            missing_vector_chunk_ids=tuple(candidate_scores.get("missing_chunk_ids", ())),
+            invalid_vector_chunk_ids=tuple(candidate_scores.get("invalid_chunk_ids", ())),
+        )
+
+    selected_identities = {
+        _topic_candidate_identity(candidate) for candidate in (*tier1, *judged)
+    }
+    topic_matches = tuple(
+        candidate
+        for candidate in enriched["candidates"]
+        if _topic_candidate_identity(candidate) in selected_identities
+    )
     return make_constrained_topic_retrieval_result(
         enriched["candidates"], candidate_scores, topic_matches
     )
@@ -1054,6 +1300,9 @@ def retrieve(
 __all__ = [
     "CONSTRAINED_RETRIEVAL_STATES",
     "CONSTRAINED_TOPIC_DISTANCE_THRESHOLD",
+    "TOPIC_JUDGE_DESCRIPTION_CHARS",
+    "TOPIC_RELEVANCE_JUDGE_PROMPT_VERSION",
+    "TOPIC_TIER2_MAX_COURSES",
     "ConstrainedTopicRetrievalResult",
     "SIMILARITY_STATES",
     "SimilarityEvidence",

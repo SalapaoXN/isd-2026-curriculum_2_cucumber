@@ -23,6 +23,7 @@ from rag.semantic.schema import (
 )
 from rag.query_spec import (
     _extract_category,
+    _extract_result_ordinal,
     _extract_topic,
     canonical_plan_meanings,
     _extract_plans,
@@ -33,6 +34,13 @@ _SUPPORTED_FILTER_SHAPES = frozenset(
         ("topic", "related_to"),
         ("category", "eq"),
     }
+)
+
+_FREE_ELECTIVE_CATEGORY_LABELS = frozenset(
+    {"หมวดวิชาเสรี", "หมวดวิชาเลือกเสรี"}
+)
+_FREE_ELECTIVE_CUE_RE = re.compile(
+    r"(?:หมวด\s*)?วิชา(?:เลือก)?\s*เสรี", re.IGNORECASE
 )
 
 
@@ -122,6 +130,16 @@ def _filter_grounding_problem(
             # the SAME canonical value. No universal alias is introduced.
             if _extract_category(question) == text:
                 continue
+            # Canonical source editions use both "หมวดวิชาเสรี" and
+            # "หมวดวิชาเลือกเสรี" for the same user-facing free-elective
+            # concept.  The current-turn cue grounds either canonical label;
+            # the resolver still has to bind it to the exact label present in
+            # the selected program/catalog before execution.
+            if (
+                text in _FREE_ELECTIVE_CATEGORY_LABELS
+                and _FREE_ELECTIVE_CUE_RE.search(question)
+            ):
+                continue
             return "semantic category filter is not grounded in the current question"
     return None
 
@@ -174,22 +192,122 @@ def _contains(question: str, text: str) -> bool:
     return text.casefold() in question.casefold()
 
 
+def _comparison_field_spans(
+    question: str, field: str, value: object
+) -> tuple[tuple[int, int], ...]:
+    """Locate one comparison field using its own linguistic dimension.
+
+    Year/semester values must be attached to explicit temporal cues so a
+    catalog year such as ``2565`` cannot accidentally ground ``year=5``.
+    Text fields reuse the same token-boundary policy as ``_contains``.
+    """
+    if field in {"year", "semester"}:
+        if isinstance(value, bool) or not isinstance(value, int):
+            return ()
+        if field == "year":
+            cue = r"(?:ชั้น\s*)?ปี(?:\s*ที่)?|year"
+        else:
+            cue = r"เทอม|ภาค(?:การศึกษา|เรียน)?(?:\s*ที่)?|semester|term"
+        pattern = re.compile(
+            rf"(?:{cue})\s*{value}(?![0-9])",
+            re.IGNORECASE,
+        )
+        return tuple((match.start(), match.end()) for match in pattern.finditer(question))
+    if not isinstance(value, str) or not value.strip():
+        return ()
+    text = value.strip()
+    if len(text) <= 4 or re.fullmatch(r"[0-9]{8}", text):
+        pattern = re.compile(
+            r"(?<![A-Za-z0-9_])" + re.escape(text) + r"(?![A-Za-z0-9_])",
+            re.IGNORECASE,
+        )
+    else:
+        pattern = re.compile(re.escape(text), re.IGNORECASE)
+    return tuple((match.start(), match.end()) for match in pattern.finditer(question))
+
+
+def _comparison_operand_locality_problem(
+    comparison: object, question: str
+) -> str | None:
+    """Keep independently mentioned comparison fields bound to their side.
+
+    Global substring grounding is insufficient for a two-sided question: a
+    model could swap ``year=1`` and ``year=2`` (or two catalog editions) and
+    every token would still exist somewhere in the question.  When the two
+    operands contain distinguishable explicit values, use their grounded
+    mention order to form two local regions and require each differing field
+    to occur in its own region.  Shared values remain legal common scope.
+    """
+    left = dict(getattr(comparison, "left", ()) or ())
+    right = dict(getattr(comparison, "right", ()) or ())
+    # Course references can legitimately be listed after both scope phrases
+    # (for example in generated/provider-free controls), so side-locality is
+    # enforced here for scope dimensions only. Course grounding remains under
+    # the existing explicit-reference checks.
+    fields = ("program", "catalog", "plan", "year", "semester")
+
+    left_unique: list[tuple[int, int]] = []
+    right_unique: list[tuple[int, int]] = []
+    for field in fields:
+        left_value = left.get(field)
+        right_value = right.get(field)
+        if left_value is None or right_value is None or left_value == right_value:
+            continue
+        left_spans = _comparison_field_spans(question, field, left_value)
+        right_spans = _comparison_field_spans(question, field, right_value)
+        if len(left_spans) == 1:
+            left_unique.extend(left_spans)
+        if len(right_spans) == 1:
+            right_unique.extend(right_spans)
+
+    # If language does not expose one unique anchor per side, retain the
+    # existing fail-closed/global grounding contract instead of guessing a
+    # clause boundary.
+    if not left_unique or not right_unique:
+        return None
+    left_center = sum(start + end for start, end in left_unique) / (2 * len(left_unique))
+    right_center = sum(start + end for start, end in right_unique) / (2 * len(right_unique))
+    if left_center >= right_center:
+        return "comparison operands do not preserve current-question side order"
+    boundary = int((left_center + right_center) / 2)
+
+    for side_label, side, own_left in (
+        ("left", left, True),
+        ("right", right, False),
+    ):
+        other = right if own_left else left
+        for field in fields:
+            value = side.get(field)
+            if value is None or value == other.get(field):
+                continue
+            spans = _comparison_field_spans(question, field, value)
+            if not spans:
+                continue  # ordinary grounding reports the missing mention
+            locally_grounded = any(
+                end <= boundary if own_left else start >= boundary
+                for start, end in spans
+            )
+            if not locally_grounded:
+                return f"comparison.{side_label}.{field} is grounded on the opposite operand"
+    return None
+
+
 def _plan_hint_consistency_problem(
     raw_plan: str | None,
     plan_hint: str | None,
     field: str,
 ) -> str | None:
-    """Require a canonical hint to agree with deterministic raw-phrase meaning."""
+    """Check known meaning; unknown wording requires scoped resolution later."""
     if plan_hint is None:
         return None
     if not isinstance(plan_hint, str) or not plan_hint.strip() or len(plan_hint) > 32:
         return f"{field} is invalid"
     if raw_plan is None:
         return f"{field} requires a grounded raw plan mention"
-    meanings = canonical_plan_meanings(raw_plan)
-    if len(meanings) != 1:
-        return f"{field} requires a supported deterministic raw plan meaning"
-    if plan_hint.strip().casefold() != meanings[0].casefold():
+    meanings = canonical_plan_meanings(raw_plan, include_ambiguous=True)
+    if len(meanings) > 1:
+        return f"{field} requires an unambiguous raw plan meaning"
+    if meanings and plan_hint.strip().casefold() != meanings[0].casefold():
         return f"{field} contradicts deterministic raw plan meaning"
     return None
 
@@ -253,6 +371,13 @@ def _target_consistency(intent: SemanticIntent, question: str) -> str | None:
             return f"{target.kind} target is not grounded in the current question"
         return None
     if target.kind == "result_ordinal":
+        # An ordinal result reference is a linguistic reference to a prior
+        # result item (e.g. "ตัวแรก", "อันที่ 2"), not any number that happens
+        # to occur in the question. In particular, year/semester numerals must
+        # never be allowed to bind a stale retained course from context.
+        grounded_ordinal = _extract_result_ordinal(question)
+        if grounded_ordinal != target.ordinal:
+            return "result_ordinal target is not grounded in an explicit result ordinal"
         return None
     return f"unsupported target kind: {target.kind}"
 
@@ -338,7 +463,9 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
                     not isinstance(value, str) or not _contains(question, value)
                 ):
                     return f"comparison.{side_label}.{key} is not grounded in the current question"
-                if key in {"year", "semester"} and str(value) not in question:
+                if key in {"year", "semester"} and not _comparison_field_spans(
+                    question, key, value
+                ):
                     return f"comparison.{side_label}.{key} is not grounded in the current question"
             hint_problem = _plan_hint_consistency_problem(
                 side_fields.get("plan"),
@@ -347,6 +474,14 @@ def _task_structure(intent: SemanticIntent, question: str) -> str | None:
             )
             if hint_problem is not None:
                 return hint_problem
+        locality_problem = _comparison_operand_locality_problem(comparison, question)
+        if locality_problem is not None:
+            return locality_problem
+    if intent.observed_value is not None:
+        if task not in {"policy", "requirement"}:
+            return "observed_value is only supported for policy/requirement tasks"
+        if not _contains(question, intent.observed_value):
+            return "observed_value is not grounded in the current question"
     if task in {"policy", "requirement"} and intent.policy_topic is None:
         return "policy/requirement requires a policy topic"
     if task == "lookup" and intent.subject == "course" and intent.relation is None:

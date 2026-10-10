@@ -139,54 +139,34 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual(credit_result["year"], 5)
         self.assertEqual(credit_result["semester"], 1)
 
-    def test_course_placement_preserves_raw_and_exposes_choices(self):
+    def test_course_placement_does_not_promote_description_only_plan_rows(self):
         result = course_placement(DB_PATH, "IT", "06016481", ["coop", "no_coop"])
         by_plan = {placement["plan_key"]: placement for placement in result["placements"]}
 
+        self.assertEqual(result["status"], "partial")
+        self.assertEqual(result["missing_plan_keys"], ["no_coop"])
+        self.assertEqual(set(by_plan), {"coop"})
         self.assertEqual(by_plan["coop"]["flexible_year_semester_raw"], None)
         self.assertEqual(by_plan["coop"]["year_semester_choices"], [(3, 2)])
-        self.assertEqual(
-            by_plan["no_coop"]["flexible_year_semester_raw"],
-            "3/1, 3/2, 4/1",
-        )
-        self.assertEqual(
-            by_plan["no_coop"]["year_semester_choices"],
-            [(3, 1), (3, 2), (4, 1)],
-        )
 
-    def test_composed_result_uses_choices_for_earliest_timing(self):
+    def test_composed_cross_plan_placement_fails_closed_when_one_plan_is_missing(self):
         result = ask(
             DB_PATH,
             "วิชา 06016481 ใน IT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน?",
         )
+        self.assertEqual(result["result"].status, "insufficient_evidence")
         claims = _claims(result, "placement")
-        by_plan = {}
-        for claim in claims:
-            self.assertEqual(claim.status, "complete")
-            self.assertTrue(claim.provenance)
-            for row in claim.evidence:
-                by_plan[row["plan_key"]] = row
+        self.assertTrue(claims)
+        self.assertTrue(any(claim.status == "insufficient_evidence" for claim in claims))
+        complete_rows = [
+            row
+            for claim in claims
+            if claim.status == "complete"
+            for row in claim.evidence
+        ]
+        self.assertFalse(any(row.get("plan_key") == "no_coop" for row in complete_rows))
 
-        self.assertEqual(set(by_plan), {"coop", "no_coop"})
-        self.assertEqual(
-            by_plan["coop"]["year_semester_choices"], ((3, 2),)
-        )
-        self.assertEqual(
-            min(by_plan["coop"]["year_semester_choices"]), (3, 2)
-        )
-        self.assertEqual(
-            by_plan["no_coop"]["year_semester_choices"],
-            ((3, 1), (3, 2), (4, 1)),
-        )
-        self.assertEqual(
-            min(by_plan["no_coop"]["year_semester_choices"]), (3, 1)
-        )
-        self.assertEqual(
-            {member["course_code"] for member in by_plan["coop"]["alternative_courses"]},
-            {"06016481", "06016482"},
-        )
-
-    def test_it_placement_uses_deterministic_operation(self):
+    def test_it_cross_plan_placement_does_not_invent_missing_no_coop_timing(self):
         result = ask(
             DB_PATH,
             "วิชา 06016481 ใน IT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน "
@@ -194,29 +174,16 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         )
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "insufficient_evidence")
         claims = _claims(result, "placement")
-        by_plan = {}
-        for claim in claims:
-            if claim.status != "complete" or not claim.provenance:
-                continue
-            for row in claim.evidence:
-                by_plan[row["plan_key"]] = row
-        self.assertEqual(set(by_plan), {"coop", "no_coop"})
-        self.assertEqual(
-            by_plan["coop"]["year_semester_choices"], ((3, 2),)
-        )
-        self.assertEqual(
-            by_plan["no_coop"]["year_semester_choices"],
-            ((3, 1), (3, 2), (4, 1)),
-        )
-        for row in by_plan.values():
-            self.assertEqual(
-                {member["course_code"] for member in row["alternative_courses"]},
-                {"06016481", "06016482"},
-            )
-            self.assertTrue(
-                all(member["name_en"] for member in row["alternative_courses"])
-            )
+        self.assertTrue(any(claim.status == "insufficient_evidence" for claim in claims))
+        complete_rows = [
+            row
+            for claim in claims
+            if claim.status == "complete" and claim.provenance
+            for row in claim.evidence
+        ]
+        self.assertFalse(any(row.get("plan_key") == "no_coop" for row in complete_rows))
 
     def test_cross_plan_earliest_placement_uses_deterministic_operation(self):
         calls = []
@@ -246,7 +213,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         )
         self.assertEqual(
             earliest_by_plan["no_coop"]["year_semester_choices"],
-            ((3, 1), (3, 2), (4, 1)),
+            ((3, 2), (4, 1), (4, 2)),
         )
         self.assertLess(
             min(earliest_by_plan["no_coop"]["year_semester_choices"]),
@@ -281,7 +248,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertEqual({row["plan_key"] for row in rows}, {"no_coop"})
         self.assertEqual(
             {row["year_semester_choices"] for row in rows},
-            {((3, 1), (3, 2), (4, 1))},
+            {((3, 2), (4, 1), (4, 2))},
         )
         self.assertTrue(all(row["provenance"] for row in rows))
         self.assertEqual(calls, [])
@@ -324,7 +291,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
                 ("06016418", "coop"): ((3, 1),),
                 ("06016418", "no_coop"): ((3, 1),),
                 ("06016465", "coop"): ((4, 1),),
-                ("06016465", "no_coop"): ((3, 1), (3, 2), (4, 1)),
+                ("06016465", "no_coop"): ((3, 2), (4, 1), (4, 2)),
             },
         )
         earliest_by_course_plan = {}
@@ -341,7 +308,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
                 ("06016418", "coop"): (3, 1),
                 ("06016418", "no_coop"): (3, 1),
                 ("06016465", "coop"): (4, 1),
-                ("06016465", "no_coop"): (3, 1),
+                ("06016465", "no_coop"): (3, 2),
             },
         )
         self.assertLess(
@@ -756,7 +723,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         )
         self.assertEqual(
             placements[0].evidence[0]["year_semester_choices"],
-            ((3, 1), (3, 2), (4, 1)),
+            ((3, 2), (4, 1), (4, 2)),
         )
         # 06016465 has no prerequisites and no successors: the typed
         # result carries placement context with no prerequisite claims.
@@ -899,7 +866,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(groups["coop"]["provenance"])
         self.assertEqual(calls, [])
 
-    def test_gold_cross_plan_alternative_group_question_is_deterministic(self):
+    def test_gold_cross_plan_alternative_group_fails_closed_when_group_is_plan_specific(self):
         calls = []
 
         def forbidden_model(_prompt):
@@ -915,31 +882,8 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         )
 
         self.assertIsInstance(result["result"], GroundedAnswerResult)
-        groups = {}
-        for claim in _claims(result, "count"):
-            self.assertEqual(claim.status, "complete")
-            self.assertTrue(claim.provenance)
-            self.assertEqual(claim.value, 1)
-            for row in claim.evidence.courses:
-                groups[(row["plan_key"], row["placement_id"])] = row
-        self.assertEqual(
-            {plan for plan, _ in groups}, {"coop", "no_coop"}
-        )
-        for row in groups.values():
-            self.assertEqual(row["minimum_choices"], 1)
-            self.assertEqual(row["maximum_choices"], 1)
-            self.assertEqual(
-                {member["course_code"] for member in row["alternative_courses"]},
-                {"06016481", "06016482"},
-            )
-            self.assertTrue(row["provenance"])
-        by_plan = {}
-        for (plan, _), row in groups.items():
-            by_plan.setdefault(plan, row["year_semester_choices"])
-        self.assertEqual(by_plan["coop"], ((3, 2),))
-        self.assertEqual(
-            by_plan["no_coop"], ((3, 1), (3, 2), (4, 1))
-        )
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].final_answer, "หลักฐานไม่เพียงพอ")
         self.assertEqual(calls, [])
 
     def test_semester_credits_operation_resolves_plan_and_components(self):
@@ -1073,7 +1017,7 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(rows[0]["provenance"])
         self.assertEqual(calls, [])
 
-    def test_placement_semantic_hybrid_keeps_both_evidence_paths(self):
+    def test_placement_semantic_hybrid_fails_closed_without_losing_internal_description_evidence(self):
         question = (
             "วิชา 06016481 ใน IT แบบสหกิจและแบบไม่สหกิจ อยู่ปีไหน เทอมไหน "
             "และเนื้อหาเกี่ยวข้องกับสถานประกอบการอย่างไร?"
@@ -1082,22 +1026,18 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
 
         self.assertIsNone(result["route"])
         self.assertIsInstance(result["result"], GroundedAnswerResult)
+        self.assertEqual(result["result"].status, "insufficient_evidence")
+        self.assertEqual(result["result"].final_answer, "หลักฐานไม่เพียงพอ")
         placements = _claims(result, "placement")
         self.assertTrue(placements)
-        self.assertTrue(
-            all(
-                claim.status == "complete" and claim.provenance
-                for claim in placements
-            )
-        )
-        self.assertEqual(
-            {
-                row["plan_key"]
-                for claim in placements
-                for row in claim.evidence
-            },
-            {"coop", "no_coop"},
-        )
+        self.assertTrue(any(claim.status == "insufficient_evidence" for claim in placements))
+        complete_plan_keys = {
+            row["plan_key"]
+            for claim in placements
+            if claim.status == "complete"
+            for row in claim.evidence
+        }
+        self.assertNotIn("no_coop", complete_plan_keys)
         describes = [
             claim
             for claim in _claims(result, "describe")
@@ -1167,11 +1107,11 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         # that back the prerequisite fact must be retained.
         self.assertTrue(
             {
-                "it_page_034.png",
-                "it_page_035.png",
-                "it_page_333.png",
-                "it_page_334.png",
-                "it_page_338.png",
+                "it2565_page_034.png",
+                "it2565_page_035.png",
+                "it2565_page_333.png",
+                "it2565_page_334.png",
+                "it2565_page_338.png",
             } <= filenames
         )
         # The prerequisite course genuinely exists in both plans of the same
@@ -1180,17 +1120,17 @@ class CoursePlacementIntegrationTest(unittest.TestCase):
         self.assertTrue(
             filenames
             <= {
-                "it_page_034.png",
-                "it_page_035.png",
-                "it_page_041.png",
-                "it_page_042.png",
-                "it_page_333.png",
-                "it_page_334.png",
-                "it_page_338.png",
+                "it2565_page_034.png",
+                "it2565_page_035.png",
+                "it2565_page_041.png",
+                "it2565_page_042.png",
+                "it2565_page_333.png",
+                "it2565_page_334.png",
+                "it2565_page_338.png",
             }
         )
-        self.assertNotIn("it_page_328.png", filenames)
-        self.assertNotIn("it_page_371.png", filenames)
+        self.assertNotIn("it2565_page_328.png", filenames)
+        self.assertNotIn("it2565_page_371.png", filenames)
         self.assertTrue(
             all(
                 reference.get("source_filename") and reference.get("source_page")

@@ -698,7 +698,7 @@ class RagQaTest(unittest.TestCase):
         self.assertEqual(evidence["plan"], "no_coop")
         self.assertEqual(
             evidence["source_filename"],
-            "merged_it_no_coop_full_corrected.json",
+            "it2565_no_coop_final.json",
         )
         self.assertEqual(
             {reference["document_category"] for reference in evidence["provenance"]},
@@ -716,11 +716,11 @@ class RagQaTest(unittest.TestCase):
                 for reference in evidence["provenance"]
                 if reference["document_category"] == "plan"
             },
-            {"it_page_035.png"},
+            {"it2565_page_035.png"},
         )
         self.assertEqual(
             by_plan["coop"]["source_filename"],
-            "merged_it_coop_full_corrected.json",
+            "it2565_coop_final.json",
         )
         self.assertEqual(
             {
@@ -728,7 +728,7 @@ class RagQaTest(unittest.TestCase):
                 for reference in by_plan["coop"]["provenance"]
                 if reference["document_category"] == "plan"
             },
-            {"it_page_042.png"},
+            {"it2565_page_042.png"},
         )
         # No cross-edition leakage: every reference must come from the
         # current-edition sources, never from another catalog edition.
@@ -3162,24 +3162,26 @@ class RagQaTest(unittest.TestCase):
             [item["source_page"] for item in claims[0].provenance], [1, 2, 3, 4]
         )
 
-    def test_whole_plan_comparison_uses_typed_aggregate_and_preserves_both_plans(self):
+    def test_whole_plan_comparison_with_unresolved_masked_slots_fails_closed(self):
         model = lambda _prompt: self.fail("whole-plan comparison must not use SQL fallback")
         with patch("rag.qa.run_structured_fallback") as fallback:
             result = ask(
                 DB_PATH,
                 "IT สหกิจกับไม่สหกิจต่างกันยังไง",
+                context=QueryContext(program="IT", catalog_key="it-2565"),
                 structured_model_callable=model,
             )["result"]
 
-        self.assertEqual(result.status, "answer")
+        # IT 2565 contains repeated masked elective-slot markers such as
+        # 060164xx. They are unresolved slots, not stable course identities,
+        # so an exact whole-plan comparison cannot safely align them.
+        self.assertEqual(result.status, "insufficient_evidence")
         self.assertEqual(len(result.claims), 1)
         claim = result.claims[0]
         self.assertEqual(claim.operation, "compare")
-        self.assertIsInstance(claim.value, PlanComparisonAggregation)
-        self.assertEqual(claim.status, "complete")
-        self.assertTrue(claim.provenance)
-        self.assertIn("สหกิจ", result.final_answer)
-        self.assertIn("ไม่สหกิจ", result.final_answer)
+        self.assertEqual(claim.status, "insufficient_evidence")
+        self.assertIsNone(claim.value)
+        self.assertEqual(claim.provenance, ())
         fallback.assert_not_called()
 
     def test_whole_plan_comparison_incomplete_evidence_fails_closed(self):

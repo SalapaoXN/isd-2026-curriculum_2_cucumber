@@ -139,7 +139,9 @@ class SemanticCourseCreditIdentityTests(unittest.TestCase):
             "year aggregate",
         )
         self.assertEqual(result.status, "answer")
-        self.assertIn("52", result.summary_facts[0])
+        # Canonical AIT 2566 year 1 totals 34 credits: 15 in semester 1
+        # plus 19 in semester 2 (including the 0-credit English foundation).
+        self.assertIn("34", result.summary_facts[0])
         self.assertTrue(result.provenance)
 
     def test_other_course_lookup_relations_keep_their_operations(self):

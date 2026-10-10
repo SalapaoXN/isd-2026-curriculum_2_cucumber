@@ -79,6 +79,59 @@ class ListTitleProjectionTests(unittest.TestCase):
         self.assertNotIn("10000003 —", answer)
         self.assertTrue(validate_answer_text(answer, verified(rows)))
 
+    def test_distinct_masked_placements_both_reach_display_in_source_order(self):
+        rows = [
+            {"course_code": "06026xxx", "placement_id": 101,
+             "name_th": "วิชาเลือกเฉพาะด้าน 1"},
+            {"course_code": "10000001", "placement_id": 102, "name_th": "วิชาจริง"},
+            {"course_code": "06026xxx", "placement_id": 103,
+             "name_th": "วิชาเลือกเฉพาะด้าน 2"},
+            {"course_code": "10000001", "placement_id": 104, "name_th": "ชื่อซ้ำ"},
+        ]
+        expected = [("06026xxx", "วิชาเลือกเฉพาะด้าน 1"),
+                    ("10000001", "วิชาจริง"),
+                    ("06026xxx", "วิชาเลือกเฉพาะด้าน 2")]
+        self.assertEqual(_collection_course_identities(rows), expected)
+        result = verified(rows)
+        answer, mode = render_semantic_answer("list", result, None)
+        self.assertEqual(mode, "deterministic")
+        lines = [f"- {code} — {title}" for code, title in expected]
+        self.assertIn("\n".join(lines), answer)
+        self.assertTrue(validate_answer_text(answer, result))
+        self.assertFalse(validate_answer_text(answer.replace(lines[-1], ""), result))
+        retained, _ = _retained_from_claims(result.claims, "DSBA", "dsba-2565")
+        self.assertEqual([row["course_code"] for row in retained], ["10000001"])
+
+    def test_masked_placement_identity_preserves_title_priority_without_merging_slots(self):
+        rows = [
+            {"course_code": "06026xxx", "placement_id": 101, "name_en": "Elective"},
+            {"course_code": "06026xxx", "placement_id": 102, "name_th": "วิชาเลือก"},
+            {"course_code": "06026xxx", "placement_id": 101, "name_th": "วิชาเลือก"},
+            {"course_code": "06026xxx", "placement_id": 101, "name_th": "ชื่อซ้ำ"},
+        ]
+        self.assertEqual(_collection_course_identities(rows),
+                         [("06026xxx", "วิชาเลือก"), ("06026xxx", "วิชาเลือก")])
+
+    def test_masked_rows_without_placement_identity_remain_separate(self):
+        rows = [
+            {"course_code": "90644xxx", "name_th": "ช่องเลือก 1"},
+            {"course_code": "90644xxx", "placement_id": None, "name_th": "ช่องเลือก 2"},
+            {"course_code": "90644xxx", "name_th": "ช่องเลือก 2"},
+        ]
+        self.assertEqual(_collection_course_identities(rows), [
+            ("90644xxx", "ช่องเลือก 1"), ("90644xxx", "ช่องเลือก 2"),
+            ("90644xxx", "ช่องเลือก 2"),
+        ])
+
+    def test_masked_slots_respect_existing_display_limit(self):
+        rows = [{"course_code": "06026xxx", "placement_id": index,
+                 "name_th": f"ช่องเลือก {index}"} for index in range(21)]
+        line = _claim_line("list", rows)
+        self.assertEqual(len(re.findall(r"(?m)^- 06026xxx", line)), 20)
+        self.assertIn("06026xxx — ช่องเลือก 19", line)
+        self.assertNotIn("06026xxx — ช่องเลือก 20", line)
+        self.assertIn("แสดง 20 จาก 21 รายวิชา", line)
+
     def test_twenty_display_and_retention_with_late_identities(self):
         rows = [{"course_code": f"{10000000+i:08d}", "name_th": f"ชื่อ {i}"} for i in range(21)]
         result = verified(rows)

@@ -118,7 +118,7 @@ class EvidenceExecutorTests(unittest.TestCase):
             "IT",
             "no_coop",
             years=(3,),
-            semesters=(1,),
+            semesters=(2,),
         )
 
         course_codes = {
@@ -128,11 +128,11 @@ class EvidenceExecutorTests(unittest.TestCase):
         }
         self.assertIn("06016428", course_codes)
         self.assertIn("06016480", course_codes)
+        self.assertIn("060164xx", course_codes)
         alternative_slots = [
             course for course in result["courses"] if course.get("is_alternative")
         ]
-        self.assertEqual(len(alternative_slots), 1)
-        self.assertEqual(alternative_slots[0]["minimum_choices"], 1)
+        self.assertEqual(alternative_slots, [])
 
     def test_elective_category_filters_course_type_and_keeps_flexible_candidates(self):
         result = scoped_course_set(
@@ -140,7 +140,7 @@ class EvidenceExecutorTests(unittest.TestCase):
             "IT",
             "no_coop",
             years=(3,),
-            semesters=(1,),
+            semesters=(2,),
             category="วิชาเลือก",
         )
 
@@ -162,7 +162,7 @@ class EvidenceExecutorTests(unittest.TestCase):
         )
         self.assertTrue(
             all(
-                (3, 1) in tuple(course.get("year_semester_choices", ()))
+                (3, 2) in tuple(course.get("year_semester_choices", ()))
                 for course in individual_courses
             )
         )
@@ -847,20 +847,20 @@ class EvidenceExecutorTests(unittest.TestCase):
             }
             for result in results
         ]
-        self.assertIn("it_page_042.png", plan_sources[0])
-        self.assertIn("it_page_035.png", plan_sources[1])
+        self.assertIn("it2565_page_042.png", plan_sources[0])
+        self.assertIn("it2565_page_035.png", plan_sources[1])
         # Prerequisite facts are catalog-scoped: the shared prerequisite
         # course row retains genuine sources from both plans of the same
         # edition, so each plan's evidence must stay within that retained
         # source set and keep its own plan page.
         genuine_sources = {
-            "it_page_034.png",
-            "it_page_035.png",
-            "it_page_041.png",
-            "it_page_042.png",
-            "it_page_333.png",
-            "it_page_334.png",
-            "it_page_338.png",
+            "it2565_page_034.png",
+            "it2565_page_035.png",
+            "it2565_page_041.png",
+            "it2565_page_042.png",
+            "it2565_page_333.png",
+            "it2565_page_334.png",
+            "it2565_page_338.png",
         }
         for sources in plan_sources:
             self.assertTrue(sources)

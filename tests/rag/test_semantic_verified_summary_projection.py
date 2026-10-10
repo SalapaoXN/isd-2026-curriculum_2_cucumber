@@ -54,9 +54,15 @@ def _intent_payload(*, relation, requested_field):
 def _run_lookup(question, *, relation, requested_field):
     captured = []
 
-    def capture_execution(db_path, spec, resolution_context, execution_question):
+    def capture_execution(
+        db_path, spec, resolution_context, execution_question, **execution_kwargs
+    ):
         verified = _execute_deterministic(
-            db_path, spec, resolution_context, execution_question
+            db_path,
+            spec,
+            resolution_context,
+            execution_question,
+            **execution_kwargs,
         )
         captured.append((spec, verified))
         return verified

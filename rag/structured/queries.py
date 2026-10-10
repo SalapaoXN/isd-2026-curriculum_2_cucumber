@@ -579,6 +579,12 @@ def course_placement(
                 row["semester"],
                 row["flexible_year_semester_raw"],
             )
+            # Catalog/description-only records can share a course identity with
+            # a plan while carrying no authoritative timing. This helper is a
+            # placement primitive, so such rows are absence of placement—not a
+            # successful empty-timing placement.
+            if not year_semester_choices:
+                continue
             placements.append(
                 {
                     "placement_id": placement_id,
@@ -730,6 +736,13 @@ def alternative_group_placements(
             if placement_key in seen_placements:
                 continue
             seen_placements.add(placement_key)
+            year_semester_choices = placement_year_semester_choices(
+                row["year"],
+                row["semester"],
+                row["flexible_year_semester_raw"],
+            )
+            if not year_semester_choices:
+                continue
             references = _merge_provenance(
                 _provenance_for(
                     connection,
@@ -760,11 +773,7 @@ def alternative_group_placements(
                     "flexible_year_semester_raw": row[
                         "flexible_year_semester_raw"
                     ],
-                    "year_semester_choices": placement_year_semester_choices(
-                        row["year"],
-                        row["semester"],
-                        row["flexible_year_semester_raw"],
-                    ),
+                    "year_semester_choices": year_semester_choices,
                     "credits_raw": row["credits_raw"],
                     "alternative_group_id": group_id,
                     "group_key": row["group_key"],

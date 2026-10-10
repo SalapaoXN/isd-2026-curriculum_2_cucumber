@@ -118,10 +118,12 @@ class H27FilteredSumTests(unittest.TestCase):
     def test_elective_exact_term_filtered_totals(self):
         result = _ask(ELECTIVE_TERM_QUESTION)["result"]
         self.assertEqual(result.status, "answer")
-        # Canonical filtered set: 53 pooled 3-credit electives per plan plus
-        # one uniform 6-credit alternative group (minimum 1) on no_coop.
+        # Canonical filtered set: 53 pooled 3-credit concrete electives per
+        # plan. Masked plan slots are required-load placeholders, not extra
+        # selectable courses; the coop-only 06016481/82 alternative group is
+        # not authoritative placement evidence for no_coop.
         self.assertEqual(_sum_claims_by_plan(result).get(("coop",)), 159)
-        self.assertEqual(_sum_claims_by_plan(result).get(("no_coop",)), 165)
+        self.assertEqual(_sum_claims_by_plan(result).get(("no_coop",)), 159)
         for claim in result.claims:
             if claim.operation == "sum_credits" and claim.status == "complete":
                 self.assertEqual(claim.effective_scope.category, "วิชาเลือก")
@@ -154,7 +156,7 @@ class H27FilteredSumTests(unittest.TestCase):
             "IT แผนไม่สหกิจ ปี 4 เทอม 1 วิชาเลือก รวมทั้งหมดกี่หน่วยกิต"
         )["result"]
         self.assertEqual(no_coop.status, "answer")
-        self.assertEqual(_sum_claims_by_plan(no_coop), {("no_coop",): 165})
+        self.assertEqual(_sum_claims_by_plan(no_coop), {("no_coop",): 159})
 
     def test_program_only_year_only_semester_only_fail_closed(self):
         for question in (

@@ -46,7 +46,10 @@ _FORBIDDEN_JARGON = (
 )
 
 _COURSE_CODE_RE = re.compile(r"\d{8}")
-_DISPLAY_REFERENCE_RE = re.compile(r"\b\d{5}xxx\b")
+_DISPLAY_REFERENCE_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?=[0-9xX]{8}(?![A-Za-z0-9_]))"
+    r"(?=[0-9xX]*[xX])[0-9xX]{8}(?![A-Za-z0-9_])"
+)
 _INTERNAL_PLAN_RE = re.compile(r"(?<![A-Za-z0-9_])(?:no_coop|coop)(?![A-Za-z0-9_])", re.IGNORECASE)
 
 _TITLE_KEYS = ("name_en", "name_th", "title", "course_name")

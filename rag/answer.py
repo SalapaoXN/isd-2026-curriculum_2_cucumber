@@ -2555,6 +2555,18 @@ def render_grounded_answer(
     """Render deterministic evidence, then optionally polish its final text."""
     if not isinstance(result, GroundedAnswerResult):
         raise TypeError("result must be a GroundedAnswerResult")
+    if result.status == "insufficient_evidence":
+        # Atomic fail-closed boundary: a compound request can contain some
+        # individually complete subclaims while another requested dimension is
+        # missing. Never render those partial facts as if they answered the
+        # whole question, and never send them to a polishing/synthesis model.
+        return GroundedAnswerResult(
+            status=result.status,
+            answer_mode=result.answer_mode,
+            final_answer="หลักฐานไม่เพียงพอ",
+            claims=result.claims,
+            provenance=result.provenance,
+        )
     if not result.claims:
         return result
     scope_dimensions = _scope_diff_dimensions(result.claims)

@@ -36,6 +36,9 @@ from rag.structured.queries import exact_course_candidates
 _COURSE_CODE_RE = re.compile(r"^\d{8}$")
 _DIGIT_RUN_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
 _TITLE_WRAPPER_RE = re.compile(r"[()\[\]{}]")
+_FREE_ELECTIVE_CATEGORY_LABELS = frozenset(
+    {"หมวดวิชาเสรี", "หมวดวิชาเลือกเสรี"}
+)
 
 
 def _connect_ro(db_path: str | Path) -> sqlite3.Connection:
@@ -43,6 +46,74 @@ def _connect_ro(db_path: str | Path) -> sqlite3.Connection:
     connection = sqlite3.connect(uri, uri=True)
     connection.row_factory = sqlite3.Row
     return connection
+
+
+def _canonicalize_category_filters(
+    db_path: str | Path,
+    intent: SemanticIntent,
+    scope: ResolvedScope,
+) -> SemanticIntent:
+    """Bind synonymous category labels to the exact label in resolved scope.
+
+    Different curriculum editions use either ``หมวดวิชาเสรี`` or
+    ``หมวดวิชาเลือกเสรี`` for the same free-elective concept.  The interpreter
+    may only propose a canonical label; execution must use the exact label
+    present in the selected program/catalog.  No other category vocabulary is
+    rewritten here.
+    """
+    category_indexes = [
+        index
+        for index, item in enumerate(intent.filters)
+        if item.field == "category" and item.operator == "eq"
+        and isinstance(item.value, str)
+        and item.value.strip() in _FREE_ELECTIVE_CATEGORY_LABELS
+    ]
+    if (
+        not category_indexes
+        or scope.program is None
+        or scope.catalog_key is None
+    ):
+        return intent
+    try:
+        connection = _connect_ro(db_path)
+        try:
+            parameters: list[Any] = [scope.program, scope.catalog_key]
+            plan_clause = ""
+            if scope.plan is not None:
+                plan_clause = " AND cp.plan_key = ?"
+                parameters.append(scope.plan)
+            rows = connection.execute(
+                """SELECT DISTINCT trim(pp.category) AS category
+                   FROM plan_placements pp
+                   JOIN curriculum_plans cp ON cp.plan_id = pp.plan_id
+                   JOIN programs p ON p.program_id = cp.program_id
+                   JOIN catalogs c ON c.catalog_id = cp.catalog_id
+                   WHERE p.program_code = ? AND c.catalog_key = ?
+                     AND pp.category IS NOT NULL AND trim(pp.category) != ''"""
+                + plan_clause,
+                tuple(parameters),
+            ).fetchall()
+        finally:
+            connection.close()
+    except sqlite3.Error:
+        return intent
+    available = {
+        row["category"].strip()
+        for row in rows
+        if isinstance(row["category"], str) and row["category"].strip()
+    }
+    free_labels = available & _FREE_ELECTIVE_CATEGORY_LABELS
+    if len(free_labels) != 1:
+        return intent
+    canonical = next(iter(free_labels))
+    filters = list(intent.filters)
+    changed = False
+    for index in category_indexes:
+        item = filters[index]
+        if item.value != canonical:
+            filters[index] = replace(item, value=canonical)
+            changed = True
+    return replace(intent, filters=tuple(filters)) if changed else intent
 
 
 def canonical_program(db_path: str | Path, raw: str | None) -> str | None:
@@ -164,7 +235,7 @@ def _resolve_raw_plan(
     program: str | None,
     catalog_key: str | None,
 ) -> tuple[str | None, str | None]:
-    """Resolve an explicit raw plan without allowing its hint to define meaning."""
+    """Resolve known wording or a semantic proposal against canonical scope."""
     if raw_plan is None:
         if plan_hint is not None:
             return None, "plan hint requires a current-turn raw plan mention"
@@ -184,9 +255,16 @@ def _resolve_raw_plan(
             return None, "plan hint contradicts canonical raw plan"
         return direct, None
 
-    meanings = canonical_plan_meanings(raw_plan)
-    if len(meanings) != 1:
-        return None, "raw plan has no unique supported deterministic meaning"
+    meanings = canonical_plan_meanings(raw_plan, include_ambiguous=True)
+    if len(meanings) > 1:
+        return None, "raw plan has conflicting deterministic meanings"
+    if not meanings:
+        if not isinstance(plan_hint, str) or not plan_hint.strip() or len(plan_hint) > 32:
+            return None, "raw plan requires a canonical semantic hint"
+        canonical = valid_plan(db_path, plan_hint, program, catalog_key)
+        if canonical is None:
+            return None, "semantic plan hint is unavailable in canonical scope"
+        return canonical, None
     meaning = meanings[0]
     if (
         plan_hint is not None
@@ -242,6 +320,21 @@ def _strong_enough_for_partial_title(raw_text: str) -> bool:
     return sum(character.isalpha() for character in text) >= 2
 
 
+def _normalized_title_tokens(value: str | None) -> tuple[str, ...]:
+    """Normalize a full title while treating punctuation as token separators."""
+    if not isinstance(value, str) or not value.strip():
+        return ()
+    # ``[^\W_]`` means Unicode word characters excluding underscore. This
+    # keeps Thai/Latin letters and digits, while making separators such as
+    # hyphen vs whitespace equivalent (e.g. SERVER-SIDE == SERVER SIDE).
+    return tuple(re.findall(r"[^\W_]+", value.casefold(), flags=re.UNICODE))
+
+
+def _course_title_equivalent(reference: str, candidate: str | None) -> bool:
+    reference_tokens = _normalized_title_tokens(reference)
+    return bool(reference_tokens) and reference_tokens == _normalized_title_tokens(candidate)
+
+
 def _course_reference_candidates(
     db_path: str | Path,
     raw_text: str,
@@ -290,22 +383,16 @@ def _course_reference_candidates(
         if not any(character.isalpha() for character in supplied_title):
             return code_candidates
 
-        title_candidates = _logical_candidates(
-            exact_course_candidates(
-                db_path,
-                course_name=supplied_title,
-                program=program,
-                catalog_key=catalog_key,
-                exact_title=True,
-            )
-        )
-        matching_keys = {
-            key for candidate in title_candidates
-            if (key := _candidate_course_key(candidate)) is not None
-        }
+        # The embedded canonical code establishes the candidate set. The
+        # supplied title is a consistency check and must match that candidate's
+        # full canonical Thai or English title, allowing punctuation-only
+        # variation such as SERVER SIDE vs SERVER-SIDE. Do not use partial
+        # title matching here: a conflicting title+code reference must fail
+        # closed rather than letting the code silently override the title.
         return [
             candidate for candidate in code_candidates
-            if _candidate_course_key(candidate) in matching_keys
+            if _course_title_equivalent(supplied_title, candidate.get("name_th"))
+            or _course_title_equivalent(supplied_title, candidate.get("name_en"))
         ]
 
     exact = _logical_candidates(
@@ -587,6 +674,7 @@ def resolve_semantic_intent(
         years=tuple(merged.years),
         semesters=tuple(merged.semesters),
     )
+    intent = _canonicalize_category_filters(db_path, intent, scope)
 
     target = intent.target
     if target.kind == "literal_set":

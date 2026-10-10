@@ -58,6 +58,17 @@ class CanonicalPlanMeaningsTests(unittest.TestCase):
         self.assertEqual(_extract_plans("not coop"), ("coop",))
         self.assertEqual(canonical_plan_meanings("not coop"), ())
 
+    def test_semantic_mode_distinguishes_unknown_wording_from_conflicts(self):
+        for phrase in ("ไม่ไปสหกิจ", "ไม่ได้ไปสหกิจ", "ไม่เลือกสหกิจ", "ไม่เอาสหกิจ"):
+            with self.subTest(phrase=phrase):
+                self.assertEqual(canonical_plan_meanings(phrase, include_ambiguous=True), ())
+        for phrase in ("สหกิจ และไม่สหกิจ", "สหกิจ / no_coop", "coop หรือ no_coop"):
+            with self.subTest(phrase=phrase):
+                self.assertEqual(
+                    canonical_plan_meanings(phrase, include_ambiguous=True),
+                    ("coop", "no_coop"),
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

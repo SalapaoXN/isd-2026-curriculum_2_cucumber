@@ -19,6 +19,8 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
+from rag.process_log import process_log
+
 _logger = logging.getLogger("cucumber.semantic_shadow")
 
 QA_MODE_LEGACY = "legacy"
@@ -42,6 +44,62 @@ def active_qa_mode() -> str:
     return DEFAULT_QA_MODE
 
 
+def _process_context_for_log(
+    conversation_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Keep process logs useful without dumping retained result payloads."""
+    if not isinstance(conversation_context, dict):
+        return None
+    allowed = (
+        "program",
+        "catalog_key",
+        "plan",
+        "years",
+        "semesters",
+        "category",
+        "semantic_topic",
+    )
+    payload = {
+        key: conversation_context[key]
+        for key in allowed
+        if key in conversation_context
+    }
+    return payload or None
+
+
+def _emit_semantic_process_trace(outcome: Any) -> None:
+    """Print stage summaries from the safe SemanticTrace projection."""
+    trace = getattr(outcome, "trace", None)
+    result = getattr(outcome, "result", None)
+    if trace is None:
+        return
+    process_log("intent", value=getattr(trace, "semantic_intent", {}))
+    process_log("validation", value=getattr(trace, "validation", {}))
+    process_log("context_merge", value=getattr(trace, "context_merge", {}))
+    process_log("resolved", value=getattr(trace, "resolved_intent", {}))
+    process_log("query_plan", value=getattr(trace, "query_plan", {}))
+    process_log("verified", value=getattr(trace, "verified_summary", {}))
+    process_log(
+        "result",
+        status=getattr(result, "status", None),
+        claim_count=len(getattr(result, "claims", ()) or ()),
+        provenance_count=len(getattr(result, "provenance", ()) or ()),
+        failure_category=getattr(trace, "failure_category", None),
+        failure_reason=getattr(trace, "failure_reason", None),
+        llm_request_count=getattr(trace, "llm_request_count", 0),
+    )
+    timing = getattr(trace, "timing", None)
+    if timing is not None:
+        process_log(
+            "timing",
+            interpreter_ms=round(float(getattr(timing, "interpreter_ms", 0.0)), 2),
+            resolution_ms=round(float(getattr(timing, "resolution_ms", 0.0)), 2),
+            execution_ms=round(float(getattr(timing, "execution_ms", 0.0)), 2),
+            answerer_ms=round(float(getattr(timing, "answerer_ms", 0.0)), 2),
+            total_ms=round(float(getattr(timing, "total_ms", 0.0)), 2),
+        )
+
+
 def semantic_ask_response(
     db_path: str | Path,
     question: str,
@@ -57,19 +115,30 @@ def semantic_ask_response(
     """Run the semantic pipeline and adapt it to the AskResponse shape."""
     from rag.semantic.pipeline import semantic_answer
 
-    outcome = semantic_answer(
-        db_path,
-        question,
-        conversation_context if isinstance(conversation_context, dict) else None,
+    process_log(
+        "request",
+        question=question[:300] if isinstance(question, str) else "",
         home_program=home_program,
-        **({"clarification_resolution": clarification_resolution}
-           if clarification_resolution is not None else {}),
-        **({"clarification_resolutions": clarification_resolutions}
-           if clarification_resolutions is not None else {}),
-        interpret_callable=interpret_callable,
-        answer_callable=answer_callable,
-        sql_callable=sql_callable,
+        context=_process_context_for_log(conversation_context),
     )
+    try:
+        outcome = semantic_answer(
+            db_path,
+            question,
+            conversation_context if isinstance(conversation_context, dict) else None,
+            home_program=home_program,
+            **({"clarification_resolution": clarification_resolution}
+               if clarification_resolution is not None else {}),
+            **({"clarification_resolutions": clarification_resolutions}
+               if clarification_resolutions is not None else {}),
+            interpret_callable=interpret_callable,
+            answer_callable=answer_callable,
+            sql_callable=sql_callable,
+        )
+    except Exception as error:
+        process_log("pipeline_exception", exception_type=type(error).__name__)
+        raise
+    _emit_semantic_process_trace(outcome)
     result = outcome.result
     provenance: list[Any] = []
     for reference in result.provenance:

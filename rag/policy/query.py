@@ -321,6 +321,20 @@ def parse_policy_question(
     probation_entry_marker = bool(
         re.search(r"ติดโปร|เข้าข่ายโปร|ภาคทัณฑ์|ทัณฑ์บน", text)
     )
+    # Student wording commonly shortens cumulative GPA to plain "เกรด" in a
+    # probation-threshold question (for example "ติดโปรต้องเกรดเท่าไหร่").
+    # Accept that wording only when a strong probation marker and an explicit
+    # threshold question co-occur; do not broaden generic grade/course-score
+    # questions into institution policy.
+    if (
+        probation_entry_marker
+        and not gpa_marker
+        and re.search(
+            r"(?:เกรด|คะแนน)[^?？\n]{0,30}(?:เท่าไร|เท่าไหร่|กี่คะแนน)",
+            text,
+        )
+    ):
+        return PolicyQuery("probation_entry")
     if gpa_marker and probation_entry_marker:
         observed = _OBSERVED_GPA_RE.search(question)
         if observed is not None:

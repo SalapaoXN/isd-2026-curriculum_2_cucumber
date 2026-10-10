@@ -89,7 +89,12 @@ class RagCombinedPolicyTest(unittest.TestCase):
             connection = sqlite3.connect(path)
             try:
                 connection.execute("PRAGMA foreign_keys = ON")
-                connection.execute("DELETE FROM policy_facts WHERE fact_id = 28")
+                connection.execute(
+                    """DELETE FROM policy_facts
+                       WHERE category = 'เกณฑ์การลงทะเบียน'
+                         AND fact_key = 'regular_maximum'
+                         AND context = 'regular_semester'"""
+                )
                 connection.commit()
             finally:
                 connection.close()

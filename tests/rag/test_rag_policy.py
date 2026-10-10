@@ -16,31 +16,40 @@ DB_PATH = Path(__file__).parents[2] / "cucumber_outputs" / "runtime" / "curricul
 
 
 class RagPolicyTest(unittest.TestCase):
-    def test_dsba_total_requirement_is_selected_by_catalog(self):
-        expected = {"dsba-2560": 126, "dsba-2565": 132}
-        for catalog_key, total in expected.items():
-            answer = answer_policy_question(
-                DB_PATH,
-                "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
-                catalog_key=catalog_key,
+    def test_dsba_total_requirement_uses_current_catalog_authority_and_legacy_fails_closed(self):
+        answer = answer_policy_question(
+            DB_PATH,
+            "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+            catalog_key="dsba-2565",
+        )
+        self.assertEqual(answer.status, "complete")
+        self.assertEqual(answer.value, 132)
+        self.assertTrue(answer.provenance)
+        self.assertTrue(
+            all(
+                reference["document_category"] == "program_requirement"
+                for reference in answer.provenance
             )
-            self.assertEqual(answer.status, "complete")
-            self.assertEqual(answer.value, total)
-            self.assertTrue(answer.provenance)
-            self.assertTrue(
-                all(reference["document_category"] == "plan" for reference in answer.provenance)
-            )
+        )
 
-            result = ask(
-                DB_PATH,
-                "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
-                conversation_context=QueryContext(
-                    program="DSBA", catalog_key=catalog_key
-                ),
-            )
-            grounded = result["result"]
-            self.assertEqual(grounded.status, "answer")
-            self.assertIn(str(total), grounded.final_answer)
+        result = ask(
+            DB_PATH,
+            "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+            conversation_context=QueryContext(
+                program="DSBA", catalog_key="dsba-2565"
+            ),
+        )
+        grounded = result["result"]
+        self.assertEqual(grounded.status, "answer")
+        self.assertIn("132", grounded.final_answer)
+
+        legacy = answer_policy_question(
+            DB_PATH,
+            "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต",
+            catalog_key="dsba-2560",
+        )
+        self.assertEqual(legacy.status, "insufficient_evidence")
+        self.assertEqual(legacy.provenance, ())
 
         unscoped = route_policy_question(
             DB_PATH, "DSBA ต้องเรียนทั้งหมดกี่หน่วยกิต"
@@ -69,7 +78,7 @@ class RagPolicyTest(unittest.TestCase):
                 self.assertTrue(answer.provenance)
                 self.assertTrue(
                     all(
-                        reference.get("document_category") == "plan"
+                        reference.get("document_category") == "program_requirement"
                         for reference in answer.provenance
                     )
                 )
@@ -204,11 +213,8 @@ class RagPolicyTest(unittest.TestCase):
     def test_program_totals_come_from_catalog_scoped_program_requirements(self):
         expected = {
             ("AIT", "ait-2566"): 120,
-            ("BIT", "bit-2560"): 126,
             ("BIT", "bit-2565"): 126,
-            ("DSBA", "dsba-2560"): 126,
             ("DSBA", "dsba-2565"): 132,
-            ("IT", "it-2560"): 130,
             ("IT", "it-2565"): 129,
         }
         for (program, catalog_key), value in expected.items():
@@ -223,8 +229,25 @@ class RagPolicyTest(unittest.TestCase):
             self.assertIsNone(answer.source_rule_id)
             self.assertTrue(answer.provenance)
             self.assertTrue(
-                all(reference["document_category"] == "plan" for reference in answer.provenance)
+                all(
+                    reference["document_category"] == "program_requirement"
+                    for reference in answer.provenance
+                )
             )
+
+        for program, catalog_key in (
+            ("BIT", "bit-2560"),
+            ("DSBA", "dsba-2560"),
+            ("IT", "it-2560"),
+        ):
+            with self.subTest(program=program, catalog_key=catalog_key):
+                answer = answer_policy_question(
+                    DB_PATH,
+                    f"{program} ต้องเรียนกี่หน่วยกิต",
+                    catalog_key=catalog_key,
+                )
+                self.assertEqual(answer.status, "insufficient_evidence")
+                self.assertEqual(answer.provenance, ())
 
     def test_honors_and_reentry_use_source_supported_facts(self):
         first = answer_policy_question(DB_PATH, "เกียรตินิยมอันดับหนึ่ง GPA เท่าไร")
@@ -548,7 +571,12 @@ class RagPolicyTest(unittest.TestCase):
             shutil.copy2(DB_PATH, path)
             with closing(sqlite3.connect(path)) as connection:
                 connection.execute("PRAGMA foreign_keys = ON")
-                connection.execute("DELETE FROM policy_facts WHERE fact_id = 28")
+                connection.execute(
+                    """DELETE FROM policy_facts
+                       WHERE category = 'เกณฑ์การลงทะเบียน'
+                         AND fact_key = 'regular_maximum'
+                         AND context = 'regular_semester'"""
+                )
                 connection.commit()
             answer = answer_policy_question(path, "ปกติลงทะเบียนได้สูงสุดกี่หน่วยกิต")
             self.assertEqual(answer.status, "insufficient_evidence")
@@ -560,15 +588,16 @@ class RagPolicyTest(unittest.TestCase):
         self.assertEqual(answer.rendered_answer, "หลักสูตร AIT ต้องเรียนทั้งหมด 120 หน่วยกิต")
 
     def test_multi_edition_program_total_without_catalog_fails_closed(self):
-        # IT now has two catalog editions (it-2560: 130, it-2565: 129), so
-        # an edition-ambiguous total must fail closed instead of guessing.
+        # IT has multiple catalog editions, so an edition-ambiguous total must
+        # fail closed instead of selecting the only edition that currently has
+        # a dedicated program-requirement artifact.
         answer = answer_policy_question(DB_PATH, "IT ต้องเรียนกี่หน่วยกิต")
         self.assertEqual(answer.status, "insufficient_evidence")
         legacy = answer_policy_question(
             DB_PATH, "IT ต้องเรียนกี่หน่วยกิต", catalog_key="it-2560"
         )
-        self.assertEqual(legacy.status, "complete")
-        self.assertEqual(legacy.value, 130)
+        self.assertEqual(legacy.status, "insufficient_evidence")
+        self.assertEqual(legacy.provenance, ())
         current = answer_policy_question(
             DB_PATH, "IT ต้องเรียนกี่หน่วยกิต", catalog_key="it-2565"
         )

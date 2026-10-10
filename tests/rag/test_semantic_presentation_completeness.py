@@ -74,7 +74,9 @@ class SemanticPresentationCompletenessTests(unittest.TestCase):
         self.assertIn("แผนสหกิจ", answer)
         self.assertIn("แผนไม่สหกิจ", answer)
         self.assertIn("ชั้นปีที่ 4 ภาคการศึกษาที่ 1", answer)
-        self.assertIn("ชั้นปีที่ 3 ภาคการศึกษาที่ 1", answer)
+        self.assertIn("ชั้นปีที่ 3 ภาคการศึกษาที่ 2", answer)
+        self.assertIn("ชั้นปีที่ 4 ภาคการศึกษาที่ 2", answer)
+        self.assertNotIn("ชั้นปีที่ 3 ภาคการศึกษาที่ 1", answer)
 
 
     def test_credit_claim_keeps_authoritative_raw_structure_and_numeric_value(self):

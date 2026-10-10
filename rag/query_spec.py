@@ -377,14 +377,18 @@ def _canonical_plan_match(raw_match: str) -> str | None:
     )
 
 
-def canonical_plan_meanings(raw_phrase: str | None) -> tuple[str, ...]:
+def canonical_plan_meanings(
+    raw_phrase: str | None, *, include_ambiguous: bool = False
+) -> tuple[str, ...]:
     """Return the one trusted meaning for a complete supported plan phrase.
 
     This API is deliberately phrase-scoped: every non-plan character must be
     a bounded presentation wrapper or separator. It shares the legacy plan
     token grammar and alias table, but never parses a surrounding question.
     Multiple distinct meanings and unexplained surrounding prose are
-    untrusted and return an empty tuple.
+    untrusted and return an empty tuple. With ``include_ambiguous``, multiple
+    distinct token meanings are returned even with unexplained prose, so
+    semantic callers can reject conflicts before considering a hint fallback.
     """
     if not isinstance(raw_phrase, str) or not raw_phrase.strip():
         return ()
@@ -398,6 +402,10 @@ def canonical_plan_meanings(raw_phrase: str | None) -> tuple[str, ...]:
         if meaning is None:
             return ()
         meanings.append(meaning)
+
+    distinct = tuple(dict.fromkeys(meanings))
+    if include_ambiguous and len(distinct) > 1:
+        return distinct
 
     def presentation_gap(gap: str) -> bool:
         remainder = gap
@@ -418,7 +426,6 @@ def canonical_plan_meanings(raw_phrase: str | None) -> tuple[str, ...]:
             return ()
     if _PLAN_PHRASE_GAP_PATTERN.fullmatch(raw_phrase[matches[-1].end():]) is None:
         return ()
-    distinct = tuple(dict.fromkeys(meanings))
     return distinct if len(distinct) == 1 else ()
 
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, replace
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -12,10 +12,17 @@ import sqlite3
 from types import MappingProxyType
 from typing import Any
 
+from rag.aggregation import is_masked_course_code
 from rag.evidence_planner import EvidencePlan, EvidenceRequest, StructuralScope
+from rag.process_log import process_log
 from rag.retrieval.retrieve import (
+    TOPIC_TIER2_MAX_COURSES,
     ConstrainedTopicRetrievalResult,
     SimilarityEvidence,
+    _judge_tier2_candidates,
+    _tier_topic_candidates,
+    _topic_candidate_best_distance,
+    _topic_candidate_identity,
     aggregate_exact_course_similarity,
     fetch_course_description_evidence,
     retrieve_constrained_topic_evidence,
@@ -805,6 +812,25 @@ def _execute_placement(
         )
     if result.get("status") == "no_data":
         return _result(request, scope, "valid_empty", result, "empty_relation")
+    courses = result.get("courses", ())
+    # A course row sourced only from descriptions can exist in the catalog
+    # without any authoritative placement in the requested plan. Placement
+    # questions must never promote that identity-only row into a completed
+    # placement fact. Every returned logical course therefore needs at least
+    # one validated year/semester choice; otherwise fail closed atomically.
+    if not isinstance(courses, (list, tuple)) or any(
+        not isinstance(course, Mapping)
+        or not isinstance(course.get("year_semester_choices"), (list, tuple))
+        or not course.get("year_semester_choices")
+        for course in courses
+    ):
+        return _result(
+            request,
+            scope,
+            "insufficient_evidence",
+            result,
+            "placement_timing_missing",
+        )
     return _result(request, scope, _status_for_payload(result), result)
 
 
@@ -961,6 +987,14 @@ def _execute_category_credit(
                 "insufficient_evidence",
                 primitive_state="category_credit_incomplete",
             )
+        # ``วิชาเลือก`` asks for the pool of selectable concrete courses.
+        # Masked plan slots (060164xx/9064xxxx/xxxxxxxx) represent unresolved
+        # required-load positions and are counted by whole-term load logic,
+        # not as additional elective choices in a category-pool total.
+        if scope.category == "วิชาเลือก" and is_masked_course_code(
+            course.get("course_code")
+        ):
+            continue
         counted = _counted_category_credit(course)
         if counted is None:
             return _result(
@@ -1330,6 +1364,8 @@ def _execute_topic_matches(
     db_path: str,
     request: EvidenceRequest,
     dependency: EvidenceExecutionResult,
+    *,
+    relevance_judge: Callable[[str], str] | None = None,
 ) -> EvidenceExecutionResult:
     scope = dependency.effective_scope
     payload = dependency.payload
@@ -1351,11 +1387,19 @@ def _execute_topic_matches(
             primitive_state="malformed_course_set_dependency",
         )
     try:
-        retrieval = retrieve_constrained_topic_evidence(
-            db_path,
-            request.topic or "",
-            tuple(candidates),
-        )
+        if relevance_judge is None:
+            retrieval = retrieve_constrained_topic_evidence(
+                db_path,
+                request.topic or "",
+                tuple(candidates),
+            )
+        else:
+            retrieval = retrieve_constrained_topic_evidence(
+                db_path,
+                request.topic or "",
+                tuple(candidates),
+                relevance_judge=relevance_judge,
+            )
     except (OSError, TypeError, ValueError, KeyError, sqlite3.Error):
         return _result(
             request,
@@ -1376,6 +1420,169 @@ def _execute_topic_matches(
     if state == "empty_structural_candidates":
         return _result(request, scope, "valid_empty", retrieval, state)
     return _result(request, scope, "insufficient_evidence", primitive_state=state)
+
+
+def _execute_topic_matches_batch(
+    db_path: str,
+    request: EvidenceRequest,
+    dependencies: tuple[EvidenceExecutionResult, ...],
+    relevance_judge: Callable[[str], str],
+) -> list[EvidenceExecutionResult]:
+    """Judge Tier 2 once across all materialized plan partitions.
+
+    Each partition keeps its own structural scope/provenance. Only the bounded
+    union of unique Tier-2 course identities reaches the model, so an omitted
+    plan cannot multiply relevance-provider calls.
+    """
+    baseline: list[EvidenceExecutionResult] = []
+    tier1_by_identity: set[tuple[str, Any]] = set()
+    tier2_by_identity: dict[tuple[str, Any], Mapping[str, Any]] = {}
+    for dependency in dependencies:
+        if dependency.planned_request.scope != request.scope:
+            baseline.append(
+                _result(
+                    request,
+                    dependency.effective_scope,
+                    "insufficient_evidence",
+                    primitive_state="incompatible_course_set_scope",
+                )
+            )
+            continue
+        if dependency.status != "complete":
+            baseline.append(_topic_dependency_result(request, dependency))
+            continue
+        topic_result = _execute_topic_matches(db_path, request, dependency)
+        baseline.append(topic_result)
+        payload = topic_result.payload
+        if not isinstance(payload, ConstrainedTopicRetrievalResult):
+            continue
+        if payload.status not in {"scored", "no_threshold_matches"}:
+            continue
+        tier1, tier2 = _tier_topic_candidates(request.topic or "", payload.candidates)
+        tier1_by_identity.update(_topic_candidate_identity(candidate) for candidate in tier1)
+        for candidate in tier2:
+            identity = _topic_candidate_identity(candidate)
+            previous = tier2_by_identity.get(identity)
+            if previous is None:
+                tier2_by_identity[identity] = candidate
+                continue
+            old_distance = _topic_candidate_best_distance(previous)
+            new_distance = _topic_candidate_best_distance(candidate)
+            if new_distance is not None and (
+                old_distance is None or new_distance < old_distance
+            ):
+                tier2_by_identity[identity] = candidate
+
+    if not tier2_by_identity:
+        process_log(
+            "topic_tiers",
+            topic=request.topic or "",
+            partition_count=len(dependencies),
+            tier1_count=len(tier1_by_identity),
+            tier2_count=0,
+            judge_call=False,
+        )
+        return baseline
+
+    ranked_tier2 = sorted(
+        tier2_by_identity.values(),
+        key=lambda candidate: (
+            _topic_candidate_best_distance(candidate)
+            if _topic_candidate_best_distance(candidate) is not None
+            else float("inf"),
+            str(candidate.get("course_code", "")),
+        ),
+    )[:TOPIC_TIER2_MAX_COURSES]
+    process_log(
+        "topic_tiers",
+        topic=request.topic or "",
+        partition_count=len(dependencies),
+        tier1_count=len(tier1_by_identity),
+        tier2_unique_count=len(tier2_by_identity),
+        tier2_sent_count=len(ranked_tier2),
+        tier2_sent=[
+            {
+                "course_code": candidate.get("course_code"),
+                "distance": (
+                    round(float(distance), 6)
+                    if (distance := _topic_candidate_best_distance(candidate)) is not None
+                    else None
+                ),
+            }
+            for candidate in ranked_tier2
+        ],
+        judge_call=True,
+    )
+    judged = _judge_tier2_candidates(
+        request.topic or "", tuple(ranked_tier2), relevance_judge
+    )
+    if judged is None:
+        process_log(
+            "topic_judge",
+            topic=request.topic or "",
+            status="invalid_output",
+            selected_course_codes=[],
+        )
+        return [
+            _result(
+                request,
+                result.effective_scope,
+                "insufficient_evidence",
+                result.payload,
+                "relevance_judge_invalid",
+            )
+            if isinstance(result.payload, ConstrainedTopicRetrievalResult)
+            and result.payload.status in {"scored", "no_threshold_matches"}
+            else result
+            for result in baseline
+        ]
+
+    judged_identities = {
+        _topic_candidate_identity(candidate) for candidate in judged
+    }
+    process_log(
+        "topic_judge",
+        topic=request.topic or "",
+        status="ok",
+        selected_count=len(judged),
+        selected_course_codes=[candidate.get("course_code") for candidate in judged],
+    )
+    rebuilt: list[EvidenceExecutionResult] = []
+    for result in baseline:
+        payload = result.payload
+        if not isinstance(payload, ConstrainedTopicRetrievalResult) or payload.status not in {
+            "scored", "no_threshold_matches"
+        }:
+            rebuilt.append(result)
+            continue
+        tier1, _tier2 = _tier_topic_candidates(request.topic or "", payload.candidates)
+        selected_identities = {
+            _topic_candidate_identity(candidate) for candidate in tier1
+        } | judged_identities
+        selected = tuple(
+            candidate
+            for candidate in payload.candidates
+            if _topic_candidate_identity(candidate) in selected_identities
+        )
+        state = "scored" if selected else "no_threshold_matches"
+        updated = ConstrainedTopicRetrievalResult(
+            status=state,
+            candidates=payload.candidates,
+            scored_candidates=selected,
+            missing_description_course_ids=payload.missing_description_course_ids,
+            missing_vector_chunk_ids=payload.missing_vector_chunk_ids,
+            invalid_vector_chunk_ids=payload.invalid_vector_chunk_ids,
+        )
+        rebuilt.append(
+            _result(
+                request,
+                result.effective_scope,
+                "complete" if selected else "valid_empty",
+                updated,
+                state,
+            )
+        )
+    return rebuilt
 
 
 def _execute_request(
@@ -1835,6 +2042,8 @@ def _execute_course_set_dependent_prerequisites(
 def execute_evidence_plan(
     db_path: str,
     plan: EvidencePlan,
+    *,
+    topic_relevance_judge: Callable[[str], str] | None = None,
 ) -> EvidenceBundle:
     """Execute only relational/direct requests in deterministic dependency order."""
     order = _graph_order(plan)
@@ -1889,6 +2098,13 @@ def execute_evidence_plan(
                             primitive_state="missing_course_set_dependency",
                         )
                     ]
+                elif topic_relevance_judge is not None:
+                    request_results = _execute_topic_matches_batch(
+                        db_path,
+                        request,
+                        tuple(dependency_results),
+                        topic_relevance_judge,
+                    )
                 else:
                     request_results = []
                     for dependency in dependency_results:

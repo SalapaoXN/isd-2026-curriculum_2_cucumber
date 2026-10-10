@@ -13,28 +13,32 @@ DB_PATH = (
 
 
 class CoursePlacementTest(unittest.TestCase):
-    def test_it_fixed_and_flexible_placements_are_preserved(self):
+    def test_it_cross_plan_flexible_placements_are_preserved(self):
         result = course_placement(
-            DB_PATH, "IT", "06016481", ["coop", "no_coop"]
+            DB_PATH, "IT", "06016465", ["coop", "no_coop"]
         )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["missing_plan_keys"], [])
         by_plan = {row["plan_key"]: row for row in result["placements"]}
-        # One shared edition row (it-2565) with two distinct plan placements.
+        # One shared edition row (it-2565) with independent plan placements.
         self.assertEqual(by_plan["coop"]["course_id"], by_plan["no_coop"]["course_id"])
         self.assertEqual(by_plan["coop"]["catalog_id"], by_plan["no_coop"]["catalog_id"])
         self.assertNotEqual(by_plan["coop"]["placement_id"], by_plan["no_coop"]["placement_id"])
         self.assertNotEqual(by_plan["coop"]["plan_id"], by_plan["no_coop"]["plan_id"])
-        self.assertEqual(
-            (by_plan["coop"]["year"], by_plan["coop"]["semester"]),
-            (3, 2),
-        )
+        self.assertIsNone(by_plan["coop"]["year"])
+        self.assertIsNone(by_plan["coop"]["semester"])
+        self.assertEqual(by_plan["coop"]["flexible_year_semester_raw"], "4/1")
+        self.assertEqual(by_plan["coop"]["year_semester_choices"], [(4, 1)])
         self.assertIsNone(by_plan["no_coop"]["year"])
         self.assertIsNone(by_plan["no_coop"]["semester"])
         self.assertEqual(
             by_plan["no_coop"]["flexible_year_semester_raw"],
-            "3/1, 3/2, 4/1",
+            "3/2, 4/1, 4/2",
+        )
+        self.assertEqual(
+            by_plan["no_coop"]["year_semester_choices"],
+            [(3, 2), (4, 1), (4, 2)],
         )
         required_fields = {
             "placement_id",

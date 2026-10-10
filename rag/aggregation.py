@@ -964,6 +964,22 @@ def aggregate_course_set(
         if not isinstance(component, Mapping):
             raise ValueError("course components must be mappings")
         identity = _course_set_identity(component)
+        if identity[0] == "course":
+            program, code = _identity(component)
+            placement_id = component.get("placement_id")
+            if (
+                is_masked_course_code(code)
+                and not isinstance(placement_id, bool)
+                and (
+                    isinstance(placement_id, int)
+                    or (isinstance(placement_id, str) and bool(placement_id.strip()))
+                )
+            ):
+                # A masked code is an unresolved elective slot, not a logical
+                # course identity.  Distinct canonical placements that happen
+                # to share the same mask (for example two 06026xxx slots) must
+                # survive list aggregation independently.
+                identity = ("masked_placement", (program, code, placement_id))
         partition_key = _partition_key(component)
         grouped.setdefault((identity, partition_key), []).append(component)
 

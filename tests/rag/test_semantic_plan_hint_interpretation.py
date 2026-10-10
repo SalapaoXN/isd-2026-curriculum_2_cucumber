@@ -77,6 +77,7 @@ class SemanticPlanHintInterpretationTests(unittest.TestCase):
 
     def test_contradictory_top_level_hints_fail_validation_and_resolver(self):
         cases = (
+            ("IT แผนสหกิจ ปี 2 เทอม 2", "แผนสหกิจ", "no_coop"),
             ("IT แบบสหกิจ ปี 2 เทอม 2", "แบบสหกิจ", "no_coop"),
             ("IT แบบไม่สหกิจ ปี 2 เทอม 2", "แบบไม่สหกิจ", "coop"),
         )
@@ -88,7 +89,7 @@ class SemanticPlanHintInterpretationTests(unittest.TestCase):
                 resolved = self._resolve(intent)
                 self.assertTrue(resolved.needs_clarification)
 
-    def test_hint_only_ungrounded_and_unsupported_phrase_fail_closed(self):
+    def test_hint_only_and_unknown_phrase_without_hint_fail_closed(self):
         question, raw, hint = "IT ปี 2 เทอม 2", None, "coop"
         intent, validation = self._interpret(question, raw, hint)
         self.assertFalse(validation.valid)
@@ -102,11 +103,72 @@ class SemanticPlanHintInterpretationTests(unittest.TestCase):
         question, raw, hint = (
             "IT cooperative learning route ปี 2 เทอม 2",
             "cooperative learning route",
-            "coop",
+            None,
         )
         intent, validation = self._interpret(question, raw, hint)
-        self.assertFalse(validation.valid)
+        self.assertTrue(validation.valid, validation.reason)
         self.assertTrue(self._resolve(intent).needs_clarification)
+
+    def test_semantic_paraphrases_resolve_only_to_scoped_canonical_candidates(self):
+        for raw in ("ไม่ไปสหกิจ", "ไม่ได้ไปสหกิจ", "ไม่เลือกสหกิจ", "ไม่เอาสหกิจ",
+                    "not taking the cooperative route"):
+            with self.subTest(raw=raw):
+                question = f"IT {raw} ปี 2 เทอม 2"
+                intent, validation = self._interpret(question, raw, "no_coop")
+                self.assertTrue(validation.valid, validation.reason)
+                self.assertEqual(self._resolve(intent).scope.plan, "no_coop")
+                side = resolve_comparison_operand(
+                    DB, (("plan", raw), ("plan_hint", "no_coop")), "IT", "it-2565"
+                )
+                self.assertFalse(side.unresolved, side.reason)
+                self.assertEqual(side.scope.plan, "no_coop")
+
+    def test_unknown_phrase_cannot_invent_or_borrow_plan_from_another_scope(self):
+        for hint in ("not-a-plan", "default", None):
+            with self.subTest(hint=hint):
+                intent, validation = self._interpret(
+                    "IT ไม่ไปสหกิจ ปี 2 เทอม 2", "ไม่ไปสหกิจ", hint
+                )
+                self.assertTrue(validation.valid, validation.reason)
+                self.assertTrue(self._resolve(intent).needs_clarification)
+                side = resolve_comparison_operand(
+                    DB, (("plan", "ไม่ไปสหกิจ"), ("plan_hint", hint)), "IT", "it-2565"
+                )
+                self.assertTrue(side.unresolved)
+
+    def test_ambiguous_multiple_plan_meanings_cannot_be_selected_by_hint(self):
+        for raw in ("สหกิจ และไม่สหกิจ", "สหกิจ / no_coop", "coop หรือ no_coop"):
+            for hint in ("coop", "no_coop", None):
+                with self.subTest(raw=raw, hint=hint):
+                    intent, validation = self._interpret(f"IT {raw} ปี 2 เทอม 2", raw, hint)
+                    if hint is not None:
+                        self.assertFalse(validation.valid)
+                    self.assertTrue(self._resolve(intent).needs_clarification)
+                    side = resolve_comparison_operand(
+                        DB, (("plan", raw), ("plan_hint", hint)), "IT", "it-2565"
+                    )
+                    self.assertTrue(side.unresolved)
+
+    def test_dsba_natural_plan_question_reaches_verified_answer(self):
+        from rag.semantic.pipeline import semantic_answer
+
+        question = "dsba ปี 4 เทอม 1 เรียนอะไรบ้าง ถ้าไม่ไปสหกิจ"
+        payload = json.loads(_payload(
+            question=question, program="DSBA", plan="ไม่ไปสหกิจ", plan_hint="no_coop",
+            year=4, semester=1,
+        ))
+        payload.update(task="list", subject="course", aggregation=None,
+                       requested_fields=["code", "name"])
+        intent = parse_semantic_intent_payload(json.dumps(payload))
+        self.assertTrue(validate_semantic_intent(intent, question).valid)
+        resolved = resolve_semantic_intent(DB, intent, merge_semantic_context(intent, None))
+        self.assertFalse(resolved.needs_clarification)
+        self.assertEqual(resolved.scope.plan, "no_coop")
+        response = semantic_answer(
+            DB, question, conversation_context={"program": "DSBA", "catalog_key": "dsba-2565"},
+            interpret_callable=lambda _: json.dumps(payload),
+        )
+        self.assertEqual(response.result.status, "answer")
 
     def test_ungrounded_raw_plan_fails_current_question_validation(self):
         question, raw, hint = "IT ปี 2 เทอม 2", "สหกิจ", "coop"
@@ -196,13 +258,15 @@ class SemanticPlanHintInterpretationTests(unittest.TestCase):
         prompt = build_semantic_interpreter_prompt(
             "synthetic plan prompt check", canonical_plan_keys=("coop", "no_coop")
         )
-        self.assertEqual(SEMANTIC_INTERPRETER_PROMPT_VERSION, "semantic-interpreter/v15")
+        self.assertEqual(SEMANTIC_INTERPRETER_PROMPT_VERSION, "semantic-interpreter/v19")
         self.assertIn("RAW PLAN IS A QUOTE-LIKE GROUNDING FIELD", prompt)
         self.assertIn('"plan":"แผนสหกิจ"', prompt)
         self.assertIn('"plan_hint":"coop"', prompt)
         self.assertIn('"plan":"แบบไม่สหกิจ"', prompt)
         self.assertIn('"plan_hint":"no_coop"', prompt)
         self.assertIn("unless the student literally wrote that key", prompt)
+        self.assertIn("even if the wording is not a fixed alias", prompt)
+        self.assertIn("Never invent a key outside those candidates", prompt)
 
 
 if __name__ == "__main__":

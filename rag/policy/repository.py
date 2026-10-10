@@ -212,6 +212,23 @@ def fetch_program_requirement(
             if len(catalog_rows) != 1:
                 return None
             catalog_id = int(catalog_rows[0][0])
+        else:
+            # A single requirement row is not proof that the program has only
+            # one catalog edition.  If multiple editions exist in the runtime
+            # curriculum, an unscoped total must fail closed instead of silently
+            # selecting whichever edition happens to have supplemental data.
+            program_catalog_rows = connection.execute(
+                """
+                SELECT DISTINCT programs.catalog_id
+                FROM programs
+                WHERE lower(trim(programs.program_code_normalized)) = ?
+                """,
+                (program.strip().casefold(),),
+            ).fetchall()
+            program_catalog_ids = {int(row[0]) for row in program_catalog_rows}
+            if len(program_catalog_ids) != 1:
+                return None
+            catalog_id = next(iter(program_catalog_ids))
         rows = connection.execute(
             """
             SELECT requirement.*

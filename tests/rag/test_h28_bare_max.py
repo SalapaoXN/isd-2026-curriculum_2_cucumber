@@ -132,10 +132,10 @@ class H28BareMaxTests(unittest.TestCase):
                     self.assertIn(text, result.final_answer)
                 self.assertEqual(_has_policy_provenance(result), policy)
 
-    def test_program_total_uses_plan_cited_requirement_provenance(self):
+    def test_program_total_uses_program_requirement_provenance(self):
         # "IT ต้องเรียนกี่หน่วยกิต" is edition-ambiguous across it-2560 /
-        # it-2565, so it needs the explicit edition scope; the requirement
-        # provenance canonically cites the final academic-plan pages.
+        # it-2565, so it needs the explicit edition scope. The current runtime
+        # total is sourced from the dedicated program-requirement artifact.
         result = _ask(
             "IT ต้องเรียนกี่หน่วยกิต",
             context=QueryContext(program="IT", catalog_key="it-2565"),
@@ -146,12 +146,12 @@ class H28BareMaxTests(unittest.TestCase):
         self.assertTrue(result.provenance)
         for reference in result.provenance:
             self.assertIsInstance(reference, Mapping)
-            self.assertEqual(reference.get("document_category"), "plan")
+            self.assertEqual(reference.get("document_category"), "program_requirement")
             self.assertTrue(reference.get("source_filename"))
             self.assertTrue(reference.get("source_page"))
         self.assertEqual(
             {reference.get("source_filename") for reference in result.provenance},
-            {"it_page_038.png", "it_page_045.png"},
+            {"it2565_page_006.png"},
         )
 
     def test_non_registration_max_wording_stays_unrouted(self):
@@ -176,7 +176,12 @@ class H28BareMaxTests(unittest.TestCase):
             shutil.copy2(DB_PATH, path)
             with closing(sqlite3.connect(path)) as connection:
                 connection.execute("PRAGMA foreign_keys = ON")
-                connection.execute("DELETE FROM policy_facts WHERE fact_id = 28")
+                connection.execute(
+                    """DELETE FROM policy_facts
+                       WHERE category = 'เกณฑ์การลงทะเบียน'
+                         AND fact_key = 'regular_maximum'
+                         AND context = 'regular_semester'"""
+                )
                 connection.commit()
             result = _ask(
                 "IT ลงทะเบียนได้สูงสุดกี่หน่วยกิต",
