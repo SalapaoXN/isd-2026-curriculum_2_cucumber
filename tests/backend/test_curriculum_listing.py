@@ -82,6 +82,7 @@ class CurriculumListingTests(unittest.TestCase):
         self.assertEqual(result["total"], 1)
         self.assertEqual(result["items"][0]["course_code"], "IT100")
         self.assertEqual(list_courses(plan="missing")["total"], 0)
+        self.assertEqual(list_courses(program="it")["total"], list_courses(program="IT")["total"])
         self.assertEqual(list_courses(search="not-present")["total"], 0)
         self.assertEqual(list_courses(semester="2")["items"][0]["course_code"], "IT200")
 

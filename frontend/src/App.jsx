@@ -32,6 +32,8 @@ function readConversations() {
             role: message.role === "user" ? "user" : "assistant",
             content: typeof message.content === "string" ? message.content : "",
             sources: Array.isArray(message.sources) ? message.sources : [],
+            options: Array.isArray(message.options) ? message.options.filter(option => typeof option === "string") : [],
+            response_time_ms: Number.isFinite(message.response_time_ms) ? message.response_time_ms : null,
           })),
       })) : [];
   } catch { return []; }
@@ -54,6 +56,26 @@ function databaseSearchStatus(message) {
   return null;
 }
 
+function readableApiError(detail, fallback) {
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail.map(item => {
+      if (typeof item === "string") return item;
+      if (item && typeof item.msg === "string") {
+        const location = Array.isArray(item.loc) ? item.loc.slice(1).join(" → ") : "";
+        return location ? `${location}: ${item.msg}` : item.msg;
+      }
+      return null;
+    }).filter(Boolean);
+    if (messages.length) return messages.join("; ");
+  }
+  if (detail && typeof detail === "object") {
+    if (typeof detail.message === "string") return detail.message;
+    if (typeof detail.error === "string") return detail.error;
+  }
+  return fallback;
+}
+
 function CitationList({ sources }) {
   if (!sources?.length) return null;
   return <details className="citations">
@@ -70,7 +92,7 @@ function CitationList({ sources }) {
   </details>;
 }
 
-function Message({ message }) {
+function Message({ message, onOptionSelect, optionsDisabled = false }) {
   const user = message.role === "user";
   const databaseSearched = databaseSearchStatus(message);
   return <article className={`message-row ${user ? "from-user" : "from-assistant"}`}>
@@ -88,7 +110,18 @@ function Message({ message }) {
         </div>}
       </div>
       {!user && <CitationList sources={message.sources} />}
-      <time>{new Date(message.createdAt || Date.now()).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time>
+      {!user && message.options?.length > 0 && <div className="clarification-options">
+        <small>Choose an option</small>
+        <div>{message.options.map(option => <button key={option} disabled={optionsDisabled}
+          onClick={() => onOptionSelect?.(option)}>{option}</button>)}</div>
+      </div>}
+      <time>{new Date(message.createdAt || Date.now()).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+        {!user && Number.isFinite(message.response_time_ms) && <span className="response-time">
+          Response: {message.response_time_ms < 1000
+            ? `${message.response_time_ms} ms`
+            : `${(message.response_time_ms / 1000).toFixed(1)} s`}
+        </span>}
+      </time>
     </div>
   </article>;
 }
@@ -176,13 +209,17 @@ export default function App() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, history: previousMessages.slice(-8).map(({ role, content }) => ({ role, content })) }),
+        body: JSON.stringify({ question, history: previousMessages.slice(-8).map(({ role, content }) => ({
+          role, content: typeof content === "string" ? content.slice(0, 1600) : "",
+        })) }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || `Unable to answer (${response.status})`);
+      if (!response.ok) throw new Error(readableApiError(data.detail, `Unable to answer (${response.status})`));
       const answer = { id: crypto.randomUUID(), role: "assistant", content: data.answer,
         status: data.status, use_rag: data.use_rag, database_searched: data.database_searched,
-        sources: data.sources || [], createdAt: Date.now() };
+        sources: data.sources || [], options: Array.isArray(data.options) ? data.options : [],
+        response_time_ms: Number.isFinite(data.response_time_ms) ? data.response_time_ms : null,
+        createdAt: Date.now() };
       updateConversation(conversationId, item => ({ ...item, updatedAt: Date.now(), messages: [...item.messages, answer] }));
       setHealth(current => data.index_ready ? { ...current, database_ready: true } : current);
     } catch (requestError) {
@@ -254,7 +291,8 @@ export default function App() {
           <div className="welcome-note"><span className="mini-brand">C</span><span>Course facts are checked against the curriculum index.</span><span className="note-dot">·</span><span>Sources included when available</span></div>
         </div> : <div className="message-thread">
           <div className="thread-heading"><span className="thread-marker"><MessageCircle size={15} /></span><div><strong>{active.title}</strong><small>Curriculum conversation</small></div></div>
-          {active.messages.map(message => <Message key={message.id} message={message} />)}
+          {active.messages.map(message => <Message key={message.id} message={message}
+            onOptionSelect={sendMessage} optionsDisabled={sending} />)}
           {sending && <div className="message-row from-assistant"><div className="assistant-avatar"><span>C</span></div><div className="message-column"><div className="message-bubble assistant-bubble pending-bubble"><div className="message-brand"><Sparkles size={14} /> Cucumber</div><div className="thinking"><i /><i /><i /><span>Checking curriculum sources</span></div></div></div></div>}
         </div>}
       </div>

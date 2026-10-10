@@ -15,7 +15,7 @@ def _filter_clauses(values: dict[str, str], *, exclude: str = "") -> tuple[list[
     for key, expr in (("program", "p.program_code"), ("academic_year", "cat.academic_year"),
                       ("category", "c.category"), ("course_type", "c.course_type")):
         if key != exclude and values.get(key):
-            clauses.append(f"{expr}=?")
+            clauses.append(f"{expr}=? COLLATE NOCASE" if key == "program" else f"{expr}=?")
             params.append(values[key])
     if values.get("search") and exclude != "search":
         clauses.append("(instr(lower(c.course_code),lower(?))>0 OR instr(lower(COALESCE(c.name_th,'')),lower(?))>0 "
@@ -25,7 +25,8 @@ def _filter_clauses(values: dict[str, str], *, exclude: str = "") -> tuple[list[
         params.extend([values["search"]] * 5)
     if values.get("plan") and exclude != "plan":
         clauses.append("EXISTS (SELECT 1 FROM curriculum_plans pf WHERE pf.catalog_id=c.catalog_id "
-                       "AND pf.program_id=p.program_id AND (pf.plan_key=? OR pf.plan_code=?))")
+                       "AND pf.program_id=p.program_id AND (pf.plan_key=? COLLATE NOCASE "
+                       "OR pf.plan_code=? COLLATE NOCASE))")
         params.extend([values["plan"], values["plan"]])
     for key, normal, flexible in (("study_year", "year_number", "flexible_year_number"),
                                   ("semester", "semester_number", "flexible_semester_number")):

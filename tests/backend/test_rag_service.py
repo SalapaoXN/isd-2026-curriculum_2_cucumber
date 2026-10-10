@@ -7,7 +7,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from backend import main, rag_service
-from backend.schemas import AnswerDraft, GeneralDraft, RouteDecision
+from backend.schemas import AnswerDraft, CurriculumScope, GeneralDraft, RouteDecision
 
 
 class RAGServiceTests(unittest.TestCase):
@@ -28,6 +28,7 @@ class RAGServiceTests(unittest.TestCase):
         self.assertEqual(result["status"], "general")
         self.assertEqual(result["sources"], [])
         self.assertFalse(result["database_searched"])
+        self.assertGreaterEqual(result["response_time_ms"], 0)
 
     def test_success_logs_route_and_result_without_question_text(self):
         secret_question = "private question text 0600"
@@ -52,6 +53,25 @@ class RAGServiceTests(unittest.TestCase):
         self.assertEqual(result["status"], "clarification_required")
         self.assertIn("Which program", result["answer"])
         self.assertFalse(result["database_searched"])
+
+    def test_missing_edition_clarification_includes_selectable_program_editions(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=False, standalone_query="DSBA year 1 courses",
+            needs_clarification=True, clarification_question="Which curriculum edition do you mean?",
+            program_code=None,
+        )
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.filters", side_effect=[
+                 {"programs": ["DSBA", "AIT"]},
+                 {"academic_years": ["2565", "2560"]},
+             ]):
+            result = rag_service.answer("DSBA year 1 semester 1 courses", [])
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertIn("DSBA", result["answer"])
+        self.assertEqual(result["options"], ["2565", "2560"])
+        self.assertGreaterEqual(result["response_time_ms"], 0)
 
     def test_course_answer_citations_are_limited_to_retrieved_chunks(self):
         decision = RouteDecision(intent="course_question", use_rag=True,
@@ -102,6 +122,149 @@ class RAGServiceTests(unittest.TestCase):
         self.assertIn("1. IT101 — Course One — 3(3-0-6) credits", result["answer"])
         self.assertIn("2. IT102 — Course Two — 3(3-0-6) credits", result["answer"])
         self.assertEqual(len(result["sources"]), 2)
+
+    def test_course_detail_expands_multiple_flexible_year_semester_terms(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="DATA PIPELINE ARCHITECTURE year and semester",
+            needs_clarification=False, clarification_question=None, course_detail=True,
+            course_name="DATA PIPELINE ARCHITECTURE", program_code="DSBA", academic_year="2565",
+        )
+        course = {
+            "course_id": 39, "course_code": "06026239", "name_th": "สถาปัตยกรรมข้อมูลแบบไปป์ไลน์",
+            "name_en": "DATA PIPELINE ARCHITECTURE", "program_code": "DSBA", "academic_year": "2565",
+            "plans": ["coop", "no_coop"], "placements": ["3/1", " 3/2", " 4/1"],
+            "sources": ["dsba2565.pdf · p.12"],
+        }
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.list_courses", return_value={"items": [course], "total": 1}), \
+             patch.object(rag_service, "_search", side_effect=AssertionError("course details use structured lookup")):
+            result = rag_service.answer("DATA PIPELINE ARCHITECTURE ต้องเรียนปีไหน เทอมไหน", [])
+
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(result["retrieval_count"], 1)
+        self.assertEqual(len(result["sources"]), 1)
+        self.assertIn("ชั้นปีที่ 3 · ภาคเรียนที่ 1", result["answer"])
+        self.assertIn("ชั้นปีที่ 3 · ภาคเรียนที่ 2", result["answer"])
+        self.assertIn("ชั้นปีที่ 4 · ภาคเรียนที่ 1", result["answer"])
+
+    def test_prerequisite_question_resolves_prerequisite_code_to_course_name(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="Prerequisite for INFRASTRUCTURE SYSTEMS AND SERVICES",
+            needs_clarification=False, clarification_question=None,
+            prerequisite_question=False, course_code="06016420", program_code="IT", plan="ไม่สหกิจ",
+        )
+        target = {
+            "course_id": 420, "course_code": "06016420", "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+            "name_th": "ระบบโครงสร้างพื้นฐานและการบริการ", "prerequisite_text": "06016413",
+            "program_code": "IT", "academic_year": "2565", "plans": ["coop", "no_coop"],
+            "sources": ["it2565_page_035.png · p.35"],
+        }
+        prerequisite = {
+            "course_id": 413, "course_code": "06016413", "name_en": "INTRODUCTION TO NETWORK SYSTEMS",
+            "name_th": "การแนะนำระบบเครือข่าย", "prerequisite_text": "ไม่มี",
+            "program_code": "IT", "academic_year": "2565", "plans": ["coop", "no_coop"],
+            "sources": ["it2565_page_034.png · p.34"],
+        }
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.list_courses", side_effect=[
+                 {"items": [target], "total": 1}, {"items": [prerequisite], "total": 1},
+             ]) as query, \
+             patch.object(rag_service, "_search", side_effect=AssertionError("prerequisites use structured lookup")):
+            result = rag_service.answer(
+                "ก่อนลง INFRASTRUCTURE SYSTEMS AND SERVICES (06016420) ใน IT แบบไม่สหกิจ ต้องผ่านวิชาอะไรมาก่อน?", []
+            )
+
+        self.assertEqual(query.call_count, 2)
+        self.assertEqual(query.call_args_list[0].kwargs["plan"], "no_coop")
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("06016413 — INTRODUCTION TO NETWORK SYSTEMS", result["answer"])
+        self.assertIn("no_coop", result["answer"])
+        self.assertEqual(len(result["sources"]), 2)
+
+    def test_flexible_placement_parser_handles_comma_separated_terms(self):
+        self.assertEqual(
+            rag_service._expand_placement_terms(["3/1, 3/2, 4/1"]),
+            ["Year 3 · Semester 1", "Year 3 · Semester 2", "Year 4 · Semester 1"],
+        )
+
+    def test_institutional_rule_question_uses_rules_corpus_and_preserves_citation(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True, standalone_query="GPA 1.9 probation",
+            needs_clarification=False, clarification_question=None,
+            institution_rule=False, rule_query=None,
+        )
+        rule_chunk = {
+            "chunk_id": "rule:22", "chunk_type": "rule", "rule_id": "rule:22",
+            "section_number": "22", "category": "Academic probation",
+            "source_verified": True,
+            "text": "Cumulative GPA below 2.00 results in probation.", "distance": 0.1,
+            "provenance": [{"source_filename": "academic-rules.pdf", "source_page": 7}],
+        }
+
+        def generate(_prompt, _payload, schema):
+            if schema is RouteDecision:
+                return decision
+            return AnswerDraft(sufficient=True, answer="A cumulative GPA below 2.00 results in probation.",
+                               source_ids=["rule:22"])
+
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", side_effect=generate), \
+             patch.object(rag_service, "_search_rules", return_value=[rule_chunk]), \
+             patch.object(rag_service, "_search", side_effect=AssertionError("rules use the rules corpus")):
+            result = rag_service.answer("GPA 1.9 will I be on probation?", [])
+
+        self.assertEqual(result["status"], "answer")
+        self.assertTrue(result["database_searched"])
+        self.assertEqual(result["retrieval_count"], 1)
+        self.assertEqual(result["sources"][0]["rule_id"], "rule:22")
+        self.assertEqual(result["sources"][0]["source_page"], 7)
+
+    def test_curriculum_comparison_matches_codes_and_normalized_names_with_both_sources(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True, standalone_query="shared curriculum courses",
+            needs_clarification=False, clarification_question=None, compare_curricula=True,
+            left_scope=CurriculumScope(program_code="DSBA", academic_year="2565", study_year=1, semester=1),
+            right_scope=CurriculumScope(program_code="AIT", academic_year="2566", study_year=1, semester=1),
+            comparison_operation="intersection",
+        )
+        left = [
+            {"course_id": 1, "course_code": "SAME01", "name_en": "Shared Course", "name_th": None,
+             "credits": "3", "program_code": "DSBA", "academic_year": "2565", "plans": ["coop"],
+             "sources": ["dsba.pdf · p.10"]},
+            {"course_id": 2, "course_code": "OLD01", "name_en": "Linear Algebra", "name_th": None,
+             "credits": "3", "program_code": "DSBA", "academic_year": "2565", "plans": ["coop"],
+             "sources": ["dsba.pdf · p.11"]},
+        ]
+        right = [
+            {"course_id": 3, "course_code": "SAME01", "name_en": "Shared Course", "name_th": None,
+             "credits": "3", "program_code": "AIT", "academic_year": "2566", "plans": ["default"],
+             "sources": ["ait.pdf · p.20"]},
+            {"course_id": 4, "course_code": "NEW01", "name_en": "LINEAR   ALGEBRA ALGEBRA", "name_th": None,
+             "credits": "3", "program_code": "AIT", "academic_year": "2566", "plans": ["default"],
+             "sources": ["ait.pdf · p.21"]},
+        ]
+
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.list_courses", side_effect=[
+                 {"items": left, "total": 2}, {"items": right, "total": 2},
+             ]) as query, \
+             patch.object(rag_service, "_search", side_effect=AssertionError("comparisons use structured retrieval")):
+            result = rag_service.answer("Which courses are shared by these curricula?", [])
+
+        self.assertEqual(query.call_count, 2)
+        self.assertEqual(result["status"], "answer")
+        self.assertEqual(result["retrieval_count"], 4)
+        self.assertEqual(len(result["sources"]), 4)
+        self.assertIn("Shared Course (same course code)", result["answer"])
+        self.assertIn("Linear Algebra (same normalized name)", result["answer"])
+        self.assertNotIn("LINEAR ALGEBRA ALGEBRA", result["answer"])
+        self.assertIn("DSBA 2565 Year 1 Semester 1", result["answer"])
+        self.assertIn("AIT 2566 Year 1 Semester 1", result["answer"])
 
     def test_top_k_includes_all_chunks_tied_at_the_boundary(self):
         distances = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.6, 0.6, 0.7]

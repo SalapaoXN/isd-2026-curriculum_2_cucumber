@@ -1,0 +1,43 @@
+.response-time {
+  margin-left: 8px;
+  color: #829087;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.clarification-options {
+  display: grid;
+  gap: 7px;
+  margin: 9px 0 0 34px;
+}
+
+.clarification-options > small {
+  color: #78847a;
+  font-size: 11px;
+}
+
+.clarification-options > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.clarification-options button {
+  border: 1px solid #cbd9cb;
+  border-radius: 16px;
+  background: #f8fbf7;
+  color: #355d3b;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.clarification-options button:hover:not(:disabled) {
+  border-color: #76977a;
+  background: #edf5ec;
+}
+
+.clarification-options button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
