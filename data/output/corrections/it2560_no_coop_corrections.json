@@ -210,12 +210,6 @@
         "after": "การพัฒนาเกมขั้นสูง"
     },
     {
-        "course_code": "060163xx",
-        "field": "name_en",
-        "before": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2 9OXXX 2",
-        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2"
-    },
-    {
         "course_code": "06016329",
         "field": "name_en",
         "before": "PROJECT IN SOFTWARE ENGINEERNG",
@@ -342,6 +336,12 @@
         "after": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
     },
     {
+        "course_code": "06016380",
+        "field": "name_en",
+        "before": "E COMMERCE MANAGEMENT",
+        "after": "E-COMMERCE MANAGEMENT"
+    },
+    {
         "course_code": "06036382",
         "field": "name_en",
         "before": "INTERNET PROGRAMMNG",
@@ -417,6 +417,6 @@
         "course_code": "06016396",
         "field": "name_en",
         "before": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SSTEM TECHNOLOGY",
-        "after": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY"
+        "after": "OVERSEAS COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY"
     }
 ]

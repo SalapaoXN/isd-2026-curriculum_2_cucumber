@@ -372,6 +372,12 @@
         "after": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
     },
     {
+        "course_code": "06016380",
+        "field": "name_en",
+        "before": "E COMMERCE MANAGEMENT",
+        "after": "E-COMMERCE MANAGEMENT"
+    },
+    {
         "course_code": "06036382",
         "field": "name_en",
         "before": "INTERNET PROGRAMMNG",
