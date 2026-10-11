@@ -1,3 +1,5 @@
+# Supported CPython: >=3.10,<3.14 (declared in pyproject.toml).
+# Keep PyTorch packages unpinned so pip can select wheels for the current OS/device.
 easyocr==1.7.2
 torch
 torchvision
