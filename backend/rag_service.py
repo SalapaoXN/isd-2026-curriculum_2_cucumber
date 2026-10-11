@@ -32,7 +32,6 @@ MAX_DISTANCE = float(os.getenv("RAG_MAX_DISTANCE", "30"))
 CLASSIFIER_MODEL = os.getenv("CHAT_CLASSIFIER_MODEL", "gemini-3.1-flash-lite")
 TOP_K = 6
 MAX_TIED_CANDIDATES = 128
-RULES_PATH = PROJECT_ROOT / "data" / "output" / "rules_extracted.json"
 _capacity = BoundedSemaphore(4)
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -261,32 +260,69 @@ def _search(query: str, limit: int = TOP_K) -> list[dict[str, Any]]:
 
 @lru_cache(maxsize=1)
 def _rule_index() -> tuple[list[dict[str, Any]], np.ndarray]:
-    if not RULES_PATH.is_file():
-        raise HTTPException(503, "The academic-rules source is not available.")
+    path = _db_path()
+    if not path.is_file():
+        raise HTTPException(503, "The curriculum database is not available.")
     try:
-        payload = json.loads(RULES_PATH.read_text(encoding="utf-8"))
-        rules = payload.get("rules", [])
+        with closing(sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)) as db:
+            db.row_factory = sqlite3.Row
+            fact_rows = db.execute(
+                "SELECT source_rule_id, category, fact_key, operator, value, unit, condition, "
+                "context, verification_status FROM policy_facts ORDER BY fact_id"
+            ).fetchall()
+            facts_by_rule: dict[str, list[sqlite3.Row]] = {}
+            for fact in fact_rows:
+                facts_by_rule.setdefault(fact["source_rule_id"], []).append(fact)
+
+            rule_rows = db.execute(
+                "SELECT rule_id, section_number, category, rule_text, references_json "
+                "FROM regulation_rules ORDER BY rule_id"
+            ).fetchall()
+
         chunks = []
-        for rule in rules:
-            rule_text = str(rule.get("rule_text") or "").strip()
+        for rule in rule_rows:
+            rule_text = str(rule["rule_text"] or "").strip()
             if not rule_text:
                 continue
-            provenance = rule.get("source_provenance") or []
-            category = rule.get("category") or "Academic rules"
-            section = rule.get("section_number") or rule.get("rule_id")
+            try:
+                references = json.loads(rule["references_json"] or "{}")
+            except json.JSONDecodeError:
+                references = {}
+            provenance = references.get("source_provenance", []) if isinstance(references, dict) else []
+            if not isinstance(provenance, list):
+                provenance = []
+            category = rule["category"] or "Academic rules"
+            section = rule["section_number"] or rule["rule_id"]
+            fact_texts = []
+            for fact in facts_by_rule.get(rule["rule_id"], []):
+                value = fact["value"]
+                if isinstance(value, float):
+                    value = f"{value:g}"
+                condition = str(fact["condition"] or "")
+                operator = str(fact["operator"] or "")
+                details = [str(fact["fact_key"] or fact["category"] or "policy fact"), condition]
+                if operator and operator.casefold() != condition.casefold():
+                    details.append(operator)
+                details.extend((
+                    f"{value}{' ' + fact['unit'] if fact['unit'] else ''}" if value is not None else "",
+                    str(fact["context"] or ""),
+                ))
+                fact_texts.append(" ".join(part for part in details if part))
             text = f"Academic rule {section}. {category}. {rule_text}"
+            if fact_texts:
+                text += " Policy facts: " + "; ".join(fact_texts)
             chunks.append({
-                "chunk_id": str(rule.get("rule_id") or f"rule-{len(chunks) + 1}"),
+                "chunk_id": str(rule["rule_id"]),
                 "chunk_type": "rule",
-                "rule_id": rule.get("rule_id"),
-                "section_number": rule.get("section_number"),
+                "rule_id": rule["rule_id"],
+                "section_number": rule["section_number"],
                 "category": category,
-                "source_verified": bool(rule.get("source_verified")),
+                "source_verified": any(bool(item.get("source_verified")) for item in provenance),
                 "text": text,
                 "provenance": provenance,
             })
         if not chunks:
-            raise ValueError("Academic-rules corpus is empty")
+            raise ValueError("No regulation_rules rows exist in the curriculum database")
         embeddings = embed_texts([chunk["text"] for chunk in chunks])
         norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
         normalized = embeddings / np.maximum(norms, 1e-12)
@@ -294,7 +330,7 @@ def _rule_index() -> tuple[list[dict[str, Any]], np.ndarray]:
     except HTTPException:
         raise
     except Exception:
-        raise HTTPException(503, "The academic-rules source could not be loaded.") from None
+        raise HTTPException(503, "Academic rules could not be loaded from the curriculum database.") from None
 
 
 def _search_rules(query: str, limit: int = TOP_K) -> list[dict[str, Any]]:

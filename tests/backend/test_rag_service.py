@@ -1,5 +1,8 @@
+import json
+import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from unittest import mock
 from pathlib import Path
 from unittest.mock import patch
@@ -222,6 +225,45 @@ class RAGServiceTests(unittest.TestCase):
         self.assertEqual(result["retrieval_count"], 1)
         self.assertEqual(result["sources"][0]["rule_id"], "rule:22")
         self.assertEqual(result["sources"][0]["source_page"], 7)
+
+    def test_rule_embedding_corpus_is_loaded_from_sqlite_rule_and_policy_tables(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "curriculum.db"
+            with closing(sqlite3.connect(database)) as db:
+                db.executescript("""
+                    CREATE TABLE regulation_rules(
+                        rule_id TEXT, section_number TEXT, category TEXT, rule_text TEXT,
+                        references_json TEXT);
+                    CREATE TABLE policy_facts(
+                        fact_id INTEGER, source_rule_id TEXT, category TEXT, fact_key TEXT,
+                        operator TEXT, value NUMERIC, unit TEXT, condition TEXT, context TEXT,
+                        verification_status TEXT);
+                """)
+                db.execute("INSERT INTO regulation_rules VALUES (?,?,?,?,?)", (
+                    "rule:22", "22", "Probation",
+                    "Cumulative GPA below 2.00 results in probation.",
+                    json.dumps({"source_provenance": [{"source_filename": "rules.pdf",
+                                                       "source_page": 7, "source_verified": True}]}),
+                ))
+                db.execute("INSERT INTO policy_facts VALUES (?,?,?,?,?,?,?,?,?,?)", (
+                    1, "rule:22", "Probation", "cumulative GPA", "below", 2.0,
+                    None, "threshold", None, "verified",
+                ))
+                db.commit()
+
+            rag_service._rule_index.cache_clear()
+            vectors = rag_service.np.asarray([[1.0, 0.0]], dtype=rag_service.np.float32)
+            with patch.object(rag_service, "INDEX_PATH", database), \
+                 patch.object(rag_service, "embed_texts", return_value=vectors):
+                chunks, matrix = rag_service._rule_index()
+            rag_service._rule_index.cache_clear()
+
+        self.assertEqual(chunks[0]["rule_id"], "rule:22")
+        self.assertIn("Cumulative GPA below 2.00", chunks[0]["text"])
+        self.assertIn("cumulative GPA threshold below 2", chunks[0]["text"])
+        self.assertTrue(chunks[0]["source_verified"])
+        self.assertEqual(chunks[0]["provenance"][0]["source_page"], 7)
+        self.assertEqual(matrix.shape, (1, 2))
 
     def test_curriculum_comparison_matches_codes_and_normalized_names_with_both_sources(self):
         decision = RouteDecision(

@@ -14,6 +14,7 @@ from rag.retrieval.index import (
     DEFAULT_INDEX_NAME,
     ensure_index,
 )
+from rag.structured.supplements import load_rule_supplements
 from src.pipeline.tools.runtime_artifacts import (
     CANONICAL_DIR,
     audit_shared_course_conflicts,
@@ -54,7 +55,15 @@ def build_index(
                 f"{len(conflicts)} unresolved shared-course conflict(s):\n- "
                 + "\n- ".join(conflicts)
             )
-    return ensure_index(sources, index_path=artifact_index)
+    database_path = ensure_index(sources, index_path=artifact_index)
+    if using_defaults:
+        final_dir = _PROJECT_ROOT / "data" / "output" / "final"
+        load_rule_supplements(
+            database_path,
+            final_dir / "institution_policy.json",
+            final_dir / "program_requirements.json",
+        )
+    return database_path
 
 
 def main(argv: Sequence[str] | None = None) -> None:
