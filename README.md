@@ -27,7 +27,7 @@ python --version
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-npm ci --prefix frontend
+npm.cmd ci --prefix frontend
 ```
 
 Use a Python version from **3.10 to 3.13**. If `python` is not recognized, install Python
@@ -99,7 +99,7 @@ done
 **Windows PowerShell:**
 
 ```powershell
-npm run build --prefix frontend
+npm.cmd run build --prefix frontend
 & .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
