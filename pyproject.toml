@@ -1,8 +1,8 @@
 [project]
 name = "curriculum-cucumber-rebuild"
 version = "1.0.0"
-description = "Clean rebuild of the curriculum OCR -> RAG pipeline (behavior-preserving)."
-requires-python = ">=3.10"
+description = "Curriculum extraction pipeline and SQLite curriculum index builder."
+requires-python = ">=3.10,<3.14"
 dependencies = []
 
 [tool.pytest.ini_options]

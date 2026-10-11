@@ -14,6 +14,7 @@ from rag.retrieval.index import (
     DEFAULT_INDEX_NAME,
     ensure_index,
 )
+from rag.structured.supplements import load_rule_supplements
 from src.pipeline.tools.runtime_artifacts import (
     CANONICAL_DIR,
     audit_shared_course_conflicts,
@@ -38,21 +39,6 @@ def _default_sources() -> list[Path]:
     return canonical_runtime_sources(CANONICAL_DIR)
 
 
-def _default_supplemental_sources() -> dict[str, Path]:
-    return {
-        "institution_policy": _PROJECT_ROOT
-        / "data"
-        / "output"
-        / "final"
-        / "institution_policy.json",
-        "program_requirements": _PROJECT_ROOT
-        / "data"
-        / "output"
-        / "final"
-        / "program_requirements.json",
-    }
-
-
 def build_index(
     input_json_paths: Iterable[str | Path] | None = None,
     index_path: str | Path | None = None,
@@ -61,10 +47,6 @@ def build_index(
     using_defaults = input_json_paths is None
     sources = _default_sources() if using_defaults else input_json_paths
     artifact_index = index_path or ARTIFACTS_DIR / DEFAULT_INDEX_NAME
-    supplemental = _default_supplemental_sources() if using_defaults else None
-    kwargs = {"index_path": artifact_index}
-    if supplemental is not None:
-        kwargs["supplemental_json_paths"] = supplemental
     if using_defaults:
         conflicts = audit_shared_course_conflicts(sources)
         if conflicts:
@@ -73,7 +55,15 @@ def build_index(
                 f"{len(conflicts)} unresolved shared-course conflict(s):\n- "
                 + "\n- ".join(conflicts)
             )
-    return ensure_index(sources, **kwargs)
+    database_path = ensure_index(sources, index_path=artifact_index)
+    if using_defaults:
+        final_dir = _PROJECT_ROOT / "data" / "output" / "final"
+        load_rule_supplements(
+            database_path,
+            final_dir / "institution_policy.json",
+            final_dir / "program_requirements.json",
+        )
+    return database_path
 
 
 def main(argv: Sequence[str] | None = None) -> None:

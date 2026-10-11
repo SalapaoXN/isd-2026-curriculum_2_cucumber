@@ -568,7 +568,7 @@ def main(argv: list[str] | None = None) -> int:
                         "no accepted current-curriculum Ground Truth pairs were found; "
                         "cannot evaluate before canonicalization"
                     )
-                evaluation_dir = BASE_DIR / "reports" / "evaluation_precanonical"
+                evaluation_dir = BASE_DIR / "reports" / "evaluation"
                 run_evaluate_stage(pairs=pairs, reports_dir=evaluation_dir)
 
                 from src.pipeline.tools.runtime_artifacts import (
@@ -620,7 +620,7 @@ def main(argv: list[str] | None = None) -> int:
                             reports_dir=(
                                 BASE_DIR
                                 / "reports"
-                                / "evaluation_precanonical"
+                                / "evaluation"
                                 / config.key
                             ),
                         )

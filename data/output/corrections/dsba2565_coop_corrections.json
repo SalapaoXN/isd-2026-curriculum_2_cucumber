@@ -7,12 +7,6 @@
     },
     {
         "course_code": "06026202",
-        "field": "name_th",
-        "before": "พืชคณิตเชิงเส้น",
-        "after": "พีชคณิตเชิงเส้น"
-    },
-    {
-        "course_code": "06026202",
         "field": "name_en",
         "before": "LIEAR ALGEBRA",
         "after": "LINEAR ALGEBRA"
@@ -99,7 +93,7 @@
         "course_code": "06026207",
         "field": "name_en",
         "before": "NOSOL DATABASE SYSTEMS",
-        "after": "NoSQL DATABASE SYSTEMS"
+        "after": "NOSQL DATABASE SYSTEMS"
     },
     {
         "course_code": "06026209",
@@ -442,6 +436,12 @@
         "field": "name_en",
         "before": "COOPERATIE EDUCATION IN DATA SCIENCE AND BUSIESS ANALTICS",
         "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    },
+    {
+        "course_code": "06026260",
+        "field": "name_th",
+        "before": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
+        "after": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
     },
     {
         "course_code": "06026260",

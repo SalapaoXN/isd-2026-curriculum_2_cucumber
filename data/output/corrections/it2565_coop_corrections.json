@@ -1,12 +1,6 @@
 [
     {
         "course_code": "06016401",
-        "field": "name_th",
-        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
-        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
-    },
-    {
-        "course_code": "06016401",
         "field": "name_en",
         "before": "MATHEMATICS FOR INFORMATION TECHNOLOCY",
         "after": "MATHEMATICS FOR INFORMATION TECHNOLOGY"
@@ -76,12 +70,6 @@
         "field": "name_en",
         "before": "MULTMMEDLA TECHNOLOCY",
         "after": "MULTIMEDIA TECHNOLOGY"
-    },
-    {
-        "course_code": "06016409",
-        "field": "name_th",
-        "before": "การประมวลทางกายภาพ",
-        "after": "การประมวลผลทางกายภาพ"
     },
     {
         "course_code": "06016409",
@@ -195,7 +183,7 @@
         "course_code": "06016416",
         "field": "name_en",
         "before": "REOUIREMENT ENGINEERING",
-        "after": "REQUIREMENTS ENGINEERING"
+        "after": "REQUIREMENT ENGINEERING"
     },
     {
         "course_code": "06016417",
@@ -256,12 +244,6 @@
         "field": "name_th",
         "before": "การพัฒนาเว็บฝังเซิร์ฟเวอร์",
         "after": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์"
-    },
-    {
-        "course_code": "06016481 หรือ 06016482",
-        "field": "name_en",
-        "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
-        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
     },
     {
         "course_code": "06016406",

@@ -84,10 +84,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_025.png",
                     "source_page": 25,
-                    "document_page": 20,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": 20
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_011.png",
+                    "source_page": 11,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_049.png",
+                    "source_page": 49,
+                    "document_category": "description",
+                    "document_page": 45
                 }
-            ]
+            ],
+            "desc_th": "ศึกษา แเครื่องมือทางคณิตศาสตร์ ประกอบด้วย\nเมทริกซ์\nการหาผลเฉลยของระบบสมการ\nเชิงเส้น กฎของคราเมอร์ อนุพันธ์ของฟังก์ชัน ฟังก์ชันกำลังสอง  ค่าสูงสุดและค่าตำสุด อนุพันธ์ย่อย และการ\nอินทิเกรต เพื่อประยุกต์ใช้แก้ปัญหาทางเศรษฐศาสตร์และการพาณิชย์ เบื้องต้นในชีวิตประจำวัน เช่น ฺหาจุด\nสมดุลของราคาและปริมาณของสินค้าในตลาด\nวิเคราะห์การผลิต เมทริกซ์การเปลี่ยนถ่ายสถานะ ฟังก์ชัน\nฟังก์ชันอุปทาน ฺฟังก์ชันต้นทุนฺ ฺฟังก์ชันรายได้ ฟังก์ชันยืดหยุ่น",
+            "desc_en": "STUDY OF\nMATHEMATICS\nTOOLS;  MATRIX, SOLUTION  OF SYSTEM  OF EQUATIONS,\nCRAMER'S RULE,\nDERIVATIVE OF FUNCTION, QUADRATICS FUNCTIONS, MAXIMUM AND MINIMUM VALUE,\nPARTIAL DERIVATIVE, AND INTEGRATION.\nAPPLICATION OF MATHEMATICS TO SOLVE BASIC ECONOMICS AND\nCOMMERCE PROBLEMS\nIN DAILY LIFE SUCH AS,  FINDING EQUILIBRIUM\nOF PRICE AND\nQUANTITY OF\nPRODUCT\nON\nTHE\nMARKETS,\nINPUT  OUTPUT ANALYSIS,\nTRANSITION\nMATRIX,\nDEMAND\nAND  SUPPLY\nFUNCTION, COST AND REVENUE FUNCTION,\nELASTICITY FUNCTION.\nหน้า 47 จาก 124\nอุปสงค์\nPOINT"
         },
         {
             "code": "90201001",
@@ -106,10 +122,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_025.png",
                     "source_page": 25,
-                    "document_page": 20,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": 20
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_013.png",
+                    "source_page": 13,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_060.png",
+                    "source_page": 60,
+                    "document_category": "description",
+                    "document_page": 56
                 }
-            ]
+            ],
+            "desc_th": "ฝึกทักษะการใช้ภาษาอังกฤษเพื่อการฟัง การพูด การอ่าน และการเขียนในบริบทที่เกี่ยวข้อง\nกับชีวิตประจำวันฝึกการใช้พจนานุกรม ศึกษาศัพท์ สำนวน และภาษาจากบทอ่านที่คัดเลือกจากสิ่งพิมพ์ต่างๆ\nเช่น วารสาร หนังสือพิมพ์ ทบทวนโครงสร้างไวยากรณ์ และการใช้ภาษาในโอกาสต่างๆ",
+            "desc_en": "PRACTICE IN\nFOUR LANGUAGE SKILLS RELATED TO DAILY LIFE ACTIVITIES, INCLUDING THE\nUSE OF DICTIONARY AS WELL. AS THE STUDY OF VOCABULARY, LANGUAGE AND EXPRESSIONS IN READING\nPASSAGES SELECTED  FROM  PRINTED  MATERIALS SUCH\nAS JOURNALS, NEWSPAPERS, ETC\nAS\nWELL\nAS\nA\nREVISION OF GRAMMATICAL STRUCTURES AND SOCIAL FUNCTIONS OF LANGUAGE IN VARIOUS SITUATIONS."
         },
         {
             "code": "90401013",
@@ -128,10 +160,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_025.png",
                     "source_page": 25,
-                    "document_page": 20,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": 20
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_017.png",
+                    "source_page": 17,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_085.png",
+                    "source_page": 85,
+                    "document_category": "description",
+                    "document_page": 81
                 }
-            ]
+            ],
+            "desc_th": "ศึกษาความหมายของกระบวนการบริหาร\nโดยเป็นเนื้อหาในองค์การธุรกิจ\nการใช้ทรัพยากร\nทางการบริหารให้เป็นประโยชน์ต่อธรกิจ รูปแบบของการดำเนินงานทางธุรกิจฺการจัดองค์การ การสร้างมนุษย\nสัมพันธ์  ความเป็นผู้นำและการจูงใจบุคคลภายในองค์การ\nและการนำหลักการพื้นฐานและความู'รู้ทั่วไปทางด้าน\nการตลาด\nการบริหารงานบุคคล การบริหารการเงิน ฺและการบัญชีมาใช้ในการบริหารธุรกิจขององค์การ",
+            "desc_en": "STUDY OF THE  MEANING OF ADMINISTRATION  PROCESSES FOCUSING\nON  BUSINESS,\nBUSINESS\nRESOURCES\nAND\nALLOCATION,\nTYPES\nOF\nBUSINESS\nORGANIZATION,\nORGANIZING,\nHUMAN\nRELATIONS, LEADERSHIP, MOTIVATION\nAND\nTHE\nIMPLEMENTATION\nOF BASIC  PRINCIPLES  AND  GENERAL\nKNOWLEDGE OF MARKETING, PERSONNEL MANAGEMENT, FINANCE AND ACCOUNTING IN THE BUSINESS.\nหน้า 83 จาก 124"
         },
         {
             "code": "90101xxx",
@@ -296,10 +344,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_026.png",
                     "source_page": 26,
-                    "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": 21
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_013.png",
+                    "source_page": 13,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_060.png",
+                    "source_page": 60,
+                    "document_category": "description",
+                    "document_page": 56
                 }
-            ]
+            ],
+            "desc_th": "ฝึกทักษะการใช้ภาษาอังกฤษในการอ่าน เขียน ฟัง\nและพูดเพื่อการศึกษา เช่น การใช้หนังสือ\nอ้างอิง การอ่านกราฟ ตาราง ฯล\nการเขียนบทสรุป ฟัง พูด โต้ตอบแสดงความคิดเห็นเกี่ยวกับเรื่องที่อ่านหรือ\nฟังได้รวมทั้งทบทวนโครงสร้างไวยากรณ์ และการใช้ภาษาโอกาสต่างๆ เพิ่มเติม",
+            "desc_en": "PRACTICE IN FOUR LANGUAGE SKILLS FOR ACADEMIC PURPOSES, FOR EXAMPLE, USING\nREFERENCES, READING  NON VERBAL  TEXTS, INCLUDING SUMMARY WRITING,  LISTENING  AND  DISCUSSION,\nGRAMMAR REVISION AND FURTHER PRACTICE IN SOCIAL LANGUAGE."
         },
         {
             "code": "90401012",
@@ -318,10 +382,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_026.png",
                     "source_page": 26,
-                    "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": 21
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_017.png",
+                    "source_page": 17,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_085.png",
+                    "source_page": 85,
+                    "document_category": "description",
+                    "document_page": 81
                 }
-            ]
+            ],
+            "desc_th": "วิชานี้ศึกษาเกี่ยวกับพฤติกรรมของผู้บริโภคในยุคโลกาภิวัตน์\nการกำหนดกลยุทธ์ส่วนแบ่ง\nตลาด การกำหนดกลุ่มเป้าหมาย\nและการกำหนดตำแหน่งทางการตลาดที่เฉพาะเจาะจงมากยิ่งขึ้น รวมถึงการ\nดำเนินการสร้างผลิตภัณฑ์\nการกำหนดราคา\nการเลือกใช้ช่องทางจัดจำหน่ายตลอดจนการใช้การส่งเสริม\nการตลาดโดยคำนึงความรับผิดชอบสังคมเป็นหลักเพื่อช่วยให้การตลาดสามารถดำเนินไปควบคู่กับการกินดีอยู่\nดีของผู้บริโภค",
+            "desc_en": "STUDY\nOF  CONSUMER  BEHAVIORS  IN  GLOBALIZATION, THE  DEFINITION\nOF SPECIFIC\nSTRATEGY\nIN  SEGMENTATION.,  TARGET  GROUP\nAND\nPOSITIONING,  PRODUCT  IMPLEMENTATION\nPRICING\nPRODUCT DISTRIBUTION AND PROMOTION\nREGARDING\nSOCIAL RESPONSIBILITY."
         },
         {
             "code": "06026102",
@@ -533,10 +613,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_026.png",
                     "source_page": 26,
-                    "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": 21
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_013.png",
+                    "source_page": 13,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_061.png",
+                    "source_page": 61,
+                    "document_category": "description",
+                    "document_page": 57
                 }
-            ]
+            ],
+            "desc_th": "ศึกษาวิธีการอ่านอย่างมีประสิทธิภาพ การอ่านจับใจความ การอ่านหนังสือพิมพ์\nการอ่าน\nเพื่อแปลใจความ ฺการพัฒนาทักษะการเขียน  โดยเน้นการเขียนที่ถูกรูปแบบทางภาษาและไวยากรณ์\nฝึกการ\nเขียนที่จะนำไปใช้ประโยชน์ ทั้งทางด้านการศึกษาและอาชีพ เช่น การเขียนจดหมาย\nการกรอกใบสมัคร การ\nเขียนรายงาน เป็นต้น",
+            "desc_en": "STUDY OF EFFECTIVE READING TECHNIQUES IN ENGLISH RELEVANT TO READING FOR THE\nMAIN IDEA, NEWSPAPER READING, READING FOR TRANSLATION, WRITING SKILLS DEVELOPMENT IN ENGLISH\nFOCUSING\nACCURACY\nIN\nBOTH  LANGUAGE  FORMS\nAND  GRAMMAR\nBENEFICIAL\nTO\nCAREERS\nAND\nACADEMIC\nPURPOSES\nSUCH\nAS\nWRITING  APPLICATION  LETTERS,  FILLING  APPLICATION  FORMS,\nWRITING\nREPORTS, ETC."
         },
         {
             "code": "06026112",
@@ -741,10 +837,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_027.png",
                     "source_page": 27,
-                    "document_page": null,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_013.png",
+                    "source_page": 13,
+                    "document_category": "plan",
+                    "document_page": 26
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_064.png",
+                    "source_page": 64,
+                    "document_category": "description",
+                    "document_page": 60
                 }
-            ]
+            ],
+            "desc_th": "การพัฒนาความสามารถในการติดต่อสื่อสารโดยใช้ภาษาอังกฤษ\nโดยเน้นทักษะในการฟัง\nและการพูดทีใช้ในโอกาสต่างๆ\nฝึกการสนทนาเป็นกลุ่มและการนำเสนอผลงานทักษะการอ่านโดยใช้เทคนิค\nการอ่านที่หลากหลาย  เช่นการอ่านเพื่อหาหัวเรื่อง\nการอ่านเพือจับใจความสำคัญและรายละเอียดเพื่อเขียน\nสรุปความ และเขียนรายงาน",
+            "desc_en": "DEVELOPMENT\nOF\nSTUDENTS'\nABILITY\nTO\nCOMMUNICATE\nIN\nENGLISH\nWITH\nIN\nEMPHASIS\nON  LISTENING  AND  SPEAKING\nSKILLS  FOR  DIFFERENT\nPURPOSES\nAND  PRACTICE\nIN\nGROUP\nDISCUSSION AND PRESENTATION AS WELL AS THE DEVELOPMENT OF A READING SKILL BY USING VARIOUS\nREADING TECHNIQUES SUCH AS READING FOR HEADINGS, READING FOR MAIN IDEAS AND DETAILS, READING\nFOR SUMMARIZING AND WRITING REPORTS."
         },
         {
             "code": "06026118",
@@ -925,10 +1037,26 @@
                     "program": "DSBA",
                     "source_filename": "dsba2560_page_027.png",
                     "source_page": 27,
-                    "document_page": null,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_015.png",
+                    "source_page": 15,
+                    "document_category": "plan",
+                    "document_page": null
+                },
+                {
+                    "program": "GENED",
+                    "source_filename": "gened2557_page_075.png",
+                    "source_page": 75,
+                    "document_category": "description",
+                    "document_page": 71
                 }
-            ]
+            ],
+            "desc_th": "ศึกษารูปแบบ และวิธีการเขียนรายงาน รวมทั้งฝึกการเขียนรายงานรูปแบบต่าง\nเช่น รายงาน\nข่าว รายงานการประชุม และรายงานเชิงวิชาการ เป็นต้น",
+            "desc_en": "STUDY OF FORMATS AND PROCEDURES OF REPORT WRITING AS WELL. AS\nA\nPRACTICE OF\nVARIOUS REPORT WRITING SUCH AS NEWS REPORTS, MINUTES, ACADEMIC PAPERS ETC."
         },
         {
             "code": "06026123",

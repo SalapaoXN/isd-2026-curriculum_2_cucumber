@@ -132,7 +132,7 @@ class RagLoaderTest(unittest.TestCase):
             Path(__file__).resolve().parents[2]
             / "data"
             / "output"
-            / "final"
+            / "canonical"
             / "ait2566_final.json"
         )
         document = json.loads(source.read_text(encoding="utf-8-sig"))

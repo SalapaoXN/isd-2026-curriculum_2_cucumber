@@ -1,6 +1,8 @@
+# Supported CPython: >=3.10,<3.14 (declared in pyproject.toml).
+# Keep PyTorch packages unpinned so pip can select wheels for the current OS/device.
 easyocr==1.7.2
-# torch==2.13.0
-# torchvision==0.28.0
+torch
+torchvision
 pyspellchecker==0.9.0
 python-Levenshtein==0.27.4
 pythainlp==5.3.7

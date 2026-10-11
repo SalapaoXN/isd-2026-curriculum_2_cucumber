@@ -1,1 +1,1 @@
-"""CUCUMBER curriculum FastAPI backend."""
+"""FastAPI application for the Cucumber curriculum chatbot."""
