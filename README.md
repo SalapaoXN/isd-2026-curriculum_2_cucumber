@@ -23,11 +23,16 @@ Create the virtual environment using the commands for your platform.
 **Windows PowerShell:**
 
 ```powershell
-py -3.11 -m venv .venv
+python --version
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 npm ci --prefix frontend
 ```
+
+Use a Python version from **3.10 to 3.13**. If `python` is not recognized, install Python
+and enable **Add python.exe to PATH**, then reopen PowerShell. The Windows `py` launcher is
+optional; it is not installed with every Python distribution.
 
 **macOS / Linux:**
 
