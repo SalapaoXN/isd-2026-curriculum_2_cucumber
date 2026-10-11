@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from backend import rag_service
-from backend.curriculum import filters, list_courses
+from backend.curriculum import courses_requiring, filters, list_courses, program_requirements
 
 
 class CurriculumListingTests(unittest.TestCase):
@@ -29,15 +29,22 @@ class CurriculumListingTests(unittest.TestCase):
                     flexible_semester_number INTEGER,
                     flexible_year_semester_raw TEXT);
                 CREATE TABLE provenance(provenance_id INTEGER, document_category TEXT,
-                    source_filename TEXT, source_page INTEGER);
+                    source_filename TEXT, source_page INTEGER, source_uri TEXT, source_locator TEXT);
                 CREATE TABLE course_provenance(course_id INTEGER, provenance_id INTEGER);
+                CREATE TABLE prerequisites(prerequisite_id INTEGER, course_id INTEGER,
+                    prerequisite_course_id INTEGER, alternative_group_id INTEGER, requirement_type TEXT,
+                    raw_text TEXT);
+                CREATE TABLE alternative_course_group_members(alternative_group_id INTEGER, course_id INTEGER);
+                CREATE TABLE program_requirements(requirement_id INTEGER, catalog_id INTEGER,
+                    program_code TEXT, requirement_type TEXT, operator TEXT, value NUMERIC, unit TEXT);
+                CREATE TABLE program_requirement_provenance(requirement_id INTEGER, provenance_id INTEGER);
             """)
             db.executemany("INSERT INTO catalogs VALUES (?,?,?)", [
                 (1, "it-2565", "2565"), (2, "it-2560", "2560"), (3, "dsba-2568", "2568")])
             db.executemany("INSERT INTO programs VALUES (?,?,?)", [(1, 1, "IT"), (2, 2, "IT"), (3, 3, "DSBA")])
             db.executemany("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
                 (1, 1, "IT100", "พื้นฐาน", "INTRODUCTION", "3(3-0-6)", 3, "คำอธิบาย", "Intro course", "Core", "Required", "None", None),
-                (2, 1, "IT200", "เลือก", "ELECTIVE", "3(3-0-6)", 3, None, "Elective topics", "Elective", "Elective", None, None),
+                (2, 1, "IT200", "เลือก", "ELECTIVE", "3(3-0-6)", 3, None, "Elective topics", "Elective", "Elective", "IT100", None),
                 (3, 2, "IT060", None, "OLD CATALOG COURSE", "3", 3, None, None, None, None, None, None),
                 (4, 3, "DS100", None, "DSBA COURSE", "3", 3, None, None, None, None, None, None),
             ])
@@ -46,9 +53,14 @@ class CurriculumListingTests(unittest.TestCase):
             db.executemany("INSERT INTO plan_placements VALUES (?,?,?,?,?,?,?,?)", [
                 (1, 1, 1, 1, 1, None, None, None), (2, 2, 1, 1, 1, None, None, None),
                 (3, 1, 2, 2, 2, None, None, None)])
-            db.executemany("INSERT INTO provenance VALUES (?,?,?,?)", [
-                (1, "plan", "it-plan.pdf", 3), (2, "description", "it-desc.pdf", 12)])
+            db.executemany("INSERT INTO provenance VALUES (?,?,?,?,?,?)", [
+                (1, "plan", "it-plan.pdf", 3, None, None),
+                (2, "description", "it-desc.pdf", 12, None, None),
+                (3, "program_requirement", "it-overview.pdf", 1, None, "page-1")])
             db.executemany("INSERT INTO course_provenance VALUES (?,?)", [(1, 1), (1, 2), (2, 1)])
+            db.execute("INSERT INTO prerequisites VALUES (1, 2, 1, NULL, 'required', 'IT100')")
+            db.execute("INSERT INTO program_requirements VALUES (1, 1, 'IT', 'total_program_credits', '=', 129, 'credits')")
+            db.execute("INSERT INTO program_requirement_provenance VALUES (1, 3)")
             db.commit()
         self.path_patch = patch.object(rag_service, "INDEX_PATH", self.path)
         self.path_patch.start()
@@ -90,6 +102,44 @@ class CurriculumListingTests(unittest.TestCase):
         self.assertEqual(list_courses(limit=1, offset=0)["total"], 4)
         self.assertEqual(len(list_courses(limit=1, offset=0)["items"]), 1)
         self.assertEqual(len(list_courses(limit=1, offset=1)["items"]), 1)
+
+    def test_exact_course_code_filter_scopes_results_and_keeps_credits(self):
+        result = list_courses(course_code="it100", program="IT", academic_year="2565", limit=10)
+        self.assertEqual(result["total"], 1)
+        self.assertEqual(result["items"][0]["credits"], "3(3-0-6)")
+        self.assertEqual(list_courses(course_code="IT10", program="IT")["total"], 0)
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+                5, 2, "IT100", "قديم", "OLD INTRODUCTION", "3", 3, None, None,
+                None, None, None, None))
+            db.commit()
+        self.assertEqual(list_courses(course_code="IT100", program="IT", academic_year="2565")["total"], 1)
+        self.assertEqual(list_courses(course_code="IT100", program="IT")["total"], 2)
+
+    def test_inverse_prerequisite_lookup_returns_dependent_course(self):
+        result = courses_requiring(prerequisite_code="IT100", program="IT", academic_year="2565")
+        self.assertEqual(result["total"], 1)
+        self.assertEqual(result["items"][0]["course_code"], "IT200")
+
+    def test_inverse_prerequisite_lookup_includes_alternative_group_members(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+                5, 2, "IT100", "พื้นฐาน", "INTRODUCTION", "3", 3, None, None,
+                None, None, None, None))
+            db.execute("INSERT INTO curriculum_plans VALUES (?,?,?,?,?)", (3, 2, 2, "coop", "coop"))
+            db.execute("INSERT INTO prerequisites VALUES (2, 3, NULL, 22, 'required', 'IT100 or IT060')")
+            db.execute("INSERT INTO alternative_course_group_members VALUES (22, 5)")
+            db.commit()
+        result = courses_requiring(prerequisite_code="IT100", program="IT", academic_year="2560")
+        self.assertEqual(result["total"], 1)
+        self.assertEqual(result["items"][0]["course_code"], "IT060")
+
+    def test_program_requirement_lookup_is_scoped_and_returns_provenance(self):
+        result = program_requirements(program="it", academic_year="2565")
+        self.assertEqual(result["total"], 1)
+        self.assertEqual(result["items"][0]["value"], 129)
+        self.assertEqual(result["items"][0]["sources"][0]["source_filename"], "it-overview.pdf")
+        self.assertEqual(program_requirements(program="IT", academic_year="2560")["total"], 0)
 
 
 if __name__ == "__main__":

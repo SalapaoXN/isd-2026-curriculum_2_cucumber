@@ -17,6 +17,9 @@ def _filter_clauses(values: dict[str, str], *, exclude: str = "") -> tuple[list[
         if key != exclude and values.get(key):
             clauses.append(f"{expr}=? COLLATE NOCASE" if key == "program" else f"{expr}=?")
             params.append(values[key])
+    if values.get("course_code") and exclude != "course_code":
+        clauses.append("lower(c.course_code)=lower(?)")
+        params.append(values["course_code"].strip())
     if values.get("search") and exclude != "search":
         clauses.append("(instr(lower(c.course_code),lower(?))>0 OR instr(lower(COALESCE(c.name_th,'')),lower(?))>0 "
                        "OR instr(lower(COALESCE(c.name_en,'')),lower(?))>0 "
@@ -81,13 +84,15 @@ def filters(*, search: str = "", program: str = "", academic_year: str = "", pla
 
 def list_courses(*, search: str = "", program: str = "", academic_year: str = "",
                  plan: str = "", category: str = "", course_type: str = "",
-                 study_year: str = "", semester: str = "", limit: int = 50, offset: int = 0) -> dict[str, Any]:
+                 study_year: str = "", semester: str = "", course_code: str = "",
+                 limit: int = 50, offset: int = 0) -> dict[str, Any]:
     path = _db_path()
     if not path.is_file():
         raise HTTPException(503, "Curriculum index is not built yet. Run `python -m rag.build_index` first.")
     clauses, params = _filter_clauses({"search": search, "program": program, "academic_year": academic_year,
                                        "plan": plan, "category": category, "course_type": course_type,
-                                       "study_year": study_year, "semester": semester})
+                                       "study_year": study_year, "semester": semester,
+                                       "course_code": course_code})
     if not clauses:
         clauses = ["1=1"]
     where = " AND ".join(clauses)
@@ -137,3 +142,110 @@ def list_courses(*, search: str = "", program: str = "", academic_year: str = ""
         item["sources"] = [value for value in (item.get("sources") or "").split(",") if value]
         items.append(item)
     return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+def courses_requiring(*, prerequisite_code: str, program: str = "", academic_year: str = "",
+                      plan: str = "") -> dict[str, Any]:
+    """Return courses that list the supplied course as a prerequisite.
+
+    Both directly resolved prerequisite edges and alternative-group membership
+    are considered. Unresolved raw prerequisite text is intentionally excluded
+    because it cannot be attributed safely to a course code.
+    """
+    path = _db_path()
+    if not path.is_file():
+        raise HTTPException(503, "Curriculum index is not built yet.")
+    query = """
+        SELECT DISTINCT dependent.course_code, cat.academic_year, p.program_code
+        FROM prerequisites AS edge
+        JOIN courses AS dependent ON dependent.course_id = edge.course_id
+        JOIN catalogs AS cat ON cat.catalog_id = dependent.catalog_id
+        JOIN programs AS p ON p.catalog_id = cat.catalog_id
+        JOIN curriculum_plans AS cp ON cp.catalog_id = cat.catalog_id
+                                   AND cp.program_id = p.program_id
+        LEFT JOIN alternative_course_group_members AS members
+               ON members.alternative_group_id = edge.alternative_group_id
+        LEFT JOIN courses AS direct_prerequisite
+               ON direct_prerequisite.course_id = edge.prerequisite_course_id
+        LEFT JOIN courses AS alternative_prerequisite
+               ON alternative_prerequisite.course_id = members.course_id
+        WHERE lower(COALESCE(direct_prerequisite.course_code,
+                             alternative_prerequisite.course_code, '')) = lower(?)
+    """
+    params: list[Any] = [prerequisite_code.strip()]
+    if program:
+        query += " AND p.program_code=? COLLATE NOCASE"
+        params.append(program.strip())
+    if academic_year:
+        query += " AND cat.academic_year=?"
+        params.append(academic_year.strip())
+    if plan:
+        query += " AND (cp.plan_key=? COLLATE NOCASE OR cp.plan_code=? COLLATE NOCASE)"
+        params.extend([plan.strip(), plan.strip()])
+    query += " ORDER BY p.program_code, cat.academic_year DESC, dependent.course_code"
+    try:
+        with closing(sqlite3.connect(str(path))) as db:
+            rows = db.execute(query, params).fetchall()
+    except sqlite3.Error:
+        raise HTTPException(503, "Curriculum prerequisite data is unavailable.") from None
+
+    courses: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for code, year, program_code in rows:
+        identity = (str(code), str(year or ""), str(program_code or ""))
+        if identity in seen:
+            continue
+        seen.add(identity)
+        result = list_courses(course_code=str(code), program=str(program_code or ""),
+                              academic_year=str(year or ""), plan=plan, limit=1000)
+        courses.extend(result["items"])
+    return {"items": courses, "total": len(courses)}
+
+
+def program_requirements(*, program: str, academic_year: str,
+                         requirement_type: str = "total_program_credits") -> dict[str, Any]:
+    """Read a program requirement and its source provenance from the index."""
+    path = _db_path()
+    if not path.is_file():
+        raise HTTPException(503, "Curriculum index is not built yet.")
+    query = """
+        SELECT req.requirement_id, req.program_code, cat.academic_year,
+               req.requirement_type, req.operator, req.value, req.unit,
+               prov.source_filename, prov.source_page, prov.source_uri,
+               prov.source_locator
+        FROM program_requirements AS req
+        JOIN catalogs AS cat ON cat.catalog_id=req.catalog_id
+        LEFT JOIN program_requirement_provenance AS links
+               ON links.requirement_id=req.requirement_id
+        LEFT JOIN provenance AS prov ON prov.provenance_id=links.provenance_id
+        WHERE req.program_code=? COLLATE NOCASE AND cat.academic_year=?
+          AND req.requirement_type=?
+        ORDER BY req.requirement_id, prov.provenance_id
+    """
+    try:
+        with closing(sqlite3.connect(str(path))) as db:
+            db.row_factory = sqlite3.Row
+            rows = [dict(row) for row in db.execute(
+                query, (program.strip(), academic_year.strip(), requirement_type)
+            )]
+    except sqlite3.Error:
+        raise HTTPException(503, "Program requirement data is unavailable.") from None
+
+    results: list[dict[str, Any]] = []
+    by_id: dict[int, dict[str, Any]] = {}
+    for row in rows:
+        requirement_id = int(row["requirement_id"])
+        item = by_id.get(requirement_id)
+        if item is None:
+            item = {key: row[key] for key in (
+                "requirement_id", "program_code", "academic_year", "requirement_type",
+                "operator", "value", "unit",
+            )}
+            item["sources"] = []
+            by_id[requirement_id] = item
+            results.append(item)
+        if row.get("source_filename") or row.get("source_uri"):
+            item["sources"].append({key: row[key] for key in (
+                "source_filename", "source_page", "source_uri", "source_locator",
+            )})
+    return {"items": results, "total": len(results)}

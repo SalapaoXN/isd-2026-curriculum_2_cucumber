@@ -10,7 +10,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from backend import main, rag_service
-from backend.schemas import AnswerDraft, CurriculumScope, GeneralDraft, RouteDecision
+from backend.schemas import AnswerDraft, ChatTurn, CurriculumScope, GeneralDraft, RouteDecision
 
 
 class RAGServiceTests(unittest.TestCase):
@@ -136,12 +136,13 @@ class RAGServiceTests(unittest.TestCase):
         course = {
             "course_id": 39, "course_code": "06026239", "name_th": "สถาปัตยกรรมข้อมูลแบบไปป์ไลน์",
             "name_en": "DATA PIPELINE ARCHITECTURE", "program_code": "DSBA", "academic_year": "2565",
+            "credits": "3(3-0-6)",
             "plans": ["coop", "no_coop"], "placements": ["3/1", " 3/2", " 4/1"],
             "sources": ["dsba2565.pdf · p.12"],
         }
         with patch.object(rag_service, "_classify_use_rag", return_value=True), \
              patch.object(rag_service, "_generate", return_value=decision), \
-             patch("backend.curriculum.list_courses", return_value={"items": [course], "total": 1}), \
+             patch("backend.curriculum.list_courses", return_value={"items": [course], "total": 1}) as query, \
              patch.object(rag_service, "_search", side_effect=AssertionError("course details use structured lookup")):
             result = rag_service.answer("DATA PIPELINE ARCHITECTURE ต้องเรียนปีไหน เทอมไหน", [])
 
@@ -151,6 +152,144 @@ class RAGServiceTests(unittest.TestCase):
         self.assertIn("ชั้นปีที่ 3 · ภาคเรียนที่ 1", result["answer"])
         self.assertIn("ชั้นปีที่ 3 · ภาคเรียนที่ 2", result["answer"])
         self.assertIn("ชั้นปีที่ 4 · ภาคเรียนที่ 1", result["answer"])
+        self.assertIn("3(3-0-6)", result["answer"])
+        self.assertEqual(query.call_args.kwargs["course_code"], "")
+
+    def test_course_detail_uses_exact_code_and_returns_credits_and_placement(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True, standalone_query="credits for 06046401",
+            needs_clarification=False, clarification_question=None, course_detail=True,
+            course_code="06046401", program_code="AIT", academic_year="2566",
+        )
+        course = {"course_id": 1, "course_code": "06046401", "name_en": "CALCULUS 2",
+                  "name_th": "แคลคูลัส 2", "credits": "3(3-0-6)", "program_code": "AIT",
+                  "academic_year": "2566", "plans": ["default"],
+                  "placements": ["Year 1 · Semester 2"], "sources": ["ait.pdf · p.10"]}
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.list_courses", return_value={"items": [course], "total": 1}) as query:
+            result = rag_service.answer("วิชา 06046401 กี่หน่วยกิต", [])
+        self.assertIn("3(3-0-6)", result["answer"])
+        self.assertIn("CALCULUS 2", result["answer"])
+        self.assertIn("ชั้นปีที่ 1 · ภาคเรียนที่ 2", result["answer"])
+        self.assertEqual(query.call_args.kwargs["course_code"], "06046401")
+
+    def test_inverse_prerequisite_route_lists_courses_requiring_named_course(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="Courses requiring Calculus 1", needs_clarification=False,
+            clarification_question=None, prerequisite_question=True,
+            course_code="06046400",
+            program_code="AIT", academic_year="2566",
+        )
+        dependent = {"course_id": 2, "course_code": "06046401", "name_en": "CALCULUS 2",
+                     "name_th": "แคลคูลัส 2", "program_code": "AIT", "academic_year": "2566",
+                     "plans": ["default"], "sources": ["ait.pdf · p.11"]}
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.courses_requiring", return_value={"items": [dependent], "total": 1}):
+            result = rag_service.answer("แคลคูลัส 1 ต้องเรียนก่อนวิชาอะไร", [])
+        self.assertIn("06046401", result["answer"])
+        self.assertIn("CALCULUS 2", result["answer"])
+        self.assertEqual(len(result["sources"]), 1)
+
+    def test_inverse_prerequisite_returns_common_answer_when_unscoped_matches_agree(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="Courses requiring CALCULUS 1", needs_clarification=False,
+            clarification_question=None, prerequisite_question=True,
+            prerequisite_direction="courses_requiring", course_name="CALCULUS 1",
+        )
+        candidates = [
+            {"course_code": "06046400", "name_en": "CALCULUS 1", "name_th": "แคลคูลัส 1",
+             "program_code": "AIT", "academic_year": "2566"},
+            {"course_code": "06026200", "name_en": "CALCULUS 1", "name_th": "แคลคูลัส 1",
+             "program_code": "DSBA", "academic_year": "2565"},
+        ]
+        dependents = [
+            {"course_id": 7, "course_code": "06046401", "name_en": "CALCULUS 2",
+             "name_th": "แคลคูลัส 2", "program_code": "AIT", "academic_year": "2566",
+             "plans": ["default"], "sources": ["ait.pdf · p.11"]},
+            {"course_id": 8, "course_code": "06026201", "name_en": "CALCULUS 2",
+             "name_th": "แคลคูลัส 2", "program_code": "DSBA", "academic_year": "2565",
+             "plans": ["coop", "no_coop"], "sources": ["dsba.pdf · p.10"]},
+        ]
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.list_courses", return_value={"items": candidates, "total": 2}), \
+             patch("backend.curriculum.courses_requiring", side_effect=[
+                 {"items": [dependents[0]], "total": 1},
+                 {"items": [dependents[1]], "total": 1},
+             ]):
+            result = rag_service.answer("วิชาแคลคูลัส 1 ต้องเรียนก่อนวิชาอะไร", [])
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("CALCULUS 2", result["answer"])
+        self.assertIn("06046401", result["answer"])
+        self.assertIn("06026201", result["answer"])
+        self.assertEqual(len(result["sources"]), 2)
+
+    def test_program_requirement_route_returns_scoped_total_and_source(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="IT curriculum 2565 total program credits",
+            needs_clarification=False, clarification_question=None,
+            program_requirement=True, program_code="IT", academic_year="2565",
+        )
+        requirement = {"requirement_id": 8, "program_code": "IT", "academic_year": "2565",
+                       "requirement_type": "total_program_credits", "operator": "=", "value": 129,
+                       "unit": "credits", "sources": [{"source_filename": "it-overview.pdf",
+                       "source_page": 1, "source_uri": None, "source_locator": None}]}
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.program_requirements", return_value={"items": [requirement], "total": 1}):
+            result = rag_service.answer("IT 2565 ต้องเรียนกี่หน่วยกิตจึงจบ", [])
+        self.assertIn("129 หน่วยกิต", result["answer"])
+        self.assertEqual(result["sources"][0]["source_page"], 1)
+
+    def test_program_requirement_comparison_uses_each_scoped_total(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="Compare IT 2565 and DSBA 2565 graduation credits",
+            needs_clarification=False, clarification_question=None,
+            compare_program_requirements=True,
+            left_scope=CurriculumScope(program_code="IT", academic_year="2565"),
+            right_scope=CurriculumScope(program_code="DSBA", academic_year="2565"),
+        )
+        it = {"requirement_id": 1, "program_code": "IT", "academic_year": "2565",
+              "value": 129, "unit": "credits", "sources": [{"source_filename": "it.pdf", "source_page": 1}]}
+        dsba = {"requirement_id": 2, "program_code": "DSBA", "academic_year": "2565",
+                "value": 132, "unit": "credits", "sources": [{"source_filename": "dsba.pdf", "source_page": 2}]}
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.program_requirements", side_effect=[
+                 {"items": [it], "total": 1}, {"items": [dsba], "total": 1},
+             ]):
+            result = rag_service.answer("เปรียบเทียบหน่วยกิตจบ IT กับ DSBA ปี 2565", [])
+        self.assertIn("IT 2565: 129 หน่วยกิต", result["answer"])
+        self.assertIn("DSBA 2565: 132 หน่วยกิต", result["answer"])
+        self.assertTrue(result["answer"].splitlines()[-1].endswith("3 หน่วยกิต"))
+        self.assertEqual(len(result["sources"]), 2)
+
+    def test_course_detail_followup_preserves_history_for_resolver(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="AIT 2566 Calculus 2 credits",
+            needs_clarification=False, clarification_question=None, course_detail=True,
+            course_code="06046401", program_code="AIT", academic_year="2566",
+        )
+        course = {"course_id": 1, "course_code": "06046401", "name_en": "CALCULUS 2",
+                  "credits": "3(3-0-6)", "program_code": "AIT", "academic_year": "2566",
+                  "plans": ["default"], "placements": ["Year 1 · Semester 2"], "sources": []}
+        def resolve(_prompt, payload, schema):
+            self.assertEqual(schema, RouteDecision)
+            self.assertEqual(payload["history"][-1]["content"], "วิชาแคลคูลัส 2 ของ AIT คืออะไร")
+            return decision
+        history = [ChatTurn(role="user", content="วิชาแคลคูลัส 2 ของ AIT คืออะไร")]
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", side_effect=resolve), \
+             patch("backend.curriculum.list_courses", return_value={"items": [course], "total": 1}):
+            result = rag_service.answer("แล้วหน่วยกิตล่ะ", history)
+        self.assertIn("3(3-0-6)", result["answer"])
 
     def test_prerequisite_question_resolves_prerequisite_code_to_course_name(self):
         decision = RouteDecision(

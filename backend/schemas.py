@@ -49,8 +49,11 @@ class RouteDecision(BaseModel):
     plan: str | None = None
     course_detail: bool = False
     prerequisite_question: bool = False
+    prerequisite_direction: Literal["before_course", "courses_requiring"] = "before_course"
     course_code: str | None = None
     course_name: str | None = None
+    program_requirement: bool = False
+    compare_program_requirements: bool = False
     institution_rule: bool = False
     rule_query: str | None = None
     compare_curricula: bool = False
