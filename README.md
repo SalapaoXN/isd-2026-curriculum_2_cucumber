@@ -87,12 +87,14 @@ python -m src.pipeline.run --dataset it2565
 ```
 
 Run the other dataset keys as needed. For a complete refresh, the following PowerShell
-loop processes all supported curriculum datasets sequentially:
+loop processes all supported curriculum datasets sequentially. GENED runs first
+in each era because program merges backfill empty course descriptions from the
+same-era GENED final (`gened2564` for years 65/66, `gened2557` for year 60):
 
 ```powershell
 $datasets = @(
-    "ait2566", "bit2565", "bit2560", "dsba2565", "dsba2560",
-    "gened2564", "gened2557", "it2565", "it2560"
+    "gened2564", "ait2566", "bit2565", "dsba2565", "it2565",
+    "gened2557", "bit2560", "dsba2560", "it2560"
 )
 
 foreach ($dataset in $datasets) {

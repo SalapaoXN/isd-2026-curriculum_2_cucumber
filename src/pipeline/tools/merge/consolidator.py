@@ -363,6 +363,105 @@ def _prediction_metadata(data: dict, plan) -> dict:
     }
 
 
+_GENED_DESC_ERA = (
+    (("2560",), "gened2557_final.json"),
+    (("2564", "2565", "2566"), "gened2564_final.json"),
+)
+_GENED_CODE_RE = re.compile(r"^[0-9]{8}$")
+
+
+def _gened_final_filename(catalog_key: str | None) -> str | None:
+    """Return the era-matched GENED final filename, or None when no backfill applies."""
+    if not isinstance(catalog_key, str) or not catalog_key.strip():
+        return None
+    token = catalog_key.strip().casefold()
+    if token.startswith("gened"):
+        return None
+    year = token.rsplit("-", 1)[-1] if "-" in token else ""
+    for years, filename in _GENED_DESC_ERA:
+        if year in years:
+            return filename
+    return None
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[4]
+
+
+def load_gened_desc_lookup(
+    catalog_key: str | None, base_dir: str | Path | None = None
+) -> Dict[str, dict] | None:
+    """Load unique GENED descriptions for backfill, keyed by exact course code.
+
+    Returns None when the catalog needs no GENED backfill. Raises
+    FileNotFoundError when the era-matched GENED final is missing so a
+    silently desc-less program merge cannot pass unnoticed.
+    """
+    filename = _gened_final_filename(catalog_key)
+    if filename is None:
+        return None
+    root = Path(base_dir) if base_dir is not None else _repo_root()
+    path = root / "data" / "output" / "final" / filename
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"GENED description source not found for {catalog_key}: {path} "
+            "(build the same-era GENED dataset first: gened2557 for year 60, "
+            "gened2564 for years 65/66)"
+        )
+    with path.open("r", encoding="utf-8") as handle:
+        document = json.load(handle)
+    counts: Dict[str, int] = {}
+    first: Dict[str, dict] = {}
+    for course in document.get("courses", []):
+        code = course.get("code")
+        if not isinstance(code, str) or not code:
+            continue
+        counts[code] = counts.get(code, 0) + 1
+        first.setdefault(code, course)
+    return {code: course for code, course in first.items() if counts[code] == 1}
+
+
+def _is_backfillable_code(code: object) -> bool:
+    if not isinstance(code, str) or not code or "หรือ" in code:
+        return False
+    if "x" in code.casefold():
+        return False
+    return _GENED_CODE_RE.fullmatch(code) is not None
+
+
+def backfill_gened_descriptions(
+    courses: List[dict], gened_lookup: Dict[str, dict] | None
+) -> int:
+    """Fill empty desc_th/desc_en from the GENED lookup without overwriting.
+
+    Only courses with both descriptions empty and an exact unique GENED code
+    match are filled; provenance is merged so the GENED origin stays visible.
+    Returns the number of courses filled.
+    """
+    if not gened_lookup:
+        return 0
+    filled = 0
+    for course in courses:
+        if not isinstance(course, dict):
+            continue
+        if course.get("desc_th") or course.get("desc_en"):
+            continue
+        if not _is_backfillable_code(course.get("code")):
+            continue
+        source = gened_lookup.get(course.get("code"))
+        if source is None:
+            continue
+        if source.get("desc_th"):
+            course["desc_th"] = source.get("desc_th")
+        if source.get("desc_en"):
+            course["desc_en"] = source.get("desc_en")
+        if not course.get("desc_th") and not course.get("desc_en"):
+            continue
+        course["source_provenance"] = merge_source_provenance(course, source)
+        filled += 1
+    return filled
+
+
 def _merge_output_directory(output_folder: Path, program: str, plan, kind: str) -> Path:
     """Return the structured destination for a merged page range or full file."""
     program_label = _safe_identifier(str(program).strip().lower(), fallback="program")
@@ -966,6 +1065,18 @@ def merge_consecutive_files(
                 dedupe_courses(desc_courses),
                 metadata,
             )
+
+            gened_lookup = load_gened_desc_lookup(catalog_key)
+            if gened_lookup:
+                backfilled = backfill_gened_descriptions(
+                    final.get("courses", []), gened_lookup
+                )
+                if backfilled:
+                    print(
+                        f" Backfilled {backfilled} empty description(s) from "
+                        f"{_gened_final_filename(catalog_key)} for plan "
+                        f"'{plan_label(plan)}'."
+                    )
 
             safe_plan = _safe_identifier(plan_label(plan))
             output_filename = f"merged_{group_id}_{safe_plan}{edition_suffix}_full.json"

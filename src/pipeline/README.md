@@ -194,14 +194,14 @@ python -m src.pipeline.run --dataset bit2565 --from consolidated --skip-eval
 
 ```powershell
 $datasets = @(
+    "gened2564",
     "ait2566",
     "bit2565",
-    "bit2560",
     "dsba2565",
-    "dsba2560",
-    "gened2564",
-    "gened2557",
     "it2565",
+    "gened2557",
+    "bit2560",
+    "dsba2560",
     "it2560"
 )
 
@@ -220,7 +220,7 @@ foreach ($d in $datasets) {
 }
 ```
 
-ถ้าบาง dataset ทำเสร็จแล้ว ให้ลบชื่อ dataset เหล่านั้นออกจาก `$datasets` แล้วรันเฉพาะตัวที่เหลือ ไม่จำเป็นต้อง correction ซ้ำทั้งหมด
+ถ้าบาง dataset ทำเสร็จแล้ว ให้ลบชื่อ dataset เหล่านั้นออกจาก `$datasets` แล้วรันเฉพาะตัวที่เหลือ ไม่จำเป็นต้อง correction ซ้ำทั้งหมด แต่ต้องคงลำดับ GENED-first ไว้เสมอ: GENED ของยุคนั้น (`gened2564` สำหรับปี 65/66, `gened2557` สำหรับปี 60) ต้องมี final ก่อนโปรแกรมในยุคนั้น เพราะ merge จะ backfill คำอธิบายวิชาที่ว่างจาก GENED final ยุคเดียวกัน
 
 Gemini corrector ปัจจุบันแบ่งข้อความเป็น batch ละ 50 unique units และ deduplicate ชื่อซ้ำระหว่าง plan files ของ dataset เดียวกันก่อนส่ง API ถ้าเจอ `429`, `RESOURCE_EXHAUSTED`, `quota` หรือ `Gemini batch ... failed` ให้หยุดชุดนั้นก่อน ไม่ควรยิง loop ซ้ำทันที
 
@@ -278,6 +278,7 @@ Source images
 → deterministic pre-clean
 → Extract structured curriculum fields
 → Merge study plan + course descriptions
+→ Backfill empty descriptions from the same-era GENED final (57↔60, 64↔65/66; exact codes only, never overwrites)
 → Gemini proofreading เฉพาะชื่อวิชา
 → Final reviewed JSON
 → Evaluation against accepted teacher Ground Truth
