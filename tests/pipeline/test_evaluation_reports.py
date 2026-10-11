@@ -55,6 +55,14 @@ ERROR_COLUMNS = [
     "cer",
     "wer",
 ]
+CER_WER_COLUMNS = [
+    "program",
+    "plan",
+    "field",
+    "sample_count",
+    "cer",
+    "wer",
+]
 
 
 def course(code, name_th="ภาษาไทย", name_en="THAI ENGLISH"):
@@ -240,6 +248,42 @@ class EvaluationReportTests(unittest.TestCase):
             self.assertEqual(list(read_csv(field_path)[0].keys()), FIELD_COLUMNS)
             self.assertEqual(list(read_csv(error_path)[0].keys()), ERROR_COLUMNS)
             self.assertIn("แมว", error_path.read_text(encoding="utf-8-sig"))
+
+    def test_cer_wer_summary_has_overall_plus_per_field_and_no_new_math(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            gt_path, pred_path = write_pair(
+                root,
+                "cerwer",
+                [course("A0000001", "ฉันรักแมว")],
+                [course("A0000001", "ฉันรักหมา")],
+                "GENED",
+                "gened",
+            )
+            case = evaluate_pair(gt_path, pred_path)
+            report_dir = root / "reports/evaluation"
+            payload = write_evaluation_reports([case], report_dir)
+
+            summary_path = report_dir / "cer_wer_summary.csv"
+            self.assertEqual(summary_path.read_bytes()[:3], b"\xef\xbb\xbf")
+            rows = read_csv(summary_path)
+            self.assertEqual(list(rows[0].keys()), CER_WER_COLUMNS)
+            by_field = {row["field"]: row for row in rows}
+
+            field_rows = read_csv(report_dir / "field_metrics.csv")
+            field_cer = {
+                row["field"]: row["cer"] for row in field_rows
+            }
+            for field, cer in field_cer.items():
+                self.assertIn(field, by_field)
+                self.assertEqual(by_field[field]["cer"], cer)
+            self.assertIn("overall", by_field)
+
+            overall = payload["results"][0]["page_level"]
+            self.assertEqual(by_field["overall"]["cer"], str(overall["cer"]))
+            self.assertEqual(by_field["overall"]["wer"], str(overall["wer"]))
+            self.assertEqual(by_field["code"]["wer"], "")
+            self.assertEqual(by_field["credits"]["wer"], "")
 
     def test_description_fields_are_reported_only_when_gt_has_them(self):
         with tempfile.TemporaryDirectory() as temp_dir:

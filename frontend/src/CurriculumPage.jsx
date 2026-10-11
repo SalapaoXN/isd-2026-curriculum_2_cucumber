@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, ChevronDown, ChevronLeft,
-  ChevronRight, Layers3, LoaderCircle, Search, X,
+  ChevronRight, Layers3, LoaderCircle, Moon, Search, Sun, X,
 } from "lucide-react";
 
 const PAGE_SIZE = 50;
@@ -17,7 +17,7 @@ function SelectFilter({ label, value, options, onChange, placeholder, formatOpti
   </label>;
 }
 
-export default function CurriculumPage() {
+export default function CurriculumPage({ theme = "light", onToggleTheme }) {
   const [options, setOptions] = useState({ programs: [], academic_years: [], plans: [], categories: [], course_types: [], study_years: [], semesters: [] });
   const [filters, setFilters] = useState({ search: "", program: "", academic_year: "", plan: "", category: "", course_type: "", study_year: "", semester: "" });
   const [offset, setOffset] = useState(0);
@@ -88,6 +88,7 @@ export default function CurriculumPage() {
         <a href="/">Ask Cucumber</a><a className="active" href="/curriculum">Curriculum document</a>
       </nav>
       <a className="back-to-chat" href="/"><ArrowLeft size={15} /> Back to chat</a>
+      <button className="theme-toggle curriculum-theme-toggle" onClick={onToggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`${theme === "dark" ? "Light" : "Dark"} mode`}>{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}</button>
     </header>
 
     <section className="curriculum-main">

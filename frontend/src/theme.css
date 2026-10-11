@@ -1,0 +1,206 @@
+/* Small readability pass + dark theme. Layout and component behavior stay unchanged. */
+.theme-toggle{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  flex:0 0 34px;
+  border:1px solid #dfe5dc;
+  border-radius:8px;
+  background:#fff;
+  color:#5f6d61;
+  cursor:pointer;
+  transition:background .16s,border-color .16s,color .16s,transform .16s;
+}
+.theme-toggle:hover{background:#f3f7f1;border-color:#c5d4c2;color:#376442;transform:translateY(-1px)}
+.curriculum-theme-toggle{margin-left:0}
+
+/* Several labels were 8–9px; keep them compact but easier to read. */
+.brand small,.history-group h2,.source-status small,.privacy-note,.welcome-kicker,.welcome-note,
+.footer-caption,.message-column time,.retrieval-badge,.curriculum-brand small,.curriculum-eyebrow,
+.curriculum-stat small,.curriculum-filter>span:first-child,.subject-meta small,.subject-source,
+.results-page-label,.curriculum-footer{font-size:10px}
+.subject-tags span,.source-type-tags span{font-size:9px}
+.subject-meta>span,.subject-details p,.curriculum-pagination{font-size:10px}
+.message-bubble p{font-size:13px}
+
+html[data-theme="dark"]{color-scheme:dark;background:#101411}
+html[data-theme="dark"] body{background:#101411}
+
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] .curriculum-page{background:#111612;color:#e6ece7}
+
+html[data-theme="dark"] .sidebar{background:#171d18;border-right-color:#2a332b}
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .curriculum-topbar{background:#151a16;border-color:#2a332b}
+
+html[data-theme="dark"] .brand,
+html[data-theme="dark"] .curriculum-brand,
+html[data-theme="dark"] .welcome-content h1,
+html[data-theme="dark"] .thread-heading strong,
+html[data-theme="dark"] .curriculum-title-row h1,
+html[data-theme="dark"] .subject-title-row h2,
+html[data-theme="dark"] .curriculum-results-head strong,
+html[data-theme="dark"] .curriculum-empty strong{color:#e7eee8}
+
+html[data-theme="dark"] .brand small,
+html[data-theme="dark"] .history-group h2,
+html[data-theme="dark"] .history-empty,
+html[data-theme="dark"] .privacy-note,
+html[data-theme="dark"] .breadcrumb,
+html[data-theme="dark"] .secure-label,
+html[data-theme="dark"] .welcome-copy,
+html[data-theme="dark"] .welcome-note,
+html[data-theme="dark"] .composer-tools,
+html[data-theme="dark"] .character-count,
+html[data-theme="dark"] .footer-caption,
+html[data-theme="dark"] .thread-heading small,
+html[data-theme="dark"] .message-column time,
+html[data-theme="dark"] .thinking span,
+html[data-theme="dark"] .curriculum-brand small,
+html[data-theme="dark"] .curriculum-title-row p,
+html[data-theme="dark"] .curriculum-filter>span:first-child,
+html[data-theme="dark"] .curriculum-results-head span,
+html[data-theme="dark"] .results-page-label,
+html[data-theme="dark"] .thai-course-name,
+html[data-theme="dark"] .subject-meta small,
+html[data-theme="dark"] .subject-source,
+html[data-theme="dark"] .curriculum-pagination,
+html[data-theme="dark"] .curriculum-footer{color:#9ca9a0}
+
+html[data-theme="dark"] .breadcrumb strong,
+html[data-theme="dark"] .source-status strong,
+html[data-theme="dark"] .prompt-card strong,
+html[data-theme="dark"] .message-bubble,
+html[data-theme="dark"] .subject-meta>span,
+html[data-theme="dark"] .curriculum-filter-topline>strong,
+html[data-theme="dark"] .curriculum-stat strong{color:#d9e2da}
+
+html[data-theme="dark"] .sidebar-bottom,
+html[data-theme="dark"] .privacy-note,
+html[data-theme="dark"] .thread-heading,
+html[data-theme="dark"] .response-state,
+html[data-theme="dark"] .citations,
+html[data-theme="dark"] .subject-meta,
+html[data-theme="dark"] .subject-details,
+html[data-theme="dark"] .curriculum-footer{border-color:#2a332b}
+
+html[data-theme="dark"] .icon-button{color:#9ba79e}
+html[data-theme="dark"] .icon-button:hover,
+html[data-theme="dark"] .history-item:hover,
+html[data-theme="dark"] .history-item.selected,
+html[data-theme="dark"] .sidebar-page-link:hover{background:#202821;color:#a9d3b0}
+html[data-theme="dark"] .history-item>button:first-child{color:#aab5ac}
+html[data-theme="dark"] .history-item.selected>button:first-child{color:#a7d1ae}
+html[data-theme="dark"] .sidebar-page-link,
+html[data-theme="dark"] .curriculum-topnav a{color:#a1ada4}
+html[data-theme="dark"] .curriculum-topnav a:hover,
+html[data-theme="dark"] .curriculum-topnav a.active{color:#9bc6a3}
+html[data-theme="dark"] .curriculum-topnav a.active{border-bottom-color:#78a982}
+
+html[data-theme="dark"] .new-chat-button,
+html[data-theme="dark"] .top-new,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .prompt-card,
+html[data-theme="dark"] .composer,
+html[data-theme="dark"] .assistant-bubble,
+html[data-theme="dark"] .citation-item,
+html[data-theme="dark"] .curriculum-stat,
+html[data-theme="dark"] .curriculum-filter-panel,
+html[data-theme="dark"] .curriculum-select-wrap,
+html[data-theme="dark"] .curriculum-search-wrap,
+html[data-theme="dark"] .subject-card,
+html[data-theme="dark"] .results-page-label,
+html[data-theme="dark"] .curriculum-pagination button{background:#1b221c;border-color:#2c372e;color:#dce5dd}
+
+html[data-theme="dark"] .new-chat-button:hover,
+html[data-theme="dark"] .top-new:hover,
+html[data-theme="dark"] .theme-toggle:hover,
+html[data-theme="dark"] .prompt-card:hover,
+html[data-theme="dark"] .curriculum-pagination button:hover:not(:disabled){background:#222b24;border-color:#415846;color:#b8d9be}
+
+html[data-theme="dark"] .history-search{background:#141a15;border-color:#2a332b;color:#95a199}
+html[data-theme="dark"] .history-search input,
+html[data-theme="dark"] .composer textarea,
+html[data-theme="dark"] .curriculum-select-wrap select,
+html[data-theme="dark"] .curriculum-search-wrap input{color:#e4ebe5}
+html[data-theme="dark"] .history-search input::placeholder,
+html[data-theme="dark"] .composer textarea::placeholder,
+html[data-theme="dark"] .curriculum-search-wrap input::placeholder{color:#7f8d83}
+
+html[data-theme="dark"] .welcome-kicker,
+html[data-theme="dark"] .prompt-icon,
+html[data-theme="dark"] .thread-marker,
+html[data-theme="dark"] .assistant-avatar,
+html[data-theme="dark"] .retrieval-done,
+html[data-theme="dark"] .citations summary span,
+html[data-theme="dark"] .citation-number,
+html[data-theme="dark"] .curriculum-stat>span{background:#203024;border-color:#304332;color:#8fc49a}
+html[data-theme="dark"] .welcome-kicker{border-color:#304332}
+html[data-theme="dark"] .welcome-content h1 span,
+html[data-theme="dark"] .curriculum-eyebrow,
+html[data-theme="dark"] .subject-code,
+html[data-theme="dark"] .subject-credits,
+html[data-theme="dark"] .back-to-chat,
+html[data-theme="dark"] .curriculum-footer a,
+html[data-theme="dark"] .subject-details summary{color:#8fbd98}
+
+html[data-theme="dark"] .user-bubble{background:#243429;border-color:#314536;color:#e5ede6}
+html[data-theme="dark"] .assistant-bubble{border-color:#2c372e}
+html[data-theme="dark"] .message-brand{color:#9ec4a5}
+
+html[data-theme="dark"] .composer-wrap{background:linear-gradient(0deg,#111612 78%,#11161200)}
+html[data-theme="dark"] .composer:focus-within{border-color:#5d8064;box-shadow:0 0 0 3px #29452f80,0 5px 22px #00000022}
+html[data-theme="dark"] .keyboard-key{border-color:#344037;color:#a7b3aa}
+html[data-theme="dark"] .send-button{background:#4d8059;color:#fff}
+html[data-theme="dark"] .send-button:hover:not(:disabled){background:#5b9167}
+html[data-theme="dark"] .send-button:disabled{background:#283129;color:#6f7d73}
+
+html[data-theme="dark"] .retrieval-badge{background:#171d18;border-color:#2c362d;color:#a7b2a9}
+html[data-theme="dark"] .retrieval-skipped{background:#171d18;border-color:#2c362d;color:#9ca79e}
+html[data-theme="dark"] .retrieval-unknown{background:#2a241b;border-color:#463a29;color:#cfaa76}
+
+html[data-theme="dark"] .citations summary{color:#9fc4a6}
+html[data-theme="dark"] .citation-item{color:#cbd5cc}
+html[data-theme="dark"] .citation-item small,
+html[data-theme="dark"] .citation-item em{color:#9eaaa0}
+html[data-theme="dark"] .citation-item:hover{border-color:#46604b}
+
+html[data-theme="dark"] .clarification-options>small{color:#a8b3aa}
+html[data-theme="dark"] .clarification-options button{background:#1d2a20;border-color:#36513c;color:#b8d8be}
+html[data-theme="dark"] .clarification-options button:hover:not(:disabled){background:#26372a;border-color:#56785d}
+html[data-theme="dark"] .response-time{color:#9ba89e}
+
+html[data-theme="dark"] .document-type-bar{background:#171d18;border-color:#2a332b}
+html[data-theme="dark"] .document-type-bar button{color:#a4afa6}
+html[data-theme="dark"] .document-type-bar button:hover{background:#202821;color:#abd2b2}
+html[data-theme="dark"] .document-type-bar button.selected{background:#1f2821;border-color:#3a4c3e;color:#afd5b6;box-shadow:none}
+html[data-theme="dark"] .type-filter-heading{color:#a5b0a7}
+
+html[data-theme="dark"] .curriculum-filter-panel{box-shadow:0 4px 16px #00000012}
+html[data-theme="dark"] .curriculum-select-wrap:focus-within,
+html[data-theme="dark"] .curriculum-search-wrap:focus-within{border-color:#5f8267;box-shadow:0 0 0 2px #27422d}
+html[data-theme="dark"] .curriculum-select-wrap>svg,
+html[data-theme="dark"] .curriculum-search-wrap>svg{color:#8d9a90}
+
+html[data-theme="dark"] .subject-tags span,
+html[data-theme="dark"] .source-type-tags span{background:#252e27;color:#aab5ac}
+html[data-theme="dark"] .subject-tags .tag-type{background:#332b20;color:#d0aa78}
+html[data-theme="dark"] .subject-details p{color:#abb6ad}
+
+html[data-theme="dark"] .curriculum-loading,
+html[data-theme="dark"] .curriculum-empty{background:#151a16;border-color:#313b33;color:#9ca8a0}
+html[data-theme="dark"] .curriculum-error,
+html[data-theme="dark"] .composer-error-text{background:#2b1d1b;border-color:#54322e;color:#e1a59d}
+html[data-theme="dark"] .curriculum-error button,
+html[data-theme="dark"] .composer-error-text button{color:#e6b2aa}
+
+html[data-theme="dark"] .scroll-bottom{background:#1b221c;border-color:#2c372e;color:#9dc4a5;box-shadow:0 3px 12px #0000002b}
+html[data-theme="dark"] .mobile-backdrop{background:#05080680}
+
+@media(max-width:600px){
+  .topbar-right{gap:6px}
+  .theme-toggle{width:31px;height:31px;flex-basis:31px}
+  .curriculum-topbar{gap:8px}
+  .back-to-chat{display:none}
+}

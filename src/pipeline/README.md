@@ -257,12 +257,12 @@ rules source ใช้ dataset identity `rule2564` สำหรับหน้�
 
 เมื่อมี reviewed finals ใน data/output/final/*_final.json ให้รันตามลำดับนี้:
 
-    .\.venv\Scripts\python.exe -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation_precanonical
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation
     .\.venv\Scripts\python.exe -m src.pipeline.tools.canonicalize_runtime
     .\.venv\Scripts\python.exe -m src.pipeline.tools.preflight_runtime
     .\.venv\Scripts\python.exe -m rag.build_index
 
-Evaluation ใช้ raw reviewed finals ก่อน canonicalization และเขียนผลแยกใน reports/evaluation_precanonical/. ประเมินเฉพาะ 8 scopes ที่มี accepted GT ตรง edition: AIT 2566; BIT/DSBA/IT 2565 ทั้ง coop และ no_coop; GENED 2564. BIT/DSBA/IT 2560 และ GENED 2557 จะถูกข้ามเพราะไม่มี accepted Ground Truth ของ edition เดียวกัน.
+Evaluation ใช้ raw reviewed finals ก่อน canonicalization และเขียนผลแยกใน reports/evaluation/. ประเมินเฉพาะ 8 scopes ที่มี accepted GT ตรง edition: AIT 2566; BIT/DSBA/IT 2565 ทั้ง coop และ no_coop; GENED 2564. BIT/DSBA/IT 2560 และ GENED 2557 จะถูกข้ามเพราะไม่มี accepted Ground Truth ของ edition เดียวกัน.
 
 หลัง evaluation เสร็จ canonicalizer ใช้ accepted teacher GT เป็น authority เฉพาะ fields ที่มีใน GT: code, name_th, name_en, credits, year, semester, category, type, prerequisite, flexible_year_semester และ note. Descriptions และ provenance มาจาก reviewed finals. สำหรับ legacy 2560 ใช้ data/corrections/legacy_2560_source_verified_corrections.json เท่านั้น; ไม่ใช้ current GT. preflight_runtime แสดง unresolved shared-course conflicts ทั้งหมด และ build จะหยุดถ้ายังมี conflict.
 

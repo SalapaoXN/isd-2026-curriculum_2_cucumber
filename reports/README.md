@@ -4,7 +4,7 @@
 
 ## Evaluation ปัจจุบัน
 
-Evaluation วัดผลของ reviewed prediction ใน data/output/final/*_final.json เทียบกับ accepted teacher Ground Truth **ก่อน** canonicalization. ผลอยู่ที่ reports/evaluation_precanonical/ และไม่ถูกเขียนทับด้วย GT runtime override. การมี GT ในขั้น canonicalization ภายหลังไม่ใช่ evaluation leakage เพราะ prediction และรายงานถูกสร้างก่อน override.
+Evaluation วัดผลของ reviewed prediction ใน data/output/final/*_final.json เทียบกับ accepted teacher Ground Truth **ก่อน** canonicalization. ผลอยู่ที่ reports/evaluation/ และไม่ถูกเขียนทับด้วย GT runtime override. การมี GT ในขั้น canonicalization ภายหลังไม่ใช่ evaluation leakage เพราะ prediction และรายงานถูกสร้างก่อน override.
 
 ประเมินเฉพาะ 8 scopes ที่มี accepted Ground Truth ของ edition เดียวกัน:
 
@@ -16,18 +16,19 @@ Evaluation วัดผลของ reviewed prediction ใน data/output/final
 
 ไม่ประเมิน BIT 2560, DSBA 2560, IT 2560 หรือ GENED 2557 เพราะไม่มี accepted Ground Truth ของ edition เดียวกัน. Legacy runtime ใช้ source-verified corrections ตาม artifact ที่กำหนด โดยไม่ใช้ current GT.
 
-รายงานใน reports/evaluation_precanonical/:
+รายงานใน reports/evaluation/:
 
 - evaluation_summary.csv — coverage และจำนวน record
 - field_metrics.csv — metrics แยก field
 - evaluation_errors.csv — รายการค่าที่ไม่ตรง
+- cer_wer_summary.csv — CER/WER-only: overall + per field (no new averaging)
 - evaluation.json — รายละเอียดผลทั้งหมด
 
 ## Rebuild จาก reviewed finals
 
 เมื่อมี raw reviewed finals แล้ว สามารถประเมินและ rebuild runtime ได้โดยไม่รัน OCR หรือ Gemini ซ้ำ. จาก repository root ใช้คำสั่งตามลำดับนี้:
 
-    .\.venv\Scripts\python.exe -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation_precanonical
+    .\.venv\Scripts\python.exe -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation
     .\.venv\Scripts\python.exe -m src.pipeline.tools.canonicalize_runtime
     .\.venv\Scripts\python.exe -m src.pipeline.tools.preflight_runtime
     .\.venv\Scripts\python.exe -m rag.build_index
@@ -38,6 +39,6 @@ Teacher GT ใช้เป็น runtime authority หลัง evaluation เ�
 
 ## Historical reports
 
-reports/evaluation/ เป็น report path เดิมและไม่ใช่ output ของคำสั่งปัจจุบัน; evaluator ปัจจุบันเขียนไปที่ reports/evaluation_precanonical/. เก็บ historical metrics ตามสภาพเดิม ไม่ควรเปลี่ยนย้อนหลังเพื่อให้ตรงกับ code ปัจจุบัน.
+reports/evaluation_precanonical/ เป็น report path เดิมที่ retired แล้ว; evaluator ปัจจุบันเขียนไปที่ reports/evaluation/. เก็บ historical metrics ตามสภาพเดิม ไม่ควรเปลี่ยนย้อนหลังเพื่อให้ตรงกับ code ปัจจุบัน.
 
 ประวัติการแก้ Ground Truth ดูที่ ../ground_truth/GT_FIXED.md.

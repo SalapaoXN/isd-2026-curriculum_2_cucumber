@@ -66,7 +66,7 @@ def calculate_wer(gt: str, pred: str) -> float:
 THAI_WER_FIELDS = {"name_th", "desc_th"}
 WHITESPACE_WER_FIELDS = {"name_en", "desc_en", "prerequisite"}
 WER_NOT_APPLICABLE_FIELDS = {"code", "credits", "year", "semester"}
-REPORT_DIR = Path("reports/evaluation_precanonical")
+REPORT_DIR = Path("reports/evaluation")
 LLM_DIR = Path("data/output/final")
 GROUND_TRUTH_DIR = Path("ground_truth")
 ACCEPTED_GROUND_TRUTH = {
@@ -115,6 +115,14 @@ ERROR_COLUMNS = (
     "field",
     "gt_value",
     "pred_value",
+    "cer",
+    "wer",
+)
+CER_WER_SUMMARY_COLUMNS = (
+    "program",
+    "plan",
+    "field",
+    "sample_count",
     "cer",
     "wer",
 )
@@ -934,6 +942,39 @@ def _evaluation_error_rows(case: dict) -> List[dict]:
     return rows
 
 
+def _cer_wer_summary_rows(case: dict, field_rows_for_case: List[dict]) -> List[dict]:
+    """Reshape already-computed metrics into a CER/WER-only view.
+
+    No new averaging: per-field values are copied from ``_field_metric_rows``
+    output and the ``overall`` row is copied from the case ``page_level``
+    entry in ``evaluate_json_structure``.
+    """
+    rows = []
+    for row in field_rows_for_case:
+        rows.append(
+            {
+                "program": case["program"],
+                "plan": case["plan"],
+                "field": row["field"],
+                "sample_count": row["sample_count"],
+                "cer": row["cer"],
+                "wer": row["wer"],
+            }
+        )
+    page_level = case["result"].get("page_level", {})
+    rows.append(
+        {
+            "program": case["program"],
+            "plan": case["plan"],
+            "field": "overall",
+            "sample_count": page_level.get("count", ""),
+            "cer": page_level.get("cer", ""),
+            "wer": page_level.get("wer", ""),
+        }
+    )
+    return rows
+
+
 def _write_csv(path: Path, columns: tuple[str, ...], rows: List[dict]) -> None:
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(columns))
@@ -951,6 +992,7 @@ def write_evaluation_reports(
     summary_rows = []
     field_rows = []
     error_rows = []
+    cer_wer_rows = []
 
     for case in cases:
         result = dict(case["result"])
@@ -976,7 +1018,9 @@ def write_evaluation_reports(
                 "f1_percent": _coverage_percent(coverage["f1"]),
             }
         )
-        field_rows.extend(_field_metric_rows(case))
+        field_rows_for_case = _field_metric_rows(case)
+        field_rows.extend(field_rows_for_case)
+        cer_wer_rows.extend(_cer_wer_summary_rows(case, field_rows_for_case))
         error_rows.extend(_evaluation_error_rows(case))
 
     payload = {"results": results}
@@ -988,6 +1032,7 @@ def write_evaluation_reports(
     )
     _write_csv(reports_path / "field_metrics.csv", FIELD_METRIC_COLUMNS, field_rows)
     _write_csv(reports_path / "evaluation_errors.csv", ERROR_COLUMNS, error_rows)
+    _write_csv(reports_path / "cer_wer_summary.csv", CER_WER_SUMMARY_COLUMNS, cer_wer_rows)
     return payload
 
 

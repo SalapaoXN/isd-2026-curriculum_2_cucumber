@@ -133,7 +133,7 @@ After reviewed `*_final.json` files are ready, create the runtime artifacts in t
 order:
 
 ```powershell
-python -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation_precanonical
+python -m src.pipeline.tools.evaluation.evaluate --reports-dir reports/evaluation
 python -m src.pipeline.tools.canonicalize_runtime
 python -m src.pipeline.tools.preflight_runtime
 python -m rag.build_index

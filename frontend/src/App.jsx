@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown, ArrowRight, ArrowUp, BookOpen, ChevronDown, Clock3, FileText,
-  BookOpenCheck, GraduationCap, Menu, MessageCircle, Plus, Search, ShieldCheck, Sparkles,
-  Trash2, X,
+  BookOpenCheck, GraduationCap, Menu, MessageCircle, Moon, Plus, Search, ShieldCheck, Sparkles,
+  Sun, Trash2, X,
 } from "lucide-react";
 import CurriculumPage from "./CurriculumPage.jsx";
 
 const STORAGE_KEY = "cucumber-conversations-v1";
+const THEME_STORAGE_KEY = "cucumber-theme";
 const suggestions = [
   { icon: GraduationCap, title: "Study plans", text: "What courses are in year 1?" },
   { icon: BookOpen, title: "Course details", text: "What are the prerequisites for calculus?" },
@@ -136,6 +137,10 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [scrollDown, setScrollDown] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem(THEME_STORAGE_KEY) || "light"; }
+    catch { return "light"; }
+  });
   const threadRef = useRef(null);
   const textareaRef = useRef(null);
   const active = conversations.find(item => item.id === activeId) || null;
@@ -144,6 +149,12 @@ export default function App() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations)); }
     catch { /* Keep the chat usable when browser storage is unavailable. */ }
   }, [conversations]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme); }
+    catch { /* Theme still works for the current session when storage is unavailable. */ }
+  }, [theme]);
 
   useEffect(() => {
     fetch("/api/health").then(response => response.json()).then(setHealth).catch(() => setHealth({ status: "offline" }));
@@ -247,7 +258,7 @@ export default function App() {
     }, {});
   const hasMessages = Boolean(active?.messages.length);
 
-  if (window.location.pathname === "/curriculum") return <CurriculumPage />;
+  if (window.location.pathname === "/curriculum") return <CurriculumPage theme={theme} onToggleTheme={() => setTheme(value => value === "dark" ? "light" : "dark")} />;
 
   return <main className={`app-shell ${sidebarOpen ? "sidebar-visible" : "sidebar-hidden"}`}>
     <aside className="sidebar">
@@ -277,7 +288,7 @@ export default function App() {
       <header className="topbar">
         <button className="icon-button menu-open" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar"><Menu size={19} /></button>
         <div className="breadcrumb"><span>Workspace</span><span className="crumb-divider">/</span><strong>Ask Cucumber</strong></div>
-        <div className="topbar-right"><span className="secure-label"><ShieldCheck size={14} /> Source-grounded answers</span><button className="top-new" onClick={createChat}><Plus size={15} /> New chat</button></div>
+        <div className="topbar-right"><button className="theme-toggle" onClick={() => setTheme(value => value === "dark" ? "light" : "dark")} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`${theme === "dark" ? "Light" : "Dark"} mode`}>{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}</button><span className="secure-label"><ShieldCheck size={14} /> Source-grounded answers</span><button className="top-new" onClick={createChat}><Plus size={15} /> New chat</button></div>
       </header>
 
       <div className={`conversation-area ${hasMessages ? "has-messages" : "welcome-area"}`} ref={threadRef}>
