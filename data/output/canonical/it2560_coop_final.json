@@ -1248,7 +1248,7 @@
     {
       "code": "06016344",
       "name_th": "หลักการออกแบบกราฟิกส์",
-      "name_en": "GRAPHICS DESIGN PRINCIPLES",
+      "name_en": "GRAPHIC DESIGN PRINCIPLES",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1345,7 +1345,7 @@
       "credits": "1(1-0-2)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "NONE G",
+      "prerequisite": "NONE",
       "flexible_year_semester": null,
       "note": null,
       "year": 3,
@@ -1364,10 +1364,17 @@
           "source_page": 231,
           "document_category": "description",
           "document_page": null
+        },
+        {
+          "source_filename": "it2560_page_231.png",
+          "source_page": 231,
+          "document_category": "description",
+          "excerpt": "The course-description page for 06016318 explicitly lists PREREQUISITE: NONE."
         }
       ],
       "desc_th": "ทักษะต่างๆ สำหรับการสมัครงานและการประกอบอาชีพ เทคนิคการเขียนจดหมายสมัครงาน เทคนิค\nการสอบสัมภาษณ์งาน\nการพฒ\nเนาบุคลิกภาพและการแต่งกาย ทักษะในการนำเสนองานทางธุรกิจ  ทักษะใน\nการพูดและการสื่อสาร ฺมารยาทในการเข้าสังคมฺการบริหารอารมณ์\nค",
-      "desc_en": "SKILLS FOR APPLYING TO\nA\nJOB AND WORKING,\nRESUME AND APPLICATION LETTER WRITING., JOB\nINTERVIEW\nTECHNIQUES, WARDROBE AND PERSONALITY DEVELOPMENT, BUSINESS PRESENTATION SKILLS,\nVOICE COMMUNICATION SKILLS, SOCIAL ETIQUETTE, EC."
+      "desc_en": "SKILLS FOR APPLYING TO\nA\nJOB AND WORKING,\nRESUME AND APPLICATION LETTER WRITING., JOB\nINTERVIEW\nTECHNIQUES, WARDROBE AND PERSONALITY DEVELOPMENT, BUSINESS PRESENTATION SKILLS,\nVOICE COMMUNICATION SKILLS, SOCIAL ETIQUETTE, EC.",
+      "prerequisite_observed": "NONE G"
     },
     {
       "code": "060163xx",
@@ -1711,7 +1718,7 @@
     {
       "code": "06016394",
       "name_th": "สหกิจศึกษาต่างประเทศทางด้านวิศวกรรมซอฟต์แวร์",
-      "name_en": "OVERSEAS COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
       "credits": "6(0-36-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1773,7 +1780,7 @@
     {
       "code": "06016396",
       "name_th": "สหกิจศึกษาต่างประเทศทางด้านเทคโนโลยีเครือข่ายและระบบ",
-      "name_en": "OVERSEAS COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY",
       "credits": "6(0-36-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1834,11 +1841,11 @@
     {
       "code": "06016398",
       "name_th": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสื่อประสมและเกม",
-      "name_en": "OVERSEAS COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
       "credits": "6(0-36-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "F NONE",
+      "prerequisite": "NONE",
       "flexible_year_semester": null,
       "note": null,
       "year": 4,
@@ -1857,10 +1864,17 @@
           "source_page": 269,
           "document_category": "description",
           "document_page": null
+        },
+        {
+          "source_filename": "it2560_page_269.png",
+          "source_page": 269,
+          "document_category": "description",
+          "excerpt": "The course-description page for 06016398 explicitly lists PREREQUISITE: NONE."
         }
       ],
       "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน ต่างๆ ที่\nยินยอมให้นักศึกษาได้นำความรู้ตที่ได้เรียนในห้องเรียน ไปประยุกต์ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นต โดย\nโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะ=\nและ\nหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของโครงการต่อ\nคณะกรรมการสอบ",
-      "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL. WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND THE ENTERPRISES. AFTER COMPLETION, STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nวท.="
+      "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL. WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND THE ENTERPRISES. AFTER COMPLETION, STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nวท.=",
+      "prerequisite_observed": "F NONE"
     },
     {
       "code": "90401011",

@@ -327,6 +327,65 @@ class RAGServiceTests(unittest.TestCase):
         self.assertIn("no_coop", result["answer"])
         self.assertEqual(len(result["sources"]), 2)
 
+    def test_prerequisite_question_renders_alternatives_as_a_choice(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="Prerequisite for IT200", needs_clarification=False,
+            clarification_question=None, prerequisite_question=True,
+            course_code="IT200", program_code="IT", academic_year="2565",
+        )
+        target = {
+            "course_id": 200, "course_code": "IT200", "name_en": "NETWORK SYSTEMS",
+            "prerequisite_text": "IT110 or IT120", "program_code": "IT",
+            "academic_year": "2565", "plans": ["coop"], "sources": ["it-plan.pdf · p.10"],
+        }
+        alternatives = [
+            {"course_id": 110, "course_code": "IT110"},
+            {"course_id": 120, "course_code": "IT120"},
+        ]
+        prerequisite_rows = [
+            {"course_id": 110, "course_code": "IT110", "name_en": "NETWORK BASICS",
+             "program_code": "IT", "academic_year": "2565", "plans": ["coop"],
+             "sources": ["it-plan.pdf · p.8"]},
+            {"course_id": 120, "course_code": "IT120", "name_en": "SYSTEM BASICS",
+             "program_code": "IT", "academic_year": "2565", "plans": ["coop"],
+             "sources": ["it-plan.pdf · p.9"]},
+        ]
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.list_courses", side_effect=[
+                 {"items": [target], "total": 1},
+                 {"items": [prerequisite_rows[0]], "total": 1},
+                 {"items": [prerequisite_rows[1]], "total": 1},
+             ]), \
+             patch("backend.curriculum.course_prerequisite_requirements", return_value=[{
+                 "kind": "alternative", "minimum_choices": 1, "maximum_choices": 1,
+                 "members": alternatives, "plans": ["coop"],
+             }]), \
+             patch.object(rag_service, "_search", side_effect=AssertionError("prerequisites use structured lookup")):
+            result = rag_service.answer("What is a prerequisite for IT200 in IT 2565?", [])
+
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("Choose 1 of the following courses:", result["answer"])
+        self.assertIn("- IT110 — NETWORK BASICS", result["answer"])
+        self.assertIn("- IT120 — SYSTEM BASICS", result["answer"])
+        self.assertEqual(len(result["sources"]), 3)
+
+    def test_course_detail_without_matching_source_is_insufficient_evidence(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True, standalone_query="Unknown course details",
+            needs_clarification=False, clarification_question=None, course_detail=True,
+            course_code="99999999",
+        )
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch.object(rag_service, "_course_detail_rows", return_value=({"items": [], "total": 0}, [])):
+            result = rag_service.answer("Tell me details about course 99999999", [])
+
+        self.assertEqual(result["status"], "insufficient_evidence")
+        self.assertEqual(result["sources"], [])
+        self.assertEqual(result["retrieval_count"], 0)
+
     def test_flexible_placement_parser_handles_comma_separated_terms(self):
         self.assertEqual(
             rag_service._expand_placement_terms(["3/1, 3/2, 4/1"]),
@@ -483,6 +542,112 @@ class RAGServiceTests(unittest.TestCase):
             with self.assertRaises(Exception) as error:
                 rag_service.answer("What is the credit requirement?", [])
         self.assertEqual(error.exception.status_code, 503)
+
+    def test_provider_outage_asks_for_course_when_prerequisite_target_is_missing(self):
+        with patch.object(rag_service, "_classify_use_rag", side_effect=ConnectionError("offline")), \
+             patch("backend.curriculum.filters", return_value={"programs": ["IT"], "academic_years": ["2565"]}), \
+             patch("backend.curriculum.list_courses", return_value={"items": [], "total": 0}), \
+             patch.object(rag_service, "_generate", side_effect=AssertionError("Gemini is unavailable")), \
+             patch.object(rag_service, "_search", side_effect=AssertionError("must ask first")):
+            result = rag_service.answer("Check prerequisites", [])
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertIn("Which course name or code", result["answer"])
+        self.assertFalse(result["database_searched"])
+
+    def test_provider_outage_asks_for_course_when_detail_target_is_missing(self):
+        with patch.object(rag_service, "_classify_use_rag", side_effect=ConnectionError("offline")), \
+             patch("backend.curriculum.filters", return_value={"programs": ["IT"], "academic_years": ["2565"]}), \
+             patch("backend.curriculum.list_courses", return_value={"items": [], "total": 0}), \
+             patch.object(rag_service, "_generate", side_effect=AssertionError("Gemini is unavailable")), \
+             patch.object(rag_service, "_search", side_effect=AssertionError("must clarify first")):
+            result = rag_service.answer("How many credits?", [])
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["answer"], "Which course name or code should I look up?")
+        self.assertFalse(result["database_searched"])
+
+    def test_provider_outage_keeps_structured_course_list_available(self):
+        courses = [{
+            "course_id": 1, "course_code": "IT101", "name_th": None, "name_en": "Course One",
+            "credits": "3", "academic_year": "2565", "program_code": "IT",
+            "plans": ["coop"], "sources": ["it2565_page_1.png · p.1"],
+        }]
+        with patch.object(rag_service, "_classify_use_rag", side_effect=ConnectionError("offline")), \
+             patch("backend.curriculum.filters", return_value={"programs": ["IT"], "academic_years": ["2565"]}), \
+             patch("backend.curriculum.list_courses", return_value={"items": courses, "total": 1}), \
+             patch.object(rag_service, "_generate", side_effect=AssertionError("Gemini is unavailable")), \
+             patch.object(rag_service, "_search", side_effect=AssertionError("course lists use structured retrieval")):
+            result = rag_service.answer("List all IT 2565 year 1 semester 1 courses", [])
+
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("IT101 — Course One", result["answer"])
+        self.assertEqual(result["sources"][0]["academic_year"], "2565")
+
+    def test_answer_generation_provider_outage_returns_only_indexed_passages(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True, standalone_query="elective selection",
+            needs_clarification=False, clarification_question=None,
+        )
+        chunk = {
+            "chunk_id": "source-1", "chunk_type": "course", "text": "Elective courses are listed here.",
+            "program": "IT", "academic_year": "2565", "plan": "coop", "course_code": "IT101",
+            "source_filename": "it2565_page_1.png", "source_page": 1, "distance": 0.2,
+        }
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", side_effect=[decision, ConnectionError("offline")]), \
+             patch.object(rag_service, "_search", return_value=[chunk]):
+            result = rag_service.answer("How are elective courses listed?", [])
+
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("exact indexed passages", result["answer"])
+        self.assertIn("Elective courses are listed here.", result["answer"])
+        self.assertEqual([source["chunk_id"] for source in result["sources"]], ["source-1"])
+
+    def test_course_detail_asks_for_missing_scope_when_name_has_multiple_matches(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True, standalone_query="CALCULUS I credits",
+            needs_clarification=False, clarification_question=None, course_detail=True,
+            course_name="CALCULUS I",
+        )
+        rows = [
+            {"course_id": 1, "course_code": "IT101", "program_code": "IT", "academic_year": "2560", "plans": ["coop"]},
+            {"course_id": 2, "course_code": "IT101", "program_code": "IT", "academic_year": "2565", "plans": ["coop"]},
+        ]
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch.object(rag_service, "_course_detail_rows", return_value=({"items": rows}, rows)), \
+             patch.object(rag_service, "_course_detail_response", side_effect=AssertionError("must clarify")):
+            result = rag_service.answer("CALCULUS I กี่หน่วยกิต", [])
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertIn("ปีใด", result["answer"])
+        self.assertEqual(result["options"], ["2560", "2565"])
+
+    def test_course_detail_asks_for_plan_when_same_code_has_plan_variants(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="INFORMATION TECHNOLOGY FUNDAMENTALS credits",
+            needs_clarification=False, clarification_question=None, course_detail=True,
+            course_name="INFORMATION TECHNOLOGY FUNDAMENTALS", program_code="BIT",
+            academic_year="2565",
+        )
+        rows = [
+            {"course_id": 1, "course_code": "06036100", "program_code": "BIT",
+             "academic_year": "2565", "plans": ["coop"]},
+            {"course_id": 2, "course_code": "06036100", "program_code": "BIT",
+             "academic_year": "2565", "plans": ["no_coop"]},
+        ]
+        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+             patch.object(rag_service, "_generate", return_value=decision), \
+             patch.object(rag_service, "_course_detail_rows", return_value=({"items": rows}, rows)), \
+             patch.object(rag_service, "_course_detail_response", side_effect=AssertionError("must clarify")):
+            result = rag_service.answer(
+                "How many credits for INFORMATION TECHNOLOGY FUNDAMENTALS in BIT 2565?", []
+            )
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["options"], ["coop", "no_coop"])
 
     def test_mini_classifier_returns_only_a_valid_boolean(self):
         provider = mock.Mock(return_value="true\n")

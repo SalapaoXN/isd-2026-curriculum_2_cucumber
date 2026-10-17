@@ -184,7 +184,7 @@
     {
       "code": "90101xxx",
       "name_th": "วิชาเลือกทางวิทยาศาสตร์กับคณิตศาสตร์ 2",
-      "name_en": "ELECTIVE COURSE IN SCIENTIFIC AND MATHEMATICS 2",
+      "name_en": "ELECTIVE COURSE IN SCIENCE AND MATHEMATICS 2",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
@@ -760,6 +760,14 @@
           "source_page": 183,
           "document_category": "description",
           "document_page": 178
+        },
+        {
+          "program": "DSBA",
+          "source_filename": "dsba2560_page_032.png",
+          "source_page": 32,
+          "document_page": 27,
+          "document_category": "plan",
+          "excerpt": "Co-op plan table lists code 06026115 as อัจฉริยะทางธุรกิจเบื้องต้น."
         }
       ],
       "desc_th": "แนวคิดพื้นฐานของอัจฉริยะทางธุรกิจ องค์ประกอบของอัจฉริยะทางธุรกิจ\nโครงสร้างพื้นฐานของ\nอัจฉริยะทางธุรกิจ\nเหมืองข้อมูลฺการบริหารสมรรถนะของธุรกิจ บาลานซ์สกอร์การ์ด เครื่องมือต่างๆ ในการ\nสร้างอัจฉริยะทางธุรกิจในองค์กรการประยุกต์ใช้อัจฉริยะทางธุรกิจบนระบบสารสนเทศต่าง\nในองค์กร แอปพลิเคชัน\nต่างๆ ของอั\nวัจฉริยะทางธุรกิจที่ใช้ในปัจจุบัน\nจอมเกล้าเจี",
@@ -1320,7 +1328,7 @@
     },
     {
       "code": "06026131",
-      "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์ เชิงธุรกิจ",
+      "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
       "name_en": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
       "credits": "6(0-35-0)",
       "category": "หมวดวิชาเฉพาะ",
@@ -1687,7 +1695,7 @@
     },
     {
       "code": "06026145",
-      "name_th": "ระบบฐานข้อมูลขั้นสูง",
+      "name_th": "ระบบฐานข้อมูลและการบำรุงรักษา",
       "name_en": "ADVANCED DATABASE SYSTEMS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",

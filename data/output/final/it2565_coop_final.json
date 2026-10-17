@@ -7,7 +7,7 @@
     "courses": [
         {
             "code": "06016401",
-            "name_th": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+            "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
             "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1354,7 +1354,7 @@
         {
             "code": "06016481 หรือ 06016482",
             "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
-            "name_en": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+            "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
             "credits": "6(0-36-0)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1387,7 +1387,35 @@
                 }
             ],
             "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่างๆ ที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นท โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอ\nผลงานของโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่าง\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้น\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้อง\nนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ",
-            "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH  PRACTICAL  WORK EXPERIENCE.\nTHE STUDENT'S\nPROJECT WORK\nMUST  BE APPROVED  BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES\nAND\nENTERPRISES\nTHAT\nALLOWS\nSTUDENTS\nTO\nAPPLY\nTHEIR  KNOWLEDGE\nIN\nTHE\nCLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED\nBY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS\nNEED TO  PRESENT THEIR\nWORKS TO THE EXAMINATION COMMITTEE.\nคำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)"
+            "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH  PRACTICAL  WORK EXPERIENCE.\nTHE STUDENT'S\nPROJECT WORK\nMUST  BE APPROVED  BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES\nAND\nENTERPRISES\nTHAT\nALLOWS\nSTUDENTS\nTO\nAPPLY\nTHEIR  KNOWLEDGE\nIN\nTHE\nCLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED\nBY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS\nNEED TO  PRESENT THEIR\nWORKS TO THE EXAMINATION COMMITTEE.\nคำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)",
+            "descriptions_by_code": {
+                "06016481": {
+                    "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่างๆ ที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นท โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอ\nผลงานของโครงการต่อคณะกรรมการสอบ",
+                    "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH  PRACTICAL  WORK EXPERIENCE.\nTHE STUDENT'S\nPROJECT WORK\nMUST  BE APPROVED  BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.",
+                    "source_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it2565_page_366.png",
+                            "source_page": 366,
+                            "document_page": 361,
+                            "document_category": "description"
+                        }
+                    ]
+                },
+                "06016482": {
+                    "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่าง\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้น\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้อง\nนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ",
+                    "desc_en": "COOPERATIVE EDUCATION IS\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES\nAND\nENTERPRISES\nTHAT\nALLOWS\nSTUDENTS\nTO\nAPPLY\nTHEIR  KNOWLEDGE\nIN\nTHE\nCLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED\nBY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS\nNEED TO  PRESENT THEIR\nWORKS TO THE EXAMINATION COMMITTEE.\nคำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)",
+                    "source_provenance": [
+                        {
+                            "program": "IT",
+                            "source_filename": "it2565_page_367.png",
+                            "source_page": 367,
+                            "document_page": 362,
+                            "document_category": "description"
+                        }
+                    ]
+                }
+            }
         },
         {
             "code": "06016406",
@@ -2377,7 +2405,8 @@
                     "source_filename": "it2565_page_354.png",
                     "source_page": 354,
                     "document_page": 349,
-                    "document_category": "description"
+                    "document_category": "description",
+                    "source_verified": true
                 }
             ],
             "credit_source_verified": true,
@@ -2723,7 +2752,7 @@
         {
             "code": "06016468",
             "name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์",
-            "name_en": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS",
+            "name_en": "DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "เลือก",

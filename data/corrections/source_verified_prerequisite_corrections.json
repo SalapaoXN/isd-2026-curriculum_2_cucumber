@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "description": "Source-verified prerequisite corrections for OCR artifacts. Original observations remain recorded in prerequisite_observed.",
+  "corrections": [
+    {
+      "catalog_key": "bit-2560",
+      "program": "BIT",
+      "plan": "coop",
+      "course_code": "06036018",
+      "observed_value": "NONE A",
+      "corrected_value": "NONE",
+      "source_provenance": [
+        {
+          "source_filename": "bit2560_page_177.png",
+          "source_page": 177,
+          "document_page": 100,
+          "document_category": "description",
+          "evidence": "The course-description page for 06036018 explicitly lists PREREQUISITE: NONE."
+        }
+      ]
+    },
+    {
+      "catalog_key": "bit-2560",
+      "program": "BIT",
+      "plan": "no_coop",
+      "course_code": "06036018",
+      "observed_value": "NONE A",
+      "corrected_value": "NONE",
+      "source_provenance": [
+        {
+          "source_filename": "bit2560_page_177.png",
+          "source_page": 177,
+          "document_page": 100,
+          "document_category": "description",
+          "evidence": "The course-description page for 06036018 explicitly lists PREREQUISITE: NONE."
+        }
+      ]
+    },
+    {
+      "catalog_key": "it-2560",
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016318",
+      "observed_value": "NONE G",
+      "corrected_value": "NONE",
+      "source_provenance": [
+        {
+          "source_filename": "it2560_page_231.png",
+          "source_page": 231,
+          "document_category": "description",
+          "evidence": "The course-description page for 06016318 explicitly lists PREREQUISITE: NONE."
+        }
+      ]
+    },
+    {
+      "catalog_key": "it-2560",
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016318",
+      "observed_value": "NONE G",
+      "corrected_value": "NONE",
+      "source_provenance": [
+        {
+          "source_filename": "it2560_page_231.png",
+          "source_page": 231,
+          "document_category": "description",
+          "evidence": "The course-description page for 06016318 explicitly lists PREREQUISITE: NONE."
+        }
+      ]
+    },
+    {
+      "catalog_key": "it-2560",
+      "program": "IT",
+      "plan": "coop",
+      "course_code": "06016398",
+      "observed_value": "F NONE",
+      "corrected_value": "NONE",
+      "source_provenance": [
+        {
+          "source_filename": "it2560_page_269.png",
+          "source_page": 269,
+          "document_category": "description",
+          "evidence": "The course-description page for 06016398 explicitly lists PREREQUISITE: NONE."
+        }
+      ]
+    },
+    {
+      "catalog_key": "it-2560",
+      "program": "IT",
+      "plan": "no_coop",
+      "course_code": "06016398",
+      "observed_value": "F NONE",
+      "corrected_value": "NONE",
+      "source_provenance": [
+        {
+          "source_filename": "it2560_page_269.png",
+          "source_page": 269,
+          "document_category": "description",
+          "evidence": "The course-description page for 06016398 explicitly lists PREREQUISITE: NONE."
+        }
+      ]
+    },
+    {
+      "catalog_key": "gened-2564",
+      "program": "GENED",
+      "plan": "gened",
+      "course_code": "90642020",
+      "observed_value": "BASIC CREATIE STEM DESIGV",
+      "corrected_value": "BASIC CREATIVE STEM DESIGN",
+      "source_provenance": [
+        {
+          "source_filename": "gened2564_page_050.png",
+          "source_page": 50,
+          "document_page": 46,
+          "document_category": "description",
+          "evidence": "The detailed description for 90642020 names BASIC CREATIVE STEM DESIGN as its prerequisite."
+        }
+      ]
+    }
+  ]
+}

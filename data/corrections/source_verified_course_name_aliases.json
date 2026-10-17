@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "description": "Exact, source-verified course-name aliases used only for lookup. Alias matching is case-insensitive and whitespace-normalized; stored OCR observations are not rewritten.",
+  "aliases": [
+    {
+      "catalog_key": "bit-2565",
+      "program": "BIT",
+      "academic_year": "2565",
+      "course_code": "06036100",
+      "canonical_name": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+      "observed_aliases": [
+        "INFORMATION TECHNOLOGV FUNDAMENTALS"
+      ],
+      "source_provenance": [
+        {
+          "source_filename": "bit2565_page_238.png",
+          "source_page": 238,
+          "document_page": 233,
+          "document_category": "description",
+          "evidence": "The official course-description page explicitly pairs code 06036100 with INFORMATION TECHNOLOGY FUNDAMENTALS."
+        }
+      ]
+    }
+  ]
+}

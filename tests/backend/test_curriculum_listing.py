@@ -6,7 +6,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from backend import rag_service
-from backend.curriculum import courses_requiring, filters, list_courses, program_requirements
+from backend.curriculum import (
+    course_prerequisite_requirements, courses_requiring, filters, list_courses, program_requirements,
+    verified_course_name_in_text,
+)
 
 
 class CurriculumListingTests(unittest.TestCase):
@@ -34,7 +37,11 @@ class CurriculumListingTests(unittest.TestCase):
                 CREATE TABLE prerequisites(prerequisite_id INTEGER, course_id INTEGER,
                     prerequisite_course_id INTEGER, alternative_group_id INTEGER, requirement_type TEXT,
                     raw_text TEXT);
-                CREATE TABLE alternative_course_group_members(alternative_group_id INTEGER, course_id INTEGER);
+                CREATE TABLE alternative_course_groups(alternative_group_id INTEGER, catalog_id INTEGER,
+                    plan_id INTEGER, group_key TEXT, label TEXT, minimum_choices INTEGER,
+                    maximum_choices INTEGER, notes TEXT);
+                CREATE TABLE alternative_course_group_members(alternative_group_member_id INTEGER PRIMARY KEY,
+                    alternative_group_id INTEGER, course_id INTEGER, member_order INTEGER, notes TEXT);
                 CREATE TABLE program_requirements(requirement_id INTEGER, catalog_id INTEGER,
                     program_code TEXT, requirement_type TEXT, operator TEXT, value NUMERIC, unit TEXT);
                 CREATE TABLE program_requirement_provenance(requirement_id INTEGER, provenance_id INTEGER);
@@ -87,6 +94,34 @@ class CurriculumListingTests(unittest.TestCase):
         self.assertIn("Year 1 · Semester 1", first["placements"])
         self.assertEqual(first["document_types"], ["plan", "description"])
 
+    def test_source_verified_course_name_alias_is_exact_and_catalog_scoped(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("ALTER TABLE courses ADD COLUMN course_code_normalized TEXT")
+            db.execute("UPDATE courses SET course_code_normalized=lower(course_code)")
+            db.commit()
+
+        entry = {
+            "catalog_key": "it-2565", "program": "IT", "academic_year": "2565",
+            "course_code": "IT100", "canonical_name": "INTRODUCTION",
+            "observed_aliases": ["INTRODUCT1ON"],
+        }
+        with patch("backend.curriculum._course_name_alias_entries", return_value=(entry,)):
+            result = list_courses(search="INTRODUCT1ON", program="IT", academic_year="2565")
+            phrase_result = list_courses(search="INTRODUCT1ON TYPO", program="IT", academic_year="2565")
+            other_edition = list_courses(search="INTRODUCT1ON", program="IT", academic_year="2560")
+            course = {
+                "course_code": "IT100", "program_code": "IT", "academic_year": "2565",
+                "plans": ["coop", "no_coop"],
+            }
+            extracted_name = verified_course_name_in_text(
+                "How many credits for INTRODUCT1ON?", course
+            )
+
+        self.assertEqual([row["course_code"] for row in result["items"]], ["IT100"])
+        self.assertEqual(phrase_result["total"], 0)
+        self.assertEqual(other_edition["total"], 0)
+        self.assertEqual(extracted_name, "INTRODUCTION")
+
     def test_filters_apply_program_edition_year_plan_category_type_semester_and_search(self):
         result = list_courses(program="IT", academic_year="2565", plan="no_coop",
                               category="Core", course_type="Required", study_year="1", semester="1",
@@ -97,6 +132,31 @@ class CurriculumListingTests(unittest.TestCase):
         self.assertEqual(list_courses(program="it")["total"], list_courses(program="IT")["total"])
         self.assertEqual(list_courses(search="not-present")["total"], 0)
         self.assertEqual(list_courses(semester="2")["items"][0]["course_code"], "IT200")
+
+    def test_plan_filter_returns_only_the_course_variant_placed_in_that_plan(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.executemany("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
+                (5, 1, "IT300", "แผนสหกิจ", "COOP VERSION", "3", 3, None, None,
+                 "Core", "Required", None, None),
+                (6, 1, "IT300", "แผนปกติ", "NO COOP VERSION", "6", 6, None, None,
+                 "Core", "Required", None, None),
+            ])
+            db.executemany("INSERT INTO plan_placements VALUES (?,?,?,?,?,?,?,?)", [
+                (4, 1, 5, 1, 1, None, None, None),
+                (5, 2, 6, 1, 1, None, None, None),
+            ])
+            db.commit()
+
+        coop = list_courses(course_code="IT300", program="IT", plan="coop", limit=10)
+        no_coop = list_courses(course_code="IT300", program="IT", plan="no_coop", limit=10)
+        self.assertEqual(coop["total"], 1)
+        self.assertEqual((coop["items"][0]["name_en"], coop["items"][0]["credits"]),
+                         ("COOP VERSION", "3"))
+        self.assertEqual(coop["items"][0]["plans"], ["coop"])
+        self.assertEqual(no_coop["total"], 1)
+        self.assertEqual((no_coop["items"][0]["name_en"], no_coop["items"][0]["credits"]),
+                         ("NO COOP VERSION", "6"))
+        self.assertEqual(no_coop["items"][0]["plans"], ["no_coop"])
 
     def test_page_limit_and_offset(self):
         self.assertEqual(list_courses(limit=1, offset=0)["total"], 4)
@@ -127,12 +187,51 @@ class CurriculumListingTests(unittest.TestCase):
                 5, 2, "IT100", "พื้นฐาน", "INTRODUCTION", "3", 3, None, None,
                 None, None, None, None))
             db.execute("INSERT INTO curriculum_plans VALUES (?,?,?,?,?)", (3, 2, 2, "coop", "coop"))
+            db.executemany("INSERT INTO plan_placements VALUES (?,?,?,?,?,?,?,?)", [
+                (6, 3, 3, None, None, None, None, None),
+                (7, 3, 5, None, None, None, None, None),
+            ])
             db.execute("INSERT INTO prerequisites VALUES (2, 3, NULL, 22, 'required', 'IT100 or IT060')")
-            db.execute("INSERT INTO alternative_course_group_members VALUES (22, 5)")
+            db.execute("INSERT INTO alternative_course_group_members (alternative_group_id, course_id) VALUES (22, 5)")
             db.commit()
         result = courses_requiring(prerequisite_code="IT100", program="IT", academic_year="2560")
         self.assertEqual(result["total"], 1)
         self.assertEqual(result["items"][0]["course_code"], "IT060")
+
+    def test_prerequisite_lookup_preserves_alternative_choice_bounds_and_members(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.executemany("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
+                (5, 1, "IT110", None, "INTRODUCTION TO NETWORKS", "3", 3, None, None,
+                 None, None, None, None),
+                (6, 1, "IT120", None, "INTRODUCTION TO SYSTEMS", "3", 3, None, None,
+                 None, None, None, None),
+            ])
+            db.execute("DELETE FROM prerequisites WHERE course_id=2")
+            db.execute("UPDATE courses SET prerequisite_text=? WHERE course_id=2", ("IT110 or IT120",))
+            db.execute(
+                "INSERT INTO alternative_course_groups VALUES (22, 1, 1, 'prereq-choice', 'Choose one', 1, 1, NULL)"
+            )
+            db.execute(
+                "INSERT INTO prerequisites VALUES (2, 2, NULL, 22, 'required', 'IT110 or IT120')"
+            )
+            db.executemany(
+                "INSERT INTO alternative_course_group_members "
+                "(alternative_group_id, course_id, member_order) VALUES (22, ?, ?)",
+                [(5, 1), (6, 2)],
+            )
+            db.commit()
+
+        requirements = course_prerequisite_requirements(course_id=2)
+        choice = next(item for item in requirements if item["kind"] == "alternative")
+        self.assertEqual(choice["minimum_choices"], 1)
+        self.assertEqual(choice["maximum_choices"], 1)
+        self.assertEqual(
+            [(member["course_id"], member["course_code"]) for member in choice["members"]],
+            [(5, "IT110"), (6, "IT120")],
+        )
+        self.assertEqual(choice["plans"], ["coop"])
+        self.assertFalse(any(item["kind"] == "alternative" for item in
+                             course_prerequisite_requirements(course_id=2, plan="no_coop")))
 
     def test_program_requirement_lookup_is_scoped_and_returns_provenance(self):
         result = program_requirements(program="it", academic_year="2565")

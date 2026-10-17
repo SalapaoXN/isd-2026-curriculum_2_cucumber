@@ -15,8 +15,8 @@
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
-      "year": "1",
-      "semester": "1",
+      "year": 1,
+      "semester": 1,
       "source_provenance": [
         {
           "program": "IT",
@@ -136,7 +136,7 @@
       "credits": "2(1-2-3)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 1,
@@ -169,12 +169,12 @@
     },
     {
       "code": "90641003",
-      "name_th": "กีฬาและนันทนาการ 1",
+      "name_th": "กีฬาและนันทนาการ",
       "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
       "credits": "1(0-3-2)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 1,
@@ -212,7 +212,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 1,
@@ -246,7 +246,7 @@
     {
       "code": "06016408",
       "name_th": "การสร้างโปรแกรมเชิงวัตถุ",
-      "name_en": "OBJECT-ORIENTED PROGRAMMING",
+      "name_en": "OBJECT ORIENTED PROGRAMMING",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -381,7 +381,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 1,
@@ -419,7 +419,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": "FOUNDATION ENGLISH 1",
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 1,
@@ -784,13 +784,13 @@
     {
       "code": "06016414",
       "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-      "name_en": "NOSQL DATABASE SYSTEMS",
+      "name_en": "NoSQL DATABASE SYSTEMS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+      "note": null,
       "year": 2,
       "semester": 2,
       "source_provenance": [
@@ -821,7 +821,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+      "note": null,
       "year": 2,
       "semester": 2,
       "source_provenance": [
@@ -852,7 +852,7 @@
       "type": "บังคับ",
       "prerequisite": "06016413",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+      "note": null,
       "year": 2,
       "semester": 2,
       "source_provenance": [
@@ -890,7 +890,7 @@
       "type": "บังคับ",
       "prerequisite": "06016413",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+      "note": null,
       "year": 2,
       "semester": 2,
       "source_provenance": [
@@ -921,7 +921,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และ เกม",
+      "note": null,
       "year": 2,
       "semester": 2,
       "source_provenance": [
@@ -952,7 +952,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และ เกม",
+      "note": null,
       "year": 2,
       "semester": 2,
       "source_provenance": [
@@ -1042,7 +1042,7 @@
       "name_en": "ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1067,7 +1067,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1098,7 +1098,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1130,13 +1130,13 @@
     {
       "code": "06016418",
       "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
+      "name_en": "SERVER SIDE WEB DEVELOPMENT",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "06016408",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1167,7 +1167,7 @@
       "type": "บังคับ",
       "prerequisite": "06016413",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1205,7 +1205,7 @@
       "type": "บังคับ",
       "prerequisite": "06016413",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1229,14 +1229,14 @@
     },
     {
       "code": "06016423",
-      "name_th": "การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
+      "name_th": "การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
       "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "06016413",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1267,7 +1267,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และ เกม",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1298,7 +1298,7 @@
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และ เกม",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1323,13 +1323,13 @@
     {
       "code": "06016418",
       "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
+      "name_en": "SERVER SIDE WEB DEVELOPMENT",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "06016408",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+      "note": null,
       "year": 3,
       "semester": 1,
       "source_provenance": [
@@ -1352,12 +1352,9 @@
       "desc_en": "MVC\nCONCEPTS,\nWEB  DEVELOPMENT  USING  FRAMEWORKS\nIN  DJAONGO\nOR\nNODE.JS,\nSESSIONS,\nSENVER-SIDED  RENDERING,  DATABASE  CONNECTIONS,\nDATABASE  TRANSACTIONS,  OBJECT\nRELATIONAL  MAPPER (ORM), FORM VALIDATION., MIDDLEWARE, ERROR HANALING, AUTHENTHICATION,\nAUTHORIZATION,\nAUTHENTICATION\nWITH\nLDAP,\nSINGLE-SIGN-ON\nWITH\nCOMMON\nACCOUNTS,\nDEPLOYMENT"
     },
     {
-      "code": [
-        "06016481",
-        "06016482"
-      ],
-      "name_th": "สหกิจศึกษา\nหรือ\nสหกิจศึกษาต่างประเทศ",
-      "name_en": "COOPERATIVE EDUCATION\nOR\nOVERSEA COOPERATIVE EDUCATION",
+      "code": "06016481 หรือ 06016482",
+      "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
+      "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
       "credits": "6(0-36-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1390,7 +1387,35 @@
         }
       ],
       "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่างๆ ที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นท โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอ\nผลงานของโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่าง\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้น\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้อง\nนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ",
-      "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH  PRACTICAL  WORK EXPERIENCE.\nTHE STUDENT'S\nPROJECT WORK\nMUST  BE APPROVED  BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES\nAND\nENTERPRISES\nTHAT\nALLOWS\nSTUDENTS\nTO\nAPPLY\nTHEIR  KNOWLEDGE\nIN\nTHE\nCLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED\nBY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS\nNEED TO  PRESENT THEIR\nWORKS TO THE EXAMINATION COMMITTEE.\nคำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)"
+      "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH  PRACTICAL  WORK EXPERIENCE.\nTHE STUDENT'S\nPROJECT WORK\nMUST  BE APPROVED  BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.\nCOOPERATIVE EDUCATION IS\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES\nAND\nENTERPRISES\nTHAT\nALLOWS\nSTUDENTS\nTO\nAPPLY\nTHEIR  KNOWLEDGE\nIN\nTHE\nCLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED\nBY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS\nNEED TO  PRESENT THEIR\nWORKS TO THE EXAMINATION COMMITTEE.\nคำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)",
+      "descriptions_by_code": {
+        "06016481": {
+          "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่างๆ ที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นท โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอ\nผลงานของโครงการต่อคณะกรรมการสอบ",
+          "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH  PRACTICAL  WORK EXPERIENCE.\nTHE STUDENT'S\nPROJECT WORK\nMUST  BE APPROVED  BY THE\nFACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE\nEXAMINATION COMMITTEE.",
+          "source_provenance": [
+            {
+              "program": "IT",
+              "source_filename": "it2565_page_366.png",
+              "source_page": 366,
+              "document_page": 361,
+              "document_category": "description"
+            }
+          ]
+        },
+        "06016482": {
+          "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงาน\nต่าง\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้น\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน\nระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้อง\nนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ",
+          "desc_en": "COOPERATIVE EDUCATION IS\nCOLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES\nAND\nENTERPRISES\nTHAT\nALLOWS\nSTUDENTS\nTO\nAPPLY\nTHEIR  KNOWLEDGE\nIN\nTHE\nCLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED\nBY THE FACULTY AND THE ENTERPRISES. AFTER COMPLETION., STUDENTS\nNEED TO  PRESENT THEIR\nWORKS TO THE EXAMINATION COMMITTEE.\nคำอธิบายรายวิชาเรียนรวม (หมวดวิชาเฉพาะ)",
+          "source_provenance": [
+            {
+              "program": "IT",
+              "source_filename": "it2565_page_367.png",
+              "source_page": 367,
+              "document_page": 362,
+              "document_category": "description"
+            }
+          ]
+        }
+      }
     },
     {
       "code": "06016406",
@@ -1429,7 +1454,7 @@
       "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1",
       "credits": "3(3-0-6) หรือ 3(2-2-5) หรือ 3(0-6-3)",
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1452,7 +1477,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 4,
@@ -1485,11 +1510,11 @@
     },
     {
       "code": "9064xxxx",
-      "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 1",
+      "name_th": "วิชาเลือก หมวดศึกษาทั่วไป 1",
       "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION 1",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1510,8 +1535,8 @@
       "name_th": "วิชาเลือกเสรี 1",
       "name_en": "FREE ELECTIVE COURSE 1",
       "credits": "3(x-x-x)",
-      "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
+      "category": "หมวดวิชาเสรี",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1532,8 +1557,8 @@
       "name_th": "วิชาเลือกเสรี 2",
       "name_en": "FREE ELECTIVE COURSE 2",
       "credits": "3(x-x-x)",
-      "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
+      "category": "หมวดวิชาเสรี",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1617,7 +1642,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 4,
@@ -1655,7 +1680,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 4,
@@ -1688,11 +1713,11 @@
     },
     {
       "code": "9064xxxx",
-      "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 2",
+      "name_th": "วิชาเลือก หมวดศึกษาทั่วไป 2",
       "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION 2",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1717,7 +1742,7 @@
       "type": "เลือก",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": "4/1",
-      "note": "M1: โมดูล Full-Stack Web Developer",
+      "note": null,
       "year": 0,
       "semester": 0,
       "desc_th": "แนะนำโปรแกรมบริการแบบจุลภาคเบื้องต้น ฺสถาปนิกเชิงวิวัฒนาการ สถาปัตยกรรมแบบกลุ่ม\nก้อนเดียว สถาปัตยกรรมเชิงบริการ และแบบจุลภาค กลยุทธ์การแยกองค์ประกอบและการออกแบบ\nการสื่อสารระหว่างกระบวนการ การเข้าคิวและการกำหนดเส้นทาง การแยกหน้าที่รับผิดชอบระหว่าง\nการคิวรีกับการจัดการข้อมูล การค้นพบเซอร์วิส ตัวชี้วัดการทำงาน การจัดการกับเซอร์วิสก่อนเกิด\nข้อผิดพลาด ความสามารถในการสังเกต, การพัฒนาบริการแบบจุลภาค",
@@ -1735,7 +1760,7 @@
     {
       "code": "06016429",
       "name_th": "การพัฒนาเว็บฝั่งไคลเอนต์",
-      "name_en": "CLIENT-SIDE WEB DEVELOPMENT",
+      "name_en": "CLIENT SIDE WEB DEVELOPMENT",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1995,7 +2020,7 @@
       "type": "เลือก",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": "4/1",
-      "note": "M2: โมดูล Network/System Engineer",
+      "note": null,
       "year": 0,
       "semester": 0,
       "desc_th": "ความูรู้เบื้องต้นเกี่ยวกับเทคโนโลยีและแอปพลิเคชันเครือข่ายไร้สาย ฺพื้นฐานการส่งผ่านแบบไร้\nสาย\nการแพร่กระจายคลื่นวิทยฺสายอากาศ การม้อดดูเลตฺการมัลติเพล็กซ์ การควบคุมการเข้าถึงพร้อม\nกันแบบหลายทาง เครือข่ายท้องถิ่นไร้สาย ฺมาตรฐาน IEEE 802.11\nการออกแบบ\nและการปรับใช้เครือข่ายท้องถิ่นไร้สาย ความปลอดภัยบนเครือข่ายท้องถิ่นไร้สายและ\nมาตรฐานที่เกี่ยวข้อง เครือข่ายส่วนบุคคลไร้สาย เครือข่ายเมืองไร้สาย เครือข่ายพื้นที่กว้างไร้สาย\nพื้นฐานการจัดการและการแก้ปัญหาเครือข่ายไร้สาย",
@@ -2170,7 +2195,7 @@
       "type": "เลือก",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": "4/1",
-      "note": "M3: โมดูล Game Developer",
+      "note": null,
       "year": 0,
       "semester": 0,
       "desc_th": "กระบวนการออกแบบเกม เฟรมเวิร์คสำหรับการออกแบบเกม ประเภทของเกม การออกแบบ\nโครงเรื่องและเนื้อเรื่องของเกม การออกแบบสตอรีบอร์ด การออกแบบลักษณะตัวละครในเกมฺการ\nออกแบบรูปแบบการเล่นการกลไกการเล่นเกม ฺการออกแบบระดับชันของเกม การปรับสมดุลย์เกม\nการทำเกมต้นแบบโดยกระดาษ การสร้างเอกสารการออกแบบเกม",
@@ -2211,7 +2236,7 @@
     },
     {
       "code": "06016448",
-      "name_th": "การพัฒนาเกมขั้นสูงด้วยเกมเอนจิ้น",
+      "name_th": "การพัฒนาเกมขั้นสูงด้วยเกมเอนจิน",
       "name_en": "ADVANCED GAME DEVELOPMENT WITH GAME ENGINE",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
@@ -2363,7 +2388,7 @@
     {
       "code": "06016454",
       "name_th": "เครื่องมือยูเอ็กซ์และการพัฒนาซอฟต์แวร์สำหรับธุรกิจดิจิทัล",
-      "name_en": "UX TOOLS AND SOFTWARE DEVELOPMENT FOR DIGITAL\nBUSINESS",
+      "name_en": "UX TOOLS AND SOFTWARE DEVELOPMENT FOR DIGITAL BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -2380,7 +2405,8 @@
           "source_filename": "it2565_page_354.png",
           "source_page": 354,
           "document_page": 349,
-          "document_category": "description"
+          "document_category": "description",
+          "source_verified": true
         }
       ],
       "credit_source_verified": true,
@@ -2726,7 +2752,7 @@
     {
       "code": "06016468",
       "name_th": "การเรียนรู้เชิงลึกสำหรับการวิเคราะห์ภาพและวีดิโอทางการแพทย์",
-      "name_en": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS",
+      "name_en": "DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",

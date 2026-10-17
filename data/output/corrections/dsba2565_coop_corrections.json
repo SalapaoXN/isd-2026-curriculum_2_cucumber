@@ -7,6 +7,12 @@
     },
     {
         "course_code": "06026202",
+        "field": "name_th",
+        "before": "พืชคณิตเชิงเส้น",
+        "after": "พีชคณิตเชิงเส้น"
+    },
+    {
+        "course_code": "06026202",
         "field": "name_en",
         "before": "LIEAR ALGEBRA",
         "after": "LINEAR ALGEBRA"
@@ -93,7 +99,7 @@
         "course_code": "06026207",
         "field": "name_en",
         "before": "NOSOL DATABASE SYSTEMS",
-        "after": "NOSQL DATABASE SYSTEMS"
+        "after": "NoSQL DATABASE SYSTEMS"
     },
     {
         "course_code": "06026209",
@@ -127,27 +133,15 @@
     },
     {
         "course_code": "06026xxx",
-        "field": "name_th",
-        "before": "วิชาเลือกกลุ่ม วิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
-        "after": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1"
-    },
-    {
-        "course_code": "06026xxx",
         "field": "name_en",
         "before": "ELECTIE IN DATA SCIENCE ELECTIE IN STATISTICAL ANAL YSIS 1 ELECTIE IN DATA ENGINEERNNG 1",
-        "after": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1"
+        "after": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1"
     },
     {
         "course_code": "06026xxx",
         "field": "name_en",
         "before": "ELECTIE IN DATA SCIENCE 2 ELECTIE IN STATISTICAL ANALTICS 2 ELECTIE IN DATA ENGINEERIN6 2",
         "after": "ELECTIVE IN DATA SCIENCE 2 ELECTIVE IN STATISTICAL ANALYTICS 2 ELECTIVE IN DATA ENGINEERING 2"
-    },
-    {
-        "course_code": "9064xxxx",
-        "field": "name_th",
-        "before": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป",
-        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป"
     },
     {
         "course_code": "9064xxxx",
@@ -165,7 +159,7 @@
         "course_code": "06026213",
         "field": "name_th",
         "before": "ระบบ ข้อมูลมหัต",
-        "after": "ระบบข้อมูลขนาดใหญ่"
+        "after": "ระบบข้อมูลมหัต"
     },
     {
         "course_code": "06026213",
@@ -187,15 +181,9 @@
     },
     {
         "course_code": "06026xxx",
-        "field": "name_th",
-        "before": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",
-        "after": "วิชาเลือกกลุ่มวิทยาการข้อมูล 4 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4"
-    },
-    {
-        "course_code": "06026xxx",
         "field": "name_en",
         "before": "A ELECTIE IN DATA SCIENCE 4 ELECTIE IN STATISTICAL ANALWTICS 4 ELECTIE IN DATA ENGINEERINC 4",
-        "after": "ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS 4 ELECTIVE IN DATA ENGINEERING 4"
+        "after": "AN ELECTIVE IN DATA SCIENCE 4 AN ELECTIVE IN STATISTICAL ANALYTICS 4 AN ELECTIVE IN DATA ENGINEERING 4"
     },
     {
         "course_code": "06066100",
@@ -436,12 +424,6 @@
         "field": "name_en",
         "before": "COOPERATIE EDUCATION IN DATA SCIENCE AND BUSIESS ANALTICS",
         "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
-    },
-    {
-        "course_code": "06026260",
-        "field": "name_th",
-        "before": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
-        "after": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
     },
     {
         "course_code": "06026260",

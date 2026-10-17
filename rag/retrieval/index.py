@@ -164,13 +164,19 @@ def _source_document_key(entry: Mapping[str, Any]) -> str | None:
     return None
 
 
-def _document_metadata(input_path: Path) -> tuple[str, str, list[str]]:
+def _document_metadata(input_path: Path) -> tuple[str, str, str, list[str]]:
     with input_path.open("r", encoding="utf-8") as stream:
         document = json.load(stream)
     if not isinstance(document, Mapping):
         raise ValueError("consolidated JSON must contain an object at the top level")
 
     program = _as_text(document.get("program")) or "UNKNOWN"
+    catalog = document.get("catalog")
+    if not isinstance(catalog, Mapping):
+        catalog = document
+    academic_year = _as_text(
+        catalog.get("academic_year") or catalog.get("year") or catalog.get("version")
+    ) or ""
     plan_value = document.get("plan")
     if isinstance(plan_value, Mapping):
         plan = _as_text(
@@ -213,7 +219,7 @@ def _document_metadata(input_path: Path) -> tuple[str, str, list[str]]:
                 for key in [_source_document_key(entry)]
                 if key is not None
             )
-    return program, plan, sorted(source_document_keys)
+    return program, plan, academic_year, sorted(source_document_keys)
 
 
 def index_path_for_source(
@@ -457,7 +463,7 @@ def _enrich_chunks(
     database_path: Path,
     chunks: Iterable[Mapping[str, Any]],
     source_by_catalog_id: Mapping[
-        int, list[tuple[Path, str, str, list[str], str]]
+        int, list[tuple[Path, str, str, str, list[str], str]]
     ],
 ) -> list[dict[str, Any]]:
     course_codes: dict[int, str] = {}
@@ -534,7 +540,7 @@ def _enrich_chunks(
 
     def source_context(
         chunk: Mapping[str, Any], references: list[dict[str, Any]]
-    ) -> list[tuple[Path, str, str, list[str], str]]:
+    ) -> list[tuple[Path, str, str, str, list[str], str]]:
         catalog_id: int | None = None
         placement_id = chunk.get("placement_id")
         course_id = chunk.get("course_id")
@@ -562,7 +568,7 @@ def _enrich_chunks(
             and str(reference.get("source_document_key")).strip()
         }
         known_evidence_keys = {
-            key for source in candidates for key in source[3]
+            key for source in candidates for key in source[4]
         }
         unknown_evidence_keys = evidence_keys - known_evidence_keys
         if unknown_evidence_keys:
@@ -588,7 +594,7 @@ def _enrich_chunks(
                         plan_candidates = [
                             source
                             for source in plan_candidates
-                            if evidence_keys.intersection(source[3])
+                            if evidence_keys.intersection(source[4])
                         ]
                         if not plan_candidates:
                             raise ValueError(
@@ -597,7 +603,7 @@ def _enrich_chunks(
                             )
                     return plan_candidates
         evidence_candidates = [
-            source for source in candidates if evidence_keys.intersection(source[3])
+            source for source in candidates if evidence_keys.intersection(source[4])
         ]
         if evidence_candidates:
             return evidence_candidates
@@ -606,7 +612,7 @@ def _enrich_chunks(
         raise ValueError(
             "cannot determine a source document for retrieval chunk "
             f"{chunk.get('chunk_id')!r}; evidence keys={sorted(evidence_keys)!r}; "
-            f"candidate keys={[source[3] for source in candidates]!r}"
+            f"candidate keys={[source[4] for source in candidates]!r}"
         )
 
     enriched: list[dict[str, Any]] = []
@@ -671,7 +677,8 @@ def _enrich_chunks(
             if reference.get("source_document_key") is not None
             and str(reference.get("source_document_key")).strip()
         }
-        for input_path, default_program, default_plan, document_keys, source_identity in selected_sources:
+        for (input_path, default_program, default_plan, default_academic_year,
+             document_keys, source_identity) in selected_sources:
             selected_references = [
                 reference
                 for reference in references
@@ -699,6 +706,7 @@ def _enrich_chunks(
             selected_chunk["source_filename"] = input_path.name
             selected_chunk["program"] = default_program
             selected_chunk["plan"] = default_plan
+            selected_chunk["academic_year"] = default_academic_year or None
             selected_chunk["course_code"] = _one_or_many(course_code_values)
             selected_chunk["source_page"] = _unique_values(source_pages)
             selected_chunk["source_document_key"] = _one_or_many(
@@ -754,7 +762,7 @@ def ensure_index(
     _remove_database(database_path)
     catalog_ids = load_jsons_to_sqlite(source_paths, database_path)
     source_by_catalog_id: defaultdict[
-        int, list[tuple[Path, str, str, list[str], str]]
+        int, list[tuple[Path, str, str, str, list[str], str]]
     ] = defaultdict(list)
     for source_path, catalog_id, source_row in zip(
         source_paths, catalog_ids, source_rows[: len(source_paths)], strict=True

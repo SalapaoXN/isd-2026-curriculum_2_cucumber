@@ -434,8 +434,8 @@ def backfill_gened_descriptions(
 ) -> int:
     """Fill empty desc_th/desc_en from the GENED lookup without overwriting.
 
-    Only courses with both descriptions empty and an exact unique GENED code
-    match are filled; provenance is merged so the GENED origin stays visible.
+    Missing descriptions are filled independently from an exact unique GENED
+    code match; provenance is merged so the GENED origin stays visible.
     Returns the number of courses filled.
     """
     if not gened_lookup:
@@ -444,18 +444,19 @@ def backfill_gened_descriptions(
     for course in courses:
         if not isinstance(course, dict):
             continue
-        if course.get("desc_th") or course.get("desc_en"):
-            continue
         if not _is_backfillable_code(course.get("code")):
             continue
         source = gened_lookup.get(course.get("code"))
         if source is None:
             continue
-        if source.get("desc_th"):
+        backfilled = False
+        if not course.get("desc_th") and source.get("desc_th"):
             course["desc_th"] = source.get("desc_th")
-        if source.get("desc_en"):
+            backfilled = True
+        if not course.get("desc_en") and source.get("desc_en"):
             course["desc_en"] = source.get("desc_en")
-        if not course.get("desc_th") and not course.get("desc_en"):
+            backfilled = True
+        if not backfilled:
             continue
         course["source_provenance"] = merge_source_provenance(course, source)
         filled += 1
@@ -633,6 +634,34 @@ def dedupe_courses(courses: List[dict]) -> List[dict]:
     return list(courses)
 
 
+def _courses_from_persisted_description_pages(
+    page_records: List[Tuple[str, int, dict]],
+) -> List[dict]:
+    """Join persisted page-edge continuation text to the prior course."""
+    if not page_records:
+        return []
+    first_data = page_records[0][2]
+    extractor = CurriculumExtractor(
+        program=first_data.get("program", "DSBA"),
+        plan=first_data.get("plan"),
+    )
+    courses: List[dict] = []
+    for _, _, data in sorted(page_records, key=lambda record: record[1]):
+        continuation = data.get("leading_description_continuation")
+        if courses and isinstance(continuation, dict):
+            lines = continuation.get("lines")
+            provenance = continuation.get("source_provenance") or []
+            source_context = next(
+                (entry for entry in provenance if isinstance(entry, dict)), None
+            )
+            if isinstance(lines, list):
+                extractor._append_description_lines(
+                    courses[-1], [str(line) for line in lines], source_context
+                )
+        courses.extend(data.get("courses", []))
+    return courses
+
+
 class CurriculumConsolidator:
     """Merge plan table courses with course descriptions (primary = plan)."""
 
@@ -705,6 +734,10 @@ class CurriculumConsolidator:
                         merged_course["credits"] = recovered_credit
 
                     for field in ("prerequisite", "desc_th", "desc_en"):
+                        if field in {"desc_th", "desc_en"} and target_desc.get(
+                            field
+                        ) in (None, ""):
+                            continue
                         if field in target_desc:
                             merged_course[field] = target_desc[field]
 
@@ -730,20 +763,42 @@ class CurriculumConsolidator:
                 th_list = []
                 en_list = []
                 description_sources = []
+                descriptions_by_code = {}
                 for sub_code in sub_codes:
                     target_desc = unique_description(sub_code)
                     if target_desc is not None:
+                        descriptions_by_code[sub_code] = {
+                            "desc_th": target_desc.get("desc_th"),
+                            "desc_en": target_desc.get("desc_en"),
+                            "source_provenance": target_desc.get("source_provenance") or [],
+                        }
                         if target_desc.get("desc_th"):
                             th_list.append(target_desc.get("desc_th"))
                         if target_desc.get("desc_en"):
                             en_list.append(target_desc.get("desc_en"))
                         description_sources.append(target_desc)
                     elif has_ambiguous_description(sub_code):
+                        descriptions_by_code[sub_code] = {
+                            "desc_th": None,
+                            "desc_en": None,
+                            "source_provenance": [],
+                        }
                         ambiguous_codes.add(sub_code)
+                    else:
+                        descriptions_by_code[sub_code] = {
+                            "desc_th": None,
+                            "desc_en": None,
+                            "source_provenance": [],
+                        }
                 if th_list:
                     merged_course["desc_th"] = "\n".join(th_list)
                 if en_list:
                     merged_course["desc_en"] = "\n".join(en_list)
+                if any(
+                    value.get("desc_th") or value.get("desc_en")
+                    for value in descriptions_by_code.values()
+                ):
+                    merged_course["descriptions_by_code"] = descriptions_by_code
                 merged_course["source_provenance"] = merge_source_provenance(
                     course, *description_sources
                 )
@@ -1050,9 +1105,9 @@ def merge_consecutive_files(
                 table_courses.extend(data.get("courses", []))
             desc_courses = ordered_description_courses.get(plan)
             if desc_courses is None:
-                desc_courses = []
-                for _, _, data in desc_records:
-                    desc_courses.extend(data.get("courses", []))
+                desc_courses = _courses_from_persisted_description_pages(
+                    desc_records
+                )
 
             first = table_records[0][2]
             table_courses = CurriculumExtractor(

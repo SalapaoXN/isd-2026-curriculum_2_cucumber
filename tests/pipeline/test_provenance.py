@@ -58,6 +58,44 @@ def description_course(code, marker, source_page, prerequisite="DESC PREREQUISIT
 
 
 class ProvenanceTests(unittest.TestCase):
+    def test_alternative_courses_keep_descriptions_by_exact_code(self):
+        result = merge_plan_with_description(
+            [course("C101 หรือ C102", "PAIR", 39)],
+            [
+                description_course("C101", "ONE", 344),
+                description_course("C102", "TWO", 344),
+            ],
+            {"program": "DSBA"},
+        )
+
+        combined = result["courses"][0]
+        descriptions = combined["descriptions_by_code"]
+        self.assertEqual(
+            {
+                code: {
+                    "desc_th": member["desc_th"],
+                    "desc_en": member["desc_en"],
+                }
+                for code, member in descriptions.items()
+            },
+            {
+                "C101": {
+                    "desc_th": "DESC TH ONE",
+                    "desc_en": "DESC EN ONE",
+                },
+                "C102": {
+                    "desc_th": "DESC TH TWO",
+                    "desc_en": "DESC EN TWO",
+                },
+            },
+        )
+        self.assertTrue(
+            all(
+                member["source_provenance"][0]["document_category"] == "description"
+                for member in descriptions.values()
+            )
+        )
+
     def test_image_metadata_becomes_filename_and_page_provenance(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             output_dir = Path(temp_dir)

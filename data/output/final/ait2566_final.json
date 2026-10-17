@@ -863,14 +863,14 @@
                     "document_page": 44
                 }
             ],
-            "desc_th": "ฝึกทักษะการคิดเชิงออกแบบ โดยการวิเคราะห์ปัญหา เรียนรู้พฤติกรรมกลุ่มเป้าหมาย การระบุปัญหา การ\nสร้างแผนผังความคิด การสัมภาษณ์ การสนทนากลุ่ม เฝึกฝนทักษะการสร้างสรรค์ความคิด การสร้างต้นแบบ ฺการนำเสนอ\nต้นแบบ การทดสอบแนวคิดและต้นแบบ เรียนรู้วิธีการนำกระบวนการคิดเชิงออกแบบไปประยุกต์ ใช้งานในชีวิตประจำวัน\nและการสร้างสรรค์นวัตกรรม",
+            "desc_th": "ฝึกทักษะการคิดเชิงออกแบบ โดยการวิเคราะห์ปัญหา เรียนรู้พฤติกรรมกลุ่มเป้าหมาย การระบุปัญหา การ\nสร้างแผนผังความคิด การสัมภาษณ์ การสนทนากลุ่ม เฝึกฝนทักษะการสร้างสรรค์ความคิด การสร้างต้นแบบ ฺการนำเสนอ",
             "desc_en": "LEARN DESIGN THINKING PROCESS AND DEVELOP PROBLEM SOLVING SKILLS BY STUDYING TARGET GROUP\nBEHAVIOR, DEFINING PROBLEM, USING MIND MAP. LEARN TECHNIQUES FOR INTERVIEWING AND GROUP DISCUSSION.\nPRACTICE IDEATION WHICH LEADS TO CREATIVE SOLUTIONS. BUILD., PRESENT AND TEST PROTOTYPES AND CONCEPTS OF\nDESIGN. LEARN TO APPLY DESIGN THINKING PROCESS TO DAILY LIFE AND CREATE INNOVATION."
         },
         {
             "code": "060464xx",
             "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
             "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
-            "credits": "(3-0-6)",
+            "credits": "6(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -884,9 +884,16 @@
                     "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "source_verified": true
                 }
-            ]
+            ],
+            "credit_source_verified": true,
+            "credit_source_provenance": {
+                "source_filename": "ait2566_page_025.png",
+                "source_page": 25,
+                "document_category": "plan"
+            }
         },
         {
             "code": "06046440",
@@ -923,7 +930,7 @@
             "code": "060464xx",
             "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
             "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
-            "credits": "3(3-0-6)",
+            "credits": "6(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
             "prerequisite": "ไม่มี",
@@ -937,9 +944,16 @@
                     "source_filename": "ait2566_page_025.png",
                     "source_page": 25,
                     "document_page": 21,
-                    "document_category": "plan"
+                    "document_category": "plan",
+                    "source_verified": true
                 }
-            ]
+            ],
+            "credit_source_verified": true,
+            "credit_source_provenance": {
+                "source_filename": "ait2566_page_025.png",
+                "source_page": 25,
+                "document_category": "plan"
+            }
         },
         {
             "code": "06046441",
@@ -1432,6 +1446,7 @@
             "year": 0,
             "semester": 0,
             "desc_th": "ชานีจะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการด้านปัญญาประดิษฐ์ที\nน่าสนใจ โดยอาจารย์ผู้สอนเป็นผู้คัดเลือก",
+            "desc_en": "THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST IN\nTHE FIELD OF ARTIFICIAL INTELLIGENCE SELECTED BY THE INSTRUCTOR.",
             "source_provenance": [
                 {
                     "program": "AIT",

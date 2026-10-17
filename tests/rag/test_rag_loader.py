@@ -9,7 +9,47 @@ from rag.structured.loader import load_json_to_sqlite, load_jsons_to_sqlite
 
 
 class RagLoaderTest(unittest.TestCase):
-    def test_dsba2560_course_06026127_is_shared_with_plan_specific_provenance(self):
+    def test_combined_course_uses_per_code_descriptions(self):
+        document = {
+            "program": "TEST",
+            "catalog": {"catalog_key": "test-2565", "academic_year": "2565"},
+            "plan": "coop",
+            "courses": [
+                {
+                    "code": "C101 or C102",
+                    "name_en": "COURSE ONE\nCOURSE TWO",
+                    "credits": "6",
+                    "desc_th": "Combined description text",
+                    "desc_en": "Combined English text",
+                    "descriptions_by_code": {
+                        "C101": {"desc_th": "Thai one", "desc_en": "English one"},
+                        "C102": {"desc_th": "Thai two", "desc_en": None},
+                    },
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            input_path = Path(directory) / "curriculum.json"
+            database_path = Path(directory) / "curriculum.db"
+            input_path.write_text(json.dumps(document), encoding="utf-8")
+            load_json_to_sqlite(input_path, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                rows = connection.execute(
+                    "SELECT course_code, description_th, description_en "
+                    "FROM courses ORDER BY course_code"
+                ).fetchall()
+
+        self.assertEqual(
+            rows,
+            [
+                ("C101", "Thai one", "English one"),
+                ("C102", "Thai two", None),
+            ],
+        )
+
+    def test_dsba2560_course_06026127_keeps_plan_specific_ocr_variants(self):
         root = Path(__file__).resolve().parents[2]
         artifacts = [
             root / "data" / "output" / "final" / filename
@@ -41,10 +81,13 @@ class RagLoaderTest(unittest.TestCase):
 
             with closing(sqlite3.connect(database)) as connection:
                 courses = connection.execute(
-                    """SELECT catalogs.catalog_key, courses.course_id, courses.name_en,
-                              courses.credits
-                       FROM courses JOIN catalogs USING (catalog_id)
-                       WHERE courses.course_code = '06026127'"""
+                    """SELECT curriculum_plans.plan_code, courses.course_id, courses.name_th,
+                              courses.name_en, courses.credits
+                       FROM plan_placements
+                       JOIN curriculum_plans USING (plan_id)
+                       JOIN courses USING (course_id)
+                       WHERE courses.course_code = '06026127'
+                       ORDER BY curriculum_plans.plan_code"""
                 ).fetchall()
                 placements = connection.execute(
                     """SELECT curriculum_plans.plan_code, plan_placements.course_id
@@ -65,10 +108,19 @@ class RagLoaderTest(unittest.TestCase):
                        ORDER BY curriculum_plans.plan_code, provenance.source_page"""
                 ).fetchall()
 
-        self.assertEqual(len(courses), 1)
-        catalog_key, course_id, name_en, credits = courses[0]
-        self.assertEqual((catalog_key, name_en, credits), ("dsba-2560", "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1", "3(0-9-0)"))
-        self.assertEqual(placements, [("coop", course_id), ("no_coop", course_id)])
+        self.assertEqual(
+            [(plan, name_th, name_en, credits) for plan, _, name_th, name_en, credits in courses],
+            [
+                ("coop", "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
+                 "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1", "3(0-9-0)"),
+                ("no_coop", "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ1",
+                 "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1", "3(0-9-0)"),
+            ],
+        )
+        self.assertEqual(
+            [(plan, course_id) for plan, course_id in placements],
+            [(plan, course_id) for plan, course_id, *_ in courses],
+        )
         self.assertEqual(
             provenance,
             [("coop", 33), ("coop", 188), ("no_coop", 28), ("no_coop", 188)],
@@ -418,7 +470,7 @@ class RagLoaderTest(unittest.TestCase):
         self.assertEqual(len(set(catalog_ids)), 2)
         self.assertEqual(rows, [(catalog_ids[0], "C101", "Edition 2560"), (catalog_ids[1], "C101", "Edition 2565")])
 
-    def test_same_catalog_conflicting_year_or_shared_course_facts_fails_closed(self):
+    def test_same_catalog_year_conflict_fails_but_course_fact_variant_is_kept(self):
         base = {
             "program": "DSBA",
             "catalog": {"catalog_key": "dsba-2560", "academic_year": "2560"},
@@ -428,16 +480,35 @@ class RagLoaderTest(unittest.TestCase):
         conflicting_year = {**base, "catalog": {"catalog_key": "dsba-2560", "academic_year": "2565"}, "plan": "no_coop"}
         conflicting_course = {**base, "plan": "no_coop", "courses": [{"code": "C101", "name_en": "Shared course", "credits": "6"}]}
 
-        for second, expected in ((conflicting_year, "academic_year"), (conflicting_course, "C101")):
-            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                inputs = []
-                for index, document in enumerate((base, second)):
-                    path = root / f"document-{index}.json"
-                    path.write_text(json.dumps(document), encoding="utf-8")
-                    inputs.append(path)
-                with self.assertRaisesRegex(ValueError, expected):
-                    load_jsons_to_sqlite(inputs, root / "curriculum.db")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inputs = []
+            for index, document in enumerate((base, conflicting_year)):
+                path = root / f"year-{index}.json"
+                path.write_text(json.dumps(document), encoding="utf-8")
+                inputs.append(path)
+            with self.assertRaisesRegex(ValueError, "academic_year"):
+                load_jsons_to_sqlite(inputs, root / "conflicting-year.db")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inputs = []
+            for index, document in enumerate((base, conflicting_course)):
+                path = root / f"course-{index}.json"
+                path.write_text(json.dumps(document), encoding="utf-8")
+                inputs.append(path)
+            database = root / "curriculum.db"
+            load_jsons_to_sqlite(inputs, database)
+            with closing(sqlite3.connect(database)) as connection:
+                variants = connection.execute(
+                    """SELECT plans.plan_code, courses.credits
+                       FROM plan_placements
+                       JOIN curriculum_plans AS plans USING (plan_id)
+                       JOIN courses USING (course_id)
+                       WHERE courses.course_code = 'C101'
+                       ORDER BY plans.plan_code"""
+                ).fetchall()
+        self.assertEqual(variants, [("coop", "3"), ("no_coop", "6")])
 
     def test_shared_thai_course_name_whitespace_is_compatible(self):
         base = {
@@ -477,11 +548,17 @@ class RagLoaderTest(unittest.TestCase):
             load_jsons_to_sqlite(inputs, database)
             with closing(sqlite3.connect(database)) as connection:
                 rows = connection.execute(
-                    "SELECT course_code, name_th FROM courses WHERE course_code = '06036018'"
+                    "SELECT course_code, name_th FROM courses "
+                    "WHERE course_code = '06036018' ORDER BY name_th"
                 ).fetchall()
 
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0][0], "06036018")
+        self.assertEqual(
+            rows,
+            [
+                ("06036018", "สื่อสังคม และเครือข่ายสังคม"),
+                ("06036018", "สื่อสังคมและเครือข่ายสังคม"),
+            ],
+        )
 
     def _load_shared_course_pair(self, first_course, second_course):
         with tempfile.TemporaryDirectory() as directory:
@@ -510,7 +587,8 @@ class RagLoaderTest(unittest.TestCase):
             load_jsons_to_sqlite(inputs, database)
             with closing(sqlite3.connect(database)) as connection:
                 return connection.execute(
-                    "SELECT name_en, credits FROM courses WHERE course_code = 'C101'"
+                    "SELECT name_en, credits FROM courses "
+                    "WHERE course_code = 'C101' ORDER BY course_identity_discriminator"
                 ).fetchall()
 
     def _load_description_records(self, records):
@@ -539,22 +617,24 @@ class RagLoaderTest(unittest.TestCase):
             with closing(sqlite3.connect(database)) as connection:
                 course_rows = connection.execute(
                     """SELECT course_id, description_th, name_th, name_en, credits, notes
-                       FROM courses WHERE course_code = 'C101'"""
+                       FROM courses WHERE course_code = 'C101' ORDER BY course_id"""
                 ).fetchall()
                 if not course_rows:
                     return course_rows, 0, []
+                course_ids = [row[0] for row in course_rows]
+                placeholders = ",".join("?" for _ in course_ids)
                 provenance_count = connection.execute(
-                    "SELECT COUNT(*) FROM course_provenance WHERE course_id = ?",
-                    (course_rows[0][0],),
+                    f"SELECT COUNT(*) FROM course_provenance WHERE course_id IN ({placeholders})",
+                    course_ids,
                 ).fetchone()[0]
                 prerequisites = connection.execute(
-                    """SELECT prerequisite_course.course_code
+                    f"""SELECT DISTINCT prerequisite_course.course_code
                        FROM prerequisites
                        LEFT JOIN courses AS prerequisite_course
                          ON prerequisite_course.course_id = prerequisites.prerequisite_course_id
-                       WHERE prerequisites.course_id = ?
+                       WHERE prerequisites.course_id IN ({placeholders})
                        ORDER BY prerequisite_course.course_code""",
-                    (course_rows[0][0],),
+                    course_ids,
                 ).fetchall()
                 return course_rows, provenance_count, [row[0] for row in prerequisites]
 
@@ -617,7 +697,7 @@ class RagLoaderTest(unittest.TestCase):
         self.assertIsNone(rows[0][1])
         self.assertEqual(provenance_count, 3)
 
-    def test_plan_table_name_and_credits_win_and_description_prerequisite_enriches(self):
+    def test_plan_and_description_facts_are_kept_separately(self):
         plan_course = {
             "code": "C101",
             "name_th": "Plan Thai name",
@@ -659,11 +739,22 @@ class RagLoaderTest(unittest.TestCase):
                 rows, provenance_count, prerequisites = self._load_description_records(
                     [("coop", courses)]
                 )
-                self.assertEqual(len(rows), 1)
+                self.assertEqual(len(rows), 2)
                 self.assertEqual(
-                    rows[0][2:5], ("Plan Thai name", "PLAN COURSE NAME", "3")
+                    {
+                        (row[2], row[3], row[4], row[1])
+                        for row in rows
+                    },
+                    {
+                        ("Plan Thai name", "PLAN COURSE NAME", "3", None),
+                        (
+                            "Description Thai name",
+                            "DESCRIPTION COURSE NAME",
+                            "6",
+                            "Enriched description",
+                        ),
+                    },
                 )
-                self.assertEqual(rows[0][1], "Enriched description")
                 self.assertEqual(prerequisites, ["C200"])
                 self.assertEqual(provenance_count, 2)
 
@@ -697,7 +788,7 @@ class RagLoaderTest(unittest.TestCase):
         self.assertIsNone(rows[0][5])
         self.assertEqual(provenance_count, 2)
 
-    def test_conflicting_plan_table_name_or_credits_still_fails_closed(self):
+    def test_conflicting_plan_table_facts_are_kept_as_plan_variants(self):
         for field, values in (
             ("name_en", ("COURSE ONE", "COURSE TWO")),
             ("credits", ("3", "6")),
@@ -735,31 +826,58 @@ class RagLoaderTest(unittest.TestCase):
                         encoding="utf-8",
                     )
                     inputs.append(path)
-                with self.assertRaisesRegex(ValueError, f"conflicting {field}"):
-                    load_jsons_to_sqlite(inputs, root / "curriculum.db")
+                database = root / "curriculum.db"
+                load_jsons_to_sqlite(inputs, database)
+                with closing(sqlite3.connect(database)) as connection:
+                    rows = connection.execute(
+                        """SELECT plans.plan_code, courses.name_en, courses.credits
+                           FROM plan_placements
+                           JOIN curriculum_plans AS plans USING (plan_id)
+                           JOIN courses USING (course_id)
+                           WHERE courses.course_code = 'C101'
+                           ORDER BY plans.plan_code"""
+                    ).fetchall()
+                expected = (
+                    [("coop", "COURSE ONE", "3"), ("no_coop", "COURSE TWO", "3")]
+                    if field == "name_en"
+                    else [("coop", "COURSE ONE", "3"), ("no_coop", "COURSE ONE", "6")]
+                )
+                self.assertEqual(rows, expected)
 
-    def test_shared_course_english_capitalization_difference_is_compatible(self):
+    def test_shared_course_english_capitalization_difference_is_preserved(self):
         rows = self._load_shared_course_pair(
             {"code": "C101", "name_en": "PRACTICAL NoSQL DATABASE", "credits": "3"},
             {"code": "C101", "name_en": "PRACTICAL NOSQL DATABASE", "credits": "3"},
         )
-        self.assertEqual(rows, [("PRACTICAL NoSQL DATABASE", "3")])
+        self.assertEqual(
+            set(rows),
+            {("PRACTICAL NoSQL DATABASE", "3"), ("PRACTICAL NOSQL DATABASE", "3")},
+        )
 
-    def test_shared_course_whitespace_name_difference_is_compatible(self):
+    def test_shared_course_whitespace_name_difference_is_preserved(self):
         rows = self._load_shared_course_pair(
             {"code": "C101", "name_en": "  COMPUTER   PROGRAMMING  ", "credits": "3"},
             {"code": "C101", "name_en": "COMPUTER PROGRAMMING", "credits": "3"},
         )
-        self.assertEqual(rows, [("  COMPUTER   PROGRAMMING  ", "3")])
+        self.assertEqual(
+            set(rows),
+            {("  COMPUTER   PROGRAMMING  ", "3"), ("COMPUTER PROGRAMMING", "3")},
+        )
 
-    def test_shared_course_missing_english_word_separator_is_compatible(self):
+    def test_shared_course_missing_english_word_separator_is_preserved(self):
         rows = self._load_shared_course_pair(
             {"code": "C101", "name_en": "VISUAL COMMUNICATION FORBUSINESS", "credits": "3"},
             {"code": "C101", "name_en": "VISUAL COMMUNICATION FOR BUSINESS", "credits": "3"},
         )
-        self.assertEqual(rows, [("VISUAL COMMUNICATION FORBUSINESS", "3")])
+        self.assertEqual(
+            set(rows),
+            {
+                ("VISUAL COMMUNICATION FORBUSINESS", "3"),
+                ("VISUAL COMMUNICATION FOR BUSINESS", "3"),
+            },
+        )
 
-    def test_shared_course_substantive_name_difference_still_fails_closed(self):
+    def test_shared_course_substantive_name_difference_is_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             inputs = []
@@ -784,10 +902,23 @@ class RagLoaderTest(unittest.TestCase):
                     encoding="utf-8",
                 )
                 inputs.append(path)
-            with self.assertRaisesRegex(ValueError, "conflicting name_en"):
-                load_jsons_to_sqlite(inputs, root / "curriculum.db")
+            database = root / "curriculum.db"
+            load_jsons_to_sqlite(inputs, database)
+            with closing(sqlite3.connect(database)) as connection:
+                rows = connection.execute(
+                    """SELECT plans.plan_code, courses.name_en
+                       FROM plan_placements
+                       JOIN curriculum_plans AS plans USING (plan_id)
+                       JOIN courses USING (course_id)
+                       WHERE courses.course_code = 'C101'
+                       ORDER BY plans.plan_code"""
+                ).fetchall()
+        self.assertEqual(
+            rows,
+            [("coop", "COMPUTER PROGRAMMING"), ("no_coop", "COMPUTER PROGRAMMING 2")],
+        )
 
-    def test_shared_course_credit_difference_still_fails_closed(self):
+    def test_shared_course_credit_difference_is_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             inputs = []
@@ -814,8 +945,18 @@ class RagLoaderTest(unittest.TestCase):
                     encoding="utf-8",
                 )
                 inputs.append(path)
-            with self.assertRaisesRegex(ValueError, "conflicting credits"):
-                load_jsons_to_sqlite(inputs, root / "curriculum.db")
+            database = root / "curriculum.db"
+            load_jsons_to_sqlite(inputs, database)
+            with closing(sqlite3.connect(database)) as connection:
+                rows = connection.execute(
+                    """SELECT plans.plan_code, courses.credits
+                       FROM plan_placements
+                       JOIN curriculum_plans AS plans USING (plan_id)
+                       JOIN courses USING (course_id)
+                       WHERE courses.course_code = 'C101'
+                       ORDER BY plans.plan_code"""
+                ).fetchall()
+        self.assertEqual(rows, [("coop", "3"), ("no_coop", "6")])
 
     def test_program_and_plan_identity_are_normalized_and_unique(self):
         document = {
@@ -1050,6 +1191,46 @@ class RagLoaderTest(unittest.TestCase):
                 ).fetchone()
 
             self.assertEqual(prerequisite, (1, "C100"))
+
+    def test_multi_file_load_resolves_forward_prerequisite_within_catalog(self):
+        documents = [
+            {
+                "program": "TEST",
+                "catalog": {"catalog_key": "test-2565", "academic_year": "2565"},
+                "plan": {"plan_code": "coop", "version": "2565"},
+                "courses": [{"code": "C200", "prerequisite": "C100"}],
+            },
+            {
+                "program": "TEST",
+                "catalog": {"catalog_key": "test-2565", "academic_year": "2565"},
+                "plan": {"plan_code": "no_coop", "version": "2565"},
+                "courses": [{"code": "C100", "name_en": "FOUNDATION COURSE"}],
+            },
+        ]
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            input_paths = []
+            for index, document in enumerate(documents):
+                input_path = root / f"plan-{index}.json"
+                input_path.write_text(json.dumps(document), encoding="utf-8")
+                input_paths.append(input_path)
+            database_path = root / "curriculum.db"
+
+            load_jsons_to_sqlite(input_paths, database_path)
+
+            with closing(sqlite3.connect(database_path)) as connection:
+                edge = connection.execute(
+                    """SELECT dependent.course_code, prerequisite.course_code,
+                              dependent.catalog_id, prerequisite.catalog_id
+                       FROM prerequisites AS edge
+                       JOIN courses AS dependent ON dependent.course_id = edge.course_id
+                       JOIN courses AS prerequisite
+                         ON prerequisite.course_id = edge.prerequisite_course_id"""
+                ).fetchone()
+
+        self.assertEqual(edge[0:2], ("C200", "C100"))
+        self.assertEqual(edge[2], edge[3])
 
     def test_alternative_course_members_remain_distinct(self):
         document = {
@@ -1297,7 +1478,15 @@ class RagLoaderTest(unittest.TestCase):
                 ).fetchall()
                 self.assertEqual(
                     source_pages,
-                    [(10,), (11,), (12,), (13,), (14,)],
+                    [(10,), (11,), (13,), (14,)],
+                )
+                self.assertEqual(
+                    connection.execute(
+                        """SELECT COUNT(*) FROM plan_placements
+                           JOIN courses USING (course_id)
+                           WHERE courses.course_code = 'C200'"""
+                    ).fetchone(),
+                    (0,),
                 )
 
     def test_loads_multiple_documents_into_one_database_with_views(self):

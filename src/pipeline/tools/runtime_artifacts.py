@@ -1,4 +1,4 @@
-"""Post-evaluation canonical curriculum artifacts and shared-course preflight."""
+"""Reviewed runtime artifacts and plan-scoped course preflight."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from typing import Any
 from rag.structured.loader import (
     _course_codes,
     _course_identity_discriminator,
+    _course_variant_discriminator,
     _member_value as _loader_member_value,
     _normalized_course_code,
     _normalized_course_name,
@@ -27,6 +28,9 @@ CANONICAL_DIR = PROJECT_ROOT / "data" / "output" / "canonical"
 GROUND_TRUTH_DIR = PROJECT_ROOT / "ground_truth"
 LEGACY_CORRECTIONS_PATH = (
     PROJECT_ROOT / "data" / "corrections" / "legacy_2560_source_verified_corrections.json"
+)
+PREREQUISITE_CORRECTIONS_PATH = (
+    PROJECT_ROOT / "data" / "corrections" / "source_verified_prerequisite_corrections.json"
 )
 
 STRUCTURED_FIELDS = (
@@ -43,32 +47,6 @@ STRUCTURED_FIELDS = (
     "note",
 )
 
-# The program-specific plan GT owns all structured plan fields.
-PLAN_GROUND_TRUTH = {
-    ("ait-2566", "AIT", None): Path("AIT/AIT_academic_plan.json"),
-    ("bit-2565", "BIT", "coop"): Path("BIT/BIT_academic_plan_coop.json"),
-    ("bit-2565", "BIT", "no_coop"): Path("BIT/BIT_academic_plan_no_coop.json"),
-    ("dsba-2565", "DSBA", "coop"): Path("DSBA/DSBA_academic_plan_coop.json"),
-    ("dsba-2565", "DSBA", "no_coop"): Path("DSBA/DSBA_academic_plan_no_coop.json"),
-    ("gened-2564", "GENED", "gened"): Path("general_education_ground_truth.json"),
-    ("it-2565", "IT", "coop"): Path("IT/IT_academic_plan_coop.json"),
-    ("it-2565", "IT", "no_coop"): Path("IT/IT_academic_plan_no_coop.json"),
-}
-
-# Shared general-education GT supplies course facts. Course type and placement
-# stay plan-specific, so those fields remain from the program plan GT above.
-SHARED_GENERAL_EDUCATION_FIELDS = frozenset(
-    {
-        "code",
-        "name_th",
-        "name_en",
-        "credits",
-        "category",
-        "prerequisite",
-        "flexible_year_semester",
-        "note",
-    }
-)
 LEGACY_2560_CATALOGS = frozenset({"bit-2560", "dsba-2560", "it-2560"})
 
 
@@ -78,6 +56,7 @@ class CanonicalizationResult:
     plan_gt_fields_applied: int
     shared_general_education_fields_applied: int
     legacy_corrections_applied: int
+    prerequisite_corrections_applied: int = 0
 
 
 def _read_json_object(path: Path, *, label: str) -> dict[str, Any]:
@@ -326,37 +305,6 @@ def _apply_member_overrides(
     return applied
 
 
-def _apply_ground_truth(
-    document: dict[str, Any],
-    ground_truth: Mapping[str, Any],
-    *,
-    identity: tuple[str, str, str | None],
-    fields: Sequence[str],
-    require_all_ground_truth_codes: bool,
-) -> int:
-    courses = document.get("courses")
-    gt_courses = ground_truth.get("courses")
-    if not isinstance(courses, list) or not isinstance(gt_courses, list):
-        raise ValueError("curriculum and Ground Truth artifacts must contain courses lists")
-    assignments = _match_ground_truth(
-        courses,
-        gt_courses,
-        identity=identity,
-        require_all_ground_truth_codes=require_all_ground_truth_codes,
-    )
-    applied = 0
-    for row_index, course in enumerate(courses):
-        if not isinstance(course, dict):
-            raise ValueError(f"course row {row_index} must be an object")
-        member_assignments = {
-            member_index: assignments[(row_index, member_index)]
-            for member_index in range(len(_course_codes(course)))
-            if (row_index, member_index) in assignments
-        }
-        applied += _apply_member_overrides(course, member_assignments, fields=fields)
-    return applied
-
-
 def _load_legacy_corrections(path: Path) -> list[dict[str, Any]]:
     document = _read_json_object(path, label="legacy correction artifact")
     if document.get("schema_version") != 1:
@@ -498,48 +446,165 @@ def _apply_legacy_corrections(
     return applied, used
 
 
+def _load_prerequisite_corrections(path: Path) -> list[dict[str, Any]]:
+    document = _read_json_object(path, label="source-verified prerequisite correction artifact")
+    if document.get("schema_version") != 1:
+        raise ValueError(f"unsupported prerequisite correction schema in {path}")
+    corrections = document.get("corrections")
+    if not isinstance(corrections, list):
+        raise ValueError(f"prerequisite correction artifact must contain corrections: {path}")
+
+    seen: set[tuple[str, str, str, str]] = set()
+    for index, correction in enumerate(corrections):
+        if not isinstance(correction, dict):
+            raise ValueError(f"prerequisite correction {index} must be an object")
+        required_text = ("catalog_key", "program", "plan", "course_code", "observed_value", "corrected_value")
+        if any(not isinstance(correction.get(key), str) or not correction[key].strip()
+               for key in required_text):
+            raise ValueError(f"prerequisite correction {index} has missing identity or values")
+        identity = (
+            correction["catalog_key"].strip(),
+            correction["program"].strip().upper(),
+            correction["plan"].strip().casefold(),
+            _normalized_course_code(correction["course_code"]),
+        )
+        if identity in seen:
+            raise ValueError(f"duplicate prerequisite correction identity in {path}: {identity}")
+        seen.add(identity)
+
+        sources = correction.get("source_provenance")
+        if not isinstance(sources, list) or not sources:
+            raise ValueError(f"prerequisite correction {index} requires source provenance")
+        catalog_year = identity[0].rsplit("-", 1)[-1]
+        source_directory = PROJECT_ROOT / "data" / "input" / f"{identity[1].casefold()}{catalog_year}"
+        for source in sources:
+            if not isinstance(source, dict):
+                raise ValueError(f"prerequisite correction {index} source must be an object")
+            filename = source.get("source_filename")
+            page = source.get("source_page")
+            if (
+                not isinstance(filename, str)
+                or not filename
+                or Path(filename).name != filename
+                or isinstance(page, bool)
+                or not isinstance(page, int)
+                or page < 1
+                or source.get("document_category") not in {"plan", "description"}
+                or not isinstance(source.get("evidence"), str)
+                or not source["evidence"].strip()
+            ):
+                raise ValueError(f"prerequisite correction {index} has invalid source provenance")
+            if not (source_directory / filename).is_file():
+                raise FileNotFoundError(
+                    f"prerequisite correction source document not found: {source_directory / filename}"
+                )
+    return corrections
+
+
+def _apply_prerequisite_corrections(
+    document: dict[str, Any],
+    identity: tuple[str, str, str | None],
+    corrections: Sequence[Mapping[str, Any]],
+) -> tuple[int, set[int]]:
+    courses = document.get("courses")
+    if not isinstance(courses, list):
+        raise ValueError("curriculum artifact must contain a courses list")
+
+    used: set[int] = set()
+    applied = 0
+    for correction_index, correction in enumerate(corrections):
+        correction_identity = (
+            correction["catalog_key"].strip(),
+            correction["program"].strip().upper(),
+            correction["plan"].strip().casefold(),
+        )
+        if correction_identity != identity:
+            continue
+        code_key = _normalized_course_code(correction["course_code"])
+        matches: list[tuple[int, int, int]] = []
+        for row_index, course in enumerate(courses):
+            if not isinstance(course, dict):
+                continue
+            codes = _course_codes(course)
+            for member_index, code in enumerate(codes):
+                if _normalized_course_code(code) == code_key:
+                    matches.append((row_index, member_index, len(codes)))
+        if len(matches) != 1:
+            raise ValueError(
+                "prerequisite correction must match exactly one course identity: "
+                f"{identity[1]}/{identity[2]} {identity[0]}:{correction['course_code']} "
+                f"(matches={len(matches)})"
+            )
+
+        row_index, member_index, member_count = matches[0]
+        course = courses[row_index]
+        observed = _loader_member_value(
+            course.get("prerequisite"), member_index, member_count
+        )
+        if observed not in {correction["observed_value"], correction["corrected_value"]}:
+            raise ValueError(
+                "source-verified prerequisite correction no longer matches extracted text: "
+                f"{identity[1]}/{identity[2]} {correction['course_code']} "
+                f"(expected={correction['observed_value']!r} or "
+                f"{correction['corrected_value']!r}, found={observed!r})"
+            )
+
+        if observed != correction["corrected_value"]:
+            assignments = {
+                member_index: {"fields": {"prerequisite": correction["corrected_value"]}}
+            }
+            applied += _apply_member_overrides(
+                course, assignments, fields=("prerequisite",)
+            )
+        prior_observation = course.get("prerequisite_observed")
+        if prior_observation not in (None, observed):
+            raise ValueError(
+                f"conflicting prerequisite_observed value for {correction['course_code']}"
+            )
+        course["prerequisite_observed"] = observed
+
+        provenance_value = course.get("source_provenance")
+        if isinstance(provenance_value, Mapping):
+            provenance = [dict(provenance_value)]
+        elif isinstance(provenance_value, list):
+            provenance = [dict(entry) for entry in provenance_value if isinstance(entry, Mapping)]
+        else:
+            provenance = []
+        for source in correction["source_provenance"]:
+            entry = {
+                key: source[key]
+                for key in ("program", "source_filename", "source_page", "document_page", "document_category")
+                if key in source
+            }
+            entry["excerpt"] = source["evidence"]
+            if entry not in provenance:
+                provenance.append(entry)
+        course["source_provenance"] = provenance
+        used.add(correction_index)
+    return applied, used
+
+
 def _canonicalize_document(
     source_path: Path,
     document: dict[str, Any],
     *,
-    ground_truth_dir: Path,
     corrections: Sequence[Mapping[str, Any]],
-) -> tuple[dict[str, Any], int, int, int, set[int]]:
+    prerequisite_corrections: Sequence[Mapping[str, Any]],
+) -> tuple[dict[str, Any], int, set[int], int, set[int]]:
     identity = _document_identity(document, source_path)
     if not isinstance(document.get("courses"), list):
         raise ValueError(f"curriculum artifact has no courses list: {source_path}")
-    plan_count = 0
-    shared_count = 0
-    used_corrections: set[int] = set()
-
-    plan_gt_relative = PLAN_GROUND_TRUTH.get(identity)
-    if plan_gt_relative is not None:
-        plan_gt_path = ground_truth_dir / plan_gt_relative
-        plan_gt = _read_json_object(plan_gt_path, label="plan Ground Truth")
-        plan_count += _apply_ground_truth(
-            document,
-            plan_gt,
-            identity=identity,
-            fields=STRUCTURED_FIELDS,
-            require_all_ground_truth_codes=True,
-        )
-
-    if identity[0] not in LEGACY_2560_CATALOGS:
-        shared_path = ground_truth_dir / "general_education_ground_truth.json"
-        if shared_path.is_file():
-            shared_gt = _read_json_object(shared_path, label="shared general-education Ground Truth")
-            shared_count += _apply_ground_truth(
-                document,
-                shared_gt,
-                identity=identity,
-                fields=tuple(SHARED_GENERAL_EDUCATION_FIELDS),
-                require_all_ground_truth_codes=False,
-            )
-
-    legacy_count, used_corrections = _apply_legacy_corrections(
-        document, identity, corrections
+    legacy_count, used_corrections = _apply_legacy_corrections(document, identity, corrections)
+    prerequisite_count, used_prerequisite_corrections = _apply_prerequisite_corrections(
+        document, identity, prerequisite_corrections
     )
-    return document, plan_count, shared_count, legacy_count, used_corrections
+    return (
+        document,
+        legacy_count,
+        used_corrections,
+        prerequisite_count,
+        used_prerequisite_corrections,
+    )
 
 
 def _write_json_atomically(path: Path, document: Mapping[str, Any]) -> None:
@@ -565,22 +630,30 @@ def canonicalize_runtime_artifacts(
     output_dir: str | Path = CANONICAL_DIR,
     ground_truth_dir: str | Path = GROUND_TRUTH_DIR,
     corrections_path: str | Path = LEGACY_CORRECTIONS_PATH,
+    prerequisite_corrections_path: str | Path = PREREQUISITE_CORRECTIONS_PATH,
 ) -> CanonicalizationResult:
-    """Copy reviewed finals, apply post-evaluation GT and 2560 source corrections."""
+    """Copy reviewed finals and apply source-verified curriculum corrections.
+
+    ``ground_truth_dir`` remains accepted for compatibility with existing callers;
+    it is intentionally never read when creating runtime artifacts.
+    """
     source_root = Path(final_dir)
     destination_root = Path(output_dir)
-    gt_root = Path(ground_truth_dir)
+    del ground_truth_dir
     corrections_file = Path(corrections_path)
     source_paths = sorted(source_root.glob("*_final.json"))
     if not source_paths:
         raise FileNotFoundError(f"no reviewed curriculum final artifacts in {source_root}")
 
     corrections = _load_legacy_corrections(corrections_file)
+    prerequisite_corrections = _load_prerequisite_corrections(
+        Path(prerequisite_corrections_path)
+    )
     canonical_documents = []
-    plan_count = 0
-    shared_count = 0
     legacy_count = 0
+    prerequisite_count = 0
     used_corrections: set[int] = set()
+    used_prerequisite_corrections: set[int] = set()
     for source_path in source_paths:
         source_document = _read_json_object(source_path, label="reviewed final")
         # Keep the in-memory source untouched; canonicalization only writes to
@@ -589,14 +662,20 @@ def canonicalize_runtime_artifacts(
         result = _canonicalize_document(
             source_path,
             canonical_document,
-            ground_truth_dir=gt_root,
             corrections=corrections,
+            prerequisite_corrections=prerequisite_corrections,
         )
-        canonical_document, plan_applied, shared_applied, legacy_applied, used = result
-        plan_count += plan_applied
+        (
+            canonical_document,
+            legacy_applied,
+            used,
+            prerequisite_applied,
+            used_prerequisites,
+        ) = result
         legacy_count += legacy_applied
-        shared_count += shared_applied
+        prerequisite_count += prerequisite_applied
         used_corrections.update(used)
+        used_prerequisite_corrections.update(used_prerequisites)
         canonical_documents.append((source_path.name, canonical_document))
 
     unused = sorted(set(range(len(corrections))) - used_corrections)
@@ -606,6 +685,19 @@ def canonicalize_runtime_artifacts(
             for index in unused
         ]
         raise ValueError("unused source-verified legacy corrections: " + ", ".join(labels))
+
+    unused_prerequisite_corrections = sorted(
+        set(range(len(prerequisite_corrections))) - used_prerequisite_corrections
+    )
+    if unused_prerequisite_corrections:
+        labels = [
+            f"{prerequisite_corrections[index]['catalog_key']}:"
+            f"{prerequisite_corrections[index]['course_code']}"
+            for index in unused_prerequisite_corrections
+        ]
+        raise ValueError(
+            "unused source-verified prerequisite corrections: " + ", ".join(labels)
+        )
 
     expected_names = {name for name, _ in canonical_documents}
     if destination_root.exists():
@@ -621,9 +713,10 @@ def canonicalize_runtime_artifacts(
 
     return CanonicalizationResult(
         paths=tuple(destination_root / name for name, _ in canonical_documents),
-        plan_gt_fields_applied=plan_count,
-        shared_general_education_fields_applied=shared_count,
+        plan_gt_fields_applied=0,
+        shared_general_education_fields_applied=0,
         legacy_corrections_applied=legacy_count,
+        prerequisite_corrections_applied=prerequisite_count,
     )
 
 
@@ -638,9 +731,14 @@ def _is_plan_backed(course: Mapping[str, Any]) -> bool:
 def audit_shared_course_conflicts(
     paths: Sequence[str | Path],
 ) -> list[str]:
-    """Return all loader-blocking name/credit conflicts across plan-backed facts."""
+    """Return unresolved name/credit conflicts that the loader cannot represent.
+
+    Different observations in separate plans are valid runtime variants and are
+    retained as separate course identities by the loader. Differing facts within
+    one plan receive the same deterministic variant identities during loading.
+    """
     observations: dict[
-        tuple[str, str, str, str],
+        tuple[str, str, str | None, str, str],
         dict[str, list[tuple[Any, Any, str]]],
     ] = defaultdict(lambda: defaultdict(list))
     for path_value in paths:
@@ -669,11 +767,20 @@ def audit_shared_course_conflicts(
                     course.get("credits"), member_index, len(codes)
                 )
                 discriminator = _course_identity_discriminator(code, name_en, name_th)
+                variant_discriminator = _course_variant_discriminator(
+                    discriminator,
+                    {
+                        "name_th": name_th,
+                        "name_en": name_en,
+                        "credits": credits,
+                    },
+                )
                 identity = (
                     catalog_key,
                     program,
+                    plan or "",
                     _normalized_course_code(code),
-                    discriminator,
+                    variant_discriminator,
                 )
                 if name_th is not None:
                     normalized = _normalized_course_name(name_th, casefold=False)
@@ -686,7 +793,7 @@ def audit_shared_course_conflicts(
 
     conflicts = []
     for identity, fields in sorted(observations.items()):
-        catalog_key, program, code, discriminator = identity
+        catalog_key, program, plan, code, discriminator = identity
         for field, values in fields.items():
             normalized_values = {value[0] for value in values}
             if len(normalized_values) <= 1:
@@ -698,7 +805,7 @@ def audit_shared_course_conflicts(
             if discriminator:
                 label += f" ({discriminator})"
             conflicts.append(
-                f"{label} {field}: {rendered} [program={program}]"
+                f"{label} {field}: {rendered} [program={program}, plan={plan or '-'}]"
             )
     return conflicts
 
@@ -726,9 +833,10 @@ def main_canonicalize() -> int:
     result = canonicalize_runtime_artifacts()
     print(
         f"Canonicalized {len(result.paths)} curriculum artifact(s) in {CANONICAL_DIR}; "
-        f"plan-GT field applications={result.plan_gt_fields_applied}, "
-        f"shared-GE field applications={result.shared_general_education_fields_applied}, "
-        f"legacy source corrections={result.legacy_corrections_applied}."
+        "Ground Truth field applications=0, "
+        f"legacy source corrections={result.legacy_corrections_applied}, "
+        "source-verified prerequisite corrections="
+        f"{result.prerequisite_corrections_applied}."
     )
     return 0
 
@@ -745,6 +853,6 @@ def main_preflight() -> int:
         return 1
     print(
         f"Preflight passed: {len(sources)} canonical curriculum artifact(s), "
-        "0 unresolved shared-course conflicts."
+        "0 loader-blocking course conflicts. Differing facts are retained as variants."
     )
     return 0

@@ -242,7 +242,180 @@ def _top_k_with_ties(fetch_hits, limit: int, max_candidates: int = MAX_TIED_CAND
     return hits[:tied_end]
 
 
-def _search(query: str, limit: int = TOP_K) -> list[dict[str, Any]]:
+def _scope_text(value: Any) -> str:
+    return unicodedata.normalize("NFKC", str(value or "")).strip().casefold()
+
+
+def _chunk_course_codes(chunk: dict[str, Any]) -> list[str]:
+    value = chunk.get("course_code")
+    values = value if isinstance(value, (list, tuple, set)) else [value]
+    return [str(item).strip().casefold() for item in values if item not in (None, "")]
+
+
+def _chunk_academic_year(chunk: dict[str, Any]) -> str:
+    year = chunk.get("academic_year")
+    if year not in (None, ""):
+        return str(year).strip()
+    catalog_key = chunk.get("catalog_key")
+    source_filename = chunk.get("source_filename")
+    source_text = " ".join(str(value) for value in (catalog_key, source_filename) if value)
+    match = re.search(r"(?<!\d)(25\d{2})(?!\d)", source_text)
+    return match.group(1) if match else ""
+
+
+def _placement_scope_maps(connection):
+    by_id: dict[int, dict[str, Any]] = {}
+    by_code: dict[str, list[dict[str, Any]]] = {}
+    rows = connection.execute(
+        """SELECT placements.placement_id, programs.program_code,
+                  catalogs.academic_year,
+                  COALESCE(NULLIF(plans.plan_code, ''), plans.plan_key),
+                  courses.course_code_normalized,
+                  placements.year_number, placements.semester_number,
+                  placements.flexible_year_number, placements.flexible_semester_number,
+                  placements.flexible_year_semester_raw
+           FROM plan_placements AS placements
+           JOIN curriculum_plans AS plans ON plans.plan_id = placements.plan_id
+           JOIN programs ON programs.program_id = plans.program_id
+           JOIN catalogs ON catalogs.catalog_id = plans.catalog_id
+           LEFT JOIN courses ON courses.course_id = placements.course_id"""
+    ).fetchall()
+    for row in rows:
+        years = set()
+        semesters = set()
+        year = row[5] if row[5] is not None else row[7]
+        semester = row[6] if row[6] is not None else row[8]
+        if year is not None:
+            years.add(int(year))
+        if semester is not None:
+            semesters.add(int(semester))
+        flexible = row[9]
+        if flexible:
+            match = re.fullmatch(r"\s*(\d+)\s*/\s*(\d+)\s*", str(flexible))
+            if match:
+                years.add(int(match.group(1)))
+                semesters.add(int(match.group(2)))
+        item = {
+            "program": _scope_text(row[1]),
+            "academic_year": str(row[2] or "").strip(),
+            "plan": _normalize_plan_filter(row[3]),
+            "years": years,
+            "semesters": semesters,
+        }
+        placement_id = int(row[0])
+        by_id[placement_id] = item
+        if row[4] is not None:
+            by_code.setdefault(str(row[4]).strip().casefold(), []).append(item)
+    return by_id, by_code
+
+
+def _placement_matches_scope(placement: dict[str, Any], scope: dict[str, Any]) -> bool:
+    if scope["program"] and placement["program"] != scope["program"]:
+        return False
+    if scope["academic_year"] and placement["academic_year"] != scope["academic_year"]:
+        return False
+    if scope["plan"] and placement["plan"] != scope["plan"]:
+        return False
+    if scope["study_year"] is not None and int(scope["study_year"]) not in placement["years"]:
+        return False
+    if scope["semester"] is not None and int(scope["semester"]) not in placement["semesters"]:
+        return False
+    return True
+
+
+def _chunk_matches_scope(
+    chunk: dict[str, Any], scope: dict[str, Any], placement_by_id, placements_by_code
+) -> bool:
+    if scope["program"] and _scope_text(chunk.get("program")) != scope["program"]:
+        return False
+    if scope["academic_year"] and _chunk_academic_year(chunk) != scope["academic_year"]:
+        return False
+    if scope["plan"]:
+        plans = chunk.get("plan")
+        plan_values = plans if isinstance(plans, (list, tuple, set)) else [plans]
+        if not any(_normalize_plan_filter(str(value)) == scope["plan"]
+                   for value in plan_values if value not in (None, "")):
+            return False
+
+    if scope["study_year"] is None and scope["semester"] is None:
+        return True
+
+    placement_id = chunk.get("placement_id")
+    if placement_id is not None and int(placement_id) in placement_by_id:
+        return _placement_matches_scope(placement_by_id[int(placement_id)], scope)
+
+    candidates = [
+        placement
+        for code in _chunk_course_codes(chunk)
+        for placement in placements_by_code.get(code, [])
+    ]
+    return any(_placement_matches_scope(placement, scope) for placement in candidates)
+
+
+def _semantic_chunk_key(chunk: dict[str, Any]) -> tuple[Any, ...]:
+    codes = tuple(sorted(_chunk_course_codes(chunk)))
+    if not codes:
+        return ("chunk", chunk.get("chunk_id"))
+    text = " ".join(unicodedata.normalize("NFKC", str(chunk.get("text") or "")).casefold().split())
+    return (
+        chunk.get("chunk_type"),
+        _scope_text(chunk.get("program")),
+        _chunk_academic_year(chunk),
+        codes,
+        text,
+    )
+
+
+def _source_variants(chunk: dict[str, Any]) -> list[dict[str, Any]]:
+    variants = []
+    provenance = chunk.get("provenance")
+    entries = provenance if isinstance(provenance, list) else []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        variant = {
+            "program": chunk.get("program"),
+            "academic_year": _chunk_academic_year(chunk) or None,
+            "plan": chunk.get("plan"),
+            "source": entry.get("source_filename") or chunk.get("source_filename"),
+            "source_page": entry.get("source_page"),
+        }
+        if variant not in variants:
+            variants.append(variant)
+    if not variants:
+        variants.append({
+            "program": chunk.get("program"),
+            "academic_year": _chunk_academic_year(chunk) or None,
+            "plan": chunk.get("plan"),
+            "source": chunk.get("source_filename"),
+            "source_page": (chunk.get("source_page") or [None])[0]
+            if isinstance(chunk.get("source_page"), list) else chunk.get("source_page"),
+        })
+    return variants
+
+
+def _merge_duplicate_chunk(existing: dict[str, Any], incoming: dict[str, Any]) -> None:
+    existing["distance"] = min(float(existing["distance"]), float(incoming["distance"]))
+    plans = existing.setdefault("matched_plans", [])
+    for plan in (incoming.get("matched_plans") or [incoming.get("plan")]):
+        if plan not in (None, "") and plan not in plans:
+            plans.append(plan)
+    variants = existing.setdefault("source_variants", _source_variants(existing))
+    for variant in _source_variants(incoming):
+        if variant not in variants:
+            variants.append(variant)
+
+
+def _search(
+    query: str,
+    limit: int = TOP_K,
+    *,
+    program_code: str | None = None,
+    academic_year: str | None = None,
+    plan: str | None = None,
+    study_year: int | None = None,
+    semester: int | None = None,
+) -> list[dict[str, Any]]:
     path = _db_path()
     if not path.is_file():
         raise HTTPException(503, "Curriculum index is not built yet. Run `python -m rag.build_index` first.")
@@ -260,21 +433,70 @@ def _search(query: str, limit: int = TOP_K) -> list[dict[str, Any]]:
                     (query_vector, count),
                 ).fetchall()
 
-            hits = _top_k_with_ties(nearest, limit)
-            results = []
-            for hit in hits:
-                row = connection.execute(
-                    "SELECT chunk_json FROM semantic_chunks WHERE chunk_id = ?",
-                    (hit["chunk_id"],),
-                ).fetchone()
-                if not row:
-                    continue
-                chunk = json.loads(row["chunk_json"])
-                distance = float(hit["distance"])
-                if distance > MAX_DISTANCE:
-                    continue
-                results.append({**chunk, "distance": distance})
-        return results
+            total_vectors = int(connection.execute("SELECT count(*) FROM vector").fetchone()[0])
+            if total_vectors == 0:
+                return []
+            chunks_by_id = {
+                row["chunk_id"]: json.loads(row["chunk_json"])
+                for row in connection.execute("SELECT chunk_id, chunk_json FROM semantic_chunks")
+            }
+            scope = {
+                "program": _scope_text(program_code),
+                "academic_year": str(academic_year or "").strip(),
+                "plan": _normalize_plan_filter(plan) if plan else "",
+                "study_year": study_year,
+                "semester": semester,
+            }
+            placement_by_id, placements_by_code = (
+                _placement_scope_maps(connection)
+                if study_year is not None or semester is not None
+                else ({}, {})
+            )
+
+            requested = min(max(1, limit), total_vectors)
+            unique_chunks: dict[tuple[Any, ...], dict[str, Any]] = {}
+            while True:
+                hits = nearest(requested)
+                for hit in hits:
+                    chunk = chunks_by_id.get(hit["chunk_id"])
+                    if not chunk:
+                        continue
+                    distance = float(hit["distance"])
+                    if distance > MAX_DISTANCE or not _chunk_matches_scope(
+                        chunk, scope, placement_by_id, placements_by_code
+                    ):
+                        continue
+                    candidate = {**chunk, "distance": distance}
+                    key = _semantic_chunk_key(candidate)
+                    existing = unique_chunks.get(key)
+                    if existing is None:
+                        unique_chunks[key] = candidate
+                    else:
+                        _merge_duplicate_chunk(existing, candidate)
+
+                ranked = sorted(unique_chunks.values(), key=lambda item: float(item["distance"]))
+                enough_unique = len(ranked) >= limit
+                if enough_unique and hits:
+                    boundary = float(ranked[limit - 1]["distance"])
+                    last_distance = float(hits[-1]["distance"])
+                    if last_distance > boundary + 1e-7:
+                        break
+                if requested >= total_vectors or len(hits) < requested:
+                    break
+                requested = min(total_vectors, max(requested + 1, requested * 2))
+
+            ranked = sorted(unique_chunks.values(), key=lambda item: float(item["distance"]))
+            if len(ranked) <= limit:
+                return ranked
+            boundary = float(ranked[limit - 1]["distance"])
+            tied_end = limit
+            while tied_end < len(ranked) and math.isclose(
+                float(ranked[tied_end]["distance"]), boundary,
+                rel_tol=0.0, abs_tol=1e-7,
+            ):
+                tied_end += 1
+            cap = max(limit, MAX_TIED_CANDIDATES)
+            return ranked[:min(tied_end, cap)]
     except HTTPException:
         raise
     except Exception:
@@ -385,17 +607,25 @@ def _sources(chunks: list[dict[str, Any]], source_ids: list[str]) -> list[dict[s
         chunk = by_id[chunk_id]
         provenance = chunk.get("provenance") or []
         first = provenance[0] if provenance and isinstance(provenance[0], dict) else {}
+        variants = chunk.get("source_variants") or _source_variants(chunk)
+        plans = chunk.get("matched_plans") or [
+            variant.get("plan") for variant in variants if variant.get("plan")
+        ]
+        plans = list(dict.fromkeys(str(value) for value in plans if value))
         is_rule = chunk.get("chunk_type") == "rule"
         result.append({
             "chunk_id": chunk_id,
             "program": chunk.get("program"),
-            "plan": chunk.get("plan"),
+            "plan": ", ".join(plans) or chunk.get("plan"),
             "course_code": chunk.get("course_code"),
-            "academic_year": chunk.get("academic_year") or chunk.get("catalog_key"),
-            "source_page": first.get("source_page") or (chunk.get("source_page") or [None])[0],
-            "source": first.get("source_filename") or chunk.get("source_filename"),
+            "academic_year": _chunk_academic_year(chunk) or None,
+            "source_page": (variants[0].get("source_page") if variants else None)
+            or first.get("source_page"),
+            "source": (variants[0].get("source") if variants else None)
+            or first.get("source_filename") or chunk.get("source_filename"),
+            "source_variants": variants,
             "title": (f"Rule {chunk.get('section_number') or chunk.get('rule_id')} · {chunk.get('category')}"
-                      if is_rule else " · ".join(str(value) for value in (chunk.get("course_code"), chunk.get("program"), chunk.get("plan")) if value)),
+                      if is_rule else " · ".join(str(value) for value in (chunk.get("course_code"), chunk.get("program"), ", ".join(plans) or chunk.get("plan")) if value)),
             "text": str(chunk.get("text", ""))[:700],
             "rule_id": chunk.get("rule_id") if is_rule else None,
             "category": chunk.get("category") if is_rule else None,
@@ -557,8 +787,8 @@ def _expand_placement_terms(placements: list[str]) -> list[str]:
     return terms
 
 
-def _course_detail_response(question: str, decision) -> tuple[str, list[dict[str, Any]], int]:
-    from .curriculum import list_courses
+def _course_detail_rows(question: str, decision) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    from .curriculum import list_courses, matches_verified_course_name_alias
 
     search = decision.course_name if not decision.course_code else ""
     result = list_courses(
@@ -574,9 +804,53 @@ def _course_detail_response(question: str, decision) -> tuple[str, list[dict[str
         rows = [row for row in result["items"] if (row.get("course_code") or "").casefold() == wanted_code]
     elif decision.course_name:
         wanted_name = _normalized_course_name(decision.course_name)
-        rows = [row for row in result["items"] if wanted_name in _course_name_keys(row)]
+        rows = [
+            row for row in result["items"]
+            if wanted_name in _course_name_keys(row)
+            or matches_verified_course_name_alias(decision.course_name, row)
+        ]
     else:
         rows = []
+    return result, rows
+
+
+def _course_detail_scope_clarification(question: str, decision) -> tuple[str, list[str]] | None:
+    result, rows = _course_detail_rows(question, decision)
+    del result
+    if not rows:
+        return None
+    programs = sorted({str(row.get("program_code") or "").strip()
+                       for row in rows if row.get("program_code")})
+    years = sorted({str(row.get("academic_year") or "").strip()
+                    for row in rows if row.get("academic_year")})
+    thai = any("\u0e00" <= char <= "\u0e7f" for char in question)
+
+    if not decision.program_code and len(programs) > 1:
+        prompt = "หมายถึงสาขาใด?" if thai else "Which program do you mean?"
+        return prompt, programs[:12]
+    if not decision.academic_year and len(years) > 1:
+        prompt = "หมายถึงหลักสูตรฉบับปีใด?" if thai else "Which curriculum edition do you mean?"
+        return prompt, years[:12]
+    codes = sorted({str(row.get("course_code") or "").strip()
+                    for row in rows if row.get("course_code")})
+    if not decision.course_code and len(codes) > 1:
+        prompt = "พบหลายรหัสวิชาที่ใช้ชื่อนี้ กรุณาระบุรหัสวิชา" if thai else "Several course codes use this name; which code do you mean?"
+        return prompt, codes[:12]
+    plan_sets = [
+        frozenset(_normalize_plan_filter(str(plan)) for plan in (row.get("plans") or []) if plan)
+        for row in rows if row.get("plans")
+    ]
+    distinct_plan_sets = set(plan_sets)
+    available_plans = sorted({plan for plans in plan_sets for plan in plans})
+    if (not decision.plan and len(rows) > 1 and len(codes) == 1
+            and len(distinct_plan_sets) > 1 and len(available_plans) > 1):
+        prompt = "หมายถึงแผนสหกิจหรือแผนปกติ?" if thai else "Which plan do you mean: cooperative or non-cooperative?"
+        return prompt, available_plans[:12]
+    return None
+
+
+def _course_detail_response(question: str, decision) -> tuple[str, list[dict[str, Any]], int]:
+    _, rows = _course_detail_rows(question, decision)
 
     thai = any("\u0e00" <= char <= "\u0e7f" for char in question)
     if not rows:
@@ -619,7 +893,7 @@ def _course_detail_response(question: str, decision) -> tuple[str, list[dict[str
 
 
 def _course_prerequisite_response(question: str, decision) -> tuple[str, list[dict[str, Any]], int]:
-    from .curriculum import list_courses
+    from .curriculum import course_prerequisite_requirements, list_courses
 
     if (getattr(decision, "prerequisite_direction", "before_course") == "courses_requiring"
             or _is_inverse_prerequisite_question(question)):
@@ -735,50 +1009,116 @@ def _course_prerequisite_response(question: str, decision) -> tuple[str, list[di
 
     sources = []
     lines = []
+    cited_course_ids: set[int] = set()
     thai = any("\u0e00" <= char <= "\u0e7f" for char in question)
-    prerequisite_codes_by_scope = []
+    no_prerequisite_values = {"none", "no prerequisite", "ไม่มี", "ไม่มีวิชาบังคับก่อน"}
     for target in targets:
         raw = (target.get("prerequisite_text") or "").strip()
-        codes = list(dict.fromkeys(re.findall(r"(?<!\w)(?:\d{6,}|[A-Za-z]{1,5}\d{2,})(?!\w)", raw)))
-        if raw and not codes and raw.casefold() not in {"none", "no prerequisite", "ไม่มี", "ไม่มีวิชาบังคับก่อน"}:
-            codes = []
-        prerequisite_codes_by_scope.append((target, raw, codes))
-
-    for target, raw, codes in prerequisite_codes_by_scope:
         target_name = _display_course_name(target)
         scope = " · ".join(value for value in (
             target.get("program_code"), target.get("academic_year"),
             _normalize_plan_filter(decision.plan) if decision.plan else ", ".join(target.get("plans") or []),
         ) if value)
-        sources.append(_course_citation(target, chunk_id=f"prerequisite-target-{target['course_id']}"))
+        target_id = int(target["course_id"])
+        if target_id not in cited_course_ids:
+            sources.append(_course_citation(target, chunk_id=f"prerequisite-target-{target_id}"))
+            cited_course_ids.add(target_id)
         if thai:
             lines.append(f"ก่อนลง {target_name} ({target['course_code']}) [{scope}]:")
         else:
             lines.append(f"Before taking {target_name} ({target['course_code']}) [{scope}]:")
 
-        if not raw or raw.casefold() in {"none", "no prerequisite", "ไม่มี", "ไม่มีวิชาบังคับก่อน"}:
-            lines.append("- ไม่มีวิชาบังคับก่อนที่ระบุ" if thai else "- No prerequisite is listed.")
-            continue
-        if not codes:
-            lines.append(f"- {raw}")
-            continue
-
-        for code in codes:
-            prerequisite_result = list_courses(
-                course_code=code,
-                program=(target.get("program_code") or "").upper(),
-                academic_year=target.get("academic_year") or "",
-                plan=_normalize_plan_filter(decision.plan),
-                limit=100,
-            )
-            matched = next((row for row in prerequisite_result["items"]
-                            if (row.get("course_code") or "").casefold() == code.casefold()), None)
-            if matched:
-                prerequisite_name = _display_course_name(matched)
-                lines.append(f"- {code} — {prerequisite_name}")
-                sources.append(_course_citation(matched, chunk_id=f"prerequisite-{matched['course_id']}"))
+        requirements = course_prerequisite_requirements(
+            course_id=target_id,
+            plan=_normalize_plan_filter(decision.plan),
+        )
+        if not requirements:
+            if not raw or raw.casefold() in no_prerequisite_values:
+                lines.append("- ไม่มีวิชาบังคับก่อนที่ระบุ" if thai else "- No prerequisite is listed.")
+                continue
+            codes = list(dict.fromkeys(re.findall(
+                r"(?<!\w)(?:\d{6,}|[A-Za-z]{1,5}\d{2,})(?!\w)", raw
+            )))
+            if len(codes) == 1:
+                requirements = [{"kind": "course", "course_code": codes[0]}]
             else:
-                lines.append(f"- {code}")
+                # Without structured edges, preserve the source wording so a comma or
+                # "or" is not silently turned into multiple mandatory prerequisites.
+                lines.append(f"- {raw}")
+                continue
+
+        for requirement in requirements:
+            if requirement["kind"] == "raw":
+                requirement_text = requirement.get("raw_text") or raw
+                if requirement_text:
+                    lines.append(f"- {requirement_text}")
+                continue
+
+            members = ([requirement] if requirement["kind"] == "course"
+                       else requirement.get("members", []))
+            if requirement["kind"] == "alternative":
+                minimum = int(requirement.get("minimum_choices") or 1)
+                maximum = int(requirement.get("maximum_choices") or minimum)
+                if not members:
+                    lines.append(f"- {requirement.get('raw_text') or raw}")
+                    continue
+                if minimum == maximum:
+                    choice_text = (f"เลือก {minimum} วิชาจากรายการต่อไปนี้:"
+                                   if thai else f"Choose {minimum} of the following courses:")
+                else:
+                    choice_text = (f"เลือก {minimum}–{maximum} วิชาจากรายการต่อไปนี้:"
+                                   if thai else f"Choose between {minimum} and {maximum} of the following courses:")
+                group_plans = requirement.get("plans") or []
+                target_plans = set(target.get("plans") or [])
+                if (not decision.plan and group_plans
+                        and (not target_plans or set(group_plans) != target_plans)):
+                    choice_text += f" ({', '.join(group_plans)})"
+                lines.append(choice_text)
+
+            for member in members:
+                code = str(member.get("course_code") or "").strip()
+                if not code:
+                    continue
+                program = (target.get("program_code") or "").upper()
+                academic_year = target.get("academic_year") or ""
+                selected_plan = _normalize_plan_filter(decision.plan)
+                prerequisite_result = list_courses(
+                    course_code=code, program=program, academic_year=academic_year,
+                    plan=selected_plan, limit=100,
+                )
+                exact_matches = [
+                    row for row in prerequisite_result["items"]
+                    if (row.get("course_code") or "").casefold() == code.casefold()
+                    and (member.get("course_id") is None
+                         or int(row.get("course_id") or -1) == int(member["course_id"]))
+                ]
+                matched = exact_matches[0] if len(exact_matches) == 1 else None
+                if matched is None and decision.plan:
+                    # A prerequisite may not be placed in the selected plan. Resolve
+                    # its title by the exact catalog course id when available.
+                    catalog_result = list_courses(
+                        course_code=code, program=program, academic_year=academic_year,
+                        limit=100,
+                    )
+                    exact_matches = [
+                        row for row in catalog_result["items"]
+                        if (row.get("course_code") or "").casefold() == code.casefold()
+                        and (member.get("course_id") is None
+                             or int(row.get("course_id") or -1) == int(member["course_id"]))
+                    ]
+                    if len(exact_matches) == 1:
+                        matched = exact_matches[0]
+                if matched:
+                    prerequisite_name = _display_course_name(matched)
+                    lines.append(f"- {code} — {prerequisite_name}")
+                    member_id = int(matched["course_id"])
+                    if member_id not in cited_course_ids:
+                        sources.append(_course_citation(
+                            matched, chunk_id=f"prerequisite-{member_id}"
+                        ))
+                        cited_course_ids.add(member_id)
+                else:
+                    lines.append(f"- {code}")
 
     return "\n".join(lines), sources, len(targets)
 
@@ -962,6 +1302,10 @@ def _course_comparison_response(question: str, decision) -> tuple[str, list[dict
 
 def _clarification_response(question: str, decision) -> tuple[str, list[str]]:
     options = [option for option in decision.clarification_options if isinstance(option, str) and option.strip()]
+    if ((decision.intent == "clarification" or decision.course_detail or decision.prerequisite_question)
+            and not decision.course_code and not decision.course_name
+            and decision.clarification_question):
+        return decision.clarification_question, options[:12]
     missing = None
     if decision.compare_curricula or getattr(decision, "compare_program_requirements", False):
         scopes = (decision.left_scope, decision.right_scope)
@@ -1016,6 +1360,192 @@ def _clarification_response(question: str, decision) -> tuple[str, list[str]]:
     return (decision.clarification_question or "Could you provide more details?"), options[:12]
 
 
+def _is_provider_unavailable(error: Exception) -> bool:
+    if isinstance(error, (TimeoutError, ConnectionError)):
+        return True
+    try:
+        import httpx
+    except ImportError:
+        httpx = None
+    if httpx is not None and isinstance(error, (httpx.TimeoutException, httpx.NetworkError)):
+        return True
+    try:
+        from google.genai.errors import APIError
+    except ImportError:
+        return False
+    if not isinstance(error, APIError):
+        return False
+    code = getattr(error, "code", None)
+    return code == 429 or (isinstance(code, int) and 500 <= code <= 599)
+
+
+def _offline_course_name(question: str, program: str | None, academic_year: str | None,
+                         plan: str | None) -> str | None:
+    from .curriculum import list_courses, verified_course_name_in_text
+
+    rows = list_courses(
+        program=(program or "").upper(), academic_year=academic_year or "",
+        plan=_normalize_plan_filter(plan), limit=1000,
+    )["items"]
+    question_key = _normalized_course_name(question)
+    candidates: list[str] = []
+    for row in rows:
+        for field in ("name_en", "name_th"):
+            name = row.get(field)
+            key = _normalized_course_name(name)
+            if key and len(key) >= 5 and key in question_key and name not in candidates:
+                candidates.append(name)
+        verified_name = verified_course_name_in_text(question, row)
+        if verified_name and verified_name not in candidates:
+            candidates.append(verified_name)
+    return max(candidates, key=lambda value: len(_normalized_course_name(value))) if candidates else None
+
+
+def _offline_route_decision(question: str, history: list[dict[str, Any]]) -> RouteDecision | None:
+    """Route only explicit, deterministic curriculum requests when Gemini is unavailable."""
+    from .curriculum import filters as curriculum_filters
+
+    previous_user_messages = [
+        item.get("content", "") for item in history
+        if item.get("role") == "user" and isinstance(item.get("content"), str)
+    ][-3:]
+    combined = " ".join([*previous_user_messages, question]).strip()
+    normalized = unicodedata.normalize("NFKC", combined).casefold()
+    filter_values = curriculum_filters()
+
+    mentioned_programs = []
+    for program in filter_values.get("programs", []):
+        if re.search(rf"(?<!\w){re.escape(program)}(?!\w)", combined, re.IGNORECASE):
+            mentioned_programs.append(program)
+    mentioned_programs = list(dict.fromkeys(mentioned_programs))
+    program = mentioned_programs[0] if len(mentioned_programs) == 1 else None
+
+    mentioned_years = [
+        year for year in filter_values.get("academic_years", [])
+        if re.search(rf"(?<!\d){re.escape(str(year))}(?!\d)", combined)
+    ]
+    mentioned_years = list(dict.fromkeys(mentioned_years))
+    academic_year = mentioned_years[0] if len(mentioned_years) == 1 else None
+
+    plan = None
+    if any(term in normalized for term in ("ไม่สหกิจ", "แผนปกติ", "no_coop", "non-coop", "noncoop")):
+        plan = "no_coop"
+    elif ("coop" in normalized or "สหกิจ" in normalized or "cooperative education" in normalized):
+        plan = "coop"
+
+    codes = list(dict.fromkeys(re.findall(r"(?<!\d)([A-Za-z]?\d{6,10})(?!\d)", combined)))
+    course_code = codes[0] if len(codes) == 1 else None
+    course_name = _offline_course_name(combined, program, academic_year, plan)
+    if course_code or course_name:
+        explicit_course = True
+    else:
+        explicit_course = False
+
+    is_list = any(term in normalized for term in (
+        "what courses", "which courses", "list courses", "courses are taught", "subjects are taught",
+        "มีวิชาอะไร", "วิชาอะไรบ้าง", "รายวิชาอะไร", "รายวิชาทั้งหมด", "เปิดสอนวิชา",
+    )) or bool(re.search(r"\blist\b.{0,80}\b(?:courses?|subjects?)\b", normalized))
+    if is_list:
+        return RouteDecision(
+            intent="course_question", use_rag=True, standalone_query=combined,
+            needs_clarification=False, clarification_question=None,
+            exhaustive_course_list=True, program_code=program,
+            academic_year=academic_year, study_year=(int(match.group(1)) if (match := re.search(
+                r"(?:year|ชั้นปีที่)\s*(\d+)", normalized, re.IGNORECASE
+            )) else None),
+            semester=(int(match.group(1)) if (match := re.search(
+                r"(?:semester|ภาคเรียนที่)\s*(\d+)", normalized, re.IGNORECASE
+            )) else None),
+            plan=plan,
+        )
+
+    if _looks_like_prerequisite_question(combined):
+        if not course_code and not course_name:
+            return RouteDecision(
+                intent="clarification", use_rag=False, standalone_query=combined,
+                needs_clarification=True,
+                clarification_question=("ต้องการตรวจวิชาบังคับก่อนของวิชาใด? ส่งชื่อหรือรหัสวิชาได้เลย."
+                                        if any("\u0e00" <= char <= "\u0e7f" for char in question)
+                                        else "Which course name or code should I check for prerequisites?"),
+            )
+        return RouteDecision(
+            intent="course_question", use_rag=True, standalone_query=combined,
+            needs_clarification=False, clarification_question=None,
+            prerequisite_question=True, course_code=course_code, course_name=course_name,
+            program_code=program, academic_year=academic_year, plan=plan,
+            prerequisite_direction=("courses_requiring" if _is_inverse_prerequisite_question(combined)
+                                    else "before_course"),
+        )
+
+    if _looks_like_institution_rule_question(combined):
+        return RouteDecision(
+            intent="course_question", use_rag=True, standalone_query=combined,
+            needs_clarification=False, clarification_question=None,
+            institution_rule=True, rule_query=combined,
+        )
+
+    if (("หน่วยกิต" in normalized and any(term in normalized for term in ("จบ", "หลักสูตร", "รวม")))
+            or ("total credits" in normalized and any(
+                term in normalized for term in ("graduate", "graduation", "degree")
+            ))
+            or (("credit" in normalized or "credits" in normalized)
+                and any(term in normalized for term in ("graduate", "graduation", "degree")))):
+        return RouteDecision(
+            intent="course_question", use_rag=True, standalone_query=combined,
+            needs_clarification=False, clarification_question=None,
+            program_requirement=True, program_code=program, academic_year=academic_year,
+        )
+
+    detail_request = any(term in normalized for term in (
+        "course code", "course name", "credit", "credits", "credit hour", "where is", "offered in",
+        "รายละเอียดวิชา", "รหัสวิชา", "ชื่อวิชา", "กี่หน่วยกิต", "หน่วยกิตของ", "เรียนชั้นปี",
+        "เปิดสอนที่", "อยู่ภาคเรียน",
+    ))
+    if detail_request and not explicit_course:
+        return RouteDecision(
+            intent="clarification", use_rag=False, standalone_query=combined,
+            needs_clarification=True,
+            clarification_question=(
+                "ต้องการดูรายละเอียดของวิชาใด? ระบุชื่อหรือรหัสวิชาได้เลย"
+                if any("\u0e00" <= char <= "\u0e7f" for char in question)
+                else "Which course name or code should I look up?"
+            ),
+        )
+    if explicit_course and (detail_request or not any(term in normalized for term in ("description", "เนื้อหา", "สอนอะไร", "cover"))):
+        return RouteDecision(
+            intent="course_question", use_rag=True, standalone_query=combined,
+            needs_clarification=False, clarification_question=None,
+            course_detail=True, course_code=course_code, course_name=course_name,
+            program_code=program, academic_year=academic_year, plan=plan,
+        )
+
+    curriculum_markers = (
+        "course", "curriculum", "subject", "program", "credit", "หลักสูตร", "รายวิชา", "วิชา", "สาขา",
+    )
+    if explicit_course or any(term in normalized for term in curriculum_markers):
+        return RouteDecision(
+            intent="course_question", use_rag=True, standalone_query=combined,
+            needs_clarification=False, clarification_question=None,
+            program_code=program, academic_year=academic_year, plan=plan,
+        )
+    return None
+
+
+def _offline_source_excerpt(question: str, chunks: list[dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
+    thai = any("\u0e00" <= char <= "\u0e7f" for char in question)
+    heading = ("Gemini ติดต่อไม่ได้ชั่วคราว จึงแสดงข้อความที่พบในฐานข้อมูลโดยตรง:" if thai
+               else "Gemini is temporarily unreachable, so here are the exact indexed passages:")
+    lines = [heading]
+    for index, chunk in enumerate(chunks[:4], start=1):
+        title = " · ".join(str(value) for value in (
+            chunk.get("course_code"), chunk.get("program"), _chunk_academic_year(chunk), chunk.get("plan")
+        ) if value)
+        passage = " ".join(str(chunk.get("text") or "").split())[:700]
+        lines.append(f"{index}. {title}\n{passage}")
+    sources = _sources(chunks, [chunk.get("chunk_id") for chunk in chunks[:4]])
+    return "\n\n".join(lines), sources
+
+
 def answer(question: str, history):
     if not _capacity.acquire(blocking=False):
         raise HTTPException(503, "The assistant is busy. Please retry shortly.")
@@ -1034,13 +1564,44 @@ def answer(question: str, history):
                 "database_searched": searched, "retrieval_count": retrieval_count,
                 "response_time_ms": elapsed_ms, **data}
 
+    def excerpt_fallback(chunks: list[dict[str, Any]]):
+        answer_text, sources = _offline_source_excerpt(question, chunks)
+        return completed(
+            "answer" if sources else "insufficient_evidence",
+            use_rag=True, searched=True, answer=answer_text, sources=sources,
+            retrieval_count=len(chunks), source_count=len(sources),
+        )
+
     stage = "history"
     try:
         context = _history_payload(history)
         stage = "classifier"
-        use_rag = _classify_use_rag(question, context)
-        _logger.info("chat_turn request_id=%s event=classified use_rag=%s classifier_model=%s",
-                     request_id, use_rag, CLASSIFIER_MODEL)
+        offline_provider = False
+        decision = None
+        try:
+            use_rag = _classify_use_rag(question, context)
+        except Exception as exc:
+            if not _is_provider_unavailable(exc):
+                raise
+            decision = _offline_route_decision(question, context)
+            if decision is None:
+                raise HTTPException(
+                    503,
+                    "Gemini is temporarily unavailable and this request cannot be routed safely.",
+                ) from None
+            offline_provider = True
+            use_rag = decision.use_rag
+            _logger.warning(
+                "chat_turn request_id=%s event=offline_route_selected stage=classifier route=%s",
+                request_id, decision.intent,
+            )
+        else:
+            _logger.info("chat_turn request_id=%s event=classified use_rag=%s classifier_model=%s",
+                         request_id, use_rag, CLASSIFIER_MODEL)
+        if decision is not None and decision.needs_clarification:
+            clarification, options = _clarification_response(question, decision)
+            return completed("clarification_required", use_rag=decision.use_rag, searched=False,
+                             answer=clarification, sources=[], options=options)
         if not use_rag:
             stage = "general_answer"
             draft = _generate(GENERAL_PROMPT, {"message": question, "history": context}, GeneralDraft)
@@ -1048,7 +1609,25 @@ def answer(question: str, history):
                              sources=[])
 
         stage = "query_resolution"
-        decision = _generate(RESOLVE_PROMPT, {"latest_message": question, "history": context}, RouteDecision)
+        if decision is None:
+            try:
+                decision = _generate(
+                    RESOLVE_PROMPT, {"latest_message": question, "history": context}, RouteDecision
+                )
+            except Exception as exc:
+                if not _is_provider_unavailable(exc):
+                    raise
+                decision = _offline_route_decision(question, context)
+                if decision is None:
+                    raise HTTPException(
+                        503,
+                        "Gemini is temporarily unavailable and this request cannot be routed safely.",
+                    ) from None
+                offline_provider = True
+                _logger.warning(
+                    "chat_turn request_id=%s event=offline_route_selected stage=query_resolution route=%s",
+                    request_id, decision.intent,
+                )
         if decision.needs_clarification:
             if decision.use_rag or not decision.clarification_question:
                 raise ValueError("Invalid clarification route")
@@ -1130,9 +1709,15 @@ def answer(question: str, history):
                                  answer=decision.clarification_question
                                  or "Which course name or course code should I look up?",
                                  sources=[])
+            scope_clarification = _course_detail_scope_clarification(question, decision)
+            if scope_clarification:
+                clarification, options = scope_clarification
+                return completed("clarification_required", use_rag=True, searched=False,
+                                 answer=clarification, sources=[], options=options)
             stage = "structured_course_detail"
             answer_text, sources, count = _course_detail_response(question, decision)
-            return completed("answer", use_rag=True, searched=True,
+            status = "answer" if sources else "insufficient_evidence"
+            return completed(status, use_rag=True, searched=True,
                              answer=answer_text, sources=sources,
                              retrieval_count=count, source_count=len(sources))
         if decision.institution_rule or _looks_like_institution_rule_question(question):
@@ -1147,14 +1732,23 @@ def answer(question: str, history):
                 return completed("insufficient_evidence", use_rag=True, searched=True,
                                  answer="I couldn't find a supporting academic rule in the indexed rules.",
                                  sources=[], retrieval_count=0)
+            if offline_provider:
+                return excerpt_fallback(chunks)
             stage = "answer_generation"
-            draft = _generate(EVIDENCE_PROMPT, {
-                "question": decision.standalone_query, "history": context,
-                "sources": [{"chunk_id": item["chunk_id"], "text": item.get("text", ""),
-                             "rule_id": item.get("rule_id"), "section_number": item.get("section_number"),
-                             "category": item.get("category"), "source_verified": item.get("source_verified"),
-                             "distance": item["distance"]} for item in chunks],
-            }, AnswerDraft)
+            try:
+                draft = _generate(EVIDENCE_PROMPT, {
+                    "question": decision.standalone_query, "history": context,
+                    "sources": [{"chunk_id": item["chunk_id"], "text": item.get("text", ""),
+                                 "rule_id": item.get("rule_id"), "section_number": item.get("section_number"),
+                                 "category": item.get("category"), "source_verified": item.get("source_verified"),
+                                 "distance": item["distance"]} for item in chunks],
+                }, AnswerDraft)
+            except Exception as exc:
+                if not _is_provider_unavailable(exc):
+                    raise
+                _logger.warning("chat_turn request_id=%s event=source_excerpt_fallback stage=answer_generation",
+                                request_id)
+                return excerpt_fallback(chunks)
             sources = _sources(chunks, draft.source_ids)
             if not draft.sufficient or not sources:
                 return completed("insufficient_evidence", use_rag=True, searched=True,
@@ -1163,22 +1757,39 @@ def answer(question: str, history):
                              sources=sources, retrieval_count=len(chunks), source_count=len(sources))
         if decision.intent == "course_question" and decision.use_rag:
             stage = "retrieval"
-            chunks = _search(decision.standalone_query)
+            chunks = _search(
+                decision.standalone_query,
+                program_code=decision.program_code,
+                academic_year=decision.academic_year,
+                plan=decision.plan,
+                study_year=decision.study_year,
+                semester=decision.semester,
+            )
             _logger.info("chat_turn request_id=%s event=retrieved result_count=%d",
                          request_id, len(chunks))
             if not chunks:
                 return completed("insufficient_evidence", use_rag=True, searched=True,
                                  answer="I couldn't find enough relevant information in the indexed curriculum to answer that. Try specifying the program or curriculum year.",
                                  sources=[], retrieval_count=0)
+            if offline_provider:
+                return excerpt_fallback(chunks)
             stage = "answer_generation"
-            draft = _generate(EVIDENCE_PROMPT, {
-                "question": decision.standalone_query, "history": context,
-                "sources": [{"chunk_id": item["chunk_id"], "text": item.get("text", ""),
-                             "chunk_type": item.get("chunk_type"), "rule_id": item.get("rule_id"),
-                             "category": item.get("category"), "program": item.get("program"),
-                             "plan": item.get("plan"), "course_code": item.get("course_code"),
-                             "distance": item["distance"]} for item in chunks],
-            }, AnswerDraft)
+            try:
+                draft = _generate(EVIDENCE_PROMPT, {
+                    "question": decision.standalone_query, "history": context,
+                    "sources": [{"chunk_id": item["chunk_id"], "text": item.get("text", ""),
+                                 "chunk_type": item.get("chunk_type"), "rule_id": item.get("rule_id"),
+                                 "category": item.get("category"), "program": item.get("program"),
+                                 "academic_year": item.get("academic_year"),
+                                 "plan": item.get("plan"), "course_code": item.get("course_code"),
+                                 "distance": item["distance"]} for item in chunks],
+                }, AnswerDraft)
+            except Exception as exc:
+                if not _is_provider_unavailable(exc):
+                    raise
+                _logger.warning("chat_turn request_id=%s event=source_excerpt_fallback stage=answer_generation",
+                                request_id)
+                return excerpt_fallback(chunks)
             sources = _sources(chunks, draft.source_ids)
             if not draft.sufficient or not sources:
                 return completed("insufficient_evidence", use_rag=True, searched=True,

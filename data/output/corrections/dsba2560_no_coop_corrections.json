@@ -30,6 +30,12 @@
         "after": "GENERAL BUSINESS"
     },
     {
+        "course_code": "90101xxx",
+        "field": "name_en",
+        "before": "ELECTIVE COURSE IN SCIENTIFIC AND MATHEMATICS 2",
+        "after": "ELECTIVE COURSE IN SCIENCE AND MATHEMATICS 2"
+    },
+    {
         "course_code": "06026101",
         "field": "name_th",
         "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
@@ -213,13 +219,13 @@
         "course_code": "060261xx",
         "field": "name_en",
         "before": "ELECIE COURSE IN DATA SCIENCE AND BUSINESS ANALYIICS 2 9OXXXXXX FREE ELECIIE COURSE 1",
-        "after": "ELECTIVE COURSE IN DATA SCIENCE AND BUSINESS ANALYTICS 2 90XXXXXX FREE ELECTIVE COURSE 1"
+        "after": "ELECTIVE COURSE IN DATA SCIENCE AND BUSINESS ANALYTICS 2 9OXXXXXX FREE ELECTIVE COURSE 1"
     },
     {
         "course_code": "xxxxxxxx",
         "field": "name_en",
         "before": "FREE ELECTIVE COURSE 2 9OXXXXXX ELECTIVE COURSE IN HUMANIIY 2",
-        "after": "FREE ELECTIVE COURSE 2 90XXXXXX ELECTIVE COURSE IN HUMANITY 2"
+        "after": "FREE ELECTIVE COURSE 2 9OXXXXXX ELECTIVE COURSE IN HUMANITY 2"
     },
     {
         "course_code": "06026131",
@@ -243,7 +249,7 @@
         "course_code": "06026145",
         "field": "name_th",
         "before": "ระบบฐานข้อมูลขนสู",
-        "after": "ระบบฐานข้อมูลขั้นสูง"
+        "after": "ระบบฐานข้อมูลและการบำรุงรักษา"
     },
     {
         "course_code": "06026146",

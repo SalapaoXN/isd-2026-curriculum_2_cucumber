@@ -300,28 +300,16 @@
         "after": "PHOTOGRAPHY APPRECIATION"
     },
     {
-        "course_code": "90642085",
-        "field": "name_th",
-        "before": "วัฒนธรรมรวมสมัย",
-        "after": "วัฒนธรรมร่วมสมัย"
-    },
-    {
         "course_code": "90642086",
         "field": "name_en",
         "before": "ITRODUCTION TO DESIGN CULTURE",
         "after": "INTRODUCTION TO DESIGN CULTURE"
     },
     {
-        "course_code": "90642088",
-        "field": "name_th",
-        "before": "วัฒนธรรมจีนดังเดิม",
-        "after": "วัฒนธรรมจีนดั้งเดิม"
-    },
-    {
         "course_code": "90642089",
         "field": "name_th",
         "before": "สังคม ฺเศรษฐกิจ และการเมืองจีน",
-        "after": "สังคม เศรษฐกิจ และการเมืองจีน"
+        "after": "สังคมเศรษฐกิจ และการเมืองจีน"
     },
     {
         "course_code": "90642089",
@@ -508,6 +496,12 @@
         "field": "name_en",
         "before": "TECHNOLOGV IN MUSICAL SEOUENCING",
         "after": "TECHNOLOGY IN MUSICAL SEQUENCING"
+    },
+    {
+        "course_code": "90642124",
+        "field": "name_th",
+        "before": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDCS",
+        "after": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGs"
     },
     {
         "course_code": "90642124",
@@ -702,6 +696,12 @@
         "after": "CONTEMPORARY MARKETING"
     },
     {
+        "course_code": "90643011",
+        "field": "name_th",
+        "before": "ศิลปะแห่งการบริหารการสือสาร",
+        "after": "ศิลปะแห่งการบริหารการสื่อสาร"
+    },
+    {
         "course_code": "90643013",
         "field": "name_en",
         "before": "INDUSTRLAL MANAGEMENT",
@@ -763,15 +763,9 @@
     },
     {
         "course_code": "90643027",
-        "field": "name_th",
-        "before": "เงิน และคณิตศาสตร์",
-        "after": "เงินและคณิตศาสตร์"
-    },
-    {
-        "course_code": "90643027",
         "field": "name_en",
         "before": "MAN, MONEV AND MATH",
-        "after": "MONEY AND MATH"
+        "after": "MAN, MONEY AND MATH"
     },
     {
         "course_code": "90643028",
@@ -789,7 +783,7 @@
         "course_code": "90643030",
         "field": "name_th",
         "before": "เศร ริษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ",
-        "after": "เศรษฐศาสตร์ทั่วไปและการศึกษาความเป็นไปได้ของโครงการ"
+        "after": "เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ"
     },
     {
         "course_code": "90643030",
@@ -1011,7 +1005,7 @@
         "course_code": "90644036",
         "field": "name_th",
         "before": "การพัฒนาทักษะทางภาษาอังกฤษเบ เพื่อการเรียนรู้ตลอดชีี",
-        "after": "การพัฒนาทักษะทางภาษาอังกฤษเพื่อการเรียนรู้ตลอดชีวิต"
+        "after": "การพัฒนาทักษะทางภาษาอังกฤษเบื้องต้นเพื่อการเรียนรู้ตลอดชีวิต"
     },
     {
         "course_code": "90644036",

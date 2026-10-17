@@ -105,16 +105,29 @@ class BackfillBehaviorTests(unittest.TestCase):
         }
         self.assertEqual(programs, {"IT", "GENED"})
 
-    def test_existing_desc_is_never_overwritten(self):
+    def test_existing_desc_is_preserved_while_missing_language_is_filled(self):
         course = _plan_course()
         course["desc_th"] = "ของเดิม"
         filled = backfill_gened_descriptions(
             [course], {"90000001": _gened_course()}
         )
 
-        self.assertEqual(filled, 0)
+        self.assertEqual(filled, 1)
         self.assertEqual(course["desc_th"], "ของเดิม")
-        self.assertNotIn("desc_en", course)
+        self.assertEqual(course["desc_en"], "DESCRIPTION")
+
+    def test_missing_language_is_filled_independently_with_provenance(self):
+        course = _plan_course()
+        course["desc_th"] = "ของเดิม"
+        filled = backfill_gened_descriptions(
+            [course], {"90000001": _gened_course()}
+        )
+
+        self.assertEqual(filled, 1)
+        self.assertEqual(course["desc_th"], "ของเดิม")
+        self.assertEqual(course["desc_en"], "DESCRIPTION")
+        programs = {entry["program"] for entry in course["source_provenance"]}
+        self.assertEqual(programs, {"IT", "GENED"})
 
     def test_wildcard_alternative_and_unknown_codes_are_skipped(self):
         courses = [

@@ -132,7 +132,7 @@
     {
       "code": "06066303",
       "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
-      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING\nPROGRAMMING",
+      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -164,7 +164,7 @@
       "code": "90641008",
       "name_th": "พื้นฐานทักษะการสื่อสารภาษาอังกฤษ",
       "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
-      "credits": "0(0-0-45)",
+      "credits": "(0-0-45)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
@@ -370,7 +370,7 @@
       "name_en": "GENERAL EDUCATION COURSES",
       "credits": "3(x-x-x)",
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -396,7 +396,7 @@
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
-      "year": 2,
+      "year": 1,
       "semester": 1,
       "source_provenance": [
         {
@@ -434,7 +434,7 @@
       "prerequisite": "06066001",
       "flexible_year_semester": null,
       "note": null,
-      "year": 2,
+      "year": 1,
       "semester": 1,
       "source_provenance": [
         {
@@ -465,7 +465,7 @@
       "prerequisite": "06046401, 06046402",
       "flexible_year_semester": null,
       "note": null,
-      "year": 2,
+      "year": 1,
       "semester": 1,
       "source_provenance": [
         {
@@ -496,7 +496,7 @@
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
-      "year": 2,
+      "year": 1,
       "semester": 1,
       "source_provenance": [
         {
@@ -527,7 +527,7 @@
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
-      "year": 2,
+      "year": 1,
       "semester": 1,
       "source_provenance": [
         {
@@ -550,15 +550,15 @@
     },
     {
       "code": "90641009",
-      "name_th": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1",
-      "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1",
+      "name_th": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม",
+      "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
-      "year": 2,
+      "year": 1,
       "semester": 1,
       "source_provenance": [
         {
@@ -828,7 +828,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": null,
+      "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
       "year": 3,
@@ -863,7 +863,7 @@
           "document_page": 44
         }
       ],
-      "desc_th": "ฝึกทักษะการคิดเชิงออกแบบ โดยการวิเคราะห์ปัญหา เรียนรู้พฤติกรรมกลุ่มเป้าหมาย การระบุปัญหา การ\nสร้างแผนผังความคิด การสัมภาษณ์ การสนทนากลุ่ม เฝึกฝนทักษะการสร้างสรรค์ความคิด การสร้างต้นแบบ ฺการนำเสนอ\nต้นแบบ การทดสอบแนวคิดและต้นแบบ เรียนรู้วิธีการนำกระบวนการคิดเชิงออกแบบไปประยุกต์ ใช้งานในชีวิตประจำวัน\nและการสร้างสรรค์นวัตกรรม",
+      "desc_th": "ฝึกทักษะการคิดเชิงออกแบบ โดยการวิเคราะห์ปัญหา เรียนรู้พฤติกรรมกลุ่มเป้าหมาย การระบุปัญหา การ\nสร้างแผนผังความคิด การสัมภาษณ์ การสนทนากลุ่ม เฝึกฝนทักษะการสร้างสรรค์ความคิด การสร้างต้นแบบ ฺการนำเสนอ",
       "desc_en": "LEARN DESIGN THINKING PROCESS AND DEVELOP PROBLEM SOLVING SKILLS BY STUDYING TARGET GROUP\nBEHAVIOR, DEFINING PROBLEM, USING MIND MAP. LEARN TECHNIQUES FOR INTERVIEWING AND GROUP DISCUSSION.\nPRACTICE IDEATION WHICH LEADS TO CREATIVE SOLUTIONS. BUILD., PRESENT AND TEST PROTOTYPES AND CONCEPTS OF\nDESIGN. LEARN TO APPLY DESIGN THINKING PROCESS TO DAILY LIFE AND CREATE INNOVATION."
     },
     {
@@ -872,7 +872,7 @@
       "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
       "credits": "6(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -884,14 +884,21 @@
           "source_filename": "ait2566_page_025.png",
           "source_page": 25,
           "document_page": 21,
-          "document_category": "plan"
+          "document_category": "plan",
+          "source_verified": true
         }
-      ]
+      ],
+      "credit_source_verified": true,
+      "credit_source_provenance": {
+        "source_filename": "ait2566_page_025.png",
+        "source_page": 25,
+        "document_category": "plan"
+      }
     },
     {
       "code": "06046440",
-      "name_th": "วิชาสัมมนาปัญญาประดิษฐ์",
-      "name_en": "SEMINAR IN ARTIFICIAL INTELLIGENCE",
+      "name_th": "วิชาสัมมนาปัญญาประะ",
+      "name_en": "SEMINAR IN ARTIFICIAL INTELLIGENCE 1",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -925,7 +932,7 @@
       "name_en": "ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION",
       "credits": "6(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -937,14 +944,21 @@
           "source_filename": "ait2566_page_025.png",
           "source_page": 25,
           "document_page": 21,
-          "document_category": "plan"
+          "document_category": "plan",
+          "source_verified": true
         }
-      ]
+      ],
+      "credit_source_verified": true,
+      "credit_source_provenance": {
+        "source_filename": "ait2566_page_025.png",
+        "source_page": 25,
+        "document_category": "plan"
+      }
     },
     {
       "code": "06046441",
-      "name_th": "โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1",
-      "name_en": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1",
+      "name_th": "โครงงานเทคโนโลยีปัญญาประดิษฐ์",
+      "name_en": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY",
       "credits": "3(0-9-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -967,7 +981,7 @@
       "code": "90641006",
       "name_th": "โครงงานกลุ่ม 3",
       "name_en": "TEAM-PROJECT 3",
-      "credits": "1(0-2-1)",
+      "credits": "(0-2-1)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
@@ -987,11 +1001,11 @@
     },
     {
       "code": "xxxxxxxx",
-      "name_th": "วิชาเลือกเสรี 1",
-      "name_en": "FREE ELECTIVE COURSE 1",
+      "name_th": "วิชาเลือกเสรี",
+      "name_en": "FREE ELECTIVE COURSE",
       "credits": "3(x-x-x)",
       "category": "หมวดวิชาเสรี",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1035,7 +1049,7 @@
       "name_en": "GENERAL EDUCATION COURSES",
       "credits": "3(x-x-x)",
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1057,7 +1071,7 @@
       "name_en": "LANGUAGE AND COMMUNICATION COURSES",
       "credits": "3(x-x-x)",
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1079,7 +1093,7 @@
       "name_en": "FREE ELECTIVE COURSE 2",
       "credits": "3(x-x-x)",
       "category": "หมวดวิชาเสรี",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1096,12 +1110,9 @@
       ]
     },
     {
-      "code": [
-        "06046443",
-        "06046444"
-      ],
+      "code": "06046443 หรือ 06046444",
       "name_th": "สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์\nสหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์",
-      "name_en": "COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY\nOVERSEA COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGIENCE TECHNOLOGY",
+      "name_en": "COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY\nOVERSEAS COOPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY",
       "credits": "6(0-45-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -1126,12 +1137,12 @@
       "name_en": "FUNDAMENTALS OF DATA SCIENCE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
+      "type": "เลือก",
       "prerequisite": "ไม่มี",
-      "flexible_year_semester": null,
+      "flexible_year_semester": "3/1, 3/2",
       "note": null,
-      "year": 2,
-      "semester": 2,
+      "year": 0,
+      "semester": 0,
       "desc_th": "วู\nวิทยาการข้อมูลกับแรงจูงใจเชิงธุรกิจ ฺนิยามของวิทยาการข้อมูร\nกระบวนการทำ\nวิทยาการข้อมูล เช่น กระบวนการ |คิรสดีเอ็ม\nการทำความเข้าใจข้อมู\nล\nการเตรียมข้อมูล\nจากเว็บไซต์ การดึงข้อมูลจากเอพีไอ\nนิยามของปัญญาประดิษฐ์\nการแทนความ\nรู้ การใช้เหตุผลแบบ\nตรรกศาสตร์และความน่าจะเป็น คอมพิวเตอร์วิทัศน์ การประมวลผลภาษาธรรมชา\nการเรียนรู้ของ\nเครือง ภาษาไ\nไพธอนสำหรับวิทยาการข้อมูล",
       "desc_en": "DATA SCIENCE MOTIVATION FOR BUSINESS,\nDEFINITION OF DATA SCIENCE,\nDATA\nSCIENCE LIFECYCLE: CRISDM, DATA UNDERSTANDING, DATA PREPARATION., WEB SCAPING, API\nREQUEST,\nDEFINITION\nOF\nARTIFICIAL\nINTELLIGENCE,\nMAJOR\nSUBFIELDS\nOF\nAL:  KNOWLEDGE\nREPRESENTATION, LOGICAL AND PROBABILISTIC REASONING, COMPUTER VISION, NATURAL LANGUAGE\nPROCESSING, MACHINE LEARNING, PYTHON PROGRAMING FOR DATA SCIENCE.",
       "source_provenance": [
@@ -1329,7 +1340,7 @@
     {
       "code": "06046423",
       "name_th": "การออกแบบบริการด้านปัญญาประดิษฐ์",
-      "name_en": "ARTIFICIAL INTELLIGIENCE SERVICE DESIGN",
+      "name_en": "ARTIFICIAL INTELLIGENCE SERVICE DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1435,6 +1446,7 @@
       "year": 0,
       "semester": 0,
       "desc_th": "ชานีจะศึกษาถึงหัวข้อและความก้าวหน้าทางวิชาการด้านปัญญาประดิษฐ์ที\nน่าสนใจ โดยอาจารย์ผู้สอนเป็นผู้คัดเลือก",
+      "desc_en": "THIS COURSE WILL COVER RECENT ADVANCES AND OTHER TOPICS OF INTEREST IN\nTHE FIELD OF ARTIFICIAL INTELLIGENCE SELECTED BY THE INSTRUCTOR.",
       "source_provenance": [
         {
           "program": "AIT",

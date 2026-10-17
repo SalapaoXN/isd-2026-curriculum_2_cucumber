@@ -1,15 +1,15 @@
 [
     {
+        "course_code": "06036101",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับธุรกิจ",
+        "after": "คณิตศาสตร์สำหรับธุรกิจ"
+    },
+    {
         "course_code": "96644042",
         "field": "name_th",
         "before": "การสือสารและการนำเสนออยางมืออาชีพ",
         "after": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
-    },
-    {
-        "course_code": "9664xxxx",
-        "field": "name_th",
-        "before": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
-        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1"
     },
     {
         "course_code": "9664xxxx",
@@ -37,6 +37,12 @@
     },
     {
         "course_code": "06036xxx",
+        "field": "name_th",
+        "before": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่ม วิชาที่ 1-4",
+        "after": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4"
+    },
+    {
+        "course_code": "06036xxx",
         "field": "name_en",
         "before": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGV 2 OR COURSE GR0UP 1-4",
         "after": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4"
@@ -57,7 +63,7 @@
         "course_code": "06036147 หรือ 06036148",
         "field": "name_en",
         "before": "COOPERATIE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
-        "after": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION"
+        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
     },
     {
         "course_code": "06036126",

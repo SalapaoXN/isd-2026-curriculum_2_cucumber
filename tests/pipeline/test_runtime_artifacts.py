@@ -6,6 +6,7 @@ from pathlib import Path
 from src.pipeline.tools.runtime_artifacts import (
     FINAL_DIR,
     _match_ground_truth,
+    audit_shared_course_conflicts,
     canonicalize_runtime_artifacts,
 )
 
@@ -33,13 +34,28 @@ class RuntimeArtifactTests(unittest.TestCase):
 
         self.assertEqual(raw_path.read_bytes(), raw_bytes)
         self.assertEqual(raw_course["name_en"], "INFORMATION TECHNOLOGV FUNDAMENTALS")
-        self.assertEqual(current_course["name_en"], "INFORMATION TECHNOLOGY FUNDAMENTALS")
+        self.assertEqual(current_course, raw_course)
         self.assertEqual(current_course["desc_en"], raw_course["desc_en"])
         self.assertEqual(current_course["source_provenance"], raw_course["source_provenance"])
         self.assertEqual(shared_course["type"], "บังคับ")
         self.assertEqual((shared_course["year"], shared_course["semester"]), (1, 1))
-        self.assertGreater(result.plan_gt_fields_applied, 0)
-        self.assertGreater(result.shared_general_education_fields_applied, 0)
+        self.assertEqual(result.plan_gt_fields_applied, 0)
+        self.assertEqual(result.shared_general_education_fields_applied, 0)
+
+    def test_canonicalization_does_not_read_ground_truth(self):
+        raw_path = FINAL_DIR / "bit2565_coop_final.json"
+        raw_course = self._read_course(raw_path, "06036100")
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "canonical"
+            result = canonicalize_runtime_artifacts(
+                output_dir=output_dir,
+                ground_truth_dir=Path(directory) / "missing-ground-truth",
+            )
+            canonical_course = self._read_course(output_dir / raw_path.name, "06036100")
+
+        self.assertEqual(canonical_course, raw_course)
+        self.assertEqual(result.plan_gt_fields_applied, 0)
+        self.assertEqual(result.shared_general_education_fields_applied, 0)
 
     def test_legacy_corrections_are_source_scoped_and_preserve_descriptions(self):
         raw_path = FINAL_DIR / "dsba2560_coop_final.json"
@@ -54,6 +70,9 @@ class RuntimeArtifactTests(unittest.TestCase):
             )
             corrected_shared = self._read_course(
                 canonical_dir / "dsba2560_no_coop_final.json", "06026104"
+            )
+            corrected_intro = self._read_course(
+                canonical_dir / "dsba2560_coop_final.json", "06026115"
             )
 
         self.assertEqual(raw_path.read_bytes(), raw_bytes)
@@ -71,7 +90,34 @@ class RuntimeArtifactTests(unittest.TestCase):
             )
         )
         self.assertEqual(corrected_shared["name_en"], "COMPUTER PROGRAMMING")
-        self.assertEqual(result.legacy_corrections_applied, 9)
+        self.assertEqual(corrected_intro["name_th"], "อัจฉริยะทางธุรกิจเบื้องต้น")
+        self.assertTrue(
+            any(
+                entry.get("source_filename") == "dsba2560_page_032.png"
+                for entry in corrected_intro["source_provenance"]
+            )
+        )
+        self.assertEqual(result.legacy_corrections_applied, 10)
+
+    def test_source_verified_prerequisite_corrections_run_during_canonicalization(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "canonical"
+            result = canonicalize_runtime_artifacts(output_dir=output_dir)
+            bit_course = self._read_course(output_dir / "bit2560_coop_final.json", "06036018")
+            it_course = self._read_course(output_dir / "it2560_coop_final.json", "06016398")
+            gened_course = self._read_course(output_dir / "gened2564_final.json", "90642020")
+
+        self.assertEqual(result.prerequisite_corrections_applied, 7)
+        self.assertEqual((bit_course["prerequisite"], bit_course["prerequisite_observed"]), ("NONE", "NONE A"))
+        self.assertEqual((it_course["prerequisite"], it_course["prerequisite_observed"]), ("NONE", "F NONE"))
+        self.assertEqual(
+            (gened_course["prerequisite"], gened_course["prerequisite_observed"]),
+            ("BASIC CREATIVE STEM DESIGN", "BASIC CREATIE STEM DESIGV"),
+        )
+        self.assertTrue(any(
+            entry.get("source_filename") == "it2560_page_269.png"
+            for entry in it_course["source_provenance"]
+        ))
 
     def test_matching_does_not_use_fuzzy_course_codes(self):
         raw = [{"code": "0603610I", "name_en": "INFORMATION TECHNOLOGY", "year": 1, "semester": 1}]
@@ -99,6 +145,27 @@ class RuntimeArtifactTests(unittest.TestCase):
                 identity=("bit-2565", "BIT", "coop"),
                 require_all_ground_truth_codes=False,
             )
+
+    def test_preflight_scopes_same_code_differences_to_the_plan(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = []
+            for plan, title in (("coop", "COURSE ONE"), ("no_coop", "COURSE TWO")):
+                path = root / f"{plan}.json"
+                path.write_text(
+                    json.dumps(
+                        {
+                            "program": "DSBA",
+                            "catalog": {"catalog_key": "dsba-2565", "academic_year": "2565"},
+                            "plan": plan,
+                            "courses": [{"code": "C101", "name_en": title, "credits": "3"}],
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+                paths.append(path)
+
+            self.assertEqual(audit_shared_course_conflicts(paths), [])
 
 
 if __name__ == "__main__":
