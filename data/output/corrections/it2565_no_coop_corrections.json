@@ -1,6 +1,12 @@
 [
     {
         "course_code": "06016401",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
+        "course_code": "06016401",
         "field": "name_en",
         "before": "MATHEMATICS FOR INFORMATION TECHNOLOCY",
         "after": "MATHEMATICS FOR INFORMATION TECHNOLOGY"
@@ -456,12 +462,6 @@
         "after": "IMAGE TRANSFORMATION AND RECOGNITION"
     },
     {
-        "course_code": "06016468",
-        "field": "name_en",
-        "before": "DEEP LEARNING II MEDICAL IMAGE AND VIDEO ANALYSIS",
-        "after": "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS"
-    },
-    {
         "course_code": "06016470",
         "field": "name_en",
         "before": "CLINICAL DATA ACOUSITION AND MANAGEMENT",
@@ -502,5 +502,11 @@
         "field": "name_en",
         "before": "SPECAL WORKSHOP II INFORMATIOM TECHNOLOGV 4",
         "after": "SPECIAL WORKSHOP IN INFORMATION TECHNOLOGY 4"
+    },
+    {
+        "course_code": "06016481 หรือ 06016482",
+        "field": "name_en",
+        "before": "COOPERATIVE EDUCATION\nOVERSEA COOPERATIVE EDUCATION",
+        "after": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION"
     }
 ]

@@ -38,7 +38,7 @@
         },
         {
             "code": "06026202",
-            "name_th": "พืชคณิตเชิงเส้น",
+            "name_th": "พีชคณิตเชิงเส้น",
             "name_en": "LINEAR ALGEBRA",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -713,7 +713,7 @@
         {
             "code": "06026207",
             "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-            "name_en": "NOSQL DATABASE SYSTEMS",
+            "name_en": "NoSQL DATABASE SYSTEMS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -974,8 +974,8 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
-            "name_en": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
+            "name_th": "วิชาเลือกกลุ่ม วิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
+            "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1018,7 +1018,7 @@
         },
         {
             "code": "9064xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป",
             "name_en": "ELECTIVE IN GENERAL EDUCATION",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1078,7 +1078,7 @@
         },
         {
             "code": "06026213",
-            "name_th": "ระบบข้อมูลขนาดใหญ่",
+            "name_th": "ระบบข้อมูลมหัต",
             "name_en": "BIG DATA SYSTEMS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1162,8 +1162,8 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 4 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",
-            "name_en": "ELECTIVE IN DATA SCIENCE 4 ELECTIVE IN STATISTICAL ANALYTICS 4 ELECTIVE IN DATA ENGINEERING 4",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",
+            "name_en": "AN ELECTIVE IN DATA SCIENCE 4 AN ELECTIVE IN STATISTICAL ANALYTICS 4 AN ELECTIVE IN DATA ENGINEERING 4",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1376,7 +1376,35 @@
                 }
             ],
             "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงาน ต่างๆ\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์?ใช้ในการ\nปฏิบัติงานจริงที่หน่วยงานนั้นต โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่\nได้กำหนดไว้ร่วมกัน ระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้ว\nนักศึกษาจำเป็นทีจะต้องนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงานต่างๆ ในต่างประเทศที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้\nในการปฏิบัติงานจริงทีหน่วยงานนัน\nโดยโครงการของใ\nหนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้อง",
-            "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN\nEDUCATIONAL INSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE\nIN THE CLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE\nAPPROVED  BY THE FACULTY AND THE ENTERPRISES.\nAFTER  COMPLETION., STUDENTS NEED TO\nPRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE."
+            "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN\nEDUCATIONAL INSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE\nIN THE CLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE\nAPPROVED  BY THE FACULTY AND THE ENTERPRISES.\nAFTER  COMPLETION., STUDENTS NEED TO\nPRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+            "descriptions_by_code": {
+                "06026259": {
+                    "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงาน ต่างๆ\nที่ยินยอม ให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์?ใช้ในการ\nปฏิบัติงานจริงที่หน่วยงานนั้นต โดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่\nได้กำหนดไว้ร่วมกัน ระหว่างคณะ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้ว\nนักศึกษาจำเป็นทีจะต้องนำเสนอผลงานของโครงการต่อคณะกรรมการสอบ",
+                    "desc_en": "COOPERATIVE EDUCATION IS\nA\nCOLLABORATED EDUCATION PROGRAM BETWEEN\nEDUCATIONAL INSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE\nIN THE CLASSROOM WITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE\nAPPROVED  BY THE FACULTY AND THE ENTERPRISES.\nAFTER  COMPLETION., STUDENTS NEED TO\nPRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+                    "source_provenance": [
+                        {
+                            "program": "DSBA",
+                            "source_filename": "dsba2565_page_344.png",
+                            "source_page": 344,
+                            "document_page": 339,
+                            "document_category": "description"
+                        }
+                    ]
+                },
+                "06026260": {
+                    "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับ\nหน่วยงานต่างๆ ในต่างประเทศที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้\nในการปฏิบัติงานจริงทีหน่วยงานนัน\nโดยโครงการของใ\nหนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้อง",
+                    "desc_en": null,
+                    "source_provenance": [
+                        {
+                            "program": "DSBA",
+                            "source_filename": "dsba2565_page_344.png",
+                            "source_page": 344,
+                            "document_page": 339,
+                            "document_category": "description"
+                        }
+                    ]
+                }
+            }
         },
         {
             "code": "06026216",
@@ -2484,7 +2512,7 @@
         },
         {
             "code": "06026260",
-            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
             "name_en": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
             "credits": "6(0-35-0)",
             "category": "หมวดวิชาเฉพาะ",

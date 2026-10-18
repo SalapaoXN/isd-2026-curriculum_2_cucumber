@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
@@ -175,6 +176,54 @@ def _course_identity_discriminator(
     return f"placeholder:{normalized_label}"
 
 
+_COURSE_IDENTITY_FACT_FIELDS = (
+    "name_th",
+    "name_en",
+    "credits",
+    "credit_units",
+    "credits_raw",
+)
+
+
+def _normalized_course_identity_facts(facts: Mapping[str, Any]) -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    for field in _COURSE_IDENTITY_FACT_FIELDS:
+        value = facts.get(field)
+        if field != "credit_units" and value is not None:
+            value = _as_text(value)
+        values[field] = value
+    return values
+
+
+def _course_variant_discriminator(base: str, facts: Mapping[str, Any]) -> str:
+    normalized_facts = _normalized_course_identity_facts(facts)
+    serialized = json.dumps(
+        normalized_facts, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    fingerprint = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    prefix = f"{base}|" if base else ""
+    return f"{prefix}variant:{fingerprint}"
+
+
+def _course_identity_facts_conflict(
+    existing: Mapping[str, Any], incoming: Mapping[str, Any]
+) -> bool:
+    for field in _COURSE_IDENTITY_FACT_FIELDS:
+        left = existing.get(field)
+        right = incoming.get(field)
+        if left is None or right is None:
+            continue
+        if field in {"name_th", "name_en"}:
+            compatible = left == right
+        elif field in {"credits", "credits_raw"}:
+            compatible = _as_text(left) == _as_text(right)
+        else:
+            compatible = left == right
+        if not compatible:
+            return True
+    return False
+
+
 def _course_codes(course: Mapping[str, Any]) -> list[str]:
     codes = _split_code_value(course.get("code"))
     alternatives = _first_value(
@@ -197,6 +246,35 @@ def _member_value(value: Any, index: int, count: int, split_lines: bool = False)
     else:
         values = [part.strip() for part in _ALTERNATIVE_SEPARATOR.split(value) if part.strip()]
     return values[index] if len(values) == count else value
+
+
+def _course_description_value(
+    course: Mapping[str, Any], course_code: str, field: str
+) -> Any:
+    """Read a code-specific description when a row represents alternatives."""
+    descriptions = course.get("descriptions_by_code")
+    if descriptions is None:
+        fallback = "desc_th" if field == "description_th" else "desc_en"
+        legacy = "description_th" if field == "description_th" else "description_en"
+        return course.get(fallback, course.get(legacy))
+    if not isinstance(descriptions, Mapping):
+        raise ValueError("descriptions_by_code must be an object")
+
+    wanted = _normalized_course_code(course_code)
+    matches = [
+        value
+        for key, value in descriptions.items()
+        if isinstance(key, str) and _normalized_course_code(key) == wanted
+    ]
+    if len(matches) != 1:
+        raise ValueError(
+            f"descriptions_by_code must contain exactly one entry for {course_code!r}"
+        )
+    member = matches[0]
+    if not isinstance(member, Mapping):
+        raise ValueError(f"descriptions_by_code entry for {course_code!r} must be an object")
+    field_alias = "desc_th" if field == "description_th" else "desc_en"
+    return member.get(field_alias, member.get(field))
 
 
 def _provenance_entries(value: Any) -> list[Mapping[str, Any]]:
@@ -598,6 +676,64 @@ def _load_prerequisites(
             )
 
 
+def _resolve_unambiguous_catalog_prerequisites(
+    connection: sqlite3.Connection, catalog_id: int
+) -> int:
+    """Resolve remaining single-code or exact-name prerequisites within a catalog."""
+    pending = connection.execute(
+        """SELECT prerequisites.prerequisite_id, prerequisites.course_id,
+                  prerequisites.raw_text
+           FROM prerequisites
+           JOIN courses AS dependent ON dependent.course_id = prerequisites.course_id
+           WHERE dependent.catalog_id = ?
+             AND prerequisites.prerequisite_course_id IS NULL
+             AND prerequisites.alternative_group_id IS NULL
+             AND prerequisites.raw_text IS NOT NULL""",
+        (catalog_id,),
+    ).fetchall()
+    course_rows = connection.execute(
+        """SELECT course_id, course_code_normalized, name_th, name_en
+           FROM courses WHERE catalog_id = ? ORDER BY course_id""",
+        (catalog_id,),
+    ).fetchall()
+
+    by_code: defaultdict[str, list[int]] = defaultdict(list)
+    by_name: defaultdict[str, list[int]] = defaultdict(list)
+    for row in course_rows:
+        course_id = int(row[0])
+        by_code[str(row[1])].append(course_id)
+        for name in (row[2], row[3]):
+            if isinstance(name, str) and name.strip():
+                key = _normalized_course_name(name, casefold=True)
+                if course_id not in by_name[key]:
+                    by_name[key].append(course_id)
+
+    resolved = 0
+    for prerequisite_id, dependent_course_id, raw_text in pending:
+        tokens = _prerequisite_tokens(raw_text)
+        if len(tokens) != 1:
+            continue
+        token = tokens[0]
+        code_matches = by_code.get(_normalized_course_code(token), [])
+        candidates = code_matches
+        if not candidates:
+            candidates = by_name.get(
+                _normalized_course_name(token, casefold=True), []
+            )
+        if len(candidates) != 1 or candidates[0] == int(dependent_course_id):
+            continue
+        connection.execute(
+            """UPDATE prerequisites
+               SET prerequisite_course_id = ?
+               WHERE prerequisite_id = ?
+                 AND prerequisite_course_id IS NULL
+                 AND alternative_group_id IS NULL""",
+            (candidates[0], prerequisite_id),
+        )
+        resolved += 1
+    return resolved
+
+
 def _load_json_to_sqlite(
     input_json_path: str | Path,
     output_db_path: str | Path,
@@ -780,7 +916,16 @@ def _load_json_to_sqlite(
         )
         _link_catalog_and_plan(connection, catalog_id, plan_id, root_references)
 
-        code_to_ids: defaultdict[str, list[int]] = defaultdict(list)
+        plan_code_to_ids: defaultdict[str, list[int]] = defaultdict(list)
+        for existing_course_id, existing_code in connection.execute(
+            """SELECT DISTINCT courses.course_id, courses.course_code_normalized
+               FROM plan_placements
+               JOIN courses ON courses.course_id = plan_placements.course_id
+               WHERE plan_placements.plan_id = ?""",
+            (plan_id,),
+        ):
+            plan_code_to_ids[existing_code].append(int(existing_course_id))
+
         identity_to_ids: defaultdict[tuple[str, str], list[int]] = defaultdict(list)
         for existing_course_id, existing_code, discriminator in connection.execute(
             """SELECT course_id, course_code_normalized, course_identity_discriminator
@@ -788,7 +933,6 @@ def _load_json_to_sqlite(
             (catalog_id,),
         ):
             course_id = int(existing_course_id)
-            code_to_ids[existing_code].append(course_id)
             identity_to_ids[(existing_code, discriminator)].append(course_id)
         records: list[dict[str, Any]] = []
 
@@ -810,10 +954,14 @@ def _load_json_to_sqlite(
                 provenance_cache,
             )
             source_categories = _provenance_categories(connection, references)
-            current_plan_backed = "plan" in source_categories
             current_description_only = (
-                bool(source_categories) and source_categories <= {"description"}
+                bool(source_categories)
+                and "description" in source_categories
+                and "plan" not in source_categories
             )
+            # Curriculum documents without explicit provenance still contain
+            # plan facts. Description-only rows remain supplemental evidence.
+            current_plan_backed = not current_description_only
             _link_catalog_and_plan(connection, catalog_id, plan_id, references)
 
             prerequisite = _raw_prerequisite(raw_course)
@@ -840,8 +988,12 @@ def _load_json_to_sqlite(
                     "credits": credits_value,
                     "credit_units": credit_units,
                     "credits_raw": credits_raw,
-                    "description_th": raw_course.get("desc_th", raw_course.get("description_th")),
-                    "description_en": raw_course.get("desc_en", raw_course.get("description_en")),
+                    "description_th": _course_description_value(
+                        raw_course, code, "description_th"
+                    ),
+                    "description_en": _course_description_value(
+                        raw_course, code, "description_en"
+                    ),
                     "category": raw_course.get("category"),
                     "course_type": raw_course.get("type", raw_course.get("course_type")),
                     "prerequisite_text": _as_text(prerequisite),
@@ -853,6 +1005,19 @@ def _load_json_to_sqlite(
                 identity_key = (normalized_code, discriminator)
                 existing_ids = identity_to_ids[identity_key]
                 if existing_ids:
+                    core_columns = _COURSE_IDENTITY_FACT_FIELDS
+                    stored_core = connection.execute(
+                        f"SELECT {', '.join(core_columns)} FROM courses WHERE course_id = ?",
+                        (existing_ids[0],),
+                    ).fetchone()
+                    existing_facts = dict(zip(core_columns, stored_core, strict=True))
+                    if _course_identity_facts_conflict(existing_facts, facts):
+                        discriminator = _course_variant_discriminator(
+                            discriminator, facts
+                        )
+                        identity_key = (normalized_code, discriminator)
+                        existing_ids = identity_to_ids[identity_key]
+                if existing_ids:
                     course_id = existing_ids[0]
                     existing_categories = _course_provenance_categories(
                         connection, course_id
@@ -860,7 +1025,8 @@ def _load_json_to_sqlite(
                     existing_plan_backed = "plan" in existing_categories
                     existing_description_only = (
                         bool(existing_categories)
-                        and existing_categories <= {"description"}
+                        and "description" in existing_categories
+                        and "plan" not in existing_categories
                     )
                     fact_columns = tuple(facts)
                     stored_facts = connection.execute(
@@ -977,8 +1143,12 @@ def _load_json_to_sqlite(
                     )
                     course_id = int(cursor.lastrowid)
                     identity_to_ids[identity_key].append(course_id)
-                    code_to_ids[normalized_code].append(course_id)
                 course_ids.append(course_id)
+                if (
+                    not current_description_only
+                    and course_id not in plan_code_to_ids[normalized_code]
+                ):
+                    plan_code_to_ids[normalized_code].append(course_id)
                 _link_provenance(
                     connection,
                     "course_provenance",
@@ -986,6 +1156,19 @@ def _load_json_to_sqlite(
                     course_id,
                     references,
                 )
+
+            if current_description_only:
+                records.append(
+                    {
+                        "course_code": codes[0],
+                        "course_ids": course_ids,
+                        "placement_order": placement_index,
+                        "prerequisite": prerequisite,
+                        "requirement_type": requirement_type,
+                        "provenance": references,
+                    }
+                )
+                continue
 
             group_id: int | None = None
             if len(course_ids) > 1:
@@ -1060,7 +1243,9 @@ def _load_json_to_sqlite(
                 }
             )
 
-        _load_prerequisites(connection, records, code_to_ids, catalog_id, plan_id)
+        _load_prerequisites(
+            connection, records, plan_code_to_ids, catalog_id, plan_id
+        )
         if commit:
             connection.commit()
     return catalog_id
@@ -1097,6 +1282,8 @@ def load_jsons_to_sqlite(
                 )
                 for index, input_path in enumerate(input_paths)
             ]
+            for catalog_id in set(catalog_ids):
+                _resolve_unambiguous_catalog_prerequisites(connection, catalog_id)
             connection.commit()
             return catalog_ids
         except Exception:

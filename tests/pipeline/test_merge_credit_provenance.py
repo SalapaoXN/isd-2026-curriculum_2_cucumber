@@ -2,6 +2,7 @@ import unittest
 
 from src.pipeline.tools.merge.consolidator import (
     CurriculumConsolidator,
+    _courses_from_persisted_description_pages,
     _preserve_authoritative_extracted_credit,
 )
 
@@ -18,6 +19,69 @@ def _source_provenance(program="IT", filename="it_page_354.png", page=354):
 
 
 class MergeCreditProvenanceTests(unittest.TestCase):
+    def test_persisted_page_edge_continuation_joins_previous_course(self):
+        first_page = {
+            "program": "AIT",
+            "courses": [{
+                "code": "06046410",
+                "desc_th": "คำอธิบายไทยต้นหน้า",
+                "source_provenance": _source_provenance("AIT", "ait_page_293.png", 293),
+            }],
+        }
+        second_page = {
+            "program": "AIT",
+            "courses": [{"code": "06046411", "desc_th": "วิชาถัดไป"}],
+            "leading_description_continuation": {
+                "lines": ["คำอธิบายไทยต่อหน้า", "ENGLISH CONTINUATION"],
+                "source_provenance": [
+                    {
+                        "program": "AIT",
+                        "source_filename": "ait_page_294.png",
+                        "source_page": 294,
+                        "document_category": "description",
+                    }
+                ],
+            },
+        }
+
+        courses = _courses_from_persisted_description_pages(
+            [("coop", 294, second_page), ("coop", 293, first_page)]
+        )
+
+        self.assertIn("คำอธิบายไทยต่อหน้า", courses[0]["desc_th"])
+        self.assertEqual(courses[0]["desc_en"], "ENGLISH CONTINUATION")
+        self.assertEqual(
+            [entry["source_page"] for entry in courses[0]["source_provenance"]],
+            [293, 294],
+        )
+
+    def test_empty_description_fields_do_not_clobber_plan_content(self):
+        plan = {
+            "program": "IT",
+            "courses": [
+                {
+                    "code": "06016454",
+                    "desc_th": "คำอธิบายเดิม",
+                    "desc_en": "Existing description",
+                }
+            ],
+        }
+        description = {
+            "descriptions": [
+                {
+                    "code": "06016454",
+                    "desc_th": None,
+                    "desc_en": "",
+                    "source_provenance": _source_provenance(),
+                }
+            ]
+        }
+
+        merged = CurriculumConsolidator(plan, description).consolidate()["courses"][0]
+
+        self.assertEqual(merged["desc_th"], "คำอธิบายเดิม")
+        self.assertEqual(merged["desc_en"], "Existing description")
+
     def test_reparsed_description_preserves_verified_credit_metadata(self):
         reparsed = {
             "code": "06016454",

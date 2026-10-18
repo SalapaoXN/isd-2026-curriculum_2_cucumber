@@ -176,6 +176,28 @@ def merge_alternative_courses(first: Dict, second: Dict, credits: str) -> Dict:
     merged = dict(first)
     merged["code"] = f"{first.get('code', '')} หรือ {second.get('code', '')}"
 
+    descriptions_by_code = {}
+    for course in (first, second):
+        code = course.get("code")
+        if not isinstance(code, str) or not code.strip():
+            continue
+        existing_descriptions = course.get("descriptions_by_code")
+        if isinstance(existing_descriptions, dict):
+            descriptions_by_code.update(existing_descriptions)
+        else:
+            descriptions_by_code[code.strip()] = {
+                "desc_th": course.get("desc_th"),
+                "desc_en": course.get("desc_en"),
+                "source_provenance": course.get("source_provenance") or [],
+            }
+
+    if any(
+        value.get("desc_th") or value.get("desc_en")
+        for value in descriptions_by_code.values()
+        if isinstance(value, dict)
+    ):
+        merged["descriptions_by_code"] = descriptions_by_code
+
     for field in ("name_th", "name_en", "desc_th", "desc_en", "prerequisite", "note"):
         combined = _combine_alternative_values(first.get(field), second.get(field))
         if combined:
@@ -1533,6 +1555,19 @@ class CurriculumExtractor:
                     desc_lines.append(curr)
                     j += 1
                     continue
+                if re.fullmatch(r"\d{1,4}", curr):
+                    terminal_number = re.compile(rf"\b{re.escape(curr)}\s*$")
+                    if any(
+                        isinstance(name, str) and terminal_number.search(name)
+                        for name in (name_th, name_en)
+                    ):
+                        # Some catalog scans repeat a numbered course suffix
+                        # between its prerequisite and description. It is not
+                        # a page/footer boundary; skip only the duplicate
+                        # number so the following bilingual body stays with
+                        # this course.
+                        j += 1
+                        continue
                 if self._is_description_structural_boundary(curr):
                     break
                 desc_lines.append(curr)
@@ -1584,14 +1619,23 @@ class CurriculumExtractor:
         source_context = source_context or self._source_context(
             document_category="unknown", text_lines=lines
         )
-        courses, _ = self._extract_description_page(lines, source_context)
-        return {
+        courses, leading_lines = self._extract_description_page(lines, source_context)
+        result = {
             "source": self.source,
             "description": prediction_description(self.program, self.plan),
             "program": self.program,
             "plan": self.plan,
             "courses": courses,
         }
+        # Preserve page-edge text for callers that consolidate independently
+        # extracted pages. Keeping its source context makes the continuation
+        # auditable when it is eventually attached to a course.
+        if leading_lines:
+            result["leading_description_continuation"] = {
+                "lines": leading_lines,
+                "source_provenance": [source_context],
+            }
+        return result
 
     def extract_descriptions_from_pages(
         self, pages: List[Tuple[List[str], Dict]]

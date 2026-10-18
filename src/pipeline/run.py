@@ -579,10 +579,10 @@ def main(argv: list[str] | None = None) -> int:
                 canonicalization = canonicalize_runtime_artifacts()
                 print(
                     f"Canonicalized {len(canonicalization.paths)} curriculum artifact(s); "
-                    f"plan-GT fields={canonicalization.plan_gt_fields_applied}, "
-                    "shared-GE fields="
-                    f"{canonicalization.shared_general_education_fields_applied}, "
-                    f"legacy source corrections={canonicalization.legacy_corrections_applied}."
+                    "Ground Truth runtime fields=0, "
+                    f"legacy source corrections={canonicalization.legacy_corrections_applied}, "
+                    "source-verified prerequisite corrections="
+                    f"{canonicalization.prerequisite_corrections_applied}."
                 )
                 conflicts = preflight_runtime_artifacts()
                 if conflicts:

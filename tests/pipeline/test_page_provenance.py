@@ -314,6 +314,90 @@ class PageProvenanceTests(unittest.TestCase):
             [(328, 323), (329, 324)],
         )
 
+    def test_course_body_continuing_at_next_page_is_attached_with_provenance(self):
+        extractor = CurriculumExtractor(program="IT", plan="no_coop")
+        result = extractor.extract_descriptions_from_pages(
+            [
+                (
+                    [
+                        "323",
+                        "คำอธิบายรายวิชา",
+                        "06000001",
+                        "ชื่อวิชา",
+                        "3(3-0-6)",
+                        "COURSE NAME",
+                        "PREREQUISITE",
+                        "NONE",
+                    ],
+                    context("IT", 328, 323, "description"),
+                ),
+                (
+                    [
+                        "324",
+                        "มคอ.",
+                        "2",
+                        "คำอธิบายภาษาไทย",
+                        "ENGLISH BODY",
+                        "06000002",
+                        "วิชาที่สอง",
+                        "3(3-0-6)",
+                        "SECOND COURSE",
+                        "PREREQUISITE",
+                        "NONE",
+                    ],
+                    context("IT", 329, 324, "description"),
+                ),
+            ]
+        )
+
+        first = result["courses"][0]
+        self.assertEqual(first["desc_th"], "คำอธิบายภาษาไทย")
+        self.assertEqual(first["desc_en"], "ENGLISH BODY")
+        self.assertEqual(
+            [entry["source_page"] for entry in first["source_provenance"]],
+            [328, 329],
+        )
+
+    def test_single_page_result_preserves_unclaimed_leading_continuation(self):
+        extractor = CurriculumExtractor(program="IT", plan="no_coop")
+        lines = ["ข้อความต่อเนื่อง", "ENGLISH CONTINUATION", "06000002", "NEXT"]
+        source = context("IT", 329, 324, "description")
+
+        result = extractor.extract_descriptions(lines, source)
+
+        self.assertEqual(
+            result["leading_description_continuation"],
+            {
+                "lines": ["ข้อความต่อเนื่อง", "ENGLISH CONTINUATION"],
+                "source_provenance": [source],
+            },
+        )
+
+    def test_repeated_numbered_course_suffix_does_not_truncate_description(self):
+        extractor = CurriculumExtractor(program="AIT")
+        result = extractor.extract_descriptions(
+            [
+                "06046431",
+                "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 2",
+                "3(3-0-6)",
+                "PREREQUISITE",
+                "NONE",
+                "หัวข้อคัดสรรด้านปัญญาประดิษฐ์",
+                "2",
+                "THIS COURSE WILL COVER RECENT ADVANCES SELECTED BY THE INSTRUCTOR.",
+                "06046432",
+                "NEXT COURSE",
+            ],
+            context("AIT", 301, 297, "description"),
+        )
+
+        course = result["courses"][0]
+        self.assertEqual(
+            course["desc_en"],
+            "THIS COURSE WILL COVER RECENT ADVANCES SELECTED BY THE INSTRUCTOR.",
+        )
+        self.assertNotIn("2", course["desc_th"])
+
     def test_old_provenance_without_document_page_remains_valid(self):
         old_entry = {
             "program": "IT",

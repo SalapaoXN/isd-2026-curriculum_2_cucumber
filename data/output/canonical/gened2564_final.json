@@ -449,7 +449,7 @@
     },
     {
       "code": "90642013",
-      "name_th": "บูรณาการแห่งการคิด",
+      "name_th": "บูรณาการแห่งการคิด 3",
       "name_en": "INTEGRATED THINKING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -653,7 +653,7 @@
     {
       "code": "90642020",
       "name_th": "การออกแบบสะเต็มอย่างสร้างสรรค์ขั้นสูง",
-      "name_en": "ADVANCE CREATIVE STEM DESIGN",
+      "name_en": "ADVANCED CREATIVE STEM DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -674,10 +674,18 @@
           "source_page": 50,
           "document_category": "description",
           "document_page": 46
+        },
+        {
+          "source_filename": "gened2564_page_050.png",
+          "source_page": 50,
+          "document_page": 46,
+          "document_category": "description",
+          "excerpt": "The detailed description for 90642020 names BASIC CREATIVE STEM DESIGN as its prerequisite."
         }
       ],
       "desc_th": "ฝึกประสบการณ์ในการออกแบบการเรียนรู้ด้านสะเต็มข้นสูง (วิทยาศาตร์ เทคโนโลยี วิศวกรรมศาสตร์ และ\nคณิตศาสตร์') เน้นการใช้องค์ความรู้จากวิชาตัวแรก ฝึกการใช้ความคิดสร้างสรรค์และการสื่อสารเพื่อการนำเสนอผลงาน\nอย่างมีประสิทธิภาพ",
-      "desc_en": "THIS IS THE SECOND COURSE IN THE TWO COURSE SEQUENCE FOR SECOND YEAR STUDENTS AFTER CREATIVE\nSTEM  DESIGN\nSTUDENT DESIGN  TEAMS  WILL\nWORK\nON\nMORE  ADVANCED STEM  PROJECTS, UTILIZING  SOME\nFUNDAMENTAL\nENGINEERING\nKNOWLEDGE  ACQUIRED  FROM\nPREVIOUS\nSEMESTERS.\nCREATIVE  THINKING,\nAND\nCOMMUNICATION SKILLS ARE FURTHER EMPHASIZED IN THIS COURSE."
+      "desc_en": "THIS IS THE SECOND COURSE IN THE TWO COURSE SEQUENCE FOR SECOND YEAR STUDENTS AFTER CREATIVE\nSTEM  DESIGN\nSTUDENT DESIGN  TEAMS  WILL\nWORK\nON\nMORE  ADVANCED STEM  PROJECTS, UTILIZING  SOME\nFUNDAMENTAL\nENGINEERING\nKNOWLEDGE  ACQUIRED  FROM\nPREVIOUS\nSEMESTERS.\nCREATIVE  THINKING,\nAND\nCOMMUNICATION SKILLS ARE FURTHER EMPHASIZED IN THIS COURSE.",
+      "prerequisite_observed": "BASIC CREATIE STEM DESIGV"
     },
     {
       "code": "90642021",
@@ -798,7 +806,7 @@
     {
       "code": "90642025",
       "name_th": "วิเคราะห์ความจริงจากตัวเลข",
-      "name_en": "FATCS BEHIND NUMBERS",
+      "name_en": "FACTS BEHIND NUMBERS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -826,7 +834,7 @@
     },
     {
       "code": "90642026",
-      "name_th": "การพัฒนาทักษะเชิงวิจัย",
+      "name_th": "การพัฒนาทักษะเชิงวิจัย 3",
       "name_en": "RESEARCH SKILL DEVELOPMENT",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -914,7 +922,7 @@
     {
       "code": "90642029",
       "name_th": "จริยธรรมและกฎหมายว่าด้วยความเป็นมืออาชีพทางการแพทย์",
-      "name_en": "MEDICAL ETHICS, LAWS AND PROFESSIONALOSM",
+      "name_en": "MEDICAL ETHICS, LAWS AND PROFESSIONALISM",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -943,7 +951,7 @@
     {
       "code": "90642030",
       "name_th": "จรรยาบรรณและกฎหมายวิศวกรรม",
-      "name_en": "ENGINEERING ETHICS AND LAWS",
+      "name_en": "ENGINEERING ETHICS AND LAW",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1124,7 +1132,7 @@
     {
       "code": "90642036",
       "name_th": "เตรียมความพร้อมสำหรับวิศวกร",
-      "name_en": "PRE-ACTIVITIES FOR ENGINEERS",
+      "name_en": "PRE ACTIVITIES FOR ENGINEERS",
       "credits": "1(0-3-0)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1211,7 +1219,7 @@
     {
       "code": "90642039",
       "name_th": "ซ่อมได้ภายในบ้าน",
-      "name_en": "QUICK-FIX @ HOME",
+      "name_en": "QUICK FIX HOME",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1326,7 +1334,7 @@
     },
     {
       "code": "90642043",
-      "name_th": "ศาสตร์ของเบอร์เกอร์",
+      "name_th": "ศาสตร์ของเบอร์เกอร์ 3",
       "name_en": "SCIENCE OF BURGER",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1414,7 +1422,7 @@
     {
       "code": "90642046",
       "name_th": "ไร้ซ์-สาระ",
-      "name_en": "RICE-SARA",
+      "name_en": "RICE SARA",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1587,8 +1595,8 @@
     },
     {
       "code": "90642052",
-      "name_th": "จากเส้นสาย DNA สู่พันธุกรรม",
-      "name_en": "GENES & GENETICS : FROM HELIX TO HEREDITARY",
+      "name_th": "จากเส้นสาย DNA",
+      "name_en": "GENES GENETICS FROM HELIX TO HEREDITARY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1645,7 +1653,7 @@
     },
     {
       "code": "90642054",
-      "name_th": "สิ่งพิทักษ์ร่างกาย",
+      "name_th": "สิงพิทักษ์ร่างกาย",
       "name_en": "GUARDIANS OF OUR BODIES",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -1704,7 +1712,7 @@
     {
       "code": "90642056",
       "name_th": "โรคระบาดในศตวรรษที่ 21",
-      "name_en": "EPIDEMICS IN THE 21st CENTURY",
+      "name_en": "EPIDEMICS IN THE 21ST CENTURY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1827,7 +1835,7 @@
     {
       "code": "90642060",
       "name_th": "ค้นหาตัวตน",
-      "name_en": "SELF-DISCOVERY",
+      "name_en": "SELF DISCOVERY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -1891,7 +1899,7 @@
     },
     {
       "code": "90642062",
-      "name_th": "เรื่องกินเรื่องใหญ่",
+      "name_th": "เรื่องกินเรื่องใหญ่ 3",
       "name_en": "ALL ABOUT FOOD",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2240,7 +2248,7 @@
     {
       "code": "90642074",
       "name_th": "อีสปอร์ต",
-      "name_en": "E-SPORTS",
+      "name_en": "E SPORTS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -2558,7 +2566,7 @@
     },
     {
       "code": "90642085",
-      "name_th": "วัฒนธรรมร่วมสมัย",
+      "name_th": "วัฒนธรรมรวมสมัย",
       "name_en": "CONTEMPORARY CULTURE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2645,7 +2653,7 @@
     },
     {
       "code": "90642088",
-      "name_th": "วัฒนธรรมจีนดั้งเดิม",
+      "name_th": "วัฒนธรรมจีนดังเดิม",
       "name_en": "TRADITIONAL CHINESE CULTURE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2674,7 +2682,7 @@
     },
     {
       "code": "90642089",
-      "name_th": "สังคม เศรษฐกิจ และการเมืองจีน",
+      "name_th": "สังคมเศรษฐกิจ และการเมืองจีน",
       "name_en": "CHINESE SOCIETY, ECONOMY AND POLITICS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3326,7 +3334,7 @@
     },
     {
       "code": "90642111",
-      "name_th": "สนุกกับการเขียนโค้ด",
+      "name_th": "สนุกกับการเขียนโค้ด 3",
       "name_en": "FUN WITH CODING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3420,7 +3428,7 @@
     },
     {
       "code": "90642114",
-      "name_th": "ฟาร์มอัจฉริยะ",
+      "name_th": "ฟาร์มอัจฉริยะ 3",
       "name_en": "SMART FARMING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3479,7 +3487,7 @@
     {
       "code": "90642116",
       "name_th": "เมืองอัจฉริยะและนวัตกรรมเมือง",
-      "name_en": "SMART CITY AND INNOVATION",
+      "name_en": "SMART CITY AND CITY INNOVATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -3508,7 +3516,7 @@
     {
       "code": "90642117",
       "name_th": "ทักษะการรู้สารสนเทศแห่งศตวรรษที่ 21",
-      "name_en": "INFORMATION LITERACY SKILLS FOR THE 21st CENTURY",
+      "name_en": "INFORMATION LITERACY SKILLS FOR THE 21ST CENTURY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -3681,7 +3689,7 @@
     },
     {
       "code": "90642123",
-      "name_th": "เทคโนโลยี คอมพิวเตอร์ดนตรี",
+      "name_th": "เทคโนโลยีคอมพิวเตอร์ดนตรี",
       "name_en": "TECHNOLOGY IN MUSICAL SEQUENCING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3710,7 +3718,7 @@
     },
     {
       "code": "90642124",
-      "name_th": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์สำหรับ SDGs",
+      "name_th": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGs",
       "name_en": "SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3746,7 +3754,7 @@
     },
     {
       "code": "90642125",
-      "name_th": "การดำรงชีพท่ามกลางภัยพิบัติและวิกฤติในอนาคต",
+      "name_th": "การดำรงชีพท่ามกลางภัยพิบัติและวิกฤติในอนาคต 3",
       "name_en": "LIVING IN FUTURE DISASTER AND CRISIS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3956,7 +3964,7 @@
     },
     {
       "code": "90642132",
-      "name_th": "ชุมพรศึกษาเพื่อการท่องเที่ยว",
+      "name_th": "ชุมพรศึกษาเพื่อการท่องเที่ยว 3",
       "name_en": "CHUMPHON STUDY FOR TOURISM",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4072,7 +4080,7 @@
     },
     {
       "code": "90642136",
-      "name_th": "จริยศาสตร์และสุนทรียศาสตร์",
+      "name_th": "จริยศาสตร์และสุนทรียศาสตร์ 3",
       "name_en": "ETHICS AND AESTHETICS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4225,7 +4233,7 @@
     {
       "code": "90642141",
       "name_th": "จิตวิทยาเพื่อการพัฒนาตนเอง",
-      "name_en": "PSYCHOLOGY OF SELF-DEVELOPMENT",
+      "name_en": "PSYCHOLOGY OF SELF DEVELOPMENT",
       "credits": "2(2-0-4)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -4289,7 +4297,7 @@
     },
     {
       "code": "90642143",
-      "name_th": "ชีวิตออกแบบได้",
+      "name_th": "ชีวิตออกแบบได้ 3",
       "name_en": "DESIGNING YOUR LIFE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4616,7 +4624,7 @@
     {
       "code": "90642154",
       "name_th": "ล้มให้เป็น",
-      "name_en": "FAIL-ABLE",
+      "name_en": "FALL ABLE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -4709,7 +4717,7 @@
     },
     {
       "code": "90642157",
-      "name_th": "โหราศาสตร์ไทย",
+      "name_th": "โหราศาสตร์ไทย 3",
       "name_en": "THAI ASTROLOGY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -4739,7 +4747,7 @@
     {
       "code": "90642158",
       "name_th": "มุมมองวิทยาศาสตร์และเทคโนโลยีร่วมสมัย",
-      "name_en": "COMTEMPORARY SCIENCE AND TECHNOLOGY",
+      "name_en": "CONTEMPORARY SCIENCE AND TECHNOLOGY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -4804,7 +4812,7 @@
     {
       "code": "90643001",
       "name_th": "ปฏิบัติงานตามทักษะด้านการจัดการ 1",
-      "name_en": "PRACTICE UNDER MANAGEMENT SKILL 1",
+      "name_en": "PRACTICE UNDER MANAGEMENT SKILLS 1",
       "credits": "1(0-2-1)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -4833,7 +4841,7 @@
     {
       "code": "90643002",
       "name_th": "ปฏิบัติงานตามทักษะด้านการจัดการ 2",
-      "name_en": "PRACTICE UNDER MANAGEMENT SKILL 2",
+      "name_en": "PRACTICE UNDER MANAGEMENT SKILLS 2",
       "credits": "2(0-4-2)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -4862,7 +4870,7 @@
     {
       "code": "90643003",
       "name_th": "ปฏิบัติงานตามทักษะด้านการจัดการ 3",
-      "name_en": "PRACTICE UNDER MANAGEMENT SKILL 3",
+      "name_en": "PRACTICE UNDER MANAGEMENT SKILLS 3",
       "credits": "3(0-6-3)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -5245,7 +5253,7 @@
     },
     {
       "code": "90643016",
-      "name_th": "สนุกกับธุรกิจออนไลน์",
+      "name_th": "สนุกกับธุรกิจออนไลน์ 3",
       "name_en": "FUN WITH ONLINE BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5578,7 +5586,7 @@
     },
     {
       "code": "90643027",
-      "name_th": "มนุษย์ เงิน และคณิตศาสตร์",
+      "name_th": "เงิน และคณิตศาสตร์",
       "name_en": "MAN, MONEY AND MATH",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5608,7 +5616,7 @@
     {
       "code": "90643028",
       "name_th": "มือใหม่ (หัด) เล่นหุ้น",
-      "name_en": "SMART TIPS FOR BEGINNING INVESTERS",
+      "name_en": "SMART TIPS FOR BEGINNING INVESTORS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -5702,7 +5710,7 @@
     {
       "code": "90643031",
       "name_th": "วิถีชีวิตตามแนวคิดเศรษฐกิจหมุนเวียนในศตวรรษที่ 21",
-      "name_en": "CIRCULAR ECONOMIC LIFESTYLE FOR 21st CENTURY",
+      "name_en": "CIRCULAR ECONOMIC LIFESTYLE FOR 21ST CENTURY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -6148,7 +6156,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
-      "prerequisite": "FOUNDATION ENGLISH 1",
+      "prerequisite": "FOUNDATION ENGLISH",
       "flexible_year_semester": null,
       "note": null,
       "source_provenance": [
@@ -6492,7 +6500,7 @@
     {
       "code": "90644020",
       "name_th": "ภาษาอังกฤษเพื่อความเข้าใจข่าวสาร",
-      "name_en": "ENGLISH FOR MADIA",
+      "name_en": "ENGLISH FOR MEDIA",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -6521,7 +6529,7 @@
     {
       "code": "90644021",
       "name_th": "ภาษาอังกฤษเพื่อการสื่อสารระหว่างวัฒนธรรม",
-      "name_en": "ENGLISH FOR INTERCURAL COMMUNICATION",
+      "name_en": "ENGLISH FOR INTERCULTURAL COMMUNICATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -6579,7 +6587,7 @@
     {
       "code": "90644023",
       "name_th": "ภาษาอังกฤษเพื่อเตรียมตัวทำงาน",
-      "name_en": "ENGLISH FOR WORK PREPATION",
+      "name_en": "ENGLISH FOR WORK PREPARATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -6637,7 +6645,7 @@
     {
       "code": "90644025",
       "name_th": "ภาษาอังกฤษเพื่อการสื่อสารในงานสถาปัตยกรรม",
-      "name_en": "ENGLISH FOR ARCHITECTURAL ARTS & DESIGN COMMUNICATION",
+      "name_en": "ENGLISH FOR ARCHITECTURAL ARTS DESIGN COMMUNICATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -6666,7 +6674,7 @@
     {
       "code": "90644026",
       "name_th": "ภาษาอังกฤษเพื่อการนำเสนอในงานสถาปัตยกรรม",
-      "name_en": "ENGLISH FOR ARCHITECTURAL ARTS & DESIGN PRESENTATION",
+      "name_en": "ENGLISH FOR ARCHITECTURAL ARTS DESIGN PRESENTATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -6694,7 +6702,7 @@
     },
     {
       "code": "90644027",
-      "name_th": "ภาษาอังกฤษสำหรับการเขียนพรรณา",
+      "name_th": "ภาษาอังกฤษสำหรับการเขียนพรรณนา",
       "name_en": "ENGLISH FOR NARRATIVE WRITING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -6926,7 +6934,7 @@
     },
     {
       "code": "90644035",
-      "name_th": "การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร์สุขภาพ",
+      "name_th": "การอ่านและเขียนเชิงวิชาการสำหรับวิทยาศาสตร์",
       "name_en": "ACADEMIC READING AND WRITING FOR HEALTH SCIENCES",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาศึกษาทั่วไป",
@@ -6955,8 +6963,8 @@
     },
     {
       "code": "90644036",
-      "name_th": "การพัฒนาทักษะทางภาษาอังกฤษเพื่อการเรียนรู้ตลอดชีวิต",
-      "name_en": "ENLISH SKILL DEVELOPMENT FOR LIFE-LONG LEARNING",
+      "name_th": "การพัฒนาทักษะทางภาษาอังกฤษเบื้องต้นเพื่อการเรียนรู้ตลอดชีวิต",
+      "name_en": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -7572,7 +7580,7 @@
     {
       "code": "90644057",
       "name_th": "ภาษาจีนเพื่อการสื่อสาร",
-      "name_en": "CHINESE FOR COMMUNUCATION",
+      "name_en": "CHINESE FOR COMMUNICATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -7666,7 +7674,7 @@
     {
       "code": "90644060",
       "name_th": "ภาษาเยอรมันเพื่อการสื่อสาร",
-      "name_en": "GERMAN FOR COMMUNUCATION",
+      "name_en": "GERMAN FOR COMMUNICATION",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
@@ -7752,7 +7760,7 @@
     },
     {
       "code": "90644063",
-      "name_th": "ภาษาญี่ปุ่นเพื่อการท่องเที่ยว",
+      "name_th": "ภาษาญี่ปุ่นเพื่อการท่องเที่ยว 3",
       "name_en": "JAPANESE FOR TRAVEL",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาศึกษาทั่วไป",

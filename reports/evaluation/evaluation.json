@@ -21,8 +21,8 @@
         "f1": 1.0
       },
       "page_level": {
-        "cer": 0.0052,
-        "wer": 0.0285,
+        "cer": 0.0043,
+        "wer": 0.0214,
         "count": 280
       },
       "field_level": {
@@ -42,8 +42,8 @@
           "count": 56
         },
         "credits": {
-          "cer": 0.0087,
-          "wer": 0.0714,
+          "cer": 0.0042,
+          "wer": 0.0357,
           "count": 56
         },
         "prerequisite": {
@@ -54,8 +54,8 @@
       },
       "category_level": {
         "plan": {
-          "cer": 0.0072,
-          "wer": 0.0387,
+          "cer": 0.0059,
+          "wer": 0.0287,
           "count": 200
         },
         "description": {
@@ -66,8 +66,8 @@
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.0052,
-          "wer": 0.0285,
+          "cer": 0.0043,
+          "wer": 0.0214,
           "count": 280
         },
         "field_level": {
@@ -127,8 +127,8 @@
           },
           "credits": {
             "text_quality": {
-              "cer": 0.0087,
-              "wer": 0.0714,
+              "cer": 0.0042,
+              "wer": 0.0357,
               "count": 56
             },
             "presence_coverage": {
@@ -172,8 +172,8 @@
           "groups": {
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
-                "cer": 0.0042,
-                "wer": 0.0212,
+                "cer": 0.0031,
+                "wer": 0.0119,
                 "count": 215
               },
               "coverage": {
@@ -248,8 +248,8 @@
         "f1": 1.0
       },
       "page_level": {
-        "cer": 0.0127,
-        "wer": 0.074,
+        "cer": 0.0126,
+        "wer": 0.0703,
         "count": 315
       },
       "field_level": {
@@ -259,13 +259,13 @@
           "count": 63
         },
         "name_th": {
-          "cer": 0.0104,
-          "wer": 0.145,
+          "cer": 0.0097,
+          "wer": 0.1238,
           "count": 63
         },
         "name_en": {
-          "cer": 0.0178,
-          "wer": 0.1933,
+          "cer": 0.0181,
+          "wer": 0.1959,
           "count": 63
         },
         "credits": {
@@ -281,8 +281,8 @@
       },
       "category_level": {
         "plan": {
-          "cer": 0.0132,
-          "wer": 0.0871,
+          "cer": 0.0131,
+          "wer": 0.0816,
           "count": 210
         },
         "description": {
@@ -293,8 +293,8 @@
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.0127,
-          "wer": 0.074,
+          "cer": 0.0126,
+          "wer": 0.0703,
           "count": 315
         },
         "field_level": {
@@ -318,8 +318,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.0104,
-              "wer": 0.145,
+              "cer": 0.0097,
+              "wer": 0.1238,
               "count": 63
             },
             "presence_coverage": {
@@ -336,8 +336,8 @@
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.0178,
-              "wer": 0.1933,
+              "cer": 0.0181,
+              "wer": 0.1959,
               "count": 63
             },
             "presence_coverage": {
@@ -399,8 +399,8 @@
           "groups": {
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
-                "cer": 0.0133,
-                "wer": 0.0776,
+                "cer": 0.0131,
+                "wer": 0.0702,
                 "count": 250
               },
               "coverage": {
@@ -416,8 +416,8 @@
             },
             "หมวดวิชาศึกษาทั่วไป": {
               "text_quality": {
-                "cer": 0.0122,
-                "wer": 0.0712,
+                "cer": 0.0126,
+                "wer": 0.0833,
                 "count": 55
               },
               "coverage": {
@@ -475,8 +475,8 @@
         "f1": 1.0
       },
       "page_level": {
-        "cer": 0.0176,
-        "wer": 0.0653,
+        "cer": 0.0178,
+        "wer": 0.0706,
         "count": 315
       },
       "field_level": {
@@ -486,8 +486,8 @@
           "count": 63
         },
         "name_th": {
-          "cer": 0.039,
-          "wer": 0.145,
+          "cer": 0.0401,
+          "wer": 0.1714,
           "count": 63
         },
         "name_en": {
@@ -508,8 +508,8 @@
       },
       "category_level": {
         "plan": {
-          "cer": 0.0191,
-          "wer": 0.0712,
+          "cer": 0.0194,
+          "wer": 0.079,
           "count": 215
         },
         "description": {
@@ -520,8 +520,8 @@
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.0176,
-          "wer": 0.0653,
+          "cer": 0.0178,
+          "wer": 0.0706,
           "count": 315
         },
         "field_level": {
@@ -545,8 +545,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.039,
-              "wer": 0.145,
+              "cer": 0.0401,
+              "wer": 0.1714,
               "count": 63
             },
             "presence_coverage": {
@@ -626,8 +626,8 @@
           "groups": {
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
-                "cer": 0.0126,
-                "wer": 0.0636,
+                "cer": 0.0128,
+                "wer": 0.0676,
                 "count": 250
               },
               "coverage": {
@@ -643,8 +643,8 @@
             },
             "หมวดวิชาศึกษาทั่วไป": {
               "text_quality": {
-                "cer": 0.0432,
-                "wer": 0.0848,
+                "cer": 0.0435,
+                "wer": 0.097,
                 "count": 55
               },
               "coverage": {
@@ -702,8 +702,8 @@
         "f1": 1.0
       },
       "page_level": {
-        "cer": 0.005,
-        "wer": 0.014,
+        "cer": 0.0043,
+        "wer": 0.0184,
         "count": 445
       },
       "field_level": {
@@ -713,13 +713,13 @@
           "count": 89
         },
         "name_th": {
-          "cer": 0.0164,
-          "wer": 0.0562,
+          "cer": 0.0122,
+          "wer": 0.0768,
           "count": 89
         },
         "name_en": {
-          "cer": 0.0086,
-          "wer": 0.0136,
+          "cer": 0.0095,
+          "wer": 0.0151,
           "count": 89
         },
         "credits": {
@@ -735,20 +735,20 @@
       },
       "category_level": {
         "plan": {
-          "cer": 0.0027,
-          "wer": 0.0097,
+          "cer": 0.0009,
+          "wer": 0.0141,
           "count": 220
         },
         "description": {
-          "cer": 0.0073,
-          "wer": 0.0181,
+          "cer": 0.0077,
+          "wer": 0.0226,
           "count": 225
         }
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.005,
-          "wer": 0.014,
+          "cer": 0.0043,
+          "wer": 0.0184,
           "count": 445
         },
         "field_level": {
@@ -772,8 +772,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.0164,
-              "wer": 0.0562,
+              "cer": 0.0122,
+              "wer": 0.0768,
               "count": 89
             },
             "presence_coverage": {
@@ -790,8 +790,8 @@
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.0086,
-              "wer": 0.0136,
+              "cer": 0.0095,
+              "wer": 0.0151,
               "count": 89
             },
             "presence_coverage": {
@@ -853,8 +853,8 @@
           "groups": {
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
-                "cer": 0.0058,
-                "wer": 0.0161,
+                "cer": 0.005,
+                "wer": 0.0212,
                 "count": 385
               },
               "coverage": {
@@ -929,8 +929,8 @@
         "f1": 1.0
       },
       "page_level": {
-        "cer": 0.0051,
-        "wer": 0.0139,
+        "cer": 0.0044,
+        "wer": 0.0242,
         "count": 450
       },
       "field_level": {
@@ -940,13 +940,13 @@
           "count": 90
         },
         "name_th": {
-          "cer": 0.0164,
-          "wer": 0.0537,
+          "cer": 0.0135,
+          "wer": 0.1074,
           "count": 90
         },
         "name_en": {
-          "cer": 0.009,
-          "wer": 0.0157,
+          "cer": 0.0086,
+          "wer": 0.0135,
           "count": 90
         },
         "credits": {
@@ -962,20 +962,20 @@
       },
       "category_level": {
         "plan": {
-          "cer": 0.0029,
-          "wer": 0.0096,
+          "cer": 0.0011,
+          "wer": 0.0258,
           "count": 225
         },
         "description": {
-          "cer": 0.0073,
-          "wer": 0.0181,
+          "cer": 0.0077,
+          "wer": 0.0226,
           "count": 225
         }
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.0051,
-          "wer": 0.0139,
+          "cer": 0.0044,
+          "wer": 0.0242,
           "count": 450
         },
         "field_level": {
@@ -999,8 +999,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.0164,
-              "wer": 0.0537,
+              "cer": 0.0135,
+              "wer": 0.1074,
               "count": 90
             },
             "presence_coverage": {
@@ -1017,8 +1017,8 @@
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.009,
-              "wer": 0.0157,
+              "cer": 0.0086,
+              "wer": 0.0135,
               "count": 90
             },
             "presence_coverage": {
@@ -1080,8 +1080,8 @@
           "groups": {
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
-                "cer": 0.0059,
-                "wer": 0.016,
+                "cer": 0.0051,
+                "wer": 0.0279,
                 "count": 390
               },
               "coverage": {
@@ -1156,8 +1156,8 @@
         "f1": 1.0
       },
       "page_level": {
-        "cer": 0.0036,
-        "wer": 0.0284,
+        "cer": 0.0035,
+        "wer": 0.0286,
         "count": 1330
       },
       "field_level": {
@@ -1167,13 +1167,13 @@
           "count": 266
         },
         "name_th": {
-          "cer": 0.0093,
-          "wer": 0.0821,
+          "cer": 0.0101,
+          "wer": 0.084,
           "count": 266
         },
         "name_en": {
-          "cer": 0.0079,
-          "wer": 0.0568,
+          "cer": 0.0069,
+          "wer": 0.0559,
           "count": 266
         },
         "credits": {
@@ -1194,15 +1194,15 @@
           "count": 0
         },
         "description": {
-          "cer": 0.0036,
-          "wer": 0.0284,
+          "cer": 0.0035,
+          "wer": 0.0286,
           "count": 1330
         }
       },
       "rubric": {
         "overall_text": {
-          "cer": 0.0036,
-          "wer": 0.0284,
+          "cer": 0.0035,
+          "wer": 0.0286,
           "count": 1330
         },
         "field_level": {
@@ -1226,8 +1226,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.0093,
-              "wer": 0.0821,
+              "cer": 0.0101,
+              "wer": 0.084,
               "count": 266
             },
             "presence_coverage": {
@@ -1244,8 +1244,8 @@
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.0079,
-              "wer": 0.0568,
+              "cer": 0.0069,
+              "wer": 0.0559,
               "count": 266
             },
             "presence_coverage": {
@@ -1307,8 +1307,8 @@
           "groups": {
             "หมวดวิชาศึกษาทั่วไป": {
               "text_quality": {
-                "cer": 0.0036,
-                "wer": 0.0284,
+                "cer": 0.0035,
+                "wer": 0.0286,
                 "count": 1330
               },
               "coverage": {
@@ -1350,7 +1350,7 @@
       },
       "page_level": {
         "cer": 0.0009,
-        "wer": 0.0168,
+        "wer": 0.0136,
         "count": 525
       },
       "field_level": {
@@ -1360,13 +1360,13 @@
           "count": 105
         },
         "name_th": {
-          "cer": 0.0028,
-          "wer": 0.0603,
+          "cer": 0.0025,
+          "wer": 0.0413,
           "count": 105
         },
         "name_en": {
-          "cer": 0.0016,
-          "wer": 0.0238,
+          "cer": 0.002,
+          "wer": 0.0266,
           "count": 105
         },
         "credits": {
@@ -1383,19 +1383,19 @@
       "category_level": {
         "plan": {
           "cer": 0.0015,
-          "wer": 0.0276,
+          "wer": 0.0205,
           "count": 260
         },
         "description": {
           "cer": 0.0003,
-          "wer": 0.0063,
+          "wer": 0.0068,
           "count": 265
         }
       },
       "rubric": {
         "overall_text": {
           "cer": 0.0009,
-          "wer": 0.0168,
+          "wer": 0.0136,
           "count": 525
         },
         "field_level": {
@@ -1419,8 +1419,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.0028,
-              "wer": 0.0603,
+              "cer": 0.0025,
+              "wer": 0.0413,
               "count": 105
             },
             "presence_coverage": {
@@ -1437,8 +1437,8 @@
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.0016,
-              "wer": 0.0238,
+              "cer": 0.002,
+              "wer": 0.0266,
               "count": 105
             },
             "presence_coverage": {
@@ -1500,8 +1500,8 @@
           "groups": {
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
-                "cer": 0.0008,
-                "wer": 0.0149,
+                "cer": 0.0009,
+                "wer": 0.0111,
                 "count": 460
               },
               "coverage": {
@@ -1577,7 +1577,7 @@
       },
       "page_level": {
         "cer": 0.0014,
-        "wer": 0.0154,
+        "wer": 0.0122,
         "count": 535
       },
       "field_level": {
@@ -1587,13 +1587,13 @@
           "count": 107
         },
         "name_th": {
-          "cer": 0.004,
-          "wer": 0.0498,
+          "cer": 0.0037,
+          "wer": 0.0312,
           "count": 107
         },
         "name_en": {
-          "cer": 0.0029,
-          "wer": 0.0273,
+          "cer": 0.0033,
+          "wer": 0.03,
           "count": 107
         },
         "credits": {
@@ -1609,20 +1609,20 @@
       },
       "category_level": {
         "plan": {
-          "cer": 0.0018,
-          "wer": 0.023,
+          "cer": 0.0017,
+          "wer": 0.0154,
           "count": 265
         },
         "description": {
-          "cer": 0.001,
-          "wer": 0.008,
+          "cer": 0.0011,
+          "wer": 0.0091,
           "count": 270
         }
       },
       "rubric": {
         "overall_text": {
           "cer": 0.0014,
-          "wer": 0.0154,
+          "wer": 0.0122,
           "count": 535
         },
         "field_level": {
@@ -1646,8 +1646,8 @@
           },
           "name_th": {
             "text_quality": {
-              "cer": 0.004,
-              "wer": 0.0498,
+              "cer": 0.0037,
+              "wer": 0.0312,
               "count": 107
             },
             "presence_coverage": {
@@ -1664,8 +1664,8 @@
           },
           "name_en": {
             "text_quality": {
-              "cer": 0.0029,
-              "wer": 0.0273,
+              "cer": 0.0033,
+              "wer": 0.03,
               "count": 107
             },
             "presence_coverage": {
@@ -1728,7 +1728,7 @@
             "หมวดวิชาเฉพาะ": {
               "text_quality": {
                 "cer": 0.0008,
-                "wer": 0.0145,
+                "wer": 0.0109,
                 "count": 470
               },
               "coverage": {

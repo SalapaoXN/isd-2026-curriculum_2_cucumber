@@ -396,7 +396,7 @@ class RagIndexTest(unittest.TestCase):
             with patch.object(
                 index_module,
                 "_document_metadata",
-                return_value=("DSBA", "coop", ["actual.png"]),
+                return_value=("DSBA", "coop", "2560", ["actual.png"]),
             ), patch("rag.retrieval.index.insert_embeddings"):
                 with self.assertRaisesRegex(ValueError, "unknown evidence keys=.*orphan.png"):
                     ensure_index(

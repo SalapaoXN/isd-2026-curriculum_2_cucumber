@@ -59,6 +59,11 @@ Run GENED first in each era because program merges backfill empty course descrip
 from the matching GENED final (`gened2564` for the 2565/2566 era;
 `gened2557` for 2560):
 
+Ground Truth is read for evaluation reports only. Runtime canonicalization copies
+the reviewed `final` artifacts and applies source-verified corrections. The index
+keeps differing course facts as separate records linked to their plans; records
+with description-only provenance do not become plan placements.
+
 **Windows PowerShell:**
 
 ```powershell

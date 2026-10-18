@@ -174,6 +174,12 @@
         "after": "เทคโนโลยีการให้บริการอินเทอร์เน็ต"
     },
     {
+        "course_code": "06016344",
+        "field": "name_en",
+        "before": "GRAPHICS DESIGN PRINCIPLES",
+        "after": "GRAPHIC DESIGN PRINCIPLES"
+    },
+    {
         "course_code": "06016318",
         "field": "name_th",
         "before": "สัมมนาทางด้านทักษะการสือสารในวิชาชีพ",
@@ -210,22 +216,10 @@
         "after": "COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING"
     },
     {
-        "course_code": "06016394",
-        "field": "name_en",
-        "before": "OVERSEA COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING"
-    },
-    {
         "course_code": "06016395",
         "field": "name_th",
         "before": "สหกิจศึกษาทางด้านการเทคโนโลยีเครือข่ายและระบบ",
         "after": "สหกิจศึกษาทางด้านเทคโนโลยีเครือข่ายและระบบ"
-    },
-    {
-        "course_code": "06016396",
-        "field": "name_en",
-        "before": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY"
     },
     {
         "course_code": "06016397",
@@ -244,12 +238,6 @@
         "field": "name_th",
         "before": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสือประสมและเกม",
         "after": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสื่อประสมและเกม"
-    },
-    {
-        "course_code": "06016398",
-        "field": "name_en",
-        "before": "OVERSEA COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT"
     },
     {
         "course_code": "060163xx",

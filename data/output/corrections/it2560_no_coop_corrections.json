@@ -12,12 +12,6 @@
         "after": "สหกิจศึกษาต่างประเทศทางด้านการพัฒนาสื่อประสมและเกม"
     },
     {
-        "course_code": "06016398",
-        "field": "name_en",
-        "before": "OVERSEA COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN MULTIMEDIA AND GAME DEVELOPMENT"
-    },
-    {
         "course_code": "06016314",
         "field": "name_en",
         "before": "PROBLEM SOLVING IN INFORMATION TECHNOLOGV",
@@ -168,6 +162,12 @@
         "after": "เทคโนโลยีการให้บริการอินเทอร์เน็ต"
     },
     {
+        "course_code": "06016344",
+        "field": "name_en",
+        "before": "GRAPHICS DESIGN PRINCIPLES",
+        "after": "GRAPHIC DESIGN PRINCIPLES"
+    },
+    {
         "course_code": "06016318",
         "field": "name_th",
         "before": "สัมมนาทางด้านทักษะการสือสารในวิชาชีพ",
@@ -208,6 +208,12 @@
         "field": "name_th",
         "before": "การพัฒนาเกมขันสูง",
         "after": "การพัฒนาเกมขั้นสูง"
+    },
+    {
+        "course_code": "060163xx",
+        "field": "name_en",
+        "before": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2 9OXXX 2",
+        "after": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2"
     },
     {
         "course_code": "06016329",
@@ -402,12 +408,6 @@
         "after": "สหกิจศึกษาต่างประเทศทางด้านวิศวกรรมซอฟต์แวร์"
     },
     {
-        "course_code": "06016394",
-        "field": "name_en",
-        "before": "OVERSEA COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN SOFTWARE ENGINEERING"
-    },
-    {
         "course_code": "06016396",
         "field": "name_th",
         "before": "สหกิจศึกษาต่างประเทศทางด้านเทคโนโลยีเครือข่ายและระบบร",
@@ -417,6 +417,6 @@
         "course_code": "06016396",
         "field": "name_en",
         "before": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SSTEM TECHNOLOGY",
-        "after": "OVERSEAS COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY"
+        "after": "OVERSEA COOPERATIVE EDUCATION IN NETWORK AND SYSTEM TECHNOLOGY"
     }
 ]

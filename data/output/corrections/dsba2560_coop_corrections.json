@@ -36,6 +36,12 @@
         "after": "GENERAL BUSINESS"
     },
     {
+        "course_code": "90101xxx",
+        "field": "name_en",
+        "before": "ELECTIVE COURSE IN SCIENTIFIC AND MATHEMATICS 2",
+        "after": "ELECTIVE COURSE IN SCIENCE AND MATHEMATICS 2"
+    },
+    {
         "course_code": "06026101",
         "field": "name_th",
         "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
@@ -129,7 +135,7 @@
         "course_code": "06026115",
         "field": "name_th",
         "before": "อัจฉริย ยะทางธุรกิจเบื้องต้น",
-        "after": "อัจฉริยะทางธุรกิจเบื้องต้น"
+        "after": "อัจฉริยยะทางธุรกิจเบื้องต้น"
     },
     {
         "course_code": "06026115",
@@ -193,15 +199,27 @@
     },
     {
         "course_code": "06026128",
+        "field": "name_th",
+        "before": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 วิชาเลือกเสรี วิชาเลือกเสรี 2 วิชาเลือกทางมนุษยศาสตร์ 2",
+        "after": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 วิชาเลือกเสรี 1 วิชาเลือกเสรี 2 วิชาเลือกทางมนุษยศาสตร์ 2"
+    },
+    {
+        "course_code": "06026128",
         "field": "name_en",
         "before": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYIICS 2 XXNNNNX FREE ELECIME COURSE 1 XXNXNNYX FREE ELECIME COURSE 2 9OXXXXXX ELECTIVE COURSE IN HUMANTV 2",
-        "after": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2 XXNNNNX FREE ELECTIVE COURSE 1 XXNXNNYX FREE ELECTIVE COURSE 2 9OXXXXXX ELECTIVE COURSE IN HUMANITY 2"
+        "after": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2 XXNNNNX FREE ELECTIVE COURSE 1 XXNNNNX FREE ELECTIVE COURSE 2 90XXXXXX ELECTIVE COURSE IN HUMANITY 2"
     },
     {
         "course_code": "06026130",
         "field": "name_en",
         "before": "COOPERATIE EDUCATLON IN DATA SCIENCE AND BUSINESS ANALYTICS",
         "after": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    },
+    {
+        "course_code": "06026131",
+        "field": "name_th",
+        "before": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์ เชิงธุรกิจ",
+        "after": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
     },
     {
         "course_code": "06026131",
@@ -231,7 +249,7 @@
         "course_code": "06026145",
         "field": "name_th",
         "before": "ระบบฐานข้อมูลขนสู",
-        "after": "ระบบฐานข้อมูลขั้นสูง"
+        "after": "ระบบฐานข้อมูลและการบำรุงรักษา"
     },
     {
         "course_code": "06026146",

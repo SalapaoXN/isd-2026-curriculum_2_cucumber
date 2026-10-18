@@ -2558,7 +2558,7 @@
         },
         {
             "code": "90642085",
-            "name_th": "วัฒนธรรมร่วมสมัย",
+            "name_th": "วัฒนธรรมรวมสมัย",
             "name_en": "CONTEMPORARY CULTURE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2645,7 +2645,7 @@
         },
         {
             "code": "90642088",
-            "name_th": "วัฒนธรรมจีนดั้งเดิม",
+            "name_th": "วัฒนธรรมจีนดังเดิม",
             "name_en": "TRADITIONAL CHINESE CULTURE",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -2674,7 +2674,7 @@
         },
         {
             "code": "90642089",
-            "name_th": "สังคม เศรษฐกิจ และการเมืองจีน",
+            "name_th": "สังคมเศรษฐกิจ และการเมืองจีน",
             "name_en": "CHINESE SOCIETY, ECONOMY AND POLITICS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -3710,7 +3710,7 @@
         },
         {
             "code": "90642124",
-            "name_th": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDCS",
+            "name_th": "เทคโนโลยีและนวัตกรรมทางวิทยาศาสตร์ สำหรับ SDGs",
             "name_en": "SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5100,7 +5100,7 @@
         },
         {
             "code": "90643011",
-            "name_th": "ศิลปะแห่งการบริหารการสือสาร",
+            "name_th": "ศิลปะแห่งการบริหารการสื่อสาร",
             "name_en": "ART OF COMMUNICATION MANAGEMENT",
             "credits": "3(2-3-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -5578,8 +5578,8 @@
         },
         {
             "code": "90643027",
-            "name_th": "เงินและคณิตศาสตร์",
-            "name_en": "MONEY AND MATH",
+            "name_th": "เงิน และคณิตศาสตร์",
+            "name_en": "MAN, MONEY AND MATH",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
             "type": "เลือก",
@@ -5672,7 +5672,7 @@
         },
         {
             "code": "90643030",
-            "name_th": "เศรษฐศาสตร์ทั่วไปและการศึกษาความเป็นไปได้ของโครงการ",
+            "name_th": "เศรษฐศาสตร์ทั่วไป และการศึกษาความเป็นไปได้ของโครงการ",
             "name_en": "GENERAL ECONOMICS AND PROJECT FEASIBILITY STUDY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",
@@ -6955,7 +6955,7 @@
         },
         {
             "code": "90644036",
-            "name_th": "การพัฒนาทักษะทางภาษาอังกฤษเพื่อการเรียนรู้ตลอดชีวิต",
+            "name_th": "การพัฒนาทักษะทางภาษาอังกฤษเบื้องต้นเพื่อการเรียนรู้ตลอดชีวิต",
             "name_en": "ENGLISH SKILL DEVELOPMENT FOR LIFE LONG LEARNING",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาศึกษาทั่วไป",

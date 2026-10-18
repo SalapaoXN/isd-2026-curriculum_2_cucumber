@@ -207,7 +207,7 @@
     },
     {
       "code": "06036002",
-      "name_th": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+      "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
       "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -1039,7 +1039,7 @@
     },
     {
       "code": "06036017",
-      "name_th": "ระบบที่ใช้ทั้งองค์กร ข้อมูลกลาง",
+      "name_th": "ระบบใช้ทั้งองค์กร",
       "name_en": "ENTERPRISE SYSTEMS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -1075,7 +1075,7 @@
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "NONE A",
+      "prerequisite": "NONE",
       "flexible_year_semester": null,
       "note": null,
       "year": 3,
@@ -1094,10 +1094,18 @@
           "source_page": 177,
           "document_category": "description",
           "document_page": 100
+        },
+        {
+          "source_filename": "bit2560_page_177.png",
+          "source_page": 177,
+          "document_page": 100,
+          "document_category": "description",
+          "excerpt": "The course-description page for 06036018 explicitly lists PREREQUISITE: NONE."
         }
       ],
       "desc_th": "ทฤษฎีและวิธีการประยุกต์ใช้สื่อ\nสังคมในองค์กร\nติกรรมของผู้คนในการมี\nปฏิสัมพันธ์กันโดยใช้สื่อสังคม ฺข้อดีและข้อเสียของการใช้สื่อสังคมฺการใช้สื่อสังคมกับธุรกิจ แนะนำเบื้องต้น\nเกี่ยวกับเครือข่ายสังคมที่เป็นที่นิยม; แนวคิดพื้นฐานของเครือข่าย ฺพื้นฐานจิตวิทยาของเครือข่ายสังคม\nการ\nวิเคราะห์ เครือข่ายสังคม",
-      "desc_en": "THEORETICAL AND APPLIED APPROACHES OF SOCIAL MEDIA IN ORGANIZATIONS; UNDERSTAND HOW\nPEOPLE\nAND  ORGANIZATIONS  ADAPT SOCIAL\nINTERACTION TO\nTHE\nCAPABILITIES  PROVIDED  BY\nSOCIAL\nMEDIA; THE ADVANTAGES AND DISADVANTAGES ASSOCIATED\nWITH SOCIAL MEDIA; SOCIAL\nMEDIA\nAND\nBUSINESS; INTRODUCTION TO MAIN SOCIAL MEDIA NETWORKS; BASIC NETWORK CONCEPTS; PSYCHOLOGICAL\nFOUNDATIONS OF SOCIAL NETWORKS; SOCIAL NETWORK ANALYSIS."
+      "desc_en": "THEORETICAL AND APPLIED APPROACHES OF SOCIAL MEDIA IN ORGANIZATIONS; UNDERSTAND HOW\nPEOPLE\nAND  ORGANIZATIONS  ADAPT SOCIAL\nINTERACTION TO\nTHE\nCAPABILITIES  PROVIDED  BY\nSOCIAL\nMEDIA; THE ADVANTAGES AND DISADVANTAGES ASSOCIATED\nWITH SOCIAL MEDIA; SOCIAL\nMEDIA\nAND\nBUSINESS; INTRODUCTION TO MAIN SOCIAL MEDIA NETWORKS; BASIC NETWORK CONCEPTS; PSYCHOLOGICAL\nFOUNDATIONS OF SOCIAL NETWORKS; SOCIAL NETWORK ANALYSIS.",
+      "prerequisite_observed": "NONE A"
     },
     {
       "code": "06036026",
@@ -1631,7 +1639,7 @@
     },
     {
       "code": "06036041",
-      "name_th": "การนวัตกรรมและการจัดการการเปลี่ยนแปลง",
+      "name_th": "การบริหารนวัตกรรมและการเปลี่ยนแปลง",
       "name_en": "INNOVATION AND CHANGE MANAGEMENT",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",

@@ -24,6 +24,12 @@
         "after": "INTRODUCTION TO MATHEMATICAL ECONOMICS"
     },
     {
+        "course_code": "06036002",
+        "field": "name_th",
+        "before": "คณิตศาสตร์ สำหรับเทคโนโลยีสารสนเทศ",
+        "after": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ"
+    },
+    {
         "course_code": "06036022",
         "field": "name_en",
         "before": "COMPUTER PROGRAMMNG",
@@ -135,7 +141,7 @@
         "course_code": "06036017",
         "field": "name_th",
         "before": "ระบบทีใช้ทังองค์กร ขอมเกล",
-        "after": "ระบบที่ใช้ทั้งองค์กร ข้อมูลกลาง"
+        "after": "ระบบใช้ทั้งองค์กร"
     },
     {
         "course_code": "06036018",
@@ -213,7 +219,7 @@
         "course_code": "06036041",
         "field": "name_th",
         "before": "พทัตพาสาพชีาEพพลีทNHททCาE",
-        "after": "การนวัตกรรมและการจัดการการเปลี่ยนแปลง"
+        "after": "การบริหารนวัตกรรมและการเปลี่ยนแปลง"
     },
     {
         "course_code": "06036042",

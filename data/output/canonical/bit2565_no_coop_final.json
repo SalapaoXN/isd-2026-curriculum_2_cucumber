@@ -38,7 +38,7 @@
     },
     {
       "code": "06036101",
-      "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
+      "name_th": "เดตศาสตร์ สำหรับธุรกิจ",
       "name_en": "MATHEMATICS FOR BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -100,10 +100,10 @@
     },
     {
       "code": "96641001",
-      "name_th": "โรงเรียนสร้างเสน่ห์",
+      "name_th": "โรงเรียนสรางเสนห์",
       "name_en": "CHARM SCHOOL",
       "credits": "2(1-2-3)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -125,7 +125,7 @@
       "name_th": "กีฬาและนันทนาการ",
       "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
       "credits": "1(0-3-2)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -147,7 +147,7 @@
       "name_th": "ภาษาอังกฤษพื้นฐาน 1",
       "name_en": "FOUNDATION ENGLISH 1",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -166,14 +166,14 @@
     },
     {
       "code": "96644042",
-      "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
+      "name_th": "กลุ่มวิชาที่กำหนดโดยคณะ การสื่อสารและการนำเสนออย่างมืออาชีพ",
       "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
+      "note": null,
       "year": 1,
       "semester": 1,
       "source_provenance": [
@@ -220,7 +220,7 @@
     {
       "code": "06036109",
       "name_th": "กระบวนการและโมเดลทางธุรกิจ",
-      "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
+      "name_en": "BUSINESS PROCESSES AND BUSIESS MODEL",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -282,7 +282,7 @@
     {
       "code": "06036125",
       "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
-      "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
+      "name_en": "COMPUTER ARCHITECTURE AND OPERATING SSTEM",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -320,9 +320,9 @@
     {
       "code": "96641002",
       "name_th": "ความฉลาดทางดิจิทัล",
-      "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
+      "name_en": "DIGITAL ITELLIGENCE QUOTIENT",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -344,7 +344,7 @@
       "name_th": "ภาษาอังกฤษพื้นฐาน 2",
       "name_en": "FOUNDATION ENGLISH 2",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -364,7 +364,7 @@
     {
       "code": "06036103",
       "name_th": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ",
-      "name_en": "INTEGRATION OF STATISTICALTECHNIQUES FOR\nBUSINESS",
+      "name_en": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -432,8 +432,8 @@
     },
     {
       "code": "06036105",
-      "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
-      "name_en": "FINANCIAL ACCOUNTING FOR NON-ACCOUNTANTS",
+      "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญริ",
+      "name_en": "FINANCAL ACCOUNTING FOR NON ACCOUNTANTS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -502,7 +502,7 @@
     {
       "code": "06036120",
       "name_th": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
-      "name_en": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
+      "name_en": "DATA STRUCTURES AND ALGORTHMS PRINCIPLES",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -602,7 +602,7 @@
     {
       "code": "06036111",
       "name_th": "เทคโนโลยีดิจิทัลสำหรับธุรกิจ",
-      "name_en": "DIGITAL TECHNOLOGY FOR BUSINESS",
+      "name_en": "DIGITAL TECHNOLOCY FOR BUSIESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -633,7 +633,7 @@
     {
       "code": "06036112",
       "name_th": "แนวคิดระบบฐานข้อมูล",
-      "name_en": "DATABASE SYSTEM CONCEPTS",
+      "name_en": "DATABASE SVSTEM CONCEPTS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -670,8 +670,8 @@
     },
     {
       "code": "06036113",
-      "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
-      "name_en": "HUMAN INTERFACE DESIGN",
+      "name_th": "การออกแจเบบส่วนต่อประสานกับมนุษย์",
+      "name_en": "HUMAN ITERFACE DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -702,7 +702,7 @@
     {
       "code": "06036124",
       "name_th": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น",
-      "name_en": "INTRODUCTION TO COMPUTER NETWORK AND\nCYBERSECURITY",
+      "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITV",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -732,11 +732,11 @@
     },
     {
       "code": "9664xxxx",
-      "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1",
+      "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
       "name_en": "GE ELECTIVE COURSE REQUIREMENT 1",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -755,7 +755,7 @@
     {
       "code": "06036107",
       "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
-      "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+      "name_en": "INFORMATION TECHNOLOGV PROJECT MANAGEMENT",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -786,7 +786,7 @@
     {
       "code": "06036110",
       "name_th": "การวางแผนทรัพยากรองค์กร",
-      "name_en": "ENTERPRISE RESOURCE PLANNING",
+      "name_en": "ENTERPRISE RESOURCE PLANNNG",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -817,11 +817,11 @@
     {
       "code": "06036114",
       "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
-      "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+      "name_en": "WEB APPLICATION DEVELOPMENT USIG FRAMEWORKS",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "06036119 หรือ 06036122",
+      "prerequisite": "06036119, 06036122",
       "flexible_year_semester": null,
       "note": null,
       "year": 3,
@@ -848,7 +848,7 @@
     {
       "code": "06036121",
       "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ",
-      "name_en": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
+      "name_en": "BUSINESS INFORMATION SVSTEM ANALYSIS AND DESIGN",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -879,7 +879,7 @@
     {
       "code": "06036123",
       "name_th": "เทคโนโลยีกลุ่มเมฆ",
-      "name_en": "CLOUD TECHNOLOGY",
+      "name_en": "CLOUD TECHNOLOCY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
@@ -908,12 +908,12 @@
       "desc_en": "INTRODUCTION\nTO  CLOUD  ARCHITECTURE,\nCLOUD  DELIVERY  MODELS, CLOUD  DEPLOYMENT\nMODELS, CLOUD ENABLING TECHNOLOGY., CLOUD MANAGEMENT, CLOUD SECURITY., AND BUSINESS COST\nMETRICS AND PRICING MODELS FOR CLOUD SERVICES"
     },
     {
-      "code": "96644XXX",
+      "code": "96644xxx",
       "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
       "name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION",
-      "credits": "3(3-0-6) \nหรือ \n3(2-2-5)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "credits": "หรือ 3(2-2-5)",
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1024,14 +1024,14 @@
     },
     {
       "code": "96643021",
-      "name_th": "ผู้ประกอบการสมัยใหม่",
+      "name_th": "ผูประกอบการสมัยใหม่",
       "name_en": "MODERN ENTREPRENEURS",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
-      "note": "กลุ่มวิชาที่กำหนดโดยคณะ",
+      "note": null,
       "year": 3,
       "semester": 2,
       "source_provenance": [
@@ -1046,7 +1046,7 @@
     },
     {
       "code": "06036115",
-      "name_th": "ความมั่นคงของระบบสารสนเทศ",
+      "name_th": "ความมนคงของระบบสารสนเทศ",
       "name_en": "INFORMATION SYSTEM SECURITY",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
@@ -1107,10 +1107,10 @@
     },
     {
       "code": "96642033",
-      "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
+      "name_th": "กลุ่มวิชาที่กำหนดโดยคณะ กฎหมายสำหรับคนรุ่นใหม่",
       "name_en": "LAW FOR NEW GENERATION",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -1132,8 +1132,8 @@
       "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 2",
       "name_en": "GE ELECTIVE COURSE REQUIREMENT 2",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก",
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1151,11 +1151,11 @@
     },
     {
       "code": "06036xxx",
-      "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4",
-      "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY1 \nOR\nCOURSE GROUP1-4",
-      "credits": "3(3-0-6) \nหรือ \n3(2-2-5)",
+      "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือกลุ่ม วิชาที่ 1-4",
+      "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4",
+      "credits": "หรือ 3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1173,11 +1173,11 @@
     },
     {
       "code": "06036xxx",
-      "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือ กลุ่มวิชาที่ 1-4",
-      "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2\nOR\nCOURSE GROUP1-4",
-      "credits": "3(3-0-6) \nหรือ \n3(2-2-5)",
+      "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือกลุ่มวิชาที่ 1-4",
+      "name_en": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4",
+      "credits": "หรือ 3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1198,8 +1198,8 @@
       "name_th": "วิชาเลือกเสรี 1",
       "name_en": "FREE ELECTIVE COURSE 1",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
+      "category": "หมวดวิชาเสรี",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1220,8 +1220,8 @@
       "name_th": "วิชาเลือกเสรี 2",
       "name_en": "FREE ELECTIVE COURSE 2",
       "credits": "3(3-0-6)",
-      "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
+      "category": "หมวดวิชาเสรี",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
       "note": null,
@@ -1391,7 +1391,7 @@
     {
       "code": "06036132",
       "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 1",
-      "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY1",
+      "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 1",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1415,7 +1415,7 @@
     {
       "code": "06036133",
       "name_th": "หัวข้อพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
-      "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY2",
+      "name_en": "SPECIAL TOPICS IN BUSINESS INFORMATION TECHNOLOGY 2",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1439,7 +1439,7 @@
     {
       "code": "06036134",
       "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 1",
-      "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY1",
+      "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 1",
       "credits": "3(2-2-5)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1463,8 +1463,8 @@
     {
       "code": "06036135",
       "name_th": "ปฏิบัติการพิเศษทางด้านเทคโนโลยีสารสนเทศทางธุรกิจ 2",
-      "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY2",
-      "credits": "3(3-0-6)",
+      "name_en": "SPECIAL WORKSHOP IN BUSINESS INFORMATION TECHNOLOGY 2",
+      "credits": "",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
       "prerequisite": "ไม่มี",
@@ -1487,7 +1487,7 @@
     {
       "code": "06036136",
       "name_th": "กระบวนการอัตโนมัติด้วยโรบอตสำหรับธุรกิจ",
-      "name_en": "ROBOTIC PROCESS AUTOMATION FORBUSINESS",
+      "name_en": "ROBOTIC PROCESS AUTOMATION FOR BUSINESS",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1669,7 +1669,7 @@
     {
       "code": "06036143",
       "name_th": "การเก็บความต้องการและสร้างต้นแบบในด้านยูเอ็กซ์ยูไอ",
-      "name_en": "UX/UI REQUIREMENT AND PROTOTYPING",
+      "name_en": "UX / UI REQUIREMENT AND PROTOTYPING",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1693,7 +1693,7 @@
     {
       "code": "06036144",
       "name_th": "การประเมินส่วนต่อประสานผู้ใช้",
-      "name_en": "EVALUATING USERINTERFACE",
+      "name_en": "EVALUATING USER INTERFACE",
       "credits": "3(3-0-6)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
@@ -1722,18 +1722,15 @@
       "desc_en": "USER INTERFACE (UL) EVALUATING PRINCIPLES,\nUL EVAUATING TYPE, UL EVALUATING PROCESS,\nFUNDAMENTAL COMPONENTS TO EVALUATE UL DESIGN, UL EVALUATING TOOLS, CURRENT TECHNOLOGY\nOF UL EVALUATING IN ORGANIZATION."
     },
     {
-      "code": [
-        "06036147",
-        "06036148"
-      ],
-      "name_th": "สหกิจศึกษา\nหรือ\nสหกิจศึกษาต่างประเทศ",
-      "name_en": "COOPERATIVE EDUCATION\nOR\nOVERSEA COOPERATIVE EDUCATION",
+      "code": "06036147 หรือ 06036148",
+      "name_th": "สหกิจศึกษา\nสหกิจศึกษาต่างประเทศ",
+      "name_en": "COOPERATIVE EDUCATION\nOVERSEAS COOPERATIVE EDUCATION",
       "credits": "6(0-35-0)",
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก",
       "prerequisite": "ไม่มี",
-      "flexible_year_semester": null,
-      "note": "เฉพาะเข้าร่วมโครงการสหกิจ",
+      "flexible_year_semester": "4/2",
+      "note": "เฉพาะโครงการเข้าร่วมสหกิจ",
       "year": 0,
       "semester": 0,
       "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ\nวิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้า\n|นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นตโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่าง\nคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
@@ -1746,7 +1743,35 @@
           "document_category": "description",
           "document_page": 252
         }
-      ]
+      ],
+      "descriptions_by_code": {
+        "06036147": {
+          "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+          "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE  ENTERPRISES.\nAFTER\nCOMPLETION.,  STUDENTS\nNEED\nTO  PRESENT  THEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE.",
+          "source_provenance": [
+            {
+              "program": "BIT",
+              "source_filename": "bit2565_page_257.png",
+              "source_page": 257,
+              "document_page": 252,
+              "document_category": "description"
+            }
+          ]
+        },
+        "06036148": {
+          "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้า\n|นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นตโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่าง\nคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+          "desc_en": "COOPERATIVE EDUCATION IS\nA COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL INSTITUTES\nAND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. ATER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+          "source_provenance": [
+            {
+              "program": "BIT",
+              "source_filename": "bit2565_page_257.png",
+              "source_page": 257,
+              "document_page": 252,
+              "document_category": "description"
+            }
+          ]
+        }
+      }
     }
   ],
   "catalog": {

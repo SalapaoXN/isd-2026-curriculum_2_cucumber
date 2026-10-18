@@ -9,7 +9,7 @@
         "course_code": "06036101",
         "field": "name_th",
         "before": "เตศาสตร์ สำหรับธุรกิจ",
-        "after": "สถิติศาสตร์สำหรับธุรกิจ"
+        "after": "เดตศาสตร์ สำหรับธุรกิจ"
     },
     {
         "course_code": "06036118",
@@ -34,12 +34,6 @@
         "field": "name_en",
         "before": "PROCRAMMING FUNDAMENTALS",
         "after": "PROGRAMMING FUNDAMENTALS"
-    },
-    {
-        "course_code": "9664xxxx",
-        "field": "name_th",
-        "before": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
-        "after": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1"
     },
     {
         "course_code": "9664xxxx",

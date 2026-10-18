@@ -81,6 +81,25 @@
           "evidence": "Co-op plan table lists code 06026128 as Project in DSBA 2 with 3(0-9-0); following elective rows are separate records."
         }
       ]
+    },
+    {
+      "catalog_key": "dsba-2560",
+      "program": "DSBA",
+      "plan": "coop",
+      "course_code": "06026115",
+      "fields": {
+        "name_th": "อัจฉริยะทางธุรกิจเบื้องต้น"
+      },
+      "source_provenance": [
+        {
+          "program": "DSBA",
+          "source_filename": "dsba2560_page_032.png",
+          "source_page": 32,
+          "document_page": 27,
+          "document_category": "plan",
+          "evidence": "Co-op plan table lists code 06026115 as อัจฉริยะทางธุรกิจเบื้องต้น."
+        }
+      ]
     }
   ]
 }

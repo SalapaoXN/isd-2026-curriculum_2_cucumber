@@ -38,7 +38,7 @@
         },
         {
             "code": "06036101",
-            "name_th": "สถิติศาสตร์สำหรับธุรกิจ",
+            "name_th": "เดตศาสตร์ สำหรับธุรกิจ",
             "name_en": "MATHEMATICS FOR BUSINESS",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -732,7 +732,7 @@
         },
         {
             "code": "9664xxxx",
-            "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1",
+            "name_th": "วิชาเลือกหมวดวิชาศึกษา ทั่วไป สำหรับหลักสูตรนานาชาติ 1",
             "name_en": "GE ELECTIVE COURSE REQUIREMENT 1",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1743,7 +1743,35 @@
                     "document_category": "description",
                     "document_page": 252
                 }
-            ]
+            ],
+            "descriptions_by_code": {
+                "06036147": {
+                    "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ\nที่ยินยอมให้นักศึกษาได้นำความรู้ที่ได้เรียนในห้องเรียน ไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่หน่วยงานนั้นๆ\nโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่างคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+                    "desc_en": "COOPERATIVE EDUCATION IS A COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL\nINSTITUTES AND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM\nWITH PRACTICAL WORK EXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY\nAND\nTHE  ENTERPRISES.\nAFTER\nCOMPLETION.,  STUDENTS\nNEED\nTO  PRESENT  THEIR\nWORKS\nTO\nTHE\nEXAMINATION COMMITTEE.",
+                    "source_provenance": [
+                        {
+                            "program": "BIT",
+                            "source_filename": "bit2565_page_257.png",
+                            "source_page": 257,
+                            "document_page": 252,
+                            "document_category": "description"
+                        }
+                    ]
+                },
+                "06036148": {
+                    "desc_th": "วิชาสหกิจศึกษา เป็นโปรแกรมความร่วมมือทางด้านวิชาการระหว่างสถานศึกษากับหน่วยงานต่างๆ ใน\nต่างประเทศที่ยินยอมให้นักศึกษาได้า\n|นำความรู้ที่ได้เรียนในห้องเรียนไปประยุกต์ ใช้ในการปฏิบัติงานจริงที่\nหน่วยงานนั้นตโดยโครงการของนักศึกษาที่ทำระหว่างปฏิบัติงานจะต้องเป็นไปตามที่ได้กำหนดไว้ร่วมกัน ระหว่าง\nคณะฯ\nและหน่วยงานที่ไปปฏิบัติงาน โดยเมื่อปฏิบัติงานครบแล้วนักศึกษาจำเป็นที่จะต้องนำเสนอผลงานของ\nโครงการต่อคณะกรรมการสอบ",
+                    "desc_en": "COOPERATIVE EDUCATION IS\nA COLLABORATED EDUCATION PROGRAM BETWEEN EDUCATIONAL INSTITUTES\nAND ENTERPRISES THAT ALLOWS STUDENTS TO APPLY THEIR KNOWLEDGE IN THE CLASSROOM WITH PRACTICAL WORK\nEXPERIENCE. THE STUDENT'S PROJECT WORK MUST BE APPROVED BY THE FACULTY AND THE ENTERPRISES. ATER\nCOMPLETION., STUDENTS NEED TO PRESENT THEIR WORKS TO THE EXAMINATION COMMITTEE.",
+                    "source_provenance": [
+                        {
+                            "program": "BIT",
+                            "source_filename": "bit2565_page_257.png",
+                            "source_page": 257,
+                            "document_page": 252,
+                            "document_category": "description"
+                        }
+                    ]
+                }
+            }
         }
     ],
     "catalog": {

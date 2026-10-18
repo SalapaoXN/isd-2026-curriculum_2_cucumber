@@ -69,7 +69,7 @@
         },
         {
             "code": "06066101",
-            "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
+            "name_th": "พืนฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
             "name_en": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
             "credits": "3(3-0-6)",
             "category": "หมวดวิชาเฉพาะ",
@@ -504,7 +504,7 @@
         },
         {
             "code": "06026206",
-            "name_th": "การวิเคราะห์ข้อมูลและการโปรแกรม",
+            "name_th": "การวิเคราะห์ ข้อมูลและการโปรแกรม",
             "name_en": "DATA ANALYTICS AND PROGRAMMING",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -566,7 +566,7 @@
         },
         {
             "code": "06066300",
-            "name_th": "แนวคิดระบบฐานข้อมูล",
+            "name_th": "แ เนวคิดระบบฐานข้อมูล",
             "name_en": "DATABASE SYSTEM CONCEPTS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -974,8 +974,8 @@
         },
         {
             "code": "06026xxx",
-            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
-            "name_en": "ELECTIVE IN DATA SCIENCE 1 ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
+            "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1 วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
+            "name_en": "ELECTIVE IN DATA SCIENCE ELECTIVE IN STATISTICAL ANALYSIS 1 ELECTIVE IN DATA ENGINEERING 1",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -1078,7 +1078,7 @@
         },
         {
             "code": "06026213",
-            "name_th": "ระบบข้อมูลขนาดใหญ่",
+            "name_th": "ระบบข้อมูลมหัต",
             "name_en": "BIG DATA SYSTEMS",
             "credits": "3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
@@ -1306,7 +1306,7 @@
         {
             "code": "06026xxx",
             "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2",
-            "name_en": "ELECTIVES IN ELECTIVE OR SPECIFIC PROFESSIONAL COURSES 2",
+            "name_en": "ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL COURSES 2",
             "credits": "3(3-0-6) หรือ 3(2-2-5)",
             "category": "หมวดวิชาเฉพาะ",
             "type": "บังคับ",
@@ -2497,7 +2497,7 @@
         },
         {
             "code": "06026260",
-            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+            "name_th": "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิง",
             "name_en": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
             "credits": "6(0-35-0)",
             "category": "หมวดวิชาเฉพาะ",

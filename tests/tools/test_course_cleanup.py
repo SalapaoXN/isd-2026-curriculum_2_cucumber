@@ -560,6 +560,11 @@ class CourseCleanupTests(unittest.TestCase):
                     alternative_course("06036147", 366, "description", "LOCAL"),
                     alternative_course("06036148", 367, "description", "OVERSEAS"),
                 ]
+                for course in description_courses:
+                    source_page = course["source_provenance"][0]["source_page"]
+                    course["source_provenance"] = provenance(
+                        "BIT", source_page, "description"
+                    )
                 for page_num, courses in (
                     (page, table_courses),
                     (366, description_courses),
@@ -597,6 +602,31 @@ class CourseCleanupTests(unittest.TestCase):
                     or course["code"] == combined_code
                 ]
                 self.assertEqual(pair_codes, [combined_code])
+                if plan == "no_coop":
+                    pair = next(
+                        course
+                        for course in result["courses"]
+                        if course["code"] == combined_code
+                    )
+                    self.assertEqual(
+                        pair["descriptions_by_code"],
+                        {
+                            "06036147": {
+                                "desc_th": "DESC TH LOCAL",
+                                "desc_en": "DESC EN LOCAL",
+                                "source_provenance": provenance(
+                                    "BIT", 366, "description"
+                                ),
+                            },
+                            "06036148": {
+                                "desc_th": "DESC TH OVERSEAS",
+                                "desc_en": "DESC EN OVERSEAS",
+                                "source_provenance": provenance(
+                                    "BIT", 367, "description"
+                                ),
+                            },
+                        },
+                    )
 
 
     def test_it_description_only_pair_merges_for_no_coop(self):
@@ -621,6 +651,21 @@ class CourseCleanupTests(unittest.TestCase):
         self.assertEqual(
             [entry["source_page"] for entry in result["courses"][0]["source_provenance"]],
             [366, 367],
+        )
+        self.assertEqual(
+            result["courses"][0]["descriptions_by_code"],
+            {
+                "06016481": {
+                    "desc_th": "DESC TH LOCAL",
+                    "desc_en": "DESC EN LOCAL",
+                    "source_provenance": provenance("IT", 366, "description"),
+                },
+                "06016482": {
+                    "desc_th": "DESC TH OVERSEAS",
+                    "desc_en": "DESC EN OVERSEAS",
+                    "source_provenance": provenance("IT", 367, "description"),
+                },
+            },
         )
         self.assertNotIn("Ground Truth", result["source"])
         self.assertNotIn("GT_Template", result["source"])
