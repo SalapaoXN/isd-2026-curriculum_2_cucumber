@@ -24,10 +24,11 @@ class RAGServiceTests(unittest.TestCase):
         def generate(_prompt, _payload, schema):
             return GeneralDraft(answer="Hello! How can I help with your curriculum?")
 
-        with patch.object(rag_service, "_classify_use_rag", return_value=False), \
+        with patch.object(rag_service, "_classify_use_rag", return_value=False) as classifier, \
              patch.object(rag_service, "_generate", side_effect=generate), \
              patch.object(rag_service, "_search", side_effect=AssertionError("retrieval should be skipped")):
             result = rag_service.answer("Hello", [])
+        classifier.assert_called_once()
         self.assertEqual(result["status"], "general")
         self.assertEqual(result["sources"], [])
         self.assertFalse(result["database_searched"])
@@ -125,6 +126,63 @@ class RAGServiceTests(unittest.TestCase):
         self.assertIn("1. IT101 — Course One — 3(3-0-6) credits", result["answer"])
         self.assertIn("2. IT102 — Course Two — 3(3-0-6) credits", result["answer"])
         self.assertEqual(len(result["sources"]), 2)
+
+    def test_thai_course_list_with_invalid_route_output_asks_for_missing_edition(self):
+        question = "IT ปี 1 ภาคเรียนที่ 1 เรียนวิชาอะไรบ้าง?"
+
+        def invalid_route(*_args, **_kwargs):
+            return RouteDecision.model_validate_json("{}")
+
+        def filters(**_kwargs):
+            return {"programs": ["IT"], "academic_years": ["2565", "2560"]}
+
+        with patch.object(rag_service, "_classify_use_rag",
+                          side_effect=AssertionError("explicit course lists skip classification")), \
+             patch.object(rag_service, "_generate", side_effect=invalid_route), \
+             patch("backend.curriculum.filters", side_effect=filters), \
+             patch("backend.curriculum.list_courses", return_value={"items": [], "total": 0}), \
+             patch.object(rag_service, "_clarification_response",
+                          wraps=rag_service._clarification_response) as clarify:
+            result = rag_service.answer(question, [])
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["answer"], "หมายถึงหลักสูตรฉบับปีใดของ IT?")
+        self.assertEqual(result["options"], ["2565", "2560"])
+        routed_decision = clarify.call_args.args[1]
+        self.assertIsNone(routed_decision.academic_year)
+        self.assertEqual(routed_decision.study_year, 1)
+        self.assertEqual(routed_decision.semester, 1)
+
+    def test_thai_course_list_missing_edition_asks_before_calling_gemini(self):
+        question = "ตามหลักสูตร IT ชั้นปีที่ 1 ภาคเรียนที่ 1 มีวิชาอะไรบ้าง?"
+
+        def filters(*, program="", **_kwargs):
+            if program:
+                return {"academic_years": ["2565", "2560"]}
+            return {"programs": ["IT"], "academic_years": ["2565", "2560"]}
+
+        with patch.object(rag_service, "_classify_use_rag",
+                          side_effect=AssertionError("explicit course lists skip classification")), \
+             patch.object(rag_service, "_generate",
+                          side_effect=AssertionError("missing-edition lists must not call Gemini")), \
+             patch("backend.curriculum.filters", side_effect=filters), \
+             patch("backend.curriculum.list_courses", return_value={"items": [], "total": 0}):
+            result = rag_service.answer(question, [])
+
+        self.assertEqual(result["status"], "clarification_required")
+        self.assertEqual(result["answer"], "หมายถึงหลักสูตรฉบับปีใดของ IT?")
+        self.assertEqual(result["options"], ["2565", "2560"])
+        self.assertFalse(result["database_searched"])
+
+    def test_explicit_all_editions_course_list_is_not_forced_to_choose_one_year(self):
+        question = "IT ชั้นปีที่ 1 ภาคเรียนที่ 1 มีวิชาอะไรบ้าง ทั้ง 2 ปีหลักสูตร?"
+
+        self.assertIsNone(rag_service._missing_edition_course_list_route(question, []))
+
+    def test_explicit_year_outside_database_is_not_reinterpreted_as_missing(self):
+        question = "IT ปี 2025 ชั้นปีที่ 1 มีวิชาอะไรบ้าง?"
+
+        self.assertIsNone(rag_service._missing_edition_course_list_route(question, []))
 
     def test_course_detail_expands_multiple_flexible_year_semester_terms(self):
         decision = RouteDecision(
@@ -259,16 +317,103 @@ class RAGServiceTests(unittest.TestCase):
               "value": 129, "unit": "credits", "sources": [{"source_filename": "it.pdf", "source_page": 1}]}
         dsba = {"requirement_id": 2, "program_code": "DSBA", "academic_year": "2565",
                 "value": 132, "unit": "credits", "sources": [{"source_filename": "dsba.pdf", "source_page": 2}]}
-        with patch.object(rag_service, "_classify_use_rag", return_value=True), \
+        with patch.object(rag_service, "_classify_use_rag", side_effect=AssertionError("explicit curriculum queries skip the yes/no call")) as classifier, \
              patch.object(rag_service, "_generate", return_value=decision), \
              patch("backend.curriculum.program_requirements", side_effect=[
                  {"items": [it], "total": 1}, {"items": [dsba], "total": 1},
-             ]):
+             ]), \
+             self.assertLogs(rag_service._logger, level="INFO") as captured:
             result = rag_service.answer("เปรียบเทียบหน่วยกิตจบ IT กับ DSBA ปี 2565", [])
+        classifier.assert_not_called()
         self.assertIn("IT 2565: 129 หน่วยกิต", result["answer"])
         self.assertIn("DSBA 2565: 132 หน่วยกิต", result["answer"])
         self.assertTrue(result["answer"].splitlines()[-1].endswith("3 หน่วยกิต"))
         self.assertEqual(len(result["sources"]), 2)
+        log_text = "\n".join(captured.output)
+        self.assertIn("event=stage_skipped stage=classifier", log_text)
+        self.assertIn("stage=query_resolution outcome=completed", log_text)
+        self.assertIn("stage=structured_program_requirement_comparison outcome=completed", log_text)
+
+    def test_program_requirement_comparison_defaults_to_latest_sourced_years(self):
+        decision = RouteDecision(
+            intent="clarification", use_rag=False,
+            standalone_query="Compare IT and AIT total graduation credits",
+            needs_clarification=True, clarification_question="Which curriculum edition?",
+            compare_program_requirements=True,
+            left_scope=CurriculumScope(program_code="IT"),
+            right_scope=CurriculumScope(program_code="AIT"),
+        )
+        it = {"requirement_id": 1, "program_code": "IT", "academic_year": "2565",
+              "value": 129, "unit": "credits", "sources": [{"source_filename": "it.pdf", "source_page": 1}]}
+        ait = {"requirement_id": 2, "program_code": "AIT", "academic_year": "2566",
+               "value": 120, "unit": "credits", "sources": [{"source_filename": "ait.pdf", "source_page": 2}]}
+        with patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.latest_program_requirement_year",
+                   side_effect=lambda program: {"IT": "2565", "AIT": "2566"}[program]) as latest_year, \
+             patch("backend.curriculum.program_requirements", side_effect=[
+                 {"items": [it], "total": 1}, {"items": [ait], "total": 1},
+             ]) as lookup:
+            result = rag_service.answer("เปรียบเทียบจำนวนหน่วยกิตจบของ IT กับ AIT", [])
+
+        self.assertEqual(result["status"], "answer")
+        self.assertIn("IT 2565: 129 หน่วยกิต", result["answer"])
+        self.assertIn("AIT 2566: 120 หน่วยกิต", result["answer"])
+        self.assertIn("9 หน่วยกิต", result["answer"])
+        self.assertEqual(latest_year.call_args_list[0].kwargs, {"program": "IT"})
+        self.assertEqual(latest_year.call_args_list[1].kwargs, {"program": "AIT"})
+        self.assertEqual(lookup.call_args_list[0].kwargs, {"program": "IT", "academic_year": "2565"})
+        self.assertEqual(lookup.call_args_list[1].kwargs, {"program": "AIT", "academic_year": "2566"})
+
+    def test_explicit_unavailable_year_is_not_replaced_with_latest(self):
+        decision = RouteDecision(
+            intent="clarification", use_rag=False,
+            standalone_query="Compare IT and DSBA credits in 2560",
+            needs_clarification=True, clarification_question="Which curriculum edition?",
+            compare_program_requirements=True,
+            left_scope=CurriculumScope(program_code="IT"),
+            right_scope=CurriculumScope(program_code="DSBA"),
+        )
+        with patch.object(rag_service, "_generate", return_value=decision), \
+             patch("backend.curriculum.latest_program_requirement_year",
+                   side_effect=AssertionError("an explicit year must not be defaulted")), \
+             patch("backend.curriculum.program_requirements", return_value={"items": [], "total": 0}) as lookup:
+            result = rag_service.answer("เปรียบเทียบหน่วยกิตจบ IT กับ DSBA ปี 2560", [])
+
+        self.assertEqual(result["status"], "insufficient_evidence")
+        self.assertIn("IT ปี 2560", result["answer"])
+        self.assertEqual(lookup.call_args.kwargs, {"program": "IT", "academic_year": "2560"})
+
+    def test_bare_year_reply_is_carried_into_curriculum_resolver(self):
+        decision = RouteDecision(
+            intent="course_question", use_rag=True,
+            standalone_query="Compare IT and DSBA 2565 graduation credits",
+            needs_clarification=False, clarification_question=None,
+            compare_program_requirements=True,
+            left_scope=CurriculumScope(program_code="IT", academic_year="2565"),
+            right_scope=CurriculumScope(program_code="DSBA", academic_year="2565"),
+        )
+        it = {"requirement_id": 1, "program_code": "IT", "academic_year": "2565",
+              "value": 129, "unit": "credits", "sources": []}
+        dsba = {"requirement_id": 2, "program_code": "DSBA", "academic_year": "2565",
+                "value": 132, "unit": "credits", "sources": []}
+        history = [
+            ChatTurn(role="user", content="เปรียบเทียบจำนวนหน่วยกิตจบของ IT กับ DSBA"),
+            ChatTurn(role="assistant", content="หมายถึงหลักสูตรฉบับปีใดของ IT?"),
+        ]
+        with patch.object(rag_service, "_classify_use_rag", side_effect=AssertionError("year clarification replies skip the yes/no call")) as classifier, \
+             patch.object(rag_service, "_generate", return_value=decision) as resolver, \
+             patch("backend.curriculum.program_requirements", side_effect=[
+                 {"items": [it], "total": 1}, {"items": [dsba], "total": 1},
+             ]):
+            result = rag_service.answer("2565", history)
+
+        classifier.assert_not_called()
+        self.assertEqual(
+            resolver.call_args.args[1]["latest_message"],
+            "ผู้ใช้ตอบคำถามยืนยันปีหลักสูตรว่า 2565.",
+        )
+        self.assertEqual(resolver.call_args.args[1]["history"][-1]["content"], "หมายถึงหลักสูตรฉบับปีใดของ IT?")
+        self.assertIn("3 หน่วยกิต", result["answer"])
 
     def test_course_detail_followup_preserves_history_for_resolver(self):
         decision = RouteDecision(
@@ -506,6 +651,30 @@ class RAGServiceTests(unittest.TestCase):
         self.assertIn("DSBA 2565 Year 1 Semester 1", result["answer"])
         self.assertIn("AIT 2566 Year 1 Semester 1", result["answer"])
 
+    def test_curriculum_comparison_does_not_treat_placeholder_codes_as_course_identity(self):
+        left = [
+            {"course_id": 1, "course_code": "12345678", "name_en": "Old Course Name"},
+            {"course_id": 2, "course_code": "060164xx", "name_en": "IT ELECTIVE 1"},
+            {"course_id": 3, "course_code": "9064xxxx", "name_en": "GENERAL EDUCATION ELECTIVE 1"},
+            {"course_id": 4, "course_code": None, "name_en": "UNCODED COURSE A"},
+        ]
+        right = [
+            {"course_id": 5, "course_code": "12345678", "name_en": "Updated Course Name"},
+            {"course_id": 6, "course_code": "060164xx", "name_en": "IT ELECTIVE 1"},
+            {"course_id": 7, "course_code": "9064xxxx", "name_en": "GENERAL EDUCATION ELECTIVE"},
+            {"course_id": 8, "course_code": None, "name_en": "UNCODED COURSE B"},
+        ]
+
+        common, left_only, right_only = rag_service._compare_course_sets(left, right)
+
+        self.assertEqual(
+            {(left_course["course_id"], right_course["course_id"], match_by)
+             for left_course, right_course, match_by in common},
+            {(1, 5, "course_code"), (2, 6, "normalized_name")},
+        )
+        self.assertEqual({course["course_id"] for course in left_only}, {3, 4})
+        self.assertEqual({course["course_id"] for course in right_only}, {7, 8})
+
     def test_top_k_includes_all_chunks_tied_at_the_boundary(self):
         distances = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.6, 0.6, 0.7]
         calls = []
@@ -573,10 +742,10 @@ class RAGServiceTests(unittest.TestCase):
             "credits": "3", "academic_year": "2565", "program_code": "IT",
             "plans": ["coop"], "sources": ["it2565_page_1.png · p.1"],
         }]
-        with patch.object(rag_service, "_classify_use_rag", side_effect=ConnectionError("offline")), \
+        with patch.object(rag_service, "_classify_use_rag", side_effect=AssertionError("explicit curriculum queries skip the yes/no call")), \
              patch("backend.curriculum.filters", return_value={"programs": ["IT"], "academic_years": ["2565"]}), \
              patch("backend.curriculum.list_courses", return_value={"items": courses, "total": 1}), \
-             patch.object(rag_service, "_generate", side_effect=AssertionError("Gemini is unavailable")), \
+             patch.object(rag_service, "_generate", side_effect=ConnectionError("offline")), \
              patch.object(rag_service, "_search", side_effect=AssertionError("course lists use structured retrieval")):
             result = rag_service.answer("List all IT 2565 year 1 semester 1 courses", [])
 

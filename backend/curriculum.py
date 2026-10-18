@@ -506,3 +506,39 @@ def program_requirements(*, program: str, academic_year: str,
                 "source_filename", "source_page", "source_uri", "source_locator",
             )})
     return {"items": results, "total": len(results)}
+
+
+def latest_program_requirement_year(*, program: str,
+                                    requirement_type: str = "total_program_credits") -> str | None:
+    """Return the newest edition with a sourced, usable program requirement."""
+    path = _db_path()
+    if not path.is_file():
+        raise HTTPException(503, "Curriculum index is not built yet.")
+    query = """
+        SELECT cat.academic_year
+        FROM program_requirements AS req
+        JOIN catalogs AS cat ON cat.catalog_id=req.catalog_id
+        WHERE req.program_code=? COLLATE NOCASE
+          AND req.requirement_type=?
+          AND req.value IS NOT NULL
+          AND NULLIF(TRIM(CAST(req.value AS TEXT)), '') IS NOT NULL
+          AND NULLIF(TRIM(req.unit), '') IS NOT NULL
+          AND CAST(cat.academic_year AS INTEGER) > 0
+          AND EXISTS (
+              SELECT 1
+              FROM program_requirement_provenance AS links
+              JOIN provenance AS prov ON prov.provenance_id=links.provenance_id
+              WHERE links.requirement_id=req.requirement_id
+                AND LOWER(TRIM(COALESCE(prov.document_category, '')))='program_requirement'
+                AND (NULLIF(TRIM(prov.source_filename), '') IS NOT NULL
+                     OR NULLIF(TRIM(prov.source_uri), '') IS NOT NULL)
+          )
+        ORDER BY CAST(cat.academic_year AS INTEGER) DESC, cat.academic_year DESC
+        LIMIT 1
+    """
+    try:
+        with closing(sqlite3.connect(str(path))) as db:
+            row = db.execute(query, (program.strip(), requirement_type)).fetchone()
+    except sqlite3.Error:
+        raise HTTPException(503, "Program requirement data is unavailable.") from None
+    return str(row[0]) if row and row[0] is not None else None

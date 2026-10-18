@@ -42,6 +42,7 @@ class RouteDecision(BaseModel):
     clarification_question: str | None
     clarification_options: list[str] = Field(default_factory=list, max_length=12)
     exhaustive_course_list: bool = False
+    all_curriculum_editions: bool = False
     program_code: str | None = None
     academic_year: str | None = None
     study_year: int | None = None

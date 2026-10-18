@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 from backend import rag_service
 from backend.curriculum import (
-    course_prerequisite_requirements, courses_requiring, filters, list_courses, program_requirements,
-    verified_course_name_in_text,
+    course_prerequisite_requirements, courses_requiring, filters, latest_program_requirement_year,
+    list_courses, program_requirements, verified_course_name_in_text,
 )
 
 
@@ -239,6 +239,19 @@ class CurriculumListingTests(unittest.TestCase):
         self.assertEqual(result["items"][0]["value"], 129)
         self.assertEqual(result["items"][0]["sources"][0]["source_filename"], "it-overview.pdf")
         self.assertEqual(program_requirements(program="IT", academic_year="2560")["total"], 0)
+
+    def test_latest_program_requirement_year_requires_linked_source(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("INSERT INTO program_requirements VALUES (2, 3, 'DSBA', 'total_program_credits', '=', 132, 'credits')")
+            db.execute("INSERT INTO program_requirements VALUES (3, 3, 'IT', 'total_program_credits', '=', 140, 'credits')")
+            db.execute("INSERT INTO provenance VALUES (4, 'program_requirement', 'dsba-overview.pdf', 1, NULL, NULL)")
+            db.execute("INSERT INTO program_requirement_provenance VALUES (2, 4)")
+            db.execute("INSERT INTO provenance VALUES (5, 'program_requirement', 'it-unverified.pdf', 1, NULL, NULL)")
+            db.commit()
+
+        self.assertEqual(latest_program_requirement_year(program="IT"), "2565")
+        self.assertEqual(latest_program_requirement_year(program="DSBA"), "2568")
+        self.assertIsNone(latest_program_requirement_year(program="AIT"))
 
 
 if __name__ == "__main__":
